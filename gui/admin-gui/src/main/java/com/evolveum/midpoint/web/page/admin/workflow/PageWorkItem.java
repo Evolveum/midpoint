@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.DefaultAjaxButton;
 import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProtectedWorkItemId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
@@ -96,13 +97,13 @@ public class PageWorkItem extends PageAdminWorkItems {
 	private static final String ID_CANCEL = "cancel";
 
 	private LoadableModel<WorkItemDto> workItemDtoModel;
-	private String taskId;
+	private String externalizedProtectedId;
 	private PrismObject<UserType> powerDonor;
 
     public PageWorkItem(PageParameters parameters) {
 
-		taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
-		if (taskId == null) {
+		externalizedProtectedId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+		if (externalizedProtectedId == null) {
 			throw new IllegalStateException("Work item ID not specified.");
 		}
 
@@ -138,26 +139,28 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-			final ObjectQuery query = getPrismContext().queryFor(WorkItemType.class)
-					.item(F_EXTERNAL_ID).eq(taskId)
+        	ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
+	        final ObjectQuery query = getPrismContext().queryFor(WorkItemType.class)
+					.item(F_EXTERNAL_ID).eq(protectedWorkItemId.id)
 					.build();
 			final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
 					.items(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF).resolve()
 					.build();
 			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
 			if (workItems.size() > 1) {
-				throw new SystemException("More than one work item with ID of " + taskId);
+				throw new SystemException("More than one work item with ID of " + protectedWorkItemId.id);
 			} else if (workItems.size() == 0) {
-				throw new ObjectNotFoundException("No work item with ID of " + taskId);
+				throw new ObjectNotFoundException("No work item with ID of " + protectedWorkItemId.id);
 			}
 			final WorkItemType workItem = workItems.get(0);
-
-			final String taskOid = WfContextUtil.getTaskOid(workItem);
+	        String taskOid = WfContextUtil.getTaskOid(workItem);
 			if (taskOid == null) {
 				// this is a problem ... most probably we will not be able to do anything reasonable - let's give it up
 				result.recordFatalError(getString("PageWorkItem.noRequest"));
 				showResult(result, false);
 				throw redirectBackViaRestartResponseException();
+			} else if (!protectedWorkItemId.isCorrect(workItem)) {
+				throw new IllegalArgumentException("Wrong work item hash");
 			}
 			TaskType taskType = null;
 			List<TaskType> relatedTasks = new ArrayList<>();

@@ -201,23 +201,36 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
      * removes all values to delete that the property does not have, etc.
      * Returns null if the delta is not needed at all.
+	 *
+	 * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
+	 *                           values from them cannot be narrowed out.
      */
-    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object);
+    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
 
 	/**
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
      * removes all values to delete that the property does not have, etc.
      * Returns null if the delta is not needed at all.
+	 *
+	 * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
+	 *                           values from them cannot be narrowed out.
      */
-	ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator);
+	ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems);
 
 	/**
 	 * Checks if the delta is redundant w.r.t. current state of the object.
 	 * I.e. if it changes the current object state.
+	 *
+	 * @param assumeMissingItems Assumes that some items in the object may be missing. So delta that replaces them by null
+	 *                           or deletes some values from them cannot be considered redundant.
 	 */
-	boolean isRedundant(PrismObject<? extends Objectable> object);
+	boolean isRedundant(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
 
-	boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator);
+	/**
+	 * @param assumeMissingItems Assumes that some items in the object may be missing. So delta that replaces them by null
+	 *                           or deletes some values from them cannot be considered redundant.
+	 */
+	boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems);
 
 	void validate() throws SchemaException;
 

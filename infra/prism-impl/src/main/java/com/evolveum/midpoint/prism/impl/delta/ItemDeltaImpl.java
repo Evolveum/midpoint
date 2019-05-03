@@ -829,23 +829,34 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
      * removes all values to delete that the property does not have, etc.
      * Returns null if the delta is not needed at all.
+     *
+     * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
+     *                           values from them cannot be narrowed out.
      */
-    public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object) {
-    	return narrow(object, null);
+    public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
+    	return narrow(object, null, assumeMissingItems);
     }
 	/**
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
      * removes all values to delete that the property does not have, etc.
      * Returns null if the delta is not needed at all.
+	 *
+	 * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
+	 *                           values from them cannot be narrowed out.
      */
-    public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator) {
+    public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems) {
     	checkMutability();
 	    Item<V,D> currentItem = object.findItem(getPath());
     	if (currentItem == null) {
+    		if (assumeMissingItems || object.isIncomplete()) {
+    			return this;        // we know nothing about missing item
+		    }
     		if (valuesToDelete != null) {
-    			ItemDelta<V,D> clone = clone();
-    			clone.resetValuesToDelete();
-    			return clone;
+			    ItemDelta<V, D> clone = clone();
+			    clone.resetValuesToDelete();
+			    return clone;
+		    } else if (CollectionUtils.isEmpty(valuesToAdd) && CollectionUtils.isEmpty(valuesToReplace)) {
+    			return null;    // i.e. either "replace to ()" or "add ()" or empty delta altogether => can skip
     		} else {
     			// Nothing to narrow
     			return this;
@@ -854,14 +865,15 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     		if (isReplace()) {
     			// We can narrow replace deltas only if the replace set matches
     			// current item exactly. Otherwise we may lose some values.
-    			if (currentItem.valuesEqual(valuesToReplace, comparator)) {
+			    // And of course we can do this only on complete items.
+    			if (!currentItem.isIncomplete() && currentItem.valuesEqual(valuesToReplace, comparator)) {
     				return null;
     			} else {
     				return this;
     			}
     		} else {
 	    		ItemDelta<V,D> clone = clone();
-	    		if (clone.getValuesToDelete() != null) {
+	    		if (!currentItem.isIncomplete() && clone.getValuesToDelete() != null) {
 				    clone.getValuesToDelete()
 						    .removeIf(valueToDelete -> !currentItem.containsEquivalentValue(valueToDelete, comparator));
 	    			if (clone.getValuesToDelete().isEmpty()) {
@@ -876,14 +888,14 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	    		}
 	    		return clone;
     		}
-    	}
+	    }
     }
 
 	/**
 	 * Checks if the delta is redundant w.r.t. current state of the object.
 	 * I.e. if it changes the current object state.
 	 */
-	public boolean isRedundant(PrismObject<? extends Objectable> object) {
+	public boolean isRedundant(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
 		Comparator<V> comparator = (o1, o2) -> {
 			if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA)) {
 				return 0;
@@ -891,11 +903,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 				return 1;
 			}
 		};
-		return isRedundant(object, comparator);
+		return isRedundant(object, comparator, assumeMissingItems);
 	}
 
-	public boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator) {
-		Item<V,D> currentItem = (Item<V,D>) object.findItem(getPath());
+	public boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems) {
+		//noinspection unchecked
+		Item<V,D> currentItem = object.findItem(getPath());
 		if (currentItem == null) {
 			if (valuesToReplace != null) {
 				return valuesToReplace.isEmpty();
@@ -905,9 +918,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 			if (valuesToReplace != null) {
 				return MiscUtil.unorderedCollectionCompare(valuesToReplace, currentItem.getValues(), comparator);
 			}
-			ItemDeltaImpl<V,D> narrowed = (ItemDeltaImpl<V, D>) narrow(object, comparator);
-			boolean narrowedNotEmpty = narrowed == null || narrowed.hasAnyValue(narrowed.valuesToAdd) || narrowed.hasAnyValue(narrowed.valuesToDelete);
-			return narrowedNotEmpty;
+			ItemDeltaImpl<V,D> narrowed = (ItemDeltaImpl<V, D>) narrow(object, comparator, assumeMissingItems);
+			return narrowed == null || narrowed.hasAnyValue(narrowed.valuesToAdd) || narrowed.hasAnyValue(narrowed.valuesToDelete);
 		}
 	}
 

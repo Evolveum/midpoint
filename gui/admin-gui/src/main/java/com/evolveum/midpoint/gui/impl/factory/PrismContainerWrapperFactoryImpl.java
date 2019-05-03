@@ -76,23 +76,17 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		registry.addToRegistry(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.WrapperFactory#getOrder()
-	 */
 	@Override
 	public int getOrder() {
 		return Integer.MAX_VALUE;
 	}
 
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory#createValueWrapper(com.evolveum.midpoint.prism.PrismValue, com.evolveum.midpoint.web.component.prism.ValueStatus, com.evolveum.midpoint.gui.impl.factory.WrapperContext)
-	 */
 	@Override
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
-		containerValueWrapper.setExpanded(!value.isEmpty());
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value));
 		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
@@ -110,12 +104,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	}
 
 	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
-			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException{
-		if (def.isOperational()) {
-			return;
-		}
+			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
 		
-		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+		if (skipCreateItem(def)) {
 			return;
 		}
 		
@@ -142,5 +133,35 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
 	}
 	
+	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+		if (value.isEmpty()) {
+			return containsEmphasizedItems(parent.getDefinitions());
+		}
+		
+		return true;
+	}
 
+	private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
+		for (ItemDefinition def : definitions) {
+			if (def.isEmphasized()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected boolean skipCreateItem(ItemDefinition<?> def) {
+		if (def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return true;
+		}
+		
+		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			return true;
+		}
+		
+		return false;
+	}
 }

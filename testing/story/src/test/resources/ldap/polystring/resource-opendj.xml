@@ -98,6 +98,9 @@
 			     cf. attribute 'description' below. -->
             <attribute>
                 <ref>ri:cn</ref>
+                <limitations>
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
                 <displayName>Common Name</displayName>
                 <outbound>
                 	<source>
@@ -107,7 +110,10 @@
             </attribute>
 
             <attribute>
-                <ref>ri:sn</ref>                
+                <ref>ri:sn</ref>            
+                <limitations>
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
                 <outbound>
                 	<source>
                 		<path>familyName</path>
@@ -117,6 +123,9 @@
 
             <attribute>
                 <ref>ri:givenName</ref>
+                <limitations>
+                	<maxOccurs>1</maxOccurs>
+                </limitations>
                 <outbound>
                 	<source>
                 		<path>givenName</path>
@@ -222,19 +231,12 @@
             <activation>
                 <administrativeStatus>
                     <outbound/>
-                    <inbound/>
                 </administrativeStatus>
             </activation>
             			
             <credentials>
                 <password>
                     <outbound/>
-                    <inbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                    		<generate/>
-                    	</expression>
-                    </inbound>
                 </password>
             </credentials>
 

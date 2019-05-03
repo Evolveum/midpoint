@@ -32,6 +32,7 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -76,7 +77,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private void initLayout() {
 		
 		Panel headerPanel = createHeaderPanel();
-		headerPanel.add(new VisibleBehaviour(() -> getModelObject() != null && !getModelObject().isColumn()));
+		headerPanel.add(new VisibleBehaviour(() -> getParent().findParent(AbstractItemWrapperColumnPanel.class) == null));
 		add(headerPanel);
 		
 		ListView<VW> valuesPanel = createValuesPanel();

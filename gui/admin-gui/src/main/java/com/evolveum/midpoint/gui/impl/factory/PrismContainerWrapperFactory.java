@@ -15,9 +15,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.util.List;
+
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -29,4 +32,6 @@ public interface PrismContainerWrapperFactory<C extends Containerable> extends I
 
 	
 	PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status);
+	
+	
 }

@@ -219,7 +219,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
 
 
         tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
+                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible())) {
 
             private static final long serialVersionUID = 1L;
 
@@ -364,6 +364,10 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     private boolean isTabVisible(ObjectTypes objectType){
         List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList();
         return availableObjectTypesList == null || availableObjectTypesList.size() == 0 || availableObjectTypesList.contains(objectType);
+    }
+
+    protected boolean isOrgTreeTabVisible(){
+        return true;
     }
 
     protected List<ObjectTypes> getAvailableObjectTypesList(){

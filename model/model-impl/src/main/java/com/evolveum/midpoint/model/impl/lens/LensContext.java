@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -62,6 +63,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
+	
+	/**
+	 * Unique identifier of a request (operation).
+	 * Used to correlate request and execution audit records of a single operation.
+	 * Note: taskId cannot be used for that, as task can have many operations (e.g. reconciliation task).
+	 */
+	private String requestIdentifier = null;
 
 	private ModelState state = ModelState.INITIAL;
 
@@ -232,6 +240,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public String getTriggeredResourceOid() {
 		return triggeredResourceOid;
+	}
+	
+	@Override
+	public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
+
+	public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
+	}
+	
+	public void generateRequestIdentifierIfNeeded() {
+		if (requestIdentifier != null) {
+			return;
+		}
+		requestIdentifier = ModelImplUtils.generateRequestIdentifier();
 	}
 
 	@Override
@@ -1127,6 +1151,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 				.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
 		LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
 
+		lensContextType.setRequestIdentifier(requestIdentifier);
 		lensContextType.setState(state != null ? state.toModelStateType() : null);
 		lensContextType.setChannel(channel);
 
@@ -1193,6 +1218,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 					e);
 		}
 
+		lensContext.setRequestIdentifier(lensContextType.getRequestIdentifier());
 		lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
 		lensContext.setChannel(lensContextType.getChannel());
 		lensContext.setFocusContext(LensFocusContext

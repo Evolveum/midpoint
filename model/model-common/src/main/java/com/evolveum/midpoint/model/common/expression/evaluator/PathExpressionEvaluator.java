@@ -104,62 +104,62 @@ public class PathExpressionEvaluator<V extends PrismValue, D extends ItemDefinit
 
         Map<String, TypedValue> variablesAndSources = ExpressionUtil.compileVariablesAndSources(context);
 
-        Object first = path.first();
-        if (ItemPath.isVariable(first)) {
-        	String variableName = ItemPath.toVariableName(first).getLocalPart();
+		Object first = path.first();
+		if (ItemPath.isVariable(first)) {
+			String variableName = ItemPath.toVariableName(first).getLocalPart();
 			TypedValue variableValueAndDefinition = variablesAndSources.get(variableName);
 			if (variableValueAndDefinition == null) {
 				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
 			}
 			Object variableValue = variableValueAndDefinition.getValue();
 
-        	if (variableValue == null) {
-    			return null;
-    		}
-    		if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
-        		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver,
-        				"path expression in "+ context.getContextDescription(), context.getResult());
-    		} else if (variableValue instanceof PrismPropertyValue<?>){
-    			PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
-    			outputTriple.addToZeroSet((V) variableValue);
-    			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
-    		} else {
-    			throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
-    		}
+			if (variableValue == null) {
+				return null;
+			}
+			if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?,?>) {
+				resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver,
+						"path expression in "+ context.getContextDescription(), context.getResult());
+			} else if (variableValue instanceof PrismPropertyValue<?>){
+				PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+				outputTriple.addToZeroSet((V) variableValue);
+				return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, context.getAdditionalConvertor(), null, protector, prismContext);
+			} else {
+				throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
+			}
 
-        	resolvePath = path.rest();
-        }
+			resolvePath = path.rest();
+		}
 
-        if (resolveContext == null) {
-        	return null;
-        }
+		if (resolveContext == null) {
+			return null;
+		}
 
-       while (!resolvePath.isEmpty()) {
+		while (!resolvePath.isEmpty()) {
 
-    	   if (resolveContext.isContainer()) {
-    	    	DefinitionResolver defResolver = (parentDef, path) -> {
-       	    		if (parentDef != null && parentDef.isDynamic()) {
-    	    			// This is the case of dynamic schema extensions, such as assignment extension.
-    	    			// Those may not have a definition. In that case just assume strings.
-    	    			// In fact, this is a HACK. All such schemas should have a definition.
-    	    			// Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-    	    			return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
-       	    		} else {
-       	    			return null;
-       	    		}
-    	    	};
+			if (resolveContext.isContainer()) {
+				DefinitionResolver defResolver = (parentDef, path) -> {
+					if (parentDef != null && parentDef.isDynamic()) {
+						// This is the case of dynamic schema extensions, such as assignment extension.
+						// Those may not have a definition. In that case just assume strings.
+						// In fact, this is a HACK. All such schemas should have a definition.
+						// Otherwise there may be problems with parameter types for caching compiles scripts and so on.
+						return prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+					} else {
+						return null;
+					}
+				};
     	    	
-    	    	try {
-    	    		resolveContext = resolveContext.findIdi(resolvePath.firstAsPath(), defResolver);
-    	    	} catch (IllegalArgumentException e) {
-    	    		throw new IllegalArgumentException(e.getMessage()+"; resolving path "+resolvePath.firstAsPath()+" on "+resolveContext, e);
-    	    	}
-    	    	
-        		resolvePath = resolvePath.rest();
-        		if (resolveContext == null) {
-        			throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
-        		}
-        		
+				try {
+					resolveContext = resolveContext.findIdi(resolvePath.firstAsPath(), defResolver);
+				} catch (IllegalArgumentException e) {
+					throw new IllegalArgumentException(e.getMessage()+"; resolving path "+resolvePath.firstAsPath()+" on "+resolveContext, e);
+				}
+
+				if (resolveContext == null) {
+					throw new ExpressionEvaluationException("Cannot find item using path "+path+" in "+ context.getContextDescription());
+				}
+				resolvePath = resolvePath.rest();
+
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
                 // But the path cannot be null, oherwise the code will die

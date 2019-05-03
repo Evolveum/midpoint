@@ -326,6 +326,7 @@ public class ModelRestService {
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
+			@QueryParam("resolveNames") List<String> resolveNames,
 			@Context MessageContext mc){
 		LOGGER.debug("model rest service for get operation start");
 
@@ -333,8 +334,8 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
-		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-				prismContext);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include,
+				exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 		Response response;
 
 		try {
@@ -456,6 +457,7 @@ public class ModelRestService {
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
+			@QueryParam("resolveNames") List<String> resolveNames,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -465,8 +467,8 @@ public class ModelRestService {
 		Response response;
 		try {
 
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-					prismContext);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
+					exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 
 			List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, parentResult);
 			ObjectListType listType = new ObjectListType();
@@ -723,7 +725,8 @@ public class ModelRestService {
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
-			@Context MessageContext mc){
+			@QueryParam("resolveNames") List<String> resolveNames,
+			@Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -732,8 +735,8 @@ public class ModelRestService {
 		Response response;
 		try {
 			ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-					prismContext);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
+					exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();

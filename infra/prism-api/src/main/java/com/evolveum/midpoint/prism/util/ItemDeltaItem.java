@@ -238,7 +238,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			return (ItemDeltaItem<IV,ID>) this;
 		}
 		
-		Item<IV,ID> subItemOld = null;
+		Item<IV,ID> subItemOld;
 		ItemPath subResidualPath = null;
 		ItemPath newResolvePath = resolvePath.append(path);
 		if (itemOld != null) {
@@ -246,10 +246,14 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			if (partialItemOld != null) {
 				subItemOld = partialItemOld.getItem();
 				subResidualPath = partialItemOld.getResidualPath();
+			} else {
+				subItemOld = null;
 			}
+		} else {
+			subItemOld = null;
 		}
 		
-		Item<IV,ID> subItemNew = null;
+		Item<IV,ID> subItemNew;
 		if (itemNew != null) {
 			PartiallyResolvedItem<IV,ID> partialItemNew = itemNew.findPartial(path);
 			if (partialItemNew != null) {
@@ -257,10 +261,14 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 				if (subResidualPath == null) {
 					subResidualPath = partialItemNew.getResidualPath();
 				}
+			} else {
+				subItemNew = null;
 			}
+		} else {
+			subItemNew = null;
 		}
-		
-		ItemDelta<IV,ID> subDelta= null;
+
+		ItemDelta<IV,ID> subDelta = null;
 		if (delta != null) {
 			if (delta instanceof ContainerDelta<?>) {
 				subDelta = (ItemDelta<IV,ID>) ((ContainerDelta<?>)delta).getSubDelta(path);
@@ -272,7 +280,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			}
 		}
 
-		ID subDefinition = null;
+		ID subDefinition;
 		if (definition instanceof PrismContainerDefinition<?>) {
 			subDefinition = ((PrismContainerDefinition<?>)definition).findItemDefinition(path);
 		} else {
@@ -301,10 +309,12 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		if (subItemDeltas != null) {
 			Item<IV,ID> subAnyItem = subIdi.getAnyItem();
 			Collection<ItemDelta<?,?>> subSubItemDeltas = new ArrayList<>();
-			for (ItemDelta<?,?> subItemDelta: subItemDeltas) {
-				CompareResult compareComplex = subItemDelta.getPath().compareComplex(subAnyItem.getPath());
-				if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
-					subSubItemDeltas.add(subItemDelta);
+			if (subAnyItem != null) {
+				for (ItemDelta<?, ?> subItemDelta : subItemDeltas) {
+					CompareResult compareComplex = subItemDelta.getPath().compareComplex(subAnyItem.getPath());
+					if (compareComplex == CompareResult.EQUIVALENT || compareComplex == CompareResult.SUBPATH) {
+						subSubItemDeltas.add(subItemDelta);
+					}
 				}
 			}
 			if (!subSubItemDeltas.isEmpty()) {

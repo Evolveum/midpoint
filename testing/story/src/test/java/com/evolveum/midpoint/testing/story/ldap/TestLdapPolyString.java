@@ -45,7 +45,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.testing.story.TestTrafo;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -118,12 +117,6 @@ public class TestLdapPolyString extends AbstractLdapTest {
 			"hr", "kapetan"
 		};
 
-	private static final String NS_LDAP = "http://midpoint.evolveum.com/xml/ns/story/ldap/ext";
-	protected static final ItemName TITLE_MAP_QNAME = new ItemName(NS_LDAP, "titleMap");
-	protected static final ItemName TITLE_MAP_KEY_QNAME = new ItemName(NS_LDAP, "key");
-	protected static final ItemName TITLE_MAP_VALUE_QNAME = new ItemName(NS_LDAP, "value");
-	private static final ItemPath PATH_EXTENSION_TITLE_MAP = ItemPath.create(ObjectType.F_EXTENSION, TITLE_MAP_QNAME);
-
 	private static final String USER_JACK_BLAHBLAH = "BlahBlahBlah!";
 
 
@@ -151,12 +144,17 @@ public class TestLdapPolyString extends AbstractLdapTest {
 
 		DebugUtil.setDetailedDebugDump(true);
 	}
+	
+	@Override
+	protected String getLdapResourceOid() {
+		return RESOURCE_OPENDJ_OID;
+	}
 
 	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         displayTestTitle(TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
 
         OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
         TestUtil.assertSuccess(testResultOpenDj);

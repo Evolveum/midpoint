@@ -23,11 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -54,7 +56,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
-			childItem = (I) def.instantiate();
+			childItem = (I) parent.getNewValue().findOrCreateItem(name);
+//			childItem = (I) def.instantiate();
 			status = ItemStatus.ADDED;
 		}
 		
@@ -128,6 +131,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
+	
+	
 
 //	@Override
 //	public VW createValueWrapper(PV value, IW parent, ValueStatus status, WrapperContext context) throws SchemaException {

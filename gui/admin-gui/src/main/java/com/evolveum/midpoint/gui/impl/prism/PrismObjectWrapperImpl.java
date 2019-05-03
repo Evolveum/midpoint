@@ -15,10 +15,20 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -31,35 +41,60 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainerWrapperImpl<O> implements PrismObjectWrapper<O> {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	public PrismObjectWrapperImpl(PrismObject<O> item, ItemStatus status) {
 		super(null, item, status);
 	}
-	
+
 	@Override
 	public ObjectDelta<O> getObjectDelta() throws SchemaException {
-		ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass()).asObjectDelta(getObject().getOid());
+		ObjectDelta<O> objectDelta = getPrismContext().deltaFor(getObject().getCompileTimeClass())
+				.asObjectDelta(getObject().getOid());
+
+		Collection<ItemDelta> deltas = new ArrayList<>();
 		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
-			ItemDelta delta = itemWrapper.getDelta();
+			ItemDelta delta = itemWrapper.getDelta(true);
 			if (delta == null) {
 				continue;
 			}
-			objectDelta.addModification(delta);
+			// objectDelta.addModification(delta);
+			deltas.add(delta);
 		}
-		
+
+		switch (getStatus()) {
+			case ADDED:
+				objectDelta.setChangeType(ChangeType.ADD);
+				PrismObject<O> clone = (PrismObject<O>) getOldItem().clone();
+				// cleanupEmptyContainers(clone);
+				for (ItemDelta d : deltas) {
+					d.applyTo(clone);
+				}
+				objectDelta.setObjectToAdd(clone);
+				break;
+			case NOT_CHANGED:
+				objectDelta.mergeModifications(deltas);
+				break;
+			case DELETED:
+				objectDelta.setChangeType(ChangeType.DELETE);
+				break;
+		}
+		// if (ItemStatus.ADDED == getStatus()) {
+		// objectDelta.setObjectToAdd(getObject());
+		// }
+
 		if (objectDelta.isEmpty()) {
 			return null;
 		}
-		
+
 		return objectDelta;
 	}
-	
+
 	@Override
 	@Deprecated
 	public String getOid() {
 		return ((PrismObject<O>) getItem()).getOid();
 	}
-	
+
 	@Override
 	public PrismObject<O> getObject() {
 		return (PrismObject<O>) getItem();
@@ -69,10 +104,10 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 	public PrismObjectValueWrapper<O> getValue() {
 		return (PrismObjectValueWrapper<O>) getValues().iterator().next();
 	}
-	
+
 	@Override
 	public String getDisplayName() {
 		return "properties";
 	}
-	
+
 }

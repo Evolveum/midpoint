@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
@@ -609,12 +610,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		OrgRelationObjectSpecificationType specOrgRelation = objectSelector.getOrgRelation();
 		RoleRelationObjectSpecificationType specRoleRelation = objectSelector.getRoleRelation();
+		List<ObjectReferenceType> autzArchetypeRefs = objectSelector.getArchetypeRef();
 
 		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSelector.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null || specRoleRelation != null) {
-				throw new SchemaException("Both filter/org/role and special "+desc+" specification specified in "+autzHumanReadableDesc);
+			if (objectSelector.getFilter() != null || objectSelector.getOrgRef() != null || specOrgRelation != null || specRoleRelation != null || !autzArchetypeRefs.isEmpty()) {
+				throw new SchemaException("Both filter/org/role/archetype and special "+desc+" specification specified in "+autzHumanReadableDesc);
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
 				if (special == SpecialObjectSpecificationType.SELF) {
@@ -641,6 +643,31 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("    {}: specials empty: {}", autzHumanReadableDesc, specSpecial);
 		}
 
+		// archetype
+		if (!autzArchetypeRefs.isEmpty()) {
+			boolean match = false;
+			if (object.canRepresent(AssignmentHolderType.class)) {
+				List<ObjectReferenceType> objectArchetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+				if (objectArchetypeRefs != null && !objectArchetypeRefs.isEmpty()) {
+					for (ObjectReferenceType autzArchetypeRef: autzArchetypeRefs) {
+						for (ObjectReferenceType objectArchetypeRef : objectArchetypeRefs) {
+							if (objectArchetypeRef.getOid().equals(autzArchetypeRef.getOid())) {
+								LOGGER.trace("    archetype {} applicable for {}, object OID {} because archetype {} matches",
+										autzHumanReadableDesc, desc, object.getOid(), objectArchetypeRef.getOid());
+								match = true;
+								break;
+							}
+						}
+					}
+				}
+			}
+			if (!match) {
+				LOGGER.trace("    archetypes {} not applicable for {}, object OID {} because archetypes do not match",
+						autzHumanReadableDesc, desc, object.getOid());
+				return false;
+			}
+		}
+		
 		// orgRelation
 		if (specOrgRelation != null) {
 			boolean match = false;
@@ -1244,6 +1271,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
+							List<ObjectReferenceType> archetypeRefs = objectSpecType.getArchetypeRef();
 							OrgRelationObjectSpecificationType specOrgRelation = objectSpecType.getOrgRelation();
 							RoleRelationObjectSpecificationType specRoleRelation = objectSpecType.getRoleRelation();
 							TenantSelectorType specTenant = objectSpecType.getTenant();
@@ -1305,8 +1333,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									LOGGER.trace("      Skipping authorization, because specials are present: {}", specSpecial);
 									applicable = false;
 								}
-								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null || specTenant != null) {
-									throw new SchemaException("Both filter/org/role/tenant and special object specification specified in authorization");
+								if (specFilterType != null || specOrgRef != null || specOrgRelation != null || specRoleRelation != null || specTenant != null || !archetypeRefs.isEmpty()) {
+									throw new SchemaException("Both filter/org/role/archetype/tenant and special object specification specified in authorization");
 								}
 								ObjectFilter specialFilter = null;
 								for (SpecialObjectSpecificationType special: specSpecial) {
@@ -1340,6 +1368,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("      filter empty");
 							}
 
+							// Archetypes
+							if (!archetypeRefs.isEmpty()) {
+								ObjectFilter archsFilter = null;
+								for (ObjectReferenceType archetypeRef : archetypeRefs) {
+									ObjectFilter archFilter = prismContext.queryFor(AssignmentHolderType.class)
+											.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRef.getOid())
+											.buildFilter();
+									archsFilter = ObjectQueryUtil.filterOr(archsFilter, archFilter, prismContext);
+								}
+								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, archsFilter, prismContext);
+								LOGGER.trace("      applying archetype filter {}", archsFilter);
+							} else {
+								LOGGER.trace("      archetype empty");
+							}
+							
 							// Org
 							if (specOrgRef != null) {
 								ObjectFilter orgFilter = prismContext.queryFor(ObjectType.class)

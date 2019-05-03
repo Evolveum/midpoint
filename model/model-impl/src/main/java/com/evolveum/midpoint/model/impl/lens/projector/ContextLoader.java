@@ -1370,7 +1370,7 @@ public class ContextLoader {
 					for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
 						if (linkRef.getOid().equals(projCtx.getOid())) {
 							// The deleted shadow is still in the linkRef. This should not happen, but it obviously happens sometimes.
-							// Maybe some strange race condition? Anyway, we want a robust behavior and this linkeRef should NOT be there.
+							// Maybe some strange race condition? Anyway, we want a robust behavior and this linkRef should NOT be there.
 							// So simple remove it.
 							LOGGER.warn("The OID "+projCtx.getOid()+" of deleted shadow still exists in the linkRef after discovery ("+focusCurrent+"), removing it");
 							ReferenceDelta unlinkDelta = prismContext.deltaFactory().reference().createModificationDelete(

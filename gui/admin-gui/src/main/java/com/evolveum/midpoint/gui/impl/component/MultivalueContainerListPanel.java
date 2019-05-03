@@ -21,7 +21,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -267,6 +271,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 					}
 
 					@Override
+					protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+						CompositedIconBuilder builder = MultivalueContainerListPanel.this.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+						return builder != null ? builder : super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+					}
+
+					@Override
 					protected DisplayType getMainButtonDisplayType() {
 						return getNewObjectButtonDisplayType();
 					}
@@ -305,6 +315,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
 	protected List<S> getNewObjectInfluencesList(){
 		return new ArrayList<>();
+	}
+
+	protected CompositedIconBuilder getAdditionalIconBuilder(S additionalButtonObject, DisplayType additionalButtonDisplayType){
+		return null;
 	}
 
 	protected DisplayType getNewObjectButtonDisplayType(){

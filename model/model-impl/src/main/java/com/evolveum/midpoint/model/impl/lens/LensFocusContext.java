@@ -192,7 +192,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
 
-    public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
+	// TODO is this method ever needed?
+    @SuppressWarnings("unused")
+    public void swallowToWave0SecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
@@ -203,6 +205,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
       	}
 
         secondaryDelta.swallow(propDelta);
+	}
+
+	@Override
+	public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
+		swallowToProjectionWaveSecondaryDelta(itemDelta);
 	}
 
 	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {

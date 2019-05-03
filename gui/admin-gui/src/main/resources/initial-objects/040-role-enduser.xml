@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,15 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.</description>
+    <!-- 
+    	End user role is NOT archetyped as system role - by purpose.
+    	Firstly, this role is almost always customized. We do not want to create an impression that
+    	this role is finished and ready for production use.
+    	Secondly, it is not really a system role. It is perhaps closer to business role. We cannot
+    	clearly decide where it belongs as this depends on how the role hierarchy is structured.
+    	Therefore we have chosen not to mark it with any archetype to avoid risk of creating
+    	a confusing situation.
+    -->
     <authorization>
     	<name>gui-self-service-access</name>
     	<description>

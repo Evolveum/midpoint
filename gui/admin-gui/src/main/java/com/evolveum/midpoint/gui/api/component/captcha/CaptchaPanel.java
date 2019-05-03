@@ -5,11 +5,13 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.captcha.CaptchaImageResource;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 public class CaptchaPanel extends BasePanel<Void> {
@@ -29,7 +31,7 @@ public class CaptchaPanel extends BasePanel<Void> {
 	 * @param id
 	 *            The component id
 	 */
-	public CaptchaPanel(String id) {
+	public CaptchaPanel(String id, PageBase pageBase) {
 		super(id);
 
 		FeedbackAlerts feedback = new FeedbackAlerts("feedback");
@@ -50,8 +52,13 @@ public class CaptchaPanel extends BasePanel<Void> {
 				target.add(captchaImage);
 			}
 		};
+		changeCaptchaLink.add(new Label("changeLinkLabel",
+				pageBase.createStringResource("CaptchaPanel.changeLinkLabel")));
 		add(changeCaptchaLink);
 
+		add(new Label("textDescriptionLabel",
+				pageBase.createStringResource("CaptchaPanel.textDescriptionLabel")));
+		
 		add(new RequiredTextField<String>("text",
             new PropertyModel<>(CaptchaPanel.this, "captchaText"), String.class) {
 								private static final long serialVersionUID = 1L;

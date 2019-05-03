@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
@@ -39,5 +40,7 @@ public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable
 	V getNewValue();
 	<IW extends ItemWrapper> IW getParent();
 	
-	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta);
+	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) throws SchemaException;
+	
+//	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 }
