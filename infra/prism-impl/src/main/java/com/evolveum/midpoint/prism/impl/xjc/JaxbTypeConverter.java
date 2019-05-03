@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.impl.xjc;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringLangType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -39,6 +40,10 @@ public class JaxbTypeConverter {
 		PolyStringType polyStringType = new PolyStringType();
 		polyStringType.setOrig(polyString.getOrig());
 		polyStringType.setNorm(polyString.getNorm());
+		polyStringType.setTranslation(polyString.getTranslation());
+		PolyStringLangType lang = new PolyStringLangType();
+		lang.setLang(polyString.getLang());
+		polyStringType.setLang(lang);
 		return polyStringType;
 	}
 
@@ -53,7 +58,12 @@ public class JaxbTypeConverter {
 		if (polyStringType == null || polyStringType.getOrig() == null) {
 			return null;
 		}
-		PolyString polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
+		PolyString polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm(),
+				polyStringType.getTranslation());
+		if(polyStringType.getLang() != null) {
+			polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm(),
+					polyStringType.getTranslation(), polyStringType.getLang().getLang());
+		}
 		return polyString;
 	}
 
