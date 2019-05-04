@@ -106,6 +106,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_WILL_FILE_BASENAME = "user-will";
 	public static final File USER_WILL_FILE = new File(COMMON_DIR_XML, "user-will.xml");
 
+	public static final String ACCOUNT_BARBOSSA_FILE_BASENAME = "account-barbossa";
+
 	public static final String USER_ELISABETH_FILE_BASENAME = "user-elisabeth";
 
 	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";

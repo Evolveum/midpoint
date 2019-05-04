@@ -24,6 +24,8 @@
 
 package com.evolveum.midpoint.prism.foo;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -58,6 +60,7 @@ public class AccountType
     implements Serializable
 {
 
+    public final static ItemName F_ATTRIBUTES = new ItemName(NS_FOO, "attributes");
     private final static long serialVersionUID = 201202081233L;
     protected AttributesType attributes;
 
