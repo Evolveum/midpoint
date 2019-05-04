@@ -24,8 +24,10 @@ public interface IconCssStyle {
 	public static final BottomLeftIconCssStyle BOTTOM_LEFT_STYLE = new BottomLeftIconCssStyle();
 	public static final BottomRightIconCssStyle BOTTOM_RIGHT_STYLE = new BottomRightIconCssStyle();
 	public static final CenterIconCssStyle CENTER_STYLE = new CenterIconCssStyle();
+	public static final CenterWithRightShiftCssStyle CENTER_STYLE_WITH_RIGHT_SHIFT = new CenterWithRightShiftCssStyle();
 	public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
 	public static final TopLeftIconCssStyle TOP_LEFT_STYLE = new TopLeftIconCssStyle();
+	public static final TopRightIconCssStyle TOP_RIGHT_STYLE = new TopRightIconCssStyle();
 
 	public String getBasicCssClass();
 	

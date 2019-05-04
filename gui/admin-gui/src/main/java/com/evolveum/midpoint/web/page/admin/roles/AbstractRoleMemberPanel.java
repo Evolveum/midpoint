@@ -243,7 +243,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 			@Override
 			protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-				return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
+						additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green"));
 			}
 
             @Override
@@ -290,8 +291,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-						return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(),
-								relationSpec, additionalButtonDisplayType);
+						return WebComponentUtil.getAssignmentRelationIconBuilder(AbstractRoleMemberPanel.this.getPageBase(), relationSpec,
+								additionalButtonDisplayType.getIcon(), WebComponentUtil.createIconType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green"));
 					}
 				};
 				assignButton.add(AttributeAppender.append("class", "btn-margin-right"));
