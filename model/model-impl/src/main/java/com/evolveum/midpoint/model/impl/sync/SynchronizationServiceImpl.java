@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -44,11 +45,6 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.model.impl.lens.Clockwork;
-import com.evolveum.midpoint.model.impl.lens.ContextFactory;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
@@ -108,7 +104,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private PrismContext prismContext;
 	@Autowired private Clock clock;
-	
+	@Autowired private ClockworkMedic clockworkMedic;
+
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -748,10 +745,15 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 			try {
 
-				if (change.isSimulate()) {
-					clockwork.previewChanges(lensContext, null, task, parentResult);
-				} else {
-					clockwork.run(lensContext, task, parentResult);
+				clockworkMedic.enterModelMethod(false);
+				try {
+					if (change.isSimulate()) {
+						clockwork.previewChanges(lensContext, null, task, parentResult);
+					} else {
+						clockwork.run(lensContext, task, parentResult);
+					}
+				} finally {
+					clockworkMedic.exitModelMethod(false);
 				}
 
 			} catch (ConfigurationException | ObjectNotFoundException | SchemaException | 
