@@ -203,7 +203,14 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	private void initializePrincipalFromAssignments(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
-        userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+        try {
+        	userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+        } catch (Throwable e) {
+			// Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
+			// want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
+			LOGGER.error("Error compiling user profile for {}: {}", principal, e.getMessage(), e);
+			// Do NOT re-throw the exception here. Just go on.
+		}
 	}
 
 	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
