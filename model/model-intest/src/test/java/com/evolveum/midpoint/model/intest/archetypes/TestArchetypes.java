@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.model.intest.archetypes;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 
@@ -27,6 +29,9 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -36,6 +41,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
@@ -114,6 +126,24 @@ public class TestArchetypes extends AbstractArchetypesTest {
 		return SYSTEM_CONFIGURATION_ARCHETYPES_FILE;
 	}
 
+	/**
+	 * Test sanity of test setup. User jack, without any archetype.
+	 */
+	@Test
+    public void test020SanityJack() throws Exception {
+		final String TEST_NAME = "test020SanityJack";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> user = assertUserBefore(USER_JACK_OID)
+        	.assertFullName(USER_JACK_FULL_NAME)
+        	.getObject();
+        
+        assertEditSchema(user);
+    }
+	
     @Test
     public void test050AddArchetypeTest() throws Exception {
 		final String TEST_NAME = "test050AddArchetypeTest";
@@ -229,6 +259,9 @@ public class TestArchetypes extends AbstractArchetypesTest {
         	.displayType()
         		.assertLabel(ARCHETYPE_EMPLOYEE_DISPLAY_LABEL)
         		.assertPluralLabel(ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL);
+        
+        // MID-5277
+        assertEditSchema(userAfter);
     }
 	
 	private String costCenterEmployee() {
@@ -671,4 +704,16 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	
 	// TODO: assignmentRelation (assertArchetypeSpec)
 
+	protected void assertEditSchema(PrismObject<UserType> user) throws CommonException {
+		PrismObjectDefinition<UserType> editDef = getEditObjectDefinition(user);
+        
+        // This has overridden lookup def in object template
+ 		PrismPropertyDefinition<String> preferredLanguageDef = editDef.findPropertyDefinition(UserType.F_PREFERRED_LANGUAGE);
+ 		assertNotNull("No definition for preferredLanguage in user", preferredLanguageDef);
+ 		assertEquals("Wrong preferredLanguage displayName", "Language", preferredLanguageDef.getDisplayName());
+ 		assertTrue("preferredLanguage not readable", preferredLanguageDef.canRead());
+ 		PrismReferenceValue valueEnumerationRef = preferredLanguageDef.getValueEnumerationRef();
+ 		assertNotNull("No valueEnumerationRef for preferredLanguage", valueEnumerationRef);
+ 		assertEquals("Wrong valueEnumerationRef OID for preferredLanguage", LOOKUP_LANGUAGES_OID, valueEnumerationRef.getOid());
+	}
 }
