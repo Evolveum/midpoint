@@ -82,11 +82,13 @@ public class ItemPathResolver {
         LOGGER.trace("Starting resolution and context update for item path '{}', singletonOnly='{}'", relativePath, singletonOnly);
 
         while (!currentState.isFinal()) {
-            LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Current resolution state:\n{}", currentState.debugDumpNoParent());
+            }
             currentState = currentState.nextState(itemDefinition, singletonOnly, context.getPrismContext());
         }
 
-        LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDump());
+        LOGGER.trace("resolveItemPath({}) ending in resolution state of:\n{}", relativePath, currentState.debugDumpLazily());
         return currentState.getHqlDataInstance();
     }
 

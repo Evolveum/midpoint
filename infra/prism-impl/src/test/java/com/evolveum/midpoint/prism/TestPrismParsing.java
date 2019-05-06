@@ -24,13 +24,19 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.foo.AccountType;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -409,6 +415,37 @@ public abstract class TestPrismParsing {
 		assertUserElisabeth(reparsedUser);
 
 	}
+
+	// MID-5326
+	@Test
+	public void test600AccountBarbossa() throws Exception {
+		final String TEST_NAME = "test600AccountBarbossa";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<AccountType> account = prismContext.parseObject(getFile(ACCOUNT_BARBOSSA_FILE_BASENAME));
+
+		// THEN
+		assertNotNull(account);
+		System.out.println("Account:");
+		System.out.println(account.debugDump());
+
+		PrismContainer<?> attributes = account.findContainer(AccountType.F_ATTRIBUTES);
+		assertNotNull(attributes);
+		PrismContainerValue<?> attributesValue = attributes.getValue();
+		assertNotNull(attributesValue);
+		assertEquals("Wrong # of attributes", 3, attributesValue.getItems().size());
+		Set<ItemName> names = attributesValue.getItems().stream().map(a -> a.getElementName()).collect(Collectors.toSet());
+		assertEquals("Wrong attribute names", new HashSet<>(Arrays.asList(
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003", "uid"),
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+		)), names);
+	}
+
 
 	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();

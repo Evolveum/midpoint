@@ -91,9 +91,9 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
             additionalButtons.forEach(additionalButtonObject -> {
                 DisplayType additionalButtonDisplayType = validateDisplayType(getAdditionalButtonDisplayType(additionalButtonObject));
                 //we set default button icon class if no other is defined
-                if (StringUtils.isEmpty(additionalButtonDisplayType.getIcon().getCssClass())){
-                    additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
-                }
+//                if (StringUtils.isEmpty(additionalButtonDisplayType.getIcon().getCssClass())){
+//                    additionalButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
+//                }
 
                 CompositedIconBuilder additionalButtonBuilder = getAdditionalIconBuilder(additionalButtonObject, additionalButtonDisplayType);
                 AjaxCompositedIconButton additionalButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(), additionalButtonBuilder.build(),
@@ -114,13 +114,13 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
             if (StringUtils.isEmpty(defaultObjectButtonDisplayType.getIcon().getCssClass())){
                 defaultObjectButtonDisplayType.getIcon().setCssClass(mainButtonDisplayType.getIcon().getCssClass());
             }
-            CompositedIconBuilder defaultObjectButtonBuilder = new CompositedIconBuilder();
-            defaultObjectButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType))
-                    .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+//            CompositedIconBuilder defaultObjectButtonBuilder = new CompositedIconBuilder();
+//            defaultObjectButtonBuilder.setBasicIcon(WebComponentUtil.getIconCssClass(defaultObjectButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
+//                .appendColorHtmlValue(WebComponentUtil.getIconColor(defaultObjectButtonDisplayType))
+//                    .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
 
             AjaxCompositedIconButton defaultButton = new AjaxCompositedIconButton(buttonsPanel.newChildId(),
-                    defaultObjectButtonBuilder.build(),
+                    getAdditionalIconBuilder(null, defaultObjectButtonDisplayType).build(),
                     Model.of(WebComponentUtil.getDisplayTypeTitle(defaultObjectButtonDisplayType))){
 
                 private static final long serialVersionUID = 1L;
@@ -150,7 +150,7 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-                .appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
+                .appendLayerIcon(WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"), IconCssStyle.BOTTOM_RIGHT_STYLE);
         return builder;
     }
 

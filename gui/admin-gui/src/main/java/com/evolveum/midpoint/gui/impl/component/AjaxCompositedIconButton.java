@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import java.util.Map.Entry;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -91,9 +92,15 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         }
 
         if(icon.hasLayerIcons()) {
-        	for(String entry : icon.getLayerIcons()) {
-        		if (StringUtils.isNotEmpty(entry)) {
-                    sb.append("<i class=\"").append(entry).append("\"");
+        	for(IconType entry : icon.getLayerIcons()) {
+        	    if (entry == null){
+        	        continue;
+                }
+        		if (StringUtils.isNotEmpty(entry.getCssClass())) {
+                    sb.append("<i class=\"").append(entry.getCssClass()).append("\"");
+                    if (StringUtils.isNotEmpty(entry.getColor())) {
+                        sb.append(" style=\"color: ").append(entry.getColor()).append(";\"");
+                    }
                     sb.append("></i> ");
                 }
         	}
