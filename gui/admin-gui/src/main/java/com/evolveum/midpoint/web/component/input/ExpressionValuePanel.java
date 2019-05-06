@@ -20,13 +20,11 @@ import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
@@ -40,8 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
@@ -79,13 +75,17 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
     private static final String ID_FEEDBACK = "feedback";
 
     ConstructionType construction;
-    PageBase pageBase;
     LoadableModel<List<ShadowType>> shadowsListModel;
 
-    public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction, PageBase pageBase){
+    public ExpressionValuePanel(String id, IModel<ExpressionType> model, ConstructionType construction){
         super(id, model);
         this.construction = construction;
-        this.pageBase = pageBase;
+
+    }
+
+    @Override
+    protected void onInitialize(){
+        super.onInitialize();
         initLayout();
     }
 
@@ -114,7 +114,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                boolean isShadowRefValueNull =  ExpressionUtil.getShadowRefValue(getModelObject(), pageBase.getPrismContext()) == null;
+                boolean isShadowRefValueNull =  ExpressionUtil.getShadowRefValue(getModelObject(),
+                        ExpressionValuePanel.this.getPageBase().getPrismContext()) == null;
 
                 MapXNode associationTargetSearchNode = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject());
                 boolean isAssociationTargetSearchNull = associationTargetSearchNode == null || associationTargetSearchNode.isEmpty();
@@ -142,7 +143,6 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             public boolean isVisible(){
                 List<String> literalValues = getLiteralValues();
                 return literalValues != null && !literalValues.isEmpty();
-
             }
         });
         add(literalValueContainer);
@@ -158,7 +158,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
                     @Override
                     public void setObject(List<String> strings) {
-                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), strings, pageBase.getPrismContext());
+                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), strings, ExpressionValuePanel.this.getPageBase().getPrismContext());
                     }
 
                     @Override
@@ -180,7 +180,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             @Override
             protected void modelObjectUpdatePerformed(AjaxRequestTarget target, List<String> modelObject) {
                 ExpressionUtil.updateLiteralExpressionValue(ExpressionValuePanel.this.getModelObject(),
-                        modelObject, pageBase.getPrismContext());
+                        modelObject, ExpressionValuePanel.this.getPageBase().getPrismContext());
             }
         };
         literalValueInput.setOutputMarkupId(true);
@@ -207,7 +207,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public boolean isVisible(){
-                return ExpressionUtil.getShadowRefValue(getModelObject(), pageBase.getPrismContext()) != null;
+                return ExpressionUtil.getShadowRefValue(getModelObject(), ExpressionValuePanel.this.getPageBase().getPrismContext()) != null;
             }
         });
         add(shadowRefValueContainer);
@@ -216,8 +216,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             @Override
             protected List<ShadowType> load() {
                 return WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(ExpressionValuePanel.this.getModelObject(),
-                        pageBase.getPrismContext()),
-                        OPERATION_LOAD_SHADOW, pageBase);
+                        ExpressionValuePanel.this.getPageBase().getPrismContext()),
+                        OPERATION_LOAD_SHADOW, ExpressionValuePanel.this.getPageBase());
             }
         };
         MultiValueChoosePanel<ShadowType> shadowRefPanel = new MultiValueChoosePanel<ShadowType>(ID_SHADOW_REF_VALUE_INPUT,
@@ -236,13 +236,13 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             protected ObjectFilter getCustomFilter(){
-                return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE, pageBase);
+                return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE, ExpressionValuePanel.this.getPageBase());
             }
 
             @Override
             protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
                 if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
-                    ExpressionUtil.removeShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), pageBase.getPrismContext());
+                    ExpressionUtil.removeShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), ExpressionValuePanel.this.getPageBase().getPrismContext());
                 }
             }
 
@@ -250,7 +250,7 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
                 ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
                 if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
-                    ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), pageBase.getPrismContext());
+                    ExpressionUtil.addShadowRefEvaluatorValue(ExpressionValuePanel.this.getModelObject(), shadow.getOid(), ExpressionValuePanel.this.getPageBase().getPrismContext());
                 }
             }
 
@@ -334,8 +334,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_VALUE);
-                target.add(ExpressionValuePanel.this);
+//                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject().getItem().getRealValue(), SchemaConstantsGenerated.C_VALUE);
+//                target.add(ExpressionValuePanel.this);
             }
         };
         shadowRefValueContainer.add(removeButton);
@@ -349,8 +349,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
            @Override
             public boolean isVisible(){
-               MapXNode node = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject());
-               return node != null && !node.isEmpty();
+               return true;
+//               MapXNode node = ExpressionUtil.getAssociationTargetSearchFilterValuesMap(getModelObject().getItem().getRealValue());
+//               return node != null && !node.isEmpty();
            }
         });
         add(targetSearchContainer);
@@ -360,8 +361,8 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject(), SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
-                target.add(ExpressionValuePanel.this);
+//                ExpressionUtil.removeEvaluatorByName(ExpressionValuePanel.this.getModelObject().getItem().getRealValue(), SchemaConstantsGenerated.C_ASSOCIATION_TARGET_SEARCH);
+//                target.add(ExpressionValuePanel.this);
             }
         };
         targetSearchContainer.add(removeButton);
@@ -375,15 +376,15 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
             protected void onUpdate(AjaxRequestTarget target){
                 String pathValue = targetSearchFilterPathInput.getBaseFormComponent().getValue();
                 if (getModelObject() == null){
-                    getModel().setObject(new ExpressionType());
+//                    getModel().setObject(new ExpressionType());
                 }
-                try {
-                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
-                } catch (Exception ex){
-                    pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
-                            ex.getLocalizedMessage(), 0));
-                    target.add(pageBase.getFeedbackPanel());
-                }
+//                try {
+//                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject().getItem().getRealValue(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
+//                } catch (Exception ex){
+//                    ExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this,
+//                            ex.getLocalizedMessage(), 0));
+//                    target.add(ExpressionValuePanel.this.getPageBase().getFeedbackPanel());
+//                }
             }
         });
         targetSearchContainer.add(targetSearchFilterPathInput);
@@ -398,14 +399,14 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                 String value = targetSearchFilterValueInput.getBaseFormComponent().getValue();
                 String path = targetSearchFilterPathInput.getBaseFormComponent().getValue();
                 if (getModelObject() == null){
-                    getModel().setObject(new ExpressionType());
+//                    getModel().setObject(new ExpressionType());
                 }
-                try {
-                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject(), path, value, pageBase.getPrismContext());
-                } catch (SchemaException ex){
-                    pageBase.getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
-                    target.add(pageBase.getFeedbackPanel());
-                }
+//                try {
+//                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject().getItem().getRealValue(), path, value, ExpressionValuePanel.this.getPageBase().getPrismContext());
+//                } catch (SchemaException ex){
+//                    ExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(ExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
+//                    target.add(ExpressionValuePanel.this.getPageBase().getFeedbackPanel());
+//                }
             }
         });
         targetSearchContainer.add(targetSearchFilterValueInput);
@@ -425,9 +426,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                                  @Override
                                  public void onClick(AjaxRequestTarget target) {
                                      if (getModelObject() == null) {
-                                         getModel().setObject(new ExpressionType());
+//                                         getModel().setObject(new ExpressionType());
                                      }
-                                     ExpressionUtil.addShadowRefEvaluatorValue(getModelObject(), null, pageBase.getPrismContext());
+//                                     ExpressionUtil.addShadowRefEvaluatorValue(getModelObject().getItem().getRealValue(), null, ExpressionValuePanel.this.getPageBase().getPrismContext());
                                      target.add(ExpressionValuePanel.this);
                                  }
                              };
@@ -449,10 +450,10 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getModelObject() == null) {
-                            getModel().setObject(new ExpressionType());
+//                            getModel().setObject(new ExpressionType());
                         }
-                        ExpressionType expression = getModelObject();
-                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement(getPrismContext()));
+//                        ExpressionType expression = getModelObject().getItem().getRealValue();
+//                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement(getPrismContext()));
                         target.add(ExpressionValuePanel.this);
 
                     }
@@ -475,9 +476,9 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         if (getModelObject() == null) {
-                            getModel().setObject(new ExpressionType());
+//                            getModel().setObject(new ExpressionType());
                         }
-                        ExpressionUtil.updateLiteralExpressionValue(getModelObject(), Arrays.asList(""), pageBase.getPrismContext());
+//                        ExpressionUtil.updateLiteralExpressionValue(getModelObject().getItem().getRealValue(), Arrays.asList(""), ExpressionValuePanel.this.getPageBase().getPrismContext());
                         target.add(ExpressionValuePanel.this);
 
                     }
@@ -494,11 +495,11 @@ public class ExpressionValuePanel extends BasePanel<ExpressionType>{
 
     private List<String> getLiteralValues(){
         List<String> literalValueList = new ArrayList<>();
-        try{
-            return ExpressionUtil.getLiteralExpressionValues(getModelObject());
-        } catch (SchemaException ex){
-            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
-        }
+//        try{
+//            return ExpressionUtil.getLiteralExpressionValues(getModelObject().getItem().getRealValue());
+//        } catch (SchemaException ex){
+//            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
+//        }
         return literalValueList;
     }
 

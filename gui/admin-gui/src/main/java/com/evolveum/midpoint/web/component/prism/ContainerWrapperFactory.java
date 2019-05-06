@@ -383,16 +383,16 @@ public class ContainerWrapperFactory {
 		if (property != null && onlyEmpty) {
 			return null;
 		}
-		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
-			if (property == null) {
-				PrismProperty<ExpressionType> newProperty = (PrismProperty<ExpressionType>) def.instantiate();
-				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()),
-						modelServiceLocator.getPrismContext());
-			} else {
-				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
-						modelServiceLocator.getPrismContext());
-			}
-		}
+//		if (ExpressionType.COMPLEX_TYPE.equals(def.getTypeName())){
+//			if (property == null) {
+//				PrismProperty<ExpressionType> newProperty = (PrismProperty<ExpressionType>) def.instantiate();
+//				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, newProperty, propertyIsReadOnly, ValueStatus.ADDED, cWrapper.getPath().append(newProperty.getPath()),
+//						modelServiceLocator.getPrismContext());
+//			} else {
+//				return (PropertyWrapper<T>) new ExpressionWrapper(cWrapper, property, propertyIsReadOnly, cWrapper.getStatus() == ValueStatus.ADDED ? ValueStatus.ADDED: ValueStatus.NOT_CHANGED, property.getPath(),
+//						modelServiceLocator.getPrismContext());
+//			}
+//		}
 		
 		PropertyWrapper<T> propertyWrapper = null;
 		if (property == null) {
