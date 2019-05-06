@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.prism.PolyStringEditorPanel;
+import com.evolveum.midpoint.gui.impl.prism.component.PolyStringEditorPanel;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
