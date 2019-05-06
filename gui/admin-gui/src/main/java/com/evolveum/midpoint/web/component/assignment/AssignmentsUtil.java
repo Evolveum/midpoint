@@ -331,13 +331,13 @@ public class AssignmentsUtil {
 
     private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
-		if (tenantRef != null) {
-			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		if (tenantRef != null && !tenantRef.asReferenceValue().isEmpty()) {
+			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
 		}
 
 		ObjectReferenceType orgRef = assignmentType.getOrgRef();
-		if (orgRef != null) {
-			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		if (orgRef != null && !tenantRef.asReferenceValue().isEmpty()) {
+			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
 		}
 
 	}

@@ -35,6 +35,7 @@ public class WrapperContext {
 	
 	private boolean readOnly;
 	private boolean showEmpty;
+	private boolean forceCreate;
 	
 	
 	//Shadow related attributes
@@ -106,4 +107,11 @@ public class WrapperContext {
 		this.showEmpty = showEmpty;
 	}
 	
+	public boolean isForceCreate() {
+		return forceCreate;
+	}
+	
+	public void setForceCreate(boolean forceCreate) {
+		this.forceCreate = forceCreate;
+	}
 }

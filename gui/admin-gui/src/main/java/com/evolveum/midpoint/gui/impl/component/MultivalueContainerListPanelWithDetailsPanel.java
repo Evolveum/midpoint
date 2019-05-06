@@ -80,8 +80,6 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		this.itemDetailsVisible = itemDetailsVisible;
 	}
 
-	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
-
 	protected void initDetailsPanel() {
 		WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
 		details.setOutputMarkupId(true);
@@ -149,6 +147,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		};
 		details.add(cancelButton);
 	}
+	
+	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
 	public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
 		itemPerformedForDefaultAction(target, rowModel, null);

@@ -107,7 +107,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
-				ListView<ContainersPopupDto> listView = (ListView<ContainersPopupDto>) get(ID_CONTAINERS);
+				ListView<ContainersPopupDto> listView = (ListView<ContainersPopupDto>) ListContainersPopup.this.get(ID_CONTAINERS);
 				List<PrismContainerDefinition<?>> selected = new ArrayList<>();
 				listView.getModelObject().forEach(child -> selected.add(child.getDef()));
 				processSelectedChildren(target, selected);

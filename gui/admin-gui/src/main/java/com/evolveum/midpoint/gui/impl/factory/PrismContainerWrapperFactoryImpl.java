@@ -112,8 +112,21 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
+		if (factory == null) {
+			LOGGER.error("Cannot find factory for {}", def);
+			throw new SchemaException("Cannot find factory for " + def);
+		}
+		
+		LOGGER.trace("Found factory {} for {}", factory, def);
+		
 		
 		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+		
+		if (wrapper == null) {
+			LOGGER.trace("Null wrapper created for {}. Skipping.", def);
+			return;
+		}
+		
 		wrapper.setShowEmpty(context.isShowEmpty(), false);
 		wrappers.add(wrapper);
 	}

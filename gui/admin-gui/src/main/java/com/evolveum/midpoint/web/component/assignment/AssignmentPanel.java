@@ -626,8 +626,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		return new WebMarkupContainer(contentAreaId);
 	}
 
-	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(
-			ListItem<PrismContainerValueWrapper<AssignmentType>> item) {
+	private MultivalueContainerDetailsPanel<AssignmentType> createMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<AssignmentType>> item) {
 		if (isAssignmentsLimitReached()){
 			item.getModelObject().setReadOnly(true, true);
 		} else if (item.getModelObject().isReadOnly()){
@@ -650,23 +649,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected  Fragment getSpecificContainers(String contentAreaId) {
-				Fragment specificContainers = getCustomSpecificContainers(contentAreaId, item.getModel());
-				Form form = this.findParent(Form.class);
-
-				ItemPath assignmentPath = item.getModelObject().getRealValue().asPrismContainerValue().getPath();
-				PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(item.getModel(), AssignmentType.F_ACTIVATION);
-				try {
-					Panel activationContainer = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, activationModel, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-					specificContainers.add(activationContainer);
-				} catch (SchemaException e) {
-					LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
-					getSession().error("Cannot create panel for activation, " + e.getMessage());
-				}
-//				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
-//				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
 				
-
-				return specificContainers;
+				return createSpecificContainersFragment(contentAreaId, item.getModel());
+				
 			}
 
 			@Override
@@ -692,6 +677,122 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		};
 		return detailsPanel;
 	}
+	
+	private Fragment createSpecificContainersFragment(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+		QName assignmentTargetType = AssignmentsUtil.getTargetType(model.getObject().getRealValue());
+		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+		if (supportsCustomContainers(assignmentTargetType)) {
+			addCustomSpecificContainers(specificContainers, model);
+		} else {
+			specificContainers.add(new WebMarkupContainer(ID_SPECIFIC_CONTAINER));
+		}
+		
+		ItemPath assignmentPath = model.getObject().getRealValue().asPrismContainerValue().getPath();
+		PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_ACTIVATION);
+		try {
+			Panel activationContainer = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, activationModel, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+			specificContainers.add(activationContainer);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
+			getSession().error("Cannot create panel for activation, " + e.getMessage());
+		}
+//		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
+//		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+		
+
+		return specificContainers;
+	}
+	
+	private boolean supportsCustomContainers(QName targetType) {
+		if (PersonaConstructionType.COMPLEX_TYPE.equals(targetType)) {
+			return true;
+		}
+		
+		if (ConstructionType.COMPLEX_TYPE.equals(targetType)) {
+			return true;
+		}
+		
+		if (PolicyRuleType.COMPLEX_TYPE.equals(targetType)) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+		specificContainers.add(getSpecificContainerPanel(modelObject));
+	}
+	
+protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+		
+		ItemPath assignmentPath = modelObject.getObject().getPath();
+		try {
+			IModel<PrismContainerWrapper> wrapperModel = getSpecificContainerModel(modelObject);
+			Panel constraintsContainerPanel = getPageBase().initItemPanel(ID_SPECIFIC_CONTAINER, wrapperModel.getObject().getTypeName(), 
+					wrapperModel, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+			constraintsContainerPanel.setOutputMarkupId(true);
+			return constraintsContainerPanel;
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
+			getSession().error("Cannot create panel for activation, " + e.getMessage());
+		}
+		return null;
+//		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, );
+//		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
+//				getSpecificContainerModel(modelObject), form,
+//				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+		
+//		return constraintsContainerPanel;
+	}
+
+protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject){
+	//TODO cannot this be done by inheritance for concrete panel???
+	AssignmentType assignment = modelObject.getObject().getRealValue();
+	if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+		IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
+		return (IModel) constructionModel;
+//		PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
+//				AssignmentType.F_CONSTRUCTION));
+//
+//		return Model.of(constructionWrapper);
+	}
+
+	if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+		IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION);
+		return (IModel) constructionModel;
+		//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
+		//but not PolicyRuleType
+//		PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
+//				AssignmentType.F_PERSONA_CONSTRUCTION));
+//
+//		return Model.of(personasWrapper);
+	}
+	if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
+		IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
+		return (IModel) constructionModel;
+//		PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
+//		return Model.of(policyRuleWrapper);
+	}
+	return Model.of();
+}
+
+protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
+	if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
+			|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
+		return ItemVisibility.HIDDEN;
+	}
+	if (ContainerWrapperImpl.class.isAssignableFrom(itemWrapper.getClass())){
+		return ItemVisibility.AUTO;
+	}
+	List<ItemPath> pathsToHide = new ArrayList<>();
+	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
+	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
+	if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
+		return ItemVisibility.AUTO;
+	} else {
+		return ItemVisibility.HIDDEN;
+	}
+}
 
 	private ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentAssignmentPath, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
 //		PrismContainerValue<AssignmentType> prismContainerValue = model.getObject().getContainerValue();
@@ -701,7 +802,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	}
 
 	protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
-		Form form = new Form<>("form");
 		ItemPath itemPath = getModelObject().getPath();
 //		model.getObject().getParent().setShowOnTopLevel(true);
 		return getPageBase().initContainerValuePanel(idPanel, model, itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model));
@@ -761,83 +861,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		return mergedList;
 	}
 
-	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getSpecificContainerPanel(modelObject));
-		return specificContainers;
-	}
-
-	protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
 		
-		ItemPath assignmentPath = modelObject.getObject().getPath();
-		try {
-			IModel<PrismContainerWrapper> wrapperModel = getSpecificContainerModel(modelObject);
-			Panel constraintsContainerPanel = getPageBase().initItemPanel(ID_SPECIFIC_CONTAINER, wrapperModel.getObject().getTypeName(), 
-					wrapperModel, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
-			constraintsContainerPanel.setOutputMarkupId(true);
-			return constraintsContainerPanel;
-		} catch (SchemaException e) {
-			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
-			getSession().error("Cannot create panel for activation, " + e.getMessage());
-		}
-		return null;
-//		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, );
-//		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
-//				getSpecificContainerModel(modelObject), form,
-//				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
-		
-//		return constraintsContainerPanel;
-	}
-
-	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
-		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
-				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
-			return ItemVisibility.HIDDEN;
-		}
-		if (ContainerWrapperImpl.class.isAssignableFrom(itemWrapper.getClass())){
-			return ItemVisibility.AUTO;
-		}
-		List<ItemPath> pathsToHide = new ArrayList<>();
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
-		pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
-			return ItemVisibility.AUTO;
-		} else {
-			return ItemVisibility.HIDDEN;
-		}
-	}
-
-	@Deprecated
-	protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject){
-		//TODO cannot this be done by inheritance for concrete panel???
-		AssignmentType assignment = modelObject.getObject().getRealValue();
-		if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
-			return (IModel) constructionModel;
-//			PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-//					AssignmentType.F_CONSTRUCTION));
-//
-//			return Model.of(constructionWrapper);
-		}
-
-		if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION);
-			return (IModel) constructionModel;
-			//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
-			//but not PolicyRuleType
-//			PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-//					AssignmentType.F_PERSONA_CONSTRUCTION));
-//
-//			return Model.of(personasWrapper);
-		}
-		if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
-			IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
-			return (IModel) constructionModel;
-//			PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-//			return Model.of(policyRuleWrapper);
-		}
-		return Model.of();
-	}
 
 	protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, AssignmentType assignment) {
 

@@ -56,8 +56,14 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
+			if (!context.isForceCreate() && !canCreateNewWrapper(def)) {
+				LOGGER.trace("Skipping reating wrapper for non-existent item. It is not supported for {}", def);
+				return null;
+			}
+			
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
 			status = ItemStatus.ADDED;
+			
 		}
 		
 		return createWrapper(parent, childItem, status, context);
@@ -94,7 +100,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
-			if(canCreateWrapper(pcv)){
+			if(canCreateValueWrapper(pcv)){
 				VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 				pvWrappers.add(valueWrapper);
 			}
@@ -103,8 +109,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		return pvWrappers;
 	
 	}
+	
+	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
+		return true;
+	}
 
-	protected boolean canCreateWrapper(PV pcv) {
+	protected boolean canCreateValueWrapper(PV pcv) {
 		return true;
 	}
 

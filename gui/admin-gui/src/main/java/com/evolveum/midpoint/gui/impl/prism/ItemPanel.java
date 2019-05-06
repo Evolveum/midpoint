@@ -33,9 +33,12 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
@@ -144,7 +147,14 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
 				@Override
 				public void onClick(AjaxRequestTarget target) {
-					removeValue(item.getModelObject(), target);
+					try {
+						removeValue(item.getModelObject(), target);
+					} catch (SchemaException e) {
+						LOGGER.error("Cannot remove value: {}", item.getModelObject());
+						getSession().error("Cannot remove value "+ item.getModelObject());
+						target.add(getPageBase().getFeedbackPanel());
+						target.add(ItemPanel.this);
+					}
 				}
 			};
 			removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
@@ -195,21 +205,75 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	 private void addValue(AjaxRequestTarget target) {
 			IW propertyWrapper = getModel().getObject();
 			LOGGER.debug("Adding value of {}", propertyWrapper);
+			PrismPropertyValue<?> newValue = getPrismContext().itemFactory().createPropertyValue();
+			try {
+				propertyWrapper.getItem().add(newValue);
+				WrapperContext context = new WrapperContext(null, null);
+				VW newValueWrapper = getPageBase().createValueWrapper(propertyWrapper, newValue, ValueStatus.ADDED, context);
+				propertyWrapper.getValues().add(newValueWrapper);
+			} catch (SchemaException e) {
+				LOGGER.error("Cannot create new value for {}", propertyWrapper, e);
+				getSession().error("Cannot create new value for " + propertyWrapper + ". Reason: " + e.getMessage());
+				target.add(getPageBase().getFeedbackPanel());
+			}
 			target.add(ItemPanel.this);
 		}
 		
-		private void removeValue(VW valueToRemove, AjaxRequestTarget target) {
+		private void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+			LOGGER.debug("Removing value of {}", valueToRemove);
+			List<VW> values = getModelObject().getValues();
 			
-			IW itemWrapper = getModel().getObject();
-//			try {
-//				itemWrapper.removeValue(valueToRemove);
-//			} catch (SchemaException e) {
-//				error("Failed to remove value.");
-//			}
+			switch (valueToRemove.getStatus()) {
+				case ADDED:
+					values.remove(valueToRemove);
+					break;
+				case DELETED:
+					throw new SchemaException();
+				case NOT_CHANGED:
+					valueToRemove.setStatus(ValueStatus.DELETED);
+					break;
+			}
 			
-			LOGGER.debug("Removing value of {}", itemWrapper);
-
+			int count = countUsableValues(values);
+			
+			if (count == 0 && !hasEmptyPlaceholder(values)) {
+				addValue(target);
+				
+			}
+			
+			
 			target.add(ItemPanel.this);
+		}
+		
+		private int countUsableValues(List<VW> values) {
+			int count = 0;
+			
+			
+			for (VW value : values) {
+//				value.normalize(prismContext);
+	
+				if (ValueStatus.DELETED.equals(value.getStatus())) {
+					continue;
+				}
+	
+				if (ValueStatus.ADDED.equals(value.getStatus())) {
+					continue;
+				}
+	
+				count++;
+			}
+			return count;
+		}
+		
+		private boolean hasEmptyPlaceholder(List<VW> values) {
+			for (VW value : values) {
+//				value.normalize(prismContext);
+				if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
+					return true;
+				}
+			}
+	
+			return false;
 		}
 		
 		private boolean isAddButtonVisible() {
