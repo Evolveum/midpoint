@@ -49,6 +49,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColu
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -222,9 +223,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     
     
     @Override
-    protected PrismContainerValuePanel<AssignmentType, PrismContainerValueWrapper<AssignmentType>> getBasicContainerPanel(String idPanel,
+    protected Panel getBasicContainerPanel(String idPanel,
     		IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-    	PrismContainerValuePanel panel = super.getBasicContainerPanel(idPanel, model);
+    	Panel panel = super.getBasicContainerPanel(idPanel, model);
     	panel.add(new VisibleEnableBehaviour() {
     		@Override
     		public boolean isVisible() {

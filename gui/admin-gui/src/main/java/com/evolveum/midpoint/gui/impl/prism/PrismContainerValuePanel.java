@@ -80,7 +80,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
     
-    public PrismContainerValuePanel(String id, IModel<CVW> model) {
+    private ItemVisibilityHandler visibilityHandler;
+    
+    public PrismContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
 		super(id, model);
 	}
 	
@@ -104,7 +106,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         
         add(labelContainer);
 
-        LoadableDetachableModel<String> headerLabelModel = StringResourceModel.of(getModel().getObject()::getDisplayName);
+        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
 		AjaxButton labelComponent = new AjaxButton(ID_LABEL, headerLabelModel) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -124,6 +126,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         //TODO always visible if isObject
 	}
 	
+	protected LoadableDetachableModel<String> getLabelModel() {
+		return StringResourceModel.of(getModel().getObject()::getDisplayName);
+	}
+
 	private void initValues() {
 		
 		createPropertiesPanel();
@@ -145,9 +151,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				item.setOutputMarkupId(true);
 				IW itemWrapper = item.getModelObject();
 				try {
-					Panel panel = getPageBase().initPanel("property", itemWrapper.getTypeName(), item.getModel(), false);
+					Panel panel = getPageBase().initItemPanel("property", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
 					panel.setOutputMarkupId(true);
-					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
+					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible(visibilityHandler)));
 					item.add(panel);
 				} catch (SchemaException e1) {
 					throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
@@ -199,9 +205,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				item.setOutputMarkupId(true);
 				IW itemWrapper = item.getModelObject();
 				try {
-					Panel panel = getPageBase().initPanel("container", itemWrapper.getTypeName(), item.getModel(), false);
+					Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
 					panel.setOutputMarkupId(true);
-					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible()));
+					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible(visibilityHandler)));
 					item.add(panel);
 				} catch (SchemaException e) {
 					throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());

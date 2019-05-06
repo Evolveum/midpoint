@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.wicket.MarkupContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +67,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return !(def instanceof PrismObjectDefinition) && def instanceof PrismContainerDefinition;
+		return  def instanceof PrismContainerDefinition;
 	}
 
 	@PostConstruct
@@ -75,46 +76,44 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		registry.addToRegistry(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.WrapperFactory#getOrder()
-	 */
 	@Override
 	public int getOrder() {
 		return Integer.MAX_VALUE;
 	}
 
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory#createValueWrapper(com.evolveum.midpoint.prism.PrismValue, com.evolveum.midpoint.web.component.prism.ValueStatus, com.evolveum.midpoint.gui.impl.factory.WrapperContext)
-	 */
 	@Override
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
-		containerValueWrapper.setExpanded(!value.isEmpty());
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value));
 		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
-		for (ItemDefinition<?> def : parent.getDefinitions()) {
-			
-			if (def.isOperational()) {
-				continue;
-			}
-			
-			if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-				continue;
-			}
-			
-			ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
-			
-			ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-			wrappers.add(wrapper);
-			
+		for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
+			addItemWrapper(def, containerValueWrapper, context, wrappers);
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		containerValueWrapper.sort();
 		return containerValueWrapper;
+	}
+	
+	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+		return parent.getDefinitions();
+	}
+
+	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
+			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
+		
+		if (skipCreateItem(def)) {
+			return;
+		}
+		
+		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
+		
+		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+		wrappers.add(wrapper);
 	}
 
 	@Override
@@ -134,5 +133,35 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
 	}
 	
+	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+		if (value.isEmpty()) {
+			return containsEmphasizedItems(parent.getDefinitions());
+		}
+		
+		return true;
+	}
 
+	private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
+		for (ItemDefinition def : definitions) {
+			if (def.isEmphasized()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected boolean skipCreateItem(ItemDefinition<?> def) {
+		if (def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return true;
+		}
+		
+		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			return true;
+		}
+		
+		return false;
+	}
 }

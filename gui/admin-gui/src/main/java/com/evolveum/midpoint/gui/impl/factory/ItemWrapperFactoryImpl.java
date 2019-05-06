@@ -23,11 +23,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -54,7 +56,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
-			childItem = (I) def.instantiate();
+			childItem = (I) parent.getNewValue().findOrCreateItem(name);
+//			childItem = (I) def.instantiate();
 			status = ItemStatus.ADDED;
 		}
 		
@@ -72,25 +75,32 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
-		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
+//		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
 		
 		if (item.isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
-				VW valueWrapper =  factory.createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+				VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
 				pvWrappers.add(valueWrapper);
 			}
 			return pvWrappers;
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
-			VW valueWrapper = factory.createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-			pvWrappers.add(valueWrapper);
+			if(canCreateWrapper(pcv)){
+				VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
+				pvWrappers.add(valueWrapper);
+			}
 		}
 		
 		return pvWrappers;
 	
 	}
+
+	protected boolean canCreateWrapper(PV pcv) {
+		return true;
+	}
+
 
 	protected abstract PV createNewValue(I item) throws SchemaException;
 	
@@ -121,6 +131,8 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
+	
+	
 
 //	@Override
 //	public VW createValueWrapper(PV value, IW parent, ValueStatus status, WrapperContext context) throws SchemaException {

@@ -40,16 +40,16 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	 * @param id
 	 * @param model
 	 */
-	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model) {
-		super(id, model);
+	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilitytHandler) {
+		super(id, model, visibilitytHandler);
 	}
 	
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-		if(getModelObject().isShowOnTopLevel()) {
-			add(AttributeModifier.append("class", "top-level-prism-container"));
-		}
+//		if(getModelObject() != null && getModelObject().isShowOnTopLevel()) {
+//			add(AttributeModifier.append("class", "top-level-prism-container"));
+//		}
 	}
 
 	@Override
@@ -58,9 +58,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory) {
+	protected void createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
 		if (componentFactory == null) {
-			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<>("value", item.getModel());
+			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), visibilityHandler);
 			valuePanel.setOutputMarkupId(true);
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);

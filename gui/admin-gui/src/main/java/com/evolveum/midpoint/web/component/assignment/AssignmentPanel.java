@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -197,21 +199,29 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected List<AssignmentObjectRelation> getNewObjectInfluencesList() {
-				return WebComponentUtil.getRelationsDividedList(loadAssignmentTargetRelationsList());
+				if (isInducement()){
+					return null;
+				} else {
+					return WebComponentUtil.divideAssignmentRelationsByAllValues(loadAssignmentTargetRelationsList());
+				}
+			}
+
+			@Override
+			protected CompositedIconBuilder getAdditionalIconBuilder(AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType) {
+				return WebComponentUtil.getAssignmentRelationIconBuilder(AssignmentPanel.this.getPageBase(), relationSpec, additionalButtonDisplayType);
 			}
 
 			@Override
 			protected DisplayType getNewObjectButtonDisplayType() {
 				return WebComponentUtil.createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
 						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle", "", "").getString());
 			}
 
 			@Override
 			protected DisplayType getNewObjectAdditionalButtonDisplayType(AssignmentObjectRelation assignmentTargetRelation) {
-				return WebComponentUtil.getAssignmentObjectRelationDisplayType(assignmentTargetRelation,
-						AssignmentPanel.this.createStringResource(isInducement() ?
-								"AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle").getString());
+				return WebComponentUtil.getAssignmentObjectRelationDisplayType(AssignmentPanel.this.getPageBase(), assignmentTargetRelation,
+						isInducement() ? "AssignmentPanel.newInducementTitle" : "AssignmentPanel.newAssignmentTitle");
 			}
 
 			@Override
@@ -551,6 +561,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
 				return AssignmentPanel.this.getModelObject();
 			}
+
+			@Override
+			protected boolean isOrgTreeTabVisible(){
+				return assignmentTargetRelation == null;
+			}
 		};
 		popupPanel.setOutputMarkupId(true);
 		getPageBase().showMainPopup(popupPanel, target);
@@ -640,9 +655,16 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 				ItemPath assignmentPath = item.getModelObject().getRealValue().asPrismContainerValue().getPath();
 				PrismContainerWrapperModel<AssignmentType, ActivationType> activationModel = PrismContainerWrapperModel.fromContainerValueWrapper(item.getModel(), AssignmentType.F_ACTIVATION);
-				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
+				try {
+					Panel activationContainer = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, activationModel, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
+					specificContainers.add(activationContainer);
+				} catch (SchemaException e) {
+					LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
+					getSession().error("Cannot create panel for activation, " + e.getMessage());
+				}
+//				PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
 //				PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-				specificContainers.add(acitvationContainer);
+				
 
 				return specificContainers;
 			}
@@ -678,11 +700,12 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, model.getObject().getRealValue());
 	}
 
-	protected PrismContainerValuePanel<AssignmentType, PrismContainerValueWrapper<AssignmentType>> getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
+	protected Panel getBasicContainerPanel(String idPanel, IModel<PrismContainerValueWrapper<AssignmentType>>  model) {
 		Form form = new Form<>("form");
 		ItemPath itemPath = getModelObject().getPath();
 //		model.getObject().getParent().setShowOnTopLevel(true);
-		return new PrismContainerValuePanel<>(idPanel, model);
+		return getPageBase().initContainerValuePanel(idPanel, model, itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model));
+//		return new PrismContainerValuePanel<>(idPanel, model);
 		
 //		(idPanel, model, true, form,
 //				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model), getPageBase());
@@ -744,18 +767,29 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		return specificContainers;
 	}
 
-	protected PrismContainerPanel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-		Form form = new Form<>("form");
-//		ItemPath assignmentPath = modelObject.getPath();
-		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, getSpecificContainerModel(modelObject));
+	protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+		
+		ItemPath assignmentPath = modelObject.getObject().getPath();
+		try {
+			IModel<PrismContainerWrapper> wrapperModel = getSpecificContainerModel(modelObject);
+			Panel constraintsContainerPanel = getPageBase().initItemPanel(ID_SPECIFIC_CONTAINER, wrapperModel.getObject().getTypeName(), 
+					wrapperModel, itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
+			constraintsContainerPanel.setOutputMarkupId(true);
+			return constraintsContainerPanel;
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
+			getSession().error("Cannot create panel for activation, " + e.getMessage());
+		}
+		return null;
+//		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, );
 //		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
 //				getSpecificContainerModel(modelObject), form,
 //				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
-		constraintsContainerPanel.setOutputMarkupId(true);
-		return constraintsContainerPanel;
+		
+//		return constraintsContainerPanel;
 	}
 
-	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapperOld itemWrapper, ItemPath parentAssignmentPath) {
+	protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 		if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
 				|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
 			return ItemVisibility.HIDDEN;

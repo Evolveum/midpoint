@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
@@ -46,7 +47,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 	}
 	
 	@Override
-	public <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) {
+	public <D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) throws SchemaException {
 		switch (status) {
 			case ADDED:
 				if (newValue.isEmpty()) {
@@ -77,7 +78,10 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 			default:
 				break;
 		}
+		
+//		parent.applyDelta((ItemDelta) delta);
 	}
+	
 	
 	private boolean isChanged() {
 		return !oldValue.equals(newValue, EquivalenceStrategy.REAL_VALUE);
@@ -92,6 +96,10 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 	@Override
 	public V getNewValue() {
 		return newValue;
+	}
+	
+	protected V getOldValue() {
+		return oldValue;
 	}
 	
 	@Override

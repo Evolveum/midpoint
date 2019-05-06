@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
@@ -39,11 +41,11 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 //	
 //	void revive(PrismContext prismContext) throws SchemaException;
 //	
+	
+	
 	String debugDump(int indent);
 	
-	boolean hasChanged();
-	
-	boolean isVisible();
+	boolean isVisible(ItemVisibilityHandler visibilityHandler);
 	
 	boolean checkRequired(PageBase pageBase);
 	
@@ -60,7 +62,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	boolean isReadOnly();
 	
-	void setReadOnly();
+	void setReadOnly(boolean readOnly);
 	
 	ExpressionType getFormComponentValidator();
 	
@@ -74,6 +76,8 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	boolean isColumn();
 	void setColumn(boolean column);
 	
-	<D extends ItemDelta<V, ID>> D getDelta();
+	<D extends ItemDelta<V, ID>> D getDelta(boolean absolute) throws SchemaException;
+	
+	<D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
 	
 }

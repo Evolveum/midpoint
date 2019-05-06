@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -87,8 +89,8 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
         WebMarkupContainer body = new WebMarkupContainer("body");
         add(body);
 
-        addPrismPropertyPanel(body, ID_PROP_NAME, FocusType.F_NAME);
-        addPrismPropertyPanel(body, ID_PROP_FULL_NAME, UserType.F_FULL_NAME);
+        addPrismPropertyPanel(body, ID_PROP_NAME, PolyStringType.COMPLEX_TYPE, FocusType.F_NAME);
+        addPrismPropertyPanel(body, ID_PROP_FULL_NAME, PolyStringType.COMPLEX_TYPE, UserType.F_FULL_NAME);
 
         // TODO: create proxy for these operations
         Task task = getPageBase().createSimpleTask(OPERATION_SEARCH_ROLES);

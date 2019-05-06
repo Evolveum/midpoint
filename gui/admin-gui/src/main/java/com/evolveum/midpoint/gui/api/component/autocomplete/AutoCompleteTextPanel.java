@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
@@ -97,7 +98,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						}
 
 						for (LookupTableRowType row : lookupTable.getRow()) {
-							if (value.equals(WebComponentUtil.getOrigStringFromPoly(row.getLabel()))) {
+							if (value.equals(WebComponentUtil.getDisplayPolyStringValue(row.getLabel(), (PageBase) getPage()))) {
 								return (C) row.getKey();
 							}
 						}
@@ -115,7 +116,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						if (lookupTable != null) {
 							for (LookupTableRowType row : lookupTable.getRow()) {
 								if (key.equals(row.getKey())) {
-									return (String) WebComponentUtil.getOrigStringFromPoly(row.getLabel());
+									return (String) WebComponentUtil.getDisplayPolyStringValue(row.getLabel(), (PageBase) getPage());
 								}
 							}
 						}

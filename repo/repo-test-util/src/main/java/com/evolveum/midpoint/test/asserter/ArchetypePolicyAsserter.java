@@ -21,6 +21,7 @@ import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author semancik
@@ -41,7 +42,7 @@ public class ArchetypePolicyAsserter<RA> extends AbstractAsserter<RA> {
 	}
 	
 	public ArchetypePolicyAsserter<RA> assertNull() {
-		AssertJUnit.assertNull("Unexpected " + desc(), archetypePolicy);
+		AssertJUnit.assertNull("Unexpected " + desc() + ": "+archetypePolicy, archetypePolicy);
 		return this;
 	}
 	
@@ -49,6 +50,18 @@ public class ArchetypePolicyAsserter<RA> extends AbstractAsserter<RA> {
 		DisplayTypeAsserter<ArchetypePolicyAsserter<RA>> displayAsserter = new DisplayTypeAsserter<>(getArchetypePolicy().getDisplay(), this, "in " + desc());
 		copySetupTo(displayAsserter);
 		return displayAsserter;
+	}
+	
+	public ArchetypePolicyAsserter<RA> assertNoDisplay() {
+		AssertJUnit.assertNull("Unexpected display specification in " + desc() + ": "+archetypePolicy.getDisplay(), archetypePolicy.getDisplay());
+		return this;
+	}
+	
+	public ArchetypePolicyAsserter<RA> assertObjectTemplate(String expectedOid) {
+		ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
+		AssertJUnit.assertNotNull("Missing objectTemplateRef in " + desc(), objectTemplateRef);
+		AssertJUnit.assertEquals("Wrong OID in objectTemplateRef in " + desc(), expectedOid, objectTemplateRef.getOid());
+		return this;
 	}
 	
 	public ArchetypePolicyAsserter<RA> display() {

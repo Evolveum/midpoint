@@ -946,11 +946,11 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		removeLastComma(sb);
 	}
 
-
 	public static Collection<SelectorOptions<GetOperationOptions>> fromRestOptions(List<String> options, List<String> include,
-			List<String> exclude, DefinitionProcessingOption definitionProcessing,
+			List<String> exclude, List<String> resolveNames, DefinitionProcessingOption definitionProcessing,
 			PrismContext prismContext) {
-		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)) {
+		if (CollectionUtils.isEmpty(options) && CollectionUtils.isEmpty(include) && CollectionUtils.isEmpty(exclude)
+				&& CollectionUtils.isEmpty(resolveNames)) {
 			if (definitionProcessing != null) {
 				return SelectorOptions.createCollection(GetOperationOptions.createDefinitionProcessing(definitionProcessing));
 			}
@@ -967,12 +967,15 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 		for (ItemPath excludePath : ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext)) {
 			rv.add(SelectorOptions.create(prismContext.toUniformPath(excludePath), GetOperationOptions.createDontRetrieve()));
 		}
+		for (ItemPath resolveNamesPath : ItemPathCollectionsUtil.pathListFromStrings(resolveNames, prismContext)) {
+			rv.add(SelectorOptions.create(prismContext.toUniformPath(resolveNamesPath), GetOperationOptions.createResolveNames()));
+		}
 		// Do NOT set executionPhase here!
 		return rv;
 	}
 
 	public static GetOperationOptions fromRestOptions(List<String> options, DefinitionProcessingOption definitionProcessing) {
-		if (options == null || options.isEmpty()){
+		if (options == null || options.isEmpty()) {
 			if (definitionProcessing != null) {
 				return GetOperationOptions.createDefinitionProcessing(definitionProcessing);
 			}

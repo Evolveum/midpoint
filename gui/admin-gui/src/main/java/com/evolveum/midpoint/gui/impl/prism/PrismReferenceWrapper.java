@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.impl.factory;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 public interface PrismReferenceWrapper<R extends Referencable> extends ItemWrapper<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>>, PrismReferenceDefinition {
 
 	ObjectFilter getFilter();
+	void setFilter(ObjectFilter filter);
+	
 	List<QName> getTargetTypes();
 	
 	

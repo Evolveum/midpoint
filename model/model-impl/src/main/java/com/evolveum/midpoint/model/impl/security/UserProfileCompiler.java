@@ -447,6 +447,7 @@ public class UserProfileCompiler {
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
 		compileSorting(existingView, objectListViewType);
+		compileDisplayOrder(existingView, objectListViewType);
 		compileSearchBox(existingView, objectListViewType);
 		compileCollection(existingView, objectListViewType, task, result);
 	}
@@ -534,6 +535,13 @@ public class UserProfileCompiler {
 		Boolean newDisableSorting = objectListViewType.isDisableSorting();
 		if (newDisableSorting != null) {
 			existingView.setDisableSorting(newDisableSorting);
+		}
+	}
+
+	private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType){
+		Integer newDisplayOrder = objectListViewType.getDisplayOrder();
+		if (newDisplayOrder != null){
+			existingView.setDisplayOrder(newDisplayOrder);
 		}
 	}
 	

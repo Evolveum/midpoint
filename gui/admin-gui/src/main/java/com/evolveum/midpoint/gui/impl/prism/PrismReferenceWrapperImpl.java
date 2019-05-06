@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.impl.factory;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.impl.prism.ItemWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -40,108 +41,74 @@ import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
  */
 public class PrismReferenceWrapperImpl<R extends Referencable> extends ItemWrapperImpl<PrismReferenceValue, PrismReference, PrismReferenceDefinition, PrismReferenceValueWrapperImpl<R>> implements PrismReferenceWrapper<R> {
 
-	/**
-	 * @param parent
-	 * @param item
-	 * @param status
-	 * @param fullPath
-	 * @param prismContext
-	 */
+	
+	private ObjectFilter filter;
+	
 	public PrismReferenceWrapperImpl(PrismContainerValueWrapper<?> parent, PrismReference item, ItemStatus status) {
 		super(parent, item, status);
 	}
 
 	private static final long serialVersionUID = 1L;
 	
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismReferenceDefinition#getTargetTypeName()
-	 */
 	@Override
 	public QName getTargetTypeName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getTargetTypeName();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismReferenceDefinition#getCompositeObjectElementName()
-	 */
 	@Override
 	public QName getCompositeObjectElementName() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().getCompositeObjectElementName();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismReferenceDefinition#isComposite()
-	 */
 	@Override
 	public boolean isComposite() {
-		// TODO Auto-generated method stub
-		return false;
+		return getItemDefinition().isComposite();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.PrismReferenceDefinition#clone()
-	 */
 	@Override
 	public PrismReferenceDefinition clone() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().clone();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.ItemWrapperImpl#instantiate()
-	 */
 	@Override
 	public PrismReference instantiate() {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().instantiate();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.ItemWrapperImpl#instantiate(javax.xml.namespace.QName)
-	 */
 	@Override
 	public PrismReference instantiate(QName name) {
-		// TODO Auto-generated method stub
-		return null;
+		return getItemDefinition().instantiate(name);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper#getFilter()
-	 */
 	@Override
 	public ObjectFilter getFilter() {
-		// TODO Auto-generated method stub
-		return null;
+		return filter;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper#getTargetTypes()
-	 */
+	
+	@Override
+	public void setFilter(ObjectFilter filter) {
+		this.filter = filter;
+	}
+	
 	@Override
 	public List<QName> getTargetTypes() {
-		// TODO Auto-generated method stub
-		return null;
+		return WebComponentUtil.createSupportedTargetTypeList(getTargetTypeName());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#setReadOnly()
-	 */
+
 	@Override
-	public void setReadOnly() {
-		// TODO Auto-generated method stub
+	protected boolean isEmpty() {
+		if (super.isEmpty()) return true;
+		List<PrismReferenceValue> pVals = getItem().getValues();
+		boolean allEmpty = true;
+		for (PrismReferenceValue pVal : pVals) {
+			if (!pVal.isEmpty()) {
+				allEmpty = false;
+				break;
+			}
+		}
 		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#isStripe()
-	 */
-	@Override
-	public boolean isStripe() {
-		// TODO Auto-generated method stub
-		return false;
+		return allEmpty;
 	}
 
 }

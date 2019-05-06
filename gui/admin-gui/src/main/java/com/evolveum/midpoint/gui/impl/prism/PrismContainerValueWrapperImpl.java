@@ -29,11 +29,12 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -68,6 +69,51 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	@Override
+	public <D extends ItemDelta<PrismContainerValue<C>, ID>, ID extends ItemDefinition> void addToDelta(D delta)
+			throws SchemaException {
+		
+		
+		switch (getStatus()) {
+			case ADDED:
+				boolean wasChanged = false;
+				for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
+					D subDelta = (D) itemWrapper.getDelta(false);
+					if (subDelta == null) {
+						continue;
+					}
+					wasChanged = true;
+					subDelta.applyTo(getOldValue());
+				}
+				if (wasChanged) {
+					delta.addValueToAdd(getOldValue().clone());
+				}
+				break;
+			case NOT_CHANGED:
+				for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
+					D subDelta = (D) itemWrapper.getDelta(true);
+					if (subDelta == null) {
+						continue;
+					}
+					wasChanged = true;
+					delta.merge(subDelta);
+				}
+				break;
+			case DELETED :
+				delta.addValueToDelete(getOldValue().clone());
+		}
+	}
+	
+	@Override
+	public <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException {
+		if (delta == null) {
+			return;
+		}
+		
+		LOGGER.trace("Applying {} to {}", delta, getNewValue());
+		delta.applyTo(getNewValue());
+	}
+	
+	@Override
 	public void setRealValue(C realValue) {
 		LOGGER.trace("Nothing to do");
 	}
@@ -83,6 +129,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	@Override
 	public String getHelpText() {
 		return WebPrismUtil.getHelpText(getContainerDefinition());
+		
+		
+		
+		
+		
 	}
 	
 	@Override
@@ -250,7 +301,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 
 	@Override
-	public PrismReferenceWrapper findReference(ItemPath path) throws SchemaException {
+	public <R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException {
 		return findItem(path, PrismReferenceWrapper.class);
 	}
 
@@ -349,7 +400,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		int visibleProperties = 0;
 
  		for (ItemWrapper<?,?,?,?> item : getNonContainers()) {
-			if (item.isVisible()) {
+			if (item.isVisible(null)) {
 				visibleProperties++;
 			}
 			

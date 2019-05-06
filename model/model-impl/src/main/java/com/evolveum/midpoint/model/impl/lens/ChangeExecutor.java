@@ -1009,18 +1009,18 @@ public class ChangeExecutor {
 		}
 	}
 
-	// TODO beware - what if the delta was executed but not successfully?
-	private <T extends ObjectType, F extends FocusType> boolean alreadyExecuted(ObjectDelta<T> objectDelta,
-			LensElementContext<T> objectContext) {
-		if (objectContext == null) {
-			return false;
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Checking for already executed delta:\n{}\nIn deltas:\n{}", objectDelta.debugDump(),
-					DebugUtil.debugDump(objectContext.getExecutedDeltas()));
-		}
-		return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
-	}
+//	// TODO beware - what if the delta was executed but not successfully?
+//	private <T extends ObjectType, F extends FocusType> boolean alreadyExecuted(ObjectDelta<T> objectDelta,
+//			LensElementContext<T> objectContext) {
+//		if (objectContext == null) {
+//			return false;
+//		}
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Checking for already executed delta:\n{}\nIn deltas:\n{}", objectDelta.debugDump(),
+//					DebugUtil.debugDump(objectContext.getExecutedDeltas()));
+//		}
+//		return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
+//	}
 
 	/**
 	 * Was this object already added? (temporary method, should be removed soon)
@@ -1041,7 +1041,7 @@ public class ChangeExecutor {
 	 * below.
 	 */
 	private <T extends ObjectType> ObjectDelta<T> computeDeltaToExecute(ObjectDelta<T> objectDelta,
-			LensElementContext<T> objectContext) {
+			LensElementContext<T> objectContext) throws SchemaException {
 		if (objectContext == null) {
 			return objectDelta;
 		}
@@ -1050,7 +1050,21 @@ public class ChangeExecutor {
 					objectDelta.debugDump(1), LensObjectDeltaOperation.shorterDebugDump(objectContext.getExecutedDeltas(),1));
 		}
 		List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
-		return computeDiffDelta(executedDeltas, objectDelta);
+		ObjectDelta<T> diffDelta = computeDiffDelta(executedDeltas, objectDelta);
+
+		// One more check: is the computed delta idempotent related to objectCurrent?
+		// Currently we deal only with focusContext because of safety; and also because this check is a reaction
+		// in change to focus context secondary delta swallowing code (MID-5207).
+		//
+		// LookupTableType operation optimization is not available here, because it looks like that isRedundant
+		// does not work reliably for key-based row deletions (MID-5276).
+		if (diffDelta != null && objectContext instanceof LensFocusContext<?> &&
+				!objectContext.isOfType(LookupTableType.class) &&
+				diffDelta.isRedundant(objectContext.getObjectCurrent(), false)) {
+			LOGGER.trace("delta is idempotent related to {}", objectContext.getObjectCurrent());
+			return null;
+		}
+		return diffDelta;
 	}
 
 	/**
@@ -1073,9 +1087,10 @@ public class ChangeExecutor {
 	 * should occur). Nevertheless, for historical and safety reasons I keep
 	 * also the processing in this method.
 	 *
-	 * Anyway, currently it treats only two cases: 1) if the objectDelta is
-	 * present in the list of executed deltas 2) if the objectDelta is ADD, and
-	 * another ADD delta is there (then the difference is computed)
+	 * Anyway, currently it treats only three cases:
+	 *   1) if the objectDelta is present in the list of executed deltas
+	 *   2) if the objectDelta is ADD, and another ADD delta is there (then the difference is computed)
+	 *   3) if objectDelta is MODIFY or DELETE and previous delta was MODIFY
 	 *
 	 */
 	private <T extends ObjectType> ObjectDelta<T> computeDiffDelta(
@@ -1098,8 +1113,11 @@ public class ChangeExecutor {
 							// let's skip the processing of our delta
 		}
 		if (!objectDelta.isAdd()) {
-			return objectDelta; // MODIFY or DELETE delta - we may safely apply
-								// it (not 100% sure about DELETE case)
+			if (lastRelated.getObjectDelta().isDelete()) {
+				return null;    // case 3
+			} else {
+				return objectDelta; // MODIFY or DELETE delta after ADD or MODIFY delta - we may safely apply it
+			}
 		}
 		// determine if we got case 2
 		if (lastRelated.getObjectDelta().isDelete()) {

@@ -31,9 +31,12 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_VALUE = "value";
+	
+	private ItemVisibilityHandler visibilityHandler;
 
-	public PrismObjectValuePanel(String id, IModel<PrismObjectWrapper<O>> model) {
+	public PrismObjectValuePanel(String id, IModel<PrismObjectWrapper<O>> model, ItemVisibilityHandler visibilityHandler) {
 		super(id, model);
+		this.visibilityHandler = visibilityHandler;
 	}
 	
 	@Override
@@ -57,7 +60,7 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	
 	protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
 		
-		PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel);
+		PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel, visibilityHandler);
 		valueWrapper.setOutputMarkupId(true);
 		add(valueWrapper);
 		

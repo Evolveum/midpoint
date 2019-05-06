@@ -101,6 +101,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
 	boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy);
 
+	boolean containsAllModifications(Collection<? extends ItemDelta<?, ?>> itemDeltas, EquivalenceStrategy strategy);
+
 	void addModifications(Collection<? extends ItemDelta> itemDeltas);
 
 	void addModifications(ItemDelta<?, ?>... itemDeltas);
@@ -173,7 +175,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 
 	void normalize();
 
-	ObjectDelta<O> narrow(PrismObject<O> existingObject);
+	ObjectDelta<O> narrow(PrismObject<O> existingObject, boolean assumeMissingItems);
 
 	// TODO better name
 	void applyDefinitionIfPresent(PrismObjectDefinition<O> definition, boolean tolerateNoDefinition) throws SchemaException;
@@ -305,6 +307,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, Visita
 	 * @return
 	 */
 	ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
+
+	boolean isRedundant(PrismObject<O> object, boolean assumeMissingItems) throws SchemaException;
 
 	class FactorOutResultMulti<T extends Objectable> {
 		public final ObjectDelta<T> remainder;

@@ -157,6 +157,11 @@ public class TestLdapVirtualGroup extends AbstractLdapTest {
 	private PrismObject<ResourceType> resourceOpenDj;
 
 	@Override
+	protected String getLdapResourceOid() {
+		return RESOURCE_OPENDJ_OID;
+	}
+	
+	@Override
 	protected String getTopOrgOid() {
 		return ORG_TOP_OID;
 	}

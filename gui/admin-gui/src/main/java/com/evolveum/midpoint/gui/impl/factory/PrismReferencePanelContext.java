@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;

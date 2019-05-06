@@ -19,11 +19,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,7 +68,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	
 	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
 	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
-	PrismReferenceWrapper findReference(ItemPath path) throws SchemaException;
+	<R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;
 	<IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;
 	
 	ItemPath getPath();
@@ -79,11 +80,14 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	boolean isReadOnly();
 	void setReadOnly(boolean readOnly, boolean recursive);
 	
+	@Deprecated
 	boolean hasChanged();
 	
 	boolean isShowEmpty();
 	void setShowEmpty(boolean setShowEmpty);
 	
 	void sort();
+	
+	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 	
 }

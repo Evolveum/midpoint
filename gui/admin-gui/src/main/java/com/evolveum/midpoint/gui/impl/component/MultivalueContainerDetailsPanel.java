@@ -16,19 +16,16 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 /**
@@ -74,12 +71,13 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 		add(getBasicContainerValuePanel(idPanel));
     }
     
-    private PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> getBasicContainerValuePanel(String idPanel){
+    private Panel getBasicContainerValuePanel(String idPanel){
     	Form form = new Form<>("form");
     	ItemPath itemPath = getModelObject().getPath();
     	IModel<PrismContainerValueWrapper<C>> model = getModel();
 //    	model.getObject().getContainer().setShowOnTopLevel(true);
-    	PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> containerValue = new PrismContainerValuePanel<>(idPanel, getModel());
+    	Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), wrapper -> getBasicTabVisibity(wrapper, itemPath));
+//    	PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> containerValue = new PrismContainerValuePanel<>(idPanel, getModel());
     	return containerValue;
 //		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
 //				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());

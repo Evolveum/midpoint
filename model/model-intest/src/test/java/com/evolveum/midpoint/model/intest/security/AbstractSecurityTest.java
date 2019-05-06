@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,6 +112,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	public static final File TEST_DIR = new File("src/test/resources/security");
 
+	protected static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
+	protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "00000000-0000-0000-0000-000000000321";
+	
+	protected static final File ARCHETYPE_APPLICATION_ROLE_FILE = new File(TEST_DIR, "archetype-application-role.xml");
+	protected static final String ARCHETYPE_APPLICATION_ROLE_OID = "32073084-65d0-11e9-baff-bbb479bb05b7";
+	
 	protected static final File USER_LECHUCK_FILE = new File(TEST_DIR, "user-lechuck.xml");
 	protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
 	protected static final String USER_LECHUCK_USERNAME = "lechuck";
@@ -142,6 +148,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_READ_SOME_ROLES_FILE = new File(TEST_DIR, "role-read-some-roles.xml");
 	protected static final String ROLE_READ_SOME_ROLES_OID = "7b4a3880-e167-11e6-b38b-2b6a550a03e7";
+
+	protected static final File ROLE_READ_SOME_ROLES_SUBTYPE_FILE = new File(TEST_DIR, "role-read-some-roles-subtype.xml");
+	protected static final String ROLE_READ_SOME_ROLES_SUBTYPE_OID = "56f0030c-65d1-11e9-aaba-23d1008d3763";
 
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
@@ -370,7 +379,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 69;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -382,6 +391,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
         repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
 
+        repoAddObjectFromFile(ARCHETYPE_BUSINESS_ROLE_FILE, initResult);
+        repoAddObjectFromFile(ARCHETYPE_APPLICATION_ROLE_FILE, initResult);
+        
 		repoAddObjectFromFile(ROLE_READONLY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, initResult);
@@ -405,6 +417,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_JACKS_CAMPAIGNS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_SOME_ROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_READ_SOME_ROLES_SUBTYPE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, initResult);
@@ -421,11 +434,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_LOCATION_SHADOWS_FILE, initResult);
  		repoAddObjectFromFile(ROLE_FILTER_OBJECT_USER_TYPE_SHADOWS_FILE, initResult);
 
-		repoAddObjectFromFile(ROLE_APPLICATION_1_FILE, initResult);
-		repoAddObjectFromFile(ROLE_APPLICATION_2_FILE, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_1_FILE, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_2_FILE, initResult);
-		repoAddObjectFromFile(ROLE_BUSINESS_3_FILE, initResult);
+ 		// Archetyped roles. Need to import them, not just add to repo.
+ 		importObjectsFromFileNotRaw(ROLE_APPLICATION_1_FILE, initTask, initResult);
+ 		importObjectsFromFileNotRaw(ROLE_APPLICATION_2_FILE, initTask, initResult);
+ 		importObjectsFromFileNotRaw(ROLE_BUSINESS_1_FILE, initTask, initResult);
+ 		importObjectsFromFileNotRaw(ROLE_BUSINESS_2_FILE, initTask, initResult);
+ 		importObjectsFromFileNotRaw(ROLE_BUSINESS_3_FILE, initTask, initResult);
 
 		repoAddObjectFromFile(ROLE_CONDITIONAL_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_META_NONSENSE_FILE, RoleType.class, initResult);
@@ -491,8 +505,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	}
 
 	@Test
-    public void test000Sanity() throws Exception {
-		final String TEST_NAME = "test000Sanity";
+    public void test010SanitySelf() throws Exception {
+		final String TEST_NAME = "test010SanitySelf";
         TestUtil.displayTestTitle(this, TEST_NAME);
         assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
 
@@ -512,6 +526,23 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertEquals("Wrong number of specials in object specs in authorization", 1, specials.size());
         SpecialObjectSpecificationType special = specials.get(0);
         assertEquals("Wrong special in object specs in authorization", SpecialObjectSpecificationType.SELF, special);
+    }
+	
+	@Test
+    public void test020SanityArchetypedRoles() throws Exception {
+		final String TEST_NAME = "test020SanityArchetypedRoles";
+        TestUtil.displayTestTitle(this, TEST_NAME);
+        assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
+
+        // WHEN, THEN
+        assertRoleAfter(ROLE_BUSINESS_2_OID)
+        	.assertArchetypeRef(ARCHETYPE_BUSINESS_ROLE_OID);
+        
+        assertRoleAfter(ROLE_APPLICATION_2_OID)
+    		.assertArchetypeRef(ARCHETYPE_APPLICATION_ROLE_OID);
+        
+        assertRoleAfter(ROLE_END_USER_OID)
+			.assertNoArchetypeRef();
     }
 
 	protected AuthorizationType findAutz(List<AuthorizationType> authorizations, String actionUrl) {

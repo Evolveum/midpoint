@@ -606,5 +606,8 @@ public abstract class SchemaConstants {
 	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
 	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
 	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
+	
+	//enum defs
+	public final static QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
 }

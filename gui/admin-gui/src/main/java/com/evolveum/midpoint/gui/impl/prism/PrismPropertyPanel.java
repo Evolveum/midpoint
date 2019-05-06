@@ -80,8 +80,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 	 * @param id
 	 * @param model
 	 */
-	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model) {
-		super(id, model);
+	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
+		super(id, model, visibilitytHandler);
 	}
 
 
@@ -92,7 +92,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 	
 	@Override
-	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
+	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 		
 		
 		WebMarkupContainer panel = createInputPanel(item, factory);
@@ -207,10 +207,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 	}
     
+	 //TODO: implment
     private <O extends ObjectType, C extends Containerable> O getObject() {
     	
-    	return null;
-//		PrismContainerValueWrapper<?> cValueWrapper = getModelObject().getParent();
+//    	PrismContainerValueWrapper<?> cValueWrapper = getModelObject().getParent();
 //		if (cValueWrapper == null) {
 //			return null;
 //		}
@@ -235,6 +235,6 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 //		}
 //		
 //		return newObject.asObjectable();
-//		
+		return null;
 	}
 }

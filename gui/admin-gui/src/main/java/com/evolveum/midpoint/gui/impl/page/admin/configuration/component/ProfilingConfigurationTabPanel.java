@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.ProfilingClassLoggerWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -57,6 +58,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
 	private static final String ID_PROFILING_ENABLED_NOTE = "profilingEnabledNote";
 	private static final String ID_PROFILING = "profiling";
+	private static final String ID_PROFILING_LOGGER = "profilingLogger";
 	private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
 	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
 
@@ -98,51 +100,63 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 		add(profilingEnabledNote);
 		
 		try {
-			Panel panel = getPageBase().initPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), false);
+			getProfilingModel().getObject().setShowOnTopLevel(true);
+			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), null);
 			add(panel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
 			getSession().error("Cannot create profiling panel.");
 		}
 
-		PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), LoggingConfigurationType.F_CLASS_LOGGER);
+//		PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 		
-		PrismContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
+    	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
+		
+//		PrismContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
 
-		if (loggerModel != null) {
+//		if (loggerModel != null) {
+//
+//			for (PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
+//				if (LOGGER_PROFILING.equals(
+//						new ItemRealValueModel<ClassLoggerConfigurationType>(Model.of(logger)).getObject().getPackage())) {
+//					profilingLogger = logger;
+//					continue;
+//				}
+//			}
+//		}
 
-			for (PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-				if (LOGGER_PROFILING.equals(
-						new ItemRealValueModel<ClassLoggerConfigurationType>(Model.of(logger)).getObject().getPackage())) {
-					profilingLogger = logger;
-					continue;
-				}
-			}
-		}
-
-		// TODO init new value
-		if (profilingLogger == null) {
-			WrapperContext context = new WrapperContext(null, null);
-			PrismContainerValue<ClassLoggerConfigurationType> newValue = loggerModel.getObject().createValue();
-			try {
-				getPageBase().createValueWrapper(loggerModel.getObject(), newValue, ValueStatus.ADDED, context);
-			} catch (SchemaException e) {
-				LOGGER.error("Cannot create new value for profiling. Reason: {}", e.getMessage(), e);
-				getSession().error("Cannot create new value for profiling.");
-			}
-		}
-
-		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = PrismPropertyWrapperModel.fromContainerWrapper(loggerModel,
-				ClassLoggerConfigurationType.F_APPENDER);
-		// TODO special wrapper with loading predefined values.
-//		 appenders.getObject().setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
-		 
-		 try {
-			Panel profilingLoggerLevel = getPageBase().initPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, false);
-			add(profilingLoggerLevel);
+//		// TODO init new value
+//		if (profilingLogger == null) {
+//			WrapperContext context = new WrapperContext(null, null);
+//			PrismContainerValue<ClassLoggerConfigurationType> newValue = loggerModel.getObject().createValue();
+//			try {
+//				getPageBase().createValueWrapper(loggerModel.getObject(), newValue, ValueStatus.ADDED, context);
+//			} catch (SchemaException e) {
+//				LOGGER.error("Cannot create new value for profiling. Reason: {}", e.getMessage(), e);
+//				getSession().error("Cannot create new value for profiling.");
+//			}
+//		}
+//
+//		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = PrismPropertyWrapperModel.fromContainerWrapper(loggerModel,
+//				ClassLoggerConfigurationType.F_APPENDER);
+//		// TODO special wrapper with loading predefined values.
+////		 appenders.getObject().setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
+//		 
+//		 try {
+//			Panel profilingLoggerLevel = getPageBase().initItemPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, null);
+//			add(profilingLoggerLevel);
+//		} catch (SchemaException e) {
+//			LOGGER.error("Cannot create panel for profiling logger appenders: ", e.getMessage(), e);
+//			getSession().error("Cannot create panel for profiling logger appenders.");
+//		}
+    	
+    	try {
+    		profilingLogger.getObject().setShowOnTopLevel(true);
+			Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, null);
+			add(logger);
 		} catch (SchemaException e) {
-			LOGGER.error("Cannot create panel for profiling logger appenders: ", e.getMessage(), e);
-			getSession().error("Cannot create panel for profiling logger appenders.");
+			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
+			getSession().error("Cannot create profiling panel.");
 		}
 
 	}

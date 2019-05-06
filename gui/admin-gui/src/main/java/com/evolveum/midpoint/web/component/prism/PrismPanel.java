@@ -75,7 +75,7 @@ public class PrismPanel<C extends Containerable> extends Panel {
 
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper<C>> item) {
-                createContainerPanel(item, isPanelVisible, form);
+//                createContainerPanel(item, isPanelVisible, form);
             }
         };
         containers.setReuseItems(true);
@@ -87,12 +87,12 @@ public class PrismPanel<C extends Containerable> extends Panel {
         }
     }
     
-    protected PrismContainerPanel<C> createContainerPanel(ListItem<PrismContainerWrapper<C>> item, ItemVisibilityHandlerOld isPanelVisible, Form form){
-        PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, item.getModel()); //, form, isPanelVisible);
-        panel.setOutputMarkupPlaceholderTag(true);
-        item.add(panel);
-        return panel;
-    }
+//    protected PrismContainerPanel<C> createContainerPanel(ListItem<PrismContainerWrapper<C>> item, ItemVisibilityHandlerOld isPanelVisible, Form form){
+//        PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, item.getModel()); //, form, isPanelVisible);
+//        panel.setOutputMarkupPlaceholderTag(true);
+//        item.add(panel);
+//        return panel;
+//    }
     
     private IModel<List<PrismContainerWrapper<C>>> getModel() {
     	return (IModel<List<PrismContainerWrapper<C>>>) getInnermostModel();

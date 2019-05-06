@@ -46,13 +46,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemVisibilityHandlerOld;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
@@ -67,12 +65,12 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	private static final long serialVersionUID = 1L;
 	
+	private static final transient Trace LOGGER = TraceManager.getTrace(ItemWrapperImpl.class);
+	
 	private PrismContainerValueWrapper<?> parent;
 	
 	private ItemStatus status = null;
-	private ItemPath fullPath = null;
-//	private PrismContext prismContext = null;
-
+	
 	private String displayName;
 	
 	private List<VW> values = new ArrayList<>();
@@ -104,7 +102,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	
 	protected <D extends ItemDelta<PV, ID>, O extends ObjectType> D getItemDelta(Class<O> objectClass, Class<D> deltaClass) throws SchemaException {
 //		D delta = (D) getPrismContext().deltaFor(objectClass).asItemDelta();
-		D delta = (D) createEmptyDelta(getPath());
+		D delta = (D) createEmptyDelta(null);
 		for (VW value : values) {
 			value.addToDelta(delta);
 		}
@@ -116,16 +114,38 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
-	public <D extends ItemDelta<PV, ID>> D getDelta() {
-		D delta = (D) createEmptyDelta(getPath());
+	public <D extends ItemDelta<PV, ID>> D getDelta(boolean absolute) throws SchemaException {
+		LOGGER.trace("Start computing delta for {}", newItem);
+		ItemPath path;
+		if (absolute) {
+			path = getPath();
+		} else {
+			path = getName();
+		}
+		D delta = (D) createEmptyDelta(path);
 		for (VW value : values) {
 			value.addToDelta(delta);
 		}
 		
 		if (delta.isEmpty()) {
+			LOGGER.trace("There is no delta for {}", newItem);
 			return null;
 		}
+		
+//		parent.applyDelta(delta);
+		LOGGER.trace("Returning delta {}", delta);
 		return delta;
+	}
+
+	
+	@Override
+	public <D extends ItemDelta<PV, ID>> void applyDelta(D delta) throws SchemaException {
+		if (delta == null) {
+			return;
+		}
+		
+		LOGGER.trace("Applying {} to {}", delta, newItem);
+		delta.applyTo(newItem);
 	}
 	
 	@Override
@@ -309,14 +329,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return status;
 		
 	}
-
 	
-	@Override
-	public boolean hasChanged() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
 	
 	@Override
 	public List<VW> getValues() {
@@ -413,12 +426,27 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 //	}
 	
 	@Override
-	public boolean isVisible() {
+	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
 		
 		if (!getParent().isExpanded()) {
 			return false;
 		}
 		
+		
+		if (visibilityHandler != null) {
+			ItemVisibility visible = visibilityHandler.isVisible(this);
+			if (visible != null) {
+				switch (visible) {
+					case VISIBLE:
+						return true;
+					case HIDDEN:
+						return false;
+					default:
+						// automatic, go on ...
+				}
+			}
+		}
+	    
 		ID def = getItemDefinition();
 		switch (findObjectStatus()) {
 			case NOT_CHANGED:
@@ -437,7 +465,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 			return def.canRead();
 		}
 		
-		return def.canRead() && (def.isEmphasized() || !newItem.isEmpty());
+		return def.canRead() && (def.isEmphasized() || !isEmpty());
 	}
 	
 	private boolean isVisibleForAdd(ID def) {
@@ -446,6 +474,14 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		}
 		
 		return def.isEmphasized() && def.canAdd();
+	}
+	
+	protected boolean isEmpty() {
+		if (newItem.isEmpty()) {
+			return true;
+		}
+		
+		return false;
 	}
 
 //	private boolean showEmptyCanReadAndModify(ID def) {
@@ -705,9 +741,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 	
 	@Override
-	public void setReadOnly() {
-		// TODO Auto-generated method stub
-		
+	public void setReadOnly(boolean readOnly) {
+		this.readOnly = readOnly;
 	}
 
 	@Override
@@ -718,6 +753,10 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public void setStripe(boolean stripe) {
 		this.stripe = stripe;
+	}
+	
+	protected I getOldItem() {
+		return oldItem;
 	}
 	
 }

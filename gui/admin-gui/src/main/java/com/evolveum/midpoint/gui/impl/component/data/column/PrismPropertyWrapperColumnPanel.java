@@ -52,11 +52,9 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 	@Override
 	protected Panel createValuePanel(String id, IModel<PrismPropertyWrapper<T>> model, PrismPropertyValueWrapper<T> object) {
 		
-		model.getObject().setColumn(true);
-		
 		Panel panel;
 		try {
-			panel = getPageBase().initPanel(id, model.getObject().getTypeName(), model, false);
+			panel = getPageBase().initItemPanel(id, model.getObject().getTypeName(), model, null);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for {}", model.getObject());
 			getSession().error("Cannot create panel for: " + model.getObject());

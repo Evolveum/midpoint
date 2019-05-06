@@ -36,6 +36,8 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
@@ -149,6 +151,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -2243,6 +2246,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (objectViews == null) {
             return;
         }
+        objectViews.sort(Comparator.comparing(o -> (o.getDisplay() != null && PolyStringUtils.isNotEmpty(o.getDisplay().getPluralLabel())
+                ? createStringResource(o.getDisplay().getPluralLabel()).getString()
+                : createStringResource("MenuItem.noName").getString() )));
+        objectViews.sort(Comparator.comparingInt(o -> (ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE))));
         objectViews.forEach(objectView -> {
         	CollectionRefSpecificationType collection = objectView.getCollection();
         	if (collection == null) {
@@ -2617,27 +2624,32 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	
     }
     
-    public Class<?> getWrapperPanel(QName typeName) {
+    private Class<?> getWrapperPanel(QName typeName) {
     	return registry.getPanelClass(typeName);
     }
     
-    public <IW extends ItemWrapper> Panel initPanel(String panelId, QName typeName, IModel<IW> wrapperModel, boolean errorOnNullPanel) throws SchemaException{
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler) throws SchemaException{
     	Class<?> panelClass = getWrapperPanel(typeName);
     	
     	if (panelClass == null) {
     		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for" + typeName);
-    		errorPanel.add(new VisibleBehaviour(() -> errorOnNullPanel));
+    		errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
     		return errorPanel;
     	}
     	
     	Constructor<?> constructor;
 		try {
-			constructor = panelClass.getConstructor(String.class, IModel.class);
-			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel);
+			constructor = panelClass.getConstructor(String.class, IModel.class, ItemVisibilityHandler.class);
+			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, visibilityHandler);
 			return panel;
 		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			throw new SystemException("Cannot instantiate " + panelClass);
+			throw new SystemException("Cannot instantiate " + panelClass, e);
 		}
+    }
+    
+    public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
+    	//TODO find from registry first
+    	return new PrismContainerValuePanel<>(id, model, visibilityHandler);
     }
 
     public Clock getClock() {
