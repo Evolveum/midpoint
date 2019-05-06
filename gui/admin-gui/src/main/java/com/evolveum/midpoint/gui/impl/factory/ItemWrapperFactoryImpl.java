@@ -74,7 +74,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		
 		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
+		itemWrapper.setShowEmpty(context.isShowEmpty(), false);
 		itemWrapper.setReadOnly(context.isReadOnly());
 		return itemWrapper;
 	}

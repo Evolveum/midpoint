@@ -73,6 +73,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 		applySecurityConstraints(object, context);
 		
 		PrismObjectWrapperImpl<O> objectWrapper = new PrismObjectWrapperImpl<>(object, status);
+		context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
 		PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 		objectWrapper.getValues().add(valueWrapper);
 		
