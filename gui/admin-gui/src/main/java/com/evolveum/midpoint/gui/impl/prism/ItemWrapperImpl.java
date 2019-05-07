@@ -96,12 +96,10 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		this.newItem = item;
 		this.oldItem = (I) item.clone();
 		this.status = status;
-//		this.readonly = readonly;
 		
 	}
 	
 	protected <D extends ItemDelta<PV, ID>, O extends ObjectType> D getItemDelta(Class<O> objectClass, Class<D> deltaClass) throws SchemaException {
-//		D delta = (D) getPrismContext().deltaFor(objectClass).asItemDelta();
 		D delta = (D) createEmptyDelta(null);
 		for (VW value : values) {
 			value.addToDelta(delta);
@@ -132,7 +130,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 			return null;
 		}
 		
-//		parent.applyDelta(delta);
 		LOGGER.trace("Returning delta {}", delta);
 		return delta;
 	}
@@ -240,26 +237,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	ID getItemDefinition() {
 		return newItem.getDefinition();
 	}
-	//OLD
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.prism.Revivable#revive(com.evolveum.midpoint.prism.PrismContext)
-	 */
-//	@Override
-//	public void revive(PrismContext prismContext) throws SchemaException {
-//		if (item != null) {
-//			item.revive(prismContext);
-//		}
-//		if (item.getDefinition() != null) {
-//			item.getDefinition().revive(prismContext);
-//		}
-//		this.prismContext = prismContext;
-//
-//	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump(int)
-	 */
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
@@ -336,63 +314,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return values;
 	}
 	
-	
-//	@Override
-//	public void removeValue(ValueWrapperOld<PV> valueWrapper) throws SchemaException {
-//		List<ValueWrapperOld<PV>> values = getValues();
-//		
-//		switch (valueWrapper.getStatus()) {
-//			case ADDED:
-//				values.remove(valueWrapper);
-//				break;
-//			case DELETED:
-//				throw new SchemaException();
-//			case NOT_CHANGED:
-//				valueWrapper.setStatus(ValueStatus.DELETED);
-//				break;
-//		}
-//		
-//		int count = countUsableValues();
-//		
-//		if (count == 0 && !hasEmptyPlaceholder()) {
-//			addValue(true);
-//			
-//		}
-//	}
-//	
-//	private int countUsableValues() {
-//		int count = 0;
-//		for (ValueWrapperOld<PV> value : getValues()) {
-//			value.normalize(prismContext);
-//
-//			if (ValueStatus.DELETED.equals(value.getStatus())) {
-//				continue;
-//			}
-//
-//			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
-//				continue;
-//			}
-//
-//			count++;
-//		}
-//		return count;
-//	}
-//	
-//	private boolean hasEmptyPlaceholder() {
-//		for (ValueWrapperOld<PV> value : getValues()) {
-//			value.normalize(prismContext);
-//			if (ValueStatus.ADDED.equals(value.getStatus()) && !value.hasValueChanged()) {
-//				return true;
-//			}
-//		}
-//
-//		return false;
-//	}
-
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.api.prism.ItemWrapper#checkRequired(com.evolveum.midpoint.gui.api.page.PageBase)
-	 */
 	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		return newItem.getDefinition().isMandatory();
@@ -407,23 +328,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
 		this.showEmpty = isShowEmpty;
 	}
-	
-//	protected boolean isVisible(ItemVisibilityHandler visibilityHandler) {
-//		if (visibilityHandler != null) {
-//			ItemVisibility visible = visibilityHandler.isVisible(this);
-//			if (visible != null) {
-//				switch (visible) {
-//					case VISIBLE:
-//						return true;
-//					case HIDDEN:
-//						return false;
-//					default:
-//						// automatic, go on ...
-//				}
-//			}
-//		}
-//	    return isVisible();
-//	}
 	
 	@Override
 	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
@@ -483,18 +387,6 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		
 		return false;
 	}
-
-//	private boolean showEmptyCanReadAndModify(ID def) {
-//		return def.canRead() && isShowEmpty();// && def.canModify() && isShowEmpty();
-//	}
-//
-//	private boolean showEmptyAndCanAdd(ID def) {
-//		return def.canAdd() && isShowEmpty();
-//	}
-//
-//	private boolean emphasizedAndCanAdd(ID def) {
-//		return def.canAdd() && def.isEmphasized();
-//	}
 	
 	ItemStatus getItemStatus() {
 		return status;

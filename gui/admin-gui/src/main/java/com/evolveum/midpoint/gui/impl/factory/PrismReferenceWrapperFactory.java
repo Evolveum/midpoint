@@ -93,4 +93,10 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 		return true;
 	}
 
+	@Override
+	protected void setupWrapper(PrismReferenceWrapper<R> wrapper) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

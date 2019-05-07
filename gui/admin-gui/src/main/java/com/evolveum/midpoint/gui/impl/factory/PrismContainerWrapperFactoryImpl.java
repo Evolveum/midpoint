@@ -107,9 +107,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	protected void addItemWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper,
 			WrapperContext context, List<ItemWrapper<?,?,?,?>> wrappers) throws SchemaException {
 		
-		if (skipCreateItem(def)) {
-			return;
-		}
+		
 		
 		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
 		if (factory == null) {
@@ -118,7 +116,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		LOGGER.trace("Found factory {} for {}", factory, def);
-		
+		if (factory.skipCreateWrapper(def)) {
+			return;
+		}
 		
 		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
 		
@@ -149,7 +149,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	}
 	
 	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
-		if (value.isEmpty()) {
+			if (value.isEmpty()) {
 			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
 		}
 		
@@ -166,17 +166,16 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		return false;
 	}
 	
-	protected boolean skipCreateItem(ItemDefinition<?> def) {
-		if (def.isOperational()) {
-			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
-			return true;
+	@Override
+	protected void setupWrapper(PrismContainerWrapper<C> wrapper) {
+		boolean expanded = false;
+		for (PrismContainerValueWrapper<C> valueWrapper : wrapper.getValues()) {
+			if (valueWrapper.isExpanded()) {
+				expanded = true;
+			}
 		}
 		
-		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
-			return true;
-		}
-		
-		return false;
+		wrapper.setExpanded(expanded);
 	}
+
 }

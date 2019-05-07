@@ -41,18 +41,15 @@ import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -81,7 +78,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -478,18 +474,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION));
 		
-		
-//		columns.add(new AbstractItemWrapperColumn<AssignmentType>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()){
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-//									 final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-//				Label label = new Label(componentId, getActivationLabelModel(rowModel.getObject()));
-//				label.add(AttributeModifier.append("class", " col-xs-12 "));
-//				item.add(label);
-//			}
-//		});
 		columns.addAll(initColumns());
 		List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
 		columns.add(new InlineMenuButtonColumn<PrismContainerValueWrapper<AssignmentType>>(menuActionsList, getPageBase()){
@@ -696,9 +680,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			LOGGER.error("Cannot create panel for activation, {}", e.getMessage(), e);
 			getSession().error("Cannot create panel for activation, " + e.getMessage());
 		}
-//		PrismContainerPanel<ActivationType> acitvationContainer = new PrismContainerPanel<ActivationType>(ID_ACTIVATION_PANEL, activationModel);
-//		PrismContainerPanelOld<ActivationType> acitvationContainer = new PrismContainerPanelOld<ActivationType>(ID_ACTIVATION_PANEL, IModel.of(activationModel), form, itemWrapper -> getActivationVisibileItems(itemWrapper.getPath(), assignmentPath));
-		
 
 		return specificContainers;
 	}
@@ -737,12 +718,6 @@ protected Panel getSpecificContainerPanel(IModel<PrismContainerValueWrapper<Assi
 			getSession().error("Cannot create panel for activation, " + e.getMessage());
 		}
 		return null;
-//		PrismContainerPanel constraintsContainerPanel = new PrismContainerPanel(ID_SPECIFIC_CONTAINER, );
-//		PrismContainerPanelOld constraintsContainerPanel = new PrismContainerPanelOld(ID_SPECIFIC_CONTAINER,
-//				getSpecificContainerModel(modelObject), form,
-//				itemWrapper -> getSpecificContainersItemsVisibility(itemWrapper, assignmentPath));
-		
-//		return constraintsContainerPanel;
 	}
 
 protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismContainerValueWrapper<AssignmentType>> modelObject){
@@ -751,53 +726,39 @@ protected IModel<PrismContainerWrapper> getSpecificContainerModel(IModel<PrismCo
 	if (ConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
 		IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_CONSTRUCTION);
 		return (IModel) constructionModel;
-//		PrismContainerWrapper<ConstructionType> constructionWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-//				AssignmentType.F_CONSTRUCTION));
-//
-//		return Model.of(constructionWrapper);
 	}
 
 	if (PersonaConstructionType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
 		IModel<PrismContainerWrapper<PersonaConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_PERSONA_CONSTRUCTION);
 		return (IModel) constructionModel;
-		//TODO is it correct? findContainerWrapper by path F_PERSONA_CONSTRUCTION will return PersonaConstructionType
-		//but not PolicyRuleType
-//		PrismContainerWrapper<PolicyRuleType> personasWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(),
-//				AssignmentType.F_PERSONA_CONSTRUCTION));
-//
-//		return Model.of(personasWrapper);
 	}
 	if (PolicyRuleType.COMPLEX_TYPE.equals(AssignmentsUtil.getTargetType(assignment))) {
 		IModel<PrismContainerWrapper<PolicyRuleType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(modelObject, AssignmentType.F_POLICY_RULE);
 		return (IModel) constructionModel;
-//		PrismContainerWrapper<PolicyRuleType> policyRuleWrapper = modelObject.findContainer(ItemPath.create(modelObject.getPath(), AssignmentType.F_POLICY_RULE));
-//		return Model.of(policyRuleWrapper);
 	}
 	return Model.of();
 }
 
+//FIXME rewrite so it will work properly :)
 protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWrapper, ItemPath parentAssignmentPath) {
 	if(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ATTRIBUTE).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())
 			|| parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_ASSOCIATION).append(ResourceAttributeDefinitionType.F_INBOUND).namedSegmentsOnly().isSubPathOrEquivalent(itemWrapper.getPath().namedSegmentsOnly())) {
 		return ItemVisibility.HIDDEN;
 	}
-	if (ContainerWrapperImpl.class.isAssignableFrom(itemWrapper.getClass())){
-		return ItemVisibility.AUTO;
-	}
+	
 	List<ItemPath> pathsToHide = new ArrayList<>();
 	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
 	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
-	if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
+	if (!WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
 		return ItemVisibility.AUTO;
 	} else {
 		return ItemVisibility.HIDDEN;
 	}
 }
 
+//FIXME: rewrite so it will work properly
 	private ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentAssignmentPath, IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-//		PrismContainerValue<AssignmentType> prismContainerValue = model.getObject().getContainerValue();
-		ItemPath assignmentPath = model.getObject().getPath();
-//		ItemPath assignmentPath = model.getObject().getRealValue().asPrismContainerValue().getPath();
+		ItemPath assignmentPath = model.getObject().getNewValue().getPath();
 		return getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, model.getObject().getRealValue());
 	}
 
@@ -805,10 +766,6 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 		ItemPath itemPath = getModelObject().getPath();
 //		model.getObject().getParent().setShowOnTopLevel(true);
 		return getPageBase().initContainerValuePanel(idPanel, model, itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model));
-//		return new PrismContainerValuePanel<>(idPanel, model);
-		
-//		(idPanel, model, true, form,
-//				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath, model), getPageBase());
 	}
 
 	private QName getRelationForDisplayNamePanel(PrismContainerValueWrapper<AssignmentType> modelObject) {
@@ -885,17 +842,17 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_FOCUS_TYPE));
 		}
 
-		if (assignment.getConstruction() == null) {
+//		if (assignment.getConstruction() == null) {
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_CONSTRUCTION));
-		}
-		if (assignment.getPersonaConstruction() == null) {
+//		}
+//		if (assignment.getPersonaConstruction() == null) {
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_PERSONA_CONSTRUCTION));
-		}
-		if (assignment.getPolicyRule() == null) {
+//		}
+//		if (assignment.getPolicyRule() == null) {
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_POLICY_RULE));
-		}
+//		}
 
-		if (PropertyOrReferenceWrapper.class.isAssignableFrom(itemWrapper.getClass()) && !WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
+		if (!WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
 			return ItemVisibility.AUTO;
 		} else {
 			return ItemVisibility.HIDDEN;
@@ -1046,58 +1003,6 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 	protected PageBase getParentPage() {
 		return getPageBase();
 	}
-
-//	private IModel<String> getActivationLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-//		ContainerWrapperImpl<ActivationType> activationContainer = assignmentContainer.findContainerWrapper(assignmentContainer.getPath().append(AssignmentType.F_ACTIVATION));
-//		ActivationStatusType administrativeStatus = null;
-//		XMLGregorianCalendar validFrom = null;
-//		XMLGregorianCalendar validTo = null;
-//		ActivationType activation = null;
-//		String lifecycleStatus = "";
-//		PropertyOrReferenceWrapper lifecycleStatusProperty = assignmentContainer.findPropertyWrapperByName(AssignmentType.F_LIFECYCLE_STATE);
-//		if (lifecycleStatusProperty != null && lifecycleStatusProperty.getValues() != null){
-//			Iterator<ValueWrapperOld> iter = lifecycleStatusProperty.getValues().iterator();
-//			if (iter.hasNext()){
-//				lifecycleStatus = (String) iter.next().getValue().getRealValue();
-//			}
-//		}
-//		if (activationContainer != null){
-//			activation = new ActivationType();
-//			PropertyOrReferenceWrapper administrativeStatusProperty = activationContainer.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-//			if (administrativeStatusProperty != null && administrativeStatusProperty.getValues() != null){
-//				Iterator<ValueWrapperOld> iter = administrativeStatusProperty.getValues().iterator();
-//				if (iter.hasNext()){
-//					administrativeStatus = (ActivationStatusType) iter.next().getValue().getRealValue();
-//					activation.setAdministrativeStatus(administrativeStatus);
-//				}
-//			}
-//			PropertyOrReferenceWrapper validFromProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_FROM);
-//			if (validFromProperty != null && validFromProperty.getValues() != null){
-//				Iterator<ValueWrapperOld> iter = validFromProperty.getValues().iterator();
-//				if (iter.hasNext()){
-//					validFrom = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
-//					activation.setValidFrom(validFrom);
-//				}
-//			}
-//			PropertyOrReferenceWrapper validToProperty = activationContainer.findPropertyWrapper(ActivationType.F_VALID_TO);
-//			if (validToProperty != null && validToProperty.getValues() != null){
-//				Iterator<ValueWrapperOld> iter = validToProperty.getValues().iterator();
-//				if (iter.hasNext()){
-//					validTo = (XMLGregorianCalendar) iter.next().getValue().getRealValue();
-//					activation.setValidTo(validTo);
-//				}
-//			}
-//		}
-//		if (administrativeStatus != null){
-//			return Model.of(WebModelServiceUtils
-//					.getAssignmentEffectiveStatus(lifecycleStatus, activation, getPageBase()).value().toLowerCase());
-//		} else {
-//			return AssignmentsUtil.createActivationTitleModel(WebModelServiceUtils
-//							.getAssignmentEffectiveStatus(lifecycleStatus, activation, getPageBase()),
-//					validFrom, validTo, getMultivalueContainerListPanel());
-//		}
-//
-//	}
 
 	private IModel<String> getAssignmentsLimitReachedTitleModel(String defaultTitleKey) {
 		return new LoadableModel<String>(true) {

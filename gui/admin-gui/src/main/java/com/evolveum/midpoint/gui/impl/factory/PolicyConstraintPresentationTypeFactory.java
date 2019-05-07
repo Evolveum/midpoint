@@ -147,5 +147,10 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+		return false;
+	}
 
 }

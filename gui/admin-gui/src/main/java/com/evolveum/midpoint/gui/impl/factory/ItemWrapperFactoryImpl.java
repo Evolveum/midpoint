@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author katka
@@ -82,15 +83,21 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
 		itemWrapper.setShowEmpty(context.isShowEmpty(), false);
 		itemWrapper.setReadOnly(context.isReadOnly());
+		
+		setupWrapper(itemWrapper);
+		
 		return itemWrapper;
 	}
+	
+	protected abstract void setupWrapper(IW wrapper);
 	
 	protected <ID extends ItemDefinition<I>> List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
 		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
 		
-		if (item.isEmpty()) {
+		//TODO : prismContainer.isEmpty() interates and check is all prismcontainervalues are empty.. isn't it confusing?
+		if (item.isEmpty() && item.getValues().isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
 				VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
@@ -149,6 +156,20 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		return prismContext;
 	}
 	
+	@Override
+	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+		if (def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return true;
+		}
+		
+		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			return true;
+		}
+		
+		return false;
+	}
 	
 
 //	@Override

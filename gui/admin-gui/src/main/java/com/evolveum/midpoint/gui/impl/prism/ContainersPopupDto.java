@@ -47,4 +47,8 @@ public class ContainersPopupDto implements Serializable {
 		return def;
 	}
 	
+	public boolean isSelected() {
+		return selected;
+	}
+	
 }

@@ -79,4 +79,9 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 		return valueWrapper;
 	}
 
+	@Override
+	protected void setupWrapper(PrismPropertyWrapper<T> wrapper) {
+		
+	}
+
 }

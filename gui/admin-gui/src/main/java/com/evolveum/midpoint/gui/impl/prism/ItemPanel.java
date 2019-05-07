@@ -100,7 +100,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 			protected void populateItem(ListItem<VW> item) {
 				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(ItemPanel.this.getModelObject());
 				 
-				 createValuePanel(item, componentFactory, null);
+				 createValuePanel(item, componentFactory, visibilityHandler);
 				 createButtons(item);
 			}
 		 
