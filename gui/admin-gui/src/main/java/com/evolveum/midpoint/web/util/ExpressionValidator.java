@@ -96,7 +96,9 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 			return;
 		}
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, valueToValidate.getClass());
+		if (valueToValidate != null) {
+			variables.put(ExpressionConstants.VAR_INPUT, valueToValidate, valueToValidate.getClass());
+		}
 		variables.putObject(ExpressionConstants.VAR_OBJECT, (ObjectType)getObjectType(), ObjectType.class);
 //		addAdditionalExpressionVariables(variables);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, contextDesc, task, result);

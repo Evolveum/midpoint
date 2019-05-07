@@ -89,5 +89,6 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	void sort();
 	
 	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
+	PrismContainerValue<C> getValueToAdd() throws SchemaException;
 	
 }

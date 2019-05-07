@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -69,38 +70,25 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	@Override
-	public <D extends ItemDelta<PrismContainerValue<C>, ID>, ID extends ItemDefinition> void addToDelta(D delta)
-			throws SchemaException {
-		
-		
-		switch (getStatus()) {
-			case ADDED:
-				boolean wasChanged = false;
-				for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
-					D subDelta = (D) itemWrapper.getDelta(false);
-					if (subDelta == null) {
-						continue;
-					}
-					wasChanged = true;
-					subDelta.applyTo(getOldValue());
-				}
-				if (wasChanged) {
-					delta.addValueToAdd(getOldValue().clone());
-				}
-				break;
-			case NOT_CHANGED:
-				for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
-					D subDelta = (D) itemWrapper.getDelta(true);
-					if (subDelta == null) {
-						continue;
-					}
-					wasChanged = true;
-					delta.merge(subDelta);
-				}
-				break;
-			case DELETED :
-				delta.addValueToDelete(getOldValue().clone());
+	public PrismContainerValue<C> getValueToAdd() throws SchemaException {
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		for (ItemWrapper<?, ?, ?, ?> itemWrapper : items) {
+			Collection<ItemDelta> subDelta =  itemWrapper.getDelta();
+			
+			if (subDelta != null && !subDelta.isEmpty()) {
+				modifications.addAll(subDelta);
+			}
 		}
+		if (!modifications.isEmpty()) {
+			PrismContainerValue<C> valueToAdd = getOldValue().clone();
+			for (ItemDelta delta : modifications) {
+				delta.applyTo(valueToAdd);
+			}
+			return valueToAdd;
+		}
+	
+		
+		return null;
 	}
 	
 	@Override

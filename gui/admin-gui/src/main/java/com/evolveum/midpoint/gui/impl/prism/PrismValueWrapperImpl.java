@@ -98,7 +98,8 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 		return newValue;
 	}
 	
-	protected V getOldValue() {
+	@Override
+	public V getOldValue() {
 		return oldValue;
 	}
 	

@@ -59,6 +59,7 @@ import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -309,12 +310,14 @@ public class ConfigurationStep extends WizardStep {
 					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
 					);
             
+            
+            
             for (PrismContainerWrapper<?> wrapper : wrappers) {
-            	ItemDelta wrapperDetla = wrapper.getDelta(true);
-            	if (wrapperDetla == null) {
+            	Collection<ItemDelta> wrapperDetla = wrapper.getDelta();
+            	if (wrapperDetla == null || wrapperDetla.isEmpty()) {
             		continue;
             	}
-            	delta.addModification(wrapperDetla);
+            	delta.addModifications(wrapperDetla);
             	
             }
 			

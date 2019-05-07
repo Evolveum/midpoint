@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,7 +39,9 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
@@ -257,6 +260,74 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		}
 
 		container.removeAll(valuesToBeRemoved);
+	}
+	
+	@Override
+	public <D extends ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>>> Collection<D> getDelta() throws SchemaException {
+		
+		Collection<D> deltas = new ArrayList<D>();
+		
+		
+		ContainerDelta<C> delta = createEmptyDelta(getPath());
+		
+		switch (getStatus()) {
+		
+		case ADDED:
+			for (PrismContainerValueWrapper<C> pVal : getValues()) {
+				PrismContainerValue<C> valueToAdd = pVal.getValueToAdd();
+				if (valueToAdd != null) {
+					delta.addValueToAdd(valueToAdd);
+				}
+			}
+			
+			if (delta.isEmpty()) {
+				return null;
+			}
+			
+			return (Collection) MiscUtil.createCollection(delta);
+		case NOT_CHANGED:
+			
+			for (PrismContainerValueWrapper<C> pVal : getValues()) {
+				switch (pVal.getStatus()) {
+					case ADDED: 
+						PrismContainerValue<C> valueToAdd = pVal.getValueToAdd();
+						if (valueToAdd != null) {
+							delta.addValueToAdd(valueToAdd);
+						}
+						break;
+					case NOT_CHANGED:
+						for (ItemWrapper iw : pVal.getItems()) {
+							Collection iwDetlas = iw.getDelta();
+							if (iwDetlas != null && !iwDetlas.isEmpty()) {
+								deltas.addAll(iwDetlas);
+							}
+						}
+						break;
+						
+					case DELETED:
+						delta.addValueToDelete(pVal.getOldValue().clone());
+						break;
+				}
+			}
+			
+			break;
+		case DELETED :
+			for (PrismContainerValueWrapper<C> pVal : getValues()) {
+				delta.addValueToDelete(pVal.getOldValue().clone());
+			}
+			break;
+			
+		}
+		
+		if (!delta.isEmpty()) {
+			deltas.add((D) delta);
+		}
+		
+		if (deltas.isEmpty()) {
+			return null;
+		}
+		
+		return deltas;
 	}
 
 		
