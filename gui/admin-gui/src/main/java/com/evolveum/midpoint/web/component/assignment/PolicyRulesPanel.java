@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -155,7 +156,14 @@ public class PolicyRulesPanel extends AssignmentPanel {
 	@Override
 	protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {
         PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
-//        newAssignment.asContainerable().setPolicyRule(new PolicyRuleType());
+        try {
+			newAssignment.findOrCreateContainer(AssignmentType.F_POLICY_RULE);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create policy rule assignment: {}", e.getMessage(), e);
+			getSession().error("Cannot create policyRule assignment.");
+			target.add(getPageBase().getFeedbackPanel());
+			return;
+		}
         PrismContainerValueWrapper<AssignmentType> newAssignmentWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject());
 //        newAssignmentWrapper.setShowEmpty(true, false);
 //        newAssignmentWrapper.computeStripes();

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author katka
@@ -56,28 +57,47 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
 		if (childItem == null) {
+			if (!context.isForceCreate() && !canCreateNewWrapper(def)) {
+				LOGGER.trace("Skipping reating wrapper for non-existent item. It is not supported for {}", def);
+				return null;
+			}
+			
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
-//			childItem = (I) def.instantiate();
 			status = ItemStatus.ADDED;
+			
 		}
 		
+		return createWrapper(parent, childItem, status, context);
+	}
+	
+	
+	public IW createWrapper(Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+		return createWrapper(null, (I) childItem, status, context);
+		
+	};
+	
+	private IW createWrapper(PrismContainerValueWrapper<?> parent, I childItem, ItemStatus status, WrapperContext context) throws SchemaException {
 		IW itemWrapper = createWrapper(parent, childItem, status);
 		
-		
-		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, childItem, context);
+		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
+		itemWrapper.setShowEmpty(context.isShowEmpty(), false);
+		itemWrapper.setReadOnly(context.isReadOnly());
+		
+		setupWrapper(itemWrapper);
+		
 		return itemWrapper;
 	}
 	
+	protected abstract void setupWrapper(IW wrapper);
 	
 	protected <ID extends ItemDefinition<I>> List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
 		List<VW> pvWrappers = new ArrayList<>();
 		
 		ID definition = (ID) item.getDefinition();
-//		ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(definition);
 		
-		if (item.isEmpty()) {
+		//TODO : prismContainer.isEmpty() interates and check is all prismcontainervalues are empty.. isn't it confusing?
+		if (item.isEmpty() && item.getValues().isEmpty()) {
 			if (shoudCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
 				VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
@@ -87,7 +107,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		}
 		
 		for (PV pcv : (List<PV>)item.getValues()) {
-			if(canCreateWrapper(pcv)){
+			if(canCreateValueWrapper(pcv)){
 				VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 				pvWrappers.add(valueWrapper);
 			}
@@ -96,8 +116,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		return pvWrappers;
 	
 	}
+	
+	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
+		return true;
+	}
 
-	protected boolean canCreateWrapper(PV pcv) {
+	protected boolean canCreateValueWrapper(PV pcv) {
 		return true;
 	}
 
@@ -132,6 +156,20 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		return prismContext;
 	}
 	
+	@Override
+	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+		if (def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return true;
+		}
+		
+		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			return true;
+		}
+		
+		return false;
+	}
 	
 
 //	@Override

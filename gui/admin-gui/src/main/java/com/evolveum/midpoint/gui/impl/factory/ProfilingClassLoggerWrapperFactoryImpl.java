@@ -63,7 +63,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 	}
 	
 	@Override
-	protected boolean canCreateWrapper(PrismContainerValue<C> value) {
+	protected boolean canCreateValueWrapper(PrismContainerValue<C> value) {
 		if(value == null || value.getRealValue() == null) {
 			return false;
 		}
@@ -90,7 +90,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 		List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
 		
 		for (PrismContainerValue<C> pcv : (List<PrismContainerValue<C>>)item.getValues()) {
-			if(canCreateWrapper(pcv)) {
+			if(canCreateValueWrapper(pcv)) {
 				PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
 				pvWrappers.add(valueWrapper);
 			}

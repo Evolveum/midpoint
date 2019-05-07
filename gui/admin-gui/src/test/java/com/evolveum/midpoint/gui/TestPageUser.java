@@ -15,18 +15,16 @@
  */
 package com.evolveum.midpoint.gui;
 
-import javax.annotation.security.RunAs;
-
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismObjectValuePanel;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -35,11 +33,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
-import com.evolveum.midpoint.web.boot.MidPointSpringApplication;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 /**
  * @author katka
@@ -51,6 +47,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 public class TestPageUser extends AbstractGuiIntegrationTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestPageUser.class);
+	
+	private static final String TAB_MAIN = "mainPanel:mainForm:tabPanel:panel:main";
+	private static final String TAB_ACTIVATION = "mainPanel:mainForm:tabPanel:panel:activation";
+	private static final String TAB_PASSWORD = "mainPanel:mainForm:tabPanel:panel:password";
+	private static final String MAIN_FORM = "mainPanel:mainForm";
+	
+	private static final String PATH_FORM_NAME = "tabPanel:panel:main:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:input";
+	private static final String PATH_FORM_ADMINISTRATIVE_STATUS = "tabPanel:panel:activation:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:input";
+	private static final String PATH_PASSWORD_NEW = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:inputContainer:password1";
+	private static final String PATH_PASSWORD_NEW_REPEAT = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:1:property:values:0:valueContainer:form:input:inputContainer:password2";
+	private static final String FORM_SAVE = "save";
+	
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -64,19 +72,66 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 	}
 	
 	@Test
-	public void test000renderPageUserNew() {
+	public void test000testPageUserNew() {
+		renderPage();
+	}
+	
+	@Test
+	public void test001testBasicTab() {
+		PageUser pageUser = renderPage();
 		
+		tester.assertComponent(TAB_MAIN, PrismObjectValuePanel.class);
+		
+		tester.assertComponent(TAB_ACTIVATION, PrismContainerPanel.class);
+		
+		tester.assertComponent(TAB_PASSWORD, PrismContainerPanel.class);
+		
+	}
+	
+	@Test
+	public void test002testAddDelta() throws Exception {
+		PageUser pageUser = renderPage();
+		
+		FormTester formTester = tester.newFormTester(MAIN_FORM);
+		formTester.setValue(PATH_FORM_NAME, "newUser");
+		formTester.setValue(PATH_FORM_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED.value());
+		formTester.setValue(PATH_PASSWORD_NEW, "n3wP4ss");
+		formTester.setValue(PATH_PASSWORD_NEW_REPEAT, "n3wP4ss");
+				
+		formTester = formTester.submit(FORM_SAVE);
+		
+//		assertInfoMessages("Save successfull");
+//		
+//		PrismObject<UserType> newUser = findObjectByName(UserType.class, "newUser");
+//		LOGGER.info("created user: {}", newUser.debugDump());
+		
+	}
+	
+	@Test
+	public void test010renderAssignmentsTab() {
+		
+		renderPage();
+		
+		tester.assertRenderedPage(PageUser.class);
+		
+		String assignmentPath = "mainPanel:mainForm:tabPanel:tabs-container:tabs:2:link";
+		tester.clickLink(assignmentPath);
+		
+		//TODO assignments table
+//		String assignmentTable = assignmentPath + ":table";
+//		
+//		tester.assertComponent(assignmentTable, MultivalueContainerListPanelWithDetailsPanel.class);
+	}
+	
+	private PageUser renderPage() {
 		LOGGER.info("render page user");
 		PageParameters params = new PageParameters();
-		params.add(OnePageParameterEncoder.PARAMETER, SystemObjectsType.USER_ADMINISTRATOR.value());
 		PageUser pageUser = tester.startPage(PageUser.class);
 		
 		tester.assertRenderedPage(PageUser.class);
 		
-		//containers:0:container:values:0:value:propertiesLabel:properties:0:property:values:0:value:valueContainer:input:input
-		String path = "tabPanel:panel:focusDetails:activation";
+		return pageUser;
 		
-		tester.assertComponent(path, PrismContainerPanel.class);
 	}
 	
 }

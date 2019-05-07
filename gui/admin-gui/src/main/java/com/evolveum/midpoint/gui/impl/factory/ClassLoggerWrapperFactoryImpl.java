@@ -39,7 +39,7 @@ public class ClassLoggerWrapperFactoryImpl<C extends Containerable> extends Pris
 	}
 
 	@Override
-	protected boolean canCreateWrapper(PrismContainerValue<C> value) {
+	protected boolean canCreateValueWrapper(PrismContainerValue<C> value) {
 		if(value == null || value.getRealValue() == null) {
 			return true;
 		}

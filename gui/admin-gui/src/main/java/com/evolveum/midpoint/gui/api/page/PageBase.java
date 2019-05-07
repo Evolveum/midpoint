@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -2621,6 +2622,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	
     	ctx.setCreateIfEmpty(true);
     	return factory.createWrapper(parent, def, ctx);
+    	
+    }
+    
+    public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
+    	
+    	ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
+    	
+    	ctx.setCreateIfEmpty(true);
+    	return factory.createWrapper(item, status, ctx);
     	
     }
     

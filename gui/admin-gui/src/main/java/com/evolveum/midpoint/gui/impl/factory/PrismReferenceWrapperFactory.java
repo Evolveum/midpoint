@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author katka
@@ -79,6 +80,23 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 			
 		PrismReferenceValueWrapperImpl<R> refValue = new PrismReferenceValueWrapperImpl<>(parent, value, status);
 		return refValue;
+	}
+	
+	@Override
+	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
+		//TODO compare full path instead of def.getName(). The issue is, that another complex type can have targetRef or target specified and then 
+		// it won't be created either in that case.
+		if (AssignmentType.F_TARGET.equivalent(def.getName()) || AssignmentType.F_TARGET_REF.equivalent(def.getName())) {
+			return false;
+		}
+		
+		return true;
+	}
+
+	@Override
+	protected void setupWrapper(PrismReferenceWrapper<R> wrapper) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

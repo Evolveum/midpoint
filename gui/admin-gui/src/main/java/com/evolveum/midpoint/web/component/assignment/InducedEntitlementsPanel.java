@@ -211,15 +211,22 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                 .build();
     }
     
-    @Override
-	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-		specificContainers.add(getConstructionAssociationPanel(modelObject));
-
-		specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
-		return specificContainers;
-	}
+//    @Override
+//	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+//		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
+//		specificContainers.add(getConstructionAssociationPanel(modelObject));
+//
+//		specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
+//		return specificContainers;
+//	}
     
+    @Override
+    protected void addCustomSpecificContainers(Fragment specificContainers,
+    		IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+    	specificContainers.add(getConstructionAssociationPanel(modelObject));
+    	specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
+   
+    }
     
     
     @Override

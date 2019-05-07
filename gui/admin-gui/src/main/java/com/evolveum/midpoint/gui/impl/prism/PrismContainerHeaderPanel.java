@@ -53,7 +53,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 
 	@Override
 	protected void initButtons() {
-		add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMultiValue()));
+//		add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMultiValue()));
 		
 		
 		 AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
@@ -69,23 +69,44 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	        
 	        
 	        initExpandCollapseButton();
+//	        initAddButton();
 	        //TODO: sorting
 	        //TODO add/remove
 	}
 	
+	
+
+//	protected void initAddButton() {
+//		AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(AjaxRequestTarget target) {
+//				addValue(target);
+//			}
+//		};
+//		addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
+//		add(addButton);
+//	}
+	
 	private void addValue(AjaxRequestTarget target) {
 		PrismContainerWrapper<C> parentWrapper = getModelObject();
 		WrapperContext ctx = new WrapperContext(null, null);
+		ctx.setShowEmpty(true);
 		try {
-			getPageBase().createValueWrapper(parentWrapper, parentWrapper.getItem().createNewValue(), ValueStatus.ADDED, ctx);
+			PrismContainerValueWrapper<C> valueWrapper = getPageBase().createValueWrapper(parentWrapper, parentWrapper.getItem().createNewValue(), ValueStatus.ADDED, ctx);
+			parentWrapper.getValues().add(valueWrapper);
 		} catch (SchemaException e) {
 			// TODO error handling
 		}
-		target.add(this.getParent());
+		PrismContainerPanel parentPanel = findParent(PrismContainerPanel.class);
+		target.add(parentPanel);
  	}
 	
+	
+	
 	private boolean isAddButtonVisible() {
-		return getModelObject().isExpanded();
+		return getModelObject() != null && getModelObject().isExpanded() && getModelObject().isMultiValue();
 	}
 
 	@Override
@@ -102,17 +123,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 		return labelComponent;
 	}
 	
-	private void onExpandClick(AjaxRequestTarget target) {
-		
-		PrismContainerWrapper<C> wrapper = getModelObject();
-		wrapper.setExpanded(!wrapper.isExpanded());
-		target.add(getParent());
-//		onButtonClick(target);
-	}
-
 	
-	
-//	@Override
 	protected void initExpandCollapseButton() {
 //		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
 		
@@ -128,7 +139,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 						
 			@Override
 			public boolean isOn() {
-				return PrismContainerHeaderPanel.this.getModelObject().isExpanded();
+				return PrismContainerHeaderPanel.this.getModelObject() != null && PrismContainerHeaderPanel.this.getModelObject().isExpanded();
 			}
         };
         expandCollapseButton.setOutputMarkupId(true);
@@ -137,4 +148,14 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 //        
 //        return expandCollapseFragment;
 	}
+	
+	private void onExpandClick(AjaxRequestTarget target) {
+		
+		PrismContainerWrapper<C> wrapper = getModelObject();
+		wrapper.setExpanded(!wrapper.isExpanded());
+		target.add(getParent());
+//		onButtonClick(target);
+	}
+
+	
 }

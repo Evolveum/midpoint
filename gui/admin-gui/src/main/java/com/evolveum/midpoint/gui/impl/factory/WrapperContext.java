@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 /**
  * @author katka
@@ -35,6 +34,8 @@ public class WrapperContext {
 	private boolean createIfEmpty;
 	
 	private boolean readOnly;
+	private boolean showEmpty;
+	private boolean forceCreate;
 	
 	
 	//Shadow related attributes
@@ -65,33 +66,22 @@ public class WrapperContext {
 		this.result = result;
 	}
 	
-	/**
-	 * @return the createIfEmpty
-	 */
 	public boolean isCreateIfEmpty() {
 		return createIfEmpty;
 	}
 	
-	/**
-	 * @param createIfEmpty the createIfEmpty to set
-	 */
 	public void setCreateIfEmpty(boolean createIfEmpty) {
 		this.createIfEmpty = createIfEmpty;
 	};
 	
-	/**
-	 * @return the readOnly
-	 */
 	public boolean isReadOnly() {
 		return readOnly;
 	}
 	
-	/**
-	 * @param readOnly the readOnly to set
-	 */
 	public void setReadOnly(boolean readOnly) {
 		this.readOnly = readOnly;
 	}
+
 
 	public ResourceType getResource() {
 		return resource;
@@ -109,4 +99,19 @@ public class WrapperContext {
 		this.discriminator = discriminator;
 	}
 	
+	public boolean isShowEmpty() {
+		return showEmpty;
+	}
+	
+	public void setShowEmpty(boolean showEmpty) {
+		this.showEmpty = showEmpty;
+	}
+	
+	public boolean isForceCreate() {
+		return forceCreate;
+	}
+	
+	public void setForceCreate(boolean forceCreate) {
+		this.forceCreate = forceCreate;
+	}
 }

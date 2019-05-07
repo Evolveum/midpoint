@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -31,6 +33,9 @@ public interface ItemWrapperFactory<IW extends ItemWrapper, VW extends PrismValu
 
 	
 	IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException;
+	IW createWrapper(Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
 	VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
+	
+	boolean skipCreateWrapper(ItemDefinition<?> def);
 
 }

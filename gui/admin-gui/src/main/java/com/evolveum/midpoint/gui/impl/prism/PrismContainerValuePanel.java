@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -84,6 +85,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     
     public PrismContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
 		super(id, model);
+		this.visibilityHandler = visibilityHandler;
 	}
 	
 	@Override
@@ -131,13 +133,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 
 	private void initValues() {
-		createPropertiesPanel();
+		
+		createNonContainersPanel();
 		
 		createContainersPanel();
 		
 	}
 	
-	private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createPropertiesPanel() {
+	private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createNonContainersPanel() {
 		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
     	propertiesLabel.setOutputMarkupId(true);
     	
@@ -152,7 +155,20 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				try {
 					Panel panel = getPageBase().initItemPanel("property", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
 					panel.setOutputMarkupId(true);
-					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible(visibilityHandler)));
+					panel.add(new VisibleEnableBehaviour() {
+						
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public boolean isEnabled() {
+							return !item.getModelObject().isReadOnly();
+						}
+						
+						@Override
+						public boolean isVisible() {
+							return item.getModelObject().isVisible(visibilityHandler);
+						}
+					});
 					item.add(panel);
 				} catch (SchemaException e1) {
 					throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
@@ -212,51 +228,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 					throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
 				}
 				
-
-				
-				// containerPanel.add(new VisibleEnableBehaviour() {
-				//
-				//
-				// @Override
-				// public boolean isVisible() {
-				// if(!model.getObject().isExpanded() &&
-				// !model.getObject().getContainer().isShowOnTopLevel()) {
-				// return false;
-				// }
-				//
-				//// if( ((ContainerWrapper)item.getModelObject() != null &&
-				// ((ContainerWrapper)item.getModelObject()).getItemDefinition()
-				// != null
-				//// &&
-				// ((ContainerWrapper)item.getModelObject()).getItemDefinition().getTypeName()
-				// != null
-				//// &&
-				// ((ContainerWrapper)item.getModelObject()).getItemDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)
-				// )
-				//// && ( ((ContainerWrapper)item.getModelObject()).getValues()
-				// != null &&
-				// ((ContainerWrapper)item.getModelObject()).getValues().get(0)
-				// != null
-				//// &&
-				// !((ContainerWrapper<MetadataType>)item.getModelObject()).getValues().get(0).isVisible()
-				// ) ){
-				//// return false;
-				//// }
-				//
-				// if
-				// (model.getObject().containsMultipleMultivalueContainer(isPanalVisible)al
-				// && item.getModelObject().getItemDefinition().isMultiValue()
-				// &&
-				// CollectionUtils.isEmpty(item.getModelObject().getValues())) {
-				// return false;
-				// }
-				//
-				// return containerPanel.isPanelVisible(isPanalVisible,
-				// (IModel<ContainerWrapperImpl<C>>) item.getModel());
-				//
-				// }
-				// });
-				// return;
 			}
 		};
 
@@ -411,13 +382,16 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		WrapperContext ctx = new WrapperContext(task, task.getResult());
 		containers.forEach(container -> {
 			try {
-				getPageBase().createItemWrapper(container, getModelObject(), ctx);
+				ItemWrapper iw = getPageBase().createItemWrapper(container, getModelObject(), ctx);
+				((List) getModelObject().getItems()).add(iw);
 			} catch (SchemaException e) {
 				OperationResult result = ctx.getResult();
 				result.recordFatalError("Cannot create container wrapper for " + container, e);
 				getPageBase().showResult(ctx.getResult());
 			}
 		});
+		
+		refreshPanel(target);
 		
 	}
 	
@@ -464,24 +438,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	
 	private void refreshPanel(AjaxRequestTarget target) {
 		
-//		PrismContainerPanel panel = findParent(PrismContainerPanel.class);
-//		if (panel != null) {
-//			target.add(panel);
-//		} else {
-//		PrismContainerValuePanel.this.removeAll();
-//		initLayout();
 		target.add(PrismContainerValuePanel.this);
-//			target.add(PrismContainerValuePanel.this); 
-//			target.addChildren(PrismContainerValuePanel.this, Component.class);
-//		}t
-//			target.add(get(ID_PROPERTIES_LABEL));
-		
 		target.add(getPageBase().getFeedbackPanel());
 	}
 	
-	protected void initExpandCollapseButton() {
-//		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
-		
+	protected void initExpandCollapseButton() {		
 		ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
 				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 			

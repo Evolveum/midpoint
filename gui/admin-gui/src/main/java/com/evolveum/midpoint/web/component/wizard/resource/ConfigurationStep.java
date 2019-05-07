@@ -18,10 +18,15 @@ package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -75,7 +80,7 @@ public class ConfigurationStep extends WizardStep {
 	private static final String ID_MAIN = "main";
 
 	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
-	final private NonEmptyLoadableModel<List<ContainerWrapperImpl>> configurationPropertiesModel;
+	final private NonEmptyLoadableModel<List<PrismContainerWrapper<?>>> configurationPropertiesModel;
 	final private PageResourceWizard parentPage;
 
     public ConfigurationStep(NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
@@ -83,10 +88,13 @@ public class ConfigurationStep extends WizardStep {
         this.resourceModelNoFetch = modelNoFetch;
 		this.parentPage = parentPage;
 
-        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<ContainerWrapperImpl>>(false) {
-            @Override
+        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<PrismContainerWrapper<?>>>(false) {
+            
+        	private static final long serialVersionUID = 1L;
+
+			@Override
 			@NotNull
-            protected List<ContainerWrapperImpl> load() {
+            protected List<PrismContainerWrapper<?>> load() {
 				try {
 					return createConfigContainerWrappers();
 				} catch (SchemaException e) {
@@ -100,11 +108,11 @@ public class ConfigurationStep extends WizardStep {
     }
 
 	@NotNull
-	private List<ContainerWrapperImpl> createConfigContainerWrappers() throws SchemaException {
+	private List<PrismContainerWrapper<?>> createConfigContainerWrappers() throws SchemaException {
 		PrismObject<ResourceType> resource = resourceModelNoFetch.getObject();
 		PrismContainer<ConnectorConfigurationType> configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
-
-		List<ContainerWrapperImpl> containerWrappers = new ArrayList<>();
+		
+		List<PrismContainerWrapper<?>> containerWrappers = new ArrayList<>();
 
 		if(parentPage.isNewResource()) {
 			return containerWrappers;
@@ -131,19 +139,29 @@ public class ConfigurationStep extends WizardStep {
 
 		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
 		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
-			ItemPath containerPath = ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, containerDef.getName());
 			PrismContainer container = configuration.findContainer(containerDef.getName());
-
-			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
-			ContainerWrapperImpl containerWrapper;
-			Task task = getPageBase().createSimpleTask("Creting configuration container");
-			if (container != null) {
-				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly(), task);
-			} else {
-				container = containerDef.instantiate();
-				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly(), task);
-				containerWrapper.setShowEmpty(true, true);
+			ItemStatus status = ItemStatus.NOT_CHANGED;
+			if (container == null) {
+				status = ItemStatus.ADDED;
+				container = configuration.findOrCreateContainer(containerDef.getName());
 			}
+
+			WrapperContext ctx = new WrapperContext(null, getResult());
+			ctx.setReadOnly(parentPage.isReadOnly());
+			PrismContainerWrapper<?> containerWrapper = getPageBase().createItemWrapper(container, status, ctx);
+//			
+//			
+//			
+//			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
+//			ContainerWrapperImpl containerWrapper;
+//			Task task = getPageBase().createSimpleTask("Creting configuration container");
+//			if (container != null) {
+//				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly(), task);
+//			} else {
+//				container = containerDef.instantiate();
+//				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly(), task);
+//				containerWrapper.setShowEmpty(true, true);
+//			}
 			containerWrappers.add(containerWrapper);
 		}
 		return containerWrappers;
@@ -205,14 +223,21 @@ public class ConfigurationStep extends WizardStep {
 	private List<ITab> createConfigurationTabs() {
 		final com.evolveum.midpoint.web.component.form.Form form = getForm();
 		List<ITab> tabs = new ArrayList<>();
-		List<ContainerWrapperImpl> wrappers = configurationPropertiesModel.getObject();
-		for (final ContainerWrapperImpl wrapper : wrappers) {
+		List<PrismContainerWrapper<?>> wrappers = configurationPropertiesModel.getObject();
+		for (final PrismContainerWrapper<?> wrapper : wrappers) {
 			String tabName = getString(wrapper.getDisplayName(), null, wrapper.getDisplayName());
 			tabs.add(new AbstractTab(new Model<>(tabName)) {
+				private static final long serialVersionUID = 1L;
+
 				@Override
 				public WebMarkupContainer getPanel(String panelId) {
-					return wrapper.createPanel(panelId, getForm(), null);
-//					return new PrismContainerPanel(panelId, new Model<>(wrapper), true, form, null, parentPage);
+					try {
+						return getPageBase().initItemPanel(panelId, wrapper.getTypeName(), Model.of(wrapper), null);
+					} catch (SchemaException e) {
+						LOGGER.error("Cannot create panel for {}, reason: {}", wrapper.getTypeName(), e.getMessage(), e);
+						getSession().error("Cannot create panel for " + wrapper.getTypeName() + ", reason: " + e.getMessage());
+						return null;
+					}
 				}
 			});
 		}
@@ -278,13 +303,24 @@ public class ConfigurationStep extends WizardStep {
         OperationResult result = task.getResult();
 		boolean saved = false;
         try {
-            List<ContainerWrapperImpl> wrappers = configurationPropertiesModel.getObject();
-			ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
+            List<PrismContainerWrapper<?>> wrappers = configurationPropertiesModel.getObject();
+            
+            ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
 					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
 					);
-			for (ContainerWrapperImpl wrapper : wrappers) {
-				wrapper.collectModifications(delta);
-			}
+            
+            for (PrismContainerWrapper<?> wrapper : wrappers) {
+            	ItemDelta wrapperDetla = wrapper.getDelta(true);
+            	if (wrapperDetla == null) {
+            		continue;
+            	}
+            	delta.addModification(wrapperDetla);
+            	
+            }
+			
+//			for (ContainerWrapperImpl wrapper : wrappers) {
+//				wrapper.collectModifications(delta);
+//			}
 			parentPage.getPrismContext().adopt(delta);
 			if (!delta.isEmpty()) {
 				parentPage.logDelta(delta);

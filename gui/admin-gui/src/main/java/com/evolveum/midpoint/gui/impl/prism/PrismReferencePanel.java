@@ -82,16 +82,16 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 					return PrismReferencePanel.this.getModelObject().getFilter();
 				}
 
-				@Override
-				protected boolean isEditButtonEnabled() {
-					if (getModel() == null) {
-						return true;
-					}
-					
-					//TODO only is association
-					return getModelObject() == null;
-					
-				}
+//				@Override
+//				protected boolean isEditButtonEnabled() {
+//					if (getModel() == null) {
+//						return true;
+//					}
+//					
+//					//TODO only is association
+//					return getModelObject() == null;
+//					
+//				}
 
 				@Override
 				public List<QName> getSupportedTypes() {

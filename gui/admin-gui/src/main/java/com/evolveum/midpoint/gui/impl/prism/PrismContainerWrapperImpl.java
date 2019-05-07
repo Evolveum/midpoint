@@ -55,6 +55,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
 	public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
 		super(parent, item, status);
+		//TODO move to factory
 		this.expanded = !item.isEmpty();
 	}
 

@@ -18,10 +18,14 @@ package com.evolveum.midpoint.gui.impl.factory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
@@ -57,6 +61,13 @@ public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryIm
 	@Override
 	protected boolean shoudCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
 		return false;
+	}
+	
+	@Override
+	public PrismContainerValueWrapper<AssignmentType> createValueWrapper(PrismContainerWrapper<AssignmentType> parent,
+			PrismContainerValue<AssignmentType> value, ValueStatus status, WrapperContext context) throws SchemaException {
+		context.setCreateIfEmpty(false);
+		return super.createValueWrapper(parent, value, status, context);
 	}
 
 

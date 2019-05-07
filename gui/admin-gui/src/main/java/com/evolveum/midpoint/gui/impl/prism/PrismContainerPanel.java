@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
  * @author katka
@@ -47,6 +48,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
+		
 //		if(getModelObject() != null && getModelObject().isShowOnTopLevel()) {
 //			add(AttributeModifier.append("class", "top-level-prism-container"));
 //		}
@@ -60,8 +62,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	@Override
 	protected void createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
 		if (componentFactory == null) {
-			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), visibilityHandler);
+			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
+			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExpanded()));
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
 			return;

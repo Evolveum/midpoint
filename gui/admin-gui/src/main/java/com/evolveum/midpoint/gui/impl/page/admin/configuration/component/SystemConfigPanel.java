@@ -20,13 +20,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -62,19 +65,17 @@ public class SystemConfigPanel extends BasePanel<PrismObjectWrapper<SystemConfig
     }
     
     protected void initLayout() {
-    	Form form = new Form<>("form");
-		PrismPanel<SystemConfigurationType> panel = new PrismPanel<SystemConfigurationType>(ID_SYSTEM_CONFIG, 
-		new ContainerWrapperListFromObjectWrapperModel(getModel(), getVisibleContainers()), null, form, itemWrapper -> getBasicTabVisibity(itemWrapper), getPageBase());
-		add(panel);
+    	try {
+			Panel panel = getPageBase().initItemPanel(ID_SYSTEM_CONFIG, SystemConfigurationType.COMPLEX_TYPE, getModel(), itemWrapper -> getBasicTabVisibity(itemWrapper));
+			add(panel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create basic panel for system configuration.");
+			getSession().error("Cannot create basic panel for system configuration.");
+		}
+		
     }
     
-	private List<ItemPath> getVisibleContainers() {
-		List<ItemPath> paths = new ArrayList<>();
-		paths.addAll(Arrays.asList(ItemPath.EMPTY_PATH));
-		return paths;
-	}
-	
-	private ItemVisibility getBasicTabVisibity(ItemWrapperOld itemWrapper) {
+	private ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper) {
 		if(itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(ItemPath.EMPTY_PATH, SystemConfigurationType.F_DESCRIPTION)) || itemWrapper.getPath().isSubPathOrEquivalent(ItemPath.create(
 				ItemPath.EMPTY_PATH, SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF))) {
 			return ItemVisibility.AUTO;
