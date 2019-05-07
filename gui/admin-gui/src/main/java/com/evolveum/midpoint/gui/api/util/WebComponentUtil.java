@@ -2813,11 +2813,10 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
-																	 IModel<PrismObjectWrapper<ShadowType>> shadowModel) {
+																	 IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
 		
-		PrismObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
-		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
-		ShadowType shadowType = shadow.asObjectable();
+		PrismContainerValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		ShadowType shadowType = shadowWrapper.getRealValue();
 		
 		ResourceType resource = shadowType.getResource();
 		if (resource == null) {
@@ -2859,7 +2858,7 @@ public final class WebComponentUtil {
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
 			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(),
-					shadow.asObjectable().getKind(), shadow.asObjectable().getIntent()))) {
+					shadowType.getKind(), shadowType.getIntent()))) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;

@@ -20,6 +20,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
@@ -124,7 +125,12 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 			
 			PrismObject<ResourceType> resource = resolveResource(shadow.getResourceRef(), task, result);
 			context.setResource(resource.asObjectable());
-			modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
+			RefinedObjectClassDefinition objectClassDefinitionForEditing = 
+					modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
+			if (objectClassDefinitionForEditing != null) {
+            	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(
+            			(PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());
+            }
 		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
 				| CommunicationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block

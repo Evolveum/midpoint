@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.prism.HeaderStatus;
@@ -31,14 +32,20 @@ import java.io.Serializable;
 public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private ObjectWrapperOld<O> object;
+	private ObjectWrapperOld<O> objectOld;
+	private PrismObjectWrapper<O> object;
     private UserDtoStatus status;
 
     private boolean loadedOK = true;
     private String description;
     private OperationResult result;
 
-    public FocusSubwrapperDto(ObjectWrapperOld<O> object, UserDtoStatus status) {
+    public FocusSubwrapperDto(ObjectWrapperOld<O> objectOld, UserDtoStatus status) {
+        setObjectOld(objectOld);
+        setStatus(status);
+    }
+    
+    public FocusSubwrapperDto(PrismObjectWrapper<O> object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
@@ -68,14 +75,22 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
     public void setLoadedOK(boolean loadedOK) {
         this.loadedOK = loadedOK;
     }
+    
+    public PrismObjectWrapper<O> getObject() {
+		return object;
+	}
+    
+    public void setObject(PrismObjectWrapper<O> object) {
+		this.object = object;
+	}
 
-    public ObjectWrapperOld<O> getObject() {
-        return object;
+    public ObjectWrapperOld<O> getObjectOld() {
+        return objectOld;
     }
 
-    public void setObject(ObjectWrapperOld<O> object) {
+    public void setObjectOld(ObjectWrapperOld<O> object) {
         Validate.notNull(object, "Object wrapper must not be null.");
-        this.object = object;
+        this.objectOld = object;
     }
 
     public UserDtoStatus getStatus() {
@@ -86,18 +101,18 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
         Validate.notNull(status, "Status must not be null.");
         this.status = status;
 
-        switch (status) {
-            case DELETE:
-                object.setHeaderStatus(HeaderStatus.DELETED);
-                break;
-            case UNLINK:
-                object.setHeaderStatus(HeaderStatus.UNLINKED);
-                break;
-            case ADD:
-                object.setHeaderStatus(HeaderStatus.ADDED);
-                break;
-            default:
-                object.setHeaderStatus(HeaderStatus.NORMAL);
-        }
+//        switch (status) {
+//            case DELETE:
+//                objectOld.setHeaderStatus(HeaderStatus.DELETED);
+//                break;
+//            case UNLINK:
+//                objectOld.setHeaderStatus(HeaderStatus.UNLINKED);
+//                break;
+//            case ADD:
+//                objectOld.setHeaderStatus(HeaderStatus.ADDED);
+//                break;
+//            default:
+//                objectOld.setHeaderStatus(HeaderStatus.NORMAL);
+//        }
     }
 }

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
@@ -67,12 +68,10 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 	private static final transient Trace LOGGER = TraceManager.getTrace(LoggingConfigurationWrapperFactoryImpl.class);
 	
 	@Autowired
-	@Qualifier("classLoggerWrapperFactoryImpl")
-	private ItemWrapperFactory classLoggerFactory;
+	private ClassLoggerWrapperFactoryImpl classLoggerFactory;
 	@Autowired
-	@Qualifier("profilingClassLoggerWrapperFactoryImpl")
-	private ItemWrapperFactory profilingClassLoggerFactory;
-	@Autowired private GuiComponentRegistryImpl registry;
+	private ProfilingClassLoggerWrapperFactoryImpl profilingClassLoggerFactory;
+	@Autowired private GuiComponentRegistry registry;
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {

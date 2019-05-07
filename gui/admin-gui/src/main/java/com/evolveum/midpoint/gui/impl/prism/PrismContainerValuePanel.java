@@ -131,7 +131,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 
 	private void initValues() {
-		
 		createPropertiesPanel();
 		
 		createContainersPanel();
