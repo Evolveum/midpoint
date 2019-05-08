@@ -38,6 +38,7 @@ public interface PrismValueWrapper<T, V extends PrismValue> extends Serializable
 	void setStatus(ValueStatus status);
 	
 	V getNewValue();
+	V getOldValue();
 	<IW extends ItemWrapper> IW getParent();
 	
 	<D extends ItemDelta<V, ID>, ID extends ItemDefinition> void addToDelta(D delta) throws SchemaException;

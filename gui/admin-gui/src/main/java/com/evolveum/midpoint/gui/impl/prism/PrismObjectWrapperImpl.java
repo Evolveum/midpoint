@@ -53,12 +53,12 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 
 		Collection<ItemDelta> deltas = new ArrayList<>();
 		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
-			ItemDelta delta = itemWrapper.getDelta(true);
-			if (delta == null) {
+			Collection<ItemDelta> delta = itemWrapper.getDelta();
+			if (delta == null || delta.isEmpty()) {
 				continue;
 			}
 			// objectDelta.addModification(delta);
-			deltas.add(delta);
+			deltas.addAll(delta);
 		}
 
 		switch (getStatus()) {

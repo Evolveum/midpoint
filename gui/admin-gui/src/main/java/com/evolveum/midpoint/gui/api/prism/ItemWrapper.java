@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.api.prism;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -38,10 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
  */
 public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID extends ItemDefinition<I>, VW extends PrismValueWrapper> extends ItemDefinition<I>, Revivable, DebugDumpable, Serializable {
 
-//	
-//	void revive(PrismContext prismContext) throws SchemaException;
-//	
-	
 	
 	String debugDump(int indent);
 	
@@ -76,8 +73,8 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	boolean isColumn();
 	void setColumn(boolean column);
 	
-	<D extends ItemDelta<V, ID>> D getDelta(boolean absolute) throws SchemaException;
-	
 	<D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
+
+	<D extends ItemDelta<V, ID>> Collection<D> getDelta() throws SchemaException;
 	
 }

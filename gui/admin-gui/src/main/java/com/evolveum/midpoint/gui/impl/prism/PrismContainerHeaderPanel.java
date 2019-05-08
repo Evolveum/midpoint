@@ -73,22 +73,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	        //TODO: sorting
 	        //TODO add/remove
 	}
-	
-	
-
-//	protected void initAddButton() {
-//		AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				addValue(target);
-//			}
-//		};
-//		addButton.add(new VisibleBehaviour(() -> isAddButtonVisible()));
-//		add(addButton);
-//	}
-	
+		
 	private void addValue(AjaxRequestTarget target) {
 		PrismContainerWrapper<C> parentWrapper = getModelObject();
 		WrapperContext ctx = new WrapperContext(null, null);

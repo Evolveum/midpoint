@@ -17,6 +17,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -46,11 +47,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemServerValidationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemValidationType;
@@ -112,15 +115,15 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
-	public <D extends ItemDelta<PV, ID>> D getDelta(boolean absolute) throws SchemaException {
+	public <D extends ItemDelta<PV, ID>> Collection<D> getDelta() throws SchemaException {
 		LOGGER.trace("Start computing delta for {}", newItem);
-		ItemPath path;
-		if (absolute) {
-			path = getPath();
+		D delta = null;
+		if (parent != null && ValueStatus.ADDED == parent.getStatus()) {
+			delta = (D) createEmptyDelta(getName()); 
 		} else {
-			path = getName();
+			delta = (D) createEmptyDelta(getPath());
 		}
-		D delta = (D) createEmptyDelta(path);
+		
 		for (VW value : values) {
 			value.addToDelta(delta);
 		}
@@ -131,7 +134,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		}
 		
 		LOGGER.trace("Returning delta {}", delta);
-		return delta;
+		return MiscUtil.createCollection(delta);
 	}
 
 	
