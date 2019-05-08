@@ -3272,7 +3272,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		// THEN
 		display("resource", resource);
 		assertNull("schemaHandling is present although it should not be", resource.asObjectable().getSchemaHandling());
-		assertEquals("Wrong # of items in resource read", 1, resource.getItems(Item.class).size());
+		assertEquals("Wrong # of items in resource read", 1, resource.getValue().size());
 	}
 
 	/**

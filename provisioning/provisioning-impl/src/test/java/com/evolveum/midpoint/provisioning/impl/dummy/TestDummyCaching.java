@@ -431,7 +431,7 @@ public class TestDummyCaching extends TestDummy {
 	}
 
 	@Override
-	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+	protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		// We can only assert that there are at least the identifiers. But we do not know how many attributes should be there
 		assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
 		expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);

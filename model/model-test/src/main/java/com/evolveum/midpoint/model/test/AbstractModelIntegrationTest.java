@@ -3583,11 +3583,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			Collection<PrismContainerValue<ActivationType>> valuesToReplace = ((ContainerDelta<ActivationType>)modification).getValuesToReplace();
 			if (valuesToReplace != null && valuesToReplace.size() == 1) {
 				PrismContainerValue<ActivationType> cval = valuesToReplace.iterator().next();
-				if (cval.getItems().size() == 1) {
+				if (cval.size() == 1) {
 					Item<?, ?> item = cval.getItems().iterator().next();
-					if (ActivationType.F_EFFECTIVE_STATUS.equals(item.getElementName())) {
-						return true;
-					}
+					return ActivationType.F_EFFECTIVE_STATUS.equals(item.getElementName());
 				}
 			}
 		}

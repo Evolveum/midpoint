@@ -256,7 +256,7 @@ public class Visualizer {
 		}
 	}
 
-	private void visualizeItems(SceneImpl scene, List<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
+	private void visualizeItems(SceneImpl scene, Collection<Item<?, ?>> items, boolean descriptive, VisualizationContext context, Task task, OperationResult result) {
 		if (items == null) {
 			return;
 		}
@@ -429,7 +429,7 @@ public class Visualizer {
 			scene.getName().setId(String.valueOf(value.getId()));
 		}
 		// delete-by-id: we supply known values
-		if ((value.getItems() == null || value.getItems().isEmpty()) && value.getId() != null) {
+		if ((value.getItems().isEmpty()) && value.getId() != null) {
 			if (containerDelta.getEstimatedOldValues() != null) {
 				for (PrismContainerValue<C> oldValue : containerDelta.getEstimatedOldValues()) {
 					if (value.getId().equals(oldValue.getId())) {

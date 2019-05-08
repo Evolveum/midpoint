@@ -303,15 +303,13 @@ public class PrismMarshaller {
 		}
 		// There are some cases when we do not have list of all elements in a container.
 		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
-		if (containerVal.getItems() != null){
-			for (Item<?,?> item : containerVal.getItems()) {
-				QName elementName = item.getElementName();
-				if (marshaledItems.contains(elementName)) {
-					continue;
-				}
-				XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
-				xmap.put(elementName, xsubnode);
+		for (Item<?,?> item : containerVal.getItems()) {
+			QName elementName = item.getElementName();
+			if (marshaledItems.contains(elementName)) {
+				continue;
 			}
+			XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
+			xmap.put(elementName, xsubnode);
 		}
 	}
 

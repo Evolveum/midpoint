@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -260,7 +261,7 @@ public class SchemaTransformer {
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 	
 			focusContext.forEachObject(focusObject -> 
-				applySecurityConstraints(focusObject.getValue().getItems(), securityConstraints, globalReadDecision,
+				applySecurityConstraints(focusObject.getValue(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase));
 	
 			AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
@@ -303,7 +304,7 @@ public class SchemaTransformer {
 
 			AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
+			applySecurityConstraints(object.getValue(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
 				// let's make it explicit
@@ -335,17 +336,16 @@ public class SchemaTransformer {
 		}
 	}
 
-	public void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints,
+	public void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints,
 			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
-		if (items == null) {
+				pcv.getItems(), phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		if (pcv.hasNoItems()) {
 			return;
 		}
-		Iterator<Item<?,?>> iterator = items.iterator();
-		while (iterator.hasNext()) {
-			Item<?,?> item = iterator.next();
+		List<Item> itemsToRemove = new ArrayList<>();
+		for (Item<?, ?> item : pcv.getItems()) {
 			ItemPath itemPath = item.getPath();
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null && itemDef.isElaborate()) {
@@ -372,7 +372,7 @@ public class SchemaTransformer {
 			if (item instanceof PrismContainer<?>) {
 				if (itemReadDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
-					iterator.remove();
+					itemsToRemove.add(item);
 				} else {
 					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
 					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
@@ -384,12 +384,9 @@ public class SchemaTransformer {
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
-						List<Item<?,?>> subitems = cval.getItems();
-						if (subitems != null) {
-							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision,
-									itemModifyDecision, phase);
-						}
-						if ((subitems == null || subitems.isEmpty()) && itemReadDecision == null) {
+						applySecurityConstraints(cval, securityConstraints, subDefaultReadDecision, itemAddDecision,
+								itemModifyDecision, phase);
+						if (cval.hasNoItems() && itemReadDecision == null) {
 							// We have removed all the content, if there was any. So, in the default case, there's nothing that
 							// we are interested in inside this PCV. Therefore let's just remove it.
 							// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
@@ -400,14 +397,17 @@ public class SchemaTransformer {
 						// We have removed all the content, if there was any. So, in the default case, there's nothing that
 						// we are interested in inside this item. Therefore let's just remove it.
 						// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
-						iterator.remove();
+						itemsToRemove.add(item);
 					}
 				}
 			} else {
 				if (itemReadDecision == AuthorizationDecisionType.DENY || itemReadDecision == null) {
-					iterator.remove();
+					itemsToRemove.add(item);
 				}
 			}
+		}
+		for (Item itemToRemove : itemsToRemove) {
+			pcv.remove(itemToRemove);
 		}
 	}
 

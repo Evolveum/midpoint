@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -67,7 +68,7 @@ public class TestModelServiceContractCaching extends TestModelServiceContract {
 	}
 
 	@Override
-	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+	protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		// We can only assert that there are at least the identifiers. But we do not know how many attributes should be there
 		assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
 		expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);
