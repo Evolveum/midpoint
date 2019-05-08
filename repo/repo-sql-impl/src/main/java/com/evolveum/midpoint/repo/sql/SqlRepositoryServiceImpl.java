@@ -136,7 +136,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     // experimental (currently some tests fail when using JSON)
-    public static final String DATA_LANGUAGE = PrismContext.LANG_XML;
+    public static final String DATA_LANGUAGE = PrismContext.LANG_JSON;
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";

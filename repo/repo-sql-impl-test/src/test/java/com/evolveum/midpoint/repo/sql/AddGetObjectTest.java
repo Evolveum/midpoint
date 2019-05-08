@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -184,6 +186,15 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
                 objectsRead.add(newObject);
+                //noinspection ConstantConditions
+                if (!SqlRepositoryServiceImpl.DATA_LANGUAGE.equals(PrismContext.LANG_XML)) {
+                    // reparsing because of raw data (unparsed XNode) differences
+                    String objectSerialized = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                            .serialize(object);
+                    PrismObject objectReparsed = prismContext.parserFor(objectSerialized)
+                            .language(SqlRepositoryServiceImpl.DATA_LANGUAGE).parse();
+                    object = objectReparsed;
+                }
                 ObjectDelta delta = object.diff(newObject);
 
                 count += delta.getModifications().size();
@@ -203,6 +214,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                         LOGGER.debug("{}", id.getValuesToReplace().iterator().next());
                     }
                     LOGGER.error("{}", prismContext.serializerFor(PrismContext.LANG_XML).serialize(newObject));
+                    System.out.println("Old: " + prismContext.serializerFor(PrismContext.LANG_JSON).serialize(object));
+                    System.out.println("New: " + prismContext.serializerFor(PrismContext.LANG_JSON).serialize(newObject));
                 }
             } catch (Throwable ex) {
                 LOGGER.error("Exception occurred for {}", object, ex);
@@ -422,7 +435,27 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 //        AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
 
-    /**
+	@Test
+	public void addGetConnector() throws Exception {
+		LOGGER.info("===[ addGetConnector ]===");
+		PrismObject<ConnectorType> connector = prismContext.parseObject(new File(FOLDER_BASIC, "connector-csv.xml"));
+
+		OperationResult result = new OperationResult("ADD");
+		String oid = repositoryService.addObject(connector, null, result);
+
+		PrismObject<ConnectorType> connectorFromRepo = repositoryService.getObject(ConnectorType.class, oid, null, result);
+
+		ObjectDelta<ConnectorType> delta = connector.diff(connectorFromRepo);
+		AssertJUnit.assertNotNull(delta);
+		LOGGER.info("delta\n{}", delta.debugDump(3));
+		if (!delta.isEmpty()) {
+			fail("delta is not empty: " + delta.debugDump());
+		}
+		PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connector.asObjectable(), prismContext);
+		System.out.println("Parsed schema: " + schema);
+	}
+
+	/**
      * creates <iterationToken/> element in shadow
      */
     @Test

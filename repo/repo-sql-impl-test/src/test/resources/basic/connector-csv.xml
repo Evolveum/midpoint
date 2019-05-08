@@ -1,0 +1,309 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<connector xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="a5dc737f-0329-4d91-96e9-445a2806cbd8" version="0">
+	<name>ConnId com.evolveum.polygon.connector.csv.CsvConnector v2.3</name>
+	<displayName>CsvConnector</displayName>
+	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
+	<connectorType>com.evolveum.polygon.connector.csv.CsvConnector</connectorType>
+	<connectorVersion>2.3</connectorVersion>
+	<connectorBundle>com.evolveum.polygon.connector-csv</connectorBundle>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector</namespace>
+	<schema>
+		<definition>
+			<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+						xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+						xmlns:qn604="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+						xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector"
+						xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+						targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+				<xsd:complexType name="ConfigurationType">
+					<xsd:sequence>
+						<xsd:element minOccurs="0" ref="qn604:connectorPoolConfiguration">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:type>qn604:ConnectorPoolConfigurationType</a:type>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" ref="icfc:producerBufferSize"/>
+						<xsd:element minOccurs="0" ref="icfc:timeouts">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:type>icfc:TimeoutsType</a:type>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" ref="icfc:resultsHandlerConfiguration">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:type>icfc:ResultsHandlerConfigurationType</a:type>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" ref="icfc:legacySchema"/>
+						<xsd:element ref="icfc:configurationProperties">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:type>tns:ConfigurationPropertiesType</a:type>
+									<a:container/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+				<xsd:complexType name="ConfigurationPropertiesType">
+					<xsd:sequence>
+						<xsd:element minOccurs="0" name="container" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Container</a:displayName>
+									<a:displayOrder>1</a:displayOrder>
+									<a:help>Should this object class be marked as container? Default is false.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="multivalueDelimiter" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Multivalue delimiter</a:displayName>
+									<a:displayOrder>2</a:displayOrder>
+									<a:help>Multivalue delimiter character user for splitting multivalue attributes.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="ignoreEmptyLines" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Ignore empty lines</a:displayName>
+									<a:displayOrder>3</a:displayOrder>
+									<a:help>Whether connector should ignore empty lines in CSV file. Default value is true.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="trailingDelimiter" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Trailing delimiter</a:displayName>
+									<a:displayOrder>4</a:displayOrder>
+									<a:help>Whether connector should use trailing delimiter.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="fieldDelimiter" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Field delimiter</a:displayName>
+									<a:displayOrder>5</a:displayOrder>
+									<a:help>Delimiter character between fields in one CSV record (escaped as regexp, if needed). Default value is ;</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="quote" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Quote</a:displayName>
+									<a:displayOrder>6</a:displayOrder>
+									<a:help>Quote character.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="trim" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Trim</a:displayName>
+									<a:displayOrder>7</a:displayOrder>
+									<a:help>Whether fields should be trimmed.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="auxiliary" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Auxiliary</a:displayName>
+									<a:displayOrder>8</a:displayOrder>
+									<a:help>Should this object class be marked as auxiliary? Default is false.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="headerExists" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Header exists</a:displayName>
+									<a:displayOrder>9</a:displayOrder>
+									<a:help>Whether header exists in csv file.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="preserveOldSyncFiles" type="xsd:int">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Preserve old sync files</a:displayName>
+									<a:displayOrder>10</a:displayOrder>
+									<a:help>How many old sync filed do we want to preserve.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="escape" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Escape</a:displayName>
+									<a:displayOrder>11</a:displayOrder>
+									<a:help>Escape character. Default value is \.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="objectClassDefinition" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Object class definition</a:displayName>
+									<a:displayOrder>12</a:displayOrder>
+									<a:help>File which contains definitions for other object classes.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="commentMarker" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Comment marker</a:displayName>
+									<a:displayOrder>13</a:displayOrder>
+									<a:help>Comment marker character. Default value is #.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="filePath" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>File path</a:displayName>
+									<a:displayOrder>14</a:displayOrder>
+									<a:help>Path to CSV file with records.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="quoteMode" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Quote mode</a:displayName>
+									<a:displayOrder>15</a:displayOrder>
+									<a:help>What field should be quoted. Allowed values are ALL, MINIMAL, NON_NUMERIC, NONE.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="readOnly" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Read only</a:displayName>
+									<a:displayOrder>16</a:displayOrder>
+									<a:help>Whether file is for read only acces only. Default is false.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="encoding" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Encoding</a:displayName>
+									<a:displayOrder>17</a:displayOrder>
+									<a:help>CSV file encoding. Default is utf-8.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="ignoreSurroundingSpaces" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Ignore surrounding spaces</a:displayName>
+									<a:displayOrder>18</a:displayOrder>
+									<a:help>Whether connector should ignore surrounding spaces.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="multivalueAttributes" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Multivalue attributes</a:displayName>
+									<a:displayOrder>19</a:displayOrder>
+									<a:help>List all attributes that can have multiple values delimited by "multivalue delimiter".</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="passwordAttribute" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>User password attribute name</a:displayName>
+									<a:displayOrder>20</a:displayOrder>
+									<a:help>User password attribute name is not required. Its used only in authenticate operation.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="ignoreIdentifierCase" type="xsd:boolean">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Ignore identifier case</a:displayName>
+									<a:displayOrder>21</a:displayOrder>
+									<a:help>Whether identifier case is ignored when searching for a record.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="tmpFolder" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Tmp folder</a:displayName>
+									<a:displayOrder>22</a:displayOrder>
+									<a:help>Folder where csv connector can write temporary files. By default the same folder as where csv file resides.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="nameAttribute" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Name attribute</a:displayName>
+									<a:displayOrder>23</a:displayOrder>
+									<a:help>Name attribute for account in a resource. In most cases, it is equal to unique attribute, but there can be differences (for example, there can be autogenerated id for unique attribute and email addres for name attribute).</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element minOccurs="0" name="recordSeparator" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Record separator</a:displayName>
+									<a:displayOrder>24</a:displayOrder>
+									<a:help>Record separator string.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="uniqueAttribute" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Unique attribute name</a:displayName>
+									<a:displayOrder>25</a:displayOrder>
+									<a:help>Name of unique attribute in current CSV file.</a:help>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+				<xsd:element name="connectorConfiguration" type="tns:ConfigurationType">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:schema>
+		</definition>
+	</schema>
+</connector>

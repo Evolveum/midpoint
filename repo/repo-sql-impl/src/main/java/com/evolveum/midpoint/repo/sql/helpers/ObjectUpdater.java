@@ -256,8 +256,9 @@ public class ObjectUpdater {
         // Its' because we're removing some properties during save operation and if save fails,
         // overwrite attempt (for example using object importer) might try to delete existing object
         // and then try to save this object one more time.
-        String xml = prismContext.xmlSerializer().serialize(savedObject);
-        savedObject = prismContext.parseObject(xml);
+        savedObject = savedObject.clone();
+//        String xml = prismContext.xmlSerializer().serialize(savedObject);
+//        savedObject = prismContext.parseObject(xml);
 
         if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
             savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
@@ -269,13 +270,13 @@ public class ObjectUpdater {
             savedObject.removeProperty(TaskType.F_RESULT);
         }
 
-        xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
-        byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
+        String textRepresentation = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
+        byte[] fullObject = RUtil.getByteArrayFromXml(textRepresentation, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
+            LOGGER.trace("Updating full object text column finished. Text:\n{}", textRepresentation);
         }
     }
 
