@@ -68,9 +68,10 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
     private void initLayout(){
         setOutputMarkupId(true);
-
-        TextPanel<String> defaultValuePanel = new TextPanel<String>(ID_DEFAULT_VALUE_PANEL, Model.of(getDefaultPolyStringValue()));
+        //todo temporary fix
+        TextPanel<PolyString> defaultValuePanel = new TextPanel<PolyString>(ID_DEFAULT_VALUE_PANEL, getModel());
         defaultValuePanel.setOutputMarkupId(true);
+        defaultValuePanel.getBaseFormComponent().setType(PolyString.class);
         defaultValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         defaultValuePanel.add(new VisibleBehaviour(() -> !showFullData));
         add(defaultValuePanel);
