@@ -105,7 +105,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<String>(model, MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
-        oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
         oldPasswordField.add(new VisibleEnableBehaviour() {
 
