@@ -5,6 +5,7 @@ spring:
     multipart:
       max-file-size: 100Mb
       max-request-size: 100Mb
+      file-size-threshold: 256Kb
 
 server:
   tomcat:
