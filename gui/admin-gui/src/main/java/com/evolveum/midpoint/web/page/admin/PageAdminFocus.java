@@ -233,6 +233,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			
 			try {
 				ShadowWrapper<ShadowType> wrapper = loadShadowWrapper(projection, task, subResult);
+				wrapper.setLoadWithNoFetch(noFetch);
 				
 				if (wrapper != null) {
 					list.add((ShadowWrapper<ShadowType>)wrapper);
@@ -301,6 +302,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			
 			shadowWrapperValue.getItems().clear();
 			shadowWrapperValue.getItems().addAll((Collection) shadowWrapperNew.getValue().getItems());
+			((ShadowWrapper<ShadowType>)shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
 		} catch (SchemaException e) {
 			error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
 			LOGGER.error("Couldn't create shadow wrapper", e);

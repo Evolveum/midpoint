@@ -255,7 +255,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected void itemPerformedForDefaultAction(AjaxRequestTarget target,
 					IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
 					List<PrismContainerValueWrapper<ShadowType>> listItems) {
-				((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject());
+				if(((ShadowWrapper<ShadowType>)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
+					((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject());
+				}
 				super.itemPerformedForDefaultAction(target, rowModel, listItems);
 			}
 
@@ -425,10 +427,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 								sb.append(getPageBase().createStringResource("DisplayNamePanel.intent", shadow.getIntent()).getString());
 							}
 							
-//							if(!StringUtils.isBlank(shadow.getTag())) {
-//								sb.append(", ");
-//								sb.append(getPageBase().createStringResource("DisplayNamePanel.tag", shadow.getTag()).getString());
-//							}
+							if(!StringUtils.isBlank(shadow.getTag())) {
+								sb.append(", ");
+								sb.append(getPageBase().createStringResource("DisplayNamePanel.tag", shadow.getTag()).getString());
+							}
 							return Model.of(sb.toString());
 						}
 						return Model.of("");

@@ -119,7 +119,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 		try {
 			ShadowType shadow = (ShadowType) object.asObjectable();
 			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resolveOid(shadow.getResourceRef()),
-					shadow.getKind(), shadow.getIntent());
+					shadow.getKind(), shadow.getIntent(), shadow.getTag(), false);
 			context.setDiscriminator(discr);
 			PrismObjectDefinition<ShadowType> shadowDefinition = modelInteractionService.getEditShadowDefinition(discr, phase, task, result);
 			object.applyDefinition((PrismContainerDefinition<O>) shadowDefinition);
