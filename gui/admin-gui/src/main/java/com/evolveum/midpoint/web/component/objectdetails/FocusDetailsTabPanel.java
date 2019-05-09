@@ -22,6 +22,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -55,7 +56,7 @@ public class FocusDetailsTabPanel<F extends FocusType> extends AbstractFocusTabP
 
 	public FocusDetailsTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
 		super(id, mainForm, focusWrapperModel, projectionModel);
 		
 	}

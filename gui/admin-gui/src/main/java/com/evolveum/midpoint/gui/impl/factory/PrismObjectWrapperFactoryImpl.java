@@ -97,7 +97,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	 * 
 	 * apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
 	 */
-	private void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
+	protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
 		Class<O> objectClass = object.getCompileTimeClass();
 		
 		AuthorizationPhaseType phase = context.getAuthzPhase();

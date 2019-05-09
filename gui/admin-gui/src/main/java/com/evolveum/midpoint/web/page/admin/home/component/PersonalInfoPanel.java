@@ -101,6 +101,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
             @Override
             public Date getObject() {
 
+            	if(getModel() ==  null) {
+            		return null;
+            	}
             	PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }

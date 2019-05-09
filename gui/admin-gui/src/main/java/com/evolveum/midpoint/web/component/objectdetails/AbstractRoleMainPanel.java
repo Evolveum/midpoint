@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -86,7 +87,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel,
 			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
 	}

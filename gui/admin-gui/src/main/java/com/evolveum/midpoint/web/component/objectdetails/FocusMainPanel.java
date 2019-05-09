@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -76,12 +77,12 @@ public class FocusMainPanel<F extends FocusType> extends AbstractObjectMainPanel
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
-	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
+	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel;
 	private TaskDtoProvider taskDtoProvider;
     private FocusAssignmentsTabPanel assignmentsTabPanel = null;
 
 	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel,
 			PageAdminFocus<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");

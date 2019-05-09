@@ -82,9 +82,9 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 		// objectDelta.setObjectToAdd(getObject());
 		// }
 
-		if (objectDelta.isEmpty()) {
-			return null;
-		}
+//		if (objectDelta.isEmpty()) {
+//			return null;
+//		}
 
 		return objectDelta;
 	}
