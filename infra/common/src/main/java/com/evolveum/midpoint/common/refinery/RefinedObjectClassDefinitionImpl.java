@@ -317,6 +317,14 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		}
 		return schemaHandlingObjectTypeDefinitionType.getVolatility();
 	}
+	
+	@Override
+	public ResourceObjectMultiplicityType getMultiplicity() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getMultiplicity();
+	}
 
 	@Override
 	public ProjectionPolicyType getProjection() {
@@ -378,7 +386,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	@Override
 	public ResourceShadowDiscriminator getShadowDiscriminator() {
-		return new ResourceShadowDiscriminator(getResourceOid(), getKind(), getIntent());
+		return new ResourceShadowDiscriminator(getResourceOid(), getKind(), getIntent(), null, false);
 	}
 
 	@Override

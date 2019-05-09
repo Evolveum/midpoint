@@ -1249,7 +1249,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false);
 
 		// WHEN
         displayWhen(TEST_NAME);

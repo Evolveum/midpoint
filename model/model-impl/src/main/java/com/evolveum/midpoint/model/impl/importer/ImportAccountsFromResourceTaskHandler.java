@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.importer;
 
+import java.util.Collection;
 import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
@@ -39,6 +40,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -276,8 +279,26 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     protected Class<? extends ObjectType> getType(Task task) {
         return ShadowType.class;
     }
-
+	
     @Override
+	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptions(
+			SynchronizeAccountResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask,
+			OperationResult opResult) {
+		Collection<SelectorOptions<GetOperationOptions>> options = super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
+		if (options == null) {
+			options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+		} else {
+			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+			if (rootOptions == null) {
+				options.add(SelectorOptions.create(GetOperationOptions.createDoNotDiscovery()));
+			} else {
+				rootOptions.setDoNotDiscovery(true);
+			}
+		}
+		return options;
+	}
+
+	@Override
 	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
         try {
 	        ObjectQuery query = createQueryFromTaskIfExists(handler, runResult, task, opResult);

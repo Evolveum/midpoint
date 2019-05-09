@@ -60,7 +60,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowTagSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -68,9 +70,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Component
-public class CorrelationConfirmationEvaluator {
+public class SynchronizationExpressionsEvaluator {
 
-	private static transient Trace LOGGER = TraceManager.getTrace(CorrelationConfirmationEvaluator.class);
+	private static transient Trace LOGGER = TraceManager.getTrace(SynchronizationExpressionsEvaluator.class);
 
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
@@ -147,7 +149,7 @@ public class CorrelationConfirmationEvaluator {
 		ExpressionType condition = conditionalFilter.getCondition();
 		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType, prismContext);
 		ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
-				ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.BOOLEAN.getQname());
 		PrismPropertyValue<Boolean> satisfy = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
 				outputDefinition, condition, expressionProfile, expressionFactory, shortDesc, task, parentResult);
 		if (satisfy.getValue() == null) {
@@ -396,6 +398,31 @@ public class CorrelationConfirmationEvaluator {
         	throw new ExpressionEvaluationException("Expression returned no value ("+nonNegativeValues.size()+") in "+shortDesc);
         }
 		return resultVal;
+	}
+
+	// For now only used in sync service. but later can be used in outbound/assignments
+	public String generateTag(ResourceObjectMultiplicityType multiplicity, PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		if (multiplicity == null) {
+			return null;
+		}
+		ShadowTagSpecificationType tagSpec = multiplicity.getTag();
+		if (tagSpec == null) {
+			return shadow.getOid();
+		}
+		ExpressionType expressionType = tagSpec.getExpression();
+		if (expressionType == null) {
+			return shadow.getOid();
+		}
+		
+		ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, shadow, null, resource, configuration, null, prismContext);
+		ItemDefinition outputDefinition = prismContext.definitionFactory().createPropertyDefinition(
+				ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
+		PrismPropertyValue<String> tagProp = (PrismPropertyValue) ExpressionUtil.evaluateExpression(variables,
+				outputDefinition, expressionType, MiscSchemaUtil.getExpressionProfile(), expressionFactory, shortDesc, task, parentResult);
+		if (tagProp == null) {
+			return null;
+		}
+		return tagProp.getRealValue();
 	}
 
 }

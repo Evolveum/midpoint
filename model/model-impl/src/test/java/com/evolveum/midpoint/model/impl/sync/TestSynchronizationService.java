@@ -139,7 +139,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
@@ -196,7 +196,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 
@@ -255,7 +255,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 
@@ -308,7 +308,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly("user secondary delta", context.getFocusContext().getSecondaryDelta());
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
-        		ShadowKindType.ACCOUNT, null);
+        		ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 
@@ -399,7 +399,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly("user secondary delta", context.getFocusContext().getSecondaryDelta());
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
-        		ShadowKindType.ACCOUNT, null, true);
+        		ShadowKindType.ACCOUNT, null, null, true);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
@@ -572,7 +572,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
@@ -639,7 +639,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly("user secondary delta", context.getFocusContext().getSecondaryDelta());
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
-        		ShadowKindType.ACCOUNT, null, true);
+        		ShadowKindType.ACCOUNT, null, null, true);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
@@ -707,7 +707,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
@@ -771,7 +771,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
@@ -823,7 +823,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", null, accCtx.getSynchronizationSituationDetected());
@@ -872,7 +872,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", null, accCtx.getSynchronizationSituationDetected());
@@ -952,14 +952,14 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
 
-        ResourceShadowDiscriminator ratDummy = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator ratDummy = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtxDummy = context.findProjectionContext(ratDummy);
 		assertNotNull("No account sync context for "+ratDummy, accCtxDummy);
 		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtxDummy.getPrimaryDelta());
 		assertEquals("Wrong fullShadow for "+ratDummy, false, accCtxDummy.isFullShadow());
 		assertEquals("Wrong canProject for "+ratDummy, false, accCtxDummy.isCanProject());
 		
-		ResourceShadowDiscriminator ratDummyLimited = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null);
+		ResourceShadowDiscriminator ratDummyLimited = new ResourceShadowDiscriminator(RESOURCE_DUMMY_LIMITED_OID, ShadowKindType.ACCOUNT, null, null, false);
 		LensProjectionContext accCtxDummyLimited = context.findProjectionContext(ratDummyLimited);
 		assertNotNull("No account sync context for "+ratDummyLimited, accCtxDummyLimited);
 		assertEquals("Wrong fullShadow for "+ratDummyLimited, true, accCtxDummyLimited.isFullShadow());
@@ -1032,7 +1032,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ObjectDelta<UserType> userSecondaryDelta = (ObjectDelta<UserType>) context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
-        		ShadowKindType.ENTITLEMENT, INTENT_GROUP);
+        		ShadowKindType.ENTITLEMENT, INTENT_GROUP, null, false);
 		LensProjectionContext projCtx = context.findProjectionContext(rat);
 		assertNotNull("No projection sync context for "+rat, projCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNMATCHED, projCtx.getSynchronizationSituationDetected());

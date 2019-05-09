@@ -99,7 +99,7 @@ public class MemberOperationsHelper {
 
 	}
 	
-	public static void assignMembersPerformed(AbstractRoleType targetObject, QName targetType, ObjectQuery query,
+	public static void assignMembersPerformed(AbstractRoleType targetObject, ObjectQuery query,
     		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
 		Task operationalTask = pageBase.createSimpleTask("Add.members");
 		
@@ -109,7 +109,7 @@ public class MemberOperationsHelper {
 		expression.setType(ASSIGN_OPERATION);
 		
 		PrismReferenceValue value = pageBase.getPrismContext().itemFactory()
-				.createReferenceValue(targetObject.getOid(), targetType);
+				.createReferenceValue(targetObject.getOid(), WebComponentUtil.classToQName(pageBase.getPrismContext(), targetObject.getClass()));
 		expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
 				new RawType(value, ObjectReferenceType.COMPLEX_TYPE, pageBase.getPrismContext())));
 		if(relation != null) {

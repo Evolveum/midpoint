@@ -228,7 +228,7 @@ public class QNameUtil {
 		}
 		if (!caseInsensitive) {
 			// traditional comparison
-			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			if (StringUtils.isEmpty(a.getNamespaceURI()) || StringUtils.isEmpty(b.getNamespaceURI())) {
 				return a.getLocalPart().equals(b.getLocalPart());
 			} else {
 				return a.equals(b);
@@ -238,7 +238,7 @@ public class QNameUtil {
 			if (!a.getLocalPart().equalsIgnoreCase(b.getLocalPart())) {
 				return false;
 			}
-			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			if (StringUtils.isEmpty(a.getNamespaceURI()) || StringUtils.isEmpty(b.getNamespaceURI())) {
 				return true;
 			} else {
 				return a.getNamespaceURI().equals(b.getNamespaceURI());
@@ -307,7 +307,7 @@ public class QNameUtil {
 	}
 
     public static boolean isUnqualified(QName name) {
-        return StringUtils.isBlank(name.getNamespaceURI());
+        return StringUtils.isEmpty(name.getNamespaceURI());
     }
 
     public static boolean isQualified(QName name) {

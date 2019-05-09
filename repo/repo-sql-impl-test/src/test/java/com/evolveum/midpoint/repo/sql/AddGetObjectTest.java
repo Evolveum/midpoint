@@ -313,7 +313,6 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test
     public void addGetFullAccount() throws Exception {
         LOGGER.info("===[ addGetFullAccount ]===");
-        File file = new File(FOLDER_BASIC, "account-full.xml");
         PrismObject<ShadowType> fileAccount = prismContext.parseObject(new File(FOLDER_BASIC, "account-full.xml"));
 
         // apply appropriate schema

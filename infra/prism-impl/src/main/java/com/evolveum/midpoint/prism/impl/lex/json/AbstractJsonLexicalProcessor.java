@@ -410,7 +410,9 @@ public abstract class AbstractJsonLexicalProcessor implements LexicalProcessor<S
 						wrappedValue = valueXNode;
 					}
 				} else {
-					Map.Entry<QName, XNodeImpl> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode);
+					// We must NOT remove previous values because of potential unqualified value conflict (see MID-5326).
+					// TODO However, we should do something to deduplicate keys in maps - probably. (Current behavior is that their values are being merged.)
+					Map.Entry<QName, XNodeImpl> entry = map.putReturningEntry(currentFieldNameInfo.name, valueXNode, true);
 					if (currentFieldNameInfo.explicitEmptyNamespace) {
 						ctx.noNamespaceEntries.put(entry, null);
 					}

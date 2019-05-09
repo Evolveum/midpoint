@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -378,6 +378,14 @@
 	    		<searchBoxConfiguration>
 	    			<defaultMode>advanced</defaultMode>
 	    		</searchBoxConfiguration>
+	    	</objectCollectionView>
+	    	<objectCollectionView>
+	    		<identifier>broken</identifier>
+	    		<type>ServiceType</type>
+	    		<collection>
+	    			<!-- MID-5328 -->
+	    			<collectionRef oid="we-do-not-have-this-collection" type="ObjectCollectionType"/>
+	    		</collection>
 	    	</objectCollectionView>
 	    </objectCollectionViews>
 	    <objectForms>

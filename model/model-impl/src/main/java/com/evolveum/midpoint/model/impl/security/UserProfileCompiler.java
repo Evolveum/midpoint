@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,6 @@ public class UserProfileCompiler {
 		
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getUser().asPrismObject(), systemConfiguration, task, result));
 
-//		Collection<Authorization> authorizations = principal.getAuthorities();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 		collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
 		
@@ -139,46 +138,6 @@ public class UserProfileCompiler {
 
 	private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
 		UserType userType = principal.getUser();
-//		LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
-//		
-//		Collection<AssignmentType> forcedAssignments = null;
-//		try {
-//			forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
-//					userType.getLifecycleState(), objectResolver, prismContext, task, result);
-//		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-//				| ExpressionEvaluationException e1) {
-//			LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
-//		}
-//		if (!userType.getAssignment().isEmpty() || forcedAssignments != null) {
-//			
-//			AssignmentEvaluator.Builder<UserType> builder =
-//					new AssignmentEvaluator.Builder<UserType>()
-//							.repository(repositoryService)
-//							.focusOdo(new ObjectDeltaObject<>(userType.asPrismObject(), null, userType.asPrismObject()))
-//							.channel(null)
-//							.objectResolver(objectResolver)
-//							.systemObjectCache(systemObjectCache)
-//							.relationRegistry(relationRegistry)
-//							.prismContext(prismContext)
-//							.mappingFactory(mappingFactory)
-//							.mappingEvaluator(mappingEvaluator)
-//							.activationComputer(activationComputer)
-//							.now(clock.currentTimeXMLGregorianCalendar())
-//							// We do need only authorizations + gui config. Therefore we not need to evaluate
-//							// constructions and the like, so switching it off makes the evaluation run faster.
-//							// It also avoids nasty problems with resources being down,
-//							// resource schema not available, etc.
-//							.loginMode(true)
-//							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-//							// will need something to push on the stack. So give them context placeholder.
-//							.lensContext(lensContext);
-//
-//			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
-//
-//			evaluateAssignments(userType.getAssignment(), false, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
-//			
-//			evaluateAssignments(forcedAssignments, true, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
-//		}
 		
 		Collection<EvaluatedAssignment<UserType>> evaluatedAssignments = assignmentCollector.collect(userType.asPrismObject(), systemConfiguration, true, task, result);
 		Collection<Authorization> authorizations = principal.getAuthorities();
@@ -203,66 +162,6 @@ public class UserProfileCompiler {
 		}
 
 	}
-	
-//	private void evaluateAssignments(Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<UserType> assignmentEvaluator, MidPointPrincipal principal, AuthorizationTransformer authorizationTransformer, Collection<AdminGuiConfigurationType> adminGuiConfigurations, Task task, OperationResult result) {
-//		UserType userType = principal.getUser();
-//
-//		
-//
-//		Collection<Authorization> authorizations = principal.getAuthorities();
-//		try {
-//			RepositoryCache.enter();
-//			for (AssignmentType assignmentType: assignments) {
-//				try {
-//					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-//					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-//					assignmentIdi.recompute();
-//					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), virtual, task, result);
-//					if (assignment.isValid()) {
-//						addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
-//						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-//					}
-//					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-//						if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-//								&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-//							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-//							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-//									(UserType) target.getTarget().asObjectable(), limitations));
-//						}
-//					}
-//				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
-//					LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-//							userType, e.getMessage(), assignmentType, e);
-//				}
-//			}
-//		} finally {
-//			RepositoryCache.exit();
-//		}
-//	}
-
-//	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-//		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
-//		if (systemConfiguration != null) {
-//			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
-//			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
-//		}
-//		return lensContext;
-//	}
-
-//	private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-//		ObjectPolicyConfigurationType policyConfigurationType;
-//		try {
-//			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
-//		} catch (ConfigurationException e) {
-//			throw new SchemaException(e.getMessage(), e);
-//		}
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-//					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
-//		}
-//		
-//		return policyConfigurationType;
-//	}
 	
 	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
 		if (sourceCollection == null) {
@@ -402,9 +301,17 @@ public class UserProfileCompiler {
 		}
 	}
 	
-	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
-		compileView(existingView, objectListViewType, task, result);
+	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) {
+		try {
+			CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
+			compileView(existingView, objectListViewType, task, result);
+		} catch (Throwable e) {
+			// Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
+			// want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
+			// This is also handled somewhere up the call stack. But we want to handle it also here. Otherwise an error in one collection would
+			// mean that entire configuration processing will be stopped. We do not want that. We want to skip processing of just that one wrong view.
+			LOGGER.error("Error compiling user profile, view '{}': {}", determineViewIdentifier(objectListViewType), e.getMessage(), e);
+		}
 	}
 	
 	
