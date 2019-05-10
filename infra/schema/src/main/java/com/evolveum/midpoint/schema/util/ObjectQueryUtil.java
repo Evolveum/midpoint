@@ -514,6 +514,7 @@ public class ObjectQueryUtil {
         QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
         ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
         String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT, prismContext);
+        String tag = getPropertyRealValueFromFilter(filter, ShadowType.F_TAG, prismContext);
 
         if (resourceOid == null) {
             throw new SchemaException("Resource not defined in a search query");
@@ -522,7 +523,7 @@ public class ObjectQueryUtil {
         	throw new SchemaException("Neither objectclass not kind is specified in a search query");
         }
 
-        ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, false);
+        ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, tag, false);
         coordinates.setObjectClass(objectClass);
         return coordinates;
 	}

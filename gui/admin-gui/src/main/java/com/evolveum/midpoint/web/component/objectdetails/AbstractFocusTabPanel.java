@@ -20,6 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -36,16 +37,16 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
 
-	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
+	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel;
 
 	public AbstractFocusTabPanel(String id, Form mainForm,
 			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
 		super(id, mainForm, focusWrapperModel);
 		this.projectionModel = projectionModel;
 	}
 
-	public LoadableModel<List<FocusSubwrapperDto<ShadowType>>> getProjectionModel() {
+	public LoadableModel<List<ShadowWrapper<ShadowType>>> getProjectionModel() {
 		return projectionModel;
 	}
 

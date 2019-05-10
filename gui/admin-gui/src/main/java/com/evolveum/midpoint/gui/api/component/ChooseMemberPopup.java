@@ -133,7 +133,7 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     if (selectedObjects == null || selectedObjects.size() == 0){
                         continue;
                     }
-                    executeMemberOperation(memberPanel.getAbstractRoleTypeObject(), getDefaultTargetType(),
+                    executeMemberOperation(memberPanel.getAbstractRoleTypeObject(),
                     		createInOidQuery(selectedObjects), memberPanel.getRelationValue(),
                     		memberPanel.getObjectType().getTypeQName(), target, getPageBase());
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG)){
@@ -397,9 +397,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    protected void executeMemberOperation(AbstractRoleType targetObject, QName targetType, ObjectQuery query,
+    protected void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
     		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
-    	MemberOperationsHelper.assignMembersPerformed(targetObject, targetType, query,
+    	MemberOperationsHelper.assignMembersPerformed(targetObject, query,
         		relation, type, target, pageBase);
     }
 

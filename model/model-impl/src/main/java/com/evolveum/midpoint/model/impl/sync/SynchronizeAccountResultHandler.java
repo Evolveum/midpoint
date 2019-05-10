@@ -148,14 +148,14 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		if (newShadowType.isProtectedObject() != null && newShadowType.isProtectedObject()) {
 			LOGGER.trace("{} skipping {} because it is protected", getProcessShortNameCapitalized(), accountShadow);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
-			return true;
+			return workerTask.canRun();
 		}
 
 		if (objectClassDef != null && !isShadowUnknown(newShadowType) && !objectClassDef.matches(newShadowType)) {
 			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent specified in {}",
 					getProcessShortNameCapitalized(), accountShadow, objectClassDef);
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
-			return true;
+			return workerTask.canRun();
 		}
 
 		if (objectChangeListener == null) {

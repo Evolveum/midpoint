@@ -316,6 +316,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 	
 	@Override
+	public ResourceObjectMultiplicityType getMultiplicity() {
+		return structuralObjectClassDefinition.getMultiplicity();
+	}
+	
+	@Override
 	public ProjectionPolicyType getProjection() {
 		return structuralObjectClassDefinition.getProjection();
 	}

@@ -127,6 +127,16 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		return this;
 	}
 	
+	public ShadowAsserter<RA> assertTag(String expected) {
+		assertEquals("Wrong tag in "+desc(), expected, getObject().asObjectable().getTag());
+		return this;
+	}
+	
+	public ShadowAsserter<RA> assertTagIsOid() {
+		assertEquals("Wrong tag in "+desc(), getObject().getOid(), getObject().asObjectable().getTag());
+		return this;
+	}
+	
 	public ShadowAsserter<RA> assertPrimaryIdentifierValue(String expected) {
 		assertEquals("Wrong primaryIdentifierValue in "+desc(), expected, getObject().asObjectable().getPrimaryIdentifierValue());
 		return this;

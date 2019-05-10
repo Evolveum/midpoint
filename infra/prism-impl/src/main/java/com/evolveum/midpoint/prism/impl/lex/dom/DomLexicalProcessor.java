@@ -627,7 +627,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 				return serializeToElement(xlist.get(0), elementName);
 			}
 		} else {
-			throw new IllegalArgumentException("Cannot serialized "+xnode+" to element");
+			throw new IllegalArgumentException("Cannot serialize "+xnode+" to element");
 		}
 	}
 

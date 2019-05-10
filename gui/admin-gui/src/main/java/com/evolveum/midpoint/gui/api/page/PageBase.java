@@ -2642,7 +2642,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     	Class<?> panelClass = getWrapperPanel(typeName);
     	
     	if (panelClass == null) {
-    		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for" + typeName);
+    		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
     		errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
     		return errorPanel;
     	}

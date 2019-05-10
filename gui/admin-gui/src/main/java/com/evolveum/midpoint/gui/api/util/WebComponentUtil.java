@@ -2813,11 +2813,10 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
-																	 IModel<PrismObjectWrapper<ShadowType>> shadowModel) {
+																	 IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
 		
-		PrismObjectWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
-		PrismObject<ShadowType> shadow = shadowWrapper.getObject();
-		ShadowType shadowType = shadow.asObjectable();
+		PrismContainerValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		ShadowType shadowType = shadowWrapper.getRealValue();
 		
 		ResourceType resource = shadowType.getResource();
 		if (resource == null) {
@@ -2859,7 +2858,7 @@ public final class WebComponentUtil {
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
 			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(),
-					shadow.asObjectable().getKind(), shadow.asObjectable().getIntent()))) {
+					shadowType.getKind(), shadowType.getIntent()))) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -3420,35 +3419,62 @@ public final class WebComponentUtil {
 		return displayType;
 	}
 
-	public static CompositedIconBuilder getAssignmentRelationIconBuilder(PageBase pageBase, AssignmentObjectRelation relationSpec, DisplayType additionalButtonDisplayType){
-		if (relationSpec == null){
-			return null;
-		}
+
+	public static IconType createIconType(String iconStyle){
+		return createIconType(iconStyle, "");
+	}
+
+	public static IconType createIconType(String iconStyle, String color){
+		IconType icon = new IconType();
+		icon.setCssClass(iconStyle);
+		icon.setColor(color);
+		return icon;
+	}
+
+
+	public static CompositedIconBuilder getAssignmentRelationIconBuilder(PageBase pageBase, AssignmentObjectRelation relationSpec,
+																		 IconType relationIcon, IconType actionButtonIcon){
 		CompositedIconBuilder builder = new CompositedIconBuilder();
-		String typeIconStyle = "";
-		if (org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())){
+		if (relationSpec == null){
+			if (actionButtonIcon == null){
+				return null;
+			}
+			builder.setBasicIcon(actionButtonIcon, IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+					.appendColorHtmlValue(actionButtonIcon.getColor());
+			return builder;
+		}
+		DisplayType objectTypeDisplay = null;
+		if (CollectionUtils.isNotEmpty(relationSpec.getArchetypeRefs())){
 			try {
 				String operation = pageBase.getClass().getSimpleName() + "." + "loadArchetypeObject";
 				ArchetypeType archetype = pageBase.getModelObjectResolver().resolve(relationSpec.getArchetypeRefs().get(0), ArchetypeType.class,
 						null, null, pageBase.createSimpleTask(operation),
 						new OperationResult(operation));
 				if (archetype != null && archetype.getArchetypePolicy() != null){
-					DisplayType archetypeDisplayType = archetype.getArchetypePolicy().getDisplay();
-					typeIconStyle = WebComponentUtil.getIconCssClass(archetypeDisplayType);
+					objectTypeDisplay = archetype.getArchetypePolicy().getDisplay();
 				}
 			} catch (Exception ex){
 				LOGGER.error("Couldn't load archetype object, " + ex.getLocalizedMessage());
 			}
 		}
-		QName objectType = org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
-		if (StringUtils.isEmpty(typeIconStyle) && objectType != null){
-			typeIconStyle = WebComponentUtil.createDefaultBlackIcon(objectType);
+		if (objectTypeDisplay == null){
+			objectTypeDisplay = new DisplayType();
 		}
-		builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
-				.appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
-				.appendLayerIcon(GuiStyleConstants.CLASS_PLUS_CIRCLE, IconCssStyle.BOTTOM_RIGHT_STYLE, GuiStyleConstants.GREEN_COLOR);
-		if (StringUtils.isNotEmpty(typeIconStyle)){
-			builder.appendLayerIcon(typeIconStyle, IconCssStyle.BOTTOM_LEFT_STYLE);
+		if (objectTypeDisplay.getIcon() == null){
+			objectTypeDisplay.setIcon(new IconType());
+		}
+		QName objectType = org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
+		if (StringUtils.isEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay)) && objectType != null){
+			objectTypeDisplay.getIcon().setCssClass(WebComponentUtil.createDefaultBlackIcon(objectType));
+		}
+		if (StringUtils.isNotEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay))) {
+			builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+					.appendColorHtmlValue(WebComponentUtil.getIconColor(objectTypeDisplay))
+					.appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_STYLE)
+					.appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_STYLE);
+		} else {
+			builder.setBasicIcon(actionButtonIcon, IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+					.appendColorHtmlValue(actionButtonIcon.getColor());
 		}
 		return builder;
 	}
@@ -3647,16 +3673,23 @@ public final class WebComponentUtil {
 		if (relation != null){
 			RelationDefinitionType def = WebComponentUtil.getRelationDefinition(relation);
 			if (def != null){
-				DisplayType displayType = def.getDisplay();
-				if (displayType == null){
+				DisplayType displayType = null;
+				if (def.getDisplay() == null){
 					displayType = new DisplayType();
+				} else {
+					displayType = createDisplayType(def.getDisplay().getCssClass());
+					if (def.getDisplay().getIcon() != null){
+						displayType.setIcon(new IconType());
+						displayType.getIcon().setCssClass(def.getDisplay().getIcon().getCssClass());
+						displayType.getIcon().setColor(def.getDisplay().getIcon().getColor());
+					}
 				}
 				if (displayType.getLabel() != null && StringUtils.isNotEmpty(displayType.getLabel().getOrig())){
 					relationValue = pageBase.createStringResource(displayType.getLabel().getOrig()).getString();
 				} else {
 					String relationKey = "RelationTypes." + RelationTypes.getRelationTypeByRelationValue(relation);
 					relationValue = pageBase.createStringResource(relationValue).getString();
-					if (relationKey.equals(relationValue)){
+					if (StringUtils.isEmpty(relationValue) || relationKey.equals(relationValue)){
 						relationValue = relation.getLocalPart();
 					}
 				}
@@ -3664,9 +3697,8 @@ public final class WebComponentUtil {
 				relationTitle = pageBase.createStringResource("abstractRoleMemberPanel.withRelation", relationValue).getString();
 
 
-				if (displayType.getIcon() == null){
-					displayType = createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green",
-							pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
+				if (displayType.getIcon() == null || StringUtils.isEmpty(displayType.getIcon().getCssClass())){
+					displayType.setIcon(createIconType(""));
 				}
 				displayType.setTooltip(createPolyFromOrigString(pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString()));
 				return displayType;

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -91,6 +92,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 		return this;
 	}
 	
+	public AssignmentAsserter<R> assertRole(String expectedOid) {
+		assertTargetOid(expectedOid);
+		assertTargetType(RoleType.COMPLEX_TYPE);
+		return this;
+	}
+	
 	public AssignmentAsserter<R> assertSubtype(String expected) {
 		List<String> subtypes = assignment.getSubtype();
 		if (subtypes.isEmpty()) {
@@ -105,6 +112,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 	
 	public ActivationAsserter<AssignmentAsserter<R>> activation() {
 		ActivationAsserter<AssignmentAsserter<R>> asserter = new ActivationAsserter<>(assignment.getActivation(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public MetadataAsserter<AssignmentAsserter<R>> metadata() {
+		MetadataAsserter<AssignmentAsserter<R>> asserter = new MetadataAsserter<>(assignment.getMetadata(), this, getDetails());
 		copySetupTo(asserter);
 		return asserter;
 	}

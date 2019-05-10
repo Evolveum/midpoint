@@ -66,18 +66,18 @@ public class ContainerWrapperListFromObjectWrapperModel<C extends Containerable,
 //		if (paths == null) {
 //			return (List) getWrapper().getContainers();
 //		}
-//		for (ItemPath path : paths) {
-//			PrismContainerWrapper<C> containerWrapper;
-//			try {
-//				containerWrapper = getWrapper().findContainer(path);
-//			} catch (SchemaException e) {
-//				return null;
-//			}
-//			if (containerWrapper != null) {
-//				containerWrapper.setShowEmpty(true, false);
-//				wrappers.add(containerWrapper);
-//			}
-//		}
+		for (ItemPath path : paths) {
+			PrismContainerWrapper<C> containerWrapper;
+			try {
+				containerWrapper = getWrapper().findContainer(path);
+			} catch (SchemaException e) {
+				return null;
+			}
+			if (containerWrapper != null) {
+				containerWrapper.setShowEmpty(true, false);
+				wrappers.add(containerWrapper);
+			}
+		}
 		return wrappers;
 	}
 

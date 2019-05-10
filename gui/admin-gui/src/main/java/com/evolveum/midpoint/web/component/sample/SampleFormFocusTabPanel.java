@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -73,7 +74,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel) {
+                                   LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
         super(id, mainForm, focusWrapperModel, projectionModel);
         
     }

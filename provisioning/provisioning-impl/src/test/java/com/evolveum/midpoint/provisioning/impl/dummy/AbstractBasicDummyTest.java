@@ -1105,7 +1105,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = task.getResult();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP, null, false);
 		ProvisioningContext ctx = provisioningContextFactory.create(coords, task, result);
 
 		// WHEN

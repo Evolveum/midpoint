@@ -20,6 +20,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
@@ -96,7 +97,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	 * 
 	 * apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
 	 */
-	private void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
+	protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
 		Class<O> objectClass = object.getCompileTimeClass();
 		
 		AuthorizationPhaseType phase = context.getAuthzPhase();
@@ -118,14 +119,19 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 		try {
 			ShadowType shadow = (ShadowType) object.asObjectable();
 			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resolveOid(shadow.getResourceRef()),
-					shadow.getKind(), shadow.getIntent());
+					shadow.getKind(), shadow.getIntent(), shadow.getTag(), false);
 			context.setDiscriminator(discr);
 			PrismObjectDefinition<ShadowType> shadowDefinition = modelInteractionService.getEditShadowDefinition(discr, phase, task, result);
 			object.applyDefinition((PrismContainerDefinition<O>) shadowDefinition);
 			
 			PrismObject<ResourceType> resource = resolveResource(shadow.getResourceRef(), task, result);
 			context.setResource(resource.asObjectable());
-			modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
+			RefinedObjectClassDefinition objectClassDefinitionForEditing = 
+					modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
+			if (objectClassDefinitionForEditing != null) {
+            	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(
+            			(PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());
+            }
 		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
 				| CommunicationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block

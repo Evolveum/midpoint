@@ -525,8 +525,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
 		} catch (Exception ex) {
-			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Create user failed", ex);
+			result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
 			showResult(result);
 			return;
 		}
