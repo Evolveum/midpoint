@@ -226,7 +226,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
 					@Override
                 	public boolean isEnabled() {
-                		return passwordAccountDto.getCssClass() != NO_CAPABILITY_ICON_CSS;
+                		return !passwordAccountDto.getCssClass().equals(NO_CAPABILITY_ICON_CSS);
                 	}
                 });
             }
