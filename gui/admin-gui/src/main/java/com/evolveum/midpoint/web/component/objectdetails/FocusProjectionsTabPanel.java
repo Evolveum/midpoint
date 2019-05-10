@@ -858,7 +858,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				PrismValueWrapper value = (PrismValueWrapper) enabledProperty.getValues().get(0);
 				ActivationStatusType status = enabled ? ActivationStatusType.ENABLED
 						: ActivationStatusType.DISABLED;
-				value.setRealValue(status);
+				((PrismPropertyValue) value.getNewValue()).setValue(status);
 			} catch (SchemaException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -897,7 +897,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					continue;
 				}
 				PrismValueWrapper value = (PrismValueWrapper) lockedProperty.getValues().get(0);
-				value.setRealValue(LockoutStatusType.NORMAL);
+				((PrismPropertyValue) value.getNewValue()).setValue(LockoutStatusType.NORMAL);
 				info(getString("pageAdminFocus.message.unlocked", account.getDisplayName()));	
 			} catch (SchemaException e) {
 				// TODO Auto-generated catch block
