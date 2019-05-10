@@ -15,32 +15,45 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.impl.prism.*;
+import com.evolveum.midpoint.web.component.input.AssociationExpressionValuePanel;
+import com.evolveum.midpoint.web.component.input.SimpleValueExpressionPanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import org.apache.wicket.Component;
+import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.web.component.input.ExpressionValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.ExpressionWrapper;
 
 /**
  * @author katka
  *
  */
-public class ExpressionPropertyPanel extends BasePanel<ExpressionWrapper> {
+public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String ID_EXPRESSION_VALUE_PANEL = "expressionValuePanel";
+	private static final String ID_EXPRESSION_PANEL = "expressionPanel";
 
-	public ExpressionPropertyPanel(String id, IModel<ExpressionWrapper> model) {
-		super(id, model);
+	public ExpressionPropertyPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemVisibilityHandler visibilitytHandler) {
+		super(id, model, visibilitytHandler);
 	}
 
 	@Override
-	protected void onInitialize(){
-		super.onInitialize();
-		add(new ExpressionValuePanel(ID_EXPRESSION_VALUE_PANEL, Model.of(getModelObject().getItem().getRealValue()), getModelObject().getConstruction()));
+	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+		ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
+		Component expressionPanel = null;
+		if (expressionWrapper.isAttributeExpression()) {
+			expressionPanel = new SimpleValueExpressionPanel(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
+		} else if (expressionWrapper.isAssociationExpression()){
+			expressionPanel = new AssociationExpressionValuePanel(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()),
+					expressionWrapper.getConstruction());
+		} else {
+			expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
+		}
+		expressionPanel.setOutputMarkupId(true);
+		item.add(expressionPanel);
 	}
-	
 
 }

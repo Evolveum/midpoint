@@ -3711,7 +3711,7 @@ public final class WebComponentUtil {
 				(polyString.getLang() == null || polyString.getLang() == null || polyString.getLang().isEmpty())){
 			return polyString.getOrig();
 		}
-		if (polyString.getLang() != null && polyString.getLang() != null && !polyString.getLang().isEmpty()){
+		if (polyString.getLang() != null && !polyString.getLang().isEmpty()){
 			//check if it's really selected by user or configured through sysconfig locale
 			String currentLocale = getCurrentLocale().getLanguage();
 			for (String language : polyString.getLang().keySet()){

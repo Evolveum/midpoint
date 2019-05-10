@@ -53,6 +53,36 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
         return false;
     }
 
+    public boolean isAssociationExpression(){
+        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl)getParent().getParent() : null;
+        if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
+            PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
+            if (outboundValue != null) {
+                PrismContainerWrapperImpl associationContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
+                if (associationContainer != null &&
+                        ResourceObjectAssociationType.class.equals(associationContainer.getCompileTimeClass())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isAttributeExpression() {
+        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
+        if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
+            PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
+            if (outboundValue != null) {
+                PrismContainerWrapperImpl attributeContainer = (PrismContainerWrapperImpl) outboundValue.getParent();
+                if (attributeContainer != null &&
+                        ResourceAttributeDefinitionType.class.equals(attributeContainer.getCompileTimeClass())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public ConstructionType getConstruction() {
         return construction;
     }
