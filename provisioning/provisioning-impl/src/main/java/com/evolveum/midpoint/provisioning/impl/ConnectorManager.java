@@ -288,10 +288,9 @@ public class ConnectorManager implements Cacheable {
 			throw e;
 		}
 		try {
-			
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 			
-			connector.configure(connectorConfigurationVal, result);
+			connector.configure(connectorConfigurationVal, ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()), result);
 
 			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
