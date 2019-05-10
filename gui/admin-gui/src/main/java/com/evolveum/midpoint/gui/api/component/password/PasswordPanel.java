@@ -290,15 +290,14 @@ public class PasswordPanel extends InputPanel {
 			if (object == null) {
 				psModel.setObject(null);
 			} else {
-				if (psModel.getObject() == null) {
-					psModel.setObject(new ProtectedStringType());
-				}
-				psModel.getObject().setClearValue(object);
+				ProtectedStringType protectedString = new ProtectedStringType();
+				protectedString.setClearValue(object);
 				try {
-					getProtector().encrypt(psModel.getObject());
+					getProtector().encrypt(protectedString);
 				} catch (EncryptionException e) {
 					throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
 				}
+				psModel.setObject(protectedString);
 			}
 		}
 
