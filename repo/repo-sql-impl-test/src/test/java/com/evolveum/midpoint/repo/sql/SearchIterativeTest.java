@@ -103,7 +103,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertObjects(objects, COUNT);
     }
 
-    @Test(enabled = false)  // MID-5339
+    @Test  // MID-5339
     public void test101SequentialIterationWithSmallResult() throws Exception {
         OperationResult result = new OperationResult("test101SequentialIterationWithSmallResult");
 
