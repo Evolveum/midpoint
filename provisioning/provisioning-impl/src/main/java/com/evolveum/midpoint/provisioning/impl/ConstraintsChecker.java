@@ -132,7 +132,7 @@ public class ConstraintsChecker {
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
 		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(objectClassDefinition.getPrimaryIdentifiers(),
 				objectClassDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Checking uniquenss of attributes: {}", uniqueAttributeDefs);
+		LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
 		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
 			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
 			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
