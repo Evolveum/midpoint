@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
@@ -274,15 +276,15 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType>{
             protected void onUpdate(AjaxRequestTarget target){
                 String pathValue = targetSearchFilterPathInput.getBaseFormComponent().getValue();
                 if (getModelObject() == null){
-//                    getModel().setObject(new ExpressionType());
+                    getModel().setObject(new ExpressionType());
                 }
-//                try {
-//                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject().getItem().getRealValue(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
-//                } catch (Exception ex){
-//                    AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(AssociationExpressionValuePanel.this,
-//                            ex.getLocalizedMessage(), 0));
-//                    target.add(AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel());
-//                }
+                try {
+                    ExpressionUtil.updateAssociationTargetSearchPath(getModelObject(), getPrismContext().itemPathParser().asItemPathType(pathValue), getPrismContext());
+                } catch (Exception ex){
+                    AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(AssociationExpressionValuePanel.this,
+                            ex.getLocalizedMessage(), 0));
+                    target.add(AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel());
+                }
             }
         });
         targetSearchContainer.add(targetSearchFilterPathInput);
@@ -297,112 +299,18 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType>{
                 String value = targetSearchFilterValueInput.getBaseFormComponent().getValue();
                 String path = targetSearchFilterPathInput.getBaseFormComponent().getValue();
                 if (getModelObject() == null){
-//                    getModel().setObject(new ExpressionType());
+                    getModel().setObject(new ExpressionType());
                 }
-//                try {
-//                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject().getItem().getRealValue(), path, value, AssociationExpressionValuePanel.this.getPageBase().getPrismContext());
-//                } catch (SchemaException ex){
-//                    AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(AssociationExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
-//                    target.add(AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel());
-//                }
+                try {
+                    ExpressionUtil.updateAssociationTargetSearchValue(getModelObject(), path, value, AssociationExpressionValuePanel.this.getPageBase().getPrismContext());
+                } catch (SchemaException ex){
+                    AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel().getFeedbackMessages().add(new FeedbackMessage(AssociationExpressionValuePanel.this, ex.getErrorTypeMessage(), 0));
+                    target.add(AssociationExpressionValuePanel.this.getPageBase().getFeedbackPanel());
+                }
             }
         });
         targetSearchContainer.add(targetSearchFilterValueInput);
 
-    }
-
-    private List<InlineMenuItem> createAddButtonInlineMenuItems(){
-        List<InlineMenuItem> menuList = new ArrayList<>();
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonDefaultTitle")) {
-                         private static final long serialVersionUID = 1L;
-
-                         @Override
-                         public InlineMenuItemAction initAction() {
-                             return new InlineMenuItemAction() {
-                                 private static final long serialVersionUID = 1L;
-
-                                 @Override
-                                 public void onClick(AjaxRequestTarget target) {
-                                     if (getModelObject() == null) {
-//                                         getModel().setObject(new ExpressionType());
-                                     }
-//                                     ExpressionUtil.addShadowRefEvaluatorValue(getModelObject().getItem().getRealValue(), null, AssociationExpressionValuePanel.this.getPageBase().getPrismContext());
-                                     target.add(AssociationExpressionValuePanel.this);
-                                 }
-                             };
-                         }
-
-                         @Override
-                         public IModel<Boolean> getVisible() {
-                             return Model.of(isAssociationExpression());
-                         }
-        });
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addValueButtonTargetSearchTitle")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getModelObject() == null) {
-//                            getModel().setObject(new ExpressionType());
-                        }
-//                        ExpressionType expression = getModelObject().getItem().getRealValue();
-//                        expression.getExpressionEvaluator().add(ExpressionUtil.createAssociationTargetSearchElement(getPrismContext()));
-                        target.add(AssociationExpressionValuePanel.this);
-
-                    }
-                };
-            }
-
-            @Override
-            public IModel<Boolean> getVisible() {
-                return Model.of(isAssociationExpression());
-            }
-        });
-        menuList.add(new InlineMenuItem(createStringResource("ExpressionValuePanel.addLiteralValueButton")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public InlineMenuItemAction initAction() {
-                return new InlineMenuItemAction() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        if (getModelObject() == null) {
-//                            getModel().setObject(new ExpressionType());
-                        }
-//                        ExpressionUtil.updateLiteralExpressionValue(getModelObject().getItem().getRealValue(), Arrays.asList(""), AssociationExpressionValuePanel.this.getPageBase().getPrismContext());
-                        target.add(AssociationExpressionValuePanel.this);
-
-                    }
-                };
-            }
-
-            @Override
-            public IModel<Boolean> getVisible() {
-                return Model.of(!isAssociationExpression());
-            }
-        });
-        return  menuList;
-    }
-
-    private List<String> getLiteralValues(){
-        List<String> literalValueList = new ArrayList<>();
-//        try{
-//            return ExpressionUtil.getLiteralExpressionValues(getModelObject().getItem().getRealValue());
-//        } catch (SchemaException ex){
-//            LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
-//        }
-        return literalValueList;
-    }
-
-    protected boolean isAssociationExpression(){
-        return false;
     }
 
     private FeedbackPanel getFeedbackPanel(){
