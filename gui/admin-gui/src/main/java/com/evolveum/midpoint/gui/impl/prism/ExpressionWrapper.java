@@ -54,6 +54,9 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     }
 
     public boolean isAssociationExpression(){
+        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())){
+            return false;
+        }
         PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl)getParent().getParent() : null;
         if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
             PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
@@ -69,6 +72,9 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     }
 
     public boolean isAttributeExpression() {
+        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())){
+            return false;
+        }
         PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
         if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
             PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();

@@ -367,6 +367,13 @@ public class ExpressionUtil {
         expression.getExpressionEvaluator().add(element);
     }
 
+    public static void clearExpressionEvaluator(ExpressionType expression){
+        if (expression == null){
+            return;
+        }
+        expression.getExpressionEvaluator().clear();
+    }
+
     private static String getShadowRefNodeOid(MapXNode shadowRefNode){
         if (shadowRefNode != null && ((MapXNode) shadowRefNode).containsKey(SHADOW_OID_KEY)) {
             PrimitiveXNode shadowOidNode = (PrimitiveXNode) ((MapXNode) shadowRefNode).get(SHADOW_OID_KEY);

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -97,10 +99,17 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType>{
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 isShadowRefPanelActive = true;
+                ExpressionUtil.clearExpressionEvaluator(AssociationExpressionValuePanel.this.getModelObject());
                 initShadowRefExpressionPanel();
                 ajaxRequestTarget.add(AssociationExpressionValuePanel.this);
             }
         };
+        shadowRefExpressionButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return isShadowRefPanelActive ? "btn-primary" : "btn-default";
+            }
+        }));
         shadowRefExpressionButton.setOutputMarkupId(true);
         add(shadowRefExpressionButton);
 
@@ -109,11 +118,18 @@ public class AssociationExpressionValuePanel extends BasePanel<ExpressionType>{
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 isShadowRefPanelActive = false;
+                ExpressionUtil.clearExpressionEvaluator(AssociationExpressionValuePanel.this.getModelObject());
                 initAssociationTargetSearchExpressionPanel();
                 ajaxRequestTarget.add(AssociationExpressionValuePanel.this);
             }
         };
         associationTargetSearchExpressionButton.setOutputMarkupId(true);
+        associationTargetSearchExpressionButton.add(AttributeAppender.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return !isShadowRefPanelActive ? "btn-primary" : "btn-default";
+            }
+        }));
         add(associationTargetSearchExpressionButton);
 
         initShadowRefExpressionPanel();

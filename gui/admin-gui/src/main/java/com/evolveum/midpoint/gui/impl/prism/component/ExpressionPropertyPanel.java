@@ -21,6 +21,7 @@ import com.evolveum.midpoint.web.component.input.AssociationExpressionValuePanel
 import com.evolveum.midpoint.web.component.input.SimpleValueExpressionPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
