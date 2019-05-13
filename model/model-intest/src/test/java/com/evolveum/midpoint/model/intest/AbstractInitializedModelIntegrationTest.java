@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -37,9 +38,11 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -355,6 +358,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException {
 		assertDummyAccountShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
+	}
+	
+	protected void assertClassType(String message, Object object,
+			Class<?> type) {
+		assertTrue(type.isInstance(object), message);
 	}
 
 	protected void setDefaultUserTemplate(String userTemplateOid)
