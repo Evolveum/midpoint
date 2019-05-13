@@ -21,7 +21,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.wf.impl.policy.assignments.AbstractTestAssignmentApproval;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 import java.io.File;
 import java.util.List;
@@ -85,7 +85,7 @@ public class TestAssignmentApprovalGlobal extends AbstractTestAssignmentApproval
 			// ok
 			System.out.println("Got expected exception: " + e);
 		}
-		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
 		display("current work items", currentWorkItems);
 		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}

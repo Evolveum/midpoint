@@ -1,0 +1,234 @@
+//    public PrimaryChangeAspect findPrimaryChangeAspect(String name) {
+//
+//        // we can search either by bean name or by aspect class name (experience will show what is the better way)
+//        if (getBeanFactory().containsBean(name)) {
+//            return getBeanFactory().getBean(name, PrimaryChangeAspect.class);
+//        }
+//        for (PrimaryChangeAspect w : allChangeAspects) {
+//            if (name.equals(w.getClass().getName())) {
+//                return w;
+//            }
+//        }
+//        throw new IllegalStateException("Aspect " + name + " is not registered.");
+//    }
+
+	@NotNull
+	private PrimaryChangeAspect getChangeAspect(CaseType aCase) {
+		String aspectClassName = getPrimaryChangeProcessorStateRequired(aCase.getWorkflowContext()).getChangeAspect();
+		if (aspectClassName == null) {
+			throw new IllegalStateException("No wf primary change aspect defined in case " + aCase);
+		}
+		for (PrimaryChangeAspect a : allChangeAspects) {
+			if (aspectClassName.equals(a.getClass().getName())) {
+				return a;
+			}
+		}
+		throw new IllegalStateException("Primary change aspect " + aspectClassName + " is not registered.");
+	}
+
+	//    @Override
+//    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
+//	    WfContextType wfc = job.getTask().getWorkflowContext();
+//	    List<ObjectReferenceType> rv = new ArrayList<>();
+//	    if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
+//		    return rv;
+//	    }
+//	    for (WorkItemCompletionEventType completionEvent : WfContextUtil.getEvents(wfc, WorkItemCompletionEventType.class)) {
+//		    if (ApprovalUtils.isApproved(completionEvent.getOutput()) && completionEvent.getInitiatorRef() != null) {
+//			    rv.add(completionEvent.getInitiatorRef().clone());
+//		    }
+//	    }
+//	    return rv;
+//    }
+
+
+	// handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
+    void pushHandlers(Task task, List<UriStackEntry> handlers) {
+        for (int i = handlers.size()-1; i >= 0; i--) {
+            UriStackEntry entry = handlers.get(i);
+            if (WAIT_FOR_TASKS_HANDLER_URI.equals(entry.getHandlerUri())) {
+                task.pushWaitForTasksHandlerUri();
+            } else {
+                if (!entry.getExtensionDelta().isEmpty()) {
+                    throw new UnsupportedOperationException("handlers with extension delta set are not supported yet");
+                }
+                task.pushHandlerUri(entry.getHandlerUri(), entry.getSchedule(), TaskBinding.fromTaskType(entry.getBinding()), (ItemDelta) null);
+            }
+        }
+    }
+
+    public static WfContextType getWorkflowContextChecked(Task task) {
+        if (task == null) {
+            throw new IllegalStateException("No task");
+        } else if (task.getWorkflowContext() == null) {
+            throw new IllegalStateException("No workflow context in " + task);
+        } else {
+            return task.getWorkflowContext();
+        }
+    }
+
+    public static OperationResult getResult(Task task) {
+        if (task == null) {
+            throw new IllegalArgumentException("Null task");
+        } else if (task.getResult() != null) {
+            return task.getResult();
+        } else {
+            LOGGER.warn("No operation result in task {}, returning a newly created one (status = {})", task, task.getResultStatus());
+            OperationResultStatusType status = task.getResultStatus() != null ? task.getResultStatus() : OperationResultStatusType.UNKNOWN;
+            OperationResult result = new OperationResult("run", OperationResultStatus.parseStatusType(status), (String) null);
+            task.setResultTransient(result);
+            return result;
+        }
+    }
+
+
+	@NotNull
+    public ChangeProcessor getChangeProcessor(Task task) {
+        String processorClassName = task.getWorkflowContext() != null ? task.getWorkflowContext().getChangeProcessor() : null;
+        if (processorClassName == null) {
+            throw new IllegalStateException("No change processor defined in task " + task);
+        }
+        return wfConfiguration.findChangeProcessor(processorClassName);
+    }
+
+    public boolean isProcessInstanceFinished(Task task) {
+        return task.getWorkflowContext() != null && task.getWorkflowContext().getEndTimestamp() != null;
+    }
+
+    public void setRootTaskOidImmediate(Task task, String oid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+        Collection<PrismReferenceValue> values = new ArrayList<>();
+        if (StringUtils.isNotEmpty(oid)) {
+            values.add(createObjectRef(oid, TASK).asReferenceValue());
+        }
+        task.modifyAndFlush(
+                prismContext.deltaFor(TaskType.class)
+                        .item(F_WORKFLOW_CONTEXT, F_ROOT_TASK_REF).replace(values)
+                        .asItemDelta(),
+                result);
+    }
+
+    public String getRootTaskOid(Task task) {
+        ObjectReferenceType ref = task.getWorkflowContext() != null ? task.getWorkflowContext().getRootTaskRef() : null;
+        return ref != null ? ref.getOid() : null;
+    }
+
+    public void deleteModelOperationContext(Task task) throws SchemaException {
+        task.setModelOperationContext(null);
+    }
+
+    public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+        try {
+            return repositoryService.getObject(UserType.class, oid, null, result);
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
+            return null;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            return null;
+        }
+    }
+
+    // returns oid when user cannot be retrieved
+    public String getUserNameByOid(String oid, OperationResult result) {
+        try {
+            PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
+            return user.asObjectable().getName().getOrig();
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
+            return oid;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            return oid;
+        }
+    }
+
+    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
+        return serializeObjectToXml(object, object.getPrismContext());
+    }
+
+    public static String serializeObjectToXml(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
+        try {
+            return prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize a PrismObject " + object + " into XML", e);
+        }
+    }
+
+    public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
+        try {
+            PrismContainerValue value = containerable.asPrismContainerValue();
+            return prismContext.xmlSerializer().serialize(value, value.getContainer().getElementName());
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
+        }
+    }
+
+    public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
+        try {
+            return (ObjectType) prismContext.parserFor(xml).xml().parse().asObjectable();
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+        }
+    }
+
+//    public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
+//        try {
+//            return prismContext.processorFor(xml).xml().unmarshallContainer(null);			// TODO will 'null' work?
+//        } catch (SchemaException e) {
+//            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+//        }
+//    }
+
+    public void resolveAssignmentTargetReferences(PrismObject<? extends UserType> object, OperationResult result) {
+        for (AssignmentType assignmentType : object.asObjectable().getAssignment()) {
+            if (assignmentType.getTarget() == null && assignmentType.getTargetRef() != null) {
+                PrismObject<? extends ObjectType> target = null;
+                try {
+                    target = repositoryService.getObject(ObjectType.class, assignmentType.getTargetRef().getOid(), null, result);
+                    assignmentType.setTarget(target.asObjectable());
+                } catch (ObjectNotFoundException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't resolve assignment " + assignmentType, e);
+                }
+            }
+        }
+    }
+
+	public WfConfigurationType getWorkflowConfiguration(SystemObjectCache systemObjectCache, OperationResult result) throws SchemaException {
+    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+    	if (systemConfiguration == null) {
+    		return null;
+    	}
+    	return systemConfiguration.asObjectable().getWorkflowConfiguration();
+    }
+
+	public void resolveAndStoreObjectReferences(@NotNull Collection<ObjectReferenceType> references, OperationResult result) {
+    	references.forEach(ref -> resolveObjectReference(ref, true, result));
+	}
+
+    private static String formatTime(XMLGregorianCalendar time) {
+        DateFormat formatter = DateFormat.getDateInstance();
+        return formatter.format(time.toGregorianCalendar().getTime());
+    }
+
+	@Override
+	public void createProcessVariables(Map<String, Object> map, PrismContext prismContext) throws SchemaException {
+		if (scenarioBeanName != null) {
+			map.put(GcpProcessVariableNames.VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME, scenarioBeanName);
+		}
+		if (modelContext != null) {
+			map.put(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT, modelContext.toLensContextType());
+		}
+	}
+
+	@Override public void createProcessVariables(Map<String, Object> map, PrismContext prismContext) throws SchemaException {
+		map.put(PcpProcessVariableNames.VARIABLE_CHANGE_ASPECT, processorState.getChangeAspect());
+	}

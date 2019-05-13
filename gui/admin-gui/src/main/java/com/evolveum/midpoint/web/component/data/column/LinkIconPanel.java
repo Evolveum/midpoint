@@ -42,6 +42,8 @@ public class LinkIconPanel extends Panel {
     }
 
     private void initLayout(IModel<String> model, IModel<String> titleModel) {
+        setOutputMarkupId(true);
+
         AjaxLink<Void> link = new AjaxLink<Void>(ID_LINK) {
 
             @Override

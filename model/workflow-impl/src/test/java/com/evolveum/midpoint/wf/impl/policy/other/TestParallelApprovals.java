@@ -20,20 +20,28 @@ import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskListener;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -57,6 +65,8 @@ import static org.testng.AssertJUnit.assertNull;
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestParallelApprovals extends AbstractWfTestPolicy {
+
+	@Autowired private WfTestHelper testHelper;
 
 	private static final File ROLE_ROLE50A_FILE = new File(TEST_RESOURCE_DIR, "role-role50a-slow.xml");
 	private static final File ROLE_ROLE51A_FILE = new File(TEST_RESOURCE_DIR, "role-role51a-slow.xml");
@@ -117,24 +127,25 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		assertNotAssignedRole(userJackOid, roleRole53aOid, task, result);
 
 		display("Task after operation", task);
-		String rootTaskOid = wfTaskUtil.getRootTaskOid(task);
-		display("root task", getTask(rootTaskOid));
+
+		CaseType rootCase = testHelper.getRootCase(result);
+		display("root case", rootCase);
 
 		if (listener != null) {
 			taskManager.unregisterTaskListener(listener);
 		}
-		listener = new CheckingTaskListener(singleton(rootTaskOid));
+		listener = new CheckingTaskListener(singleton(rootCase.getOid()));
 		taskManager.registerTaskListener(listener);
 
 		approveAllWorkItems(task, result);
 
-		waitForTaskCloseOrSuspend(rootTaskOid, 120000, 1000);
+		testHelper.waitForCaseClose(rootCase, 120000);
 
 		// THEN
 
-		PrismObject<TaskType> rootTask = getTask(rootTaskOid);
+		rootCase = getObject(CaseType.class, rootCase.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		assertEquals("Wrong root task1 status", CLOSED, rootTask.asObjectable().getExecutionStatus());
+		assertEquals("Wrong root case status", SchemaConstants.CASE_STATE_CLOSED, rootCase.getState());
 
 		PrismObject<UserType> jack = getUser(userJackOid);
 		assertAssignedRole(jack, roleRole50aOid);
@@ -169,19 +180,19 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		executeChanges(DeltaFactory.Object.createAddDelta(alice.asPrismObject()), createExecuteImmediatelyAfterApproval(), task, result); // should start approval processes
 
 		display("Task after operation", task);
-		String rootTaskOid = wfTaskUtil.getRootTaskOid(task);
-		display("root task", getTask(rootTaskOid));
+		CaseType rootCase = testHelper.getRootCase(result);
+		display("root case", rootCase);
 
-		listener.setTasksToSuspendOnError(singleton(rootTaskOid));
+		listener.setCasesToCloseOnError(singleton(rootCase.getOid()));
 
 		approveAllWorkItems(task, result);
-		waitForTaskCloseOrSuspend(rootTaskOid, 120000, 1000);
+		testHelper.waitForCaseClose(rootCase, 120000);
 
 		// THEN
 
-		PrismObject<TaskType> rootTask = getTask(rootTaskOid);
+		rootCase = getObject(CaseType.class, rootCase.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		assertEquals("Wrong root task1 status", CLOSED, rootTask.asObjectable().getExecutionStatus());
+		assertEquals("Wrong root case status", SchemaConstants.CASE_STATE_CLOSED, rootCase.getState());
 
 		PrismObject<UserType> aliceAfter = findUserByUsername("alice");
 		assertAssignedRole(aliceAfter, roleRole50aOid);
@@ -191,11 +202,11 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 	}
 
 	public void approveAllWorkItems(Task task, OperationResult result) throws Exception {
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		display("work items", workItems);
 		display("approving work items");
-		for (WorkItemType workItem : workItems) {
-			workflowManager.completeWorkItem(workItem.getExternalId(), true, null, null, null, result);
+		for (CaseWorkItemType workItem : workItems) {
+			workflowManager.completeWorkItem(WorkItemId.of(workItem), true, null, null, null, task, result);
 		}
 	}
 
@@ -205,10 +216,12 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
+		Task task0 = createTask(TEST_NAME);
 		Task task1 = createTask(TEST_NAME);
 		Task task2 = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		OperationResult result0 = task0.getResult();
+		OperationResult result1 = task1.getResult();
+		OperationResult result2 = task2.getResult();
 
 		if (listener != null) {
 			taskManager.unregisterTaskListener(listener);
@@ -223,40 +236,40 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 						ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole51aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDeltaCast(userBobOid);
-		executeChanges(assignDelta1, createExecuteImmediatelyAfterApproval(), task1, result); // should start approval processes
+		executeChanges(assignDelta1, createExecuteImmediatelyAfterApproval(), task1, result1); // should start approval processes
 		ObjectDelta<UserType> assignDelta2 = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_ASSIGNMENT).add(
 						ObjectTypeUtil.createAssignmentTo(roleRole50aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole52aOid, ObjectTypes.ROLE, prismContext),
 						ObjectTypeUtil.createAssignmentTo(roleRole53aOid, ObjectTypes.ROLE, prismContext))
 				.asObjectDeltaCast(userBobOid);
-		executeChanges(assignDelta2, createExecuteImmediatelyAfterApproval(), task2, result); // should start approval processes
-		assertNotAssignedRole(userBobOid, roleRole51aOid, task, result);
-		assertNotAssignedRole(userBobOid, roleRole52aOid, task, result);
-		assertNotAssignedRole(userBobOid, roleRole53aOid, task, result);
+		executeChanges(assignDelta2, createExecuteImmediatelyAfterApproval(), task2, result2); // should start approval processes
+		assertNotAssignedRole(userBobOid, roleRole51aOid, task0, result0);
+		assertNotAssignedRole(userBobOid, roleRole52aOid, task0, result0);
+		assertNotAssignedRole(userBobOid, roleRole53aOid, task0, result0);
 
 		display("Task1 after operation", task1);
 		display("Task2 after operation", task2);
-		String rootTask1Oid = wfTaskUtil.getRootTaskOid(task1);
-		String rootTask2Oid = wfTaskUtil.getRootTaskOid(task2);
-		display("root task 1", getTask(rootTask1Oid));
-		display("root task 2", getTask(rootTask2Oid));
+		CaseType rootCase1 = testHelper.getRootCase(result1);
+		display("root case1", rootCase1);
+		CaseType rootCase2 = testHelper.getRootCase(result2);
+		display("root case2", rootCase2);
 
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		listener.setTasksToSuspendOnError(Arrays.asList(rootTask1Oid, rootTask2Oid));
+		listener.setCasesToCloseOnError(Arrays.asList(rootCase1.getOid(), rootCase2.getOid()));
 
-		approveAllWorkItems(task, result);
+		approveAllWorkItems(task0, result0);
 
-		waitForTaskCloseOrSuspend(rootTask1Oid, 120000, 1000);
-		waitForTaskCloseOrSuspend(rootTask2Oid, 120000, 1000);
+		testHelper.waitForCaseClose(rootCase1, 120000);
+		testHelper.waitForCaseClose(rootCase2, 120000);
 
 		// THEN
 
-		PrismObject<TaskType> rootTask1 = getTask(rootTask1Oid);
-		PrismObject<TaskType> rootTask2 = getTask(rootTask2Oid);
+		rootCase1 = getObject(CaseType.class, rootCase1.getOid()).asObjectable();
+		rootCase2 = getObject(CaseType.class, rootCase2.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		assertEquals("Wrong root task1 status", CLOSED, rootTask1.asObjectable().getExecutionStatus());
-		assertEquals("Wrong root task2 status", CLOSED, rootTask2.asObjectable().getExecutionStatus());
+		assertEquals("Wrong root case1 status", SchemaConstants.CASE_STATE_CLOSED, rootCase1.getState());
+		assertEquals("Wrong root case2 status", SchemaConstants.CASE_STATE_CLOSED, rootCase2.getState());
 
 		PrismObject<UserType> bob = getUser(userBobOid);
 		assertAssignedRole(bob, roleRole50aOid);
@@ -271,11 +284,14 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		TestUtil.displayTestTitle(this, TEST_NAME);
 		login(userAdministrator);
 
-		Task task = createTask(TEST_NAME);
+		Task task0 = createTask(TEST_NAME);
 		Task task1 = createTask(TEST_NAME);
 		Task task2 = createTask(TEST_NAME);
 		Task task3 = createTask(TEST_NAME);
-		OperationResult result = task.getResult();
+		OperationResult result0 = task0.getResult();
+		OperationResult result1 = task1.getResult();
+		OperationResult result2 = task2.getResult();
+		OperationResult result3 = task3.getResult();
 
 		if (listener != null) {
 			taskManager.unregisterTaskListener(listener);
@@ -286,41 +302,41 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		// WHEN
 		displayWhen(TEST_NAME);
 		// three separate approval contexts, "summarizing" as the deltas are executed after all approvals
-		assignRole(userChuckOid, roleRole51aOid, task1, result);
-		assignRole(userChuckOid, roleRole52aOid, task2, result);
-		assignRole(userChuckOid, roleRole53aOid, task3, result);
-		assertNotAssignedRole(userChuckOid, roleRole51aOid, task, result);
-		assertNotAssignedRole(userChuckOid, roleRole52aOid, task, result);
-		assertNotAssignedRole(userChuckOid, roleRole53aOid, task, result);
+		assignRole(userChuckOid, roleRole51aOid, task1, result1);
+		assignRole(userChuckOid, roleRole52aOid, task2, result2);
+		assignRole(userChuckOid, roleRole53aOid, task3, result3);
+		assertNotAssignedRole(userChuckOid, roleRole51aOid, task0, result0);
+		assertNotAssignedRole(userChuckOid, roleRole52aOid, task0, result0);
+		assertNotAssignedRole(userChuckOid, roleRole53aOid, task0, result0);
 
 		display("Task1 after operation", task1);
 		display("Task2 after operation", task2);
 		display("Task3 after operation", task3);
-		String rootTask1Oid = wfTaskUtil.getRootTaskOid(task1);
-		String rootTask2Oid = wfTaskUtil.getRootTaskOid(task2);
-		String rootTask3Oid = wfTaskUtil.getRootTaskOid(task3);
-		display("root task 1", getTask(rootTask1Oid));
-		display("root task 2", getTask(rootTask2Oid));
-		display("root task 3", getTask(rootTask3Oid));
+		CaseType rootCase1 = testHelper.getRootCase(result1);
+		CaseType rootCase2 = testHelper.getRootCase(result2);
+		CaseType rootCase3 = testHelper.getRootCase(result3);
+		display("root case1", rootCase1);
+		display("root case2", rootCase2);
+		display("root case3", rootCase3);
 
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		listener.setTasksToSuspendOnError(Arrays.asList(rootTask1Oid, rootTask2Oid, rootTask3Oid));
+		listener.setCasesToCloseOnError(Arrays.asList(rootCase1.getOid(), rootCase2.getOid(), rootCase3.getOid()));
 
-		approveAllWorkItems(task, result);
+		approveAllWorkItems(task0, result0);
 
-		waitForTaskCloseOrSuspend(rootTask1Oid, 120000, 1000);
-		waitForTaskCloseOrSuspend(rootTask2Oid, 120000, 1000);
-		waitForTaskCloseOrSuspend(rootTask3Oid, 120000, 1000);
+		testHelper.waitForCaseClose(rootCase1, 120000);
+		testHelper.waitForCaseClose(rootCase2, 120000);
+		testHelper.waitForCaseClose(rootCase3, 120000);
 
 		// THEN
 
-		PrismObject<TaskType> rootTask1 = getTask(rootTask1Oid);
-		PrismObject<TaskType> rootTask2 = getTask(rootTask2Oid);
-		PrismObject<TaskType> rootTask3 = getTask(rootTask3Oid);
+		rootCase1 = getObject(CaseType.class, rootCase1.getOid()).asObjectable();
+		rootCase2 = getObject(CaseType.class, rootCase2.getOid()).asObjectable();
+		rootCase3 = getObject(CaseType.class, rootCase3.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
-		assertEquals("Wrong root task1 status", CLOSED, rootTask1.asObjectable().getExecutionStatus());
-		assertEquals("Wrong root task2 status", CLOSED, rootTask2.asObjectable().getExecutionStatus());
-		assertEquals("Wrong root task3 status", CLOSED, rootTask3.asObjectable().getExecutionStatus());
+		assertEquals("Wrong root case1 status", SchemaConstants.CASE_STATE_CLOSED, rootCase1.getState());
+		assertEquals("Wrong root case2 status", SchemaConstants.CASE_STATE_CLOSED, rootCase2.getState());
+		assertEquals("Wrong root case3 status", SchemaConstants.CASE_STATE_CLOSED, rootCase3.getState());
 
 		PrismObject<UserType> chuck = getUser(userChuckOid);
 		assertAssignedRole(chuck, roleRole51aOid);
@@ -330,26 +346,26 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 	private class CheckingTaskListener implements TaskListener {
 
-		private Collection<String> tasksToSuspendOnError;
+		private Collection<String> casesToCloseOnError;
 		private Task executing;
 		private RuntimeException exception;
 
 		public CheckingTaskListener() {
-			this.tasksToSuspendOnError = emptySet();
+			this.casesToCloseOnError = emptySet();
 		}
 
-		public CheckingTaskListener(Collection<String> tasksToSuspendOnError) {
-			this.tasksToSuspendOnError = tasksToSuspendOnError;
+		public CheckingTaskListener(Collection<String> casesToCloseOnError) {
+			this.casesToCloseOnError = casesToCloseOnError;
 		}
 
 		public RuntimeException getException() {
 			return exception;
 		}
 
-		public void setTasksToSuspendOnError(Collection<String> tasksToSuspendOnError) {
-			this.tasksToSuspendOnError = tasksToSuspendOnError;
+		public void setCasesToCloseOnError(Collection<String> casesToCloseOnError) {
+			this.casesToCloseOnError = casesToCloseOnError;
 			if (exception != null) {
-				suspendTasks();
+				closeCases();
 			}
 		}
 
@@ -364,14 +380,23 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 				System.out.println(exception.getMessage());
 				display("newly started task", task);
 				display("already executing task", executing);
-				suspendTasks();
+				closeCases();
 			}
 			executing = task;
 		}
 
-		public void suspendTasks() {
+		void closeCases() {
 			// suspend root task in order to fail faster
-			taskManager.suspendTasks(tasksToSuspendOnError, TaskManager.DO_NOT_WAIT, new OperationResult("dummy"));
+			try {
+				List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
+						.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
+						.asItemDeltas();
+				for (String oid : casesToCloseOnError) {
+					repositoryService.modifyObject(CaseType.class, oid, modifications, new OperationResult("dummy"));
+				}
+			} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException e) {
+				throw new SystemException(e);
+			}
 		}
 
 		@Override

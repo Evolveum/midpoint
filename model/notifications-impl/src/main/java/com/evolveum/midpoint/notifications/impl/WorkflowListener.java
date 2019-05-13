@@ -72,76 +72,79 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 
     //region Process-level notifications
     @Override
-    public void onProcessInstanceStart(Task wfTask, OperationResult result) {
-        WorkflowProcessEvent event = new WorkflowProcessEvent(identifierGenerator, ChangeType.ADD, wfTask);
-        initializeWorkflowEvent(event, wfTask);
+    public void onProcessInstanceStart(CaseType aCase, Task opTask,
+		    OperationResult result) {
+        WorkflowProcessEvent event = new WorkflowProcessEvent(identifierGenerator, ChangeType.ADD, aCase);
+        initializeWorkflowEvent(event, aCase, opTask);
         processEvent(event, result);
     }
 
 	@Override
-	public void onProcessInstanceEnd(Task wfTask, OperationResult result) {
-		WorkflowProcessEvent event = new WorkflowProcessEvent(identifierGenerator, ChangeType.DELETE, wfTask);
-		initializeWorkflowEvent(event, wfTask);
+	public void onProcessInstanceEnd(CaseType aCase, Task opTask,
+			OperationResult result) {
+		WorkflowProcessEvent event = new WorkflowProcessEvent(identifierGenerator, ChangeType.DELETE, aCase);
+		initializeWorkflowEvent(event, aCase, opTask);
 		processEvent(event, result);
 	}
 	//endregion
 
 	//region WorkItem-level notifications
     @Override
-    public void onWorkItemCreation(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			Task wfTask, OperationResult result) {
+    public void onWorkItemCreation(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    CaseType aCase, Task wfTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, assignee), null, null, null,
-			    wfTask.getWorkflowContext(), wfTask.getTaskType());
-		initializeWorkflowEvent(event, wfTask);
+			    aCase.getWorkflowContext(), aCase);
+		initializeWorkflowEvent(event, aCase, wfTask);
         processEvent(event, result);
     }
 
     @Override
-    public void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
-			Task wfTask, OperationResult result) {
+    public void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    WorkItemOperationInfo operationInfo, WorkItemOperationSourceInfo sourceInfo,
+		    CaseType aCase, Task opTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
-				getInitiator(sourceInfo), operationInfo, sourceInfo, wfTask.getWorkflowContext(), wfTask.getTaskType());
-		initializeWorkflowEvent(event, wfTask);
+				getInitiator(sourceInfo), operationInfo, sourceInfo, aCase.getWorkflowContext(), aCase);
+		initializeWorkflowEvent(event, aCase, opTask);
 		processEvent(event, result);
     }
 
     @Override
-    public void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			@NotNull WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause, Task wfTask,
-			OperationResult result) {
+    public void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    @NotNull WorkItemNotificationActionType notificationAction, WorkItemEventCauseInformationType cause,
+		    CaseType aCase, Task opTask, OperationResult result) {
 	    WorkItemEvent event = new WorkItemCustomEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
 				new WorkItemOperationSourceInfo(null, cause, notificationAction),
-				wfTask.getWorkflowContext(), wfTask.getTaskType(), notificationAction.getHandler());
-		initializeWorkflowEvent(event, wfTask);
+				aCase.getWorkflowContext(), aCase, notificationAction.getHandler());
+		initializeWorkflowEvent(event, aCase, opTask);
 		processEvent(event, result);
     }
 
     @Override
-	public void onWorkItemAllocationChangeCurrentActors(@NotNull WorkItemType workItem,
-			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
-			@Nullable WorkItemOperationSourceInfo sourceInfo,
-			Duration timeBefore, Task task, OperationResult result) {
+	public void onWorkItemAllocationChangeCurrentActors(@NotNull CaseWorkItemType workItem,
+		    @NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+		    @Nullable WorkItemOperationSourceInfo sourceInfo,
+		    Duration timeBefore, CaseType aCase, Task task,
+		    OperationResult result) {
     	checkOids(operationInfo.getCurrentActors());
 		for (ObjectReferenceType currentActor : operationInfo.getCurrentActors()) {
-			onWorkItemAllocationModifyDelete(currentActor, workItem, operationInfo, sourceInfo, timeBefore, task, result);
+			onWorkItemAllocationModifyDelete(currentActor, workItem, operationInfo, sourceInfo, timeBefore, aCase, task, result);
 		}
 	}
 
 	@Override
-	public void onWorkItemAllocationChangeNewActors(@NotNull WorkItemType workItem,
+	public void onWorkItemAllocationChangeNewActors(@NotNull CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
 			@Nullable WorkItemOperationSourceInfo sourceInfo,
-			Task task, OperationResult result) {
+			CaseType aCase, Task task, OperationResult result) {
     	Validate.notNull(operationInfo.getNewActors());
 
     	checkOids(operationInfo.getCurrentActors());
     	checkOids(operationInfo.getNewActors());
 		for (ObjectReferenceType newActor : operationInfo.getNewActors()) {
-			onWorkItemAllocationAdd(newActor, workItem, operationInfo, sourceInfo, task, result);
+			onWorkItemAllocationAdd(newActor, workItem, operationInfo, sourceInfo, aCase, task, result);
 		}
 	}
 
@@ -149,14 +152,14 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 		refs.forEach(r -> Validate.notNull(r.getOid(), "No OID in actor object reference " + r));
 	}
 
-	private void onWorkItemAllocationAdd(ObjectReferenceType newActor, @NotNull WorkItemType workItem,
+	private void onWorkItemAllocationAdd(ObjectReferenceType newActor, @NotNull CaseWorkItemType workItem,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			Task task, OperationResult result) {
+			CaseType aCase, Task task, OperationResult result) {
     	WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, newActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				task.getWorkflowContext(), task.getTaskType(), null);
-    	initializeWorkflowEvent(event, task);
+				aCase.getWorkflowContext(), aCase, null);
+    	initializeWorkflowEvent(event, aCase, task);
     	processEvent(event, result);
 	}
 
@@ -165,15 +168,16 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 				SimpleObjectRefImpl.create(functions, sourceInfo.getInitiatorRef()) : null;
 	}
 
-	private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, @NotNull WorkItemType workItem,
+	private void onWorkItemAllocationModifyDelete(ObjectReferenceType currentActor, @NotNull CaseWorkItemType workItem,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			Duration timeBefore, Task task, OperationResult result) {
+			Duration timeBefore, CaseType aCase, Task task,
+			OperationResult result) {
 		WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator,
 				timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, currentActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				task.getWorkflowContext(), task.getTaskType(), timeBefore);
-		initializeWorkflowEvent(event, task);
+				aCase.getWorkflowContext(), aCase, timeBefore);
+		initializeWorkflowEvent(event, aCase, task);
 		processEvent(event, result);
 	}
 	//endregion
@@ -193,10 +197,9 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
         result.recordSuccessIfUnknown();
     }
 
-	private void initializeWorkflowEvent(WorkflowEvent event, Task wfTask) {
-		WfContextType wfc = wfTask.getWorkflowContext();
-		event.setRequester(SimpleObjectRefImpl.create(functions, wfc.getRequesterRef()));
-		event.setRequestee(SimpleObjectRefImpl.create(functions, wfc.getObjectRef()));
+	private void initializeWorkflowEvent(WorkflowEvent event, CaseType aCase, Task wfTask) {
+		event.setRequester(SimpleObjectRefImpl.create(functions, aCase.getRequestorRef()));
+		event.setRequestee(SimpleObjectRefImpl.create(functions, aCase.getObjectRef()));
 		// TODO what if requestee is yet to be created?
 	}
 

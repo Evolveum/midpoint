@@ -336,7 +336,7 @@ public class ReportFunctions {
 //    Object parseObjectFromXML (String xml) throws SchemaException {
 //        return prismContext.parserFor(xml).xml().parseAnyData();
 //    }
-    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems()
+    public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         return searchApprovalWorkItems(0, null);
@@ -346,7 +346,7 @@ public class ReportFunctions {
      * @param days - return only workitems with createTimestamp older than (now-days), 0 to return all
      * @sortColumn - optionally AbstractWorkItemType QName to asc sort results (e.g. AbstractWorkItemType.F_CREATE_TIMESTAMP)
     */
-    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
+    public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         Task task = taskManager.createTaskInstance();
@@ -367,11 +367,11 @@ public class ReportFunctions {
                         .asc(sortColumn)
                         .buildFilter());
         }
-	    Object[] itemsToResolve = { WorkItemType.F_ASSIGNEE_REF,
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_TARGET_REF),
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_REQUESTER_REF) };
-	    SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, query,
+	    Object[] itemsToResolve = { CaseWorkItemType.F_ASSIGNEE_REF,
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_TARGET_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_REQUESTOR_REF) };
+	    SearchResultList<CaseWorkItemType> workItems = model.searchContainers(CaseWorkItemType.class, query,
 		        schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
         return PrismContainerValue.toPcvList(workItems);
     }

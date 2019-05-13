@@ -188,9 +188,9 @@ public class PageUser extends PageAdminFocus<UserType> {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior<UserType> authorization;
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage(), PageUser.this);
                 tabs.add(
-                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
+                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
+                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)){
 
                             private static final long serialVersionUID = 1L;
 
@@ -201,9 +201,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
                         });
 
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage))
                 {
                     private static final long serialVersionUID = 1L;
 
@@ -221,11 +220,10 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
-                authorization = new FocusTabVisibleBehavior<UserType>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
-                {
-                    private static final long serialVersionUID = 1L;
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage)){
+
+                private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {

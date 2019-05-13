@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 
 /**
  * An interface through which external observers can be notified about wf process related events.
@@ -30,17 +31,17 @@ public interface ProcessListener {
 
     /**
      * This method is called by wf module when a process instance successfully starts.
-     *
-     * @param instanceState externalized process instance variables
+     *  @param instanceState externalized process instance variables
+     * @param aCase
      * @param result implementer should report its result here
      */
-    void onProcessInstanceStart(Task wfTask, OperationResult result);
+    void onProcessInstanceStart(CaseType aCase, Task opTask, OperationResult result);
 
     /**
      * This method is called by wf module when a process instance ends.
-     *
-     * @param instanceState externalized process instance variables
+     *  @param instanceState externalized process instance variables
+     * @param aCase
      * @param result implementer should report its result here
      */
-    void onProcessInstanceEnd(Task wfTask, OperationResult result);
+    void onProcessInstanceEnd(CaseType aCase, Task opTask, OperationResult result);
 }

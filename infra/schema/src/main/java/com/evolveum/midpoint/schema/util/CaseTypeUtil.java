@@ -20,9 +20,12 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.jetbrains.annotations.NotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * @author mederly
@@ -53,4 +56,11 @@ public class CaseTypeUtil {
         return parentParentPov.asObjectable();
     }
 
+    public static boolean isClosed(CaseType aCase) {
+        return aCase != null && SchemaConstants.CASE_STATE_CLOSED.equals(aCase.getState());
+    }
+
+    public static XMLGregorianCalendar getStartTimestamp(CaseType aCase) {
+        return aCase != null && aCase.getMetadata() != null ? aCase.getMetadata().getCreateTimestamp() : null;
+    }
 }

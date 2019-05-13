@@ -29,7 +29,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpressionXsiType"/>
-            <class name="com.evolveum.midpoint.schema.parser.TestParseWorkflowContext"/>
+            <!--<class name="com.evolveum.midpoint.schema.parser.TestParseWorkflowContext"/>-->
             <class name="com.evolveum.midpoint.schema.parser.TestParseMappingConst"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptOutput"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>

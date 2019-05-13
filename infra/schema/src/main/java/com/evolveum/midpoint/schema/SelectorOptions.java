@@ -181,7 +181,6 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 		    ItemPath.create(TaskType.F_NODE_AS_OBSERVED),
 		    ItemPath.create(TaskType.F_NEXT_RUN_START_TIMESTAMP),
 		    ItemPath.create(TaskType.F_NEXT_RETRY_TIMESTAMP),
-		    ItemPath.create(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM),
 		    ItemPath.create(LookupTableType.F_ROW),
 		    ItemPath.create(AccessCertificationCampaignType.F_CASE)));
 

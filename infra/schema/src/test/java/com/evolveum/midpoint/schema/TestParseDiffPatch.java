@@ -913,7 +913,7 @@ public class TestParseDiffPatch {
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 	}
 
-	@Test
+	@Test(enabled = false)
     public void testReplaceModelOperationContext() throws Exception {
         PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 

@@ -729,11 +729,7 @@ public class SimpleTaskAdapter implements Task {
         return null;
     }
 
-    @Override
-    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) {
-    }
-
-    @Override public void modify(ItemDelta<?, ?> delta) {
+	@Override public void modify(ItemDelta<?, ?> delta) {
     }
 
     @Override public void modify(Collection<ItemDelta<?, ?>> deltas) {

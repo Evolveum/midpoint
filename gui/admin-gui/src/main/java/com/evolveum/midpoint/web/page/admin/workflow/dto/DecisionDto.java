@@ -83,19 +83,6 @@ public class DecisionDto extends Selectable {
 		return escalationLevelNumber == null || escalationLevelNumber == 0 ? null : escalationLevelNumber;
 	}
 
-	@Deprecated
-	public static DecisionDto create(DecisionType d) {
-		DecisionDto rv = new DecisionDto();
-		rv.user = WebComponentUtil.getName(d.getApproverRef());
-		rv.originalActor = null;
-		rv.stage = null;
-		rv.outcome = d.isApproved();
-		rv.comment = d.getComment();
-		rv.time = XmlTypeConverter.toDate(d.getDateTime());
-		rv.escalationLevelNumber = null;
-		return rv;
-	}
-
 	// if pageBase is null, references will not be resolved
     @Nullable
 	public static DecisionDto create(CaseEventType e, @Nullable PageBase pageBase) {

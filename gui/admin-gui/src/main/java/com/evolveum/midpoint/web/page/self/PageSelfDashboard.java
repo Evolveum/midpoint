@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
@@ -298,17 +298,17 @@ public class PageSelfDashboard extends PageSelf {
             // TODO try to use current state (user) instead of potentially obsolete principal
             // but this requires some computation (of deputy relation)
             // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+            S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
             ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
-                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
+                    .item(T_PARENT, CaseType.F_OBJECT_REF).resolve()
+                    .item(T_PARENT, CaseType.F_TARGET_REF).resolve()
                     .build();
-            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
-            for (WorkItemType workItem : workItems) {
+            List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
+            for (CaseWorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem, PageSelfDashboard.this));
             }
         } catch (Exception e) {

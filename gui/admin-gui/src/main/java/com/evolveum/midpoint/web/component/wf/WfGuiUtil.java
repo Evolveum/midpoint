@@ -31,21 +31,23 @@ public class WfGuiUtil {
 	 * Creates localized process instance name from the workflow context (if possible); otherwise returns null.
 	 */
 	public static String getLocalizedProcessName(WfContextType wfc, Component component) {
-		if (wfc != null && !wfc.getLocalizableProcessInstanceName().isEmpty()) {
-			return wfc.getLocalizableProcessInstanceName().stream()
-					.map(p -> WebComponentUtil.resolveLocalizableMessage(p, component))
-					.collect(Collectors.joining(" "));
-		} else {
-			return null;
-		}
+//		if (wfc != null && !wfc.getLocalizableProcessInstanceName().isEmpty()) {
+//			return wfc.getLocalizableProcessInstanceName().stream()
+//					.map(p -> WebComponentUtil.resolveLocalizableMessage(p, component))
+//					.collect(Collectors.joining(" "));
+//		} else {
+//			return null;
+//		}
+		return null;        // todo get from the CaseType
 	}
 
 	public static String getLocalizedTaskName(WfContextType wfc, Component component) {
-		if (wfc != null && wfc.getLocalizableTaskName() != null) {
-			return WebComponentUtil.resolveLocalizableMessage(wfc.getLocalizableTaskName(), component);
-		} else {
-			return null;
-		}
+//		if (wfc != null && wfc.getLocalizableTaskName() != null) {
+//			return WebComponentUtil.resolveLocalizableMessage(wfc.getLocalizableTaskName(), component);
+//		} else {
+//			return null;
+//		}
+		return null;        // todo get from the CaseType
 	}
 
 }

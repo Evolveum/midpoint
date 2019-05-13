@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 
 /**
@@ -27,8 +28,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
  */
 public class WorkflowProcessEvent extends WorkflowEvent {
 
-    public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, Task wfTask) {
-        super(lightweightIdentifierGenerator, changeType, wfTask.getWorkflowContext(), wfTask.getTaskType(), null);
+    public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, CaseType aCase) {
+        super(lightweightIdentifierGenerator, changeType, aCase.getWorkflowContext(), aCase, null);
     }
 
     @Override
@@ -38,7 +39,7 @@ public class WorkflowProcessEvent extends WorkflowEvent {
 
 	@Override
 	protected String getOutcome() {
-		return workflowContext.getOutcome();
+		return aCase.getOutcome();
 	}
 
 	@Override

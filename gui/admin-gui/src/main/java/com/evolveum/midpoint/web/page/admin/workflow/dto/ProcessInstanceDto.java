@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
@@ -45,25 +46,23 @@ public class ProcessInstanceDto extends Selectable {
     //public static final String F_STATE = "state";
     public static final String F_STAGE = "stage";
 
-    @NotNull private final TaskType task;
-    @NotNull private final WfContextType workflowContext;
+    @NotNull private final CaseType aCase;
 
     private PatternDateConverter converter;
 
-    public ProcessInstanceDto(@NotNull TaskType task, String dateTimeStyle) {
-        this.task = task;
+    public ProcessInstanceDto(@NotNull CaseType aCase, String dateTimeStyle) {
+        this.aCase = aCase;
         converter = new PatternDateConverter
                 (WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true );
-        this.workflowContext = task.getWorkflowContext();
-	    Validate.notNull(this.workflowContext, "Task has no workflow context");
+	    Validate.notNull(aCase.getWorkflowContext(), "Case has no workflow context");
     }
 
     public XMLGregorianCalendar getStartTimestamp() {
-        return workflowContext.getStartTimestamp();
+        return aCase.getMetadata() != null ? aCase.getMetadata().getCreateTimestamp() : null;
     }
 
     public XMLGregorianCalendar getEndTimestamp() {
-        return workflowContext.getEndTimestamp();
+        return aCase.getCloseTimestamp();
     }
 
     public String getStartFormatted() {
@@ -78,27 +77,27 @@ public class ProcessInstanceDto extends Selectable {
 
     @NotNull
     public WfContextType getWorkflowContext() {
-    	return workflowContext;
+    	return aCase.getWorkflowContext();
     }
 
     public String getName() {
-        return PolyString.getOrig(task.getName());
+        return PolyString.getOrig(aCase.getName());
     }
 
     public String getOutcome() {
-        return workflowContext.getOutcome();
+        return aCase.getOutcome();
     }
 
 	public String getObjectName() {
-		return WebComponentUtil.getName(workflowContext.getObjectRef());
+		return WebComponentUtil.getName(aCase.getObjectRef());
 	}
 
 	public ObjectReferenceType getObjectRef() {
-		return workflowContext.getObjectRef();
+		return aCase.getObjectRef();
 	}
 
 	public ObjectReferenceType getTargetRef() {
-		return workflowContext.getTargetRef();
+		return aCase.getTargetRef();
 	}
 
 	public QName getObjectType() {
@@ -110,7 +109,7 @@ public class ProcessInstanceDto extends Selectable {
 	}
 
 	public String getTargetName() {
-		return WebComponentUtil.getName(workflowContext.getTargetRef());
+		return WebComponentUtil.getName(aCase.getTargetRef());
 	}
 
 	//public String getState() {
@@ -118,11 +117,11 @@ public class ProcessInstanceDto extends Selectable {
 	//}
 
 	public String getStage() {
-    	return WfContextUtil.getStageInfo(workflowContext);
+    	return WfContextUtil.getStageInfo(aCase);
 	}
 
 	public String getProcessInstanceId() {
-		return workflowContext.getProcessInstanceId();
+		return aCase.getOid();
 	}
 
 //    public List<WorkItemDto> getWorkItems() {
@@ -165,7 +164,7 @@ public class ProcessInstanceDto extends Selectable {
 
 
     public String getTaskOid() {
-        return task.getOid();
+        return aCase.getOid();
     }
 
 }

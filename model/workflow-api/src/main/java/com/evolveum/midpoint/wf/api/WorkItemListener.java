@@ -18,10 +18,7 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemNotificationActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,28 +42,31 @@ public interface WorkItemListener {
     /**
      * This method is called by wf module when a work item is created.
 	 */
-    void onWorkItemCreation(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			Task wfTask, OperationResult result);
+    void onWorkItemCreation(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    CaseType aCase, Task wfTask, OperationResult result);
 
     /**
      * This method is called by wf module when a work item is completed.
 	 */
-    void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			Task wfTask, OperationResult result);
+    void onWorkItemDeletion(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    @Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
+		    CaseType aCase, Task opTask, OperationResult result);
 
-    void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull WorkItemType workItem,
-			@NotNull WorkItemNotificationActionType notificationAction, @Nullable WorkItemEventCauseInformationType cause, Task wfTask,
-			OperationResult result);
+    void onWorkItemCustomEvent(ObjectReferenceType assignee, @NotNull CaseWorkItemType workItem,
+		    @NotNull WorkItemNotificationActionType notificationAction, @Nullable WorkItemEventCauseInformationType cause,
+		    CaseType aCase, Task opTask, OperationResult result);
 
 	/**
 	 * EXPERIMENTAL
 	 */
-	void onWorkItemAllocationChangeCurrentActors(@NotNull WorkItemType workItem,
+	void onWorkItemAllocationChangeCurrentActors(@NotNull CaseWorkItemType workItem,
 			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
 			@Nullable WorkItemOperationSourceInfo sourceInfo,
-			Duration timeBefore, Task task, OperationResult result);
+			Duration timeBefore, CaseType aCase, Task task,
+			OperationResult result);
 
-	void onWorkItemAllocationChangeNewActors(@NotNull WorkItemType workItem, @NotNull WorkItemAllocationChangeOperationInfo operationInfo,
-			@Nullable WorkItemOperationSourceInfo sourceInfo, Task task, OperationResult result);
+	void onWorkItemAllocationChangeNewActors(@NotNull CaseWorkItemType workItem,
+			@NotNull WorkItemAllocationChangeOperationInfo operationInfo,
+			@Nullable WorkItemOperationSourceInfo sourceInfo, CaseType aCase,
+			Task task, OperationResult result);
 }

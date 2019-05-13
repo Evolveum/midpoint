@@ -19,13 +19,15 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
@@ -37,24 +39,24 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  * @author mederly
  *
  */
-public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
+public class WorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemType> {
 	private static final long serialVersionUID = -5077637168906420769L;
 
 	private static final String ID_ASSIGNED_TAG = "assignedTag";
 
 	private final IModel<WorkItemDto> dtoModel;
 
-	public WorkItemSummaryPanel(String id, IModel<WorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
+	public WorkItemSummaryPanel(String id, IModel<CaseWorkItemType> model, IModel<WorkItemDto> dtoModel, ModelServiceLocator serviceLocator) {
 		super(id, model, null);
 		this.dtoModel = dtoModel;
 	}
 
 	@Override
-	protected List<SummaryTag<WorkItemType>> getSummaryTagComponentList(){
-		List<SummaryTag<WorkItemType>> summaryTagList = new ArrayList<>();
-		SummaryTag<WorkItemType> isAssignedTag = new SummaryTag<WorkItemType>(ID_SUMMARY_TAG, getModel()) {
+	protected List<SummaryTag<CaseWorkItemType>> getSummaryTagComponentList(){
+		List<SummaryTag<CaseWorkItemType>> summaryTagList = new ArrayList<>();
+		SummaryTag<CaseWorkItemType> isAssignedTag = new SummaryTag<CaseWorkItemType>(ID_SUMMARY_TAG, getModel()) {
 			@Override
-			protected void initialize(WorkItemType workItem) {
+			protected void initialize(CaseWorkItemType workItem) {
 				if (workItem.getAssigneeRef() != null) {
 					setIconCssClass("fa fa-fw fa-lock");
 					setLabel(getString("WorkItemSummaryPanel.allocated"));
@@ -130,9 +132,9 @@ public class WorkItemSummaryPanel extends AbstractSummaryPanel<WorkItemType> {
 		return new IModel<String>() {
 			@Override
 			public String getObject() {
-				WorkItemType workItem = getModelObject();
+				CaseWorkItemType workItem = getModelObject();
 				return getString("TaskSummaryPanel.requestedOn",
-						WebComponentUtil.getLongDateTimeFormattedValue(WfContextUtil.getWorkflowContext(workItem).getStartTimestamp(),
+						WebComponentUtil.getLongDateTimeFormattedValue(CaseTypeUtil.getStartTimestamp(CaseWorkItemUtil.getCase(workItem)),
 								WorkItemSummaryPanel.this.getPageBase()));
 			}
 		};

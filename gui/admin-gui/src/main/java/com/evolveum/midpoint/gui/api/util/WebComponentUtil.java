@@ -342,6 +342,9 @@ public final class WebComponentUtil {
 	}
 	
 	public static String getReferencedObjectDisplayNamesAndNames(Referencable ref, boolean showTypes) {
+		if (ref == null){
+			return "";
+		}
 		String name = ref.getTargetName() == null ? "" : ref.getTargetName().getOrig();
 		StringBuilder sb = new StringBuilder(name);
 		if(showTypes) {
@@ -1809,7 +1812,7 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON_COLORED;
 		} else if (QNameUtil.match(AccessCertificationDefinitionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON_COLORED;
-		} else if (QNameUtil.match(WorkItemType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(CaseWorkItemType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED;
 		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON_COLORED;
@@ -1843,7 +1846,7 @@ public final class WebComponentUtil {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_CAMPAIGN_ICON;
 		} else if (QNameUtil.match(AccessCertificationDefinitionType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON;
-		} else if (QNameUtil.match(WorkItemType.COMPLEX_TYPE, objectType)) {
+		} else if (QNameUtil.match(CaseWorkItemType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
 		} else if (QNameUtil.match(ShadowType.COMPLEX_TYPE, objectType)) {
 			return GuiStyleConstants.CLASS_OBJECT_SHADOW_ICON;
