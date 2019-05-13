@@ -57,14 +57,13 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
 		WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
 		assignments.setOutputMarkupId(true);
 		add(assignments);
-		PrismContainerWrapperModel<AssignmentType, AHT> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
+		PrismContainerWrapperModel<AHT, AssignmentType> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
 		SwitchAssignmentTypePanel panel = createPanel(ID_ASSIGNMENTS_PANEL, model);
 
 		assignments.add(panel);
 	}
 	
-	protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AssignmentType, AHT> model) {
-	protected SwitchAssignmentTypePanel createPanel(String panelId, ContainerWrapperFromObjectWrapperModel<AssignmentType, AHT> model) {
+	protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AHT, AssignmentType> model) {
 		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model);
 		return panel;
 	}

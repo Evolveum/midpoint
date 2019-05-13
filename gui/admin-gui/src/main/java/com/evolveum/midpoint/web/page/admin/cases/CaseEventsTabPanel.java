@@ -17,8 +17,10 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -26,9 +28,9 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseEventType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -50,8 +52,8 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_EVENTS_PANEL = "caseEventsPanel";
 
-    public CaseEventsTabPanel(String id, Form<ObjectWrapper<CaseType>> mainForm, LoadableModel<ObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel, pageBase);
+    public CaseEventsTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, mainForm, objectWrapperModel);
     }
 
     @Override
@@ -63,7 +65,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        ContainerWrapperFromObjectWrapperModel<CaseEventType, CaseType> eventsModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), CaseType.F_EVENT);
+        PrismContainerWrapperModel<CaseType, CaseEventType> eventsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_EVENT);
         MultivalueContainerListPanel<CaseEventType, String> multivalueContainerListPanel =
                 new MultivalueContainerListPanel<CaseEventType, String>(ID_EVENTS_PANEL,
                         eventsModel, UserProfileStorage.TableId.PAGE_CASE_EVENTS_TAB,
@@ -93,13 +95,13 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected List<IColumn<ContainerValueWrapper<CaseEventType>, String>> createColumns() {
+                    protected List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createColumns() {
                         return createCaseEventsColumns();
                     }
 
                     @Override
-                    protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<ContainerValueWrapper<CaseEventType>> rowModel,
-                                                                 List<ContainerValueWrapper<CaseEventType>> listItems) {
+                    protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel,
+                                                                 List<PrismContainerValueWrapper<CaseEventType>> listItems) {
 
                     }
 
@@ -109,8 +111,8 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected List<ContainerValueWrapper<CaseEventType>> postSearch(
-                            List<ContainerValueWrapper<CaseEventType>> workItems) {
+                    protected List<PrismContainerValueWrapper<CaseEventType>> postSearch(
+                            List<PrismContainerValueWrapper<CaseEventType>> workItems) {
                         return workItems;
                     }
 
@@ -128,24 +130,24 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     }
 
-    private List<IColumn<ContainerValueWrapper<CaseEventType>, String>> createCaseEventsColumns(){
-        List<IColumn<ContainerValueWrapper<CaseEventType>, String>> columns = new ArrayList<>();
-        columns.add(new LinkColumn<ContainerValueWrapper<CaseEventType>>(createStringResource("CaseEventsTabPanel.initiatorRefColumn")){
+    private List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createCaseEventsColumns(){
+        List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> columns = new ArrayList<>();
+        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseEventType>>(createStringResource("CaseEventsTabPanel.initiatorRefColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<ContainerValueWrapper<CaseEventType>> rowModel) {
+            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
                 return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames(unwrapRowModel(rowModel).getInitiatorRef(), false));
             }
 
             @Override
-            public boolean isEnabled(IModel<ContainerValueWrapper<CaseEventType>> rowModel) {
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
                 //TODO should we check any authorization?
                 return true;
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<ContainerValueWrapper<CaseEventType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
             }
         });
 
@@ -156,7 +158,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
         return getPageBase().getSessionStorage().getCaseEventsTabStorage();
     }
 
-    private CaseEventType unwrapRowModel(IModel<ContainerValueWrapper<CaseEventType>> rowModel){
-        return rowModel.getObject().getContainerValue().asContainerable();
+    private CaseEventType unwrapRowModel(IModel<PrismContainerValueWrapper<CaseEventType>> rowModel){
+        return rowModel.getObject().getRealValue();
     }
 }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -85,11 +86,11 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
 
     @Override
-    protected void initializeModel(final PrismObjectWrapper<CaseType> caseObject, boolean isNewObject, boolean isReadonly) {
+    protected void initializeModel(final PrismObject<CaseType> caseObject, boolean isNewObject, boolean isReadonly) {
         super.initializeModel(loadCase(), isNewObject, isReadonly);
     }
 
-    private PrismObjectWrapper<CaseType> loadCase() {
+    private PrismObject<CaseType> loadCase() {
         Task task = createSimpleTask(OPERATION_LOAD_CASE);
         OperationResult result = task.getResult();
 
@@ -195,7 +196,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 //            }
 //        });
 
-        return wrapper;
+        return wrapper.getObject();
     }
 
     @Override

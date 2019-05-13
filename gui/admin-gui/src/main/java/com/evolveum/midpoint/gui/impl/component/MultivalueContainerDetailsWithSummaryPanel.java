@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -29,7 +30,7 @@ public abstract class MultivalueContainerDetailsWithSummaryPanel<C extends Conta
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
 
-    public MultivalueContainerDetailsWithSummaryPanel(String id, IModel<ContainerValueWrapper<C>> model){
+    public MultivalueContainerDetailsWithSummaryPanel(String id, IModel<PrismContainerValueWrapper<C>> model){
         super(id, model);
     }
 

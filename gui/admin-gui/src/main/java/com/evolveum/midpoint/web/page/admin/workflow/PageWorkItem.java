@@ -65,9 +65,9 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_PA
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
 
 /**
  * @author mederly
@@ -144,8 +144,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDto workItemDto = null;
         try {
             ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
-            final ObjectQuery query = getPrismContext().queryFor(WorkItemType.class)
-                    .item(F_EXTERNAL_ID).eq(protectedWorkItemId.id)
+            final ObjectQuery query = getPrismContext().queryFor(CaseWorkItemType.class)
+//                    .item(F_EXTERNAL_ID).eq(protectedWorkItemId.id) 		//TODO !!! fix
                     .build();
             final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                     .items(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF).resolve()
@@ -169,13 +169,13 @@ public class PageWorkItem extends PageAdminWorkItems {
             TaskType taskType = null;
             List<TaskType> relatedTasks = new ArrayList<>();
             final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = getOperationOptionsBuilder()
-                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).resolve()
-                    .item(F_WORKFLOW_CONTEXT, F_WORK_ITEM).retrieve()
+//                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).resolve()  		//TODO fix!!!
+//                    .item(F_WORKFLOW_CONTEXT, F_WORK_ITEM).retrieve()
                     .build();
             try {
-                taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
+                taskType = getModelService().getObject(TaskType.class, externalizedProtectedId, getTaskOptions, task, result).asObjectable();
             } catch (AuthorizationException e) {
-                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
+                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, externalizedProtectedId);
             }
             if (taskType != null && taskType.getParent() != null) {
                 final ObjectQuery relatedTasksQuery = getPrismContext().queryFor(TaskType.class)

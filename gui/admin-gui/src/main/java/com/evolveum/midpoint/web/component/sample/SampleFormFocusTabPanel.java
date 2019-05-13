@@ -76,7 +76,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
-        super(id, mainForm, focusWrapperModel, projectionModel);
+        super(id, mainForm, focusWrapperModel);
 
     }
 

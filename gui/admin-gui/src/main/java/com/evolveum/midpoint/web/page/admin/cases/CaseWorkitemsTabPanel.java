@@ -17,11 +17,12 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -33,8 +34,8 @@ public class CaseWorkitemsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private static final String ID_WORKITEMS_PANEL = "workitemsPanel";
 
-    public CaseWorkitemsTabPanel(String id, Form<ObjectWrapper<CaseType>> mainForm, LoadableModel<ObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
-        super(id, mainForm, objectWrapperModel, pageBase);
+    public CaseWorkitemsTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+        super(id, mainForm, objectWrapperModel);
     }
 
     @Override
@@ -46,7 +47,8 @@ public class CaseWorkitemsTabPanel extends AbstractObjectTabPanel<CaseType> {
     private void initLayout() {
         setOutputMarkupId(true);
 
-        ContainerWrapperFromObjectWrapperModel<CaseWorkItemType, CaseType> workitemsModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), CaseType.F_WORK_ITEM);
+        PrismContainerWrapperModel<CaseType, CaseWorkItemType> workitemsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_WORK_ITEM);
+
         add(new CaseWorkItemsTablePanel(ID_WORKITEMS_PANEL, workitemsModel){
             private static final long serialVersionUID = 1L;
 

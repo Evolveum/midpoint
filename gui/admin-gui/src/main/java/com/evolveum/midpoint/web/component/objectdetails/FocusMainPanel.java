@@ -54,6 +54,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.lang.reflect.Constructor;
@@ -75,7 +76,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
 	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
 			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel,
-			PageAdminFocus<F> parentPage) {
+			PageAdminObjectDetails<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");
 		this.projectionModel = projectionModel;
@@ -197,7 +198,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 	}
 
 	protected WebMarkupContainer createFocusDetailsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
-		return new AssignmentHolderTypeDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel(), projectionModel);
+		return new AssignmentHolderTypeDetailsTabPanel<F>(panelId, getMainForm(), getObjectModel());
 	}
 
 	protected WebMarkupContainer createFocusProjectionsTabPanel(String panelId, PageAdminObjectDetails<F> parentPage) {
@@ -247,25 +248,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 					}
 				});
 
-		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ContainerStatus.ADDING){
-		tabs.add(
-				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.assignments"), authorization) {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public WebMarkupContainer createPanel(String panelId) {
-						return createFocusAssignmentsTabPanel(panelId, parentPage);
-					}
-
-					@Override
-					public String getCount() {
-						return Integer.toString(countAssignments());
-					}
-				});
-
 		if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED){
-			authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, isFocusHistoryPage(), parentPage);
 			tabs.add(
 					new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"),
 							getTabVisibility(ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, parentPage)){

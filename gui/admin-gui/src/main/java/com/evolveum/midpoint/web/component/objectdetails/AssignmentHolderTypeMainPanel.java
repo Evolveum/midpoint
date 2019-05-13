@@ -19,11 +19,11 @@ import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.HistoryPageTabVisibleBehavior;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -43,7 +43,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
     private AssignmentHolderTypeAssignmentsTabPanel assignmentsTabPanel = null;
 
-    public AssignmentHolderTypeMainPanel(String id, LoadableModel<ObjectWrapper<AHT>> objectModel,
+    public AssignmentHolderTypeMainPanel(String id, LoadableModel<PrismObjectWrapper<AHT>> objectModel,
                                          PageAdminObjectDetails<AHT> parentPage) {
         super(id, objectModel, parentPage);
     }
@@ -60,7 +60,7 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                        return new AssignmentHolderTypeDetailsTabPanel<>(panelId, getMainForm(), getObjectModel());
                     }
                 });
 
