@@ -29,11 +29,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Created with IntelliJ IDEA.
- * User: Pavol
- * Date: 31.1.2013
- * Time: 18:43
- * To change this template use File | Settings | File Templates.
+ *
  */
 public class SqlPerformanceMonitor {
 
@@ -46,8 +42,8 @@ public class SqlPerformanceMonitor {
 
     private AtomicLong currentHandle = new AtomicLong();
 
-    private ConcurrentMap<Long,OperationRecord> outstandingOperations = new ConcurrentHashMap<>();
-    private List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<OperationRecord>());
+    private final ConcurrentMap<Long,OperationRecord> outstandingOperations = new ConcurrentHashMap<>();
+    private final List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<>());
 
     private SqlRepositoryFactory sqlRepositoryFactory;
 
@@ -247,4 +243,29 @@ public class SqlPerformanceMonitor {
         operation.attempts = attempt;
     }
 
+    // to be used in tests
+    public List<OperationRecord> getFinishedOperations(String kind) {
+        List<OperationRecord> matching = new ArrayList<>();
+        synchronized (finishedOperations) {
+            for (OperationRecord record : finishedOperations) {
+                if (Objects.equals(kind, record.kind)) {
+                    matching.add(record);
+                }
+            }
+        }
+        return matching;
+    }
+
+    // to be used in tests
+    public int getFinishedOperationsCount(String kind) {
+        int rv = 0;
+        synchronized (finishedOperations) {
+            for (OperationRecord record : finishedOperations) {
+                if (Objects.equals(kind, record.kind)) {
+                    rv++;
+                }
+            }
+        }
+        return rv;
+    }
 }

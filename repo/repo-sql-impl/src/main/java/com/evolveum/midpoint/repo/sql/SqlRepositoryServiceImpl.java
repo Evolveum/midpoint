@@ -209,7 +209,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         PrismObject<T> object = null;
         try {
         	
-		    PrismObject<T> attemptobject = executeAttempts(oid, "getObject", "getting",
+		    PrismObject<T> attemptobject = executeAttempts(oid, OP_GET_OBJECT, "getting",
 				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
 		    );
 		    object = attemptobject;
@@ -297,7 +297,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("shadowOid", shadowOid);
 
         try {
-            return executeAttempts(shadowOid, "searchShadowOwner", "searching shadow owner",
+            return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, "searching shadow owner",
 					subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
 			);
         } catch (ObjectNotFoundException|SchemaException e) {
@@ -318,7 +318,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("accountOid", accountOid);
 
         try {
-            return executeAttempts(accountOid, "listAccountShadowOwner", "listing account shadow owner",
+            return executeAttempts(accountOid, OP_LIST_ACCOUNT_SHADOW_OWNER, "listing account shadow owner",
                     subResult, () -> objectRetriever.listAccountShadowOwnerAttempt(accountOid, subResult)
             );
         } catch (ObjectNotFoundException|SchemaException e) {
@@ -339,8 +339,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeQueryAttempts(query, "searchObjects", "searching", subResult,
-                () -> new SearchResultList<>(new ArrayList<PrismObject<T>>(0)),
+        return executeQueryAttempts(query, OP_SEARCH_OBJECTS, "searching", subResult,
+                () -> new SearchResultList<>(new ArrayList<>(0)),
                 (q) -> objectRetriever.searchObjectsAttempt(type, q, options, subResult));
     }
 
@@ -457,11 +457,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("object", object);
         subResult.addParam("options", options.toString());
 
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT);
+        int attempt = 1;
         try {
 	        // TODO use executeAttempts
 	        final String operation = "adding";
-	        int attempt = 1;
-	
+
 	        String proposedOid = object.getOid();
 	        while (true) {
 	            try {
@@ -470,9 +472,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 		            return createdOid;
 	            } catch (RuntimeException ex) {
 	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
+                    pm.registerOperationNewAttempt(opHandle, attempt);
 	            }
 	        }
         } finally {
+            pm.registerOperationFinish(opHandle, attempt);
         	OperationLogger.logAdd(object, options, subResult);
         }
     }
@@ -503,7 +507,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         try {
 	        
-        	executeAttemptsNoSchemaException(oid, "deleteObject", "deleting",
+        	executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, "deleting",
 	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
 	        );
 		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
@@ -532,7 +536,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeQueryAttemptsNoSchemaException(query, "countObjects", "counting", subResult,
+        return executeQueryAttemptsNoSchemaException(query, OP_COUNT_OBJECTS, "counting", subResult,
                 () -> 0,
                 (q) -> objectRetriever.countObjectsAttempt(type, q, options, subResult));
     }
@@ -607,7 +611,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("modifyObject");
+        long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT);
 
         try {
             while (true) {
@@ -646,7 +650,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("listResourceObjectShadow");
+        long opHandle = pm.registerOperationStart(OP_LIST_RESOURCE_OBJECT_SHADOWS);
 
         // TODO executeAttempts
         try {
@@ -696,13 +700,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         readDetailsFromConnection(diag, config);
 
-        Collections.sort(details, new Comparator<LabeledString>() {
-
-            @Override
-            public int compare(LabeledString o1, LabeledString o2) {
-                return String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel());
-            }
-        });
+        details.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel()));
 
         return diag;
     }
@@ -819,7 +817,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         // TODO executeAttempts
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(GET_VERSION);
+        long opHandle = pm.registerOperationStart(OP_GET_VERSION);
 
         final String operation = "getting version";
         int attempt = 1;
@@ -906,14 +904,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 	    LOGGER.trace("Using iteration method {} for type={}, query={}", iterationMethod, type, query);
 
+        SearchResultMetadata rv = null; // todo what about returning values from other search methods?
         switch (iterationMethod) {
-        	case SINGLE_TRANSACTION: searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
+        	case SINGLE_TRANSACTION: rv = searchObjectsIterativeBySingleTransaction(type, query, handler, options, subResult); break;
         	case SIMPLE_PAGING: objectRetriever.searchObjectsIterativeByPaging(type, query, handler, options, subResult); break;
 	        case STRICTLY_SEQUENTIAL_PAGING: objectRetriever.searchObjectsIterativeByPagingStrictlySequential(type, query, handler, options, subResult); break;
 	        case FETCH_ALL: objectRetriever.searchObjectsIterativeByFetchAll(type, query, handler, options, subResult); break;
 	        default: throw new AssertionError("iterationMethod: " + iterationMethod);
         }
-	    return null;
+	    return rv;
     }
 
 	private boolean isCustomPagingOkWithFetchAllIteration(ObjectQuery query) {
@@ -979,13 +978,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("matchObject");
+        long opHandle = pm.registerOperationStart(OP_IS_ANY_SUBORDINATE);
         try {
             while (true) {
                 try {
                     return objectRetriever.isAnySubordinateAttempt(upperOrgOid, lowerObjectOids);
                 } catch (RuntimeException ex) {
-                    attempt = baseHelper.logOperationAttempt(upperOrgOid, "isAnySubordinate", attempt, ex, null);
+                    attempt = baseHelper.logOperationAttempt(upperOrgOid, OP_IS_ANY_SUBORDINATE, attempt, ex, null);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
@@ -1012,7 +1011,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("advanceSequence");
+        long opHandle = pm.registerOperationStart(OP_ADVANCE_SEQUENCE);
         try {
             while (true) {
                 try {
@@ -1049,7 +1048,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("returnUnusedValuesToSequence");
+        long opHandle = pm.registerOperationStart(OP_RETURN_UNUSED_VALUES_TO_SEQUENCE);
         try {
             while (true) {
                 try {
@@ -1080,7 +1079,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         // TODO executeAttempts
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("executeQueryDiagnostics");
+        long opHandle = pm.registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS);
 
         try {
             while (true) {
@@ -1140,7 +1139,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 			try {
 				if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
-					logger.trace("{} object OID {}", logMessagePrefix, object.getOid() );
+					logger.trace("{} object OID {}", logMessagePrefix, object.getOid());
 					return false;
 				}
 			} catch (SchemaException ex) {

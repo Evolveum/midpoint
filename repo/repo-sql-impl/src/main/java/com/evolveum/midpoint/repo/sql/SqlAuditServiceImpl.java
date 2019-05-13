@@ -67,6 +67,8 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
+    public static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
+    public static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     @Autowired
     private BaseHelper baseHelper;
 
@@ -373,7 +375,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         final String operation = "deletingMaxAge";
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("cleanupAuditMaxAge");
+        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE);
         int attempt = 1;
 
         if (policy.getMaxAge() == null) {
@@ -430,7 +432,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         final String operation = "deletingMaxRecords";
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("cleanupAuditMaxRecords");
+        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS);
         int attempt = 1;
 
         if (policy.getMaxRecords() == null) {
