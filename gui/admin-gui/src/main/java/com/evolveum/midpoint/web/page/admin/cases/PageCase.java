@@ -85,10 +85,10 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     }
 
 
-    @Override
-    protected void initializeModel(final PrismObject<CaseType> caseObject, boolean isNewObject, boolean isReadonly) {
-        super.initializeModel(loadCase(), isNewObject, isReadonly);
-    }
+//    @Override
+//    protected void initializeModel(final PrismObject<CaseType> caseObject, boolean isNewObject, boolean isReadonly) {
+//        super.initializeModel(loadCase(), isNewObject, isReadonly);
+//    }
 
     private PrismObject<CaseType> loadCase() {
         Task task = createSimpleTask(OPERATION_LOAD_CASE);

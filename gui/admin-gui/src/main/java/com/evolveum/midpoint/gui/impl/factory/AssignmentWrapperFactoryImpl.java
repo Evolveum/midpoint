@@ -59,7 +59,7 @@ public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryIm
 
 	
 	@Override
-	protected boolean shoudCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
+	protected boolean shouldCreateEmptyValue(PrismContainer<AssignmentType> item, WrapperContext context) {
 		return false;
 	}
 	
