@@ -346,9 +346,11 @@ public class ConstraintsChecker {
 
 			if (cache.conflictFreeSituations.contains(situation)) {
 				log("Cache HIT for {}", situation);
+				cache.recordHit();
 				return true;
 			} else {
 				log("Cache MISS for {}", situation);
+				cache.recordMiss();
 				return false;
 			}
 		}

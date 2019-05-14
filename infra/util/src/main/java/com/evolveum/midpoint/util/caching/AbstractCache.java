@@ -26,6 +26,10 @@ public abstract class AbstractCache {
 
     private int entryCount = 0;
 
+    private int hits = 0;
+    private int misses = 0;
+    private int passes = 0;
+
     public static <T extends AbstractCache> T enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass, Trace logger) {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: ENTER for thread {}, {}", Thread.currentThread().getName(), inst);
@@ -60,9 +64,27 @@ public abstract class AbstractCache {
     public static <T extends AbstractCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
         T inst = cacheThreadLocal.get();
         if (inst != null) {
-            logger.trace("Cache: DESTROY for thread {}", Thread.currentThread().getName());
+            logger.trace("Cache: DESTROY for thread {}: {}", Thread.currentThread().getName(), inst.getCacheStatisticsString());
+            CachePerformanceCollector.INSTANCE.onCacheDestroy(inst);
             cacheThreadLocal.set(null);
         }
+    }
+
+    public String getCacheStatisticsString() {
+        return "hits: " + hits + ", misses: " + misses + ", passes: " + passes +
+                (hits+misses+passes != 0 ? ", % of hits: " + (100.0f * hits / (hits + misses + passes)) : "");
+    }
+
+    public int getHits() {
+        return hits;
+    }
+
+    public int getMisses() {
+        return misses;
+    }
+
+    public int getPasses() {
+        return passes;
     }
 
     public void incrementEntryCount() {
@@ -85,7 +107,7 @@ public abstract class AbstractCache {
         T inst = cacheThreadLocal.get();
         StringBuilder sb = new StringBuilder("Cache ");
         if (inst != null) {
-            sb.append("exists, entry count ");
+            sb.append("exists (").append(inst.getCacheStatisticsString()).append("), entry count ");
             sb.append(inst.getEntryCount());
             sb.append(", content: ");
             sb.append(inst.description());
@@ -97,4 +119,15 @@ public abstract class AbstractCache {
 
     abstract public String description();
 
+    public void recordHit() {
+        hits++;
+    }
+
+    public void recordMiss() {
+        misses++;
+    }
+
+    public void recordPass() {
+        passes++;
+    }
 }

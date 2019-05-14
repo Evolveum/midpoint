@@ -239,9 +239,11 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
 			if (cache.conflictFreeNames.contains(name.getOrig())) {
 				log("Cache HIT for {}", name);
+				cache.recordHit();
 				return true;
 			} else {
 				log("Cache MISS for {}", name);
+				cache.recordMiss();
 				return false;
 			}
 		}

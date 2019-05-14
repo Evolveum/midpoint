@@ -24,6 +24,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -207,6 +209,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return null;
 	}
 
+	protected Class<?> getCacheClass() {
+		return null;
+	}
+
 	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas,
 																   final ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -214,14 +220,20 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		AbstractSearchExpressionEvaluatorCache cache = getCache();
 		if (cache == null) {
+			LOGGER.trace("Cache: NULL {} ({})", query, targetTypeClass.getSimpleName());
+			if (getCacheClass() != null) {
+				CachePerformanceCollector.INSTANCE.registerNotAvailable(getCacheClass());
+			}
 			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		}
 
 		List<V> list = cache.getQueryResult(targetTypeClass, query, searchStrategy, params, prismContext);
 		if (list != null) {
+			cache.recordHit();
 			LOGGER.trace("Cache: HIT {} ({})", query, targetTypeClass.getSimpleName());
 			return CloneUtil.clone(list);
 		}
+		cache.recordMiss();
 		LOGGER.trace("Cache: MISS {} ({})", query, targetTypeClass.getSimpleName());
 		List<PrismObject> rawResult = new ArrayList<>();
 		list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);

@@ -75,6 +75,11 @@ public class AssociationTargetSearchExpressionEvaluator
 	}
 
 	@Override
+	protected Class<?> getCacheClass() {
+		return AssociationSearchExpressionEvaluatorCache.class;
+	}
+
+	@Override
 	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
 		@SuppressWarnings("unchecked")
 		TypedValue<RefinedObjectClassDefinition> rAssocTargetDefTypedValue = params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
