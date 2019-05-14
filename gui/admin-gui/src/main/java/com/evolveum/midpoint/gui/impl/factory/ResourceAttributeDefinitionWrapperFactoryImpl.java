@@ -68,9 +68,6 @@ public class ResourceAttributeDefinitionWrapperFactoryImpl<T extends ResourceAtt
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-//		System.out.println("XXXXXXXXXXXXXXXXXX getName " + def.getName());
-//		System.out.println("XXXXXXXXXXXXXXXXXX class " + def.getClass().getName());
-//		System.out.println("XXXXXXXXXXXXXXXXXX ---------------------------------- ");
 		return def instanceof RefinedAttributeDefinition;
 	}
 	
