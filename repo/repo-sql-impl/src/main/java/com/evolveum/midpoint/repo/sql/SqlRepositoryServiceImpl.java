@@ -956,7 +956,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				}
 			}
 		} finally {
-			//            pm.registerOperationFinish(opHandle, attempt);
+		    // temporary workaround, just to know the number of calls
+            SqlPerformanceMonitor pm = getPerformanceMonitor();
+            long opHandle = pm.registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE);
+            pm.registerOperationFinish(opHandle, attempt);
 		}
 		// TODO conflict checking (if needed)
 	}

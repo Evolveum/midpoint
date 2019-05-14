@@ -176,6 +176,7 @@ public interface RepositoryService {
 	String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
 	String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
 	String OP_SEARCH_OBJECTS = "searchObjects";
+	String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
 
 	/**
 	 * Returns object for provided OID.

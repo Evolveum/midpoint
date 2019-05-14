@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  *
  */
@@ -46,6 +48,40 @@ public class SqlPerformanceMonitor {
     private final List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<>());
 
     private SqlRepositoryFactory sqlRepositoryFactory;
+
+    public static class Snapshot {
+        public final Map<String, Integer> counters = new HashMap<>();       // values are never null
+
+        private Snapshot(SqlPerformanceMonitor monitor) {
+            counters.putAll(monitor.createCountersMap());
+        }
+
+        private Snapshot(SqlPerformanceMonitor monitor, Snapshot base) {
+            Map<String, Integer> currentCounters = monitor.createCountersMap();
+            currentCounters.forEach((kind, count) -> {
+                int diff = count - base.getCounter(kind);
+                if (diff > 0) {
+                    counters.put(kind, diff);
+                }
+            });
+        }
+
+        public int getCounter(String kind) {
+            return defaultIfNull(counters.get(kind), 0);
+        }
+
+        public Map<String, Integer> getCounters() {
+            return counters;
+        }
+    }
+
+    public Snapshot createSnapshot() {
+        return new Snapshot(this);
+    }
+
+    public Snapshot createDifferenceSnapshot(Snapshot base) {
+        return new Snapshot(this, base);
+    }
 
     static class OperationRecord {
         String kind;
@@ -268,4 +304,16 @@ public class SqlPerformanceMonitor {
         }
         return rv;
     }
+
+    private Map<String, Integer> createCountersMap() {
+        Map<String, Integer> rv = new HashMap<>();
+        synchronized (finishedOperations) {
+            for (OperationRecord record : finishedOperations) {
+                rv.compute(record.kind, (kind, old) -> old == null ? 1 : old + 1);
+            }
+        }
+        return rv;
+    }
+
+
 }
