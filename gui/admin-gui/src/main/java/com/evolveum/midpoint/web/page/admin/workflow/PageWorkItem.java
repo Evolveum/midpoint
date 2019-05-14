@@ -102,11 +102,13 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 	private LoadableModel<WorkItemDto> workItemDtoModel;
 	private String externalizedProtectedId;
+	private String parentCaseOid;
+	private long workItemId;
 	private PrismObject<UserType> powerDonor;
 
     public PageWorkItem(PageParameters parameters) {
 
-		externalizedProtectedId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+		parentCaseOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		if (externalizedProtectedId == null) {
 			throw new IllegalStateException("Work item ID not specified.");
 		}
@@ -143,7 +145,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-            ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
+
+//            ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
             final ObjectQuery query = getPrismContext().queryFor(CaseWorkItemType.class)
 //                    .item(F_EXTERNAL_ID).eq(protectedWorkItemId.id) 		//TODO !!! fix
                     .build();
@@ -152,9 +155,9 @@ public class PageWorkItem extends PageAdminWorkItems {
                     .build();
             List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
             if (workItems.size() > 1) {
-                throw new SystemException("More than one work item with ID of " + protectedWorkItemId.id);
+                throw new SystemException("More than one work item with ID of " + externalizedProtectedId); //todo fix protectedWorkItemId.id);
             } else if (workItems.size() == 0) {
-                throw new ObjectNotFoundException("No work item with ID of " + protectedWorkItemId.id);
+                throw new ObjectNotFoundException("No work item with ID of " + externalizedProtectedId); //todo fix protectedWorkItemId.id);
             }
             final CaseWorkItemType workItem = workItems.get(0);
             final CaseType aCase = CaseWorkItemUtil.getCase(workItem);
@@ -163,9 +166,10 @@ public class PageWorkItem extends PageAdminWorkItems {
                 result.recordFatalError(getString("PageWorkItem.noRequest"));
                 showResult(result, false);
                 throw redirectBackViaRestartResponseException();
-            } else if (!protectedWorkItemId.isCorrect(workItem)) {
-                throw new IllegalArgumentException("Wrong work item hash");
             }
+//            else if (!protectedWorkItemId.isCorrect(workItem)) {
+//                throw new IllegalArgumentException("Wrong work item hash");
+//            }
             TaskType taskType = null;
             List<TaskType> relatedTasks = new ArrayList<>();
             final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = getOperationOptionsBuilder()
