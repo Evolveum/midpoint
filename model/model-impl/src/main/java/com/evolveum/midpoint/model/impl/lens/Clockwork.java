@@ -33,6 +33,7 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
@@ -190,6 +191,7 @@ public class Clockwork {
 			}
 			FocusConstraintsChecker.enterCache();
 			enterAssociationSearchExpressionEvaluatorCache();
+			enterDefaultSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
 
 			while (context.getState() != ModelState.FINAL) {
@@ -218,6 +220,7 @@ public class Clockwork {
 		} finally {
 			context.unregisterConflictWatchers(repositoryService);
 			FocusConstraintsChecker.exitCache();
+			exitDefaultSearchExpressionEvaluatorCache();
 			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
 			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
@@ -428,11 +431,19 @@ public class Clockwork {
 			return;			// shouldn't occur
 		}
 		Object invalidator = cache.getClientContextInformation();
-		if (invalidator == null || !(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
+		if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
 			return;			// shouldn't occur either
 		}
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
+	}
+
+	private void enterDefaultSearchExpressionEvaluatorCache() {
+		DefaultSearchExpressionEvaluatorCache.enterCache();
+	}
+
+	private void exitDefaultSearchExpressionEvaluatorCache() {
+		DefaultSearchExpressionEvaluatorCache.exitCache();
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
@@ -172,8 +173,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 				LOGGER.trace("Query after extension: {}", query.debugDump());
 			}
 
-			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context, contextDescription, task, context
-					.getResult());
+			resultValues = executeSearchUsingCache(targetTypeClass, targetTypeQName, query, additionalAttributeDeltas, context,
+					contextDescription, task, context.getResult());
 
 			if (resultValues.isEmpty()) {
 				ObjectReferenceType defaultTargetRef = getExpressionEvaluatorType().getDefaultTargetRef();
@@ -204,13 +205,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return null;
 	}
 
-	// subclasses may provide caching
 	protected AbstractSearchExpressionEvaluatorCache getCache() {
-		return null;
+		return DefaultSearchExpressionEvaluatorCache.getCache();
 	}
 
 	protected Class<?> getCacheClass() {
-		return null;
+		return DefaultSearchExpressionEvaluatorCache.class;
 	}
 
 	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas,
