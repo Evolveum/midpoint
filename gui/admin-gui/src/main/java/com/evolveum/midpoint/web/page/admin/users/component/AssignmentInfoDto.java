@@ -110,7 +110,7 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
     }
 
     public void setAssignmentParent(AssignmentPath assignmentPath) {
-        if (assignmentPath.size() > 1 ) {
+        if (assignmentPath != null && assignmentPath.size() > 1 ) {
             assignmentParent = assignmentPath.last().getSource();
         }
     }
