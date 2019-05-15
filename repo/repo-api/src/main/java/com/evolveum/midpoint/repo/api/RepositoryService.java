@@ -161,6 +161,7 @@ public interface RepositoryService {
 	String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
+	String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
 	String OP_ADD_OBJECT = "addObject";
 	String OP_DELETE_OBJECT = "deleteObject";
@@ -443,13 +444,16 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
@@ -469,7 +473,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	@NotNull
+	<T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns the User object representing owner of specified account (account

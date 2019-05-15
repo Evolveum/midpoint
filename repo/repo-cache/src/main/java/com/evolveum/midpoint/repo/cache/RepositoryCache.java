@@ -28,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import org.apache.commons.lang.Validate;
@@ -41,14 +43,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.CacheDispatcher;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
@@ -111,13 +105,10 @@ public class RepositoryCache implements RepositoryService {
 	private static final Map<CacheKey, CacheObject> globalCache = new ConcurrentHashMap<>();
 
 	@Autowired private RepositoryService repositoryService;
-
 	@Autowired private PrismContext prismContext;
-
 	@Autowired private MidpointConfiguration midpointConfiguration;
-	
 	@Autowired private CacheDispatcher cacheDispatcher;
-
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	private long cacheMaxTTL;
 
@@ -318,12 +309,13 @@ public class RepositoryCache implements RepositoryService {
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
 		// is acceptable.
 		if (options != null && options.isOverwrite()) {
-			invalidateCacheEntry(object.getCompileTimeClass(), oid);
+			invalidateCacheEntry(object.getCompileTimeClass(), oid,
+					new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object));
 		} else {
 			// just for sure (the object should not be there but ...)
 			if (cache != null) {
 				cache.removeObject(oid);
-				cache.clearQueryResults(object.getCompileTimeClass());
+				cache.clearQueryResults(object.getCompileTimeClass(), new AddObjectResult<>(object), prismContext, matchingRuleRegistry);
 			}
 		}
 		return oid;
@@ -460,16 +452,18 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	@NotNull
+	public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 													OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-		modifyObject(type, oid, modifications, null, parentResult);
+		return modifyObject(type, oid, modifications, null, parentResult);
 	}
 
+	@NotNull
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			RepoModifyOptions options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		try {
-			modifyObject(type, oid, modifications, null, options, parentResult);
+			return modifyObject(type, oid, modifications, null, options, parentResult);
 		} catch (PreconditionViolationException e) {
 			throw new AssertionError(e);
 		}
@@ -487,42 +481,48 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
+	@NotNull
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 		delay(modifyRandomDelayRange);
 		Long startTime = repoOpStart();
+		ModifyObjectResult<T> modifyInfo = null;
 		try {
-			repositoryService.modifyObject(type, oid, modifications, precondition, options, parentResult);
+			modifyInfo = repositoryService.modifyObject(type, oid, modifications, precondition, options, parentResult);
+			return modifyInfo;
 		} finally {
 			repoOpEnd(startTime);
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache
-			invalidateCacheEntry(type, oid);
+			invalidateCacheEntry(type, oid, modifyInfo);
 		}
 	}
 
-	private <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid) {
+	private <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid, Object additionalInfo) {
 		Cache cache = getCache();
 		if (cache != null) {
 			cache.removeObject(oid);
-			cache.clearQueryResults(type);
+			cache.clearQueryResults(type, additionalInfo, prismContext, matchingRuleRegistry);
 		}
 
 		globalCache.remove(new CacheKey(type, oid));
 		cacheDispatcher.dispatch(type, oid);
 	}
 
+	@NotNull
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
+	public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		Long startTime = repoOpStart();
+		DeleteObjectResult deleteInfo = null;
 		try {
-			repositoryService.deleteObject(type, oid, parentResult);
+			deleteInfo = repositoryService.deleteObject(type, oid, parentResult);
+			return deleteInfo;
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(type, oid);
+			invalidateCacheEntry(type, oid, deleteInfo);
 		}
 	}
 
@@ -762,7 +762,7 @@ public class RepositoryCache implements RepositoryService {
 			return repositoryService.advanceSequence(oid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(SequenceType.class, oid);
+			invalidateCacheEntry(SequenceType.class, oid, null);
 		}
 	}
 
@@ -774,7 +774,7 @@ public class RepositoryCache implements RepositoryService {
 			repositoryService.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(SequenceType.class, oid);
+			invalidateCacheEntry(SequenceType.class, oid, null);
 		}
 	}
 
@@ -915,7 +915,10 @@ public class RepositoryCache implements RepositoryService {
 			repoOpEnd(startTime);
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache
-			invalidateCacheEntry(type, oid);
+			// TODO specify additional info more precisely (but currently we use this method only in connection with TaskType
+			//  and this kind of object is not cached anyway, so let's ignore this
+			invalidateCacheEntry(type, oid, null);
 		}
 	}
+
 }

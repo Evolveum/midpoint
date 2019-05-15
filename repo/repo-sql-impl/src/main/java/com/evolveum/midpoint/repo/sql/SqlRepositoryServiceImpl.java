@@ -24,7 +24,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -39,6 +38,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.*;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -69,13 +69,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
@@ -492,8 +485,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -507,10 +501,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         try {
 	        
-        	executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, "deleting",
+        	DeleteObjectResult rv = executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, "deleting",
 	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
 	        );
 		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+		    return rv;
 		    
         } finally {
         	OperationLogger.logDelete(type, oid, subResult);
@@ -541,27 +536,30 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 (q) -> objectRetriever.countObjectsAttempt(type, q, options, subResult));
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
                                                     Collection<? extends ItemDelta> modifications,
                                                     OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        modifyObject(type, oid, modifications, null, result);
+        return modifyObject(type, oid, modifications, null, result);
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 	    try {
-		    modifyObject(type, oid, modifications, null, options, result);
+		    return modifyObject(type, oid, modifications, null, options, result);
 	    } catch (PreconditionViolationException e) {
 		    throw new AssertionError(e);    // with null precondition we couldn't get this exception
 	    }
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
@@ -578,7 +576,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
-            return;
+            return null;
         }
 
         if (InternalsConfig.encryptionChecks) {
@@ -616,9 +614,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
+                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
-                    return;
+	                return rv;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);

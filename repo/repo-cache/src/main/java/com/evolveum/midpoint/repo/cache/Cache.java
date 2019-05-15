@@ -18,12 +18,14 @@ package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.caching.AbstractCache;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.HashMap;
@@ -71,39 +73,36 @@ public class Cache extends AbstractCache {
         }
     }
 
-    public void clearQueryResults() {
-        queries.clear();
-    }
-
-    public <T extends ObjectType> void clearQueryResults(Class<T> type) {
+    public <T extends ObjectType> void clearQueryResults(Class<T> type, Object additionalInfo, PrismContext prismContext,
+            MatchingRuleRegistry matchingRuleRegistry) {
         // TODO implement more efficiently
+
+        ChangeDescription change;
+        if (!LookupTableType.class.equals(type) && !AccessCertificationCampaignType.class.equals(type)) {
+            change = ChangeDescription.getFrom(additionalInfo, prismContext);
+        } else {
+            change = null;      // these objects are tricky to query -- it's safer to evict their queries completely
+        }
+
         int removed = 0;
         Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = queries.entrySet().iterator();
         while (iterator.hasNext()) {
-            if (type.equals(iterator.next().getKey().getType())) {
+            QueryKey queryKey = iterator.next().getKey();
+            if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
+                LOGGER.info("Removing query for type={}, change={}: {}", type, change, queryKey.getQuery());
                 iterator.remove();
                 removed++;
             }
         }
-        LOGGER.trace("Removed {} query result entries of type {}", removed, type);
+        LOGGER.info("Removed {} query result entries of type {}", removed, type);
     }
 
     public SearchResultList getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, PrismContext prismContext) {
-        QueryKey queryKey = createQueryKey(type, query, prismContext);
-        if (queryKey != null) {         // TODO BRUTAL HACK
-            return queries.get(queryKey);
-        } else {
-            return null;
-        }
+        return queries.get(createQueryKey(type, query, prismContext));
     }
 
     private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, PrismContext prismContext) {
-        try {
-            return new QueryKey(type, query, prismContext);
-        } catch (Exception e) {     // TODO THIS IS REALLY UGLY HACK - query converter / prism serializer refuse to serialize some queries - should be fixed RSN!
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create query key. Although this particular exception is harmless, please fix prism implementation!", e);
-            return null;            // we "treat" it so that we simply pretend the entry is not in the cache and/or refuse to enter it into the cache
-        }
+        return new QueryKey(type, query);
     }
 
     public String getObjectVersion(String oid) {
