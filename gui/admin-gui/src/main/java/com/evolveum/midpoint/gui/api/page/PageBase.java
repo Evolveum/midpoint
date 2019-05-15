@@ -107,12 +107,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
@@ -1833,13 +1828,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.approvalCases", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.myApprovalCases", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.myRequests", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.requestsAboutMe", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.manualProvisionCases", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.myManualProvisionCases", PageCasesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCases.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.approvalCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myApprovalCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myRequests", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.requestsAboutMe", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.manualProvisionCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myManualProvisionCases", PageCasesAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
 

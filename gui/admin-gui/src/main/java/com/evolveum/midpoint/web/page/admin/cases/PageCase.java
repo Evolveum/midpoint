@@ -130,7 +130,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             } else {
                 getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
             }
-            throw new RestartResponseException(PageCasesAll.class);
+            throw new RestartResponseException(PageCases.class);
         }
 //
 //        ObjectWrapper<CaseType> wrapper;
