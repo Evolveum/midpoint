@@ -213,6 +213,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		connIdSchemaResult.addContext("connector", connIdConnectorFacade.getClass());
 		
 		try {		
+			LOGGER.debug("Fetching supported connector operations from {}", connectorHumanReadableName);
 			InternalMonitor.recordConnectorOperation("getSupportedOperations");
 			
 			connIdSupportedOperations = connIdConnectorFacade.getSupportedOperations();
@@ -258,6 +259,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 		org.identityconnectors.framework.common.objects.Schema connIdSchema = null;
 		try {
 
+			LOGGER.debug("Fetching schema from {}", connectorHumanReadableName);
 			// Fetch the schema from the connector (which actually gets that
 			// from the resource).
 			InternalMonitor.recordConnectorOperation("schema");

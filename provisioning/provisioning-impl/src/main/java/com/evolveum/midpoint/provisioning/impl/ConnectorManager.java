@@ -158,7 +158,8 @@ public class ConnectorManager implements Cacheable {
 		if (connectorCacheEntry.isConfigured() && !isFresh(connectorCacheEntry, connectorSpec)) {
 			LOGGER.trace("Reconfiguring connector {} because the configuration is not fresh", connectorSpec);
 			configureConnector(connectorInstance, connectorSpec, result);
-			// Connector is cached already. No need to put it into cache.
+			// Connector is cached already. No need to put it into cache. We just need to update the configuration.
+			connectorCacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
 			return connectorInstance;
 		}
 
