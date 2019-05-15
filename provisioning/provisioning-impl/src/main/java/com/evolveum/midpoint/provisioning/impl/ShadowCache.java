@@ -1807,18 +1807,18 @@ public class ShadowCache {
 	// SEARCH
 	////////////////////////////////////////////////////////////////////////////
 	
-	public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options,
-			final boolean readFromRepository, Task task, final OperationResult parentResult)
-					throws SchemaException, ObjectNotFoundException, CommunicationException,
-					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-
-		SearchResultList<PrismObject<ShadowType>> list = new SearchResultList<>();
-		SearchResultMetadata metadata = searchObjectsIterative(query, options, (shadow,result) -> list.add(shadow), readFromRepository, task, parentResult);
-		list.setMetadata(metadata);
-		return list;
-		
-	}
+//	public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
+//			Collection<SelectorOptions<GetOperationOptions>> options,
+//			final boolean readFromRepository, Task task, final OperationResult parentResult)
+//					throws SchemaException, ObjectNotFoundException, CommunicationException,
+//					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+//
+//		SearchResultList<PrismObject<ShadowType>> list = new SearchResultList<>();
+//		SearchResultMetadata metadata = searchObjectsIterative(query, options, (shadow,result) -> list.add(shadow), readFromRepository, task, parentResult);
+//		list.setMetadata(metadata);
+//		return list;
+//
+//	}
 
 	public SearchResultMetadata searchObjectsIterative(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, final ResultHandler<ShadowType> handler,
@@ -1826,13 +1826,30 @@ public class ShadowCache {
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
+		ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
+
+		return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
+	}
+
+	private ProvisioningContext createContextForSearch(ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
 		ResourceShadowDiscriminator coordinates = ObjectQueryUtil.getCoordinates(query != null ? query.getFilter() : null,
 				prismContext);
 		final ProvisioningContext ctx = ctxFactory.create(coordinates, task, parentResult);
 		ctx.setGetOperationOptions(options);
 		ctx.assertDefinition();
+		return ctx;
+	}
 
-		return searchObjectsIterative(ctx, query, options, handler, readFromRepository, parentResult);
+	public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, final OperationResult parentResult)
+					throws SchemaException, ObjectNotFoundException, CommunicationException,
+					ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+
+		ProvisioningContext ctx = createContextForSearch(query, options, task, parentResult);
+		return searchObjects(ctx, query, options, parentResult);
 	}
 
 	public SearchResultMetadata searchObjectsIterative(final ProvisioningContext ctx, ObjectQuery query,
@@ -1964,7 +1981,25 @@ public class ShadowCache {
 				fetchAssociations, parentResult);
 
 	}
-	
+
+	public SearchResultList<PrismObject<ShadowType>> searchObjects(final ProvisioningContext ctx, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		applyDefinition(ctx, query);
+
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		if (ProvisioningUtil.shouldDoRepoSearch(rootOptions)) {
+			return searchObjectsRepository(ctx, query, options, parentResult);
+		} else {
+			SearchResultList<PrismObject<ShadowType>> rv = new SearchResultList<>();
+			SearchResultMetadata metadata = searchObjectsIterative(ctx, query, options, (s, opResult) -> rv.add(s), true,
+					parentResult);
+			rv.setMetadata(metadata);
+			return rv;
+		}
+	}
+
 	/**
 	 * Acquires repository shadow for a provided resource shadow. The repository shadow is locate or created.
 	 * In case that the shadow is created, all additional ceremonies for a new shadow is done, e.g. invoking
@@ -2178,20 +2213,8 @@ public class ShadowCache {
 
 		ResultHandler<ShadowType> repoHandler = (PrismObject<ShadowType> shadow, OperationResult objResult) -> {
 				try {
-					shadowCaretaker.applyAttributesDefinition(ctx, shadow);
-					// fixing MID-1640; hoping that the protected object filter uses only identifiers
-					// (that are stored in repo)
-					ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
-					
-					validateShadow(shadow, true);
-					
-					if (GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
-						CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
-						if (cachingMetadata == null) {
-							objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
-						}
-					}
-					
+					processRepoShadow(ctx, shadow, options, objResult);
+
 					boolean cont = shadowHandler.handle(shadow, objResult);
 					
 					objResult.computeStatus();
@@ -2215,7 +2238,37 @@ public class ShadowCache {
 
 		return shadowManager.searchObjectsIterativeRepository(ctx, query, options, repoHandler, parentResult);
 	}
-	
+
+	private SearchResultList<PrismObject<ShadowType>> searchObjectsRepository(ProvisioningContext ctx, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException,
+			CommunicationException, ExpressionEvaluationException {
+		SearchResultList<PrismObject<ShadowType>> objects = shadowManager.searchObjectsRepository(ctx, query, options, parentResult);
+		for (PrismObject<ShadowType> object : objects) {
+			processRepoShadow(ctx, object, options, parentResult);
+		}
+		return objects;
+	}
+
+	private void processRepoShadow(ProvisioningContext ctx, PrismObject<ShadowType> shadow,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult objResult)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			ExpressionEvaluationException {
+		shadowCaretaker.applyAttributesDefinition(ctx, shadow);
+		// fixing MID-1640; hoping that the protected object filter uses only identifiers
+		// (that are stored in repo)
+		ProvisioningUtil.setProtectedFlag(ctx, shadow, matchingRuleRegistry, relationRegistry);
+
+		validateShadow(shadow, true);
+
+		if (GetOperationOptions.isMaxStaleness(SelectorOptions.findRootOptions(options))) {
+			CachingMetadataType cachingMetadata = shadow.asObjectable().getCachingMetadata();
+			if (cachingMetadata == null) {
+				objResult.recordFatalError("Requested cached data but no cached data are available in the shadow");
+			}
+		}
+	}
+
 	private void validateShadow(PrismObject<ShadowType> shadow, boolean requireOid) {
 		if (requireOid) {
 			Validate.notNull(shadow.getOid(), "null shadow OID");

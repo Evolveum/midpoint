@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -114,9 +115,11 @@ public class CachePerformanceCollector implements DebugDumpable {
 	public String debugDump(int indent) {
 		ArrayList<String> names = new ArrayList<>(performanceMap.keySet());
 		names.sort(String::compareTo);
+		int maxLength = names.stream().mapToInt(String::length).max().orElse(0);
 		StringBuilder sb = new StringBuilder();
 		for (String name : names) {
-			DebugUtil.debugDumpWithLabelLn(sb, name, performanceMap.get(name).shortDump(), indent);
+			DebugUtil.indentDebugDump(sb, indent);
+			sb.append(String.format("%-"+(maxLength+1)+"s %s\n", name+":", performanceMap.get(name).shortDump()));
 		}
 		return sb.toString();
 	}

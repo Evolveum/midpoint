@@ -479,35 +479,53 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		final SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<PrismObject<T>>());
+		final SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
 
-		SearchResultMetadata metadata;
-		try {
-			if (!ShadowType.class.isAssignableFrom(type)) {
-				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, options, task, result);
-				result.computeStatus();
-				result.recordSuccessIfUnknown();
-				result.cleanupResult();
-//				validateObjects(objects);
-				return objects;
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
+		}
+
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
+
+		if (InternalsConfig.consistencyChecks && filter != null) {
+			// We may not have all the definitions here. We will apply the definitions later
+			filter.checkConsistence(false);
+		}
+
+		if (filter instanceof NoneFilter) {
+			result.recordSuccessIfUnknown();
+			result.cleanupResult();
+			SearchResultMetadata metadata = new SearchResultMetadata();
+			metadata.setApproxNumberOfAllResults(0);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
 			}
+			objListType.setMetadata(metadata);
+			return objListType;
+		}
 
-			final ResultHandler<T> handler = (object, parentResult1) -> objListType.add(object);
-
-			metadata = searchObjectsIterative(type, query, options, handler, task, result);
-
-		} catch (ConfigurationException | SecurityViolationException | CommunicationException | ObjectNotFoundException |  SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
-			throw e;
+		SearchResultList<PrismObject<T>> objects;
+		if (ShadowType.class.isAssignableFrom(type)) {
+			try {
+				//noinspection unchecked
+				objects = (SearchResultList) shadowCache.searchObjects(query, options, task, result);
+			} catch (Throwable e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
+				throw e;
+			}
+		} else {
+			objects = searchRepoObjects(type, query, options, task, result);
 		}
 
 		result.computeStatus();
 		result.cleanupResult();
-//		validateObjects(objListType);
-		objListType.setMetadata(metadata);
-		return objListType;
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDump(objects.getMetadata()));
+		}
+		// validateObjects(objListType);
+		return objects;
 	}
-
 
 	@SuppressWarnings("unchecked")
 	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
@@ -541,8 +559,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// TODO: what else do to with objResult??
 
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
-						repoObject, e.getMessage(), e });
+				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
 				newObjListType.add(repoObject);
@@ -557,8 +574,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// ICF exceptions are still translated to system exceptions.
 				// So this provides
 				// a better robustness now.
-				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", new Object[] {
-						repoObject, e.getMessage(), e });
+				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
 				newObjListType.add(repoObject);
@@ -600,13 +616,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ObjectFilter filter = null;
-		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-			query = query.cloneEmpty();
-			query.setFilter(filter);
-		}
-		
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start of counting objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
@@ -994,12 +1006,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ObjectFilter filter = null;
-		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-			query = query.cloneEmpty();
-			query.setFilter(filter);
-		}
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
 
 		if (InternalsConfig.consistencyChecks && filter != null) {
 			// We may not have all the definitions here. We will apply the definitions later
@@ -1063,6 +1071,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return metadata;
 
 
+	}
+
+	private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
+		if (query != null) {
+			ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
+			ObjectQuery clone = query.cloneEmpty();
+			clone.setFilter(filter);
+			return clone;
+		} else {
+			return null;
+		}
 	}
 
 	@Override

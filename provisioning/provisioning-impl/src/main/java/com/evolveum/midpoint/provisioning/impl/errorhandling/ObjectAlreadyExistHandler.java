@@ -212,11 +212,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	 */
 	private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, Task task, OperationResult parentResult)
 			throws SchemaException {
-		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
-		
-		repositoryService.searchObjectsIterative(ShadowType.class, query, (object,result) -> foundAccount.add(object), null, true, parentResult);
-		
-		return foundAccount;
+		return repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 	}
 	
 	/**
@@ -226,13 +222,9 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	private List<PrismObject<ShadowType>> findConflictingShadowsOnResource(ObjectQuery query, Task task, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 				SecurityViolationException, ExpressionEvaluationException {
-		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
-		
 		// noDiscovery option to avoid calling notifyChange from ShadowManager (in case that new resource object is discovered)
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
-		provisioningService.searchObjectsIterative(ShadowType.class, query, options, (object,result) -> foundAccount.add(object), task, parentResult);
-		
-		return foundAccount;
+		return provisioningService.searchObjects(ShadowType.class, query, options, task, parentResult);
 	}
 	
 	@Override

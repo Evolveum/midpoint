@@ -101,6 +101,11 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	private PrismObject<ResourceType> resourceOpenDj;
 
 	@Override
+	protected void importSystemTasks(OperationResult initResult) {
+		// we don't want these
+	}
+
+	@Override
     protected void startResources() throws Exception {
         openDJController.startCleanServerRI();
     }

@@ -199,7 +199,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Getting object '{}' with oid '{}': {}", type.getSimpleName(), oid, result.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
         OperationResult subResult = result.createMinorSubresult(GET_OBJECT);

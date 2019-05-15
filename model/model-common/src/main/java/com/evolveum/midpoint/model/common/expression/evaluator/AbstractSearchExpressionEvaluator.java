@@ -46,10 +46,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -291,15 +287,12 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 	}
 
-	private <O extends ObjectType> List<V> executeSearchAttempt(final List<PrismObject> rawResult,
-																Class<O> targetTypeClass, final QName targetTypeQName,
-																ObjectQuery query, boolean searchOnResource, boolean tryAlsoRepository,
-																final List<ItemDelta<V, D>> additionalAttributeDeltas,
-																final ExpressionEvaluationContext params, String contextDescription,
-																Task task, OperationResult result)
-			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private <O extends ObjectType> List<V> executeSearchAttempt(List<PrismObject> rawResults, Class<O> targetTypeClass,
+			QName targetTypeQName, ObjectQuery query, boolean searchOnResource, boolean tryAlsoRepository,
+			List<ItemDelta<V, D>> additionalAttributeDeltas, ExpressionEvaluationContext params, String contextDescription,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
-		final List<V> list = new ArrayList<>();
+		final List<V> valueResults = new ArrayList<>();
 
 		Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
 		if (!searchOnResource) {
@@ -307,19 +300,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 		extendOptions(options, searchOnResource);
 
-		ResultHandler<O> handler = (object, parentResult) -> {
-			if (rawResult != null) {
-				rawResult.add(object);
-			}
-			list.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
-
-			// TODO: we should count results and stop after some reasonably high number?
-
-			return true;
-		};
-
 		try {
-			objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
+			executeSearch(valueResults, rawResults, targetTypeClass, targetTypeQName, query, options, task, result, params, additionalAttributeDeltas);
 		} catch (IllegalStateException e) { // this comes from checkConsistence methods
 			throw new IllegalStateException(e.getMessage()+" in "+contextDescription, e);
 		} catch (SchemaException e) {
@@ -331,7 +313,8 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			if (searchOnResource && tryAlsoRepository) {
 				options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 				try {
-					objectResolver.searchIterative(targetTypeClass, query, options, handler, task, result);
+					executeSearch(valueResults, rawResults, targetTypeClass, targetTypeQName, query, options, task, result, params,
+							additionalAttributeDeltas);
 				} catch (SchemaException e1) {
 					throw new SchemaException(e1.getMessage()+" in "+contextDescription, e1);
 				} catch (CommunicationException | ConfigurationException
@@ -350,10 +333,25 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
-					list.size(), query.debugDump());
+					valueResults.size(), query.debugDump());
 		}
 
-		return list;
+		return valueResults;
+	}
+
+	private <O extends ObjectType> void executeSearch(List<V> valueResults, List<PrismObject> rawResults, Class<O> targetTypeClass,
+			QName targetTypeQName, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+			OperationResult opResult, ExpressionEvaluationContext params, List<ItemDelta<V, D>> additionalAttributeDeltas)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
+		// TODO: perhaps we should limit query to some reasonably high number of results?
+		SearchResultList<PrismObject<O>> objects = objectResolver.searchObjects(targetTypeClass, query, options, task, opResult);
+		for (PrismObject<O> object : objects) {
+			if (rawResults != null) {
+				rawResults.add(object);
+			}
+			valueResults.add(createPrismValue(object.getOid(), targetTypeQName, additionalAttributeDeltas, params));
+		}
 	}
 
 	protected void extendOptions(Collection<SelectorOptions<GetOperationOptions>> options, boolean searchOnResource) {

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,9 +48,7 @@ import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.ModificationPrecondition;
@@ -57,10 +56,6 @@ import com.evolveum.midpoint.repo.api.OptimisticLockingRunner;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -659,6 +654,17 @@ public class ShadowManager {
 		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
 		
 		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, parentResult);
+	}
+
+	public SearchResultList<PrismObject<ShadowType>> searchObjectsRepository(
+			ProvisioningContext ctx, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+
+		ObjectQuery repoQuery = query.clone();
+		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
+
+		return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
 	}
 
 	/**

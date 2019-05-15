@@ -187,7 +187,7 @@ public class ConstraintsChecker {
 		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
 		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, true, task, result);
+		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",
 					identifier, foundObjects.size(), foundObjects, query.debugDump(1));

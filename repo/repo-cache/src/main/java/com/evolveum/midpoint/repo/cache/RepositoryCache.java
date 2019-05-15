@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -49,14 +50,6 @@ import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RepositoryDiag;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
-import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -186,7 +179,7 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		Cache cache = getCache();
-		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
+		if (!isCacheable(type) || !nullOrHarmlessOptions(options, type)) {
 			if (cache != null) {
 				cache.recordPass();
 			}
@@ -210,6 +203,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 			cache.recordMiss();
 			log("Cache: MISS {} ({})", oid, type.getSimpleName());
+			//LOGGER.info("Cache: MISS (getObject) {} ({}) #{}", oid, type.getSimpleName(), cache.getMisses());
 		}
 
 		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
@@ -340,7 +334,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		Cache cache = getCache();
-		if (!isCacheable(type) || !nullOrHarmlessOptions(options)) {
+		if (!isCacheable(type) || !nullOrHarmlessOptions(options, type)) {
 			if (cache != null) {
 				cache.recordPass();
 			}
@@ -370,6 +364,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 			cache.recordMiss();
 			log("Cache: MISS {} ({})", query, type.getSimpleName());
+			//LOGGER.info("Cache: MISS (searchObjects) {} ({}) #{}", query, type.getSimpleName(), cache.getMisses());
 		}
 
 		// Cannot satisfy from cache, pass down to repository
@@ -380,7 +375,7 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		if (cache != null && options == null) {
+		if (cache != null) {
 			for (PrismObject<T> object : objects) {
 				cacheObject(cache, object, readOnly);
 			}
@@ -542,28 +537,44 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		if (ownerObject != null && nullOrHarmlessOptions(options)) {
+		if (ownerObject != null && nullOrHarmlessOptions(options, FocusType.class)) {
 			cacheObject(getCache(), ownerObject, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
 		}
 		return ownerObject;
 	}
 
-	private boolean nullOrHarmlessOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+	private boolean nullOrHarmlessOptions(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
 		if (options == null || options.isEmpty()) {
 			return true;
 		}
 		if (options.size() > 1) {
+			//LOGGER.info("Cache: PASS REASON: size>1: {}", options);
 			return false;
 		}
 		SelectorOptions<GetOperationOptions> selectorOptions = options.iterator().next();
 		if (!selectorOptions.isRoot()) {
+			//LOGGER.info("Cache: PASS REASON: !root: {}", options);
 			return false;
 		}
 		GetOperationOptions options1 = selectorOptions.getOptions();
 		// TODO FIX THIS!!!
-		if (options1 == null || options1.equals(new GetOperationOptions()) || options1.equals(GetOperationOptions.createAllowNotFound()) || options1.equals(GetOperationOptions.createExecutionPhase())) {
+		if (options1 == null ||
+				options1.equals(new GetOperationOptions()) ||
+				options1.equals(GetOperationOptions.createAllowNotFound()) ||
+				options1.equals(GetOperationOptions.createExecutionPhase()) ||
+				options1.equals(GetOperationOptions.createReadOnly()) ||
+				options1.equals(GetOperationOptions.createNoFetch())) {
 			return true;
 		}
+		if (options1.equals(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE))) {
+			if (SelectorOptions.isRetrievedFullyByDefault(objectType)) {
+				return true;
+			} else {
+				//LOGGER.info("Cache: PASS REASON: INCLUDE for {}: {}", objectType, options);
+				return false;
+			}
+		}
+		//LOGGER.info("Cache: PASS REASON: other: {}", options);
 		return false;
 	}
 
@@ -622,6 +633,7 @@ public class RepositoryCache implements RepositoryService {
 			}
 			cache.recordMiss();
 			log("Cache: MISS {} ({})", oid, type.getSimpleName());
+			//LOGGER.info("Cache: MISS (getVersion) {} ({}) #{}", oid, type.getSimpleName(), cache.getMisses());
 		}
 		String version;
 		Long startTime = repoOpStart();
