@@ -510,6 +510,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		parser.setResourceSchemaNamespace(resourceSchemaNamespace);
 		parser.setLegacySchema(legacySchema);
 		
+		LOGGER.debug("Retrieving and parsing schema and capabilities for {}", getHumanReadableName());
 		parser.retrieveResourceCapabilitiesAndSchema(generateObjectClasses, parentResult);
 		
 		parsedCapabilitiesAndSchema = parser;

@@ -57,11 +57,14 @@ public class ResourceCache {
 
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
+			LOGGER.debug("Caching(new): {}", resource);
 			cache.put(oid, resource.createImmutableClone());
 		} else {
 			if (compareVersion(resource.getVersion(), cachedResource.getVersion())) {
+				LOGGER.debug("Caching fizzle, resource already cached: {}", resource);
 				// We already have equivalent resource, nothing to do
 			} else {
+				LOGGER.debug("Caching(replace): {}", resource);
 				cache.put(oid, resource.createImmutableClone());
 			}
 		}
@@ -88,10 +91,12 @@ public class ResourceCache {
 
 		PrismObject<ResourceType> cachedResource = cache.get(oid);
 		if (cachedResource == null) {
+			LOGGER.debug("MISS(not cached) for {}", oid);
 			return null;
 		}
 
 		if (!compareVersion(requestedVersion, cachedResource.getVersion())) {
+			LOGGER.debug("MISS(wrong version) for {}", oid);
 			LOGGER.trace("Cached resource version {} does not match requested resource version {}, purging from cache", cachedResource.getVersion(), requestedVersion);
 			cache.remove(oid);
 			return null;
@@ -106,8 +111,10 @@ public class ResourceCache {
 
 				return null;
 			}
+			LOGGER.trace("HIT(read only) for {}", cachedResource);
 			return cachedResource;
 		} else {
+			LOGGER.debug("HIT(returning clone) for {}", cachedResource);
 			return cachedResource.clone();
 		}
 	}
