@@ -921,4 +921,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
+	@Override
+	public PerformanceMonitor getPerformanceMonitor() {
+		return repositoryService.getPerformanceMonitor();
+	}
 }

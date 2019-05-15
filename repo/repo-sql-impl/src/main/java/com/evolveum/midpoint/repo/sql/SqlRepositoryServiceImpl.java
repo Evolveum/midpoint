@@ -217,7 +217,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <RV> RV executeAttempts(String oid, String operationName, String operationVerb, OperationResult subResult,
             ResultSupplier<RV> supplier) throws ObjectNotFoundException, SchemaException {
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operationName);
         int attempt = 1;
         try {
@@ -262,7 +262,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operationName);
         int attempt = 1;
         try {
@@ -450,7 +450,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("object", object);
         subResult.addParam("options", options.toString());
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT);
         int attempt = 1;
         try {
@@ -608,7 +608,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "modifying";
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT);
 
         try {
@@ -647,7 +647,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "listing resource object shadows";
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_LIST_RESOURCE_OBJECT_SHADOWS);
 
         // TODO executeAttempts
@@ -814,7 +814,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("oid", oid);
 
         // TODO executeAttempts
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_GET_VERSION);
 
         final String operation = "getting version";
@@ -955,7 +955,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 			}
 		} finally {
 		    // temporary workaround, just to know the number of calls
-            SqlPerformanceMonitor pm = getPerformanceMonitor();
+            SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
             long opHandle = pm.registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE);
             pm.registerOperationFinish(opHandle, attempt);
 		}
@@ -978,7 +978,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_IS_ANY_SUBORDINATE);
         try {
             while (true) {
@@ -1011,7 +1011,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_ADVANCE_SEQUENCE);
         try {
             while (true) {
@@ -1048,7 +1048,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_RETURN_UNUSED_VALUES_TO_SEQUENCE);
         try {
             while (true) {
@@ -1079,7 +1079,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", request.toString());
 
         // TODO executeAttempts
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS);
 
         try {

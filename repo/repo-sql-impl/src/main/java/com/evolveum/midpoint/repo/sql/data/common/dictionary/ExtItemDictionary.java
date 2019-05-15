@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
-import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitor;
+import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
@@ -158,7 +158,7 @@ public class ExtItemDictionary {
     }
 
     private void executeAttempts(String operationName, String operationVerb, Runnable runnable) {
-        SqlPerformanceMonitor pm = repositoryService.getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operationName);
         int attempt = 1;
         try {

@@ -51,7 +51,7 @@ public class SqlBaseService {
         return repositoryFactory.getSqlConfiguration();
     }
 
-    public SqlPerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return repositoryFactory.getPerformanceMonitor();
     }
 

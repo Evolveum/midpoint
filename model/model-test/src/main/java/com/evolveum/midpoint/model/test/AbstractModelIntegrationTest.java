@@ -280,7 +280,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected DashboardService dashboardService;
 	@Autowired protected ModelAuditService modelAuditService;
 	@Autowired protected ModelPortType modelWeb;
-	@Autowired protected RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	protected RepositoryService repositoryService;
 	@Autowired protected SystemObjectCache systemObjectCache;
 	@Autowired protected RelationRegistry relationRegistry;
 	@Autowired protected ProvisioningService provisioningService;

@@ -684,4 +684,6 @@ public interface RepositoryService {
 	 */
 	<T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+	PerformanceMonitor getPerformanceMonitor();
 }

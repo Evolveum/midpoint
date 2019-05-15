@@ -47,7 +47,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
-    private SqlPerformanceMonitor performanceMonitor;
+    private SqlPerformanceMonitorImpl performanceMonitor;
 
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
@@ -133,7 +133,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("Repository is not running in embedded mode.");
         }
 
-        performanceMonitor = new SqlPerformanceMonitor();
+        performanceMonitor = new SqlPerformanceMonitorImpl();
         performanceMonitor.initialize(this);
 
         LOGGER.info("Repository initialization finished.");
@@ -289,7 +289,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
     }
 
-    public SqlPerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return performanceMonitor;
     }
 }

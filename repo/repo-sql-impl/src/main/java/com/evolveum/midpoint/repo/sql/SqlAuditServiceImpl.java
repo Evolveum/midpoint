@@ -374,7 +374,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxAge";
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE);
         int attempt = 1;
 
@@ -431,7 +431,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxRecords";
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS);
         int attempt = 1;
 

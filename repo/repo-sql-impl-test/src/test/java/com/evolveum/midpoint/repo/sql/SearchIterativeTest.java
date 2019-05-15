@@ -352,7 +352,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of objects after operation", COUNT, count);
     }
 
-    private SqlPerformanceMonitor getPerformanceMonitor() {
+    private SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return ((SqlRepositoryServiceImpl) repositoryService).getPerformanceMonitor();
     }
 

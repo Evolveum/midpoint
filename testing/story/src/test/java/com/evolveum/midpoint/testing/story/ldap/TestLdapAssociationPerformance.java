@@ -20,7 +20,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitor;
+import com.evolveum.midpoint.repo.api.PerformanceMonitor;
+import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
@@ -177,7 +178,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		SqlPerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
 		resetCachePerformanceCollector();
 
 		long startMillis = System.currentTimeMillis();
@@ -195,7 +196,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		long endMillis = System.currentTimeMillis();
 		recordDuration(TEST_NAME, (endMillis - startMillis));
 
-		SqlPerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
+		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
 		dumpRepoSnapshot("SQL operations for " + TEST_NAME, snapshot, "role", NUMBER_OF_GENERATED_ROLES);
 		dumpCachePerformanceData(TEST_NAME);
 
@@ -219,7 +220,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		SqlPerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
 		resetCachePerformanceCollector();
 
 		long startMillis = System.currentTimeMillis();
@@ -250,7 +251,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		long endMillis = System.currentTimeMillis();
 		recordDuration(TEST_NAME, (endMillis - startMillis));
 
-		SqlPerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
+		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
 		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, snapshot);
 		dumpCachePerformanceData(TEST_NAME);
 
@@ -260,12 +261,12 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		assertLdapConnectorInstances(1);
 	}
 
-	private void dumpRepoSnapshotPerUser(String label, SqlPerformanceMonitor.Snapshot snapshot) {
+	private void dumpRepoSnapshotPerUser(String label, PerformanceMonitor.Snapshot snapshot) {
 		dumpRepoSnapshot(label, snapshot, "user", NUMBER_OF_GENERATED_USERS);
 	}
 
-	private void dumpRepoSnapshot(String label, SqlPerformanceMonitor.Snapshot snapshot, String unit, int unitCount) {
-		Map<String, Integer> counters = snapshot.counters;
+	private void dumpRepoSnapshot(String label, PerformanceMonitor.Snapshot snapshot, String unit, int unitCount) {
+		Map<String, Integer> counters = snapshot.getCounters();
 		ArrayList<String> kinds = new ArrayList<>(counters.keySet());
 		kinds.sort(String::compareToIgnoreCase);
 		StringBuilder sb = new StringBuilder();
@@ -288,7 +289,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		addTask(TASK_RECOMPUTE_1_FILE);
 
-		SqlPerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
 		resetCachePerformanceCollector();
 
 		waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
@@ -298,7 +299,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
 
-		SqlPerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
+		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
 		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, snapshot);
 		dumpCachePerformanceData(TEST_NAME);
 
@@ -403,8 +404,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		return String.format(SUMMARY_LINE_FORMAT, label, duration, duration/NUMBER_OF_GENERATED_USERS, (double) duration/(NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
 	}
 
-	private SqlPerformanceMonitor getRepoPerformanceMonitor() {
-		return ((SqlRepositoryServiceImpl) repositoryService).getPerformanceMonitor();
+	private PerformanceMonitor getRepoPerformanceMonitor() {
+		return repositoryService.getPerformanceMonitor();
 	}
 
 	private void resetCachePerformanceCollector() {
