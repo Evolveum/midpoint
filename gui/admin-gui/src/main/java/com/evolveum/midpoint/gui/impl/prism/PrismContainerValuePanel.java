@@ -19,6 +19,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -37,6 +39,7 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
@@ -153,7 +156,11 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				item.setOutputMarkupId(true);
 				IW itemWrapper = item.getModelObject();
 				try {
-					Panel panel = getPageBase().initItemPanel("property", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
+					QName typeName = itemWrapper.getTypeName();
+					if(item.getModelObject() instanceof ResourceAttributeDefinitionWrapper) {
+						typeName = new QName("ResourceAttributeDefinition");
+					}
+					Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), visibilityHandler);
 					panel.setOutputMarkupId(true);
 					panel.add(new VisibleEnableBehaviour() {
 						

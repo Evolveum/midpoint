@@ -162,6 +162,21 @@ public interface RepositoryService {
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
 
+	String OP_ADD_OBJECT = "addObject";
+	String OP_DELETE_OBJECT = "deleteObject";
+	String OP_COUNT_OBJECTS = "countObjects";
+	String OP_MODIFY_OBJECT = "modifyObject";
+	String OP_LIST_RESOURCE_OBJECT_SHADOWS = "listResourceObjectShadows";
+	String OP_GET_VERSION = "getVersion";
+	String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
+	String OP_ADVANCE_SEQUENCE = "advanceSequence";
+	String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
+	String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
+	String OP_GET_OBJECT = "getObject";
+	String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
+	String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
+	String OP_SEARCH_OBJECTS = "searchObjects";
+
 	/**
 	 * Returns object for provided OID.
 	 *

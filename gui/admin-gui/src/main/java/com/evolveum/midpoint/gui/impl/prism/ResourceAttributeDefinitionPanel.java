@@ -80,156 +80,17 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 	 * @param id
 	 * @param model
 	 */
-	public ResourceAttributeDefinitionPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, visibilitytHandler);
+	public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeDefinitionWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
+		super(id, (IModel)model, visibilitytHandler);
 	}
 	
-//	@Override
-//	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
-//		
-//		
-//		item.getModelObject().
-//		
-//		WebMarkupContainer panel = createInputPanel(item, factory);
-//    	
-//
-//		
-//        
-//	}
+	@Override
+	protected Panel createHeaderPanel() {
+		return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel());
+	}
 	
-	 private WebMarkupContainer createInputPanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory) {
- 		
-		WebMarkupContainer valueContainer = new WebMarkupContainer(ID_VALUE_CONTAINER);
-		valueContainer.setOutputMarkupId(true);
-		item.add(valueContainer);
-		// feedback
-		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-		feedback.setOutputMarkupId(true);
-		item.add(feedback);
-
-		PrismPropertyWrapper<T> modelObject = getModelObject();
-
-		LOGGER.trace("create input component for: {}", modelObject.debugDump());
-
-		Panel component = null;
-
-		Form<?> form = new Form<>(ID_FORM);
-		valueContainer.add(form);
-
-		if (factory == null) {
-			if (getPageBase().getApplication().usesDevelopmentConfig()) {
-				form.add(new ErrorPanel(ID_INPUT, createStringResource("Cannot create component for: " + modelObject.getItem())));
-			} else {
-				Label noComponent = new Label(ID_INPUT);
-				noComponent.setVisible(false);
-				form.add(noComponent);
-			}
-			return valueContainer;
-		}
-
-		if (factory != null) {
-
-			PrismPropertyPanelContext<T> panelCtx = new PrismPropertyPanelContext<T>(getModel());
-			panelCtx.setForm(form);
-			panelCtx.setRealValueModel(item.getModel());
-			panelCtx.setFeedbackPanel(feedback);
-			panelCtx.setComponentId(ID_INPUT);
-			panelCtx.setParentComponent(this);
-
-			try {
-				component = factory.createPanel(panelCtx);
-				form.add(component);
-			} catch (Throwable e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot create panel", e);
-				getSession().error("Cannot create panel");
-				throw new RuntimeException(e);
-			}
-		}
-
-		if (component instanceof InputPanel) {
-			InputPanel inputPanel = (InputPanel) component;
-			// adding valid from/to date range validator, if necessary
-			ExpressionValidator<T> expressionValidator = new ExpressionValidator<T>(
-					LambdaModel.of(modelObject::getFormComponentValidator), getPageBase()) {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				protected <O extends ObjectType> O getObjectType() {
-					return getObject();
-				}
-			};
-			inputPanel.getBaseFormComponent().add(expressionValidator);
-			// form.add(expressionValidator);
-
-			final List<FormComponent> formComponents = inputPanel.getFormComponents();
-			for (FormComponent<T> formComponent : formComponents) {
-				IModel<String> label = LambdaModel.of(modelObject::getDisplayName);
-				formComponent.setLabel(label);
-				formComponent.setRequired(modelObject.isMandatory());
-
-				if (formComponent instanceof TextField) {
-					formComponent.add(new AttributeModifier("size", "42"));
-				}
-				formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void onUpdate(AjaxRequestTarget target) {
-						target.add(getPageBase().getFeedbackPanel());
-						target.add(feedback);
-					}
-
-					@Override
-					protected void onError(AjaxRequestTarget target, RuntimeException e) {
-						target.add(getPageBase().getFeedbackPanel());
-						target.add(feedback);
-					}
-
-				});
-			}
-		}
-		if (component == null) {
-			// throw new RuntimeException(
-			// "Cannot create input component for item " + iw + " (" +
-			// valueWrapperModel.getObject() + ")");
-			WebMarkupContainer cont = new WebMarkupContainer(ID_INPUT);
-			cont.setOutputMarkupId(true);
-			return cont;
-		}
-		return valueContainer;
-
+	private IModel<ResourceAttributeDefinitionWrapper<T>> getResourceAttributeDefinitionModel(){
+		return (IModel)getModel();
 	}
-    
-	 //TODO: implment
-    private <O extends ObjectType, C extends Containerable> O getObject() {
-    	
-//    	PrismContainerValueWrapper<?> cValueWrapper = getModelObject().getParent();
-//		if (cValueWrapper == null) {
-//			return null;
-//		}
-//		PrismContainerWrapper<?> cWrapper = (PrismContainerWrapper<?>) cValueWrapper.getParent();
-//		
-////	cValueWrapper.
-////		ObjectWrapperOld<O> objectWrapper = cWrapper.getPaObjectWrapper();
-//		PrismObjectWrapper<O> objectWrapper = null;
-//		PrismObject<O> newObject = objectWrapper.getObject().clone();
-//		
-//		try {
-//			ObjectDelta<O> objectDelta = objectWrapper.getObjectDelta();
-//			if (objectDelta.isModify()) {
-//				objectDelta.applyTo(newObject);
-//			} else if (objectDelta.isAdd()) {
-//				newObject = objectDelta.getObjectToAdd().clone();
-//			} else if (objectDelta.isDelete()) {
-//				newObject = null;
-//			}
-//		} catch (SchemaException e) {
-//			return null;
-//		}
-//		
-//		return newObject.asObjectable();
-		return null;
-	}
+
 }

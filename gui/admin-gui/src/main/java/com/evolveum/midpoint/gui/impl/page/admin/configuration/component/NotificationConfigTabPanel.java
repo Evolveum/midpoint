@@ -53,12 +53,16 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -76,8 +80,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
@@ -158,7 +164,11 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 //			((PrismPropertyValue<MailConfigurationType>)((List<PrismPropertyValueWrapper<MailConfigurationType>>)mailConfig.getObject().getValues()).get(0)).setValue(mailConfigType);
 //    	}
 		
-		PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "value"));
+		PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
+		
+		if(mailConfigType.getObject() == null) {
+			mailConfigType.setObject(new MailConfigurationType());
+		}
 		
 		add(new TextFormGroup(ID_DEFAULT_FROM, new PropertyModel<String>(mailConfigType, "defaultFrom"), createStringResource(mailConfig.getObject().getTypeName().getLocalPart() + ".defaultFrom"), "", getInputCssClass(), false, true));
 		
@@ -245,11 +255,21 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             	@Override
             	public void onClick(AjaxRequestTarget target) {
-            		//TODO add new value
-//            		ValueWrapperOld<FileConfigurationType> newValue = fileConfig.getObject().createAddedValue();
-//            		((PrismPropertyValue<FileConfigurationType>)newValue.getValue()).setValue(new FileConfigurationType());
-//            		fileConfig.getObject().getValues().add(newValue);
-//            		target.add(files);
+            		PrismPropertyWrapper<FileConfigurationType> propertyWrapper = fileConfig.getObject();
+            		try {
+            			PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
+            			propertyWrapper.getItem().add(newValue);
+            			WrapperContext context = new WrapperContext(null, null);
+            			PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper =
+            				getPageBase().createValueWrapper(propertyWrapper, newValue, ValueStatus.ADDED, context);
+            			newValueWrapper.setRealValue(new FileConfigurationType());
+            			propertyWrapper.getValues().add(newValueWrapper);
+					} catch (SchemaException e) {
+						LOGGER.error("Cannot create new value for {}", propertyWrapper, e);
+						getSession().error("Cannot create new value for " + propertyWrapper + ". Reason: " + e.getMessage());
+						target.add(getPageBase().getFeedbackPanel());
+					}
+            		target.add(files);
             	}
             };
             add(addButton);

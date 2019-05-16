@@ -117,6 +117,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastLoginFrom()) ? dto.getLastLoginFrom() :
@@ -131,6 +134,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public Date getObject() {
+            	if(getModel() ==  null) {
+            		return null;
+            	}
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastFailDate();
             }
@@ -144,6 +150,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastFailFrom()) ? dto.getLastFailFrom() :
@@ -158,6 +167,9 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getPasswordExp() != null ? WebComponentUtil.formatDate(dto.getPasswordExp()) :

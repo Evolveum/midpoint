@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -85,12 +86,20 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 			protected void populateItem(ListItem<ContainersPopupDto> item) {
 				
 				CheckFormGroup checkFormGroup = new CheckFormGroup(ID_SELECTED, new PropertyModel<Boolean>(item.getModel(), "selected"), 
-						new StringResourceModel("ListContainersPopup.selected"), "col-md-2", "col-md-10");
+						new StringResourceModel("ListContainersPopup.selected"), "col-md-2", "col-md-10") {
+					
+					protected boolean getLabelVisible() {
+						return false;
+					};
+					
+				};
 				checkFormGroup.getCheck().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+				checkFormGroup.add(AttributeAppender.append("class", " checkbox-without-margin-bottom "));
 				checkFormGroup.setOutputMarkupId(true);
 				item.add(checkFormGroup);
 				
-				Label definition = new Label(ID_DEFINITION, StringResourceModel.of(item.getModelObject()::getDisplayName));
+				String displayNameKey = item.getModelObject() != null ? item.getModelObject().getDisplayName() : "";
+				Label definition = new Label(ID_DEFINITION, new StringResourceModel(displayNameKey));
 				definition.setOutputMarkupId(true);
 				item.add(definition);
 			}
@@ -125,12 +134,12 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 	
 		@Override
 	public int getWidth() {
-		return 400;
+		return 20;
 	}
 
 	@Override
 	public int getHeight() {
-		return 600;
+		return 0;
 	}
 
 	@Override
@@ -152,6 +161,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 	public Component getComponent() {
 		return this;
 	}
+	
 	
 }
 

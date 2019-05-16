@@ -467,7 +467,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
-            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
+            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:displayName>NotificationConfigurationType.mail</a:displayName>
+			</xsd:appinfo>
+                </xsd:annotation>
+	    </xsd:element>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
