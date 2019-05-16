@@ -15,49 +15,22 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
-import java.util.Collection;
-import java.util.List;
+import javax.xml.namespace.QName;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.wicket.model.IModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ResourceAttributeDefinitionPanel;
 import com.evolveum.midpoint.gui.impl.prism.ResourceAttributeDefinitionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ResourceAttributeDefinitionWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author skublik
@@ -66,6 +39,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 public class ResourceAttributeDefinitionWrapperFactoryImpl<T extends ResourceAttributeDefinitionType> extends PrismPropertyWrapperFactoryImpl<T>{
 
+	@Autowired private GuiComponentRegistry registry;
+	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof RefinedAttributeDefinition;
@@ -79,28 +54,8 @@ public class ResourceAttributeDefinitionWrapperFactoryImpl<T extends ResourceAtt
 	@Override
 	protected PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, PrismProperty<T> item,
 			ItemStatus status) {
-		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
+		registry.registerWrapperPanel(new QName("ResourceAttributeDefinition"), ResourceAttributeDefinitionPanel.class);
 		ResourceAttributeDefinitionWrapper<T> propertyWrapper = new ResourceAttributeDefinitionWrapperImpl<>(parent, item, status);
 		return propertyWrapper;
-	}
-	
-	@Override
-	public PrismPropertyWrapper<T> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
-		
-		PrismProperty<T> childItem = (PrismProperty) parent.getNewValue().findItem(name);
-		ItemStatus status = ItemStatus.NOT_CHANGED;
-		if (childItem == null) {
-			childItem = (PrismProperty) parent.getNewValue().findOrCreateItem(name);
-			status = ItemStatus.ADDED;
-		}
-		
-		PrismPropertyWrapper<T> itemWrapper = createWrapper(parent, childItem, status);
-		
-		
-		 List<PrismPropertyValueWrapper<T>> valueWrappers = createValuesWrapper(itemWrapper, childItem, context);
-		itemWrapper.getValues().addAll((Collection) valueWrappers);
-		itemWrapper.setShowEmpty(context.isCreateIfEmpty(), false);
-		return itemWrapper;
 	}
 }

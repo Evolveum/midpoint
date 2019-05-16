@@ -99,6 +99,10 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 		//TODO: pending operations
     }
 	
+	protected WebMarkupContainer getLabelContainer() {
+		return (WebMarkupContainer)get(ID_LABEL_CONTAINER);
+	}
+	
 	private void createTitle(WebMarkupContainer labelContainer) {
 		Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));//.of(getModel(), IW::getDisplayName));
         displayName.add(new AttributeModifier("style", getDeprecatedCss()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;
 
-//	private LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel;
 	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModelNew;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
@@ -263,21 +262,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return wrapper; 
 	}
 
-//	public void loadFullShadow(FocusSubwrapperDto<ShadowType> shadowWrapperDto) {
-//		ObjectWrapperOld<ShadowType> shadowWrapperOld = shadowWrapperDto.getObjectOld();
-//		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
-//		FocusSubwrapperDto<ShadowType> shadowWrapperDtoNew = loadSubWrapperDto(ShadowType.class, shadowWrapperOld.getObject().getOid(), false, task);
-//		if (shadowWrapperDtoNew == null) {
-//			// No access or error. The status is in the last subresult of task result. TODO: pass the result explicitly to loadSubWrapperDto
-//			OperationResult subresult = task.getResult().getLastSubresult();
-//			shadowWrapperDto.getObjectOld().setFetchResult(subresult);
-//			return;
-//		}
-//		ObjectWrapperOld<ShadowType> shadowWrapperNew = shadowWrapperDtoNew.getObjectOld();
-//		shadowWrapperOld.copyRuntimeStateTo(shadowWrapperNew);
-//		shadowWrapperDto.setObjectOld(shadowWrapperNew);
-//	}
-	
 	public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue) {
 		if(shadowWrapperValue.getRealValue() == null) {
 			error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
@@ -285,7 +269,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			return;
 		}
 		String oid = shadowWrapperValue.getRealValue().getOid();
-//		ShadowWrapper<ShadowType> shadowWrapperOld = shadowWrapperValue.getParent();
 		Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
 		OperationResult result = task.getResult();
 		PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, oid, false, task,
