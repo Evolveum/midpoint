@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -211,7 +212,16 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	@Override
 	public void storeOperationStatsDeferred() {
+		refreshStoredThreadLocalPerformanceStats();
 		setOperationStats(getAggregatedLiveOperationStats());
+	}
+
+	/**
+	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
+	 */
+	@Override
+	public void refreshStoredThreadLocalPerformanceStats() {
+		statistics.refreshStoredPerformanceStats(getRepositoryService());
 	}
 
 	@Override
@@ -232,6 +242,8 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		if (lastOperationStatsUpdateTimestamp == null ||
 				System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
 			storeOperationStats();
+		} else {
+			refreshStoredThreadLocalPerformanceStats();
 		}
 	}
 
@@ -264,17 +276,23 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	@Override
 	public OperationStatsType getAggregatedLiveOperationStats() {
-		List<Statistics> subCollectors = getLightweightAsynchronousSubtasks().stream()
+		List<Statistics> subCollections = getLightweightAsynchronousSubtasks().stream()
 				.map(task -> task.getStatistics()).collect(Collectors.toList());
-		return statistics.getAggregatedLiveOperationStats(subCollectors);
+		return statistics.getAggregatedLiveOperationStats(subCollections);
 	}
 
 	@Override
 	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
+		startCollectingRepoAndCacheStats();
 		super.startCollectingOperationStats(strategy);
 		if (strategy.isStartFromZero()) {
 			storeOperationStats();
 		}
+	}
+
+	public void startCollectingRepoAndCacheStats() {
+		repositoryService.getPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
+		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 
 	Statistics getStatistics() {

@@ -1245,6 +1245,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                 try {
                     task.setLightweightHandlerExecuting(true);
                     task.setLightweightThread(Thread.currentThread());
+                    task.startCollectingRepoAndCacheStats();
                     lightweightTaskHandler.run(task);
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);

@@ -21,17 +21,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.*;
+import com.evolveum.midpoint.schema.util.CachePerformanceInformationUtil;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 
@@ -58,6 +60,24 @@ public class Statistics {
 	private SynchronizationInformation synchronizationInformation;                // has to be explicitly enabled
 	private IterativeTaskInformation iterativeTaskInformation;                    // has to be explicitly enabled
 	private ActionsExecutedInformation actionsExecutedInformation;            // has to be explicitly enabled
+
+	/**
+	 * Most current version of repository performance information. Original (live) form of this information is accessible only
+	 * from the task thread itself. So we have to refresh this item periodically from the task thread.
+	 *
+	 * DO NOT modify the content of this structure from multiple threads. The task thread should only replace the whole structure,
+	 * while other threads should only read it.
+	 */
+	private volatile RepositoryPerformanceInformationType repositoryPerformanceInformation;
+
+	/**
+	 * Most current version of cache performance information. Original (live) form of this information is accessible only
+	 * from the task thread itself. So we have to refresh this item periodically from the task thread.
+	 *
+	 * DO NOT modify the content of this structure from multiple threads. The task thread should only replace the whole structure,
+	 * while other threads should only read it.
+	 */
+	private volatile CachesPerformanceInformationType cachesPerformanceInformation;
 
 	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
 		return environmentalPerformanceInformation;
@@ -140,12 +160,42 @@ public class Statistics {
 		return rv;
 	}
 
+	private RepositoryPerformanceInformationType getAggregateRepositoryPerformanceInformation(Collection<Statistics> children) {
+		if (repositoryPerformanceInformation == null) {
+			return null;
+		}
+		RepositoryPerformanceInformationType rv = repositoryPerformanceInformation.clone();
+		for (Statistics child : children) {
+			RepositoryPerformanceInformationType info = child.getRepositoryPerformanceInformation();
+			if (info != null) {
+				PerformanceInformationUtil.addTo(rv, info);
+			}
+		}
+		return rv;
+	}
+
+	private CachesPerformanceInformationType getAggregateCachesPerformanceInformation(Collection<Statistics> children) {
+		if (cachesPerformanceInformation == null) {
+			return null;
+		}
+		CachesPerformanceInformationType rv = cachesPerformanceInformation.clone();
+		for (Statistics child : children) {
+			CachesPerformanceInformationType info = child.getCachesPerformanceInformation();
+			if (info != null) {
+				CachePerformanceInformationUtil.addTo(rv, info);
+			}
+		}
+		return rv;
+	}
+
 	public OperationStatsType getAggregatedLiveOperationStats(Collection<Statistics> children) {
 		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
 		IterativeTaskInformationType itit = getAggregateIterativeTaskInformation(children);
 		SynchronizationInformationType sit = getAggregateSynchronizationInformation(children);
 		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation(children);
-		if (env == null && itit == null && sit == null && aeit == null) {
+		RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
+		CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
+		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null) {
 			return null;
 		}
 		OperationStatsType rv = new OperationStatsType();
@@ -153,6 +203,8 @@ public class Statistics {
 		rv.setIterativeTaskInformation(itit);
 		rv.setSynchronizationInformation(sit);
 		rv.setActionsExecutedInformation(aeit);
+		rv.setRepositoryPerformanceInformation(repo);
+		rv.setCachesPerformanceInformation(caches);
 		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
@@ -330,5 +382,41 @@ public class Statistics {
 		} else {
 			actionsExecutedInformation = null;
 		}
+	}
+
+	/**
+	 * Cheap operation so we can (and should) invoke it frequently.
+	 * But ALWAYS call it from the thread that executes the task in question; otherwise we get wrong data there.
+	 */
+	public void refreshStoredPerformanceStats(RepositoryService repositoryService) {
+		refreshStoredRepositoryPerformanceInformation(repositoryService);
+		refreshStoredCachePerformanceInformation();
+	}
+
+	private void refreshStoredRepositoryPerformanceInformation(RepositoryService repositoryService) {
+		PerformanceInformation performanceInformation = repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
+		if (performanceInformation != null) {
+			repositoryPerformanceInformation = performanceInformation.toRepositoryPerformanceInformationType();
+		} else {
+			repositoryPerformanceInformation = null;       // probably we are not collecting these
+		}
+	}
+
+	private void refreshStoredCachePerformanceInformation() {
+		Map<String, CachePerformanceCollector.CacheData> performanceMap = CachePerformanceCollector.INSTANCE
+				.getThreadLocalPerformanceMap();
+		if (performanceMap != null) {
+			cachesPerformanceInformation = CachePerformanceInformationUtil.toCachesPerformanceInformationType(performanceMap);
+		} else {
+			cachesPerformanceInformation = null;
+		}
+	}
+
+	public RepositoryPerformanceInformationType getRepositoryPerformanceInformation() {
+		return repositoryPerformanceInformation;
+	}
+
+	public CachesPerformanceInformationType getCachesPerformanceInformation() {
+		return cachesPerformanceInformation;
 	}
 }

@@ -22,9 +22,9 @@ import com.evolveum.midpoint.util.ShortDumpable;
 
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.OptionalInt;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 
 /**
  * Temporary implementation.
@@ -33,12 +33,36 @@ public class CachePerformanceCollector implements DebugDumpable {
 
 	public static final CachePerformanceCollector INSTANCE = new CachePerformanceCollector();
 
+	private final Map<String, CacheData> performanceMap = new ConcurrentHashMap<>();
+
+	private final ThreadLocal<Map<String, CacheData>> threadLocalPerformanceMap = new ThreadLocal<>();
+
 	public static class CacheData implements ShortDumpable {
 		public final AtomicInteger hits = new AtomicInteger(0);
 		public final AtomicInteger weakHits = new AtomicInteger(0);             // e.g. hit but with getVersion call
 		public final AtomicInteger misses = new AtomicInteger(0);
 		public final AtomicInteger passes = new AtomicInteger(0);
 		public final AtomicInteger notAvailable = new AtomicInteger(0);
+
+		public AtomicInteger getHits() {
+			return hits;
+		}
+
+		public AtomicInteger getWeakHits() {
+			return weakHits;
+		}
+
+		public AtomicInteger getMisses() {
+			return misses;
+		}
+
+		public AtomicInteger getPasses() {
+			return passes;
+		}
+
+		public AtomicInteger getNotAvailable() {
+			return notAvailable;
+		}
 
 		public void add(AbstractCache cache) {
 			hits.addAndGet(cache.getHits());
@@ -70,40 +94,54 @@ public class CachePerformanceCollector implements DebugDumpable {
 		}
 	}
 
-	private final Map<String, CacheData> performanceMap = new ConcurrentHashMap<>();
-
 	public void onCacheDestroy(AbstractCache cache) {
-		getOrCreate(cache.getClass()).add(cache);
+		getOrCreate(performanceMap, cache.getClass()).add(cache);
+		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
+		if (localMap != null) {
+			getOrCreate(localMap, cache.getClass()).add(cache);
+		}
+	}
+
+	private void increment(Class<?> cacheClass, Function<CacheData, AtomicInteger> selector) {
+		selector.apply(getOrCreate(performanceMap, cacheClass)).incrementAndGet();
+		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
+		if (localMap != null) {
+			selector.apply(getOrCreate(localMap, cacheClass)).incrementAndGet();
+		}
 	}
 
 	public void registerHit(Class<?> cacheClass) {
-		getOrCreate(cacheClass).hits.incrementAndGet();
+		increment(cacheClass, CacheData::getHits);
 	}
 
 	public void registerWeakHit(Class<?> cacheClass) {
-		getOrCreate(cacheClass).weakHits.incrementAndGet();
+		increment(cacheClass, CacheData::getWeakHits);
 	}
 
 	public void registerMiss(Class<?> cacheClass) {
-		getOrCreate(cacheClass).misses.incrementAndGet();
+		increment(cacheClass, CacheData::getMisses);
 	}
 
 	public void registerPass(Class<?> cacheClass) {
-		getOrCreate(cacheClass).passes.incrementAndGet();
+		increment(cacheClass, CacheData::getPasses);
 	}
 
 	public void registerNotAvailable(Class<?> cacheClass) {
-		getOrCreate(cacheClass).notAvailable.incrementAndGet();
+		increment(cacheClass, CacheData::getNotAvailable);
 	}
 
-	private CacheData getOrCreate(Class<?> cacheClass) {
-		CacheData existingData = performanceMap.get(cacheClass.getName());
-		if (existingData != null) {
-			return existingData;
+	private CacheData getOrCreate(Map<String, CacheData> performanceMap, Class<?> cacheClass) {
+		if (performanceMap != null) {
+			CacheData existingData = performanceMap.get(cacheClass.getName());
+			if (existingData != null) {
+				return existingData;
+			} else {
+				CacheData newData = new CacheData();
+				performanceMap.put(cacheClass.getName(), newData);
+				return newData;
+			}
 		} else {
-			CacheData newData = new CacheData();
-			performanceMap.put(cacheClass.getName(), newData);
-			return newData;
+			return null;
 		}
 	}
 
@@ -122,5 +160,27 @@ public class CachePerformanceCollector implements DebugDumpable {
 			sb.append(String.format("%-"+(maxLength+1)+"s %s\n", name+":", performanceMap.get(name).shortDump()));
 		}
 		return sb.toString();
+	}
+
+	public Map<String, CacheData> getGlobalPerformanceMap() {
+		return performanceMap;
+	}
+
+	public Map<String, CacheData> getThreadLocalPerformanceMap() {
+		return threadLocalPerformanceMap.get();
+	}
+
+	/**
+	 * Starts gathering thread-local performance information, clearing existing (if any).
+	 */
+	public void startThreadLocalPerformanceInformationCollection() {
+		threadLocalPerformanceMap.set(new ConcurrentHashMap<>());
+	}
+
+	/**
+	 * Stops gathering thread-local performance information, clearing existing (if any).
+	 */
+	public void stopThreadLocalPerformanceInformationCollection() {
+		threadLocalPerformanceMap.remove();
 	}
 }
