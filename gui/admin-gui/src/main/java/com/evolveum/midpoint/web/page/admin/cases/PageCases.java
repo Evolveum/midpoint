@@ -53,6 +53,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     private static final Trace LOGGER = TraceManager.getTrace(PageCases.class);
 
     private static final String DOT_CLASS = PageCases.class.getName() + ".";
+    private static final String OPERATION_LOAD_REFERENCE_DISPLAY_NAME = DOT_CLASS + "loadReferenceDisplayName";
 
     private static final long serialVersionUID = 1L;
 
@@ -151,7 +152,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
                                 for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
                                     List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
                                     for (ObjectReferenceType actor : assignees) {
-                                        actorsList.add(actor.getTargetName() != null ? actor.getTargetName().getOrig() : actor.getOid());
+                                        actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, PageCases.this,
+                                                OPERATION_LOAD_REFERENCE_DISPLAY_NAME));
                                     }
                                 }
                                 actors = String.join(", ", actorsList);

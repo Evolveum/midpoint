@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,18 +17,6 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div wicket:id="details">
-    	<div wicket:id="itemsDetails">
-    		<div wicket:id="itemDetails" />
-    	</div>
-    	
-    	<div class="row">
-        	<div class="container-fluid prism-container">
-        		<div class="btn btn-default" wicket:id="cancelButton"/>
-            	<div class="btn btn-primary" wicket:id="doneButton"/>
-				<wicket:child />
-        	</div>
-    	</div>
-    </div>
+    <div class="btn btn-primary pull-right" wicket:id="workItemActivityButton"/>
 </wicket:extend>
 </html>

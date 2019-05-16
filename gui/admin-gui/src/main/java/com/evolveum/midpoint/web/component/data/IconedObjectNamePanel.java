@@ -45,6 +45,7 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     private static final String OPERATION_LOAD_REFERENCED_OBJECT = DOT_CLASS + "loadReferencedObject";
 
     ObjectReferenceType objectReference;
+    LoadableModel<AHT> referencedObjectModel = null;
 
     public IconedObjectNamePanel(String id, ObjectReferenceType objectReference){
         super(id);
@@ -58,12 +59,12 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        initReferencedObjectModel();
         initLayout();
     }
 
-    @Override
-    public IModel<AHT> createModel() {
-        return new LoadableModel<AHT>() {
+    public void initReferencedObjectModel() {
+        referencedObjectModel = new LoadableModel<AHT>() {
             @Override
             protected AHT load() {
                 PageBase pageBase = IconedObjectNamePanel.this.getPageBase();
@@ -82,12 +83,13 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
     private void initLayout(){
         setOutputMarkupId(true);
 
-        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(IconedObjectNamePanel.this.getModelObject(), IconedObjectNamePanel.this.getPageBase());
+        DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(referencedObjectModel.getObject(), getPageBase());
         ImagePanel imagePanel = new ImagePanel(ID_ICON, displayType);
         imagePanel.setOutputMarkupId(true);
         imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
+        add(imagePanel);
 
-        Label nameLabel = new Label(ID_NAME, Model.of(WebComponentUtil.getEffectiveName(getModelObject(), AbstractRoleType.F_DISPLAY_NAME)));
+        Label nameLabel = new Label(ID_NAME, Model.of(WebComponentUtil.getEffectiveName(referencedObjectModel.getObject(), AbstractRoleType.F_DISPLAY_NAME)));
         nameLabel.setOutputMarkupId(true);
         add(nameLabel);
 
