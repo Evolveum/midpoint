@@ -1843,6 +1843,7 @@ public class ShadowCache {
 		return ctx;
 	}
 
+	@NotNull
 	public SearchResultList<PrismObject<ShadowType>> searchObjects(ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, final OperationResult parentResult)
 					throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -1982,6 +1983,7 @@ public class ShadowCache {
 
 	}
 
+	@NotNull
 	public SearchResultList<PrismObject<ShadowType>> searchObjects(final ProvisioningContext ctx, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, final OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException,
@@ -2239,6 +2241,7 @@ public class ShadowCache {
 		return shadowManager.searchObjectsIterativeRepository(ctx, query, options, repoHandler, parentResult);
 	}
 
+	@NotNull
 	private SearchResultList<PrismObject<ShadowType>> searchObjectsRepository(ProvisioningContext ctx, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException,

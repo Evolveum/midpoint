@@ -468,6 +468,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return tokenProperty;
 	}
 
+	@NotNull
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -478,8 +479,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("objectType", type);
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-
-		final SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
@@ -501,6 +500,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
 			}
+			SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
 			objListType.setMetadata(metadata);
 			return objListType;
 		}
@@ -527,11 +527,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return objects;
 	}
 
+	@NotNull
 	@SuppressWarnings("unchecked")
 	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException {
 
-		List<PrismObject<T>> repoObjects = null;
+		List<PrismObject<T>> repoObjects;
 
 		// TODO: should searching connectors trigger rediscovery?
 
@@ -554,7 +555,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                     completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
                     result.addSubresult(objResult);
                 }
-                newObjListType.add((PrismObject<T>) completeResource);
+                newObjListType.add(completeResource);
 
 				// TODO: what else do to with objResult??
 
