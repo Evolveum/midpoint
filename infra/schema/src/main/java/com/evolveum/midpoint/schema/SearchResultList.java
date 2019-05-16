@@ -210,7 +210,7 @@ public class SearchResultList<T> implements List<T>, Cloneable, Serializable, Sh
 		SearchResultList<T> clone = new SearchResultList<>();
 		clone.metadata = this.metadata;		// considered read-only object
 		if (this.list != null) {
-			clone.list = new ArrayList(this.list.size());
+			clone.list = new ArrayList<>(this.list.size());
 			for (T item : this.list) {
 				clone.list.add(CloneUtil.clone(item));
 			}

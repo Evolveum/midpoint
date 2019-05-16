@@ -74,6 +74,10 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.cache2k</groupId>
+			<artifactId>cache2k-base-bom</artifactId>
+		</dependency>
 		
 		<!--  Spring dependencies -->
 		 <dependency>

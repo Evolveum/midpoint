@@ -22,13 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CacheObject<T extends ObjectType> {
+public class GlobalCacheObjectValue<T extends ObjectType> {
 
     private PrismObject<T> object;
 
     private long timeToLive;
 
-    public CacheObject(PrismObject<T> object, long timeToLive) {
+    public GlobalCacheObjectValue(PrismObject<T> object, long timeToLive) {
         this.object = object;
         this.timeToLive = timeToLive;
     }

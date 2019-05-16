@@ -231,7 +231,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 							.fullName(String.format(GENERATED_USER_FULL_NAME_FORMAT, i))
 							.givenName(String.format(GENERATED_USER_GIVEN_NAME_FORMAT, i))
 							.familyName(String.format(GENERATED_USER_FAMILY_NAME_FORMAT, i));
-					PrismProperty<Object> memberOf = null;
+					PrismProperty<Object> memberOf;
 					try {
 						memberOf = user.asPrismObject().createExtension().getValue()
 								.findOrCreateProperty(new ItemName("memberOf"));

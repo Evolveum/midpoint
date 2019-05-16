@@ -66,6 +66,7 @@
         <spring.boot.version>2.0.3.RELEASE</spring.boot.version>
         <spring.version>5.0.13.RELEASE</spring.version>
         <spring.security.version>5.0.12.RELEASE</spring.security.version>
+        <cache2k.version>1.2.1.Final</cache2k.version>
         <cas.client.version>3.5.0</cas.client.version>
         <testng.version>6.14.3</testng.version>
         <xml.resolver.version>1.2</xml.resolver.version>
@@ -836,6 +837,11 @@
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-ldap</artifactId>
                 <version>${spring.security.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.cache2k</groupId>
+                <artifactId>cache2k-base-bom</artifactId>
+                <version>${cache2k.version}</version>
             </dependency>
             <dependency> <!-- Needed for MethodInvocation object in security-impl, used by Spring Security -->
 	            <groupId>aopalliance</groupId>

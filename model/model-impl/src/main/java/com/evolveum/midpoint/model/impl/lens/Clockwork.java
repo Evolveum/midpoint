@@ -897,7 +897,7 @@ public class Clockwork {
 			String channel, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		OperationExecutionType operation = new OperationExecutionType(prismContext);
-		OperationResult summaryResult = new OperationResult("dummy");
+		OperationResult summaryResult = new OperationResult("recordOperationExecution");
 		String oid = object.getOid();
 		for (LensObjectDeltaOperation<F> deltaOperation : executedDeltas) {
 			operation.getOperation().add(createObjectDeltaOperation(deltaOperation));

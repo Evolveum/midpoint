@@ -15,15 +15,9 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
@@ -32,8 +26,10 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,20 +51,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
  * Read-through write-through per-session repository cache.
@@ -96,19 +78,23 @@ public class RepositoryCache implements RepositoryService {
 		set.add(SecurityPolicyType.class);
 		set.add(SystemConfigurationType.class);
 		set.add(ValuePolicyType.class);
+		// enabled if needed
+//		set.add(RoleType.class);
+//		set.add(OrgType.class);
+//		set.add(ServiceType.class);
+//		set.add(ShadowType.class);
 
 		GLOBAL_CACHE_SUPPORTED_TYPES = Collections.unmodifiableSet(set);
 	}
 
 	private static final ThreadLocal<Cache> cacheInstance = new ThreadLocal<>();
 
-	private static final Map<CacheKey, CacheObject> globalCache = new ConcurrentHashMap<>();
-
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MidpointConfiguration midpointConfiguration;
 	@Autowired private CacheDispatcher cacheDispatcher;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private GlobalCache globalCache;
 
 	private long cacheMaxTTL;
 
@@ -123,7 +109,7 @@ public class RepositoryCache implements RepositoryService {
 	@PostConstruct
 	public void initialize() {
 		int cacheMaxTTL = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION)
-				.getInt(PROPERTY_CACHE_MAX_TTL,0);
+				.getInt(PROPERTY_CACHE_MAX_TTL, 0);
 		if (cacheMaxTTL < 0) {
 			cacheMaxTTL = 0;
 		}
@@ -169,36 +155,87 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		Cache cache = getCache();
-		if (!isCacheable(type) || !nullOrHarmlessOptions(options, type)) {
-			if (cache != null) {
-				cache.recordPass();
-			}
-			// local cache not interested in caching this object
-			log("Cache: PASS {} ({})", oid, type.getSimpleName());
+		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 
-			return getObjectTryGlobalCache(type, oid, options, parentResult);
+		/*
+		 * Checks related to both caches
+		 */
+
+		Cache localCache = getCache();
+		if (notCacheable(type) || harmfulOptions(options, type)) {
+			// local nor global cache not interested in caching this object
+			if (localCache != null) {
+				localCache.recordPass();
+			}
+			collector.registerPass(GlobalCache.class);
+			log("Cache (local/global): PASS getObject {} ({}, {})", oid, type.getSimpleName(), options);
+
+			return getObjectInternal(type, oid, options, parentResult);
 		}
 
+		/*
+		 * Let's try local cache
+		 */
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 
-		if (cache == null) {
-			log("Cache: NULL {} ({})", oid, type.getSimpleName());
+		if (localCache == null) {
+			log("Cache (local): NULL getObject {} ({})", oid, type.getSimpleName());
 			registerNotAvailable();
 		} else {
-			PrismObject<T> object = (PrismObject) cache.getObject(oid);
+			//noinspection unchecked
+			PrismObject<T> object = (PrismObject) localCache.getObject(oid);
 			if (object != null) {
-				cache.recordHit();
-				log("Cache: HIT {} {} ({})", readOnly ? "" : "(clone)", oid, type.getSimpleName());
+				localCache.recordHit();
+				log("Cache (local): HIT {} getObject {} ({})", readOnly ? "" : "(clone)", oid, type.getSimpleName());
 				return cloneIfNecessary(object, readOnly);
 			}
-			cache.recordMiss();
-			log("Cache: MISS {} ({})", oid, type.getSimpleName());
+			localCache.recordMiss();
+			log("Cache (local): MISS {} getObject ({})", oid, type.getSimpleName());
 			//LOGGER.info("Cache: MISS (getObject) {} ({}) #{}", oid, type.getSimpleName(), cache.getMisses());
 		}
 
-		PrismObject<T> object = getObjectTryGlobalCache(type, oid, options, parentResult);
-		cacheObject(cache, object, readOnly);
+		/*
+		 * Then try global cache
+		 */
+
+		if (!supportsGlobalCaching(type)) {
+			// caller is not interested in cached value, or global cache doesn't want to cache value
+			collector.registerPass(GlobalCache.class);
+			PrismObject<T> object = getObjectInternal(type, oid, options, parentResult);
+			locallyCacheObject(localCache, object, readOnly);
+			return object;
+		}
+
+		GlobalCacheObjectKey key = new GlobalCacheObjectKey(type, oid);
+		GlobalCacheObjectValue<T> cacheObject = globalCache.getObject(key);
+
+		PrismObject<T> object;
+		if (cacheObject == null) {
+			collector.registerMiss(GlobalCache.class);
+			log("Cache (global): MISS getObject {}", key);
+			object = loadAndCacheObject(key, options, readOnly, localCache, parentResult);
+		} else {
+			if (!shouldCheckVersion(cacheObject)) {
+				collector.registerHit(GlobalCache.class);
+				log("Cache (global): HIT getObject {}", key);
+				object = cacheObject.getObject();
+				locallyCacheObjectWithoutCloning(localCache, object);
+				object = cloneIfNecessary(object, readOnly);
+			} else {
+				if (hasVersionChanged(key, cacheObject, parentResult)) {
+					collector.registerMiss(GlobalCache.class);
+					log("Cache (global): MISS because of version changed - getObject {}", key);
+					object = loadAndCacheObject(key, options, readOnly, localCache, parentResult);
+				} else {
+					cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);    // version matches, renew ttl
+					collector.registerWeakHit(GlobalCache.class);
+					log("Cache (global): HIT with version check - getObject {}", key);
+					object = cacheObject.getObject();
+					locallyCacheObjectWithoutCloning(localCache, object);
+					object = cloneIfNecessary(object, readOnly);
+				}
+			}
+		}
         return object;
 	}
 
@@ -209,53 +246,10 @@ public class RepositoryCache implements RepositoryService {
 	private <T extends ObjectType> PrismObject<T> cloneIfNecessary(PrismObject<T> object, boolean readOnly) {
 		if (readOnly) {
 			return object;
+		} else {
+			// if client requested writable object, we need to provide him with a copy
+			return object.clone();
 		}
-
-		return object.clone();
-	}
-
-	private <T extends ObjectType> PrismObject<T> getObjectTryGlobalCache(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-																		  OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-
-		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
-		Class<?> globalCacheClass = RepositoryCache.class;      // there's currently no special class for global cache
-		if (!supportsGlobalCaching(type, options)) {
-			// caller is not interested in cached value, or global cache doesn't want to cache value
-			collector.registerPass(globalCacheClass);
-            return getObjectInternal(type, oid, options, parentResult);
-		}
-
-		CacheKey key = new CacheKey(type, oid);
-		CacheObject<T> cacheObject = globalCache.get(key);
-
-        PrismObject<T> object;
-        if (cacheObject == null) {
-	        collector.registerMiss(globalCacheClass);
-            object = reloadObject(key, options, parentResult);
-        } else {
-            if (!shouldCheckVersion(cacheObject)) {
-	            collector.registerHit(globalCacheClass);
-                log("Cache: Global HIT {}", key);
-                object = cacheObject.getObject();
-            } else {
-                if (hasVersionChanged(key, cacheObject, parentResult)) {
-	                collector.registerMiss(globalCacheClass);
-                    object = reloadObject(key, options, parentResult);
-                } else {
-
-                    // version matches, renew ttl
-                    cacheObject.setTimeToLive(System.currentTimeMillis() + cacheMaxTTL);
-
-	                collector.registerWeakHit(globalCacheClass);
-                    log("Cache: Global HIT, version check {}", key);
-                    object = cacheObject.getObject();
-                }
-            }
-        }
-
-		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-
-		return cloneIfNecessary(object, readOnly);
 	}
 
 	private <T extends ObjectType> PrismObject<T> getObjectInternal(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
@@ -284,14 +278,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 	
-	private boolean isCacheable(Class<?> type) {
-		if (type.equals(TaskType.class)) {
-			return false;
-		}
-//		if (ShadowType.class.isAssignableFrom(type)) {
-//			return false;
-//		}
-		return true;
+	private boolean notCacheable(Class<?> type) {
+		return type.equals(TaskType.class);
 	}
 
 	@Override
@@ -304,19 +292,15 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		Cache cache = getCache();
 		// DON't cache the object here. The object may not have proper "JAXB" form, e.g. some pieces may be
 		// DOM element instead of JAXB elements. Not to cache it is safer and the performance loss
 		// is acceptable.
 		if (options != null && options.isOverwrite()) {
-			invalidateCacheEntry(object.getCompileTimeClass(), oid,
+			invalidateCacheEntries(object.getCompileTimeClass(), oid,
 					new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object));
 		} else {
 			// just for sure (the object should not be there but ...)
-			if (cache != null) {
-				cache.removeObject(oid);
-				cache.clearQueryResults(object.getCompileTimeClass(), new AddObjectResult<>(object), prismContext, matchingRuleRegistry);
-			}
+			invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object));
 		}
 		return oid;
 	}
@@ -325,56 +309,106 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-		Cache cache = getCache();
-		if (!isCacheable(type) || !nullOrHarmlessOptions(options, type)) {
-			if (cache != null) {
-				cache.recordPass();
+
+		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
+
+		/*
+		 * Checks related to both caches
+		 */
+
+		Cache localCache = getCache();
+		if (notCacheable(type) || harmfulOptions(options, type)) {
+			if (localCache != null) {
+				localCache.recordPass();
 			}
-			log("Cache: PASS ({})", type.getSimpleName());
-			Long startTime = repoOpStart();
-			try {
-				return repositoryService.searchObjects(type, query, options, parentResult);
-			} finally {
-				repoOpEnd(startTime);
-			}
+			collector.registerPass(GlobalCache.class);
+			log("Cache (local/global): PASS searchObjects ({}, {})", type.getSimpleName(), options);
+			return searchObjectsInternal(type, query, options, parentResult);
 		}
+
+		/*
+		 * Let's try local cache
+		 */
+
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-		if (cache == null) {
-			log("Cache: NULL ({})", type.getSimpleName());
+		if (localCache == null) {
+			log("Cache (local): NULL ({})", type.getSimpleName());
 			registerNotAvailable();
 		} else {
-			SearchResultList queryResult = cache.getQueryResult(type, query, prismContext);
+			SearchResultList queryResult = localCache.getQueryResult(type, query);
 			if (queryResult != null) {
-				cache.recordHit();
+				localCache.recordHit();
 				if (readOnly) {
-					log("Cache: HIT {} ({})", query, type.getSimpleName());
+					log("Cache: HIT searchObjects {} ({})", query, type.getSimpleName());
+					//noinspection unchecked
 					return queryResult;
 				} else {
-					log("Cache: HIT(clone) {} ({})", query, type.getSimpleName());
+					log("Cache: HIT(clone) searchObjects {} ({})", query, type.getSimpleName());
+					//noinspection unchecked
 					return queryResult.clone();
 				}
 			}
-			cache.recordMiss();
-			log("Cache: MISS {} ({})", query, type.getSimpleName());
+			localCache.recordMiss();
+			log("Cache: MISS searchObjects {} ({})", query, type.getSimpleName());
 			//LOGGER.info("Cache: MISS (searchObjects) {} ({}) #{}", query, type.getSimpleName(), cache.getMisses());
 		}
 
-		// Cannot satisfy from cache, pass down to repository
-		SearchResultList<PrismObject<T>> objects;
+		/*
+		 * Then try global cache
+		 */
+		QueryKey key = new QueryKey(type, query);
+		if (!supportsGlobalCaching(type)) {
+			// caller is not interested in cached value, or global cache doesn't want to cache value
+			collector.registerPass(GlobalCache.class);
+			SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, parentResult);
+			locallyCacheSearchResult(localCache, key, readOnly, objects);
+			return objects;
+		}
+
+		SearchResultList<PrismObject<T>> searchResult = globalCache.getQuery(key);
+
+		if (searchResult == null) {
+			collector.registerMiss(GlobalCache.class);
+			log("Cache (global): MISS searchObjects {}", key);
+			searchResult = executeAndCacheSearch(key, options, readOnly, localCache, parentResult);
+		} else {
+			collector.registerHit(GlobalCache.class);
+			log("Cache (global): HIT searchObjects {}", key);
+			locallyCacheSearchResult(localCache, key, readOnly, searchResult);
+		}
+		return searchResult;
+	}
+
+	private <T extends ObjectType> void locallyCacheSearchResult(Cache cache, QueryKey key,
+			boolean readOnly, SearchResultList<PrismObject<T>> objects) {
+		if (cache != null) {
+			for (PrismObject<T> object : objects) {
+				locallyCacheObject(cache, object, readOnly);
+			}
+			// TODO cloning before storing into cache?
+			cache.putQueryResult(key, objects);
+		}
+	}
+
+	private <T extends ObjectType> void globallyCacheSearchResult(QueryKey key, boolean readOnly,
+			SearchResultList<PrismObject<T>> objects) {
+		for (PrismObject<T> object : objects) {
+			globallyCacheObjectWithoutCloning(new GlobalCacheObjectKey(key.getType(), object.getOid()), object);
+		}
+		// TODO cloning before storing into cache?
+		globalCache.putQuery(key, objects);
+	}
+
+	@NotNull
+	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjectsInternal(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+			throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			objects = repositoryService.searchObjects(type, query, options, parentResult);
+			return repositoryService.searchObjects(type, query, options, parentResult);
 		} finally {
 			repoOpEnd(startTime);
 		}
-		if (cache != null) {
-			for (PrismObject<T> object : objects) {
-				cacheObject(cache, object, readOnly);
-			}
-			// TODO cloning before storing into cache?
-			cache.putQueryResult(type, query, objects, prismContext);
-		}
-		return objects;
 	}
 
 	@Override
@@ -401,7 +435,7 @@ public class RepositoryCache implements RepositoryService {
 		}
 		log("Cache: PASS searchObjectsIterative ({})", type.getSimpleName());
 		ResultHandler<T> myHandler = (object, parentResult1) -> {
-			cacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
+			locallyCacheObject(cache, object, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
 			return handler.handle(object, parentResult1);
 		};
 		Long startTime = repoOpStart();
@@ -496,19 +530,77 @@ public class RepositoryCache implements RepositoryService {
 			repoOpEnd(startTime);
 			// this changes the object. We are too lazy to apply changes ourselves, so just invalidate
 			// the object in cache
-			invalidateCacheEntry(type, oid, modifyInfo);
+			invalidateCacheEntries(type, oid, modifyInfo);
 		}
 	}
 
-	private <T extends ObjectType> void invalidateCacheEntry(Class<T> type, String oid, Object additionalInfo) {
+	private <T extends ObjectType> void invalidateCacheEntries(Class<T> type, String oid, Object additionalInfo) {
 		Cache cache = getCache();
 		if (cache != null) {
 			cache.removeObject(oid);
-			cache.clearQueryResults(type, additionalInfo, prismContext, matchingRuleRegistry);
+			clearQueryResultsLocally(cache, type, additionalInfo, prismContext, matchingRuleRegistry);
 		}
 
-		globalCache.remove(new CacheKey(type, oid));
+		globalCache.removeObject(new GlobalCacheObjectKey(type, oid));
+		clearQueryResultsGlobally(type, additionalInfo, prismContext, matchingRuleRegistry);
 		cacheDispatcher.dispatch(type, oid);
+	}
+
+	public <T extends ObjectType> void clearQueryResultsLocally(Cache cache, Class<T> type, Object additionalInfo, PrismContext prismContext,
+			MatchingRuleRegistry matchingRuleRegistry) {
+		// TODO implement more efficiently
+
+		ChangeDescription change = getChangeDescription(type, additionalInfo, prismContext);
+
+		long start = System.currentTimeMillis();
+		int all = 0;
+		int removed = 0;
+		Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = cache.getQueryIterator();
+		while (iterator.hasNext()) {
+			QueryKey queryKey = iterator.next().getKey();
+			all++;
+			if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
+				LOGGER.info("Removing (from local cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
+				iterator.remove();
+				removed++;
+			}
+		}
+		LOGGER.info("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
+	}
+
+	public <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, Object additionalInfo, PrismContext prismContext,
+			MatchingRuleRegistry matchingRuleRegistry) {
+		// TODO implement more efficiently
+
+		ChangeDescription change = getChangeDescription(type, additionalInfo, prismContext);
+
+		long start = System.currentTimeMillis();
+		AtomicInteger all = new AtomicInteger(0);
+		AtomicInteger removed = new AtomicInteger(0);
+
+		globalCache.invokeOnAllQueries(entry -> {
+			QueryKey queryKey = entry.getKey();
+			all.incrementAndGet();
+			if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
+				LOGGER.info("Removing (from global cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
+				entry.remove();
+				removed.incrementAndGet();
+			}
+			return null;
+		});
+		LOGGER.info("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
+	}
+
+	@Nullable
+	private <T extends ObjectType> ChangeDescription getChangeDescription(Class<T> type, Object additionalInfo,
+			PrismContext prismContext) {
+		ChangeDescription change;
+		if (!LookupTableType.class.equals(type) && !AccessCertificationCampaignType.class.equals(type)) {
+			change = ChangeDescription.getFrom(additionalInfo, prismContext);
+		} else {
+			change = null;      // these objects are tricky to query -- it's safer to evict their queries completely
+		}
+		return change;
 	}
 
 	@NotNull
@@ -522,7 +614,7 @@ public class RepositoryCache implements RepositoryService {
 			return deleteInfo;
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(type, oid, deleteInfo);
+			invalidateCacheEntries(type, oid, deleteInfo);
 		}
 	}
 
@@ -537,24 +629,24 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		if (ownerObject != null && nullOrHarmlessOptions(options, FocusType.class)) {
-			cacheObject(getCache(), ownerObject, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
+		if (ownerObject != null && !harmfulOptions(options, FocusType.class)) {
+			locallyCacheObject(getCache(), ownerObject, GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options)));
 		}
 		return ownerObject;
 	}
 
-	private boolean nullOrHarmlessOptions(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
+	private boolean harmfulOptions(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
 		if (options == null || options.isEmpty()) {
-			return true;
+			return false;
 		}
 		if (options.size() > 1) {
 			//LOGGER.info("Cache: PASS REASON: size>1: {}", options);
-			return false;
+			return true;
 		}
 		SelectorOptions<GetOperationOptions> selectorOptions = options.iterator().next();
 		if (!selectorOptions.isRoot()) {
 			//LOGGER.info("Cache: PASS REASON: !root: {}", options);
-			return false;
+			return true;
 		}
 		GetOperationOptions options1 = selectorOptions.getOptions();
 		// TODO FIX THIS!!!
@@ -564,18 +656,18 @@ public class RepositoryCache implements RepositoryService {
 				options1.equals(GetOperationOptions.createExecutionPhase()) ||
 				options1.equals(GetOperationOptions.createReadOnly()) ||
 				options1.equals(GetOperationOptions.createNoFetch())) {
-			return true;
+			return false;
 		}
 		if (options1.equals(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE))) {
 			if (SelectorOptions.isRetrievedFullyByDefault(objectType)) {
-				return true;
+				return false;
 			} else {
 				//LOGGER.info("Cache: PASS REASON: INCLUDE for {}: {}", objectType, options);
-				return false;
+				return true;
 			}
 		}
 		//LOGGER.info("Cache: PASS REASON: other: {}", options);
-		return false;
+		return true;
 	}
 
 	@Override
@@ -609,7 +701,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		Cache cache = getCache();
-		if (!isCacheable(type)) {
+		if (notCacheable(type)) {
 			if (cache != null) {
 				cache.recordPass();
 			}
@@ -682,16 +774,15 @@ public class RepositoryCache implements RepositoryService {
 		}
     }
 
-    private <T extends ObjectType> void cacheObject(Cache cache, PrismObject<T> object, boolean readOnly) {
+    private <T extends ObjectType> void locallyCacheObject(Cache cache, PrismObject<T> object, boolean readOnly) {
 		if (cache != null) {
-			PrismObject<ObjectType> objectToCache;
-			if (readOnly) {
-				object.setImmutable(true);
-				objectToCache = (PrismObject<ObjectType>) object;
-			} else {
-				objectToCache = (PrismObject<ObjectType>) object.clone();
-			}
-			cache.putObject(object.getOid(), objectToCache);
+			cache.putObject(object.getOid(), prepareObjectToCache(object, readOnly));
+		}
+	}
+
+    private <T extends ObjectType> void locallyCacheObjectWithoutCloning(Cache cache, PrismObject<T> object) {
+		if (cache != null) {
+			cache.putObject(object.getOid(), object);
 		}
 	}
 
@@ -762,7 +853,7 @@ public class RepositoryCache implements RepositoryService {
 			return repositoryService.advanceSequence(oid, parentResult);
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(SequenceType.class, oid, null);
+			invalidateCacheEntries(SequenceType.class, oid, null);
 		}
 	}
 
@@ -774,7 +865,7 @@ public class RepositoryCache implements RepositoryService {
 			repositoryService.returnUnusedValuesToSequence(oid, unusedValues, parentResult);
 		} finally {
 			repoOpEnd(startTime);
-			invalidateCacheEntry(SequenceType.class, oid, null);
+			invalidateCacheEntries(SequenceType.class, oid, null);
 		}
 	}
 
@@ -838,32 +929,18 @@ public class RepositoryCache implements RepositoryService {
 		return repositoryService.hasConflict(watcher, result);
 	}
 
-	private <T extends ObjectType> boolean supportsGlobalCaching(
-			Class<T> type, Collection<SelectorOptions<GetOperationOptions>> options) {
-
-		if (cacheMaxTTL <= 0) {
-			return false;
-		}
-
-		if (!GLOBAL_CACHE_SUPPORTED_TYPES.contains(type)) {
-			return false;
-		}
-
-		if (options != null && !options.isEmpty()) {    //todo support probably raw flag
-			return false;
-		}
-
-		return true;
+	private <T extends ObjectType> boolean supportsGlobalCaching(Class<T> type) {
+		return cacheMaxTTL > 0 && GLOBAL_CACHE_SUPPORTED_TYPES.contains(type);
 	}
 
 	private <T extends ObjectType> void removeObject(Class<T> type, String oid) {
 		Validate.notNull(type, "Type must not be null");
 		Validate.notNull(oid, "Oid must not be null");
 
-		globalCache.remove(new CacheKey(type, oid));
+		globalCache.removeObject(new GlobalCacheObjectKey(type, oid));
 	}
 
-	private boolean hasVersionChanged(CacheKey key, CacheObject object, OperationResult result)
+	private boolean hasVersionChanged(GlobalCacheObjectKey key, GlobalCacheObjectValue object, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 
 		try {
@@ -877,31 +954,58 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	private boolean shouldCheckVersion(CacheObject object) {
+	private boolean shouldCheckVersion(GlobalCacheObjectValue object) {
 		return object.getTimeToLive() < System.currentTimeMillis();
 	}
 
-	private <T extends ObjectType> PrismObject<T> reloadObject(
-			CacheKey key, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+	private <T extends ObjectType> PrismObject<T> loadAndCacheObject(GlobalCacheObjectKey key,
+			Collection<SelectorOptions<GetOperationOptions>> options, boolean readOnly, Cache localCache, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-
-
-		log("Cache: Global MISS {}", key);
-
 		try {
-			PrismObject object = getObjectInternal(key.getType(), key.getOid(), options, result);
-
-			long ttl = System.currentTimeMillis() + cacheMaxTTL;
-			CacheObject<T> cacheObject = new CacheObject<>(object, ttl);
-
-			globalCache.put(key, cacheObject);
-
-			return cacheObject.getObject();
+			//noinspection unchecked
+			PrismObject<T> object = (PrismObject<T>) getObjectInternal(key.getType(), key.getOid(), options, result);
+			PrismObject<T> objectToCache = prepareObjectToCache(object, readOnly);
+			globallyCacheObjectWithoutCloning(key, objectToCache);
+			locallyCacheObjectWithoutCloning(localCache, objectToCache);
+			return object;
 		} catch (ObjectNotFoundException | SchemaException ex) {
-			globalCache.remove(key);
-
+			globalCache.removeObject(key);
 			throw ex;
 		}
+	}
+
+	private <T extends ObjectType> void globallyCacheObjectWithoutCloning(GlobalCacheObjectKey key,
+			PrismObject<T> objectToCache) {
+		long ttl = System.currentTimeMillis() + cacheMaxTTL;
+		globalCache.putObject(key, new GlobalCacheObjectValue<>(objectToCache, ttl));
+	}
+
+	private <T extends ObjectType> SearchResultList<PrismObject<T>> executeAndCacheSearch(QueryKey key,
+			Collection<SelectorOptions<GetOperationOptions>> options, boolean readOnly, Cache localCache, OperationResult result)
+			throws SchemaException {
+		try {
+			//noinspection unchecked
+			SearchResultList<PrismObject<T>> searchResult = (SearchResultList) searchObjectsInternal(key.getType(), key.getQuery(), options, result);
+			locallyCacheSearchResult(localCache, key, readOnly, searchResult);
+			globallyCacheSearchResult(key, readOnly, searchResult);
+			return searchResult;
+		} catch (SchemaException ex) {
+			globalCache.removeQuery(key);
+			throw ex;
+		}
+	}
+
+	@NotNull
+	private <T extends ObjectType> PrismObject<T> prepareObjectToCache(PrismObject<T> object, boolean readOnly) {
+		PrismObject<T> objectToCache;
+		if (readOnly) {
+			object.setImmutable(true);
+			objectToCache = object;
+		} else {
+			// We are going to return the object (as mutable), so we must store a clone
+			objectToCache = object.clone();
+		}
+		return objectToCache;
 	}
 
 	@Override
@@ -917,7 +1021,7 @@ public class RepositoryCache implements RepositoryService {
 			// the object in cache
 			// TODO specify additional info more precisely (but currently we use this method only in connection with TaskType
 			//  and this kind of object is not cached anyway, so let's ignore this
-			invalidateCacheEntry(type, oid, null);
+			invalidateCacheEntries(type, oid, null);
 		}
 	}
 

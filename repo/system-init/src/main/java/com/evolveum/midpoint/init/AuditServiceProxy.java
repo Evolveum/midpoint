@@ -237,7 +237,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 									.build();
 							try {
 								PrismObject<? extends ObjectType> object = repositoryService.getObject(
-										objectClass, oid, nameOnly, new OperationResult("dummy"));
+										objectClass, oid, nameOnly, new OperationResult(AuditServiceProxy.class.getName()+".completeRecord.resolveName"));
 								PolyString name = object.getName();
 								refVal.setTargetName(name);
 								resolvedOids.put(oid, name);

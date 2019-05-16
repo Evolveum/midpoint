@@ -625,7 +625,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			}
 
 			countHolder.setValue(countHolder.getValue() + 1);
-			incrementAndRecordProgress(localCoordinatorTask, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
+			incrementAndRecordProgress(localCoordinatorTask, new OperationResult("performShadowReconciliation.incrementAndRecordProgress"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
 			return localCoordinatorTask.canRun();
 		};
 

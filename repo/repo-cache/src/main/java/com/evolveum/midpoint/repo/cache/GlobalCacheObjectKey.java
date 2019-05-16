@@ -21,12 +21,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class CacheKey {
+public class GlobalCacheObjectKey {
 
     private Class<? extends ObjectType> type;
     private String oid;
 
-    public CacheKey(Class<? extends ObjectType> type, String oid) {
+    public GlobalCacheObjectKey(Class<? extends ObjectType> type, String oid) {
         this.type = type;
         this.oid = oid;
     }
@@ -44,7 +44,7 @@ public class CacheKey {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        CacheKey cacheKey = (CacheKey) o;
+        GlobalCacheObjectKey cacheKey = (GlobalCacheObjectKey) o;
 
         if (type != null ? !type.equals(cacheKey.type) : cacheKey.type != null) return false;
         return oid != null ? oid.equals(cacheKey.oid) : cacheKey.oid == null;

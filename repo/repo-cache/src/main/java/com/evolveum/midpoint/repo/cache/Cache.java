@@ -66,42 +66,15 @@ public class Cache extends AbstractCache {
         versions.remove(oid);
     }
 
-    public <T extends ObjectType> void putQueryResult(Class<T> type, ObjectQuery query, SearchResultList searchResultList, PrismContext prismContext) {
-        QueryKey queryKey = createQueryKey(type, query, prismContext);
-        if (queryKey != null) {     // TODO BRUTAL HACK
-            queries.put(queryKey, searchResultList);
-        }
+    public void putQueryResult(QueryKey key, SearchResultList searchResultList) {
+        queries.put(key, searchResultList);
     }
 
-    public <T extends ObjectType> void clearQueryResults(Class<T> type, Object additionalInfo, PrismContext prismContext,
-            MatchingRuleRegistry matchingRuleRegistry) {
-        // TODO implement more efficiently
-
-        ChangeDescription change;
-        if (!LookupTableType.class.equals(type) && !AccessCertificationCampaignType.class.equals(type)) {
-            change = ChangeDescription.getFrom(additionalInfo, prismContext);
-        } else {
-            change = null;      // these objects are tricky to query -- it's safer to evict their queries completely
-        }
-
-        int removed = 0;
-        Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = queries.entrySet().iterator();
-        while (iterator.hasNext()) {
-            QueryKey queryKey = iterator.next().getKey();
-            if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
-                LOGGER.info("Removing query for type={}, change={}: {}", type, change, queryKey.getQuery());
-                iterator.remove();
-                removed++;
-            }
-        }
-        LOGGER.info("Removed {} query result entries of type {}", removed, type);
+    public SearchResultList getQueryResult(Class<? extends ObjectType> type, ObjectQuery query) {
+        return queries.get(createQueryKey(type, query));
     }
 
-    public SearchResultList getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, PrismContext prismContext) {
-        return queries.get(createQueryKey(type, query, prismContext));
-    }
-
-    private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query, PrismContext prismContext) {
+    private QueryKey createQueryKey(Class<? extends ObjectType> type, ObjectQuery query) {
         return new QueryKey(type, query);
     }
 
@@ -111,5 +84,9 @@ public class Cache extends AbstractCache {
 
     public void putObjectVersion(String oid, String version) {
         versions.put(oid, version);
+    }
+
+    public Iterator<Map.Entry<QueryKey, SearchResultList>> getQueryIterator() {
+        return queries.entrySet().iterator();
     }
 }
