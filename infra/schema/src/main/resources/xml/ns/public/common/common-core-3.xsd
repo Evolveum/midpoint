@@ -2971,6 +2971,22 @@
             <xsd:element name="iterativeTaskInformation" type="tns:IterativeTaskInformationType" minOccurs="0"/>
             <xsd:element name="synchronizationInformation" type="tns:SynchronizationInformationType" minOccurs="0"/>
             <xsd:element name="actionsExecutedInformation" type="tns:ActionsExecutedInformationType" minOccurs="0"/>
+            <xsd:element name="repositoryPerformanceInformation" type="tns:RepositoryPerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="cachesPerformanceInformation" type="tns:CachesPerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
@@ -2990,7 +3006,90 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="TaskExecutionStatusType">
+	<xsd:complexType name="RepositoryPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about repository performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operation" type="tns:RepositoryOperationPerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="RepositoryOperationPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about single repository operation kind (e.g. getObject) performance.
+
+				It is strongly related to the internal implementation of the repository, so it may change at any time.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" />
+			<xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="executionCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="CachesPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about performance of various caches present in midPoint.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cache" type="tns:SingleCachePerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="SingleCachePerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about performance of a given (single) cache.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" />
+			<xsd:element name="hitCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="weakHitCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="missCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="passCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="notAvailableCount" type="xsd:int" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="TaskExecutionStatusType">
         <xsd:annotation>
             <xsd:documentation>
                 Execution status provides information about the task overall high-level execution state. It tells

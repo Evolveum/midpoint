@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -135,6 +136,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
     public static final int MAIN_LOG_WARN_THRESHOLD = 8;
+
+    private static final int RESTART_LIMIT = 1000;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
@@ -453,6 +456,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT);
         int attempt = 1;
+        int restarts = 0;
         try {
 	        // TODO use executeAttempts
 	        final String operation = "adding";
@@ -460,9 +464,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	        String proposedOid = object.getOid();
 	        while (true) {
 	            try {
-	                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
-		            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
-		            return createdOid;
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+                    invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
+                    return createdOid;
+                } catch (RestartOperationRequestedException ex) {
+	                // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    }
 	            } catch (RuntimeException ex) {
 	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
@@ -539,8 +550,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @NotNull
     @Override
     public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
-                                                    Collection<? extends ItemDelta> modifications,
-                                                    OperationResult result)
+            Collection<? extends ItemDelta> modifications, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         return modifyObject(type, oid, modifications, null, result);
     }
@@ -576,7 +586,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
-            return null;
+            return new ModifyObjectResult<>();
         }
 
         if (InternalsConfig.encryptionChecks) {
@@ -607,6 +617,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts?
         final String operation = "modifying";
         int attempt = 1;
+        int restarts = 0;
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT);
@@ -617,6 +628,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
 	                return rv;
+                } catch (RestartOperationRequestedException ex) {
+                    // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    }
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);

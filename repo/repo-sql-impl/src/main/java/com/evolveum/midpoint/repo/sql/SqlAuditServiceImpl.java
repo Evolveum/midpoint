@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;

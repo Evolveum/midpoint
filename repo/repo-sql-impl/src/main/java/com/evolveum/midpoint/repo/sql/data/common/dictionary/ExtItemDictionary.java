@@ -17,8 +17,9 @@
 package com.evolveum.midpoint.repo.sql.data.common.dictionary;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
-import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
@@ -61,7 +62,7 @@ public class ExtItemDictionary {
     }
 
     private void fetchItems() {
-        executeAttempts("fetchExtItems", "fetch ext items", () -> fetchItemsAttempt());
+        executeAttempts(RepositoryService.OP_FETCH_EXT_ITEMS, "fetch ext items", () -> fetchItemsAttempt());
     }
 
     private void fetchItemsAttempt() {
@@ -131,7 +132,7 @@ public class ExtItemDictionary {
             addExtItemAttempt(item);
 
             if (throwExceptionAfterCreate) {
-                throw new SerializationRelatedException("Restarting parent operation");
+                throw new RestartOperationRequestedException("Restarting parent operation because an extension item was created");
             }
         }
 

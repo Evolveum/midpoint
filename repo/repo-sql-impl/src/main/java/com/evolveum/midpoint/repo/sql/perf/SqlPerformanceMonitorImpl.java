@@ -1,0 +1,216 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.repo.sql.perf;
+
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ *
+ */
+public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlPerformanceMonitorImpl.class);
+
+    public static final int LEVEL_NONE = 0;
+    public static final int LEVEL_GLOBAL_STATISTICS = 2;
+    public static final int LEVEL_LOCAL_STATISTICS = 4;
+    public static final int LEVEL_DETAILS = 10;
+
+    private int level = 0;
+
+    private AtomicLong currentHandle = new AtomicLong();
+
+    /**
+     * Operations that were started but not finished yet. Indexed by handle.
+     * It is used at levels > NONE (0).
+     */
+    private final Map<Long, OperationRecord> outstandingOperations = new ConcurrentHashMap<>();
+
+    /**
+     * Operations that were completed. Used for archival and detailed analysis purpose (presumably only for tests).
+     * It is used at levels >= DETAILS (10).
+     */
+    private final List<OperationRecord> finishedOperations = Collections.synchronizedList(new ArrayList<>());
+
+    /**
+     * Aggregated operations performance information local to the thread.
+     * It is used at levels >= STATISTICS (1).
+     */
+    private final ThreadLocal<PerformanceInformationImpl> threadLocalPerformanceInformation = new ThreadLocal<>();
+
+    /**
+     * Aggregated operations performance information common to all threads.
+     * It is used at levels >= STATISTICS (1).
+     */
+    private final PerformanceInformationImpl globalPerformanceInformation = new PerformanceInformationImpl();
+
+    private SqlRepositoryFactory sqlRepositoryFactory;
+
+    @Override
+    public void clearGlobalPerformanceInformation() {
+        globalPerformanceInformation.clear();
+    }
+
+    @Override
+    public PerformanceInformationImpl getGlobalPerformanceInformation() {
+        return globalPerformanceInformation;
+    }
+
+    @Override
+    public void startThreadLocalPerformanceInformationCollection() {
+        threadLocalPerformanceInformation.set(new PerformanceInformationImpl());
+    }
+
+    @Override
+    public PerformanceInformationImpl getThreadLocalPerformanceInformation() {
+        return threadLocalPerformanceInformation.get();
+    }
+
+    @Override
+    public void stopThreadLocalPerformanceInformationCollection() {
+        threadLocalPerformanceInformation.remove();
+    }
+
+    public void initialize(SqlRepositoryFactory sqlRepositoryFactory) {
+        outstandingOperations.clear();
+        finishedOperations.clear();
+        globalPerformanceInformation.clear();
+        threadLocalPerformanceInformation.remove();         // at least for this thread; other threads have to do their own homework
+        this.sqlRepositoryFactory = sqlRepositoryFactory;
+        this.level = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
+        if (level >= LEVEL_NONE) {
+            LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
+        }
+    }
+
+    public void shutdown() {
+        if (level > LEVEL_NONE) {
+            LOGGER.info("SQL Performance Monitor shutting down.");
+            synchronized (finishedOperations) {
+                LOGGER.info("Statistics:\n{}", OutputFormatter.getFormattedStatistics(finishedOperations, outstandingOperations));
+                String file = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsFile();
+                if (file != null) {
+                    OutputFormatter.writeStatisticsToFile(file, finishedOperations, outstandingOperations);
+                }
+            }
+        }
+        if (level >= LEVEL_GLOBAL_STATISTICS) {
+            LOGGER.info("Global performance information:\n{}", globalPerformanceInformation.debugDump());
+        }
+    }
+
+    public long registerOperationStart(String kind) {
+        if (level > LEVEL_NONE) {
+            long handle = currentHandle.getAndIncrement();
+            if (outstandingOperations.containsKey(handle)) {
+                OperationRecord unfinishedOperation = outstandingOperations.get(handle);
+                LOGGER.error("Unfinished operation -- should never occur: {}", unfinishedOperation);
+                throw new IllegalStateException("Unfinished operation -- should never occur: " + unfinishedOperation);
+            }
+            outstandingOperations.put(handle, new OperationRecord(kind, handle));
+            return handle;
+        } else {
+            return 0L;
+        }
+    }
+
+    public void registerOperationFinish(long opHandle, int attempt) {
+        if (level > LEVEL_NONE) {
+            OperationRecord operation = outstandingOperations.get(opHandle);
+            if (isOperationHandleOk(operation, opHandle)) {
+                registerOperationFinishInternal(operation, attempt);
+            }
+        }
+    }
+
+    private boolean isOperationHandleOk(OperationRecord operation, long opHandle) {
+        if (operation == null) {
+            LOGGER.warn("Tried to record attempt/finish event for unregistered operation: handle = {}, ignoring the request.", opHandle);
+            return false;
+        } else if (operation.getHandle() != opHandle) {
+            throw new IllegalStateException(
+                    "Tried to record attempt/finish event with unexpected operation handle: handle = " + opHandle
+                            + ", stored outstanding operation for this thread = " + operation);
+        } else {
+            return true;
+        }
+    }
+
+    private void registerOperationFinishInternal(OperationRecord operation, int attempt) {
+        operation.setTotalTime(System.currentTimeMillis() - operation.getStartTime());
+        operation.setAttempts(attempt);
+        outstandingOperations.remove(operation.getHandle());
+        if (level >= LEVEL_DETAILS) {
+            finishedOperations.add(operation);
+        }
+        if (level >= LEVEL_GLOBAL_STATISTICS) {
+            globalPerformanceInformation.register(operation);
+        }
+        if (level >= LEVEL_LOCAL_STATISTICS) {
+            PerformanceInformationImpl localInformation = threadLocalPerformanceInformation.get();
+            if (localInformation != null) {
+                localInformation.register(operation);
+            }
+        }
+    }
+
+    public void registerOperationNewAttempt(long opHandle, int attempt) {
+        if (level > LEVEL_NONE) {
+            OperationRecord operation = outstandingOperations.get(opHandle);
+            if (isOperationHandleOk(operation, opHandle)) {
+                operation.setWastedTime(System.currentTimeMillis() - operation.getStartTime());
+                operation.setAttempts(attempt);
+            }
+        }
+    }
+
+    // to be used in tests
+    @SuppressWarnings("unused")     // maybe in future
+    public List<OperationRecord> getFinishedOperations(String kind) {
+        List<OperationRecord> matching = new ArrayList<>();
+        synchronized (finishedOperations) {
+            for (OperationRecord record : finishedOperations) {
+                if (Objects.equals(kind, record.getKind())) {
+                    matching.add(record);
+                }
+            }
+        }
+        return matching;
+    }
+
+    // to be used in tests
+    public int getFinishedOperationsCount(String kind) {
+        int rv = 0;
+        synchronized (finishedOperations) {
+            for (OperationRecord record : finishedOperations) {
+                if (Objects.equals(kind, record.getKind())) {
+                    rv++;
+                }
+            }
+        }
+        return rv;
+    }
+
+}

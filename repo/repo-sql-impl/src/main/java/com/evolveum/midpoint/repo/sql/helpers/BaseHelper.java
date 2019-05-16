@@ -186,6 +186,10 @@ public class BaseHelper {
 	public int logOperationAttempt(String oid, String operation, int attempt, @NotNull RuntimeException ex,
 			OperationResult result) {
 
+		if (ex instanceof RestartOperationRequestedException) {
+			// This is a special case: we would like to restart
+		}
+
 		boolean serializationException = isExceptionRelatedToSerialization(ex);
 
 		if (!serializationException) {

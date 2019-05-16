@@ -14,23 +14,26 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.api;
-
-import java.util.Map;
+package com.evolveum.midpoint.repo.api.perf;
 
 /**
  *  EXPERIMENTAL. Probably temporary.
  */
 public interface PerformanceMonitor {
 
-	Snapshot createSnapshot();
+	void clearGlobalPerformanceInformation();
 
-	Snapshot createDifferenceSnapshot(Snapshot base);
+	PerformanceInformation getGlobalPerformanceInformation();
 
-	interface Snapshot {
+	/**
+	 * Starts gathering thread-local performance information, clearing existing (if any).
+	 */
+	void startThreadLocalPerformanceInformationCollection();
 
-		int getCounter(String kind);
+	/**
+	 * Stops gathering thread-local performance information, clearing existing (if any).
+	 */
+	void stopThreadLocalPerformanceInformationCollection();
 
-		Map<String, Integer> getCounters();
-	}
+	PerformanceInformation getThreadLocalPerformanceInformation();
 }

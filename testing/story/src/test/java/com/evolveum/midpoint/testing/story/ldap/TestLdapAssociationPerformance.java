@@ -20,9 +20,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.PerformanceMonitor;
-import com.evolveum.midpoint.repo.sql.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
+import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,9 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.util.LDIFException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,8 +44,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Performance tests for accounts with large number of role assignments and group associations; using assignmentTargetSearch,
@@ -178,7 +173,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		getRepoPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
 		resetCachePerformanceCollector();
 
 		long startMillis = System.currentTimeMillis();
@@ -196,8 +191,9 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		long endMillis = System.currentTimeMillis();
 		recordDuration(TEST_NAME, (endMillis - startMillis));
 
-		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
-		dumpRepoSnapshot("SQL operations for " + TEST_NAME, snapshot, "role", NUMBER_OF_GENERATED_ROLES);
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor()
+				.getThreadLocalPerformanceInformation();
+		dumpRepoSnapshot("SQL operations for " + TEST_NAME, performanceInformation, "role", NUMBER_OF_GENERATED_ROLES);
 		dumpCachePerformanceData(TEST_NAME);
 
 		result.computeStatus();
@@ -220,7 +216,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		getRepoPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
 		resetCachePerformanceCollector();
 
 		long startMillis = System.currentTimeMillis();
@@ -251,8 +247,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		long endMillis = System.currentTimeMillis();
 		recordDuration(TEST_NAME, (endMillis - startMillis));
 
-		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
-		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, snapshot);
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getThreadLocalPerformanceInformation();
+		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
 		dumpCachePerformanceData(TEST_NAME);
 
 		result.computeStatus();
@@ -261,17 +257,20 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		assertLdapConnectorInstances(1);
 	}
 
-	private void dumpRepoSnapshotPerUser(String label, PerformanceMonitor.Snapshot snapshot) {
-		dumpRepoSnapshot(label, snapshot, "user", NUMBER_OF_GENERATED_USERS);
+	private void dumpRepoSnapshotPerUser(String label, PerformanceInformation performanceInformation) {
+		dumpRepoSnapshot(label, performanceInformation, "user", NUMBER_OF_GENERATED_USERS);
 	}
 
-	private void dumpRepoSnapshot(String label, PerformanceMonitor.Snapshot snapshot, String unit, int unitCount) {
-		Map<String, Integer> counters = snapshot.getCounters();
+	private void dumpRepoSnapshot(String label, PerformanceInformation performanceInformation, String unit, int unitCount) {
+		display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", performanceInformation);
+
+		// per unit:
+		Map<String, OperationPerformanceInformation> counters = performanceInformation.getAllData();
 		ArrayList<String> kinds = new ArrayList<>(counters.keySet());
 		kinds.sort(String::compareToIgnoreCase);
 		StringBuilder sb = new StringBuilder();
-		kinds.forEach(kind -> sb.append(String.format(REPO_LINE_FORMAT, kind, counters.get(kind), (double) counters.get(kind) / unitCount, unit)));
-		display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles)", sb.toString());
+		kinds.forEach(kind -> sb.append(String.format(REPO_LINE_FORMAT, kind, counters.get(kind).getInvocationCount(), (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
+		display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
 	}
 
 	@Test
@@ -289,7 +288,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		addTask(TASK_RECOMPUTE_1_FILE);
 
-		PerformanceMonitor.Snapshot base = getRepoPerformanceMonitor().createSnapshot();
+		getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
 		resetCachePerformanceCollector();
 
 		waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
@@ -299,8 +298,9 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
 
-		PerformanceMonitor.Snapshot snapshot = getRepoPerformanceMonitor().createDifferenceSnapshot(base);
-		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, snapshot);
+		// todo retrieve this information from finished task
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
+		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
 		dumpCachePerformanceData(TEST_NAME);
 
 		assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
@@ -356,35 +356,6 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
 	}
 	
-	private void ruinLdapAccounts() throws DirectoryException, LDIFException, IOException {
-		for (Entry entry : openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON)) {
-			String cn = openDJController.getAttributeValue(entry, "cn");
-			if (cn.startsWith("Random")) {
-				cn = cn.replace("Random", "Broken");
-				openDJController.modifyReplace(entry.getDN().toString(), "cn", cn);
-//				display("Replaced", openDJController.fetchEntry(entry.getDN().toString()));
-//			} else {
-//				display("NOT RANDOM: "+cn, entry);
-			}
-		}
-		dumpLdap();
-	}
-	
-//	protected void assertLdapAccounts() throws DirectoryException {
-//		List<? extends Entry> entries = openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON);
-//		int randoms = 0;
-//		for (Entry entry : openDJController.search("objectclass="+OBJECTCLASS_INETORGPERSON)) {
-//			String cn = openDJController.getAttributeValue(entry, "cn");
-//			if (cn.startsWith("Broken")) {
-//				fail("Broken LDAP account: "+entry);
-//			}
-//			if (cn.startsWith("Random")) {
-//				randoms++;
-//			}
-//		}
-//		assertEquals("Wrong number of Random LDAP accounts", NUMBER_OF_GENERATED_USERS, randoms);
-//	}
-
 	private long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<TaskType> reconTask = getTask(taskReconOpendjOid);
      	return (XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunFinishTimestamp()) 

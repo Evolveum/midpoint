@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -178,6 +179,7 @@ public interface RepositoryService {
 	String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
 	String OP_SEARCH_OBJECTS = "searchObjects";
 	String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+	String OP_FETCH_EXT_ITEMS = "fetchExtItems";
 
 	/**
 	 * Returns object for provided OID.
