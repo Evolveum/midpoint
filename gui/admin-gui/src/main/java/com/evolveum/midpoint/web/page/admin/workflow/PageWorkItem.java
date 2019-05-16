@@ -19,14 +19,18 @@ import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -58,12 +62,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_PARENT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ORIGINAL_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_REQUESTER_REF;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
+//import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_EXTERNAL_ID;
 
 /**
  * @author mederly
@@ -98,11 +102,13 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 	private LoadableModel<WorkItemDto> workItemDtoModel;
 	private String externalizedProtectedId;
+	private String parentCaseOid;
+	private long workItemId;
 	private PrismObject<UserType> powerDonor;
 
     public PageWorkItem(PageParameters parameters) {
 
-		externalizedProtectedId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+		parentCaseOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		if (externalizedProtectedId == null) {
 			throw new IllegalStateException("Work item ID not specified.");
 		}
@@ -139,54 +145,56 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = task.getResult();
         WorkItemDto workItemDto = null;
         try {
-        	ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
-	        final ObjectQuery query = getPrismContext().queryFor(WorkItemType.class)
-					.item(F_EXTERNAL_ID).eq(protectedWorkItemId.id)
-					.build();
-			final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-					.items(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF).resolve()
-					.build();
-			List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
-			if (workItems.size() > 1) {
-				throw new SystemException("More than one work item with ID of " + protectedWorkItemId.id);
-			} else if (workItems.size() == 0) {
-				throw new ObjectNotFoundException("No work item with ID of " + protectedWorkItemId.id);
-			}
-			final WorkItemType workItem = workItems.get(0);
-	        String taskOid = WfContextUtil.getTaskOid(workItem);
-			if (taskOid == null) {
-				// this is a problem ... most probably we will not be able to do anything reasonable - let's give it up
-				result.recordFatalError(getString("PageWorkItem.noRequest"));
-				showResult(result, false);
-				throw redirectBackViaRestartResponseException();
-			} else if (!protectedWorkItemId.isCorrect(workItem)) {
-				throw new IllegalArgumentException("Wrong work item hash");
-			}
-			TaskType taskType = null;
-			List<TaskType> relatedTasks = new ArrayList<>();
-			final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = getOperationOptionsBuilder()
-					.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).resolve()
-					.item(F_WORKFLOW_CONTEXT, F_WORK_ITEM).retrieve()
-					.build();
-			try {
-				taskType = getModelService().getObject(TaskType.class, taskOid, getTaskOptions, task, result).asObjectable();
-			} catch (AuthorizationException e) {
-				LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, taskOid);
-			}
-			if (taskType != null && taskType.getParent() != null) {
-				final ObjectQuery relatedTasksQuery = getPrismContext().queryFor(TaskType.class)
-						.item(F_PARENT).eq(taskType.getParent())
-						.build();
-				List<PrismObject<TaskType>> relatedTaskObjects = getModelService()
-						.searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
-				for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
-					relatedTasks.add(relatedObject.asObjectable());
-				}
-			}
-			workItemDto = new WorkItemDto(workItem, taskType, relatedTasks, PageWorkItem.this);
-			workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task,
-					result);
-			result.recordSuccessIfUnknown();
+
+//            ProtectedWorkItemId protectedWorkItemId = ProtectedWorkItemId.fromExternalForm(externalizedProtectedId);
+            final ObjectQuery query = getPrismContext().queryFor(CaseWorkItemType.class)
+//                    .item(F_EXTERNAL_ID).eq(protectedWorkItemId.id) 		//TODO !!! fix
+                    .build();
+            final Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                    .items(F_ASSIGNEE_REF, F_ORIGINAL_ASSIGNEE_REF).resolve()
+                    .build();
+            List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
+            if (workItems.size() > 1) {
+                throw new SystemException("More than one work item with ID of " + externalizedProtectedId); //todo fix protectedWorkItemId.id);
+            } else if (workItems.size() == 0) {
+                throw new ObjectNotFoundException("No work item with ID of " + externalizedProtectedId); //todo fix protectedWorkItemId.id);
+            }
+            final CaseWorkItemType workItem = workItems.get(0);
+            final CaseType aCase = CaseWorkItemUtil.getCase(workItem);
+            if (aCase == null) {
+                // this is a problem ... most probably we will not be able to do anything reasonable - let's give it up
+                result.recordFatalError(getString("PageWorkItem.noRequest"));
+                showResult(result, false);
+                throw redirectBackViaRestartResponseException();
+            }
+//            else if (!protectedWorkItemId.isCorrect(workItem)) {
+//                throw new IllegalArgumentException("Wrong work item hash");
+//            }
+            TaskType taskType = null;
+            List<TaskType> relatedTasks = new ArrayList<>();
+            final Collection<SelectorOptions<GetOperationOptions>> getTaskOptions = getOperationOptionsBuilder()
+//                    .item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).resolve()  		//TODO fix!!!
+//                    .item(F_WORKFLOW_CONTEXT, F_WORK_ITEM).retrieve()
+                    .build();
+            try {
+                taskType = getModelService().getObject(TaskType.class, externalizedProtectedId, getTaskOptions, task, result).asObjectable();
+            } catch (AuthorizationException e) {
+                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Access to the task {} was denied", e, externalizedProtectedId);
+            }
+            if (taskType != null && taskType.getParent() != null) {
+                final ObjectQuery relatedTasksQuery = getPrismContext().queryFor(TaskType.class)
+                        .item(F_PARENT).eq(taskType.getParent())
+                        .build();
+                List<PrismObject<TaskType>> relatedTaskObjects = getModelService()
+                        .searchObjects(TaskType.class, relatedTasksQuery, null, task, result);
+                for (PrismObject<TaskType> relatedObject : relatedTaskObjects) {
+                    relatedTasks.add(relatedObject.asObjectable());
+                }
+            }
+            workItemDto = new WorkItemDto(workItem, null /* should be case here! was: taskType*/, relatedTasks, PageWorkItem.this);
+            workItemDto.prepareDeltaVisualization("pageWorkItem.delta", getPrismContext(), getModelInteractionService(), task,
+                    result);
+            result.recordSuccessIfUnknown();
 		} catch (RestartResponseException e) {
         	throw e;	// already processed
         } catch (ObjectNotFoundException ex) {
@@ -255,7 +263,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                         getWorkflowManager().isCurrentUserAuthorizedToClaim(workItemDtoModel.getObject().getWorkItem()));
 
         VisibleBehaviour isAllowedToRelease = new VisibleBehaviour(() -> {
-			WorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
+	        CaseWorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
 			MidPointPrincipal principal;
 			try {
 				principal = (MidPointPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -304,7 +312,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private void savePerformed(AjaxRequestTarget target, boolean approved) {
-        OperationResult result = new OperationResult(OPERATION_SAVE_WORK_ITEM);
+	    Task task = createSimpleTask(OPERATION_SAVE_WORK_ITEM);
+        OperationResult result = task.getResult();
         try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			if (approved) {
@@ -321,7 +330,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 			}
 			try {
 				assumePowerOfAttorneyIfRequested(result);
-				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, result);
+				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, task, result);
 			} finally {
 				dropPowerOfAttorneyIfRequested(result);
 			}
@@ -350,13 +359,15 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
 	private void delegateConfirmedPerformed(AjaxRequestTarget target, UserType delegate) {
-		OperationResult result = new OperationResult(OPERATION_DELEGATE_WORK_ITEM);
+    	Task task = createSimpleTask(OPERATION_DELEGATE_WORK_ITEM);
+		OperationResult result = task.getResult();
 		try {
 			WorkItemDto dto = workItemDtoModel.getObject();
 			List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
 			try {
 				assumePowerOfAttorneyIfRequested(result);
-				getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES, result);
+				getWorkflowService().delegateWorkItem(dto.getWorkItemId(), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES,
+						task, result);
 			} finally {
 				dropPowerOfAttorneyIfRequested(result);
 			}
@@ -368,22 +379,24 @@ public class PageWorkItem extends PageAdminWorkItems {
 	}
 
 	private void claimPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
+    	Task task = createSimpleTask(OPERATION_CLAIM_WORK_ITEM);
+        OperationResult result = task.getResult();
         WorkflowService workflowService = getWorkflowService();
         try {
-            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), result);
-        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
+            workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), task, result);
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
         }
 		processResult(target, result, true);
 	}
 
     private void releasePerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
+    	Task task = createSimpleTask(OPERATION_RELEASE_WORK_ITEM);
+        OperationResult result = task.getResult();
         WorkflowService workflowService = getWorkflowService();
         try {
-            workflowService.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getExternalId(), result);
-        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException e) {
+            workflowService.releaseWorkItem(WorkItemId.of(workItemDtoModel.getObject().getWorkItem()), task, result);
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }
         processResult(target, result, true);

@@ -43,8 +43,7 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_case")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_case_name", columnNames = {"name_norm"}),
-        indexes = {
+@Table(indexes = {
                 @Index(name = "iCaseNameOrig", columnList = "name_orig"),
         }
 )
@@ -55,6 +54,7 @@ public class RCase extends RObject<CaseType> {
 
     private String state;
     private REmbeddedReference objectRef;
+    private REmbeddedReference parentRef;
     private Set<RCaseWorkItem> workItems = new HashSet<>();
 
     @JaxbName(localPart = "name")
@@ -89,6 +89,15 @@ public class RCase extends RObject<CaseType> {
         this.objectRef = objectRef;
     }
 
+    @Embedded
+    public REmbeddedReference getParentRef() {
+        return parentRef;
+    }
+
+    public void setParentRef(REmbeddedReference value) {
+        this.parentRef = value;
+    }
+
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
@@ -112,18 +121,20 @@ public class RCase extends RObject<CaseType> {
         RCase rCase = (RCase) o;
         return Objects.equals(nameCopy, rCase.nameCopy) &&
                 Objects.equals(objectRef, rCase.objectRef) &&
+                Objects.equals(parentRef, rCase.parentRef) &&
                 Objects.equals(workItems, rCase.workItems);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, objectRef, workItems);
+        return Objects.hash(super.hashCode(), nameCopy, objectRef, parentRef, workItems);
     }
 
     @Override
     public String toString() {
         return "RCase{" +
                 "name=" + nameCopy +
+                ", parentRef=" + parentRef +
                 ", objectRef=" + objectRef +
                 '}';
     }
@@ -135,6 +146,7 @@ public class RCase extends RObject<CaseType> {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
+        repo.setParentRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getParentRef(), context.relationRegistry));
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.relationRegistry));
         repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {

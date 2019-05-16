@@ -1,6 +1,6 @@
--- It's no use putting Quartz and Activiti in the same DB as midPoint data. (They need different modes of db opening.)
+-- It's no use putting Quartz in the same DB as midPoint data. (They need different modes of db opening.)
 -- So, contrary to all the other databases, this file contains only midPoint-related scripts.
--- If you want to add Quartz and Activiti-related tables, please use files from quartz and activiti directories, respectively.
+-- If you want to add Quartz-related tables, please use files from quartz directory.
 
 CREATE TABLE m_acc_cert_campaign (
   definitionRef_relation  VARCHAR(157),

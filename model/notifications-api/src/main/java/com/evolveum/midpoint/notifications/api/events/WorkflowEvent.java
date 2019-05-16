@@ -34,18 +34,23 @@ abstract public class WorkflowEvent extends BaseEvent {
 
     @NotNull protected final WfContextType workflowContext;
     @NotNull private final ChangeType changeType;
-    @NotNull protected final TaskType workflowTask;
+    @NotNull protected final CaseType aCase;
 
     public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @NotNull WfContextType workflowContext, @NotNull TaskType workflowTask, EventHandlerType handler) {
+            @NotNull WfContextType workflowContext, @NotNull CaseType aCase, EventHandlerType handler) {
         super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
 		this.workflowContext = workflowContext;
-		this.workflowTask = workflowTask;
+		this.aCase = aCase;
+    }
+
+    @NotNull
+    public CaseType getCase() {
+        return aCase;
     }
 
     public String getProcessInstanceName() {
-        return workflowContext.getProcessInstanceName();
+        return aCase.getName().getOrig();
     }
 
     public OperationStatus getOperationStatus() {
@@ -115,8 +120,8 @@ abstract public class WorkflowEvent extends BaseEvent {
 	}
 
     @NotNull
-    public TaskType getWorkflowTask() {
-        return workflowTask;
+    public CaseType getWorkflowTask() {
+        return aCase;
     }
 
     public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {

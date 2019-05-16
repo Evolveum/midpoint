@@ -107,12 +107,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
@@ -400,10 +395,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
-                    return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
+                    return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
@@ -1818,7 +1813,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private MainMenuItem createWorkItemsItems() {
         MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.workItems"), null) {
+                createStringResource("PageAdmin.menu.top.cases"), null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -1833,17 +1828,24 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCases.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.approvalCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myApprovalCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myRequests", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.requestsAboutMe", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.manualProvisionCases", PageCasesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.myManualProvisionCases", PageCasesAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
+//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
+//        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 

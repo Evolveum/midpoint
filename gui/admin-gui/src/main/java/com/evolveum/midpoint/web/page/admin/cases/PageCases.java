@@ -3,26 +3,30 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -33,8 +37,18 @@ import java.util.List;
 /**
  * @author acope on 9/14/17.
  */
-
-public abstract class PageCases extends PageAdminCases {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/casesAll", matchUrlForSecurity = "/admin/casesAll")
+        }, action = {
+        @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL_LABEL,
+                label = PageAdminCases.AUTH_CASES_ALL_LABEL,
+                description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
+                label = "PageCases.auth.casesAll.label",
+                description = "PageCases.auth.casesAll.description")
+})
+public class PageCases extends PageAdminObjectList<CaseType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCases.class);
 
@@ -45,56 +59,53 @@ public abstract class PageCases extends PageAdminCases {
     public static final String ID_MAIN_FORM = "mainForm";
     public static final String ID_CASES_TABLE = "table";
 
-    private boolean all;
-
-    public PageCases(boolean all) {
-        this.all = all;
-
-        initLayout();
+    public PageCases() {
+        super();
     }
 
-    private void initLayout() {
-        Form mainForm = new Form(ID_MAIN_FORM);
-        add(mainForm);
+//    private void initLayout() {
+//        Form mainForm = new Form(ID_MAIN_FORM);
+//        add(mainForm);
+//
+//        LOGGER.trace("Creating casePanel");
+//        MainObjectListPanel<CaseType, CompiledObjectCollectionView> casePanel =
+//                new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(
+//                ID_CASES_TABLE,
+//                CaseType.class,
+//                UserProfileStorage.TableId.TABLE_CASES,
+//                null,
+//                this) {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
+//                PageCases.this.caseDetailsPerformed(target, caseInstance);
+//            }
+//
+//            @Override
+//            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
+//                navigateToNext(PageCase.class);
+//            }
+//
+//            @Override
+//            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
+//                return PageCases.this.initColumns();
+//            }
+//
+//            @Override
+//            protected List<InlineMenuItem> createInlineMenu() {
+//                return new ArrayList<>();
+//            }
+//
+//        };
+//        casePanel.setOutputMarkupId(true);
+//        mainForm.add(casePanel);
+//
+//    }
 
-        LOGGER.trace("Creating casePanel");
-        MainObjectListPanel<CaseType, CompiledObjectCollectionView> casePanel =
-                new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(
-                ID_CASES_TABLE,
-                CaseType.class,
-                UserProfileStorage.TableId.TABLE_CASES,
-                null,
-                this) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-                PageCases.this.caseDetailsPerformed(target, caseInstance);
-            }
-
-            @Override
-            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-                navigateToNext(PageCase.class);
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
-                return PageCases.this.initColumns();
-            }
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return new ArrayList<>();
-            }
-
-        };
-        casePanel.setOutputMarkupId(true);
-        mainForm.add(casePanel);
-
-    }
-
-    private void caseDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
+    @Override
+    protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
         LOGGER.trace("caseDetailsPerformed()");
 
         PageParameters pageParameters = new PageParameters();
@@ -102,7 +113,8 @@ public abstract class PageCases extends PageAdminCases {
         navigateToNext(PageCase.class, pageParameters);
     }
 
-    private List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
+    @Override
+    protected List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
         LOGGER.trace("initColumns()");
 
         List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
@@ -209,7 +221,43 @@ public abstract class PageCases extends PageAdminCases {
         column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
         columns.add(column);
 
+        column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
+                createStringResource("pageCases.table.workitems")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+                                     String componentId, IModel<SelectableBean<CaseType>> model) {
+                cellItem.add(new Label(componentId,
+                        model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
+                                model.getObject().getValue().getWorkItem().size() : null));
+            }
+
+            @Override
+            public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getWorkItem() != null ?
+                        Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
+            }
+
+
+        };
+        columns.add(column);
         return columns;
+    }
+
+    @Override
+    protected Class getType(){
+        return CaseType.class;
+    }
+
+    @Override
+    protected UserProfileStorage.TableId getTableId(){
+        return UserProfileStorage.TableId.TABLE_CASES;
+    }
+
+    @Override
+    protected List<InlineMenuItem> createRowActions() {
+        List<InlineMenuItem> menu = new ArrayList<>();
+        return menu;
     }
 
     private String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {

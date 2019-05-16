@@ -24,13 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -177,10 +171,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         for (ProcessInstanceDto instance : selectedStoppableInstances) {
             try {
-                workflowService.stopProcessInstance(instance.getProcessInstanceId(),
-                        WebComponentUtil.getOrigStringFromPoly(user.getName()), task, result);
-            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException ex) {
-                result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE).recordPartialError(createStringResource("pageProcessInstances.message.stopProcessInstancesPerformed.partialError", instance.getName()).getString(), ex);
+                workflowService.stopProcessInstance(instance.getProcessInstanceId(), task, result);
+            } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException ex) {
+                result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE)
+		                .recordPartialError(createStringResource("pageProcessInstances.message.stopProcessInstancesPerformed.partialError", instance.getName()).getString(), ex);
             }
         }
 

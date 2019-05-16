@@ -65,6 +65,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
     public static final String KEY_WORK_ITEMS = "workItems";
     public static final String KEY_OBJECT_LIST = "objectListPage";
+    public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
+    public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
@@ -192,6 +194,14 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
 	}
     
+    public ObjectTabStorage getCaseWorkitemsTabStorage() {
+        return getObjectTabStorage(KEY_CASE_WORKITEMS_TAB);
+	}
+
+    public ObjectTabStorage getCaseEventsTabStorage() {
+        return getObjectTabStorage(KEY_CASE_EVENTS_TAB);
+	}
+
     public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
         return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
 	}

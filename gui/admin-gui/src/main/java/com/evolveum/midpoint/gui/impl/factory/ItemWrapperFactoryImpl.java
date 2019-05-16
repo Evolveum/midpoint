@@ -23,13 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -98,7 +96,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		
 		//TODO : prismContainer.isEmpty() interates and check is all prismcontainervalues are empty.. isn't it confusing?
 		if (item.isEmpty() && item.getValues().isEmpty()) {
-			if (shoudCreateEmptyValue(item, context)) {
+			if (shouldCreateEmptyValue(item, context)) {
 				PV prismValue = createNewValue(item);
 				VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
 				pvWrappers.add(valueWrapper);
@@ -130,7 +128,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	protected abstract IW createWrapper(PrismContainerValueWrapper<?> parent, I childContainer, ItemStatus status);
 	
-	protected boolean shoudCreateEmptyValue(I item, WrapperContext context) {
+	protected boolean shouldCreateEmptyValue(I item, WrapperContext context) {
 		if (item.getDefinition().isEmphasized()) {
 			return true;
 		}

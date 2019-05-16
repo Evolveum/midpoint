@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -57,7 +58,7 @@ import org.apache.wicket.model.Model;
  * @author Radovan Semancik
  *
  */
-public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusTabPanel<F> {
+public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String DOT_CLASS = SampleFormFocusTabPanel.class.getName() + ".";
@@ -71,12 +72,12 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     private static final String ID_ROLES = "roles";
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
-    
+
     public SampleFormFocusTabPanel(String id, Form mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
-        super(id, mainForm, focusWrapperModel, projectionModel);
-        
+        super(id, mainForm, focusWrapperModel);
+
     }
 
     @Override
@@ -84,7 +85,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     	super.onInitialize();
     	initLayout();
     }
-    
+
     private void initLayout() {
         add(new Label(ID_HEADER, "Object details"));
         WebMarkupContainer body = new WebMarkupContainer("body");

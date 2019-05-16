@@ -680,7 +680,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false, null),
 				PageTasks.this) {
-			
+
 			@Override
 			protected boolean isInlineMenuVisible(IModel<TaskDto> rowModel, boolean isHeader) {
 				if (rowModel == null) {
@@ -690,18 +690,18 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				if (isHeader) {
 					return false;
 				}
-				
+
 				if (dto == null) {
 					return false;
 				}
-				
+
 				TaskWorkManagementType workManagement = dto.getTaskType().getWorkManagement();
 				if (workManagement == null) {
 					return false;
 				}
-				
+
 				return TaskKindType.COORDINATOR == workManagement.getTaskKind();
-					
+
 			}
 		};
 		columns.add(menuColumn);
@@ -876,7 +876,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 		};
 		reconcileWorkers.setCheckVisibility(true);
-		
+
 		items.add(reconcileWorkers);
 
 		InlineMenuItem suspendCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendCoordinatorOnly")) {
@@ -907,7 +907,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		};
 		suspendCoordinatorOnly.setCheckVisibility(true);
 		items.add(suspendCoordinatorOnly);
-		
+
 		InlineMenuItem resumeCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeCoordinatorOnly")) {
 			private static final long serialVersionUID = 1L;
 
@@ -965,7 +965,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		};
 		deleteWorkStateAndWorkers.setCheckVisibility(true);
 		items.add(deleteWorkStateAndWorkers);
-		
+
 		if (isHeader) {
 			items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
 				private static final long serialVersionUID = 1L;
@@ -1622,14 +1622,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		OperationResult result = opTask.getResult();
 
 		try {
-			getTaskService().synchronizeWorkflowRequests(opTask, result);
+//			getTaskService().synchronizeWorkflowRequests(opTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isSuccess()) { // brutal hack - the subresult's message
 										// contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+		} catch (RuntimeException  e) {
 			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(),
 					e);
 		}

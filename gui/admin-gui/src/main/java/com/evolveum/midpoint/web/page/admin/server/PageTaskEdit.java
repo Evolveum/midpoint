@@ -153,9 +153,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					.item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
 					.item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
 					.item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+					//.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve() // todo do this in case
 					// resolve
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF).resolve()
+					//.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTOR_REF).resolve()   // todo do this in case
 					.build();
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 		} catch (Exception ex) {

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.MultifunctionalButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
@@ -90,8 +91,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	private static final String ID_ITEMS_TABLE = "itemsTable";
 	public static final String ID_SEARCH_ITEM_PANEL = "search";
 
-	public static final String ID_DETAILS = "details";
-
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
 	private TableId tableId;
@@ -103,20 +102,23 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		super(id, model);
 		this.tableId = tableId;
 		this.pageStorage = pageStorage;
-		
+
 		searchModel = new LoadableModel<Search>(false) {
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Search load() {
-				List<SearchItemDefinition> availableDefs = initSearchableItems(model.getObject());
-		    	
-		    	Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
-				return search;
+                if (model == null || model.getObject() == null){
+                    return null;
+                }
+                List<SearchItemDefinition> availableDefs = initSearchableItems(model.getObject());
+
+                Search search = new Search(model.getObject().getCompileTimeClass(), availableDefs);
+                return search;
 			}
 
-			
+
 		};
 	}
 	
@@ -125,9 +127,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
-		
-		
-		
+
 		initPaging();
 		initLayout();
 	}
@@ -135,17 +135,12 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	private void initLayout() {
 
 		initListPanel();
-
-		initCustomLayout();
-		
 		setOutputMarkupId(true);
 
 	}
 	
 	protected abstract void initPaging();
-	
-	protected abstract void initCustomLayout();
-	
+
 	private void initListPanel() {
 		WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
 		itemsContainer.setOutputMarkupId(true);
@@ -339,9 +334,14 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 				MultivalueContainerListPanel.this.searchPerformed(query, target);
 			}
 		};
+		searchPanel.add(new VisibleBehaviour(() -> isSearchEnabled()));
 		return searchPanel;
 	}
-	
+
+	protected boolean isSearchEnabled(){
+		return true;
+	}
+
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 
 //		MultivalueContainerListDataProvider<C> provider = getDataProvider();
@@ -405,7 +405,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	protected abstract List<PrismContainerValueWrapper<C>> postSearch(List<PrismContainerValueWrapper<C>> items);
 
 	private ObjectQuery createProviderQuery() {
-		ObjectQuery searchQuery = getQuery();
+		ObjectQuery searchQuery = isSearchEnabled() ? getQuery() : null;
 
 		ObjectQuery customQuery = createQuery();
 
@@ -465,7 +465,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
 			PrismContainerValue<C> newItem,
 			PrismContainerWrapper<C> model) {
-		
+
 		WrapperContext context = new WrapperContext(null, null);
 		context.setCreateIfEmpty(true);
 		PrismValueWrapper<?,?> valueWrapper = null;
@@ -475,7 +475,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 			//TODO error handling
 		}
 		model.getValues().add((PrismContainerValueWrapper) valueWrapper);
-//		
+//
 //    	ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
 //		Task task = getPageBase().createSimpleTask("Creating new object policy");
 //		PrismContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,

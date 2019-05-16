@@ -19,14 +19,16 @@ package com.evolveum.midpoint.wf.impl.policy.other;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -51,8 +53,8 @@ public class TestEvents extends AbstractWfTestPolicy {
 	protected static final File ROLE_NO_APPROVERS_FILE = new File(TEST_EVENTS_RESOURCE_DIR, "role-no-approvers.xml");
 
 	protected String roleNoApproversOid;
-	private String workItemId;
-	private String approvalTaskOid;
+	private WorkItemId workItemId;
+	private String approvalCaseOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -75,14 +77,11 @@ public class TestEvents extends AbstractWfTestPolicy {
 		assignRole(userJackOid, roleNoApproversOid, task, result);				// should start approval process
 		assertNotAssignedRole(userJackOid, roleNoApproversOid, task, result);
 
-		WorkItemType workItem = getWorkItem(task, result);
-		workItemId = workItem.getExternalId();
-
-		approvalTaskOid = WfContextUtil.getTask(workItem).getOid();
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		CaseWorkItemType workItem = getWorkItem(task, result);
+		workItemId = WorkItemId.of(workItem);
 
 		display("work item", workItem);
-		display("workflow task", wfTask);
+		display("Case", CaseWorkItemUtil.getCase(workItem));
 
 		// TODO check events
 	}

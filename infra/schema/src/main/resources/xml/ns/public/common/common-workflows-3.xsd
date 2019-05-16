@@ -312,12 +312,16 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="taskRef" type="c:ObjectReferenceType" minOccurs="0">
+			<xsd:element name="caseRef" type="c:ObjectReferenceType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						The task that was or would be created to approve give operation. This object reference should
+						The case that was or would be created to approve give operation. This object reference should
 						contain the actual object (TODO).
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>c:CaseType</a:objectReferenceTargetType>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="currentStageNumber" type="xsd:int" minOccurs="0">
@@ -447,7 +451,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="workItem" type="c:WorkItemType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="workItem" type="c:CaseWorkItemType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Currently active work items.
@@ -655,31 +659,6 @@
 					<xsd:appinfo>
 						<a:displayName>WfConfigurationType.modelHookEnabled</a:displayName>
 						<a:displayOrder>100</a:displayOrder>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processCheckInterval" minOccurs="0" type="xsd:int" default="10">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        For "dumb" wf processes, which require active shadowing tasks, sets the process
-                        instance check interval (in seconds).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>WfConfigurationType.processCheckInterval</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="allowCompleteOthersItems" minOccurs="0" type="xsd:boolean" default="true">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Whether appropriately privileged users (e.g. the administrator) can approve/reject work items
-                        assigned to other users.
-                        DEPRECATED. Use authorizations to limit ability to approve/reject arbitrary work items.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.5</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -1132,146 +1111,11 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-                    <xsd:element name="addUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleAbstractRoleAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleResourceAssignmentAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyAbstractRoleAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyUserAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="addResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="modifyResourceAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
                     <xsd:element name="addAssociationAspect" type="tns:PcpAspectConfigurationType" minOccurs="0">
 					   <xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>PrimaryChangeProcessorConfigurationType.addAssociationAspect</a:displayName>
 								<a:displayOrder>210</a:displayOrder>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-                    <xsd:element name="otherAspect" type="tns:GenericPcpAspectConfigurationType" minOccurs="0" maxOccurs="unbounded">
-					   <xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.9</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -1461,158 +1305,24 @@
     <xsd:complexType name="WfContextType">
         <xsd:annotation>
             <xsd:documentation>
-                Workflow context of the operation that is to be executed.
-                Points to a process instance in a workflow engine, and to an externalized view
-                of its state.
-
-                Beware, some attributes like process state or work items may not be always present.
+                Describes the workflow (typically related to an approval) context, i.e. what has to be approved,
+				who are the approvers, and so on.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Internal identifier of a process instance, assigned by the underlying workflow engine
-                        (currently Activiti).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the process definition, e.g. "ItemApproval".
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processInstanceName" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the process instance. It is defined by the code that starts
-                        the process instance and should describe the purpose of the process
-                        instance as precisely as possible. An example: "Approving adding Webmaster to JoeDoe".
-						Might be absent, if localizableProcessName is defined.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="localizableProcessInstanceName" type="tns:LocalizableMessageType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Localizable name of the process instance. To be used e.g. in GUI.
-						May consist of more parts. (But this situation should be avoided if possible.)
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="localizableTaskName" type="tns:LocalizableMessageType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Localizable name of the task instance. To be used e.g. in GUI.
-						This is to be set only for the root task.
-						EXPERIMENTAL. TEMPORARY. Will be replaced in the future by some kind of localizable object names.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:since>3.7</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Time when this process instance started.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Time when this process instance finished (if it did).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="requesterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        User who requested the respective operation was carried out. Stored in repository.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Object whose modification is to be approved. (Normally the same as task.objectRef but there can be differences
-                        in cases when the object is only to be created.) TODO - think this through.
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:composite>true</a:composite>
-					</xsd:appinfo>
-				</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Target of assignment/association/etc that is to be approved.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="approvedByRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        User(s) who approved current operation. Stored in repository.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="rootTaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This property is put into model task (i.e. not wf root task). It points to the
-                        wf root task - that's important e.g. in cases when wf root task is not a subtask
-                        of the model task.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>c:TaskType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Stage number - if process can be conceptually divided into stages. Starts at 1.
-                        Null if not applicable. (Stored in process variable "stageNumber".)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="outcome" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Overall outcome of the process.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="changeProcessor" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Contains name of class that manages this particular model operation ("change", thus "change processor").
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processInterface" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Contains name of class that provides an interface between wf process and midPoint ("process interface bean").
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+            <!--<xsd:element name="approvedByRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
+                <!--<xsd:annotation>-->
+                    <!--<xsd:documentation>-->
+                        <!--User(s) who approved current operation. Stored in repository.-->
+                    <!--</xsd:documentation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            <!--</xsd:element>-->
             <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1627,70 +1337,9 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="event" type="tns:CaseEventType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Events that occurred during lifetime of this process instance.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="workItem" type="tns:WorkItemType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Currently open work items for this process.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="wfContextType" type="tns:WfContextType" />
-
-	<xsd:complexType name="DecisionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Basic information on a user (or automated) decision in context of a work item.
-
-                This structure is meant to describe the outcome of a work items in various contexts,
-                although currently it is used only within the generalized item approval process.
-
-	            DEPRECATED. Use WorkItemCompletionEventType (or other kinds of wf events) instead.
-            </xsd:documentation>
-	        <xsd:appinfo>
-		        <a:deprecated>true</a:deprecated>
-		        <a:deprecatedSince>3.6</a:deprecatedSince>
-	        </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="approverRef" type="c:ObjectReferenceType">
-                <xsd:annotation>
-					<xsd:documentation>
-						User who actually decided on this work item. May be empty in the case of automated decision.
-					</xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="approved" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Boolean representation of the decision, if applicable.
-                        True = approved, false = rejected, null = either unknown or not applicable.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="resultAsString" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        String representation of the result. Used in cases where the result is not simple 'approved' or 'rejected'.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="dateTime" type="xsd:dateTime" />
-		</xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="decisionType" type="tns:DecisionType" />
 
     <xsd:complexType name="WfProcessorSpecificStateType">
         <xsd:annotation>
@@ -1701,6 +1350,15 @@
                 Describes states that are specific to a given change processor.
             </xsd:documentation>
         </xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="processor" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Contains name of implementation class of the change processor.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="wfProcessorSpecificStateType" type="tns:WfProcessorSpecificStateType" />
 
@@ -1738,42 +1396,12 @@
             <xsd:extension base="tns:WfProcessorSpecificStateType">
                 <xsd:sequence>
                     <xsd:element name="scenario" type="xsd:string"/>
+					<xsd:element name="modelContext" type="c:LensContextType" minOccurs="0" />
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
-
-    <xsd:complexType name="WfProcessSpecificWorkItemPartType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                Describe work item parts that are specific to a given BPMN process.
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:complexType>
-    <xsd:element name="wfProcessSpecificWorkItemPart" type="tns:WfProcessSpecificWorkItemPartType" />
-
-    <xsd:complexType name="ItemApprovalWorkItemPartType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessSpecificWorkItemPartType">
-                <xsd:sequence>
-                    <!-- TODO -->
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="itemApprovalWorkItemPart" type="tns:ItemApprovalWorkItemPartType" />
 
 	<xsd:complexType name="WfProcessSpecificStateType">
 		<xsd:annotation>
@@ -1801,75 +1429,11 @@
 				<xsd:sequence>
 					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
 					<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
-					<xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.6</a:deprecatedSince>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
-
-	<!--<xsd:complexType name="ItemApprovalRequestType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:appinfo>-->
-                <!--<a:container/>-->
-            <!--</xsd:appinfo>-->
-            <!--<xsd:documentation>-->
-                <!--TODO-->
-            <!--</xsd:documentation>-->
-        <!--</xsd:annotation>-->
-        <!--<xsd:sequence>-->
-            <!--<xsd:element name="itemToApprove" type="xsd:anyType"/>          &lt;!&ndash; Containerable &ndash;&gt;-->
-            <!--<xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />-->
-        <!--</xsd:sequence>-->
-    <!--</xsd:complexType>-->
-    <!--<xsd:element name="itemApprovalRequest" type="tns:ItemApprovalRequestType" />-->
-
-    <xsd:complexType name="WorkItemType">
-        <xsd:annotation>
-            <xsd:documentation>
-                WorkItemType contains information about a human task (or a notification).
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-        </xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:AbstractWorkItemType">
-				<xsd:sequence>
-					<xsd:element name="externalId" type="xsd:string">
-						<xsd:annotation>
-							<xsd:documentation>
-								Identifier of the work item assigned by the underlying workflow engine
-								(currently Activiti). MidPoint WorkItem is Activiti Task. So externalId is
-								taskId.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<!-- TODO original deadline? -->
-					<xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Information to be shown to the approver.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.6</a:since>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="processSpecificPart" type="tns:WfProcessSpecificWorkItemPartType" minOccurs="0" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:element name="workItem" type="tns:WorkItemType" />
 
     <xsd:complexType name="InformationType">
 		<xsd:annotation>
@@ -1902,7 +1466,7 @@
 	<xsd:complexType name="InformationPartType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO Replace by forms before 3.6 release.
+				TODO Replace by forms eventually.
 				TEMPORARY
 			</xsd:documentation>
 		</xsd:annotation>

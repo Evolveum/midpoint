@@ -322,7 +322,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
 		    // of avoiding displaying the error is to use a separate operation result.
 		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
-		    objectRef = taskType.getWorkflowContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
+		    objectRef = null; // was: taskType.getWorkflowContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
 	    } else {
 	    	currentResult = thisOpResult;
 	    	objectRef = null;
@@ -377,7 +377,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
-		workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
+		// TODO workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
 
 		final TaskType rootTask;
 		if (parentTaskType == null) {
@@ -389,8 +389,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		WfContextType wfc = taskType.getWorkflowContext();
 		if (wfc != null && parentTaskType != null && (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
 			ChangesByState changesByState = workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
-			List<TaskChangesDto> changeCategories = computeChangesCategorizationList(changesByState, wfc.getObjectRef(),
-					modelInteractionService, prismContext, opTask, thisOpResult);
+			List<TaskChangesDto> changeCategories = Collections.emptyList();
+			// was:
+					// computeChangesCategorizationList(changesByState, wfc.getObjectRef(),
+					// modelInteractionService, prismContext, opTask, thisOpResult);
 			if (changeCategories.size() > 1) {
 				throw new IllegalStateException("More than one task change category for task " + taskType + ": " + changeCategories);
 			} else if (changeCategories.size() == 1) {
@@ -399,18 +401,21 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 
 		workflowRequests = new ArrayList<>();
-		for (TaskType wfSubtask : rootTask.getSubtask()) {
-			final WfContextType subWfc = wfSubtask.getWorkflowContext();
-			if (subWfc != null && subWfc.getProcessInstanceId() != null) {
-				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
-					workflowRequests.add(new ProcessInstanceDto(wfSubtask, WebComponentUtil.getShortDateTimeFormat(pageBase)));
-				}
-			}
-		}
+		// TODO-WF
+//		for (TaskType wfSubtask : rootTask.getSubtask()) {
+//			final WfContextType subWfc = wfSubtask.getWorkflowContext();
+//			if (subWfc != null && subWfc.getCaseOid() != null) {
+//				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
+//					workflowRequests.add(new ProcessInstanceDto(wfSubtask, WebComponentUtil.getShortDateTimeFormat(pageBase)));
+//				}
+//			}
+//		}
 
 		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
-		this.changesCategorizationList = computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRef() : null,
-				modelInteractionService, prismContext, opTask, thisOpResult);
+		this.changesCategorizationList = Collections.emptyList();
+		// was:
+				// computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRef() : null,
+				// modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 	@NotNull
@@ -467,19 +472,21 @@ public class TaskDto extends Selectable implements InlineMenuable {
             return null;
         }
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
-				wfc.getObjectRef(), opTask, thisOpResult);
+        return Collections.emptyList();
+        //was:
+		      //  objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
+				//				wfc.getObjectRef(), opTask, thisOpResult);
     }
 
-	private SceneDto retrieveDeltaToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+	private SceneDto retrieveDeltaToProcess(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		WfContextType wfc = taskType.getWorkflowContext();
+		WfContextType wfc = aCase.getWorkflowContext();
 		if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
 			return null;
 		}
 		WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", taskType.asPrismObject().getPrismContext(),
-				modelInteractionService, wfc.getObjectRef(), opTask, thisOpResult);
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", aCase.asPrismObject().getPrismContext(),
+				modelInteractionService, aCase.getObjectRef(), opTask, thisOpResult);
 		return new SceneDto(scene);
 	}
 
@@ -496,15 +503,15 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return retval;
     }
 
-    private List<SceneDto> retrieveResultingDeltas(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+    private List<SceneDto> retrieveResultingDeltas(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        WfContextType wfc = taskType.getWorkflowContext();
+        WfContextType wfc = aCase.getWorkflowContext();
         if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
             return null;
         }
         WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
-				wfc.getObjectRef(), opTask, thisOpResult);
+        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), aCase.asPrismObject().getPrismContext(), modelInteractionService,
+				aCase.getObjectRef(), opTask, thisOpResult);
     }
 
     //endregion
@@ -921,12 +928,16 @@ public class TaskDto extends Selectable implements InlineMenuable {
     }
 
     public String getWorkflowProcessInstanceId() {
-        return taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getProcessInstanceId() : null;
+    	// TODO-WF
+	    throw new UnsupportedOperationException("TODO");
+        //return taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getCaseOid() : null;
     }
 
     public boolean isWorkflowProcessInstanceFinished() {
-        return taskType.getWorkflowContext() != null ?
-				taskType.getWorkflowContext().getEndTimestamp() != null : false;
+	    // TODO-WF
+	    throw new UnsupportedOperationException("TODO");
+//        return taskType.getWorkflowContext() != null ?
+//				taskType.getWorkflowContext().getEndTimestamp() != null : false;
     }
 
     @Deprecated
@@ -983,11 +994,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public List<WorkItemDto> getWorkItems() {
 		List<WorkItemDto> rv = new ArrayList<>();
-		if (taskType.getWorkflowContext() != null) {
-			for (WorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
-				rv.add(new WorkItemDto(workItemType, pageBase));
-			}
-		}
+		// TODO from CaseType
+//		if (taskType.getWorkflowContext() != null) {
+//			for (CaseWorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
+//				rv.add(new WorkItemDto(workItemType, pageBase));
+//			}
+//		}
 		return rv;
 	}
 
@@ -1021,8 +1033,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public String getProcessInstanceId() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? wfc.getProcessInstanceId() : null;
+		// TODO-WF
+		throw new UnsupportedOperationException("TODO");
+//
+//		WfContextType wfc = getWorkflowContext();
+//		return wfc != null ? wfc.getCaseOid() : null;
 	}
 
 	public Boolean isExecuteInRawMode() {
@@ -1030,18 +1045,22 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public String getRequestedBy() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? WebComponentUtil.getName(wfc.getRequesterRef()) : null;
+		//WfContextType wfc = getWorkflowContext();
+		return null; // TODO was wfc != null ? WebComponentUtil.getName(wfc.getRequesterRef()) : null;
 	}
 
 	public Date getRequestedOn() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
+    	// TODO from Case!
+		return null;
+//		WfContextType wfc = getWorkflowContext();
+//		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
 	}
 
 	public Boolean getWorkflowOutcome() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
+    	// todo from Case!
+//		WfContextType wfc = getWorkflowContext();
+//		return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
+		return null;
 	}
 
 	public String getOwnerOid() {
@@ -1199,7 +1218,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isWorkflowChild() {
-		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getProcessInstanceId() != null;
+		// TODO-WF
+		throw new UnsupportedOperationException("TODO");
+//
+//		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getCaseOid() != null;
 	}
 
 	public boolean isWorkflowParent() {
@@ -1305,7 +1327,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isInStageBeforeLastOne() {
-		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+		//return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+		// TODO determine from Case
+		return false;
 	}
 
 	public String getAllowedNodes(List<NodeType> nodes) {

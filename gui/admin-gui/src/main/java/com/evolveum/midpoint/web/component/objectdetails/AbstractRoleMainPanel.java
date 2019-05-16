@@ -159,27 +159,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior<R> authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL, false, isFocusHistoryPage(), parentPage);
-		//TODO remove after "switch assignment type" style is totally approved
-//		tabs.add(
-//				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public WebMarkupContainer createPanel(String panelId) {
-//						return createFocusPolicyRulesTabPanel(panelId, parentPage);
-//					}
-//
-//					@Override
-//					public String getCount() {
-//						return Integer.toString(countPolicyRules());
-//					}
-//				});
-
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(
-				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"), authorization) {
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"),
+						getTabVisibility( ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
 
 					private static final long serialVersionUID = 1L;
 
@@ -189,9 +171,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
+		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -216,28 +197,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
-		//TODO remove after "switch assignment type" style is totally approved
-//		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-//				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-//		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public WebMarkupContainer createPanel(String panelId) {
-//				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-//			}
-//
-//			@Override
-//			public String getCount(){
-//				return getInducedEntitlementsCount();
-//			}
-//
-//		});
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"), authorization) {
+		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -254,10 +216,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 		});
 		
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage(), parentPage);
-
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.governance"), authorization) {
+		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.governance"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 

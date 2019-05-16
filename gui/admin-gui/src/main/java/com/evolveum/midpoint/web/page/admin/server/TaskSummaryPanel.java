@@ -193,7 +193,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	private String getStageInfo() {
-		return WfContextUtil.getStageInfo(parentPage.getTaskDto().getWorkflowContext());
+//		return WfContextUtil.getStageInfo(parentPage.getTaskDto().getWorkflowContext());
+		// TODO determine from Case
+		return null;
 	}
 
 	public String getRequestedOn() {

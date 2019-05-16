@@ -382,7 +382,7 @@
 			<xsd:element name="lensContext" type="tns:LensContextType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
-						Model context descibing executed operation
+						Model context describing executed operation
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>4.0</a:since>
@@ -15417,8 +15417,7 @@
                     <xsd:element name="workflowConfiguration" type="tns:WfConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                A configuration for workflows. Some static aspects (e.g. database connection for Activiti)
-                                are stored in the system configuration file.
+                                A configuration for workflows. Some static aspects are stored in the system configuration file.
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:displayName>SystemConfigurationType.workflowConfiguration</a:displayName>

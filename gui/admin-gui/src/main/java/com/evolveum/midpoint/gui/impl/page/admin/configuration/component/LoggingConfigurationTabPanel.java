@@ -192,11 +192,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			}
 
 			@Override
-			protected void initCustomLayout() {
-				
-			}
-
-			@Override
 			protected void itemPerformedForDefaultAction(AjaxRequestTarget target,
 					IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
 					List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {

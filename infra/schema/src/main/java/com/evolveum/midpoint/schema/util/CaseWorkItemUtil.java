@@ -22,11 +22,22 @@ import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author bpowers
  */
 public class CaseWorkItemUtil {
+
+    @NotNull
+    public static CaseType getCaseRequired(CaseWorkItemType workItem) {
+        CaseType rv = getCase(workItem);
+        if (rv != null) {
+            return rv;
+        } else {
+            throw new IllegalStateException("No parent case for " + workItem);
+        }
+    }
 
     public static CaseType getCase(CaseWorkItemType workItem) {
         @SuppressWarnings({"unchecked", "raw"})
@@ -41,5 +52,9 @@ public class CaseWorkItemUtil {
         @SuppressWarnings({"unchecked", "raw"})
         PrismContainerValue<CaseType> parentParentPcv = (PrismContainerValue<CaseType>) parentParent;
         return parentParentPcv.asContainerable();
+    }
+
+    public static WorkItemId getId(CaseWorkItemType workItem) {
+        return WorkItemId.of(workItem);
     }
 }

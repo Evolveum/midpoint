@@ -58,7 +58,7 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
     private static final String ID_DELEGATIONS_CONTAINER = "delegationsContainer";
     private static final String ID_DELEGATIONS_PANEL = "delegationsPanel";
 
-    private static final Trace LOGGER = TraceManager.getTrace(FocusAssignmentsTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeAssignmentsTabPanel.class);
 
     private LoadableModel<List<AssignmentEditorDto>> delegationsModel;
     private LoadableModel<List<AssignmentInfoDto>> privilegesListModel;
