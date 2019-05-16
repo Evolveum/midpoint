@@ -24,6 +24,7 @@ import org.cache2k.processor.EntryProcessor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -45,6 +46,12 @@ public class GlobalCache {
 				.name("queryCache")
 				.expireAfterWrite(5, TimeUnit.MINUTES)
 				.build();
+	}
+
+	@PreDestroy
+	public void destroy() {
+		objectCache.close();
+		queryCache.close();
 	}
 
 	public <T extends ObjectType> GlobalCacheObjectValue<T> getObject(GlobalCacheObjectKey key) {
