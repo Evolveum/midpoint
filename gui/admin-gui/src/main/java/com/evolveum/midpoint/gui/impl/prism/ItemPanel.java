@@ -80,12 +80,16 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private void initLayout() {
 		
 		Panel headerPanel = createHeaderPanel();
-		headerPanel.add(new VisibleBehaviour(() -> getParent().findParent(AbstractItemWrapperColumnPanel.class) == null));
+		headerPanel.add(new VisibleBehaviour(() -> getHeaderVisibility()));
 		add(headerPanel);
 		
 		ListView<VW> valuesPanel = createValuesPanel();
 		add(valuesPanel);
 		
+	}
+	
+	protected boolean getHeaderVisibility() {
+		return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
 	}
 	
 	 protected abstract Panel createHeaderPanel();

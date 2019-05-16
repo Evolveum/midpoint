@@ -49,14 +49,27 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	protected void onInitialize() {
 		super.onInitialize();
 		
-//		if(getModelObject() != null && getModelObject().isShowOnTopLevel()) {
-//			add(AttributeModifier.append("class", "top-level-prism-container"));
-//		}
+		if(getModelObject() != null) {
+			if(getModelObject().isShowOnTopLevel()) {
+				add(AttributeModifier.append("class", "top-level-prism-container"));
+			}
+			if(getModelObject().isMultiValue()) {
+				add(AttributeModifier.append("class", "multivalue-container"));
+			}
+		}
 	}
 
 	@Override
 	protected Panel createHeaderPanel() {
 		return new PrismContainerHeaderPanel<>(ID_HEADER, getModel());
+	}
+	
+	@Override
+	protected boolean getHeaderVisibility() {
+		if(!super.getHeaderVisibility()) {
+			return false;
+		}
+		return getModelObject() != null && getModelObject().isMultiValue();
 	}
 
 	@Override
@@ -64,7 +77,10 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		if (componentFactory == null) {
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
-			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExpanded()));
+			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
+			if(PrismContainerPanel.this.getModelObject() != null && PrismContainerPanel.this.getModelObject().isSingleValue()) {
+				valuePanel.add(AttributeModifier.append("class", "singlevalue-container"));
+			}
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
 			return;
