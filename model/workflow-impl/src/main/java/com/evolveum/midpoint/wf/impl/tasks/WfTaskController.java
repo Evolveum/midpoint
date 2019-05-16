@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -88,7 +89,7 @@ public class WfTaskController {
     @Autowired private WfTaskUtil wfTaskUtil;
     @Autowired private TaskManager taskManager;
     @Autowired private ActivitiInterface activitiInterface;
-    @Autowired private AuditService auditService;
+    @Autowired private AuditHelper auditHelper;
     @Autowired private MiscDataUtil miscDataUtil;
 	@Autowired private ProcessInterfaceFinder processInterfaceFinder;
     @Autowired private WfConfiguration wfConfiguration;
@@ -315,7 +316,7 @@ public class WfTaskController {
         if (taskEvent instanceof TaskCreatedEvent) {
 			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemCreatedAuditRecord(workItem,
 					taskEvent, wfTask, result);
-			auditService.audit(auditEventRecord, wfTask.getTask());
+			auditHelper.audit(auditEventRecord, wfTask.getTask());
             try {
 				List<ObjectReferenceType> assigneesAndDeputies = getAssigneesAndDeputies(workItem, wfTask, result);
 				for (ObjectReferenceType assigneesOrDeputy : assigneesAndDeputies) {
@@ -399,7 +400,7 @@ public class WfTaskController {
 			// so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
 			AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent)
 					.prepareWorkItemDeletedAuditRecord(workItem, cause, taskEvent, wfTask, result);
-			auditService.audit(auditEventRecord, wfTask.getTask());
+	        auditHelper.audit(auditEventRecord, wfTask.getTask());
             try {
 				List<ObjectReferenceType> assigneesAndDeputies = getAssigneesAndDeputies(workItem, wfTask, result);
 				WorkItemAllocationChangeOperationInfo operationInfo =
@@ -457,7 +458,7 @@ public class WfTaskController {
 
     private void auditProcessStartEnd(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
         AuditEventRecord auditEventRecord = wfTask.getChangeProcessor().prepareProcessInstanceAuditRecord(wfTask, stage, variables, result);
-        auditService.audit(auditEventRecord, wfTask.getTask());
+	    auditHelper.audit(auditEventRecord, wfTask.getTask());
     }
 
     private void notifyProcessStart(WfTask wfTask, OperationResult result) throws SchemaException {

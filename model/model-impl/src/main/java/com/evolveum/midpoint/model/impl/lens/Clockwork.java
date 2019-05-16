@@ -34,6 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
@@ -144,7 +145,7 @@ public class Clockwork {
 	@Autowired private Projector projector;
 	@Autowired private ContextLoader contextLoader;
 	@Autowired private ChangeExecutor changeExecutor;
-    @Autowired private AuditService auditService;
+    @Autowired private AuditHelper auditHelper;
     @Autowired private Clock clock;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private transient ProvisioningService provisioningService;
@@ -1212,7 +1213,7 @@ public class Clockwork {
 
 		addRecordMessage(auditRecord, result);
 
-		auditService.audit(auditRecord, task);
+		auditHelper.audit(auditRecord, task);
 
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave

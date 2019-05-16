@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.impl.controller;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.certification.api.CertificationManager;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -144,7 +144,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private TaskManager taskManager;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
-	@Autowired private AuditService auditService;
+	@Autowired private AuditHelper auditHelper;
 	@Autowired private SecurityEnforcer securityEnforcer;
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private UserProfileService userProfileService;
@@ -408,7 +408,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-				auditService.audit(auditRecord, task);
+				auditHelper.audit(auditRecord, task);
 				try {
 					for (ObjectDelta<? extends ObjectType> delta : deltas) {
 						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
@@ -536,7 +536,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					auditRecord.setEventStage(AuditEventStage.EXECUTION);
 					auditRecord.getDeltas().clear();
 					auditRecord.getDeltas().addAll(executedDeltas);
-					auditService.audit(auditRecord, task);
+					auditHelper.audit(auditRecord, task);
 
 					task.markObjectActionExecutedBoundary();
 				}
