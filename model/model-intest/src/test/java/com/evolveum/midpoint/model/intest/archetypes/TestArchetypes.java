@@ -80,6 +80,9 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_LABEL = "Employee";
 	private static final String ARCHETYPE_EMPLOYEE_DISPLAY_PLURAL_LABEL = "Employees";
 	
+	public static final File ARCHETYPE_CONTRACTOR_FILE = new File(TEST_DIR, "archetype-contractor.xml");
+	protected static final String ARCHETYPE_CONTRACTOR_OID = "3911cac2-78a6-11e9-8b5e-4b5bdb0c81d5";
+	
 	public static final File ARCHETYPE_TEST_FILE = new File(TEST_DIR, "archetype-test.xml");
 	protected static final String ARCHETYPE_TEST_OID = "a8df34a8-f6f0-11e8-b98e-eb03652d943f";
 	
@@ -87,6 +90,9 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "018e7340-199a-11e9-ad93-2b136d1c7ecf";
 	private static final String ARCHETYPE_BUSINESS_ROLE_ICON_CSS_CLASS = "fe fe-business";
 	private static final String ARCHETYPE_BUSINESS_ROLE_ICON_COLOR = "green";
+	
+	public static final File USER_MEATHOOK_FILE = new File(TEST_DIR, "user-meathook.xml");
+	protected static final String USER_MEATHOOK_OID = "f79fc10e-78a8-11e9-92ec-cf427cb6e7a0";
 	
 	public static final File ROLE_EMPLOYEE_BASE_FILE = new File(TEST_DIR, "role-employee-base.xml");
 	protected static final String ROLE_EMPLOYEE_BASE_OID = "e869d6c4-f6ef-11e8-b51f-df3e51bba129";
@@ -106,6 +112,11 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	protected static final File USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE = new File(TEST_DIR, "user-template-archetypes-global.xml");
 	protected static final String USER_TEMPLATE_ARCHETYPES_GLOBAL_OID = "dab200ae-65dc-11e9-a8d3-27e5b1538f19";
 	
+	protected static final File USER_TEMPLATE_CONTRACTOR_FILE = new File(TEST_DIR, "user-template-contractor.xml");
+	protected static final String USER_TEMPLATE_CONTRACTOR_OID = "f72193e4-78a6-11e9-a0b6-6f5ad4cfbb37";
+
+	private static final String CONTRACTOR_EMPLOYEE_NUMBER = "CONTRACTOR";
+	
 	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -113,8 +124,10 @@ public class TestArchetypes extends AbstractArchetypesTest {
         repoAddObjectFromFile(ROLE_EMPLOYEE_BASE_FILE, initResult);
         repoAddObjectFromFile(ROLE_USER_ADMINISTRATOR_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_EMPLOYEE_FILE, initResult);
+        repoAddObjectFromFile(ARCHETYPE_CONTRACTOR_FILE, initResult);
         repoAddObjectFromFile(COLLECTION_ACTIVE_EMPLOYEES_FILE, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_ARCHETYPES_GLOBAL_FILE, initResult);
+        repoAddObjectFromFile(USER_TEMPLATE_CONTRACTOR_FILE, initResult);
         
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
         
@@ -570,6 +583,178 @@ public class TestArchetypes extends AbstractArchetypesTest {
 	    		.end()
 	    	.links()
 	    		.assertNone();
+    }
+	
+	/**
+	 * Contractor archetype has a different object template.
+	 */
+	@Test
+    public void test130AssignJackArchetypeContractor() throws Exception {
+		final String TEST_NAME = "test130AssignJackArchetypeContractor";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.assignments()
+        		.assertAssignments(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+        	.roleMembershipRefs()
+        		.assertRoleMemberhipRefs(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);        
+    }
+	
+	/**
+	 * Make sure everything is nice and steady and the archetype template is still applied.
+	 */
+	@Test
+    public void test132JackContractorRecompute() throws Exception {
+		final String TEST_NAME = "test132JackContractorRecompute";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        recomputeUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+        	.assignments()
+        		.assertAssignments(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+        	.roleMembershipRefs()
+        		.assertRoleMemberhipRefs(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+    }
+	
+	/**
+	 * Contractor archetype has a different object template. We unassign the archetype
+	 * now. But the employeeNumber given by the template stays. There is no reason to change it.
+	 */
+	@Test
+    public void test135UnassignJackArchetypeContractor() throws Exception {
+		final String TEST_NAME = "test135UnassignJackArchetypeContractor";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        unassignArchetype(USER_JACK_OID, ARCHETYPE_CONTRACTOR_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+    	.assignments()
+    		.assertAssignments(0)
+    		.end()
+    	.assertNoArchetypeRef()
+    	.roleMembershipRefs()
+    		.assertRoleMemberhipRefs(0)
+    		.end()
+    	.links()
+    		.assertNone()
+    		.end()
+		.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);
+    }
+	
+	/**
+	 * Change employeeNumber and recompute. As the contractor template should no longer
+	 * be applied, the employee number should not be forced back to contractor.
+	 */
+	@Test
+    public void test137JackEmpnoAndRecompute() throws Exception {
+		final String TEST_NAME = "test137JackEmpnoAndRecompute";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "Number ONE");
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        recomputeUser(USER_JACK_OID, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_JACK_OID)
+    	.assignments()
+    		.assertAssignments(0)
+    		.end()
+    	.assertNoArchetypeRef()
+    	.roleMembershipRefs()
+    		.assertRoleMemberhipRefs(0)
+    		.end()
+    	.links()
+    		.assertNone()
+    		.end()
+		.assertEmployeeNumber("Number ONE");
+    }
+	
+	/**
+	 * Meathook is a contractor. Contractor archetype has a different object template.
+	 * This template should be applied when adding the object.
+	 */
+	@Test
+    public void test140AddMeathookContractor() throws Exception {
+		final String TEST_NAME = "test140AddMeathookContractor";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        addObject(USER_MEATHOOK_FILE, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        assertUserAfter(USER_MEATHOOK_OID)
+        	.assignments()
+        		.assertAssignments(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertArchetypeRef(ARCHETYPE_CONTRACTOR_OID)
+        	.roleMembershipRefs()
+        		.assertRoleMemberhipRefs(1)
+        		.assertArchetype(ARCHETYPE_CONTRACTOR_OID)
+        		.end()
+        	.assertEmployeeNumber(CONTRACTOR_EMPLOYEE_NUMBER);        
     }
 	
 	@Test
