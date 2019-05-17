@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,23 +14,69 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+  
+  <!-- 
+  
+  Set this in system configuration as:
+  
+    <defaultObjectPolicyConfiguration>
+        <type>RoleType</type>
+        <applicablePolicies>
+            <policyGroupRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0"/>
+        </applicablePolicies>
+    </defaultObjectPolicyConfiguration>
+  
+  Or use equivalent configuration in an archetype.
+  
+   -->
  
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
+	<archetype oid="210d033a-787c-11e9-85c3-37ef80a34e79">
+	    <name>Policy Metarole</name>
+	    <description>
+	    	Archetype for policy metaroles, e.g. metaroles that specify role approval policies
+	    </description>
+	    <archetypePolicy>
+	    	<display>
+	    		<label>Policy Metarole</label>
+	    		<pluralLabel>Policy Metaroles</pluralLabel>
+	    		<icon>
+	    			<cssClass>fa fa-balance-scale</cssClass>
+	    		</icon>
+	    	</display>
+	    </archetypePolicy>
+	    <assignment>
+	    	<assignmentRelation>
+	    		<holderType>RoleType</holderType>
+	    	</assignmentRelation>
+	    </assignment>
+	</archetype>
+
+	<org oid="c3497d6e-787b-11e9-b5ff-43355735d822">
+        <name>policies</name>
+        <description>Root of organizational tree for policies.</description>
+        <displayName>Policies</displayName>
+    </org>
+
 	<org oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0">
         <name>policy-meta-approval</name>
-        <subtype>policy</subtype>
         <description>Group of approval polices. This group contains policies that deal with assignment approvals and lifecycle approvals.</description>
         <displayName>Approval policies</displayName>
+        <assignment>
+        	<targetRef oid="c3497d6e-787b-11e9-b5ff-43355735d822" type="OrgType"/> <!-- policies org root -->
+        </assignment>
     </org>
 
     <role oid="834bf178-30fc-11e8-addd-1fc1464266f5">
 	    <name>meta-role-policy-assignment-approval-manager</name>
-	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by user's manager</displayName>
 	    <assignment>
+	        <targetRef oid="210d033a-787c-11e9-85c3-37ef80a34e79" type="ArchetypeType"/> <!-- Policy metarole archetype -->
+	    </assignment>
+	     <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
 	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
 	    </assignment>
@@ -66,8 +112,10 @@
         
     <role oid="0851dd7a-30fc-11e8-88fe-3796232f0574">
 	    <name>meta-role-policy-assignment-approval-role-approver</name>
-	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by any role approver</displayName>
+	    <assignment>
+	        <targetRef oid="210d033a-787c-11e9-85c3-37ef80a34e79" type="ArchetypeType"/> <!-- Policy metarole archetype -->
+	    </assignment>
 	    <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
 	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>
@@ -100,8 +148,10 @@
 
     <role oid="a38b7eec-23a3-11e8-9f81-f7fb91a9d52a">
 	    <name>meta-role-policy-assignment-approval-role-owners</name>
-	    <subtype>policy</subtype>
 	    <displayName>Assignment approval by all role owners</displayName>
+	    <assignment>
+	        <targetRef oid="210d033a-787c-11e9-85c3-37ef80a34e79" type="ArchetypeType"/> <!-- Policy metarole archetype -->
+	    </assignment>
 	    <assignment>
 	        <!-- Assignment so this meta-role is part of the policy group -->
 	        <targetRef oid="b1cb876e-23a2-11e8-bf14-ff36603a9ae0" type="OrgType"/>

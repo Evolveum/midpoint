@@ -858,7 +858,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		testResult.computeStatus("Test resource has failed");
 
-		LOGGER.trace("Finished testing {}, result: {} ", resource,
+		LOGGER.debug("Finished testing {}, result: {} ", resource,
 				testResult.getStatus());
 		return testResult;
 	}
