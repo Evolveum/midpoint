@@ -74,7 +74,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	ItemPath getPath();
 	
 	boolean isSelected();
-	boolean setSelected(boolean selected);
+	boolean setSelected(boolean selected); //TODO why return boolean?
 	
 	
 	boolean isReadOnly();

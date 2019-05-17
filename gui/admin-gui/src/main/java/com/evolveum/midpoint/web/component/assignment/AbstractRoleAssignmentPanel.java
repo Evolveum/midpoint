@@ -25,7 +25,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.*;
@@ -121,8 +121,8 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         });
 
         if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
-        	columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_TENANT_REF, ColumnType.VALUE));
-        	columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_ORG_REF, ColumnType.VALUE));
+        	columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_TENANT_REF, ColumnType.VALUE, getPageBase()));
+        	columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_ORG_REF, ColumnType.VALUE, getPageBase()));
         }
         
         columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){

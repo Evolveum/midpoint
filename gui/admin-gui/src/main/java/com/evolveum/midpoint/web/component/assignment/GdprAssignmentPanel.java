@@ -20,7 +20,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
@@ -46,7 +46,7 @@ public class GdprAssignmentPanel extends AbstractRoleAssignmentPanel {
 	protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
 		List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
 		
-		columns.add(new PrismPropertyColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING));
+		columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), AssignmentType.F_LIFECYCLE_STATE, ColumnType.STRING, getPageBase()));
 
 		columns.add(new CheckBoxColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("AssignmentType.accepted")) {
 

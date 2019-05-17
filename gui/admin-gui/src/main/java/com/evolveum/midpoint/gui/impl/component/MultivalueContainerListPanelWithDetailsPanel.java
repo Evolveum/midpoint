@@ -172,7 +172,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 			}
 			target.add(MultivalueContainerListPanelWithDetailsPanel.this);
 		} else {
-			warn(createStringResource("MultivalueContainerListPanel.message.noAssignmentSelected").getString());
+			warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
 			target.add(getPageBase().getFeedbackPanel());
 		}
 	}

@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
+import com.ctc.wstx.util.StringUtil;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
@@ -59,6 +61,9 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 	@Override
 	protected String createLabel(PrismContainerValueWrapper<C> object) {
 		C realValue = object.getRealValue();
+		if(realValue == null) {
+			return "";
+		}
 		
 		if (PolicyConstraintsType.class.isAssignableFrom(realValue.getClass())) {
 			return PolicyRuleTypeUtil.toShortString((PolicyConstraintsType) realValue);
@@ -76,6 +81,14 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 		//TODO what to show?
 		if (LifecycleStateModelType.class.isAssignableFrom(realValue.getClass())) {
 			return realValue.toString();
+		}
+		
+		if (LifecycleStateType.class.isAssignableFrom(realValue.getClass())) {
+			LifecycleStateType state = (LifecycleStateType) realValue;
+			if(StringUtils.isBlank(state.getDisplayName())) {
+				return state.getName();
+			}
+			return state.getDisplayName();
 		}
 		
 		if (ResourceObjectAssociationType.class.isAssignableFrom(realValue.getClass())) {

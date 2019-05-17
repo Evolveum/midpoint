@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,20 +23,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 
@@ -44,19 +35,13 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -64,14 +49,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
@@ -79,12 +58,9 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * @author skublik
@@ -99,6 +75,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     
     public ObjectPolicyConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ObjectPolicyConfigurationType>> model) {
         super(id, model);
+//        getModel().getObject().getValues().clear();
     }
 
     @Override
@@ -227,17 +204,9 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 		List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> columns = new ArrayList<>();
 
 		columns.add(new CheckBoxHeaderColumn<>());
-		columns.add(new IconColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>>(Model.of("")) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
-			}
-		});
 		
-		columns.add(new PrismPropertyColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE, ColumnType.LINK) { 
+		columns.add(new PrismPropertyWrapperColumn<ObjectPolicyConfigurationType, QName>(getModel(), ObjectPolicyConfigurationType.F_TYPE,
+				ColumnType.LINK, getPageBase()) { 
 			
 			private static final long serialVersionUID = 1L;
 
@@ -246,41 +215,42 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
+			@Override
+			public String getCssClass() {
+				return " col-md-2 ";
+			}
+			
 		});
 		
-		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, ColumnType.VALUE));
+		columns.add(new PrismPropertyWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_SUBTYPE, ColumnType.VALUE, getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-3 ";
+			}
+			
+		});
 		
-		columns.add(new PrismPropertyColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE));
+		columns.add(new PrismReferenceWrapperColumn(getModel(), ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF, ColumnType.VALUE, getPageBase()));
 
-		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL));
-//		columns.add(new AbstractItemWrapperColumn<ObjectPolicyConfigurationType>(getModel(), ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, getPageBase()){
-//            private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void populateItem(Item<ICellPopulator<ContainerValueWrapper<ObjectPolicyConfigurationType>>> item, String componentId,
-//									 final IModel<ContainerValueWrapper<ObjectPolicyConfigurationType>> rowModel) {
-//				ContainerWrapperImpl lifecycleStateModel = rowModel.getObject().findContainerWrapperByName(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL);
-//				
-//				Label label = null;
-//				if (lifecycleStateModel == null || lifecycleStateModel.getValues() == null || lifecycleStateModel.getValues().isEmpty()) {
-//					item.add(new Label(componentId, ""));
-//				} else {
-//					ContainerWrapperImpl lifecycleState = lifecycleStateModel.findContainerWrapperByName(LifecycleStateModelType.F_STATE);
-//					if (lifecycleState == null || lifecycleState.getValues() == null || lifecycleState.getValues().isEmpty()) {
-//						item.add(new Label(componentId, ""));
-//					} else {
-//						item.add(new StaticItemWrapperColumnPanel(componentId, new PropertyModel(lifecycleState, ""), new Form("form"), null) {
-//							protected IModel populateContainerItem(ContainerValueWrapper object) {
-//								return Model.of(object != null ? WebComponentUtil.getDisplayName(object.getContainerValue()) : "");
-//							};
-//						});
-//					}
-//				}
-//			}
-//        });
+		columns.add(new PrismContainerWrapperColumn<ObjectPolicyConfigurationType>(getModel(),
+				ItemPath.create(ObjectPolicyConfigurationType.F_LIFECYCLE_STATE_MODEL, LifecycleStateModelType.F_STATE), getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-2 ";
+			}
+			
+		});
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
+		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-1 ";
+			}
+		});
 		
         return columns;
 	}

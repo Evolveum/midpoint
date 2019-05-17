@@ -144,7 +144,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		if (isObjectPolicyConfigurationType()) {
 			QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
 			ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
-			if(objectTemplate == null){
+			if(objectTemplate == null || objectTemplate.getTargetName() == null){
 				return Model.of("");
 			}
 			String objectTemplateNameValue = objectTemplate.getTargetName().toString();

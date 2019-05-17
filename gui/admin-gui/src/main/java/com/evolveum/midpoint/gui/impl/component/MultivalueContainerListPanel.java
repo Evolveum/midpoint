@@ -461,6 +461,23 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		}
 	}
 	
+	public List<PrismContainerValueWrapper<C>> getPerformedSelectedItems(IModel<PrismContainerValueWrapper<C>> rowModel) {
+		List<PrismContainerValueWrapper<C>> performedItems = new ArrayList<PrismContainerValueWrapper<C>>();
+		List<PrismContainerValueWrapper<C>> listItems = getSelectedItems();
+		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
+			if(rowModel == null) {
+				performedItems.addAll(listItems);
+				listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
+					itemConfigurationTypeContainerValueWrapper.setSelected(false);
+				});
+			} else {
+				performedItems.add(rowModel.getObject());
+				rowModel.getObject().setSelected(false);
+			}
+		}
+		return performedItems;
+	}
+	
 	//TODO generalize for properites
 	public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
 			PrismContainerValue<C> newItem,
@@ -517,7 +534,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	protected void deleteItemPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> toDelete) {
 		if (toDelete == null || toDelete.isEmpty()){
-			warn(createStringResource("MultivalueContainerListPanel.message.noAssignmentSelected").getString());
+			warn(createStringResource("MultivalueContainerListPanel.message.noItemsSelected").getString());
 			target.add(getPageBase().getFeedbackPanel());
 			return;
 		}

@@ -473,7 +473,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			}
 		});
 
-		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION));
+		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()));
 		
 		columns.addAll(initColumns());
 		List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();

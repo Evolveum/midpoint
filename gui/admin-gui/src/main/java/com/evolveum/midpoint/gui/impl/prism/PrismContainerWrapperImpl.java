@@ -37,11 +37,9 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
@@ -177,7 +175,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 				//TODO : what to do?? can be recently added
 				return null;
 			}
-			
 			if (id.equals(newValue.getId())) {
 				return value;
 			}

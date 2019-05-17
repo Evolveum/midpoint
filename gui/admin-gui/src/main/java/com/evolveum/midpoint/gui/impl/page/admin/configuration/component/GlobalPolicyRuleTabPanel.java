@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
@@ -45,31 +36,19 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.prism.StaticItemWrapperColumnPanel;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -78,10 +57,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -228,26 +204,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
 		columns.add(new CheckBoxHeaderColumn<>());
 
-//		columns.add(new IconColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>>(Model.of("")) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected IModel<String> createIconModel(IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-//				return new IModel<String>() {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public String getObject() {
-//						return WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE);
-//					}
-//				};
-//			}
-//
-//		});
-		
-		PrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, ColumnType.LINK) {
+		PrismPropertyWrapperColumn<GlobalPolicyRuleType, String> linkColumn = new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, ColumnType.LINK, getPageBase()) {
 			
 			@Override
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
@@ -262,71 +219,26 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 			
 		};
 		
-//		LinkPrismPropertyColumn<GlobalPolicyRuleType, String> linkColumn = new LinkPrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_NAME, getPageBase()) {
-//			
-//			@Override
-//			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-//				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
-//			}
-//
-//			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-//				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
-//
-//			}
-//		};
 		columns.add(linkColumn);
-		
 		   
         //TODO wrapper form wrapper model
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS));
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
 		
-        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS));
+        columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
 		
-//        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
-//                                     final IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-//                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-//                		new Form("form"), null) {
-//                	@Override
-//                	protected IModel<String> populateContainerItem(PrismContainerValueWrapper object) {
-//                		ItemRealValueModel value = new ItemRealValueModel(object);
-//                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyConstraintsType)value.getObject());
-//                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-//                	}
-//                });
-//            }
-//
-//        });
-        
-        
         //todo property from container model
         
-        columns.add(new PrismPropertyColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING));
-        
-//        columns.add(new AbstractItemWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()){
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<GlobalPolicyRuleType>>> cellItem, String componentId,
-//                                     final IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
-//                cellItem.add(new StaticItemWrapperColumnPanel(componentId, Model.of(rowModel.getObject().findItemWrapper(getqNameOfItem())),
-//                		new Form("form"), null) {
-//                	@Override
-//                	protected IModel<String> populateContainerItem(ContainerValueWrapper object) {
-//                		ItemRealValueModel value = new ItemRealValueModel(object);
-//                		String constraints = PolicyRuleTypeUtil.toShortString((PolicyActionsType)value.getObject(), new ArrayList());
-//                		return Model.of(constraints != null && !constraints.equals("null") ? constraints : "");
-//                	}
-//                });
-//            }
-//
-//        });
+        columns.add(new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
-		columns.add(new InlineMenuButtonColumn<>(menuActionsList, getPageBase()));
+		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-1 ";
+			}
+			
+		});
 		
         return columns;
 	}

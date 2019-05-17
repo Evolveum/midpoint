@@ -62,6 +62,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	private boolean sorted; 
 	private boolean showEmpty;
 	private boolean readOnly;
+	private boolean selected;
 	
 	private List<ItemWrapper<?, ?, ?,?>> items = new ArrayList<>();
 	
@@ -298,23 +299,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		return getNewValue().getPath();
 	}
 	
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#isSelected()
-	 */
 	@Override
 	public boolean isSelected() {
-		// TODO Auto-generated method stub
-		return false;
+		return selected;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper#setSelected(boolean)
-	 */
 	@Override
 	public boolean setSelected(boolean selected) {
-		// TODO Auto-generated method stub
-		return false;
+		return this.selected = selected;
 	}
 
 	

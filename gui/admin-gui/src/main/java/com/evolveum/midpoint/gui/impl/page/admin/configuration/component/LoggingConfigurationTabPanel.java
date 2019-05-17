@@ -55,7 +55,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
@@ -346,9 +346,16 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
 		});
 		
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, ColumnType.VALUE));
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, ColumnType.VALUE));
-		columns.add(new PrismPropertyColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, ColumnType.VALUE));
+		columns.add(new PrismPropertyWrapperColumn(loggersModel, ClassLoggerConfigurationType.F_PACKAGE, ColumnType.VALUE, getPageBase()) {
+			
+			@Override
+			public String getCssClass() {
+				return " col-md-5 ";
+			}
+			
+		});
+		columns.add(new PrismPropertyWrapperColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, ColumnType.VALUE, getPageBase()));
+		columns.add(new PrismPropertyWrapperColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, ColumnType.VALUE, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getLoggersMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
@@ -477,21 +484,16 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			}
 		});
 		
-		columns.add(new PrismPropertyColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_NAME, ColumnType.LINK) {
+		columns.add(new PrismPropertyWrapperColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_NAME, ColumnType.LINK, getPageBase()) {
 		
 			@Override
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
 				getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 			
-//			@Override
-//			protected IModel populatePropertyItem(P object) {
-//				ItemRealValueModel<String> value =  new ItemRealValueModel<String>(object);
-//				return StringUtils.isBlank(value.getObject()) ? createStringResource("AssignmentPanel.noName") : Model.of(value.getObject());
-//			}
 		});
 		
-		columns.add(new PrismPropertyColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_PATTERN, ColumnType.VALUE) {
+		columns.add(new PrismPropertyWrapperColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_PATTERN, ColumnType.VALUE, getPageBase()) {
 			@Override
 			public String getCssClass() {
 				return " col-md-5 ";
