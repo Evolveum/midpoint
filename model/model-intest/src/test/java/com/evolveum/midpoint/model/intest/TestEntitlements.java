@@ -217,20 +217,18 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
 
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
 
         // THEN
+        displayThen(TEST_NAME);
         assertSuccess(result);
 
-        DummyGroup dummyGroup = getDummyResource().getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
-        assertNotNull("No group created on dummy resource", dummyGroup);
-        display("Group", dummyGroup);
-        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION,
-        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyGroupByName(null, GROUP_DUMMY_SWASHBUCKLERS_NAME)
+        	.assertDescription(GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION)
+        	.assertMember(ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 
     @Test
