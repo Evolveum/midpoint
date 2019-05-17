@@ -16,21 +16,17 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 
 /**
  * Created by honchar
  */
-public class WorkItemDetailsPanel extends BasePanel<ContainerValueWrapper<CaseWorkItemType>>{
+public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DISPLAY_NAME_PANEL = "displayNamePanel";
@@ -41,8 +37,8 @@ public class WorkItemDetailsPanel extends BasePanel<ContainerValueWrapper<CaseWo
     private static final String ID_COMMENT = "requesterCommentMessage";
     private static final String ID_DELTAS_TO_APPROVE = "deltasToBeApproved";
 
-    public WorkItemDetailsPanel(String id, IModel<ContainerValueWrapper<CaseWorkItemType>> workitemContainerWrapperModel) {
-        super(id, workitemContainerWrapperModel);
+    public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
+        super(id, caseWorkItemTypeIModel);
     }
 
     @Override
@@ -52,20 +48,15 @@ public class WorkItemDetailsPanel extends BasePanel<ContainerValueWrapper<CaseWo
     }
 
     private void initLayout(){
-        //TODO will be refactored with container wrapper details panel
-        DisplayNamePanel<CaseWorkItemType> displayNamePanel = new DisplayNamePanel<CaseWorkItemType>(ID_DISPLAY_NAME_PANEL, Model.of(getWorkItemObjectFromContainer()));
-
-        displayNamePanel.setOutputMarkupId(true);
-        add(displayNamePanel);
-
         IconedObjectNamePanel requestedBy = new IconedObjectNamePanel(ID_REQUESTED_BY,
-                WorkItemTypeUtil.getRequestorReference(getWorkItemObjectFromContainer()));
+                WorkItemTypeUtil.getRequestorReference(getModelObject()));
         requestedBy.setOutputMarkupId(true);
         add(requestedBy);
-    }
 
-
-    private CaseWorkItemType getWorkItemObjectFromContainer(){
-        return getModelObject().getContainerValue().asContainerable();
+        //todo fix what is requested for object ?
+        IconedObjectNamePanel requestedFor = new IconedObjectNamePanel(ID_REQUESTED_FOR,
+                WorkItemTypeUtil.getRequestorReference(getModelObject()));
+        requestedFor.setOutputMarkupId(true);
+        add(requestedFor);
     }
 }

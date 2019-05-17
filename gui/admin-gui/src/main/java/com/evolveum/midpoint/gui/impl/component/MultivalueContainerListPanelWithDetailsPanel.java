@@ -181,4 +181,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	public boolean isListPanelVisible() {
 		return !itemDetailsVisible;
 	}
+
+	protected WebMarkupContainer getDetailsPanelContainer(){
+		return (WebMarkupContainer) get(ID_DETAILS);
+	}
 }

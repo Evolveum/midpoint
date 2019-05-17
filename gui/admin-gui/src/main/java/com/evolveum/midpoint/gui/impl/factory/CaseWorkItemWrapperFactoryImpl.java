@@ -15,15 +15,23 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.prism.CaseWorkItemTypeWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ExpressionWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.component.ExpressionPropertyPanel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -60,6 +68,14 @@ public class CaseWorkItemWrapperFactoryImpl extends PrismContainerWrapperFactory
     @Override
     protected boolean shouldCreateEmptyValue(PrismContainer<CaseWorkItemType> item, WrapperContext context) {
         return false;
+    }
+
+    @Override
+    protected PrismContainerWrapper<CaseWorkItemType> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<CaseWorkItemType> item,
+                                                                 ItemStatus status) {
+        getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), WorkItemDetailsPanel.class);
+        CaseWorkItemTypeWrapper containerWrapper = new CaseWorkItemTypeWrapper(parent, item, status);
+        return containerWrapper;
     }
 
     @Override
