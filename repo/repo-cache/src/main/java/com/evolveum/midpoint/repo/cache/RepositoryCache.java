@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
