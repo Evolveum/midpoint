@@ -36,6 +36,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -162,7 +164,8 @@ public class Clockwork {
 	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
 	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
-	
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
 
@@ -190,9 +193,9 @@ public class Clockwork {
 			if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
 				context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 			}
-			FocusConstraintsChecker.enterCache();
+			FocusConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
 			enterAssociationSearchExpressionEvaluatorCache();
-			enterDefaultSearchExpressionEvaluatorCache();
+			//enterDefaultSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
 
 			while (context.getState() != ModelState.FINAL) {
@@ -221,7 +224,7 @@ public class Clockwork {
 		} finally {
 			context.unregisterConflictWatchers(repositoryService);
 			FocusConstraintsChecker.exitCache();
-			exitDefaultSearchExpressionEvaluatorCache();
+			//exitDefaultSearchExpressionEvaluatorCache();
 			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
 			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
@@ -266,7 +269,7 @@ public class Clockwork {
 		} catch (PreconditionViolationException e) {
 			ModelImplUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
-			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatibility
 			// ... and we do not really need that in 3.6.1
 			// TODO: expose PreconditionViolationException in 3.7
 			throw new SystemException(e);
@@ -419,7 +422,8 @@ public class Clockwork {
 	}
 
 	private void enterAssociationSearchExpressionEvaluatorCache() {
-		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache();
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache(
+				cacheConfigurationManager.getConfiguration(CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE));
 		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
 		cache.setClientContextInformation(invalidator);
 		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
@@ -440,11 +444,11 @@ public class Clockwork {
 	}
 
 	private void enterDefaultSearchExpressionEvaluatorCache() {
-		DefaultSearchExpressionEvaluatorCache.enterCache();
+		//DefaultSearchExpressionEvaluatorCache.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_DEFAULT_SEARCH_EVALUATOR_CACHE));
 	}
 
 	private void exitDefaultSearchExpressionEvaluatorCache() {
-		DefaultSearchExpressionEvaluatorCache.exitCache();
+		//DefaultSearchExpressionEvaluatorCache.exitCache();
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {

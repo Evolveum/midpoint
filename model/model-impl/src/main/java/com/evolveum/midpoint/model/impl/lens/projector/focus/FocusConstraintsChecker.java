@@ -29,17 +29,16 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -60,9 +59,6 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject<AH> conflictingObject;
-
-	public FocusConstraintsChecker() {
-	}
 
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -183,8 +179,8 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		messageBuilder.append(message);
 	}
 
-	public static void enterCache() {
-		Cache.enter(cacheThreadLocal, Cache.class, LOGGER);
+	public static void enterCache(CacheConfiguration configuration) {
+		Cache.enter(cacheThreadLocal, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
@@ -221,7 +217,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 	}
 
-	public static class Cache extends AbstractCache {
+	public static class Cache extends AbstractThreadLocalCache {
 
 		private Set<String> conflictFreeNames = new HashSet<>();
 

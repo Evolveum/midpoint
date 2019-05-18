@@ -164,8 +164,6 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 		Date deletingDate =  new Date(clock.currentTimeMillis());
 		notUpdatedDuration.addTo(deletingDate);
 		
-		QueryType queryType = new QueryType();
-		
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.block()
 					.item(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP).le(XmlTypeConverter.createXMLGregorianCalendar(deletingDate))

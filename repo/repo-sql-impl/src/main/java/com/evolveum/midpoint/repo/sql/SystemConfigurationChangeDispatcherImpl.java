@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -59,6 +60,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
 
@@ -107,6 +109,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 		applyFullTextSearchConfiguration(configuration);
 		applyRelationsConfiguration(configuration);
 		applyOperationResultHandlingConfiguration(configuration);
+		applyCachingConfiguration(configuration);
 
 		if (lastVersionApplied != null) {
 			LOGGER.trace("System configuration version {} applied successfully", lastVersionApplied);
@@ -186,6 +189,15 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 			SystemConfigurationTypeUtil.applyOperationResultHandling(configuration);
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply operation result handling configuration", t);
+			lastVersionApplied = null;
+		}
+	}
+
+	private void applyCachingConfiguration(SystemConfigurationType configuration) {
+		try {
+			cacheConfigurationManager.applyCachingConfiguration(configuration);
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply caching configuration", t);
 			lastVersionApplied = null;
 		}
 	}

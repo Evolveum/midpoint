@@ -25,6 +25,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -109,6 +111,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired ConnectorManager connectorManager;
 	@Autowired ProvisioningContextFactory ctxFactory;
 	@Autowired PrismContext prismContext;
+	@Autowired CacheConfigurationManager cacheConfigurationManager;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -1321,7 +1324,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void enterConstraintsCheckerCache() {
-		ConstraintsChecker.enterCache();
+		ConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_SHADOW_CONSTRAINT_CHECKER_CACHE));
 	}
 
 	@Override

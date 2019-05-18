@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +136,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	@Autowired private AssignmentCollector assignmentCollector;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -740,10 +742,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			long started = System.currentTimeMillis();
 			task.recordIterativeOperationStart(shadow.asObjectable());
 
+			RepositoryCache.enter(cacheConfigurationManager);
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
-				RepositoryCache.enter();
-
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 ModelImplUtils.clearRequestee(task);
 				provisioningService.refreshShadow(shadow, options, task, provisioningResult);

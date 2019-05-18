@@ -1044,4 +1044,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	Collection<? extends AssignmentType> getAssignments();
 
 	ObjectReferenceType getOwnerRef();
+
+	@NotNull
+	Collection<String> getCachingProfiles();
 }

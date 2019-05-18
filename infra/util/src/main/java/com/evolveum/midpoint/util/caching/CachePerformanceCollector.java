@@ -64,7 +64,7 @@ public class CachePerformanceCollector implements DebugDumpable {
 			return notAvailable;
 		}
 
-		public void add(AbstractCache cache) {
+		public void add(AbstractThreadLocalCache cache) {
 			hits.addAndGet(cache.getHits());
 			misses.addAndGet(cache.getMisses());
 			passes.addAndGet(cache.getPasses());
@@ -94,7 +94,7 @@ public class CachePerformanceCollector implements DebugDumpable {
 		}
 	}
 
-	public void onCacheDestroy(AbstractCache cache) {
+	public void onCacheDestroy(AbstractThreadLocalCache cache) {
 		getOrCreate(performanceMap, cache.getClass()).add(cache);
 		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
 		if (localMap != null) {

@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,7 +33,11 @@ import java.util.List;
 /**
  * Default search expression evaluator cache.
  *
- * @author Pavol Mederly
+ * Unfinished -- cache invalidation is missing.
+ *
+ * Currently unused. The (almost) equivalent functionality is provided by global and local repo query cache.
+ *
+ * TODO eventually remove
  */
 public class DefaultSearchExpressionEvaluatorCache
         extends AbstractSearchExpressionEvaluatorCache<
@@ -48,12 +53,12 @@ public class DefaultSearchExpressionEvaluatorCache
         return cacheInstances.get();
     }
 
-    public static DefaultSearchExpressionEvaluatorCache enterCache() {
-        return enter(cacheInstances, DefaultSearchExpressionEvaluatorCache.class, LOGGER);
+    public static void enterCache(CacheConfiguration configuration) {
+        enter(cacheInstances, DefaultSearchExpressionEvaluatorCache.class, configuration, LOGGER);
     }
 
-    public static DefaultSearchExpressionEvaluatorCache exitCache() {
-        return exit(cacheInstances, LOGGER);
+    public static void exitCache() {
+        exit(cacheInstances, LOGGER);
     }
 
     @Override
@@ -68,6 +73,7 @@ public class DefaultSearchExpressionEvaluatorCache
 
     @Override
     protected QueryResult createQueryResult(List<PrismValue> resultList, List<PrismObject> rawResultList) {
+        //noinspection unchecked
         return new QueryResult(resultList);
     }
 

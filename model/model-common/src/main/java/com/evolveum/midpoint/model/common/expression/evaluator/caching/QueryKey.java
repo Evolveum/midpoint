@@ -30,7 +30,7 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 public class QueryKey {
 
     private Class<? extends ObjectType> type;
-    private QueryType query;
+    private QueryType query;        // consider using ObjectQuery here
     private ObjectSearchStrategyType searchStrategy;
 
     public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, PrismContext prismContext) {

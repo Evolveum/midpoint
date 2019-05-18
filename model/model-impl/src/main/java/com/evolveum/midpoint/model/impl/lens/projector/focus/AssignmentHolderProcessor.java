@@ -99,7 +99,7 @@ public class AssignmentHolderProcessor {
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
-	
+
 	@Autowired private FocusProcessor focusProcessor;
 
 	@Autowired

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 /**
  * @author mederly
  */
-public abstract class AbstractCache {
+public abstract class AbstractThreadLocalCache {
 
     private int entryCount = 0;
 
@@ -30,23 +30,27 @@ public abstract class AbstractCache {
     private int misses = 0;
     private int passes = 0;
 
-    public static <T extends AbstractCache> T enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass, Trace logger) {
+    private CacheConfiguration configuration;
+
+    public static <T extends AbstractThreadLocalCache> T enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass,
+            CacheConfiguration configuration, Trace logger) {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: ENTER for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null) {
-            logger.trace("Cache: creating for thread {}",Thread.currentThread().getName());
+            logger.trace("Cache: creating for thread {}", Thread.currentThread().getName());
             try {
                 inst = cacheClass.newInstance();
             } catch (InstantiationException|IllegalAccessException e) {
                 throw new SystemException("Couldn't instantiate cache: " + e.getMessage(), e);
             }
+            inst.setConfiguration(configuration);
             cacheThreadLocal.set(inst);
         }
         inst.incrementEntryCount();
         return inst;
     }
 
-    public static <T extends AbstractCache> T exit(ThreadLocal<T> cacheThreadLocal, Trace logger) {
+    public static <T extends AbstractThreadLocalCache> T exit(ThreadLocal<T> cacheThreadLocal, Trace logger) {
         T inst = cacheThreadLocal.get();
         logger.trace("Cache: EXIT for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null || inst.getEntryCount() == 0) {
@@ -61,7 +65,7 @@ public abstract class AbstractCache {
         return inst;
     }
 
-    public static <T extends AbstractCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
+    public static <T extends AbstractThreadLocalCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
         T inst = cacheThreadLocal.get();
         if (inst != null) {
             logger.trace("Cache: DESTROY for thread {}: {}", Thread.currentThread().getName(), inst.getCacheStatisticsString());
@@ -99,11 +103,11 @@ public abstract class AbstractCache {
         return entryCount;
     }
 
-    public static boolean exists(ThreadLocal<? extends AbstractCache> cacheThreadLocal) {
+    public static boolean exists(ThreadLocal<? extends AbstractThreadLocalCache> cacheThreadLocal) {
         return cacheThreadLocal.get() != null;
     }
 
-    public static <T extends AbstractCache> String debugDump(ThreadLocal<T> cacheThreadLocal) {
+    public static <T extends AbstractThreadLocalCache> String debugDump(ThreadLocal<T> cacheThreadLocal) {
         T inst = cacheThreadLocal.get();
         StringBuilder sb = new StringBuilder("Cache ");
         if (inst != null) {
@@ -129,5 +133,21 @@ public abstract class AbstractCache {
 
     public void recordPass() {
         passes++;
+    }
+
+    public boolean supportsObjectType(Class<?> type) {
+        return configuration != null && configuration.supportsObjectType(type);
+    }
+
+    public boolean isAvailable() {
+        return configuration != null && configuration.isAvailable();
+    }
+
+    public CacheConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    public void setConfiguration(CacheConfiguration configuration) {
+        this.configuration = configuration;
     }
 }

@@ -60,4 +60,12 @@ public class QueryKey {
     public ObjectQuery getQuery() {
         return query;
     }
+
+    @Override
+    public String toString() {
+        return "QueryKey{" +
+                "type=" + type +
+                ", query=" + query +
+                '}';
+    }
 }

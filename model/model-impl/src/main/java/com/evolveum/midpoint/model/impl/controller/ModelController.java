@@ -796,9 +796,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return new SearchResultList<>(new ArrayList<>());
 		}
 
+		enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
 		SearchResultList<PrismObject<T>> list;
 		try {
-			enterModelMethod();
 			logQuery(processedQuery);
 
 			try {
@@ -946,10 +946,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return new SearchResultList<>(new ArrayList<>());
 		}
 
+		enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
 		SearchResultList<T> list;
 		try {
-			enterModelMethod();
-
 			logQuery(query);
 
 			try {
@@ -1021,9 +1020,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			return 0;
 		}
 
+		enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
 		Integer count;
 		try {
-			enterModelMethod();
 
 			logQuery(query);
 
@@ -1224,9 +1223,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
+		enterModelMethod();     // outside try-catch because if this ends with an exception, cache is not entered yet
 		Integer count;
 		try {
-			enterModelMethod();
 
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, result);
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);

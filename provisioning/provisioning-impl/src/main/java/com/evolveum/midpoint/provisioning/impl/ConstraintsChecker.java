@@ -36,7 +36,8 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -235,8 +236,8 @@ public class ConstraintsChecker {
 		messageBuilder.append(message);
 	}
 
-	public static void enterCache() {
-		Cache.enter(cacheThreadLocal, Cache.class, LOGGER);
+	public static void enterCache(CacheConfiguration configuration) {
+		Cache.enter(cacheThreadLocal, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
@@ -325,7 +326,7 @@ public class ConstraintsChecker {
 		}
 	}
 
-	public static class Cache extends AbstractCache {
+	public static class Cache extends AbstractThreadLocalCache {
 
 		private Set<Situation> conflictFreeSituations = new HashSet<>();
 

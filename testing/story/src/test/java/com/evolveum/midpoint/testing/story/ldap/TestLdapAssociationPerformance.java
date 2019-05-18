@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -57,6 +58,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "assoc-perf");
 
+	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
 	private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String RESOURCE_OPENDJ_OID = "aeff994e-381a-4fb3-af3b-f0f5dcdc9653";
 	private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
@@ -75,6 +78,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 	private static final File TASK_RECOMPUTE_1_FILE = new File(TEST_DIR, "task-recompute-1.xml");
 	private static final String TASK_RECOMPUTE_1_OID = "e3a446c5-07ef-4cbd-9bc9-d37fa5a10d70";
+	private static final File TASK_RECOMPUTE_NO_CACHE_FILE = new File(TEST_DIR, "task-recompute-no-role-and-shadow-cache.xml");
+	private static final String TASK_RECOMPUTE_NO_CACHE_OID = "aadb61f6-5bd2-4802-a44d-02f7911eb270";
 
 	protected static final int NUMBER_OF_GENERATED_USERS = 20;
 	protected static final String GENERATED_USER_NAME_FORMAT = "u%06d";
@@ -95,6 +100,11 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	private Map<String,Long> durations = new LinkedHashMap<>();
 
 	private PrismObject<ResourceType> resourceOpenDj;
+
+	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
+	}
 
 	@Override
 	protected void importSystemTasks(OperationResult initResult) {
@@ -178,12 +188,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		long startMillis = System.currentTimeMillis();
 
+		IntegrationTestTools.setSilentConsole(true);
 		generateObjects(RoleType.class, NUMBER_OF_GENERATED_ROLES, GENERATED_ROLE_NAME_FORMAT, GENERATED_ROLE_OID_FORMAT,
 				(role, i) ->
 						role.beginAssignment()
 								.targetRef(ROLE_META_OID, RoleType.COMPLEX_TYPE),
 				role -> addObject(role, task, result),
 				result);
+		IntegrationTestTools.setSilentConsole(false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -221,6 +233,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 		long startMillis = System.currentTimeMillis();
 
+		IntegrationTestTools.setSilentConsole(true);
 		generateObjects(UserType.class, NUMBER_OF_GENERATED_USERS, GENERATED_USER_NAME_FORMAT, GENERATED_USER_OID_FORMAT,
 				(user, i) -> {
 					user
@@ -240,6 +253,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 				},
 				user -> addObject(user, task, result),
 				result);
+		IntegrationTestTools.setSilentConsole(false);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -297,6 +311,46 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		displayThen(TEST_NAME);
 
 		recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_1_OID));
+
+		// todo retrieve this information from finished task
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
+		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
+		dumpCachePerformanceData(TEST_NAME);
+
+		assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+
+		assertLdapAccounts(getNumberOfLdapAccounts() + NUMBER_OF_GENERATED_USERS);
+		assertLdapConnectorInstances(1);
+
+		assertSteadyResource();
+		//assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
+	}
+
+	@Test
+	public void test120RecomputeUsersNoRoleAndShadowCache() throws Exception {
+		final String TEST_NAME = "test120RecomputeUsersNoRoleAndShadowCache";
+		displayTestTitle(TEST_NAME);
+
+		rememberConnectorResourceCounters();
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		addTask(TASK_RECOMPUTE_NO_CACHE_FILE);
+
+		getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
+		resetCachePerformanceCollector();
+
+		waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
+
+		// THEN
+		displayThen(TEST_NAME);
+
+		recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_NO_CACHE_OID));
 
 		// todo retrieve this information from finished task
 		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();

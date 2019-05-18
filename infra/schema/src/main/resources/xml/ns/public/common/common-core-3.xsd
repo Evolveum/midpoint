@@ -2717,6 +2717,18 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Specification of the environment in which the task should execute.
+								An example is caching profile that should be used.
+							</xsd:documentation>
+							<xsd:appinfo>
+								<a:experimental>true</a:experimental>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -2820,6 +2832,29 @@
 					<xsd:documentation>
 						A textual representation of the information.
 						(It can be augmented/replaced by more structured form using a subclass of DiagnosticInformationType.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="TaskExecutionEnvironmentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specification of the environment in which the task should execute.
+				An example is caching profile that should be used.
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cachingProfile" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Caching profile(s) that are to be applied to this task.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -15655,8 +15690,8 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    
-                    <xsd:element name="expressions" type="tns:SystemConfigurationExpressionsType" minOccurs="0" maxOccurs="1">
+
+					<xsd:element name="expressions" type="tns:SystemConfigurationExpressionsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Specifies profile for expression evaluations, execution, restrictions, etc.
@@ -16717,10 +16752,264 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-        </xsd:sequence>
+			<xsd:element name="caching" type="tns:CachingConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Profiles for various kind of caching. Used to balance performance with the accuracy/timeliness of data.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>InternalsConfigurationType.caching</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
     </xsd:complexType>
-    
-    <xsd:complexType name="AdminGuiConfigurationType">
+
+	<xsd:complexType name="CachingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Profiles for various kind of caching. Used to balance performance with the accuracy/timeliness of data.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="profile" type="tns:CachingProfileType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specific caching profile that can be used system-wide or for individual threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cachingConfiguration" type="tns:CachingConfigurationType" />
+
+	<xsd:complexType name="CachingProfileType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specific caching profile that can be used system-wide or for individual threads.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Caching profile name: used to describe the profile and to refer to it e.g. from specific tasks.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="order" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Order in which this profile is to be evaluated. (Related to other profiles.) Smaller numbers
+						go first. Entries with no order go last.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						This property can be used to temporarily disable the profile. Default is "false".
+						Disabled profile means that the profile as such is invisible. It does not necessarily mean
+						that the specified caches are disabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="global" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If enabled, this profile is applied system-wide. Default is "false".
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localRepoObjectCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for repository objects. By default it is enabled
+						for everything except TaskType.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localRepoVersionCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for repository objects versions. By default it is enabled
+						for everything except TaskType.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localRepoQueryCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for repository queries. By default it is enabled
+						for everything except TaskType.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localRepoCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for repository objects and queries. This is a shortcut
+						for "localRepoObjectCache" and "localRepoQueryCache" and cannot be used with any of them.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="globalRepoObjectCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for global cache for repository objects. By default it is disabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="globalRepoQueryCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for global cache for repository queries. By default it is disabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="globalRepoCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for global cache for repository objects and queries. This is a shortcut
+						for "globalRepoObjectCache" and "globalRepoQueryCache" and cannot be used with any of them.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localFocusConstraintCheckerCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for focus constraint checking. By default it is enabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localShadowConstraintCheckerCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for resource objects (and their shadows) constraint checking. By default it is enabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="localAssociationTargetSearchEvaluatorCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for thread- and operation-local cache for associationTargetSearch evaluator cache. By default it is enabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+<!--			<xsd:element name="localDefaultSearchEvaluatorCache" type="tns:CacheSettingsType" minOccurs="0">-->
+<!--				<xsd:annotation>-->
+<!--					<xsd:documentation>-->
+<!--						Settings for thread- and operation-local cache for other search evaluator cache. By default it is disabled. (It is not suitable for production use!)-->
+<!--					</xsd:documentation>-->
+<!--				</xsd:annotation>-->
+<!--			</xsd:element>-->
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cachingProfile" type="tns:CachingProfileType" />
+
+	<xsd:complexType name="CacheSettingsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Settings for a given cache. Not all items are applicable for each cache.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="append" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to append these settings to other (e.g. global) settings, or to override any existing settings.
+						Default is "true" (i.e. to append).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxSize" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How many entries could be present in this cache? The default is "unlimited". Zero means the cache is disabled.
+						Note that this property is currently supported for global repo caches only.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timeToLive" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How long (in seconds) should objects live in the cache. The default is 1 minute for global caches, and
+						cache lifetime for local ones. Value of 0 means that the specified cache is disabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectTypeSettings" type="tns:CacheObjectTypeSettingsType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configuration for specific object type(s).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cacheSettings" type="tns:CacheSettingsType" />
+
+	<xsd:complexType name="CacheObjectTypeSettingsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Settings for a given cache and object type(s). Not all items are applicable for each cache.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="objectType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Object type(s) to which this settings are to be applied. If not specified, these apply either to all
+						object types currently supported by the cache. (If this configuration is appending to a previous one,
+						this affects all object types configured in that configuration. If this configuration is the first
+						one, then this affects all object types supported by default by given cache.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timeToLive" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How long (in seconds) should given object type(s) live in the cache. The default is the same
+						as timeToLive for the cache itself.
+
+						This is currently supported only for global objects and queries cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="timeToVersionCheck" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How long could an object live in the cache without checking its version (in seconds).
+						This is currently supported only for global objects cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cacheObjectTypeSettings" type="tns:CacheObjectTypeSettingsType" />
+
+	<xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Administration GUI configuration.
@@ -16973,7 +17262,7 @@
         </xsd:sequence>
     </xsd:complexType>
     
-        <xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
+	<xsd:complexType name="AdminGuiConfigurationDisplayFormatsType">
         <xsd:annotation>
             <xsd:documentation>
                 Default display formats for various UI elements.

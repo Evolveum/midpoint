@@ -2599,4 +2599,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 			taskPrism.asObjectable().getSubtask().add(subtaskBean);
 		}
 	}
+
+	@NotNull
+	@Override
+	public Collection<String> getCachingProfiles() {
+		TaskExecutionEnvironmentType executionEnvironment = getTaskType().getExecutionEnvironment();
+		return executionEnvironment != null ? executionEnvironment.getCachingProfile() : emptySet();
+	}
 }

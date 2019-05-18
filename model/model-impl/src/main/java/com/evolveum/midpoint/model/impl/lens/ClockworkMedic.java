@@ -17,6 +17,8 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -51,6 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTyp
 public class ClockworkMedic {
 		
 	private static final Trace LOGGER = TraceManager.getTrace(ClockworkMedic.class);
+
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 	
 	public void enterModelMethod(boolean enterCache) {
 		if (InternalsConfig.isModelProfiling()) {
@@ -66,7 +70,7 @@ public class ClockworkMedic {
 		}
 
 		if (enterCache) {
-			RepositoryCache.enter();
+			RepositoryCache.enter(cacheConfigurationManager);
 		}
 	}
 	

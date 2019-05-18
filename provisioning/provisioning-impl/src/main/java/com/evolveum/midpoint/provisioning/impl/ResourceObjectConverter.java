@@ -32,6 +32,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -99,6 +100,7 @@ public class ResourceObjectConverter {
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private AsyncUpdateListeningRegistry listeningRegistry;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -1287,8 +1289,8 @@ public class ResourceObjectConverter {
 			metadata = connector.search(objectClassDef, query, 
 					(shadow) -> {
 						// in order to utilize the cache right from the beginning...
-						RepositoryCache.enter();
-						
+						RepositoryCache.enter(cacheConfigurationManager);
+
 						OperationResult objResult = parentResult.createMinorSubresult(OperationConstants.OPERATION_SEARCH_RESULT);
 						
 						try {

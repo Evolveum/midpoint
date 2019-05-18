@@ -202,11 +202,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	}
 
 	protected AbstractSearchExpressionEvaluatorCache getCache() {
-		return DefaultSearchExpressionEvaluatorCache.getCache();
+		return null;
 	}
 
 	protected Class<?> getCacheClass() {
-		return DefaultSearchExpressionEvaluatorCache.class;
+		return null;
 	}
 
 	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas,
@@ -223,6 +223,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		}
 
+		if (!cache.supportsObjectType(targetTypeClass)) {
+			LOGGER.trace("Cache: PASS {} ({})", query, targetTypeClass.getSimpleName());
+			cache.recordPass();
+			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
+		}
+
+		//noinspection unchecked
 		List<V> list = cache.getQueryResult(targetTypeClass, query, searchStrategy, params, prismContext);
 		if (list != null) {
 			cache.recordHit();
@@ -235,6 +242,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		if (list != null && !list.isEmpty()) {
 			// we don't want to cache negative results (e.g. if used with focal objects it might mean that they would be attempted to create multiple times)
+			//noinspection unchecked
 			cache.putQueryResult(targetTypeClass, query, searchStrategy, params, list, rawResult, prismContext);
 		}
 		return list;
@@ -327,8 +335,6 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			} else {
 				throw new ExpressionEvaluationException("Unexpected expression exception "+e+": "+e.getMessage(), e);
 			}
-		} catch (ObjectNotFoundException e) {
-			throw e;
 		}
 
 		if (LOGGER.isTraceEnabled()) {

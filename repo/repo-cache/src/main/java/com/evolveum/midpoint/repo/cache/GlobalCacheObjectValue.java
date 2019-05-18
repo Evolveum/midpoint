@@ -41,7 +41,7 @@ public class GlobalCacheObjectValue<T extends ObjectType> {
         return object.getOid();
     }
 
-    public Class<T> getObjectType() {
+    public Class<?> getObjectType() {
         return object.getCompileTimeClass();
     }
 
@@ -50,7 +50,7 @@ public class GlobalCacheObjectValue<T extends ObjectType> {
     }
 
     public PrismObject<T> getObject() {
-        return object.clone();
+        return object;      // cloning is done in RepositoryCache
     }
 
     public void setTimeToLive(long timeToLive) {
@@ -59,10 +59,8 @@ public class GlobalCacheObjectValue<T extends ObjectType> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("CacheObject{");
-        sb.append("ttl=").append(timeToLive);
-        sb.append(", object=").append(object);
-        sb.append('}');
-        return sb.toString();
+        return "CacheObject{" + "ttl=" + timeToLive
+                + ", object=" + object
+                + '}';
     }
 }
