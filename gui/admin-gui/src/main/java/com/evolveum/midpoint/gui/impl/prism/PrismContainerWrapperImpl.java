@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * @author katka
@@ -325,6 +326,16 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		}
 		
 		return deltas;
+	}
+	
+	@Override
+	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+		
+		if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+			return (getParent() != null && getParent().isShowMetadata());
+		}
+		
+		return super.isVisible(visibilityHandler);
 	}
 
 		

@@ -451,7 +451,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 							resource.getName()));
 					continue;
 				}
-				
+//				shadow.asPrismContainer().findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(accountDefinition.toResourceAttributeContainerDefinition());
 				QName objectClass = accountDefinition.getObjectClassDefinition().getTypeName();
 				shadow.setResource(usedResource);
 				shadow.setObjectClass(objectClass);

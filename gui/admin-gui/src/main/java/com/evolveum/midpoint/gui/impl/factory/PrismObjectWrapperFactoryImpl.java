@@ -132,6 +132,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(
             			(PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());
             }
+			
 		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
 				| CommunicationException | SecurityViolationException e) {
 			// TODO Auto-generated catch block

@@ -133,9 +133,6 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
 			}
 			
 		}
-		System.out.println("XXXXXXXXXXXXx item " + item.debugDump());
-		System.out.println("XXXXXXXXXXXXx condition  " + type.isAssignableFrom(item.getClass()));
-		System.out.println("XXXXXXXXXXXXx ---------------------------- ");
 		if (type.isAssignableFrom(item.getClass())) {
 			return item;
 		}
