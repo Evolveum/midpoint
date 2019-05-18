@@ -51,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
@@ -185,11 +186,12 @@ public class SimpleSmsTransport implements Transport {
             	HttpMethodType method = defaultIfNull(smsGatewayConfigurationType.getMethod(), HttpMethodType.GET);
 	            ExpressionType urlExpression = defaultIfNull(smsGatewayConfigurationType.getUrlExpression(), smsGatewayConfigurationType.getUrl());
 	            String url = evaluateExpressionChecked(urlExpression, variables, "sms gateway request url", task, result);
-                LOGGER.debug("Sending SMS to URL {} (method {})", url, method);
+	            String proxyHost = smsGatewayConfigurationType.getProxyHost();
+                String proxyPort = smsGatewayConfigurationType.getProxyPort();
+	            LOGGER.debug("Sending SMS to URL {} via proxy host {} and port {} (method {})", url, proxyHost, proxyPort, method);
                 if (url == null) {
                 	throw new IllegalArgumentException("No URL specified");
                 }
-
 	            List<String> headersList = evaluateExpressionsChecked(smsGatewayConfigurationType.getHeadersExpression(), variables,
 			            "sms gateway request headers", task, result);
 	            LOGGER.debug("Using request headers:\n{}", headersList);
@@ -210,12 +212,28 @@ public class SimpleSmsTransport implements Transport {
 	                HttpClientBuilder builder = HttpClientBuilder.create();
 	                String username = smsGatewayConfigurationType.getUsername();
 	                ProtectedStringType password = smsGatewayConfigurationType.getPassword();
+	                CredentialsProvider provider = new BasicCredentialsProvider();
 	                if (username != null) {
-		                CredentialsProvider provider = new BasicCredentialsProvider();
 		                String plainPassword = password != null ? protector.decryptString(password) : null;
 		                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, plainPassword);
 		                provider.setCredentials(AuthScope.ANY, credentials);
 		                builder = builder.setDefaultCredentialsProvider(provider);
+	                }
+	                String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
+	                ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
+	                if(StringUtils.isNotBlank(proxyHost) && StringUtils.isNotBlank(proxyUsername)) {
+	                	String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
+		                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
+		                HttpHost proxy;
+		                if(StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)){
+		                	int port = Integer.parseInt(proxyPort);
+		                	proxy = new HttpHost(proxyHost, port);
+		                } else {
+		                	proxy = new HttpHost(proxyHost);
+		                }
+		                provider.setCredentials(new AuthScope(proxy), credentials);
+		                builder = builder.setDefaultCredentialsProvider(provider);
+		                builder.setProxy(proxy);
 	                }
 	                HttpClient client = builder.build();
 	                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
@@ -242,6 +260,17 @@ public class SimpleSmsTransport implements Transport {
         }
         LOGGER.warn("No more SMS gateways to try, notification to " + message.getTo() + " will not be sent.") ;
         result.recordWarning("Notification to " + message.getTo() + " could not be sent.");
+    }
+    
+    private static boolean isInteger(String s) {
+        try { 
+            Integer.parseInt(s); 
+        } catch(NumberFormatException e) { 
+            return false; 
+        } catch(NullPointerException e) {
+            return false;
+        }
+        return true;
     }
 
 	private void setHeaders(ClientHttpRequest request, List<String> headersList) {
