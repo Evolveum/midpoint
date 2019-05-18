@@ -2212,20 +2212,26 @@ public class ShadowCache {
 			final ResultHandler<ShadowType> shadowHandler, OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
 					CommunicationException, ExpressionEvaluationException {
+		ResultHandler<ShadowType> repoHandler = createRepoShadowHandler(ctx, options, shadowHandler);
+		return shadowManager.searchObjectsIterativeRepository(ctx, query, options, repoHandler, parentResult);
+	}
 
-		ResultHandler<ShadowType> repoHandler = (PrismObject<ShadowType> shadow, OperationResult objResult) -> {
+	@NotNull
+	private ResultHandler<ShadowType> createRepoShadowHandler(ProvisioningContext ctx,
+			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<ShadowType> shadowHandler) {
+		return (PrismObject<ShadowType> shadow, OperationResult objResult) -> {
 				try {
 					processRepoShadow(ctx, shadow, options, objResult);
 
-					boolean cont = shadowHandler.handle(shadow, objResult);
-					
+					boolean cont = shadowHandler == null || shadowHandler.handle(shadow, objResult);
+
 					objResult.computeStatus();
 					objResult.recordSuccessIfUnknown();
 					if (!objResult.isSuccess()) {
 						OperationResultType resultType = objResult.createOperationResultType();
 						shadow.asObjectable().setFetchResult(resultType);
 					}
-					
+
 					return cont;
 				} catch (RuntimeException e) {
 					objResult.recordFatalError(e);
@@ -2237,8 +2243,6 @@ public class ShadowCache {
 					throw new SystemException(e);
 				}
 			};
-
-		return shadowManager.searchObjectsIterativeRepository(ctx, query, options, repoHandler, parentResult);
 	}
 
 	@NotNull
@@ -2247,9 +2251,12 @@ public class ShadowCache {
 			throws SchemaException, ConfigurationException, ObjectNotFoundException,
 			CommunicationException, ExpressionEvaluationException {
 		SearchResultList<PrismObject<ShadowType>> objects = shadowManager.searchObjectsRepository(ctx, query, options, parentResult);
+		ResultHandler<ShadowType> repoHandler = createRepoShadowHandler(ctx, options, null);
+		parentResult.setSummarizeSuccesses(true);
 		for (PrismObject<ShadowType> object : objects) {
-			processRepoShadow(ctx, object, options, parentResult);
+			repoHandler.handle(object, parentResult.createMinorSubresult(ShadowCache.class.getName() + ".handleObject"));
 		}
+		parentResult.summarize();       // todo is this ok?
 		return objects;
 	}
 
@@ -2398,7 +2405,7 @@ public class ShadowCache {
 			} else if (simulate == CountObjectsSimulateType.SEQUENTIAL_SEARCH) {
 				//fix for MID-5204. as sequentialSearch option causes to fetch all resource objects,
 				// query paging is senseless here
-				if (query != null){
+				if (query != null) {
 					query.setPaging(null);
 				}
 				LOGGER.trace("countObjects: simulating counting with sequential search (likely performance impact)");
