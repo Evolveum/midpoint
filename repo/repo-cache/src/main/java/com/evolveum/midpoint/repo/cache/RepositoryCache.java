@@ -971,8 +971,8 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public void postInit(OperationResult result) {
-		// We do not forward this call to repository server; it was already initialized at this moment.
+	public void postInit(OperationResult result) throws SchemaException {
+		repositoryService.postInit(result);     // TODO resolve somehow multiple calls to repositoryService postInit method
 		globalObjectCache.initialize();
 		globalQueryCache.initialize();
 	}

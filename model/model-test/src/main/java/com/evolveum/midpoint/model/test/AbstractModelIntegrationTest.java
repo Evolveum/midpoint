@@ -283,6 +283,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("testSqlRepositoryServiceImpl")
+	protected RepositoryService plainRepositoryService;
+
 	@Autowired protected SystemObjectCache systemObjectCache;
 	@Autowired protected RelationRegistry relationRegistry;
 	@Autowired protected ProvisioningService provisioningService;
