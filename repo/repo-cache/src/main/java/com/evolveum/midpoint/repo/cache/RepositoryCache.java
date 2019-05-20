@@ -36,7 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -313,7 +312,7 @@ public class RepositoryCache implements RepositoryService {
 		// is acceptable.
 		if (options != null && options.isOverwrite()) {
 			invalidateCacheEntries(object.getCompileTimeClass(), oid,
-					new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object));
+					new ModifyObjectResult<>(object.getUserData(RepositoryService.KEY_ORIGINAL_OBJECT), object, Collections.emptyList()));
 		} else {
 			// just for sure (the object should not be there but ...)
 			invalidateCacheEntries(object.getCompileTimeClass(), oid, new AddObjectResult<>(object));
@@ -600,28 +599,30 @@ public class RepositoryCache implements RepositoryService {
 		}
 		LocalQueryCache localQueryCache = getLocalQueryCache();
 		if (localQueryCache != null) {
-			clearQueryResultsLocally(localQueryCache, type, additionalInfo, prismContext, matchingRuleRegistry);
+			clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
 		}
 
 		globalObjectCache.remove(oid);
-		clearQueryResultsGlobally(type, additionalInfo, prismContext, matchingRuleRegistry);
+		clearQueryResultsGlobally(type, oid, additionalInfo, matchingRuleRegistry);
 		cacheDispatcher.dispatch(type, oid);
 	}
 
-	public <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, Object additionalInfo, PrismContext prismContext,
+	public <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,
+			Object additionalInfo,
 			MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO implement more efficiently
 
-		ChangeDescription change = getChangeDescription(type, additionalInfo, prismContext);
+		ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo);
 
 		long start = System.currentTimeMillis();
 		int all = 0;
 		int removed = 0;
 		Iterator<Map.Entry<QueryKey, SearchResultList>> iterator = cache.getEntryIterator();
 		while (iterator.hasNext()) {
-			QueryKey queryKey = iterator.next().getKey();
+			Map.Entry<QueryKey, SearchResultList> entry = iterator.next();
+			QueryKey queryKey = entry.getKey();
 			all++;
-			if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
+			if (change.mayAffect(queryKey, entry.getValue(), matchingRuleRegistry)) {
 				LOGGER.trace("Removing (from local cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
 				iterator.remove();
 				removed++;
@@ -630,11 +631,11 @@ public class RepositoryCache implements RepositoryService {
 		LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
 	}
 
-	public <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, Object additionalInfo, PrismContext prismContext,
+	public <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, Object additionalInfo,
 			MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO implement more efficiently
 
-		ChangeDescription change = getChangeDescription(type, additionalInfo, prismContext);
+		ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo);
 
 		long start = System.currentTimeMillis();
 		AtomicInteger all = new AtomicInteger(0);
@@ -643,7 +644,7 @@ public class RepositoryCache implements RepositoryService {
 		globalQueryCache.invokeAll(entry -> {
 			QueryKey queryKey = entry.getKey();
 			all.incrementAndGet();
-			if (queryKey.getType().isAssignableFrom(type) && (change == null || change.mayAffect(queryKey, matchingRuleRegistry))) {
+			if (change.mayAffect(queryKey, entry.getValue(), matchingRuleRegistry)) {
 				LOGGER.trace("Removing (from global cache) query for type={}, change={}: {}", type, change, queryKey.getQuery());
 				entry.remove();
 				removed.incrementAndGet();
@@ -651,18 +652,6 @@ public class RepositoryCache implements RepositoryService {
 			return null;
 		});
 		LOGGER.trace("Removed (from global cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
-	}
-
-	@Nullable
-	private <T extends ObjectType> ChangeDescription getChangeDescription(Class<T> type, Object additionalInfo,
-			PrismContext prismContext) {
-		ChangeDescription change;
-		if (!LookupTableType.class.equals(type) && !AccessCertificationCampaignType.class.equals(type)) {
-			change = ChangeDescription.getFrom(additionalInfo, prismContext);
-		} else {
-			change = null;      // these objects are tricky to query -- it's safer to evict their queries completely
-		}
-		return change;
 	}
 
 	@NotNull

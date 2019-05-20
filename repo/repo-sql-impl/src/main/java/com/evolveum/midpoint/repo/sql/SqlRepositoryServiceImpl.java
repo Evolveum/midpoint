@@ -586,7 +586,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
-            return new ModifyObjectResult<>();
+            return new ModifyObjectResult<>(modifications);
         }
 
         if (InternalsConfig.encryptionChecks) {

@@ -364,14 +364,14 @@ public class ObjectUpdater {
     }
 
     public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition,
+			Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
 			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
 		    throws ObjectNotFoundException,
 		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
-        modifications = CloneUtil.cloneCollectionMembers(modifications);
+        Collection<? extends ItemDelta> modifications = CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}'.", type.getSimpleName(), oid);
@@ -476,9 +476,9 @@ public class ObjectUpdater {
                     query.executeUpdate();
                     LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
                 }
-                rv = new ModifyObjectResult<>(originalObject, prismObject);
+                rv = new ModifyObjectResult<>(originalObject, prismObject, originalModifications);
             } else {
-                rv = new ModifyObjectResult<>();
+                rv = new ModifyObjectResult<>(originalModifications);
             }
 
             if (LookupTableType.class.isAssignableFrom(type)) {

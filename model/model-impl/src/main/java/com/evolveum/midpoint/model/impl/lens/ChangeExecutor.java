@@ -239,10 +239,13 @@ public class ChangeExecutor {
 
 			for (LensProjectionContext projCtx : context.getProjectionContexts()) {
 				if (projCtx.getWave() != context.getExecutionWave()) {
+					LOGGER.trace("Skipping projection context {} because its wave ({}) is different from execution wave ({})",
+							projCtx.toHumanReadableString(), projCtx.getWave(), context.getExecutionWave());
 					continue;
 				}
 
 				if (!projCtx.isCanProject()) {
+					LOGGER.trace("Skipping projection context {} because canProject is false", projCtx.toHumanReadableString());
 					continue;
 				}
 

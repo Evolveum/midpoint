@@ -1286,6 +1286,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
+	    sb.append(", canProject=").append(canProject);
         sb.append(", syncIntent=").append(getSynchronizationIntent());
         sb.append(", decision=").append(synchronizationPolicyDecision);
         if (!isFresh()) {
