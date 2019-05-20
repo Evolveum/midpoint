@@ -57,7 +57,8 @@ public class PrismPropertyWrapperModel<C extends Containerable, T> extends ItemW
 
 	@Override
 	public PrismPropertyWrapper<T> getObject() {
-		return getItemWrapper(PrismPropertyWrapper.class);
+		PrismPropertyWrapper<T> ret = getItemWrapper(PrismPropertyWrapper.class);
+		return ret;
 	}
 
 }

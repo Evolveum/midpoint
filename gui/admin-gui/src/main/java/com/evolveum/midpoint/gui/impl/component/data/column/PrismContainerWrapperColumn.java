@@ -15,38 +15,21 @@
  */
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerColumnHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperHeaderModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 
 /**
  * @author katka
@@ -56,13 +39,16 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperColumn.class);
 	
-	public PrismContainerWrapperColumn(IModel<PrismContainerWrapper<C>> rowModel, ItemPath itemName) {
-		super(rowModel, itemName, ColumnType.STRING);
-	}
-
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_HEADER = "header";
+	
+	private PageBase pageBase;
+	
+	public PrismContainerWrapperColumn(IModel<PrismContainerWrapper<C>> rowModel, ItemPath itemName, PageBase pageBase) {
+		super(rowModel, itemName, ColumnType.STRING);
+		this.pageBase = pageBase;
+	}
 
 	@Override
 	public IModel<?> getDataModel(IModel<PrismContainerValueWrapper<C>> rowModel) {
@@ -71,7 +57,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 
 	@Override
 	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
-		return new PrismContainerHeaderPanel<>(componentId, PrismContainerWrapperModel.fromContainerWrapper(mainModel, itemName));
+		return new PrismContainerColumnHeaderPanel<>(componentId, new PrismContainerWrapperHeaderModel(mainModel, itemName, pageBase));
 	}
 
 	@Override

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -114,6 +115,9 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
                 selectable.setSelected(selected);
             } else if (object instanceof ContainerValueWrapper){
                 ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+                valueWrapper.setSelected(selected);
+            } else if (object instanceof PrismContainerValueWrapper){
+            	PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
                 valueWrapper.setSelected(selected);
             }
         }
