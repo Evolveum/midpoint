@@ -308,7 +308,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			}
 		} else {
 			RefinedResourceSchema refinedSchema = parse(resource, prismContext);
-			resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
+			resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema));
 			return refinedSchema;
 		}
 	}
@@ -350,7 +350,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			if (parsedSchema == null) {
 				throw new IllegalStateException("Parsed schema is null: most likely an internall error");
 			}
-			resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
+			resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
 			parsedSchema.setNamespace(ResourceTypeUtil.getResourceNamespace(resource));
 			return parsedSchema;
 		}
@@ -361,7 +361,7 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 			return;
 		}
 		PrismObject<ResourceType> resource = resourceType.asPrismObject();
-		resource.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema);
+		resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
 	}
 
 	public static boolean hasParsedSchema(ResourceType resourceType) {

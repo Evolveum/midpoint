@@ -281,7 +281,8 @@ public class ResourceManager {
 			}
 	
 			try {
-				
+
+				repoResource = repoResource.cloneIfImmutable();
 				completeSchemaAndCapabilities(repoResource, resourceSchema, fetchedSchema, capabilityMap, task, result);
 				
 			} catch (Exception ex) {

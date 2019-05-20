@@ -1011,7 +1011,7 @@ main:       for (;;) {
 		}
 	}
 
-	private void attachDiagDataIfRequested(Item item, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
+	private void attachDiagDataIfRequested(Item<?,?> item, byte[] fullObject, Collection<SelectorOptions<GetOperationOptions>> options) {
 		if (GetOperationOptions.isAttachDiagData(SelectorOptions.findRootOptions(options))) {
 			item.setUserData(RepositoryService.KEY_DIAG_DATA, new RepositoryObjectDiagnosticData(getLength(fullObject)));
 		}
