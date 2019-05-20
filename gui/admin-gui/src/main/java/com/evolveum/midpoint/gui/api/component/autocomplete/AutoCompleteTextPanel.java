@@ -26,7 +26,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.attributes.ThrottlingSettings;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.core.util.lang.PropertyResolver;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteSettings;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.AutoCompleteTextField;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
@@ -98,7 +97,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						}
 
 						for (LookupTableRowType row : lookupTable.getRow()) {
-							if (value.equals(WebComponentUtil.getDisplayPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage()))) {
+							if (value.equals(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage()))) {
 								return (C) row.getKey();
 							}
 						}
@@ -116,7 +115,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						if (lookupTable != null) {
 							for (LookupTableRowType row : lookupTable.getRow()) {
 								if (key.equals(row.getKey())) {
-									return (String) WebComponentUtil.getDisplayPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage());
+									return (String) WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage());
 								}
 							}
 						}
