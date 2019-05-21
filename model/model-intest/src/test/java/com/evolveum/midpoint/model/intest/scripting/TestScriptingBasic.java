@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.LogfileTestTailer;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
@@ -51,6 +52,7 @@ import org.testng.collections.Sets;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -66,8 +68,11 @@ import static org.testng.AssertJUnit.*;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest {
-	
+
 	public static final File TEST_DIR = new File("src/test/resources/scripting");
+
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
@@ -84,6 +89,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File DELETE_AND_ADD_JACK_FILE = new File(TEST_DIR, "delete-and-add-jack.xml");
     private static final File MODIFY_JACK_FILE = new File(TEST_DIR, "modify-jack.xml");
     private static final File MODIFY_JACK_BACK_FILE = new File(TEST_DIR, "modify-jack-back.xml");
+    private static final File MODIFY_JACK_PASSWORD_FILE = new File(TEST_DIR, "modify-jack-password.xml");
+    private static final File MODIFY_JACK_PASSWORD_TASK_FILE = new File(TEST_DIR, "modify-jack-password-task.xml");
+    private static final String MODIFY_JACK_PASSWORD_TASK_OID = "9de76345-0f02-48de-86bf-e7a887cb374a";
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
@@ -97,7 +105,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	private static final File GENERATE_PASSWORDS_3_FILE = new File(TEST_DIR, "generate-passwords-3.xml");
 	private static final File ECHO_FILE = new File(TEST_DIR, "echo.xml");
 
-    @Autowired
+    private static final String PASSWORD_PLAINTEXT_FRAGMENT = "pass1234wor";
+	private static final String PASSWORD_PLAINTEXT_1 = "pass1234wor1";
+	private static final String PASSWORD_PLAINTEXT_2 = "pass1234wor2";
+
+	@Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
@@ -108,9 +120,16 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
+
+	    DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
 	}
 
-    @Test
+	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
+	}
+
+	@Test
     public void test100EmptySequence() throws Exception {
     	final String TEST_NAME = "test100EmptySequence";
         TestUtil.displayTestTitle(this, TEST_NAME);
@@ -872,7 +891,82 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 		}
     }
 
-    private void assertNoOutputData(ExecutionContext output) {
+	// MID-5359
+	@Test
+	public void test600ModifyJackPasswordInBackground() throws Exception {
+		final String TEST_NAME = "test600ModifyJackPasswordInBackground";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		OperationResult result = new OperationResult(DOT_CLASS + TEST_NAME);
+		PrismProperty<ScriptingExpressionType> expression = parseAnyData(MODIFY_JACK_PASSWORD_FILE);
+
+		prepareNotifications();
+		dummyAuditService.clear();
+
+		// WHEN
+		Task task = taskManager.createTaskInstance();
+		task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		scriptingExpressionEvaluator.evaluateExpressionInBackground(expression.getAnyValue().getValue(), task, result);
+		waitForTaskFinish(task.getOid(), false);
+		task.refresh(result);
+
+		// THEN
+		display(task.getResult());
+		TestUtil.assertSuccess(task.getResult());
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack after password change", jack);
+		assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_1);
+
+		String xml = prismContext.xmlSerializer().serialize(task.getTaskPrismObject());
+		display("task", xml);
+		assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
+
+		display("Dummy transport", dummyTransport);
+		display("Audit", dummyAuditService);
+	}
+
+	// MID-5359
+	@Test
+	public void test610ModifyJackPasswordImportingTask() throws Exception {
+		final String TEST_NAME = "test610ModifyJackPasswordImportingTask";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task opTask = taskManager.createTaskInstance(DOT_CLASS + TEST_NAME);
+		opTask.setOwner(getUser(USER_ADMINISTRATOR_OID));
+		OperationResult result = opTask.getResult();
+
+		prepareNotifications();
+		dummyAuditService.clear();
+
+		// WHEN
+		FileInputStream stream = new FileInputStream(MODIFY_JACK_PASSWORD_TASK_FILE);
+		modelService.importObjectsFromStream(stream, null, opTask, result);
+		stream.close();
+
+		result.computeStatus();
+		assertSuccess(result);
+
+		waitForTaskFinish(MODIFY_JACK_PASSWORD_TASK_OID, false);
+		Task task = taskManager.getTask(MODIFY_JACK_PASSWORD_TASK_OID, result);
+
+		// THEN
+		display(task.getResult());
+		TestUtil.assertSuccess(task.getResult());
+		PrismObject<UserType> jack = getUser(USER_JACK_OID);
+		display("jack after password change", jack);
+		assertEncryptedUserPassword(jack, PASSWORD_PLAINTEXT_2);
+
+		String xml = prismContext.xmlSerializer().serialize(task.getTaskPrismObject());
+		display("task", xml);
+		assertFalse("Plaintext password is present in the task", xml.contains(PASSWORD_PLAINTEXT_FRAGMENT));
+
+		display("Dummy transport", dummyTransport);
+		display("Audit", dummyAuditService);
+	}
+
+	private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
 

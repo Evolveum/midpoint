@@ -2,6 +2,8 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -58,6 +60,70 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	public RawType(PrismValue parsed, @NotNull PrismContext prismContext) {
 		this.prismContext = prismContext;
 		this.parsed = parsed;
+	}
+
+	/**
+	 * Extracts a "real value" from a potential RawType object without expecting any specific type beforehand.
+	 * (Useful e.g. for determining value of xsd:anyType XML property.)
+	 */
+	public static Object getValue(Object value) throws SchemaException {
+		if (value instanceof RawType) {
+			return ((RawType) value).getValue();
+		} else {
+			return value;
+		}
+	}
+
+	public Object getValue() throws SchemaException {
+		return getValue(false);
+	}
+
+	/**
+	 * Extracts a "real value" from RawType object without expecting any specific type beforehand.
+	 * If no explicit type is present, assumes xsd:string (and fails if the content is structured).
+	 */
+	public Object getValue(boolean store) throws SchemaException {
+		if (parsed != null) {
+			return parsed.getRealValue();
+		}
+		if (xnode == null) {
+			return null;
+		}
+		if (xnode.getTypeQName() != null) {
+			TypeDefinition typeDefinition = prismContext.getSchemaRegistry().findTypeDefinitionByType(xnode.getTypeQName());
+			if (typeDefinition != null && typeDefinition.getCompileTimeClass() != null) {
+				return storeIfRequested(getParsedRealValue(typeDefinition.getCompileTimeClass()), store);
+			}
+			Class<?> javaClass = XsdTypeMapper.getXsdToJavaMapping(xnode.getTypeQName());
+			if (javaClass != null) {
+				return storeIfRequested(getParsedRealValue(javaClass), store);
+			}
+		}
+		// unknown or null type -- try parsing as string
+		if (!(xnode instanceof PrimitiveXNode<?>)) {
+			throw new SchemaException("Trying to parse non-primitive XNode as type '" + xnode.getTypeQName() + "'");
+		} else {
+			return ((PrimitiveXNode) xnode).getStringValue();
+		}
+	}
+
+	private Object storeIfRequested(Object parsedValue, boolean store) {
+		if (parsed == null && store) {
+			if (parsedValue instanceof Containerable) {
+				parsed = ((Containerable) parsedValue).asPrismContainerValue();
+				xnode = null;
+			} else if (parsedValue instanceof Referencable) {
+				parsed = ((Referencable) parsedValue).asReferenceValue();
+				xnode = null;
+			} else if (parsedValue instanceof PolyStringType) {
+				parsed = new PrismPropertyValue<>(PolyString.toPolyString((PolyStringType) parsedValue));   // hack
+				xnode = null;
+			} else if (parsedValue != null) {
+				parsed = new PrismPropertyValue<>(parsedValue);
+				xnode = null;
+			}
+		}
+		return parsedValue;
 	}
 
 	@Override
