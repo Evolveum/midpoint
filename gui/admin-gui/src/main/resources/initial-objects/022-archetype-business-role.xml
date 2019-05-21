@@ -24,7 +24,7 @@
             <type>RoleType</type>
             <collection>
                 <collectionRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/> <!-- Business role archetype -->
-<!--        </collection>
+            </collection>
         </objectCollectionView>
     </objectCollectionViews>
   </adminGuiConfiguration>
