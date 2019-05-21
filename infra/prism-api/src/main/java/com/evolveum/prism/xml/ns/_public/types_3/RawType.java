@@ -107,11 +107,15 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	public Object getValue() throws SchemaException {
+		return getValue(false);
+	}
+
 	/**
 	 * Extracts a "real value" from RawType object without expecting any specific type beforehand.
 	 * If no explicit type is present, assumes xsd:string (and fails if the content is structured).
 	 */
-	public Object getValue() throws SchemaException {
+	public Object getValue(boolean store) throws SchemaException {
 		if (parsed != null) {
 			return parsed.getRealValue();
 		}
@@ -121,11 +125,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		if (xnode.getTypeQName() != null) {
 			TypeDefinition typeDefinition = prismContext.getSchemaRegistry().findTypeDefinitionByType(xnode.getTypeQName());
 			if (typeDefinition != null && typeDefinition.getCompileTimeClass() != null) {
-				return getParsedRealValue(typeDefinition.getCompileTimeClass());
+				return storeIfRequested(getParsedRealValue(typeDefinition.getCompileTimeClass()), store);
 			}
 			Class<?> javaClass = XsdTypeMapper.getXsdToJavaMapping(xnode.getTypeQName());
 			if (javaClass != null) {
-				return getParsedRealValue(javaClass);
+				return storeIfRequested(getParsedRealValue(javaClass), store);
 			}
 		}
 		// unknown or null type -- try parsing as string
@@ -134,6 +138,22 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		} else {
 			return ((PrimitiveXNode) xnode).getStringValue();
 		}
+	}
+
+	private Object storeIfRequested(Object parsedValue, boolean store) {
+		if (parsed == null && store) {
+			if (parsedValue instanceof Containerable) {
+				parsed = ((Containerable) parsedValue).asPrismContainerValue();
+				xnode = null;
+			} else if (parsedValue instanceof Referencable) {
+				parsed = ((Referencable) parsedValue).asReferenceValue();
+				xnode = null;
+			} else if (parsedValue != null) {
+				parsed = prismContext.itemFactory().createPropertyValue(parsedValue);
+				xnode = null;
+			}
+		}
+		return parsedValue;
 	}
 
 	/**

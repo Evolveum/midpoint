@@ -1646,8 +1646,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			newTask.asPrismObject().addExtensionItem(optionsProperty);
 		}
 		ObjectDelta<TaskType> taskAddDelta = DeltaFactory.Object.createAddDelta(newTask.asPrismObject());
-		modelService.executeChanges(singleton(taskAddDelta), null, opTask, result);
-		return newTask;
+		Collection<ObjectDeltaOperation<? extends ObjectType>> operations = modelService
+				.executeChanges(singleton(taskAddDelta), null, opTask, result);
+		return (TaskType) operations.iterator().next().getObjectDelta().getObjectToAdd().asObjectable();
 	}
 
 	@Override

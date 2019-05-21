@@ -18,35 +18,35 @@ package com.evolveum.midpoint.common.crypto;
 import java.io.ByteArrayOutputStream;
 import java.security.Provider;
 import java.security.Security;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import javax.xml.namespace.QName;
+import javax.xml.bind.JAXBElement;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -81,77 +81,20 @@ public class CryptoUtil {
 
 	@NotNull
 	private static Visitor createEncryptingVisitor(Protector protector) {
-		return visitable -> {
-			if (!(visitable instanceof PrismPropertyValue)) {
-				return;
-			}
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-			try {
-				encryptValue(protector, pval);
-			} catch (EncryptionException e) {
-				throw new TunnelException(e);
-			}
-		};
+		return createVisitor(createEncryptingProcessor(protector));
 	}
 
-	// todo refactor - use the generic processEncryptablePrismPropertyValue method
-	private static void encryptValue(Protector protector, PrismPropertyValue<?> pval) throws EncryptionException{
-    	Itemable item = pval.getParent();
-    	if (item == null) {
-    		return;
-    	}
-    	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null) {
-    		return;
-    	}
-
-    	// todo what about ProtectedByteArrayType?
-		// todo shouldn't we check the actual value instead of declared one?
-    	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-            QName propName = item.getElementName();
-            @SuppressWarnings("unchecked")
-            PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>) pval;
-            ProtectedStringType ps = psPval.getValue();
-            encryptProtectedStringType(protector, ps, propName.getLocalPart());
-            if (pval.getParent() == null) {
-                pval.setParent(item);       // todo ??? if the parent is null we wouldn't get here
-            }
-    	} else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because MailConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
-		    if (mailCfg != null) {
-			    for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
-				    encryptProtectedStringType(protector, serverCfg.getPassword(), "mail server password");
-			    }
-		    }
-	    } else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because SmsConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
-            if (smsCfg != null) {
-	            for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
-		            encryptProtectedStringType(protector, gwCfg.getPassword(), "sms gateway password");
-	            }
-            }
-        }
-    }
-
-    private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName) throws EncryptionException {
-		if (ps == null) {
-			return;
-		}
-		if (ps.isHashed()) {
-			return;
-		}
-		if (ps.getClearValue() != null) {
-	        try {
-	            protector.encrypt(ps);
-	        } catch (EncryptionException e) {
-	            throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
-	        }
-		}
-    }
+	private static ProtectedStringProcessor createEncryptingProcessor(Protector protector) {
+		return ((protectedString, propertyName) -> {
+			if (protectedString != null && !protectedString.isHashed() && protectedString.getClearValue() != null) {
+				try {
+					protector.encrypt(protectedString);
+				} catch (EncryptionException e) {
+					throw new EncryptionException("Failed to encrypt value for field " + propertyName + ": " + e.getMessage(), e);
+				}
+			}
+		});
+	}
 
 	// Checks that everything is encrypted
 	public static <T extends ObjectType> void checkEncrypted(final PrismObject<T> object) {
@@ -172,73 +115,23 @@ public class CryptoUtil {
 		}
 	}
 
-
 	@NotNull
 	private static Visitor createCheckingVisitor() {
-		return visitable -> {
-			if (!(visitable instanceof PrismPropertyValue)) {
-				return;
-			}
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-			checkEncrypted(pval);
-		};
+		return createVisitor(createCheckingProcessor());
 	}
 
-	private static void checkEncrypted(PrismPropertyValue<?> pval) {
-    	Itemable item = pval.getParent();
-    	if (item == null) {
-    		return;
-    	}
-    	ItemDefinition itemDef = item.getDefinition();
-    	if (itemDef == null) {
-    		return;
-    	}
-		// todo what about ProtectedByteArrayType?
-		// todo shouldn't we check the actual value instead of declared one?
-    	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-            QName propName = item.getElementName();
-		    @SuppressWarnings("unchecked")
-		    PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
-            ProtectedStringType ps = psPval.getValue();
-            if (ps != null && ps.getClearValue() != null) {
-                throw new IllegalStateException("Unencrypted value in field " + propName);
-            }
-        } else if (itemDef.getTypeName().equals(MailConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because MailConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    MailConfigurationType mailCfg = ((PrismPropertyValue<MailConfigurationType>) pval).getValue();
-		    if (mailCfg != null) {
-			    for (MailServerConfigurationType serverCfg : mailCfg.getServer()) {
-				    if (serverCfg.getPassword() != null && serverCfg.getPassword().getClearValue() != null) {
-					    throw new IllegalStateException("Unencrypted value in mail server config password entry");
-				    }
-			    }
-		    }
-	    } else if (itemDef.getTypeName().equals(SmsConfigurationType.COMPLEX_TYPE)) {
-		    // todo fix this hack (it's because SmsConfigurationType is not a container)
-		    @SuppressWarnings("unchecked")
-		    SmsConfigurationType smsCfg = ((PrismPropertyValue<SmsConfigurationType>) pval).getValue();
-		    if (smsCfg != null) {
-			    for (SmsGatewayConfigurationType gwCfg : smsCfg.getGateway()) {
-				    if (gwCfg.getPassword() != null && gwCfg.getPassword().getClearValue() != null) {
-					    throw new IllegalStateException("Unencrypted value in SMS gateway config password entry");
-				    }
-			    }
-		    }
-	    }
-    }
+	private static ProtectedStringProcessor createCheckingProcessor() {
+		return ((protectedString, propertyName) -> {
+			if (protectedString != null && protectedString.getClearValue() != null) {
+				throw new IllegalStateException("Unencrypted value in field " + propertyName);
+			}
+		});
+	}
 
 	public static void checkEncrypted(Collection<? extends ItemDelta> modifications) {
-		Visitor visitor = visitable -> {
-			if (!(visitable instanceof PrismPropertyValue)) {
-				return;
-			}
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
-			checkEncrypted(pval);
-		};
 		for (ItemDelta<?,?> delta: modifications) {
 			try {
-				delta.accept(visitor);
+				delta.accept(createCheckingVisitor());
 			} catch (IllegalStateException e) {
 				throw new IllegalStateException(e.getMessage() + " in modification " + delta, e);
 			}
@@ -326,6 +219,7 @@ public class CryptoUtil {
 		return keys;
 	}
 
+	@SuppressWarnings("unused") // used externally
 	public static <T extends ObjectType> boolean containsCleartext(PrismObject<T> object) {
 		Holder<Boolean> result = new Holder<>(false);
 		object.accept(createVisitor((ps, propName) -> {
@@ -336,6 +230,7 @@ public class CryptoUtil {
 		return result.getValue();
 	}
 
+	@SuppressWarnings("unused") // used externally
 	public static <T extends ObjectType> boolean containsHashedData(PrismObject<T> object) {
 		Holder<Boolean> result = new Holder<>(false);
 		object.accept(createVisitor((ps, propName) -> {
@@ -348,32 +243,103 @@ public class CryptoUtil {
 
 	@FunctionalInterface
 	interface ProtectedStringProcessor {
-		void apply(ProtectedStringType protectedString, String propertyName);
+		void apply(ProtectedStringType protectedString, String propertyName) throws EncryptionException;
 	}
 
 	@NotNull
 	private static Visitor createVisitor(ProtectedStringProcessor processor) {
 		return visitable -> {
 			if (visitable instanceof PrismPropertyValue) {
-				processEncryptablePrismPropertyValue((PrismPropertyValue<?>) visitable, processor);
+				try {
+					PrismPropertyValue<?> pval = ((PrismPropertyValue) visitable);
+					applyToRealValue(pval.getRealValue(), determinePropName(pval), processor);
+				} catch (EncryptionException e) {
+					throw new TunnelException(e);
+				}
 			}
 		};
 	}
 
-	private static void processEncryptablePrismPropertyValue(PrismPropertyValue<?> pval, ProtectedStringProcessor processor) {
-		Object realValue = pval.getRealValue();
-		if (realValue instanceof ProtectedStringType) {
-			processor.apply((ProtectedStringType) realValue, determinePropName(pval));
-		} else if (realValue instanceof MailConfigurationType) {
-			// todo fix this hack (it's because MailConfigurationType is not a container)
-			for (MailServerConfigurationType serverCfg : ((MailConfigurationType) realValue).getServer()) {
-				processor.apply(serverCfg.getPassword(), "mail server password");
+	private static void applyToRealValues(Collection<?> values, String propertyName, ProtectedStringProcessor processor)
+			throws EncryptionException {
+		if (values != null) {
+			for (Object value : values) {
+				applyToRealValue(value, propertyName, processor);
 			}
-		} else if (realValue instanceof SmsConfigurationType) {
-			// todo fix this hack (it's because SmsConfigurationType is not a container)
-			for (SmsGatewayConfigurationType gwCfg : ((SmsConfigurationType) realValue).getGateway()) {
-				processor.apply(gwCfg.getPassword(), "sms gateway password");
+		}
+	}
+
+	private static void applyToRealValue(Object value, String propertyName, ProtectedStringProcessor processor)
+			throws EncryptionException {
+		if (value instanceof ProtectedStringType) {
+			processor.apply(((ProtectedStringType) value), propertyName);
+		} else if (value instanceof PrismPropertyValue) {
+			applyToRealValue(((PrismPropertyValue) value).getRealValue(), propertyName, processor);
+		} else if (value instanceof PrismReferenceValue) {
+			applyToRealValue(((PrismReferenceValue) value).getObject(), propertyName + "/object", processor);
+		} else if (value instanceof PrismContainerValue) {
+			((PrismContainerValue) value).accept(createVisitor(processor));
+		} else if (value instanceof Containerable) {
+			applyToRealValue(((Containerable) value).asPrismContainerValue(), propertyName, processor);
+		} else if (value instanceof RawType) {
+			RawType raw = (RawType) value;
+			if (raw.isParsed()) {
+				applyToRealValue(raw.getAlreadyParsedValue(), propertyName, processor);
+			} else if (raw.getExplicitTypeName() != null) {
+				try {
+					applyToRealValue(raw.getValue(true), propertyName, processor);
+				} catch (SchemaException e) {
+					throw new TunnelException(e);
+				}
+			} else {
+				// consider putting an approximate check here e.g. testing for "password", "clearValue" or such elements
 			}
+		} else if (value instanceof JAXBElement<?>) {
+			applyToRealValue(((JAXBElement) value).getValue(), propertyName, processor);
+		} else if (value instanceof MailConfigurationType) {
+			applyToRealValues(((MailConfigurationType) value).getServer(), propertyName+"/server", processor);
+		} else if (value instanceof MailServerConfigurationType) {
+			processor.apply(((MailServerConfigurationType) value).getPassword(), propertyName+"/password");
+		} else if (value instanceof SmsConfigurationType) {
+			applyToRealValues(((SmsConfigurationType) value).getGateway(), propertyName + "/gateway", processor);
+		} else if (value instanceof SmsGatewayConfigurationType) {
+			processor.apply(((SmsGatewayConfigurationType) value).getPassword(), propertyName + "/password");
+		} else if (value instanceof ExecuteScriptType) {
+			ExecuteScriptType es = (ExecuteScriptType) value;
+			applyToRealValue(es.getInput(), propertyName + "/input", processor);
+			applyToRealValue(es.getScriptingExpression(), propertyName + "/scriptingExpression", processor);
+			applyToRealValue(es.getVariables(), propertyName + "/variables", processor);
+		} else if (value instanceof ValueListType) {
+			applyToRealValues(((ValueListType) value).getValue(), propertyName + "/value", processor);
+		} else if (value instanceof ExpressionPipelineType) {
+			applyToRealValues(((ExpressionPipelineType) value).getScriptingExpression(), propertyName + "/scriptingExpression", processor);
+		} else if (value instanceof ExpressionSequenceType) {
+			applyToRealValues(((ExpressionSequenceType) value).getScriptingExpression(), propertyName + "/scriptingExpression", processor);
+		} else if (value instanceof ActionExpressionType) {
+			applyToRealValues(((ActionExpressionType) value).getParameter(), propertyName + "/parameter", processor);
+		} else if (value instanceof ActionParameterValueType) {
+			ActionParameterValueType p = (ActionParameterValueType) value;
+			applyToRealValue(p.getValue(), propertyName + "/value", processor);
+			applyToRealValue(p.getScriptingExpression(), propertyName + "/scriptingExpression", processor);
+		} else if (value instanceof ScriptingVariablesDefinitionType) {
+			applyToRealValues(((ScriptingVariablesDefinitionType) value).getVariable(), propertyName + "/variable", processor);
+		} else if (value instanceof ScriptingVariableDefinitionType) {
+			applyToRealValue(((ScriptingVariableDefinitionType) value).getExpression(), propertyName + "/expression", processor);
+		} else if (value instanceof ExpressionType) {
+			List<JAXBElement<?>> evaluators = ((ExpressionType) value).getExpressionEvaluator();
+			for (JAXBElement<?> evaluator : evaluators) {
+				if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName())) {
+					applyToRealValue(evaluator.getValue(), propertyName + "/value", processor);
+				}
+			}
+		} else if (value instanceof ObjectDeltaType) {
+			ObjectDeltaType delta = (ObjectDeltaType) value;
+			applyToRealValue(delta.getObjectToAdd(), propertyName + "/objectToAdd", processor);
+			applyToRealValues(delta.getItemDelta(), propertyName + "/itemDelta", processor);
+		} else if (value instanceof ItemDeltaType) {
+			ItemDeltaType delta = (ItemDeltaType) value;
+			applyToRealValues(delta.getValue(), propertyName + "/value", processor);
+			applyToRealValues(delta.getEstimatedOldValue(), propertyName + "/estimatedOldValue", processor);
 		}
 	}
 
@@ -442,7 +408,7 @@ public class CryptoUtil {
 			subresult.addReturn("cipherAlgorithm", cipher.getAlgorithm());
 			subresult.addReturn("cipherBlockSize", cipher.getBlockSize());
 			subresult.addReturn("cipherProvider", cipher.getProvider().getName());
-			subresult.addReturn("cipherMaxAllowedKeyLength", cipher.getMaxAllowedKeyLength(transformationName));
+			subresult.addReturn("cipherMaxAllowedKeyLength", Cipher.getMaxAllowedKeyLength(transformationName));
             cipher.init(Cipher.ENCRYPT_MODE, key, iv);
             byte[] encryptedBytes = cipher.doFinal(plainString.getBytes());
 
@@ -470,5 +436,4 @@ public class CryptoUtil {
 			}
 		}
 	}
-
 }
