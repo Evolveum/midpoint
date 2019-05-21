@@ -20,6 +20,8 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
@@ -38,7 +40,7 @@ public class PrismPropertyWrapperHeaderModel<C extends Containerable, T> extends
 	
 	@Override
 	public PrismPropertyWrapper<T> getObject() {
-		PrismPropertyWrapper<T> ret = getItemWrapperForHeader(PrismPropertyWrapper.class, pageBase);
+		PrismPropertyWrapper<T> ret = (PrismPropertyWrapper<T>) getItemWrapperForHeader(PrismPropertyDefinition.class, pageBase);
 		return ret;
 	}
 
