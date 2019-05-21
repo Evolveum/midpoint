@@ -257,6 +257,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	public ShadowWrapper<ShadowType> loadShadowWrapper(PrismObject<ShadowType> projection, Task task, OperationResult result) throws SchemaException{
 		PrismObjectWrapperFactory<ShadowType> factory = getRegistry().getObjectWrapperFactory(projection.getDefinition());
 		WrapperContext context = new WrapperContext(task, result);
+		context.setCreateIfEmpty(false);
 		ShadowWrapper<ShadowType> wrapper = (ShadowWrapper<ShadowType>) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
 		wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
 		return wrapper; 
