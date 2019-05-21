@@ -23,7 +23,7 @@
             <identifier>business-roles</identifier>
             <type>RoleType</type>
             <collection>
-                <collectionRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/> <!-- Business role archetype -->
+                <collectionRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
             </collection>
         </objectCollectionView>
     </objectCollectionViews>
