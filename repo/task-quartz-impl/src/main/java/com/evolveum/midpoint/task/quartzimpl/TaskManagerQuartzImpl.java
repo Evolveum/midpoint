@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.builder.DeltaBuilder;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -45,6 +46,10 @@ import com.evolveum.midpoint.task.quartzimpl.handlers.PartitioningTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.task.quartzimpl.work.workers.WorkersManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -175,6 +180,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	@Autowired private WorkStateManager workStateManager;
 	@Autowired private WorkersManager workersManager;
 	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private Protector protector;
 
 	@Autowired
 	@Qualifier("securityContextManager")
@@ -898,6 +904,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		}
 
 		try {
+			CryptoUtil.encryptValues(protector, taskImpl.getTaskPrismObject());
 			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
@@ -905,6 +912,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 		} catch (SchemaException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
 			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
+		} catch (EncryptionException e) {
+			// TODO handle this better
+			throw new SystemException("Couldn't encrypt plain text values in " + task + ": " + e.getMessage(), e);
 		}
 	}
 
