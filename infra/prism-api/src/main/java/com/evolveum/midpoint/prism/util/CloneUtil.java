@@ -62,7 +62,7 @@ public class CloneUtil {
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
-			return orig;
+			return (T) clonePolyString((PolyString) orig);
 		}
         if (orig instanceof String) {
             // ...and so is String
@@ -142,6 +142,13 @@ public class CloneUtil {
 			clonedCollection.add(clone(element));
 		}
 		return clonedCollection;
+	}
+
+	private static PolyString clonePolyString(PolyString orig){
+		if (orig == null){
+			return null;
+		}
+		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation(), orig.getLang());
 	}
 
 	private static <T> T cloneArray(T orig) {

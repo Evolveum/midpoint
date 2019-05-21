@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.string.Strings;
 
 public class TextPanel<T> extends InputPanel {
 
@@ -46,9 +47,23 @@ public class TextPanel<T> extends InputPanel {
         	protected boolean shouldTrimInput() {
         		return shouldTrim;
         	}
+
+        	@Override
+            public void convertInput() {
+        	    T convertedValue = getConvertedInputValue();
+        	    if (convertedValue != null){
+        	        setConvertedInput(convertedValue);
+                } else {
+        	        super.convertInput();
+                }
+            }
         };
         text.setType(clazz);
         add(text);
+    }
+
+    protected T getConvertedInputValue(){
+        return null;
     }
 
     @Override

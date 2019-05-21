@@ -3738,13 +3738,13 @@ public final class WebComponentUtil {
 		result.recomputeStatus();
 	}
 
-	public static String getDisplayPolyStringValue(PolyString polyString, PageBase pageBase){
+	public static String getLocalizedPolyStringValue(PolyString polyString, PageBase pageBase){
 		if (polyString == null){
 			return null;
 		}
 		if ((polyString.getTranslation() == null || StringUtils.isEmpty(polyString.getTranslation().getKey())) &&
 				(polyString.getLang() == null || polyString.getLang() == null || polyString.getLang().isEmpty())){
-			return polyString.getOrig();
+			return null;
 		}
 		if (polyString.getLang() != null && !polyString.getLang().isEmpty()){
 			//check if it's really selected by user or configured through sysconfig locale
@@ -3771,7 +3771,7 @@ public final class WebComponentUtil {
 			});
 			return pageBase.createStringResource(polyString.getTranslation().getKey(), argumentValues.toArray()).getString();
 		}
-		return polyString.getOrig();
+		return null;
 	}
 
     public static <T> List<T> sortDropDownChoices(IModel<? extends List<? extends T>> choicesModel, IChoiceRenderer<T> renderer){

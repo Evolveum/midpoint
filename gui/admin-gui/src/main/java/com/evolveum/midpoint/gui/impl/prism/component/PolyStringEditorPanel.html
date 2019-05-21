@@ -17,17 +17,20 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="defaultValuePanel"/>
+    <div wicket:id="localizedValueContainer" class="row prism-property">
+        <div class="col-md-3" wicket:id="localizedValueLabel" />
+        <div wicket:id="localizedValue"/>
+    </div>
+    <div wicket:id="originValueContainer" class="row prism-property">
+        <div class="col-md-3" wicket:id="originValueLabel" />
+        <div wicket:id="origValue"/>
+    </div>
     <div wicket:id="fullDataContainer">
-         <div class="row">
-             <div class="col-md-3"><wicket:message key="PolyStringEditorPanel.defaultLabel" /></div>
-             <div class="col-md-9" wicket:id="origValue"/>
-         </div>
-        <div class="row">
+         <div class="row prism-property">
              <div class="col-md-3"><wicket:message key="PolyStringEditorPanel.keyLabel" /></div>
              <div class="col-md-9" wicket:id="keyValue"/>
          </div>
-        <div wicket:id="languagesRepeater" class="row">
+        <div wicket:id="languagesRepeater" class="row prism-property">
              <div class="col-md-3" wicket:id="languageName" />
              <div class="col-md-9" wicket:id="translation"/>
          </div>
