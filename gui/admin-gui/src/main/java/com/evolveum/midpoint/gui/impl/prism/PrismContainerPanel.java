@@ -49,14 +49,20 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	protected void onInitialize() {
 		super.onInitialize();
 		
-		if(getModelObject() != null) {
-			if(getModelObject().isShowOnTopLevel()) {
-				add(AttributeModifier.append("class", "top-level-prism-container"));
+		
+		add(AttributeModifier.append("class", () -> {
+			String cssClasses = "";
+			
+			if (getModelObject() != null && getModelObject().isShowOnTopLevel()) {
+				cssClasses = "top-level-prism-container";
 			}
-			if(getModelObject().isMultiValue()) {
-				add(AttributeModifier.append("class", "multivalue-container"));
+			
+			if (getModelObject() != null && getModelObject().isMultiValue()) {
+				cssClasses = " multivalue-container";
 			}
-		}
+			return cssClasses;
+		}));
+		
 	}
 
 	@Override

@@ -70,6 +70,7 @@ public class MainPopupDialog extends ModalWindow {
         });
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
+        content.setOutputMarkupId(true);
         setContent(content);
     }
 
