@@ -21,6 +21,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -40,7 +42,7 @@ public class PrismReferenceWrapperHeaderModel<C extends Containerable, R extends
 	
 	@Override
 	public PrismReferenceWrapper<R> getObject() {
-		PrismReferenceWrapper<R> ret = getItemWrapperForHeader(PrismReferenceWrapper.class, pageBase);
+		PrismReferenceWrapper<R> ret = (PrismReferenceWrapper<R>) getItemWrapperForHeader(PrismReferenceDefinition.class, pageBase);
 		return ret;
 	}
 

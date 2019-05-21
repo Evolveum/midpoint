@@ -15,17 +15,24 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import javax.xml.namespace.QName;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,65 +85,34 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
 		return (W)container.findItem(path, type);
 	}
 	
-	<W extends ItemWrapper> W getItemWrapperForHeader(Class<W> type, PageBase pageBase) {
-		W item = getItemWrapper(type);
-		if(item != null) {
-			return item;
-		}
+	<ID extends ItemDefinition> ItemWrapper getItemWrapperForHeader(Class<ID> type, PageBase pageBase) {
 		if(path.isEmpty()) {
 			return null;
 		}
 		
-		ItemPath usedPath = null;
-		item = (W)parent.getObject();
+		ItemWrapper item = null;
+		ItemDefinition def = null;
 		ItemPath path = this.path;
-		while(!path.isEmpty()) {
-			Object partOfPath = path.first();
-			path = path.rest();
-			if(ItemPath.isId(partOfPath)){
-				usedPath = ItemPath.create(partOfPath);
-				continue;
-			}
-			if(usedPath != null && ItemPath.isId(usedPath)){
-				usedPath = ItemPath.create(usedPath, partOfPath);
-			} else {
-				usedPath = ItemPath.create(partOfPath);
-			}
-			
-			try {
-				
-				if (item instanceof PrismContainerValueWrapper) {
-					item = (W)findItemWrapperInContainerValue(ItemWrapper.class, (PrismContainerValueWrapper) item, usedPath);
-				} else if (item instanceof PrismContainerWrapper) {
-					PrismContainerWrapper container = (PrismContainerWrapper) item;
-					if(item.isSingleValue()) {
-						item = (W)findItemWrapperInContainer(ItemWrapper.class, container, usedPath);
-					} else {
-						PrismContainerValueWrapper value;
-						if(!container.getValues().isEmpty()) {
-							value = (PrismContainerValueWrapper)container.getValues().iterator().next();
-						} else {
-							WrapperContext context = new WrapperContext(null, null);
-							PrismContainerValue<?> newValue = pageBase.getPrismContext().itemFactory().createContainerValue();
-							value = pageBase.createValueWrapper(container, newValue, ValueStatus.ADDED, context);
-						}
-						LOGGER.trace("Finding {} with path {} in {}", ItemWrapper.class.getSimpleName(), usedPath, value);
-						item = (W)value.findItem(usedPath, ItemWrapper.class);
-					}
-				} else {
-					return null;
-				}
-				
+		try {
+		if (fromContainerValue) {
+			return null;
+		} else {
+			PrismContainerWrapper container = (PrismContainerWrapper) this.parent.getObject();
+			def = container.getItem().getDefinition().findItemDefinition(path, type);
+		}
+		if (!type.isAssignableFrom(def.getClass())) {
+			return null;
+		}
+		return createItemWrapper(def.instantiate(), pageBase);
 			} catch (SchemaException e) {
-				LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, usedPath, item, e.getMessage(), e);
+				LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, path, this.parent.getObject(), e.getMessage(), e);
 				return null;
 			}
-			
-		}
-		if (type.isAssignableFrom(item.getClass())) {
-			return item;
-		}
-		return null;
+	}
+
+	private ItemWrapper createItemWrapper(Item i, PageBase pageBase) throws SchemaException {
+		Task task = pageBase.createSimpleTask("Create wrapper for column header");
+		return pageBase.createItemWrapper(i, ItemStatus.NOT_CHANGED, new WrapperContext(task, task.getResult()));
 	}
 	
 }
