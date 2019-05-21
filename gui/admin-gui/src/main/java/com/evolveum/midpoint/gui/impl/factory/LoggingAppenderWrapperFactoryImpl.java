@@ -82,6 +82,11 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
 		LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
         
+        if(parent == null || parent.getParent() == null || parent.getParent().getParent() == null) {
+        	return lookupTable;
+        }
+        
+        
         if(!(parent.getParent().getParent().getRealValue() instanceof LoggingConfigurationType)) {
         	throw new IllegalArgumentException("LoggingConfigurationType not found in parent for Appender");
         }
