@@ -100,3 +100,6 @@
 .fe-assignment-thicker:before {
   content: "\e909";
 }
+.fe-case-object:before {
+  content: "\e91a";
+}
