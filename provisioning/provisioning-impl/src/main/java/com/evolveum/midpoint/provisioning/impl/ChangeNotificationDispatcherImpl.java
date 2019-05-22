@@ -49,6 +49,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 
+	private static final int MAX_LISTENERS = 1000;          // just to make sure we don't grow indefinitely
+
 	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
 	private List<ResourceOperationListener> operationListeners = new ArrayList<>();
@@ -77,6 +79,13 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 					listener);
 		} else {
 			changeListeners.add(listener);
+			checkSize(changeListeners, "changeListeners");
+		}
+	}
+
+	private void checkSize(List<?> listeners, String name) {
+		if (listeners.size() > MAX_LISTENERS) {
+			throw new IllegalStateException("Possible listeners leak: number of " + name + " exceeded the threshold of " + MAX_LISTENERS);
 		}
 	}
 
@@ -101,6 +110,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 					listener);
 		} else {
 			operationListeners.add(listener);
+			checkSize(operationListeners, "operationListeners");
 		}
 
 	}
@@ -114,6 +124,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 					listener);
 		} else {
 			eventListeners.add(listener);
+			checkSize(eventListeners, "eventListeners");
 		}
 
 	}
@@ -130,7 +141,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 */
 	@Override
 	public synchronized void unregisterNotificationListener(ResourceOperationListener listener) {
-		changeListeners.remove(listener);
+		operationListeners.remove(listener);
 	}
 
 	/* (non-Javadoc)
@@ -138,7 +149,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	 */
 	@Override
 	public synchronized void unregisterNotificationListener(ResourceObjectChangeListener listener) {
-		operationListeners.remove(listener);
+		changeListeners.remove(listener);
 	}
 
 
