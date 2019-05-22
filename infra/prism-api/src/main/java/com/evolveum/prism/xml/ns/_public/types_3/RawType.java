@@ -18,6 +18,7 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.ShortDumpable;
@@ -147,6 +148,9 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 				xnode = null;
 			} else if (parsedValue instanceof Referencable) {
 				parsed = ((Referencable) parsedValue).asReferenceValue();
+				xnode = null;
+			} else if (parsedValue instanceof PolyStringType) {
+				parsed = prismContext.itemFactory().createPropertyValue(PolyString.toPolyString((PolyStringType) parsedValue));   // hack
 				xnode = null;
 			} else if (parsedValue != null) {
 				parsed = prismContext.itemFactory().createPropertyValue(parsedValue);
