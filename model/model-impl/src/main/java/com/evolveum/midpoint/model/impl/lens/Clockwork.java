@@ -433,11 +433,13 @@ public class Clockwork {
 	private void exitAssociationSearchExpressionEvaluatorCache() {
 		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.exitCache();
 		if (cache == null) {
-			return;			// shouldn't occur
+			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: cache instance was not found for the current thread");
+			return;
 		}
 		Object invalidator = cache.getClientContextInformation();
 		if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
-			return;			// shouldn't occur either
+			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: expected {}, got {} instead", AssociationSearchExpressionCacheInvalidator.class, invalidator);
+			return;
 		}
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
