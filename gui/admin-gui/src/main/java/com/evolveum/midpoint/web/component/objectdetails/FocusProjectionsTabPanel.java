@@ -306,10 +306,14 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				
 				for(ItemWrapper<?, ?, ?, ?> item : items) {
 					if(QNameUtil.match(item.getName(), ShadowType.F_ATTRIBUTES) ||
-							QNameUtil.match(item.getName(), ShadowType.F_ACTIVATION) ||
-							QNameUtil.match(item.getName(), ShadowType.F_ASSOCIATION)) {
+							QNameUtil.match(item.getName(), ShadowType.F_ACTIVATION)) {
 						containers.add((PrismContainerWrapper<ShadowType>)item);
 					}
+					if(QNameUtil.match(item.getName(), ShadowType.F_ASSOCIATION) && 
+							!((PrismContainerWrapper)item).getValues().isEmpty()) {
+						containers.add((PrismContainerWrapper<ShadowType>)item);
+					}
+					
 					if(QNameUtil.match(item.getName(), ShadowType.F_CREDENTIALS)) {
 						try {
 							containers.add(((PrismContainerWrapper<ShadowType>)item).findContainer(CredentialsType.F_PASSWORD));
