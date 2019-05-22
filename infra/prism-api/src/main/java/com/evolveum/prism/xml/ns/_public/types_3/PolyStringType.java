@@ -47,6 +47,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -90,7 +92,7 @@ import org.w3c.dom.Element;
     "lang",
     "any"
 })
-public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
+public class PolyStringType implements DebugDumpable, Serializable, Cloneable, JaxbVisitable {
 	private static final long serialVersionUID = 1L;
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "PolyStringType");
@@ -614,4 +616,8 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 		return name != null ? new PolyStringType(name) : null;
 	}
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

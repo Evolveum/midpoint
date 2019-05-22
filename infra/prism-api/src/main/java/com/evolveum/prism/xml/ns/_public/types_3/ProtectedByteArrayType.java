@@ -12,6 +12,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import org.apache.commons.lang.ArrayUtils;
 
 
@@ -55,5 +56,8 @@ public class ProtectedByteArrayType extends ProtectedDataType<Byte[]> {
 		return byte[].class.isAssignableFrom(type);
 	}
 
-
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

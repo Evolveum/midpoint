@@ -21,6 +21,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -53,7 +55,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 @XmlType(name = "SchemaDefinitionType", propOrder = {
     "any"
 })
-public class SchemaDefinitionType implements Cloneable, Serializable {
+public class SchemaDefinitionType implements Cloneable, Serializable, JaxbVisitable {
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "SchemaDefinitionType");
 
@@ -114,6 +116,11 @@ public class SchemaDefinitionType implements Cloneable, Serializable {
             clone.schema = schema;
         }
         return clone;
+    }
+
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
     }
 
     class CustomList implements Serializable, List<Element> {

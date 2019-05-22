@@ -8,6 +8,9 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -46,7 +49,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "EncryptionMethodType", propOrder = {
     "algorithm"
 })
-public class EncryptionMethodType  implements Serializable, Cloneable {
+public class EncryptionMethodType  implements Serializable, Cloneable, JaxbVisitable {
 
     @XmlElement(required = true)
     @XmlSchemaType(name = "anyURI")
@@ -112,4 +115,8 @@ public class EncryptionMethodType  implements Serializable, Cloneable {
         return cloned;
     }
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

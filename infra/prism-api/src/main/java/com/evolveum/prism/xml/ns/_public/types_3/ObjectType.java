@@ -28,14 +28,21 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismObject;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectType", propOrder = {
 })
 
-public class ObjectType {
+public class ObjectType implements JaxbVisitable {
 	public PrismObject asPrismObject(){
 		return null;
+	}
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
 	}
 }

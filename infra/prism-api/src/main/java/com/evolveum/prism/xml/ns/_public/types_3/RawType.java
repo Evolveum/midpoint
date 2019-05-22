@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +40,7 @@ import java.util.Objects;
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable {
+public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable, JaxbVisitable {
 	private static final long serialVersionUID = 4430291958902286779L;
 
     /**
@@ -470,6 +471,26 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 			return ((PrimitiveXNode) xnode).getGuessedFormattedValue();
 		} else {
 			return null;
+		}
+	}
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		if (isParsed()) {
+			Object realValue = parsed.getRealValue();
+			if (realValue instanceof JaxbVisitable) {
+				((JaxbVisitable) realValue).accept(visitor);
+			}
+		} else if (explicitTypeName != null) {
+			try {
+				Object value = getValue(true);
+				if (value instanceof JaxbVisitable) {
+					((JaxbVisitable) value).accept(visitor);
+				}
+			} catch (SchemaException e) {
+				throw new TunnelException(e);
+			}
 		}
 	}
 }

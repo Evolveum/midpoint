@@ -15,39 +15,34 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
-import java.io.ByteArrayOutputStream;
-import java.security.Provider;
-import java.security.Security;
-import java.util.*;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import javax.xml.bind.JAXBElement;
-
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import java.io.ByteArrayOutputStream;
+import java.security.Provider;
+import java.security.Security;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author semancik
@@ -246,101 +241,56 @@ public class CryptoUtil {
 		void apply(ProtectedStringType protectedString, String propertyName) throws EncryptionException;
 	}
 
-	@NotNull
-	private static Visitor createVisitor(ProtectedStringProcessor processor) {
-		return visitable -> {
-			if (visitable instanceof PrismPropertyValue) {
+	private static class CombinedVisitor implements Visitor, JaxbVisitor {
+
+		private ProtectedStringProcessor processor;
+		private String lastPropName = "?";
+
+		CombinedVisitor(ProtectedStringProcessor processor) {
+			this.processor = processor;
+		}
+
+		@Override
+		public void visit(JaxbVisitable visitable) {
+			if (visitable instanceof ProtectedStringType) {
 				try {
-					PrismPropertyValue<?> pval = ((PrismPropertyValue) visitable);
-					applyToRealValue(pval.getRealValue(), determinePropName(pval), processor);
+					processor.apply(((ProtectedStringType) visitable), lastPropName);
 				} catch (EncryptionException e) {
 					throw new TunnelException(e);
 				}
+			} else if (visitable instanceof Containerable) {
+				((Containerable) visitable).asPrismContainerValue().accept(this);
+			} else if (visitable instanceof Referencable) {
+				PrismObject<?> object = ((Referencable) visitable).asReferenceValue().getObject();
+				if (object != null) {
+					object.accept(this);
+				}
+			} else if (visitable instanceof RawType) {
+				RawType raw = (RawType) visitable;
+				if (raw.isParsed()) {
+					raw.getAlreadyParsedValue().accept(this);
+				}
 			}
-		};
-	}
+		}
 
-	private static void applyToRealValues(Collection<?> values, String propertyName, ProtectedStringProcessor processor)
-			throws EncryptionException {
-		if (values != null) {
-			for (Object value : values) {
-				applyToRealValue(value, propertyName, processor);
+		@Override
+		public void visit(Visitable visitable) {
+			if (visitable instanceof PrismPropertyValue) {
+				PrismPropertyValue<?> pval = ((PrismPropertyValue) visitable);
+				Object realValue = pval.getRealValue();
+				if (realValue instanceof JaxbVisitable) {
+					String oldLastPropName = lastPropName;
+					lastPropName = determinePropName(pval);
+					((JaxbVisitable) realValue).accept(this);
+					lastPropName = oldLastPropName;
+				}
 			}
 		}
 	}
 
-	private static void applyToRealValue(Object value, String propertyName, ProtectedStringProcessor processor)
-			throws EncryptionException {
-		if (value instanceof ProtectedStringType) {
-			processor.apply(((ProtectedStringType) value), propertyName);
-		} else if (value instanceof PrismPropertyValue) {
-			applyToRealValue(((PrismPropertyValue) value).getRealValue(), propertyName, processor);
-		} else if (value instanceof PrismReferenceValue) {
-			applyToRealValue(((PrismReferenceValue) value).getObject(), propertyName + "/object", processor);
-		} else if (value instanceof PrismContainerValue) {
-			((PrismContainerValue) value).accept(createVisitor(processor));
-		} else if (value instanceof Containerable) {
-			applyToRealValue(((Containerable) value).asPrismContainerValue(), propertyName, processor);
-		} else if (value instanceof RawType) {
-			RawType raw = (RawType) value;
-			if (raw.isParsed()) {
-				applyToRealValue(raw.getAlreadyParsedValue(), propertyName, processor);
-			} else if (raw.getExplicitTypeName() != null) {
-				try {
-					applyToRealValue(raw.getValue(true), propertyName, processor);
-				} catch (SchemaException e) {
-					throw new TunnelException(e);
-				}
-			} else {
-				// consider putting an approximate check here e.g. testing for "password", "clearValue" or such elements
-			}
-		} else if (value instanceof JAXBElement<?>) {
-			applyToRealValue(((JAXBElement) value).getValue(), propertyName, processor);
-		} else if (value instanceof MailConfigurationType) {
-			applyToRealValues(((MailConfigurationType) value).getServer(), propertyName+"/server", processor);
-		} else if (value instanceof MailServerConfigurationType) {
-			processor.apply(((MailServerConfigurationType) value).getPassword(), propertyName+"/password");
-		} else if (value instanceof SmsConfigurationType) {
-			applyToRealValues(((SmsConfigurationType) value).getGateway(), propertyName + "/gateway", processor);
-		} else if (value instanceof SmsGatewayConfigurationType) {
-			processor.apply(((SmsGatewayConfigurationType) value).getPassword(), propertyName + "/password");
-		} else if (value instanceof ExecuteScriptType) {
-			ExecuteScriptType es = (ExecuteScriptType) value;
-			applyToRealValue(es.getInput(), propertyName + "/input", processor);
-			applyToRealValue(es.getScriptingExpression(), propertyName + "/scriptingExpression", processor);
-			applyToRealValue(es.getVariables(), propertyName + "/variables", processor);
-		} else if (value instanceof ValueListType) {
-			applyToRealValues(((ValueListType) value).getValue(), propertyName + "/value", processor);
-		} else if (value instanceof ExpressionPipelineType) {
-			applyToRealValues(((ExpressionPipelineType) value).getScriptingExpression(), propertyName + "/scriptingExpression", processor);
-		} else if (value instanceof ExpressionSequenceType) {
-			applyToRealValues(((ExpressionSequenceType) value).getScriptingExpression(), propertyName + "/scriptingExpression", processor);
-		} else if (value instanceof ActionExpressionType) {
-			applyToRealValues(((ActionExpressionType) value).getParameter(), propertyName + "/parameter", processor);
-		} else if (value instanceof ActionParameterValueType) {
-			ActionParameterValueType p = (ActionParameterValueType) value;
-			applyToRealValue(p.getValue(), propertyName + "/value", processor);
-			applyToRealValue(p.getScriptingExpression(), propertyName + "/scriptingExpression", processor);
-		} else if (value instanceof ScriptingVariablesDefinitionType) {
-			applyToRealValues(((ScriptingVariablesDefinitionType) value).getVariable(), propertyName + "/variable", processor);
-		} else if (value instanceof ScriptingVariableDefinitionType) {
-			applyToRealValue(((ScriptingVariableDefinitionType) value).getExpression(), propertyName + "/expression", processor);
-		} else if (value instanceof ExpressionType) {
-			List<JAXBElement<?>> evaluators = ((ExpressionType) value).getExpressionEvaluator();
-			for (JAXBElement<?> evaluator : evaluators) {
-				if (QNameUtil.match(SchemaConstants.C_VALUE, evaluator.getName())) {
-					applyToRealValue(evaluator.getValue(), propertyName + "/value", processor);
-				}
-			}
-		} else if (value instanceof ObjectDeltaType) {
-			ObjectDeltaType delta = (ObjectDeltaType) value;
-			applyToRealValue(delta.getObjectToAdd(), propertyName + "/objectToAdd", processor);
-			applyToRealValues(delta.getItemDelta(), propertyName + "/itemDelta", processor);
-		} else if (value instanceof ItemDeltaType) {
-			ItemDeltaType delta = (ItemDeltaType) value;
-			applyToRealValues(delta.getValue(), propertyName + "/value", processor);
-			applyToRealValues(delta.getEstimatedOldValue(), propertyName + "/estimatedOldValue", processor);
-		}
+	@NotNull
+	private static CombinedVisitor createVisitor(ProtectedStringProcessor processor) {
+		return new CombinedVisitor(processor);
 	}
 
 	private static String determinePropName(PrismPropertyValue<?> value) {

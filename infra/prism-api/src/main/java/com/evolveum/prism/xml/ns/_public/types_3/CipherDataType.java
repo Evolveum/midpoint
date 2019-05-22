@@ -8,6 +8,9 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -46,7 +49,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "CipherDataType", propOrder = {
     "cipherValue"
 })
-public class CipherDataType  implements Serializable, Cloneable {
+public class CipherDataType implements Serializable, Cloneable, JaxbVisitable {
 
     @XmlElement(required = true)
     protected byte[] cipherValue;
@@ -106,4 +109,9 @@ public class CipherDataType  implements Serializable, Cloneable {
         cloned.setCipherValue(cipherValue.clone());
         return cloned;
     }
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }
