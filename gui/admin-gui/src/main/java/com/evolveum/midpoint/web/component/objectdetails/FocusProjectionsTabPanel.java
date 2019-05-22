@@ -32,10 +32,12 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -62,8 +64,10 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -313,6 +317,23 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		};
 	}
 	
+	private DisplayType createAccountIcon(PrismContainerValue<ShadowType> prismContainerValue) {
+        PrismProperty<ActivationStatusType> status = prismContainerValue.findProperty(ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        String iconCssClass = WebComponentUtil.createShadowIcon(prismContainerValue);
+        if (status != null && status.getRealValue() != null) {
+            ActivationStatusType value = status.getRealValue();
+            StringResourceModel titleModel = getPageBase().createStringResource("lower.ActivationStatusType." +value);
+            if (ActivationStatusType.DISABLED.equals(value)) {
+                return WebComponentUtil.createDisplayType(iconCssClass, "#909090",
+                		titleModel.getString());
+            }
+            return WebComponentUtil.createDisplayType(iconCssClass,
+            		WebComponentUtil.createPolyFromOrigString(titleModel.getString()));
+        }
+
+        return WebComponentUtil.createDisplayType(iconCssClass);
+    }
+	
 	private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns(IModel<PrismContainerWrapper<ShadowType>> emptyShadowWrapperModel) {
 		List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> columns = new ArrayList<>();
 		columns.add(new CheckBoxHeaderColumn<>());
@@ -322,8 +343,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 			@Override
 			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
-				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
-
+				return createAccountIcon(rowModel.getObject().getNewValue());
 			}
 
 		});

@@ -2080,6 +2080,10 @@ public final class WebComponentUtil {
 	public static String createTaskIcon(PrismObject<TaskType> object) {
 		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
+	
+	public static String createShadowIcon(PrismContainerValue<ShadowType> prismContainerValue) {
+		return createShadowIcon(((ShadowType)prismContainerValue.getRealValue()).asPrismContainer());
+	}
 
 	public static String createShadowIcon(PrismObject<ShadowType> object) {
 		ShadowType shadow = object.asObjectable();
@@ -3423,6 +3427,15 @@ public final class WebComponentUtil {
 		return displayType;
 	}
 
+	public static DisplayType createDisplayType(String iconCssClass, PolyStringType title){
+		DisplayType displayType = new DisplayType();
+		IconType icon = new IconType();
+		icon.setCssClass(iconCssClass);
+		displayType.setIcon(icon);
+
+		displayType.setTooltip(title);
+		return displayType;
+	}
 
 	public static IconType createIconType(String iconStyle){
 		return createIconType(iconStyle, "");
