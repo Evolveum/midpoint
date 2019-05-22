@@ -121,7 +121,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		return false;
 	}
 	
-	private String createImageModel() {
+	protected String createImageModel() {
 		if (getModelObject() == null){
 			return "";
 		}

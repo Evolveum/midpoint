@@ -155,7 +155,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	}
 	
 	@Override
-	protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+	public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
 			List<PrismContainerValueWrapper<C>> listItems) {
 		
 		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {

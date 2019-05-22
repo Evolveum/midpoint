@@ -60,6 +60,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -117,9 +118,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 //	private static final String ID_SHADOW_LIST = "shadowList";
 	private static final String ID_SHADOW_TABLE = "shadowTable";
 //	private static final String ID_SHADOWS = "shadows";
-	private static final String ID_SHADOWS_CONTAINER = "shadowContainer";
+//	private static final String ID_SHADOWS_CONTAINER = "shadowContainer";
 //	private static final String ID_SHADOW_HEADER = "shadowHeader";
-	private static final String ID_SHADOW = "shadow";
+//	private static final String ID_SHADOW = "shadow";
+	private static final String ID_SHADOW_PANEL = "shadowPanel";
 //	private static final String ID_SHADOW_MENU = "shadowMenu";
 //	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
@@ -212,11 +214,18 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			}
 
 			@Override
-			protected void itemPerformedForDefaultAction(AjaxRequestTarget target,
+			public void itemPerformedForDefaultAction(AjaxRequestTarget target,
 					IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
 					List<PrismContainerValueWrapper<ShadowType>> listItems) {
 				if(((ShadowWrapper<ShadowType>)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
 					((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject());
+				} 
+				if(listItems != null) {
+					listItems.forEach(value -> {
+						if(((ShadowWrapper<ShadowType>)value.getParent()).isLoadWithNoFetch()) {
+							((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)value);
+						} 
+					});
 				}
 				super.itemPerformedForDefaultAction(target, rowModel, listItems);
 			}
@@ -258,36 +267,22 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					
 					@Override
 					protected IModel<String> getKindIntentLabelModel() {
-						return getPageBase().createStringResource("DisplayNamePanel.resource",
-								WebComponentUtil.getReferencedObjectDisplayNamesAndNames(getModelObject().getResourceRef(), false));
+						return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
 					}
 					
 					@Override
 					protected IModel<String> getDescriptionLabelModel() {
-						StringBuilder sb = new StringBuilder();
-						ShadowType shadow = getModelObject();
-						if(shadow != null) {
-							if(shadow.getObjectClass() != null && !StringUtils.isBlank(shadow.getObjectClass().getLocalPart())) {
-								sb.append(getPageBase().createStringResource("DisplayNamePanel.objectClass", shadow.getObjectClass().getLocalPart()).getString());
-							}
-							if(shadow.getKind() != null && !StringUtils.isBlank(shadow.getKind().name())) {
-								sb.append(", ");
-								sb.append(getPageBase().createStringResource("DisplayNamePanel.kind", shadow.getKind().name()).getString());
-							}
-							
-							if(!StringUtils.isBlank(shadow.getIntent())) {
-								sb.append(", ");
-								sb.append(getPageBase().createStringResource("DisplayNamePanel.intent", shadow.getIntent()).getString());
-							}
-							
-							if(!StringUtils.isBlank(shadow.getTag())) {
-								sb.append(", ");
-								sb.append(getPageBase().createStringResource("DisplayNamePanel.tag", shadow.getTag()).getString());
-							}
-							return Model.of(sb.toString());
-						}
-						return Model.of("");
+						return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
 					}
+					
+					@Override
+					protected String createImageModel() {
+						if (getModelObject() == null){
+							return "";
+						}
+						return WebComponentUtil.createShadowIcon(getModelObject().asPrismObject());
+					}
+					
 				};
 			}
 			
@@ -299,54 +294,23 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			@Override
 			protected WebMarkupContainer getSpecificContainers(String contentAreaId) {
 				Fragment specificContainers = new Fragment(contentAreaId, ID_SPECIFIC_CONTAINERS_FRAGMENT, FocusProjectionsTabPanel.this);
-				
-				List<? extends ItemWrapper<?, ?, ?, ?>> items = getModel().getObject().getItems();
-				
-				List<PrismContainerWrapper<ShadowType>> containers = new ArrayList<PrismContainerWrapper<ShadowType>>();
-				
-				for(ItemWrapper<?, ?, ?, ?> item : items) {
-					if(QNameUtil.match(item.getName(), ShadowType.F_ATTRIBUTES) ||
-							QNameUtil.match(item.getName(), ShadowType.F_ACTIVATION)) {
-						containers.add((PrismContainerWrapper<ShadowType>)item);
-					}
-					if(QNameUtil.match(item.getName(), ShadowType.F_ASSOCIATION) && 
-							!((PrismContainerWrapper)item).getValues().isEmpty()) {
-						containers.add((PrismContainerWrapper<ShadowType>)item);
-					}
-					
-					if(QNameUtil.match(item.getName(), ShadowType.F_CREDENTIALS)) {
-						try {
-							containers.add(((PrismContainerWrapper<ShadowType>)item).findContainer(CredentialsType.F_PASSWORD));
-						} catch (SchemaException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-				
-				IModel<PrismContainerValueWrapper<ShadowType>> model = getModel();
-				
-				final ListView<PrismContainerWrapper<ShadowType>> shadowPanel = new ListView<PrismContainerWrapper<ShadowType>>(
-						ID_SHADOW, Model.of((Collection)containers)) {
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void populateItem(ListItem<PrismContainerWrapper<ShadowType>> item) {
-						try {
-				    		Panel shadowContainerPanel = getPageBase().initItemPanel(ID_SHADOWS_CONTAINER, item.getModelObject().getTypeName(), item.getModel(), 
-				    				itemWrapper -> checkShadowContainerVisibility(itemWrapper, model));
-				    		item.add(shadowContainerPanel);
-						} catch (SchemaException e) {
-							LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
-							getSession().error("Cannot create panle for logging");
-						}
-					}
-
-				};
+				ShadowPanel shadowPanel = new ShadowPanel(ID_SHADOW_PANEL, getParentModel(getModelObject()));
 				specificContainers.add(shadowPanel);
 				return specificContainers;
 			}
 		};
 		return detailsPanel;
+	}
+	
+	private IModel<ShadowWrapper<ShadowType>> getParentModel(PrismContainerValueWrapper<ShadowType> value){
+		return new IModel<ShadowWrapper<ShadowType>>() {
+
+			@Override
+			public ShadowWrapper<ShadowType> getObject() {
+				return value.getParent();
+			}
+			
+		};
 	}
 	
 	private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns(IModel<PrismContainerWrapper<ShadowType>> emptyShadowWrapperModel) {
@@ -370,6 +334,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			@Override
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
+				target.add(getFeedbackPanel());
 			}
 		});
 		columns.add(new PrismReferenceWrapperColumn(emptyShadowWrapperModel, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
@@ -384,19 +349,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 	
 	private MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> getMultivalueContainerListPanel(){
 		return ((MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>)get(ID_SHADOW_TABLE));
-	}
-	
-	private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<PrismContainerValueWrapper<ShadowType>> model) {
-		
-		if(itemWrapper.getPath().equivalent(ItemPath.create(ShadowType.F_ASSOCIATION))) {
-			if(!((PrismContainerWrapper)itemWrapper).isEmpty() ) {
-				return ItemVisibility.AUTO;
-			} else {
-				return ItemVisibility.HIDDEN;
-			}
-		}
-		
-		return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, model);
 	}
 	
 //	private void onExpandCollapse(AjaxRequestTarget target, IModel<FocusSubwrapperDto<ShadowType>> dtoModel) {
@@ -643,7 +595,16 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 			@Override
 			public InlineMenuItemAction initAction() {
-				return getMultivalueContainerListPanel().createEditColumnAction();
+				return new ColumnMenuAction() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						getMultivalueContainerListPanel().itemPerformedForDefaultAction(target,
+								getRowModel(), getMultivalueContainerListPanel().getSelectedItems());
+						target.add(getFeedbackPanel());
+					}
+				};
 			}
 		};
 		items.add(item);

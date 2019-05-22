@@ -20,6 +20,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.wicket.model.IModel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -50,10 +53,17 @@ public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 	protected void onInitialize() {
 		super.onInitialize();
 
-		PrismPanel<ShadowType> panel = new PrismPanel<>(ID_ACCOUNT,
-				new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
-				null, getMainForm(), null, getPageBase());
-		add(panel);
+		initLayer();
+	}
+	
+	
+
+	private void initLayer() {
+//		PrismPanel<ShadowType> panel = new PrismPanel<>(ID_ACCOUNT,
+//				new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
+//				null, getMainForm(), null, getPageBase());
+		ShadowPanel shadowPanel = new ShadowPanel(ID_ACCOUNT, (IModel)getObjectWrapperModel());
+		add(shadowPanel);
 	}
 
 	private List<ItemPath> getVisibleContainers() {

@@ -137,6 +137,7 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.Standar
 import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -2816,9 +2817,9 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
-																	 IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
+																	 IModel<PrismObjectValueWrapper<ShadowType>> shadowModel) {
 		
-		PrismContainerValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+		PrismObjectValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
 		ShadowType shadowType = shadowWrapper.getRealValue();
 		
 		ResourceType resource = shadowType.getResource();
@@ -3796,4 +3797,34 @@ public final class WebComponentUtil {
 		return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ?
 				deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
 	}
+    
+    public static IModel<String> getResourceLabelModel(ShadowType shadow, PageBase pageBase){
+    	return pageBase.createStringResource("DisplayNamePanel.resource",
+				WebComponentUtil.getReferencedObjectDisplayNamesAndNames(shadow.getResourceRef(), false));
+    }
+    
+    public static IModel<String> getResourceAttributesLabelModel(ShadowType shadow, PageBase pageBase){
+    	StringBuilder sb = new StringBuilder();
+		if(shadow != null) {
+			if(shadow.getObjectClass() != null && !StringUtils.isBlank(shadow.getObjectClass().getLocalPart())) {
+				sb.append(pageBase.createStringResource("DisplayNamePanel.objectClass", shadow.getObjectClass().getLocalPart()).getString());
+			}
+			if(shadow.getKind() != null && !StringUtils.isBlank(shadow.getKind().name())) {
+				sb.append(", ");
+				sb.append(pageBase.createStringResource("DisplayNamePanel.kind", shadow.getKind().name()).getString());
+			}
+			
+			if(!StringUtils.isBlank(shadow.getIntent())) {
+				sb.append(", ");
+				sb.append(pageBase.createStringResource("DisplayNamePanel.intent", shadow.getIntent()).getString());
+			}
+			
+			if(!StringUtils.isBlank(shadow.getTag())) {
+				sb.append(", ");
+				sb.append(pageBase.createStringResource("DisplayNamePanel.tag", shadow.getTag()).getString());
+			}
+			return Model.of(sb.toString());
+		}
+		return Model.of("");
+    }
 }
