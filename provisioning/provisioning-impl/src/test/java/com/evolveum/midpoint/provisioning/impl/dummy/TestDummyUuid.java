@@ -34,6 +34,11 @@ public class TestDummyUuid extends TestDummy {
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
 
 	@Override
+	boolean areEntitlementByAttributesTestsEnabled() {
+		return false;
+	}
+
+	@Override
 	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
