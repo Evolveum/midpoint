@@ -750,6 +750,9 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 	List<ItemPath> pathsToHide = new ArrayList<>();
 	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_RESOURCE_REF).namedSegmentsOnly());
 	pathsToHide.add(parentAssignmentPath.append(AssignmentType.F_CONSTRUCTION).append(ConstructionType.F_AUXILIARY_OBJECT_CLASS).namedSegmentsOnly());
+	
+	
+	
 	if (!WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath().namedSegmentsOnly())) {
 		return ItemVisibility.AUTO;
 	} else {
@@ -826,6 +829,7 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 		if (itemWrapper.getPath().equals(assignmentPath.append(AssignmentType.F_METADATA))){
 			return ItemVisibility.AUTO;
 		}
+		
 		ObjectReferenceType targetRef = assignment.getTargetRef();
 		List<ItemPath> pathsToHide = new ArrayList<>();
 		QName targetType = null;
@@ -853,6 +857,10 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 			pathsToHide.add(assignmentPath.append(AssignmentType.F_POLICY_RULE));
 //		}
 
+		if (itemWrapper instanceof PrismContainerWrapper) {
+			return ItemVisibility.HIDDEN;
+		}
+			
 		if (!WebComponentUtil.isItemVisible(pathsToHide, itemWrapper.getPath())) {
 			return ItemVisibility.AUTO;
 		} else {

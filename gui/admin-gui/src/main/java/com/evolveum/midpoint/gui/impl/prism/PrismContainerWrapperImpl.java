@@ -196,8 +196,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
 	@Override
 	public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException("Too lazy to implement it. Please, implement by yourself :) ");
 	}
 
 	
@@ -335,7 +334,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 			return (getParent() != null && getParent().isShowMetadata());
 		}
 		
-		return super.isVisible(visibilityHandler);
+		return isVisibleByVisibilityHandler(visibilityHandler);
 	}
 
 		

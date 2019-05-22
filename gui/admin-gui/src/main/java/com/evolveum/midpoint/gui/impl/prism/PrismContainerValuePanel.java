@@ -352,7 +352,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	        	}
 	        };
 	        
-			addChildContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown() && CollectionUtils.isNotEmpty(getModelObject().getChildContainers())));
+			addChildContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous()));
 			addChildContainerButton.setOutputMarkupId(true);
 			addChildContainerButton.setOutputMarkupPlaceholderTag(true);
 			add(addChildContainerButton);

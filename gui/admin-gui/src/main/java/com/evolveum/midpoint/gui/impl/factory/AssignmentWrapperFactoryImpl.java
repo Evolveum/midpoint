@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -39,7 +40,7 @@ public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryIm
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return AssignmentType.COMPLEX_TYPE.equals(def.getTypeName());
+		return def instanceof PrismContainerDefinition && def.isMultiValue();
 	}
 
 	@Override

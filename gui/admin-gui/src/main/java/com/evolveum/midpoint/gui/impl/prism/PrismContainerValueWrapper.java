@@ -91,4 +91,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 	PrismContainerValue<C> getValueToAdd() throws SchemaException;
 	
+	boolean isHeterogenous();
+	void setHeterogenous(boolean heterogenous);
+	
 }

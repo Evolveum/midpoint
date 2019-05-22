@@ -63,6 +63,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	private boolean showEmpty;
 	private boolean readOnly;
 	private boolean selected;
+	private boolean heterogenous;
 	
 	private List<ItemWrapper<?, ?, ?,?>> items = new ArrayList<>();
 	
@@ -174,10 +175,20 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	@Override
+	public boolean isHeterogenous() {
+		return heterogenous;
+	}
+	
+	@Override
+	public void setHeterogenous(boolean heterogenous) {
+		this.heterogenous = heterogenous;
+	}
+	
+	@Override
 	public List<PrismContainerDefinition<C>> getChildContainers() {
 		List<PrismContainerDefinition<C>> childContainers = new ArrayList<>();
 		for (ItemDefinition<?> def : getContainerDefinition().getDefinitions()) {
-			if (!(def instanceof PrismContainerDefinition) || def.isSingleValue()) {
+			if (!(def instanceof PrismContainerDefinition)) {
 				continue;
 			}
 			

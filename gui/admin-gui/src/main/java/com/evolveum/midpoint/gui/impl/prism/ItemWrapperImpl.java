@@ -335,6 +335,24 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
 		
+		if (!isVisibleByVisibilityHandler(visibilityHandler)) {
+			return false;
+		}
+		
+		ID def = getItemDefinition();
+		switch (findObjectStatus()) {
+			case NOT_CHANGED:
+				return isVisibleForModify(def);
+			case ADDED:
+				return isVisibleForAdd(def);
+			case DELETED:
+				return false;
+		}
+		
+		return false;
+	}
+	
+	protected boolean isVisibleByVisibilityHandler(ItemVisibilityHandler visibilityHandler) {
 		if (getParent() != null && !getParent().isExpanded()) {
 			return false;
 		}
@@ -353,18 +371,9 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 				}
 			}
 		}
-	    
-		ID def = getItemDefinition();
-		switch (findObjectStatus()) {
-			case NOT_CHANGED:
-				return isVisibleForModify(def);
-			case ADDED:
-				return isVisibleForAdd(def);
-			case DELETED:
-				return false;
-		}
 		
-		return false;
+		return true;
+	    
 	}
 	
 	private boolean isVisibleForModify(ID def) {
