@@ -136,6 +136,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 				itemDetailsVisible = false;
 				cancelItemDetailsPerformed(ajaxRequestTarget);
 				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
+				ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
 			}
 		};
 		details.add(cancelButton);
