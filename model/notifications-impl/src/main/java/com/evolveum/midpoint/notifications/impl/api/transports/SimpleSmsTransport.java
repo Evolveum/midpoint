@@ -221,9 +221,7 @@ public class SimpleSmsTransport implements Transport {
 	                }
 	                String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
 	                ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
-	                if(StringUtils.isNotBlank(proxyHost) && StringUtils.isNotBlank(proxyUsername)) {
-	                	String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
-		                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
+	                if(StringUtils.isNotBlank(proxyHost)) {
 		                HttpHost proxy;
 		                if(StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)){
 		                	int port = Integer.parseInt(proxyPort);
@@ -231,10 +229,15 @@ public class SimpleSmsTransport implements Transport {
 		                } else {
 		                	proxy = new HttpHost(proxyHost);
 		                }
-		                provider.setCredentials(new AuthScope(proxy), credentials);
+		                if(StringUtils.isNotBlank(proxyUsername)) {
+		                	String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
+			                UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
+			                provider.setCredentials(new AuthScope(proxy), credentials);
+		                }
 		                builder = builder.setDefaultCredentialsProvider(provider);
-		                builder.setProxy(proxy);
+		                builder = builder.setProxy(proxy);
 	                }
+	                
 	                HttpClient client = builder.build();
 	                HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(client);
                     ClientHttpRequest request = requestFactory.createRequest(new URI(url), HttpUtil.toHttpMethod(method));
