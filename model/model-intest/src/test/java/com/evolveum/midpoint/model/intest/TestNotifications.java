@@ -107,14 +107,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 	private int startHttpServer() throws IOException {
 		int freePort = findFreePort();
 		httpServer = HttpServer.create(new InetSocketAddress(freePort), 0);
-		httpServer.setExecutor(new Executor() {
-			
-			@Override
-			public void execute(Runnable command) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
 		httpHandler = new MyHttpHandler();
 		httpServer.createContext("/send", httpHandler);
 		httpServer.start();
@@ -572,7 +564,6 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		result.computeStatus();
 		TestUtil.assertSuccess("processEvent result", result);
 
-		System.out.println("XXXXXXXXXXXXXXXXXXXX " + httpHandler.lastRequest.headers);
 		assertNotNull("No http request found", httpHandler.lastRequest);
 		assertEquals("Wrong HTTP method", "GET", httpHandler.lastRequest.method);
 		assertEquals("Wrong URI", "/send?number=%2B421905123456&text=hello+world", httpHandler.lastRequest.uri.toString());
