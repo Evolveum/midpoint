@@ -69,7 +69,7 @@ public abstract class AbstractThreadLocalCache {
         T inst = cacheThreadLocal.get();
         if (inst != null) {
             logger.trace("Cache: DESTROY for thread {}: {}", Thread.currentThread().getName(), inst.getCacheStatisticsString());
-            CachePerformanceCollector.INSTANCE.onCacheDestroy(inst);
+            //CachePerformanceCollector.INSTANCE.onCacheDestroy(inst);
             cacheThreadLocal.set(null);
         }
     }
@@ -123,15 +123,15 @@ public abstract class AbstractThreadLocalCache {
 
     abstract public String description();
 
-    public void recordHit() {
+    public void registerHit() {
         hits++;
     }
 
-    public void recordMiss() {
+    public void registerMiss() {
         misses++;
     }
 
-    public void recordPass() {
+    public void registerPass() {
         passes++;
     }
 
@@ -141,6 +141,10 @@ public abstract class AbstractThreadLocalCache {
 
     public boolean isAvailable() {
         return configuration != null && configuration.isAvailable();
+    }
+
+    public CacheConfiguration.CacheObjectTypeConfiguration getConfiguration(Class<?> type) {
+        return configuration != null ? configuration.getForObjectType(type) : null;
     }
 
     public CacheConfiguration getConfiguration() {

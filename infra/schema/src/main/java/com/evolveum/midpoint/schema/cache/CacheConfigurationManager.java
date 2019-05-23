@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -188,7 +189,7 @@ public class CacheConfigurationManager {
 	}
 
 	@NotNull
-	private Map<CacheType, CacheConfiguration> compileConfigurations(CachingConfigurationType configuration, Collection<String> profiles) {
+	private Map<CacheType, CacheConfiguration> compileConfigurations(@Nullable CachingConfigurationType configuration, Collection<String> profiles) {
 		try {
 			List<CachingProfileType> relevantProfiles = getRelevantProfiles(configuration, profiles);
 			Map<CacheType, CacheConfiguration> rv = new HashMap<>();
@@ -196,9 +197,11 @@ public class CacheConfigurationManager {
 			for (CachingProfileType profile : relevantProfiles) {
 				addProfile(rv, profile);
 			}
-			LOGGER.info("Compiled configurations:");
-			for (Map.Entry<CacheType, CacheConfiguration> entry : rv.entrySet()) {
-				LOGGER.info("  {}:\n{}", entry.getKey(), entry.getValue().debugDump(2));
+			if (configuration != null && Boolean.TRUE.equals(configuration.isTraceConfiguration())) {
+				LOGGER.info("Compiled configurations:");
+				for (Map.Entry<CacheType, CacheConfiguration> entry : rv.entrySet()) {
+					LOGGER.info("  {}:\n{}", entry.getKey(), entry.getValue().debugDump(2));
+				}
 			}
 			return rv;
 		} catch (SchemaException e) {
@@ -258,12 +261,22 @@ public class CacheConfigurationManager {
 		return rv;
 	}
 
+	@SuppressWarnings("Duplicates")
 	private void mergeSettings(CacheConfiguration configuration, CacheSettingsType increment) throws SchemaException {
 		if (increment.getMaxSize() != null) {
 			configuration.setMaxSize(increment.getMaxSize());
 		}
 		if (increment.getTimeToLive() != null) {
 			configuration.setTimeToLive(increment.getTimeToLive());
+		}
+		if (increment.getStatistics() != null) {
+			configuration.setStatisticsLevel(convertStatisticsLevel(increment.getStatistics()));
+		}
+		if (increment.isTraceMiss() != null) {
+			configuration.setTraceMiss(increment.isTraceMiss());
+		}
+		if (increment.isTracePass() != null) {
+			configuration.setTracePass(increment.isTracePass());
 		}
 		Map<Class<?>, CacheObjectTypeConfiguration> targetMap = configuration.getObjectTypes();
 		for (CacheObjectTypeSettingsType objectTypeSetting : increment.getObjectTypeSettings()) {
@@ -272,21 +285,45 @@ public class CacheConfigurationManager {
 					? new ArrayList<>(targetMap.keySet())
 					: resolveClassNames(objectTypeSetting.getObjectType());
 			for (Class<?> objectType : applyTo) {
-				targetMap.put(objectType, mergeObjectTypeSettings(targetMap.get(objectType), objectTypeSetting));
+				targetMap.put(objectType, mergeObjectTypeSettings(targetMap.get(objectType), objectTypeSetting, configuration));
 			}
 		}
 	}
 
+	@SuppressWarnings("Duplicates")
 	private CacheObjectTypeConfiguration mergeObjectTypeSettings(
-			CacheObjectTypeConfiguration original, CacheObjectTypeSettingsType increment) {
-		CacheObjectTypeConfiguration rv = original != null ? original : new CacheObjectTypeConfiguration();
+			CacheObjectTypeConfiguration original, CacheObjectTypeSettingsType increment,
+			CacheConfiguration configuration) {
+		CacheObjectTypeConfiguration rv = original != null ? original : configuration.new CacheObjectTypeConfiguration();
 		if (increment.getTimeToLive() != null) {
 			rv.setTimeToLive(increment.getTimeToLive());
 		}
 		if (increment.getTimeToVersionCheck() != null) {
 			rv.setTimeToVersionCheck(increment.getTimeToVersionCheck());
 		}
+		if (increment.getStatistics() != null) {
+			rv.setStatisticsLevel(convertStatisticsLevel(increment.getStatistics()));
+		}
+		if (increment.isTraceMiss() != null) {
+			rv.setTraceMiss(increment.isTraceMiss());
+		}
+		if (increment.isTracePass() != null) {
+			rv.setTracePass(increment.isTracePass());
+		}
 		return rv;
+	}
+
+	private CacheConfiguration.StatisticsLevel convertStatisticsLevel(CacheStatisticsReportingType statistics) {
+		if (statistics == null) {
+			return null;
+		} else {
+			switch (statistics) {
+				case SKIP: return CacheConfiguration.StatisticsLevel.SKIP;
+				case PER_CACHE: return CacheConfiguration.StatisticsLevel.PER_CACHE;
+				case PER_OBJECT_TYPE: return CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE;
+				default: throw new IllegalArgumentException("statistics: " + statistics);
+			}
+		}
 	}
 
 	private Collection<Class<?>> resolveClassNames(List<QName> names) throws SchemaException {

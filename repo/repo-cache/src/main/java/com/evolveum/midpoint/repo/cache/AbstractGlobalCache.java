@@ -71,8 +71,8 @@ public abstract class AbstractGlobalCache {
 		CacheObjectTypeConfiguration configuration = getConfiguration(type);
 		if (configuration == null) {
 			return Expiry.NO_CACHE;
-		} else if (configuration.getTimeToLive() != null) {
-			return System.currentTimeMillis() + configuration.getTimeToLive() * 1000L;
+		} else if (configuration.getEffectiveTimeToLive() != null) {
+			return System.currentTimeMillis() + configuration.getEffectiveTimeToLive() * 1000L;
 		} else {
 			return System.currentTimeMillis() + DEFAULT_TIME_TO_LIVE * 1000L;
 		}

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.util.caching;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -94,50 +95,65 @@ public class CachePerformanceCollector implements DebugDumpable {
 		}
 	}
 
-	public void onCacheDestroy(AbstractThreadLocalCache cache) {
-		getOrCreate(performanceMap, cache.getClass()).add(cache);
-		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
-		if (localMap != null) {
-			getOrCreate(localMap, cache.getClass()).add(cache);
+//	public void onCacheDestroy(AbstractThreadLocalCache cache) {
+//		getOrCreate(performanceMap, cache.getClass()).add(cache);
+//		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
+//		if (localMap != null) {
+//			getOrCreate(localMap, cache.getClass()).add(cache);
+//		}
+//	}
+
+	private void increment(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel, Function<CacheData, AtomicInteger> selector) {
+		String key = createKey(cacheClass, type, statisticsLevel);
+		if (key != null) {
+			selector.apply(getOrCreate(performanceMap, key)).incrementAndGet();
+			Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
+			if (localMap != null) {
+				selector.apply(getOrCreate(localMap, key)).incrementAndGet();
+			}
 		}
 	}
 
-	private void increment(Class<?> cacheClass, Function<CacheData, AtomicInteger> selector) {
-		selector.apply(getOrCreate(performanceMap, cacheClass)).incrementAndGet();
-		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
-		if (localMap != null) {
-			selector.apply(getOrCreate(localMap, cacheClass)).incrementAndGet();
+	private String createKey(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		if (statisticsLevel == StatisticsLevel.SKIP) {
+			return null;
+		} else if (statisticsLevel == null || statisticsLevel == StatisticsLevel.PER_CACHE) {
+			return cacheClass.getName();
+		} else if (statisticsLevel == StatisticsLevel.PER_OBJECT_TYPE) {
+			return cacheClass.getName() + "." + (type != null ? type.getSimpleName() : "null");
+		} else {
+			throw new IllegalArgumentException("Unexpected statistics level: " + statisticsLevel);
 		}
 	}
 
-	public void registerHit(Class<?> cacheClass) {
-		increment(cacheClass, CacheData::getHits);
+	public void registerHit(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		increment(cacheClass, type, statisticsLevel, CacheData::getHits);
 	}
 
-	public void registerWeakHit(Class<?> cacheClass) {
-		increment(cacheClass, CacheData::getWeakHits);
+	public void registerWeakHit(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		increment(cacheClass, type, statisticsLevel, CacheData::getWeakHits);
 	}
 
-	public void registerMiss(Class<?> cacheClass) {
-		increment(cacheClass, CacheData::getMisses);
+	public void registerMiss(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		increment(cacheClass, type, statisticsLevel, CacheData::getMisses);
 	}
 
-	public void registerPass(Class<?> cacheClass) {
-		increment(cacheClass, CacheData::getPasses);
+	public void registerPass(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		increment(cacheClass, type, statisticsLevel, CacheData::getPasses);
 	}
 
-	public void registerNotAvailable(Class<?> cacheClass) {
-		increment(cacheClass, CacheData::getNotAvailable);
+	public void registerNotAvailable(Class<?> cacheClass, Class<?> type, StatisticsLevel statisticsLevel) {
+		increment(cacheClass, type, statisticsLevel, CacheData::getNotAvailable);
 	}
 
-	private CacheData getOrCreate(Map<String, CacheData> performanceMap, Class<?> cacheClass) {
+	private CacheData getOrCreate(Map<String, CacheData> performanceMap, String key) {
 		if (performanceMap != null) {
-			CacheData existingData = performanceMap.get(cacheClass.getName());
+			CacheData existingData = performanceMap.get(key);
 			if (existingData != null) {
 				return existingData;
 			} else {
 				CacheData newData = new CacheData();
-				performanceMap.put(cacheClass.getName(), newData);
+				performanceMap.put(key, newData);
 				return newData;
 			}
 		} else {

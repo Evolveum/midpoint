@@ -22,11 +22,14 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationService;
-import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.util.caching.CacheConfiguration.StatisticsLevel;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.caching.CacheUtil;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -37,17 +40,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -64,17 +63,14 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PopulateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchObjectExpressionEvaluatorType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import static com.evolveum.midpoint.util.caching.CacheConfiguration.getStatisticsLevel;
 
 /**
  * @author Radovan Semancik
@@ -83,16 +79,21 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			extends AbstractValueTransformationExpressionEvaluator<V,D,SearchObjectExpressionEvaluatorType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluator.class);
+	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
+	protected CacheConfigurationManager cacheConfigurationManager;
 
-	protected AbstractSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
+	AbstractSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
 			D outputDefinition, Protector protector, PrismContext prismContext,
-			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager, LocalizationService localizationService) {
+			ObjectResolver objectResolver, ModelService modelService, SecurityContextManager securityContextManager,
+			LocalizationService localizationService,
+			CacheConfigurationManager cacheConfigurationManager) {
 		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, securityContextManager, localizationService);
 		this.objectResolver = objectResolver;
 		this.modelService = modelService;
+		this.cacheConfigurationManager = cacheConfigurationManager;
 	}
 
 	protected ObjectResolver getObjectResolver() {
@@ -130,7 +131,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
 
-		List<V> resultValues = null;
+		List<V> resultValues;
 		ObjectQuery query = null;
 
 		List<ItemDelta<V, D>> additionalAttributeDeltas = null;
@@ -188,9 +189,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, additionalAttributeDeltas, context));
 		}
 
-		LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}", contextDescription, valueDestination, resultValues==null?"null":resultValues.size(), query);
+		LOGGER.trace("Search expression {} (valueDestination={}) got {} results for query {}", contextDescription, valueDestination,
+				resultValues.size(), query);
 
-		return (List<V>) resultValues;
+		return resultValues;
 	}
 
 	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
@@ -209,35 +211,54 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return null;
 	}
 
+	protected CacheType getCacheType() {
+		return null;
+	}
+
 	private <O extends ObjectType> List<V> executeSearchUsingCache(Class<O> targetTypeClass, final QName targetTypeQName, ObjectQuery query, List<ItemDelta<V, D>> additionalAttributeDeltas,
 																   final ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
+		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
+		Class<?> cacheClass = getCacheClass();
+		CacheType cacheType = getCacheType();
+		CacheConfiguration cacheConfiguration = cacheType != null ? cacheConfigurationManager.getConfiguration(cacheType) : null;
+		CacheConfiguration.CacheObjectTypeConfiguration cacheObjectTypeConfiguration =
+				cacheConfiguration != null ? cacheConfiguration.getForObjectType(targetTypeClass) : null;
+		StatisticsLevel statisticsLevel = getStatisticsLevel(cacheObjectTypeConfiguration, cacheConfiguration);
+		boolean traceMiss = CacheConfiguration.getTraceMiss(cacheObjectTypeConfiguration, cacheConfiguration);
+		boolean tracePass = CacheConfiguration.getTracePass(cacheObjectTypeConfiguration, cacheConfiguration);
 
 		ObjectSearchStrategyType searchStrategy = getSearchStrategy();
 
 		AbstractSearchExpressionEvaluatorCache cache = getCache();
 		if (cache == null) {
-			LOGGER.trace("Cache: NULL {} ({})", query, targetTypeClass.getSimpleName());
-			if (getCacheClass() != null) {
-				CachePerformanceCollector.INSTANCE.registerNotAvailable(getCacheClass());
+			if (cacheClass != null) {
+				log("Cache: NULL {} ({})", false, query, targetTypeClass.getSimpleName());
+				collector.registerNotAvailable(cacheClass, targetTypeClass, statisticsLevel);
 			}
 			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		}
 
+		assert cacheClass != null && cacheType != null;
+
 		if (!cache.supportsObjectType(targetTypeClass)) {
-			LOGGER.trace("Cache: PASS {} ({})", query, targetTypeClass.getSimpleName());
-			cache.recordPass();
+			log("Cache: PASS {} ({})", tracePass, query, targetTypeClass.getSimpleName());
+			cache.registerPass();
+			collector.registerPass(cacheClass, targetTypeClass, statisticsLevel);
 			return executeSearch(null, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		}
 
 		//noinspection unchecked
 		List<V> list = cache.getQueryResult(targetTypeClass, query, searchStrategy, params, prismContext);
 		if (list != null) {
-			cache.recordHit();
-			LOGGER.trace("Cache: HIT {} ({})", query, targetTypeClass.getSimpleName());
+			cache.registerHit();
+			collector.registerHit(cacheClass, targetTypeClass, statisticsLevel);
+			log("Cache: HIT {} ({})", false, query, targetTypeClass.getSimpleName());
 			return CloneUtil.clone(list);
 		}
-		cache.recordMiss();
-		LOGGER.trace("Cache: MISS {} ({})", query, targetTypeClass.getSimpleName());
+		cache.registerMiss();
+		collector.registerMiss(cacheClass, targetTypeClass, statisticsLevel);
+		log("Cache: MISS {} ({})", traceMiss, query, targetTypeClass.getSimpleName());
 		List<PrismObject> rawResult = new ArrayList<>();
 		list = executeSearch(rawResult, targetTypeClass, targetTypeQName, query, searchStrategy, additionalAttributeDeltas, params, contextDescription, task, result);
 		if (list != null && !list.isEmpty()) {
@@ -415,10 +436,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 	@Override
 	protected boolean isIncludeNullInputs() {
 		Boolean includeNullInputs = getExpressionEvaluatorType().isIncludeNullInputs();
-		if (includeNullInputs == null) {
-			return false;
-		}
-		return includeNullInputs;
+		return includeNullInputs != null && includeNullInputs;
 	}
 
 	/* (non-Javadoc)
@@ -429,4 +447,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue,D e
 		return "abstractSearchExpression";
 	}
 
+	private void log(String message, boolean info, Object... params) {
+		CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
+	}
 }

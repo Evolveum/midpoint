@@ -42,6 +42,7 @@
 	</workflowConfiguration>
 	<internals>
 		<caching>
+			<traceConfiguration>true</traceConfiguration>
 			<profile>
 				<name>configuration-objects-global</name>
 				<global>true</global>
@@ -49,6 +50,9 @@
 				<globalRepoCache>
 					<append>false</append>
 					<timeToLive>60</timeToLive>
+<!--					<traceMiss>true</traceMiss>-->
+<!--					<tracePass>true</tracePass>-->
+<!--					<statistics>perObjectType</statistics>-->
 					<objectTypeSettings>
 						<objectType>SystemConfigurationType</objectType>
 						<objectType>ArchetypeType</objectType>
@@ -57,6 +61,26 @@
 						<objectType>ValuePolicyType</objectType>
 					</objectTypeSettings>
 				</globalRepoCache>
+<!--				<localRepoCache>-->
+<!--					<traceMiss>true</traceMiss>-->
+<!--					<tracePass>true</tracePass>-->
+<!--					<statistics>perObjectType</statistics>-->
+<!--				</localRepoCache>-->
+<!--				<localShadowConstraintCheckerCache>-->
+<!--					<traceMiss>true</traceMiss>-->
+<!--					<tracePass>true</tracePass>-->
+<!--					<statistics>perObjectType</statistics>-->
+<!--				</localShadowConstraintCheckerCache>-->
+<!--				<localFocusConstraintCheckerCache>-->
+<!--					<traceMiss>true</traceMiss>-->
+<!--					<tracePass>true</tracePass>-->
+<!--					<statistics>perObjectType</statistics>-->
+<!--				</localFocusConstraintCheckerCache>-->
+<!--				<localAssociationTargetSearchEvaluatorCache>-->
+<!--					<traceMiss>true</traceMiss>-->
+<!--					<tracePass>true</tracePass>-->
+<!--					<statistics>perObjectType</statistics>-->
+<!--				</localAssociationTargetSearchEvaluatorCache>-->
 			</profile>
 			<profile>
 				<name>roles-and-shadows</name>
@@ -66,7 +90,6 @@
 					<objectTypeSettings>
 						<objectType>RoleType</objectType>
 						<objectType>ShadowType</objectType>
-						<timeToVersionCheck>60</timeToVersionCheck>
 					</objectTypeSettings>
 				</globalRepoCache>
 			</profile>

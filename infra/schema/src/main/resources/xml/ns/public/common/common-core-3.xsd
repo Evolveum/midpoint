@@ -16764,8 +16764,45 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="repository" type="tns:RepositoryConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Configuring various aspects of the repository - in addition to those that are configured statically
+						using config.xml file.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>InternalsConfigurationType.repository</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
+
+	<xsd:complexType name="RepositoryConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuring various aspects of the repository - in addition to those that are configured statically
+				using config.xml file.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="statistics" type="tns:RepositoryStatisticsReportingType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Level of details when reporting repository performance statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="repositoryConfiguration" type="tns:RepositoryConfigurationType" />
 
 	<xsd:complexType name="CachingConfigurationType">
 		<xsd:annotation>
@@ -16779,6 +16816,13 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element name="traceConfiguration" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to trace cache configuration information.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="profile" type="tns:CachingProfileType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -16954,6 +16998,27 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="traceMiss" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to trace cache "miss" events.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="tracePass" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to trace cache "pass" events.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="statistics" type="tns:CacheStatisticsReportingType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How detailed statistics are provided for this cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="objectTypeSettings" type="tns:CacheObjectTypeSettingsType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -17005,9 +17070,120 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="traceMiss" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to trace cache "miss" events.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="tracePass" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to trace cache "pass" events.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="statistics" type="tns:CacheStatisticsReportingType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How detailed statistics are provided for this object type in this cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="cacheObjectTypeSettings" type="tns:CacheObjectTypeSettingsType" />
+
+	<xsd:simpleType name="CacheStatisticsReportingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Level of details when reporting cache performance statistics.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="skip">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SKIP"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for this cache or object type are not collected.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perCache">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_CACHE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for this cache or object type are collected "per cache" i.e. one number for the whole cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perObjectType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_OBJECT_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for this cache or object type are collected "per object type" i.e. one number for each object type.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="RepositoryStatisticsReportingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Level of details when reporting repository performance statistics.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="skip">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SKIP"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are not collected nor reported.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perOperationType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_OPERATION_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected per operation type (getObject, modifyObject, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perOperationAndObjectType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_OPERATION_AND_OBJECT_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected per operation and object type (e.g. getObject.UserType, modifyObject.ShadowType, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="AdminGuiConfigurationType">
         <xsd:annotation>

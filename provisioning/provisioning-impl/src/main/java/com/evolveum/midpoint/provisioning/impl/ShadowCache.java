@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
@@ -133,6 +134,7 @@ public class ShadowCache {
 	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private ProvisioningContextFactory ctxFactory;
 	@Autowired private Protector protector;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
@@ -850,6 +852,7 @@ public class ShadowCache {
 		
 		ConstraintsChecker checker = new ConstraintsChecker();
 		checker.setRepositoryService(repositoryService);
+		checker.setCacheConfigurationManager(cacheConfigurationManager);
 		checker.setShadowCache(this);
 		checker.setPrismContext(prismContext);
 		checker.setProvisioningContext(ctx);

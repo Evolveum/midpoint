@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -99,6 +100,7 @@ public class AssignmentHolderProcessor {
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	@Autowired private FocusProcessor focusProcessor;
 
@@ -331,6 +333,7 @@ public class AssignmentHolderProcessor {
 				checker.setPrismContext(prismContext);
 		        checker.setContext(context);
 		        checker.setRepositoryService(cacheRepositoryService);
+		        checker.setCacheConfigurationManager(cacheConfigurationManager);
 		        checker.check(previewObjectNew, result);
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);

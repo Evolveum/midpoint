@@ -32,12 +32,16 @@ import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -65,6 +69,7 @@ public class ConstraintsChecker {
 	private ProvisioningContext provisioningContext;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
+	private CacheConfigurationManager cacheConfigurationManager;
 	private ShadowCache shadowCache;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject<ShadowType> shadowObject;
@@ -86,6 +91,10 @@ public class ConstraintsChecker {
 
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
+	}
+
+	public void setCacheConfigurationManager(CacheConfigurationManager cacheConfigurationManager) {
+		this.cacheConfigurationManager = cacheConfigurationManager;
 	}
 
 	public ShadowCache getShadowCache() {
@@ -179,7 +188,7 @@ public class ConstraintsChecker {
 
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
 		ResourceType resourceType = provisioningContext.getResource();
-		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
+		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues(), cacheConfigurationManager)) {
 			return true;
 		}
 
@@ -247,7 +256,7 @@ public class ConstraintsChecker {
 	public static <T extends ShadowType> void onShadowAddOperation(T shadow) {
 		Cache cache = Cache.getCache();
 		if (cache != null) {
-			log("Clearing cache on shadow add operation");
+			log("Clearing cache on shadow add operation", false);
 			cache.conflictFreeSituations.clear();            // TODO fix this brute-force approach
 		}
 	}
@@ -263,7 +272,7 @@ public class ConstraintsChecker {
 		ItemPath attributesPath = ShadowType.F_ATTRIBUTES;
 		for (ItemDelta itemDelta : deltas) {
 			if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
-				log("Clearing cache on shadow attribute modify operation");
+				log("Clearing cache on shadow attribute modify operation", false);
 				cache.conflictFreeSituations.clear();
 				return;
 			}
@@ -330,28 +339,42 @@ public class ConstraintsChecker {
 
 		private Set<Situation> conflictFreeSituations = new HashSet<>();
 
-		private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName, List attributeValues) {
-			return isOk(new Situation(resourceOid, knownShadowOid, objectClassName, attributeName, getRealValuesSet(attributeValues)));
+		private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName,
+				List attributeValues, CacheConfigurationManager cacheConfigurationManager) {
+			return isOk(new Situation(resourceOid, knownShadowOid, objectClassName, attributeName, getRealValuesSet(attributeValues)),
+					cacheConfigurationManager);
 		}
 
-		public static boolean isOk(Situation situation) {
+		private static boolean isOk(Situation situation,
+				CacheConfigurationManager cacheConfigurationManager) {
 			if (situation.attributeValues == null) {		// special case - problem - TODO implement better
 				return false;
 			}
 
+			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 			Cache cache = getCache();
+			CacheConfiguration configuration = cache != null ? cache.getConfiguration() :
+					cacheConfigurationManager.getConfiguration(CacheType.LOCAL_SHADOW_CONSTRAINT_CHECKER_CACHE);
+			CacheConfiguration.CacheObjectTypeConfiguration objectTypeConfiguration = configuration != null ?
+					configuration.getForObjectType(ShadowType.class) : null;
+			CacheConfiguration.StatisticsLevel statisticsLevel = CacheConfiguration.getStatisticsLevel(objectTypeConfiguration, configuration);
+			boolean traceMiss = CacheConfiguration.getTraceMiss(objectTypeConfiguration, configuration);
+
 			if (cache == null) {
-				log("Cache NULL for {}", situation);
+				log("Cache NULL for {}", false, situation);
+				collector.registerNotAvailable(Cache.class, ShadowType.class, statisticsLevel);
 				return false;
 			}
 
 			if (cache.conflictFreeSituations.contains(situation)) {
-				log("Cache HIT for {}", situation);
-				cache.recordHit();
+				log("Cache HIT for {}", false, situation);
+				cache.registerHit();
+				collector.registerHit(Cache.class, ShadowType.class, statisticsLevel);
 				return true;
 			} else {
-				log("Cache MISS for {}", situation);
-				cache.recordMiss();
+				log("Cache MISS for {}", traceMiss, situation);
+				cache.registerMiss();
+				collector.registerMiss(Cache.class, ShadowType.class, statisticsLevel);
 				return false;
 			}
 		}
@@ -389,7 +412,7 @@ public class ConstraintsChecker {
 		public static void remove(PolyStringType name) {
 			Cache cache = getCache();
 			if (name != null && cache != null) {
-				log("Cache REMOVE for {}", name);
+				log("Cache REMOVE for {}", false, name);
 				cache.conflictFreeSituations.remove(name.getOrig());
 			}
 		}
@@ -400,13 +423,7 @@ public class ConstraintsChecker {
 		}
 	}
 
-	private static void log(String message, Object... params) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(message, params);
-		}
-		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
-			PERFORMANCE_ADVISOR.trace(message, params);
-		}
+	private static void log(String message, boolean info, Object... params) {
+		CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
 	}
-
 }

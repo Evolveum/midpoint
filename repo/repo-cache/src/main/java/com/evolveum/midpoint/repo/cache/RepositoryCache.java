@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.schema.util.DiagnosticContextHolder;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -66,11 +66,11 @@ public class RepositoryCache implements RepositoryService {
 	private static final ThreadLocal<LocalQueryCache> localQueryCacheInstance = new ThreadLocal<>();
 
 	@Autowired private RepositoryService repositoryService;
-	@Autowired private PrismContext prismContext;
 	@Autowired private CacheDispatcher cacheDispatcher;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired private GlobalQueryCache globalQueryCache;
 	@Autowired private GlobalObjectCache globalObjectCache;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Random RND = new Random();
 
@@ -144,19 +144,26 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
+		LocalObjectCache localObjectsCache = getLocalObjectCache();
+
+		Context global = new Context(globalObjectCache.getConfiguration(), type);
+		Context local = localObjectsCache != null ?
+				new Context(localObjectsCache.getConfiguration(), type) :
+				new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_OBJECT_CACHE), type);
 
 		/*
 		 * Checks related to both caches
 		 */
 
-		LocalObjectCache localObjectsCache = getLocalObjectCache();
-		if (alwaysNotCacheable(type) || harmfulOptions(options, type)) {
+		PassReason passReason = getPassReason(options, type);
+		if (passReason != null) {
 			// local nor global cache not interested in caching this object
 			if (localObjectsCache != null) {
-				localObjectsCache.recordPass();
+				localObjectsCache.registerPass();
 			}
-			collector.registerPass(GlobalObjectCache.class);
-			log("Cache (local/global): PASS getObject {} ({}, {})", oid, type.getSimpleName(), options);
+			collector.registerPass(LocalObjectCache.class, type, local.statisticsLevel);
+			collector.registerPass(GlobalObjectCache.class, type, global.statisticsLevel);
+			log("Cache (local/global): PASS:{} getObject {} ({}, {})",  local.tracePass || global.tracePass, passReason, oid, type.getSimpleName(), options);
 
 			return getObjectInternal(type, oid, options, parentResult);
 		}
@@ -165,26 +172,27 @@ public class RepositoryCache implements RepositoryService {
 		 * Let's try local cache
 		 */
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-		boolean localCacheSupports = localObjectsCache != null && localObjectsCache.supportsObjectType(type);
 
 		if (localObjectsCache == null) {
-			log("Cache (local): NULL getObject {} ({})", oid, type.getSimpleName());
-			registerNotAvailable(LocalObjectCache.class);
+			log("Cache (local): NULL getObject {} ({})", false, oid, type.getSimpleName());
+			registerNotAvailable(LocalObjectCache.class, type, local.statisticsLevel);
 		} else {
 			//noinspection unchecked
-			PrismObject<T> object = (PrismObject) (localCacheSupports ? localObjectsCache.get(oid) : null);
+			PrismObject<T> object = (PrismObject) (local.supports ? localObjectsCache.get(oid) : null);
 			if (object != null) {
-				localObjectsCache.recordHit();
-				log("Cache (local): HIT {} getObject {} ({})", readOnly ? "" : "(clone)", oid, type.getSimpleName());
+				localObjectsCache.registerHit();
+				collector.registerHit(LocalObjectCache.class, type, local.statisticsLevel);
+				log("Cache (local): HIT {} getObject {} ({})", false, readOnly ? "" : "(clone)", oid, type.getSimpleName());
 				return cloneIfNecessary(object, readOnly);
 			}
-			if (localCacheSupports) {
-				localObjectsCache.recordMiss();
-				log("Cache (local): MISS {} getObject ({})", oid, type.getSimpleName());
-				//LOGGER.info("Cache: MISS (getObject) {} ({}) #{}", oid, type.getSimpleName(), cache.getMisses());
+			if (local.supports) {
+				localObjectsCache.registerMiss();
+				collector.registerMiss(LocalObjectCache.class, type, local.statisticsLevel);
+				log("Cache (local): MISS {} getObject ({})", local.traceMiss, oid, type.getSimpleName());
 			} else {
-				localObjectsCache.recordPass();
-				log("Cache (local): PASS (cfg) {} getObject ({})", oid, type.getSimpleName());
+				localObjectsCache.registerPass();
+				collector.registerPass(LocalObjectCache.class, type, local.statisticsLevel);
+				log("Cache (local): PASS:CONFIGURATION {} getObject ({})", local.tracePass, oid, type.getSimpleName());
 			}
 		}
 
@@ -192,49 +200,47 @@ public class RepositoryCache implements RepositoryService {
 		 * Then try global cache
 		 */
 
-		CacheConfiguration globalCacheConfig = globalObjectCache.getConfiguration();
-		CacheObjectTypeConfiguration typeConfig = globalObjectCache.getConfiguration(type);
-		boolean globalCacheSupports = typeConfig != null && globalObjectCache.supportsObjectType(type);
-
 		if (!globalObjectCache.isAvailable()) {
-			collector.registerNotAvailable(GlobalObjectCache.class);
+			collector.registerNotAvailable(GlobalObjectCache.class, type, global.statisticsLevel);
+			log("Cache (global): NOT_AVAILABLE {} getObject ({})", false, oid, type.getSimpleName());
 			PrismObject<T> object = getObjectInternal(type, oid, options, parentResult);
-			locallyCacheObject(localObjectsCache, localCacheSupports, object, readOnly);
+			locallyCacheObject(localObjectsCache, local.supports, object, readOnly);
 			return object;
-		} else if (!globalCacheSupports) {
+		} else if (!global.supports) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
-			collector.registerPass(GlobalObjectCache.class);
+			collector.registerPass(GlobalObjectCache.class, type, global.statisticsLevel);
+			log("Cache (local): PASS:CONFIGURATION {} getObject ({})", global.tracePass, oid, type.getSimpleName());
 			PrismObject<T> object = getObjectInternal(type, oid, options, parentResult);
-			locallyCacheObject(localObjectsCache, localCacheSupports, object, readOnly);
+			locallyCacheObject(localObjectsCache, local.supports, object, readOnly);
 			return object;
 		}
 
-		assert globalCacheConfig != null && typeConfig != null;
+		assert global.cacheConfig != null && global.typeConfig != null;
 
 		PrismObject<T> object;
 		GlobalCacheObjectValue<T> cacheObject = globalObjectCache.get(oid);
 		if (cacheObject == null) {
-			collector.registerMiss(GlobalObjectCache.class);
-			log("Cache (global): MISS getObject {}", oid);
-			object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, localCacheSupports, parentResult);
+			collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
+			log("Cache (global): MISS getObject {}", global.traceMiss, oid);
+			object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 		} else {
 			if (!shouldCheckVersion(cacheObject)) {
-				collector.registerHit(GlobalObjectCache.class);
-				log("Cache (global): HIT getObject {}", oid);
+				collector.registerHit(GlobalObjectCache.class, type, global.statisticsLevel);
+				log("Cache (global): HIT getObject {}", false, oid);
 				object = cacheObject.getObject();
-				locallyCacheObjectWithoutCloning(localObjectsCache, localCacheSupports, object);
+				locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 				object = cloneIfNecessary(object, readOnly);
 			} else {
 				if (hasVersionChanged(type, oid, cacheObject, parentResult)) {
-					collector.registerMiss(GlobalObjectCache.class);
-					log("Cache (global): MISS because of version changed - getObject {}:{}", type, oid);
-					object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, localCacheSupports, parentResult);
+					collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
+					log("Cache (global): MISS because of version changed - getObject {}:{}", global.traceMiss, type, oid);
+					object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 				} else {
-					cacheObject.setTimeToLive(System.currentTimeMillis() + getTimeToVersionCheck(typeConfig, globalCacheConfig));    // version matches, renew ttl
-					collector.registerWeakHit(GlobalObjectCache.class);
-					log("Cache (global): HIT with version check - getObject {}: {}", type, oid);
+					cacheObject.setTimeToLive(System.currentTimeMillis() + getTimeToVersionCheck(global.typeConfig, global.cacheConfig));    // version matches, renew ttl
+					collector.registerWeakHit(GlobalObjectCache.class, type, global.statisticsLevel);
+					log("Cache (global): HIT with version check - getObject {}: {}", global.traceMiss, type, oid);
 					object = cacheObject.getObject();
-					locallyCacheObjectWithoutCloning(localObjectsCache, localCacheSupports, object);
+					locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 					object = cloneIfNecessary(object, readOnly);
 				}
 			}
@@ -243,10 +249,10 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	private long getTimeToVersionCheck(@NotNull CacheObjectTypeConfiguration typeConfig, @NotNull CacheConfiguration cacheConfig) {
-		if (typeConfig.getTimeToVersionCheck() != null) {
-			return typeConfig.getTimeToVersionCheck() * 1000L;
-		} else if (typeConfig.getTimeToLive() != null) {
-			return typeConfig.getTimeToLive() * 1000L;
+		if (typeConfig.getEffectiveTimeToVersionCheck() != null) {
+			return typeConfig.getEffectiveTimeToVersionCheck() * 1000L;
+		} else if (typeConfig.getEffectiveTimeToLive() != null) {
+			return typeConfig.getEffectiveTimeToLive() * 1000L;
 		} else if (cacheConfig.getTimeToLive() != null) {
 			return cacheConfig.getTimeToLive() * 1000L;
 		} else {
@@ -254,8 +260,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	private void registerNotAvailable(Class<?> cacheClass) {
-		CachePerformanceCollector.INSTANCE.registerNotAvailable(cacheClass);
+	private void registerNotAvailable(Class<?> cacheClass, Class<?> type, CacheConfiguration.StatisticsLevel statisticsLevel) {
+		CachePerformanceCollector.INSTANCE.registerNotAvailable(cacheClass, type, statisticsLevel);
 	}
 
 	private <T extends ObjectType> PrismObject<T> cloneIfNecessary(PrismObject<T> object, boolean readOnly) {
@@ -327,17 +333,25 @@ public class RepositoryCache implements RepositoryService {
 
 		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 
+		LocalQueryCache localQueryCache = getLocalQueryCache();
+
+		Context global = new Context(globalQueryCache.getConfiguration(), type);
+		Context local = localQueryCache != null ?
+				new Context(localQueryCache.getConfiguration(), type) :
+				new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_QUERY_CACHE), type);
+
 		/*
 		 * Checks related to both caches
 		 */
 
-		LocalQueryCache localCache = getLocalQueryCache();
-		if (alwaysNotCacheable(type) || harmfulOptions(options, type)) {
-			if (localCache != null) {
-				localCache.recordPass();
+		PassReason passReason = getPassReason(options, type);
+		if (passReason != null) {
+			if (localQueryCache != null) {
+				localQueryCache.registerPass();
 			}
-			collector.registerPass(GlobalQueryCache.class);
-			log("Cache (local/global): PASS searchObjects ({}, {})", type.getSimpleName(), options);
+			collector.registerPass(LocalQueryCache.class, type, local.statisticsLevel);
+			collector.registerPass(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (local/global): PASS:{} searchObjects ({}, {})", local.tracePass || global.tracePass, passReason, type.getSimpleName(), options);
 			return searchObjectsInternal(type, query, options, parentResult);
 		}
 		QueryKey key = new QueryKey(type, query);
@@ -347,62 +361,66 @@ public class RepositoryCache implements RepositoryService {
 		 */
 
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-		boolean localCacheSupports = localCache != null && localCache.supportsObjectType(type);
 
-		if (localCache == null) {
-			log("Cache (local): NULL searchObjects ({})", type.getSimpleName());
-			registerNotAvailable(LocalQueryCache.class);
+		if (localQueryCache == null) {
+			log("Cache (local): NULL searchObjects ({})", false, type.getSimpleName());
+			registerNotAvailable(LocalQueryCache.class, type, local.statisticsLevel);
 		} else {
-			SearchResultList queryResult = localCacheSupports ? localCache.get(key) : null;
+			SearchResultList queryResult = local.supports ? localQueryCache.get(key) : null;
 			if (queryResult != null) {
-				localCache.recordHit();
+				localQueryCache.registerHit();
+				collector.registerHit(LocalQueryCache.class, type, local.statisticsLevel);
 				if (readOnly) {
-					log("Cache: HIT searchObjects {} ({})", query, type.getSimpleName());
+					log("Cache: HIT searchObjects {} ({})", false, query, type.getSimpleName());
 					//noinspection unchecked
 					return queryResult;
 				} else {
-					log("Cache: HIT(clone) searchObjects {} ({})", query, type.getSimpleName());
+					log("Cache: HIT(clone) searchObjects {} ({})", false, query, type.getSimpleName());
 					//noinspection unchecked
 					return queryResult.clone();
 				}
 			}
-			if (localCacheSupports) {
-				localCache.recordMiss();
-				log("Cache: MISS searchObjects {} ({})", query, type.getSimpleName());
-				//LOGGER.info("Cache: MISS (searchObjects) {} ({}) #{}", query, type.getSimpleName(), cache.getMisses());
+			if (local.supports) {
+				localQueryCache.registerMiss();
+				collector.registerMiss(LocalQueryCache.class, type, local.statisticsLevel);
+				log("Cache: MISS searchObjects {} ({})", local.traceMiss, query, type.getSimpleName());
 			} else {
-				localCache.recordPass();
-				log("Cache: PASS (cfg) searchObjects {} ({})", query, type.getSimpleName());
+				localQueryCache.registerPass();
+				collector.registerPass(LocalQueryCache.class, type, local.statisticsLevel);
+				log("Cache: PASS:CONFIGURATION searchObjects {} ({})", local.tracePass, query, type.getSimpleName());
 			}
 		}
 
 		/*
 		 * Then try global cache
 		 */
-		boolean globalCacheSupports = globalQueryCache.supportsObjectType(type);
 		if (!globalQueryCache.isAvailable()) {
-			collector.registerNotAvailable(GlobalQueryCache.class);
+			collector.registerNotAvailable(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): NOT_AVAILABLE {} searchObjects ({})", false, query, type.getSimpleName());
 			SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, parentResult);
-			locallyCacheSearchResult(localCache, localCacheSupports, key, readOnly, objects);
+			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, objects);
 			return objects;
-		} else if (!globalCacheSupports) {
+		} else if (!global.supports) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
-			collector.registerPass(GlobalQueryCache.class);
+			collector.registerPass(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): PASS:CONFIGURATION {} searchObjects ({})", global.tracePass, query, type.getSimpleName());
 			SearchResultList<PrismObject<T>> objects = searchObjectsInternal(type, query, options, parentResult);
-			locallyCacheSearchResult(localCache, localCacheSupports, key, readOnly, objects);
+			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, objects);
 			return objects;
 		}
+
+		assert global.cacheConfig != null && global.typeConfig != null;
 
 		SearchResultList<PrismObject<T>> searchResult = globalQueryCache.get(key);
 
 		if (searchResult == null) {
-			collector.registerMiss(GlobalQueryCache.class);
-			log("Cache (global): MISS searchObjects {}", key);
-			searchResult = executeAndCacheSearch(key, options, readOnly, localCache, localCacheSupports, parentResult);
+			collector.registerMiss(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): MISS searchObjects {}", global.traceMiss, key);
+			searchResult = executeAndCacheSearch(key, options, readOnly, localQueryCache, local.supports, parentResult);
 		} else {
-			collector.registerHit(GlobalQueryCache.class);
-			log("Cache (global): HIT searchObjects {}", key);
-			locallyCacheSearchResult(localCache, localCacheSupports, key, readOnly, searchResult);
+			collector.registerHit(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): HIT searchObjects {}", false, key);
+			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
 		}
 		return searchResult;
 	}
@@ -464,14 +482,20 @@ public class RepositoryCache implements RepositoryService {
 			boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 		LocalQueryCache localQueryCache = getLocalQueryCache();
 		LocalObjectCache localObjectCache = getLocalObjectCache();
+		Context globalQ = new Context(globalQueryCache.getConfiguration(), type);
+		Context localQ = localQueryCache != null ?
+				new Context(localQueryCache.getConfiguration(), type) :
+				new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_QUERY_CACHE), type);
+
 		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 		// TODO how exactly to record this?
 		if (localQueryCache != null) {
-			localQueryCache.recordPass();
+			localQueryCache.registerPass();
+			CachePerformanceCollector.INSTANCE.registerPass(LocalQueryCache.class, type, localQ.statisticsLevel);
 		} else {
-			CachePerformanceCollector.INSTANCE.registerPass(GlobalQueryCache.class);
+			CachePerformanceCollector.INSTANCE.registerPass(GlobalQueryCache.class, type, globalQ.statisticsLevel);
 		}
-		log("Cache: PASS (local/global) searchObjectsIterative ({})", type.getSimpleName());
+		log("Cache: PASS (local/global) searchObjectsIterative ({})", localQ.tracePass || globalQ.tracePass, type.getSimpleName());
 		ResultHandler<T> myHandler = (object, parentResult1) -> {
 			cacheLoadedObject(object, readOnly, localObjectCache);
 			return handler.handle(object, parentResult1);
@@ -505,7 +529,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException {
 		// TODO use cached query result if applicable
-		log("Cache: PASS countObjects ({})", type.getSimpleName());
+		log("Cache: PASS countObjects ({})", false, type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
 			return repositoryService.countObjects(type, query, null, parentResult);
@@ -517,7 +541,7 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-		log("Cache: PASS countContainers ({})", type.getSimpleName());
+		log("Cache: PASS countContainers ({})", false, type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
 			return repositoryService.countContainers(type, query, options, parentResult);
@@ -531,7 +555,7 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException {
 		// TODO use cached query result if applicable
-		log("Cache: PASS countObjects ({})", type.getSimpleName());
+		log("Cache: PASS countObjects ({})", false, type.getSimpleName());
 		Long startTime = repoOpStart();
 		try {
 			return repositoryService.countObjects(type, query, options, parentResult);
@@ -680,7 +704,7 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		if (ownerObject != null && !harmfulOptions(options, FocusType.class)) {
+		if (ownerObject != null && getPassReason(options, FocusType.class) == null) {
 			boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
 			LocalObjectCache localObjectCache = getLocalObjectCache();
 			cacheLoadedObject(ownerObject, readOnly, localObjectCache);
@@ -688,18 +712,21 @@ public class RepositoryCache implements RepositoryService {
 		return ownerObject;
 	}
 
-	private boolean harmfulOptions(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
+	private PassReason getPassReason(Collection<SelectorOptions<GetOperationOptions>> options, Class<?> objectType) {
+		if (alwaysNotCacheable(objectType)) {
+			return PassReason.NOT_CACHEABLE_TYPE;
+		}
 		if (options == null || options.isEmpty()) {
-			return false;
+			return null;
 		}
 		if (options.size() > 1) {
 			//LOGGER.info("Cache: PASS REASON: size>1: {}", options);
-			return true;
+			return PassReason.MULTIPLE_OPTIONS;
 		}
 		SelectorOptions<GetOperationOptions> selectorOptions = options.iterator().next();
 		if (!selectorOptions.isRoot()) {
 			//LOGGER.info("Cache: PASS REASON: !root: {}", options);
-			return true;
+			return PassReason.NON_ROOT_OPTIONS;
 		}
 		GetOperationOptions options1 = selectorOptions.getOptions();
 		// TODO FIX THIS!!!
@@ -709,18 +736,18 @@ public class RepositoryCache implements RepositoryService {
 				options1.equals(GetOperationOptions.createExecutionPhase()) ||
 				options1.equals(GetOperationOptions.createReadOnly()) ||
 				options1.equals(GetOperationOptions.createNoFetch())) {
-			return false;
+			return null;
 		}
 		if (options1.equals(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE))) {
 			if (SelectorOptions.isRetrievedFullyByDefault(objectType)) {
-				return false;
+				return null;
 			} else {
 				//LOGGER.info("Cache: PASS REASON: INCLUDE for {}: {}", objectType, options);
-				return true;
+				return PassReason.INCLUDE_OPTION_PRESENT;
 			}
 		}
 		//LOGGER.info("Cache: PASS REASON: other: {}", options);
-		return true;
+		return PassReason.UNSUPPORTED_OPTION;
 	}
 
 	@Override
@@ -750,12 +777,18 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
+		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 		LocalVersionCache localCache = getLocalVersionCache();
+		Context local = localCache != null ?
+				new Context(localCache.getConfiguration(), type) :
+				new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_VERSION_CACHE), type);
+
 		if (alwaysNotCacheable(type)) {
 			if (localCache != null) {
-				localCache.recordPass();
+				localCache.registerPass();
 			}
-			log("Cache: PASS (local) getVersion {} ({})", oid, type.getSimpleName());
+			collector.registerPass(LocalVersionCache.class, type, local.statisticsLevel);
+			log("Cache: PASS (local) getVersion {} ({})", local.tracePass, oid, type.getSimpleName());
 			Long startTime = repoOpStart();
 			try {
 				return repositoryService.getVersion(type, oid, parentResult);
@@ -763,24 +796,25 @@ public class RepositoryCache implements RepositoryService {
 				repoOpEnd(startTime);
 			}
 		}
-		boolean supports = localCache != null && localCache.supportsObjectType(type);
 		if (localCache == null) {
-			log("Cache: NULL {} ({})", oid, type.getSimpleName());
-			registerNotAvailable(LocalVersionCache.class);
+			log("Cache: NULL {} ({})", false, oid, type.getSimpleName());
+			registerNotAvailable(LocalVersionCache.class, type, local.statisticsLevel);
 		} else {
-			String version = supports ? localCache.get(oid) : null;
+			String version = local.supports ? localCache.get(oid) : null;
 			if (version != null) {
-				localCache.recordHit();
-				log("Cache: HIT (local) getVersion {} ({})", oid, type.getSimpleName());
+				localCache.registerHit();
+				collector.registerHit(LocalVersionCache.class, type, local.statisticsLevel);
+				log("Cache: HIT (local) getVersion {} ({})", false, oid, type.getSimpleName());
 				return version;
 			}
-			if (supports) {
-				localCache.recordMiss();
-				log("Cache: MISS (local) getVersion {} ({})", oid, type.getSimpleName());
-				//LOGGER.info("Cache: MISS (getVersion) {} ({}) #{}", oid, type.getSimpleName(), cache.getMisses());
+			if (local.supports) {
+				localCache.registerMiss();
+				collector.registerMiss(LocalVersionCache.class, type, local.statisticsLevel);
+				log("Cache: MISS (local) getVersion {} ({})", local.traceMiss, oid, type.getSimpleName());
 			} else {
-				localCache.recordPass();
-				log("Cache: PASS (local) (cfg) getVersion {} ({})", oid, type.getSimpleName());
+				localCache.registerPass();
+				collector.registerPass(LocalVersionCache.class, type, local.statisticsLevel);
+				log("Cache: PASS (local) (cfg) getVersion {} ({})", local.tracePass, oid, type.getSimpleName());
 			}
 		}
 		String version;
@@ -790,7 +824,7 @@ public class RepositoryCache implements RepositoryService {
 		} finally {
 			repoOpEnd(startTime);
 		}
-		cacheObjectVersion(localCache, supports, oid, version);
+		cacheObjectVersion(localCache, local.supports, oid, version);
 		return version;
 	}
 
@@ -886,13 +920,8 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	private void log(String message, Object... params) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(message, params);
-		}
-		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
-			PERFORMANCE_ADVISOR.trace(message, params);
-		}
+	private void log(String message, boolean info, Object... params) {
+		CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
 	}
 
 	@Override
@@ -1015,8 +1044,9 @@ public class RepositoryCache implements RepositoryService {
 
 	private <T extends ObjectType> void globallyCacheObjectWithoutCloning(PrismObject<T> objectToCache) {
 		CacheConfiguration cacheConfiguration = globalObjectCache.getConfiguration();
-		CacheObjectTypeConfiguration typeConfiguration = globalObjectCache.getConfiguration(objectToCache.asObjectable().getClass());
-		if (cacheConfiguration != null && typeConfiguration != null && typeConfiguration.supportsCaching()) {
+		Class<? extends ObjectType> type = objectToCache.asObjectable().getClass();
+		CacheObjectTypeConfiguration typeConfiguration = globalObjectCache.getConfiguration(type);
+		if (cacheConfiguration != null && cacheConfiguration.supportsObjectType(type)) {
 			long ttl = System.currentTimeMillis() + getTimeToVersionCheck(typeConfiguration, cacheConfiguration);
 			globalObjectCache.put(new GlobalCacheObjectValue<>(objectToCache, ttl));
 		}
@@ -1071,5 +1101,29 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public PerformanceMonitor getPerformanceMonitor() {
 		return repositoryService.getPerformanceMonitor();
+	}
+
+	private static class Context {
+		CacheConfiguration cacheConfig;
+		CacheObjectTypeConfiguration typeConfig;
+		boolean supports;
+		CacheConfiguration.StatisticsLevel statisticsLevel;
+		boolean traceMiss;
+		boolean tracePass;
+
+		Context(CacheConfiguration configuration, Class<?> type) {
+			if (configuration != null) {
+				cacheConfig = configuration;
+				typeConfig = configuration.getForObjectType(type);
+				supports = configuration.supportsObjectType(type);
+				statisticsLevel = CacheConfiguration.getStatisticsLevel(typeConfig, cacheConfig);
+				traceMiss = CacheConfiguration.getTraceMiss(typeConfig, cacheConfig);
+				tracePass = CacheConfiguration.getTracePass(typeConfig, cacheConfig);
+			}
+		}
+	}
+
+	enum PassReason {
+		NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT
 	}
 }
