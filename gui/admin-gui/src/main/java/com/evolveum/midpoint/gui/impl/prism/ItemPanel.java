@@ -238,6 +238,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 					break;
 			}
 			
+			getModelObject().getItem().remove(valueToRemove.getOldValue());
+			getModelObject().getItem().remove(valueToRemove.getNewValue());
+			
 			int count = countUsableValues(values);
 			
 			if (count == 0 && !hasEmptyPlaceholder(values)) {

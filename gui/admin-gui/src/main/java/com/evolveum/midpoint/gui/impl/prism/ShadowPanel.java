@@ -15,36 +15,32 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author skublik
  *
  */
-public class ShadowPanel extends BasePanel<ShadowWrapper<ShadowType>> {
+public class ShadowPanel extends BasePanel<ShadowWrapper> {
 
 	private static final long serialVersionUID = 1L;
 	
@@ -52,9 +48,15 @@ public class ShadowPanel extends BasePanel<ShadowWrapper<ShadowType>> {
 	
 	protected static final String ID_SHADOWS_CONTAINER = "shadowContainer";
 
-	private final String ID_SHADOW = "shadow";
 
-	public ShadowPanel(String id, IModel<ShadowWrapper<ShadowType>> model) {
+	private static final String ID_ATTRIBUTES = "attributes";
+	private static final String ID_ASSOCIATIONS = "associations";
+	private static final String ID_ACTIVATION = "activation";
+	private static final String ID_PASSWORD = "password";
+	private static final String ID_ERROR = "error";
+
+
+	public ShadowPanel(String id, IModel<ShadowWrapper> model) {
 		super(id, model);
 	}
 	
@@ -67,62 +69,43 @@ public class ShadowPanel extends BasePanel<ShadowWrapper<ShadowType>> {
 	
 	private void initLayout() {
 		
-		IModel<PrismObjectValueWrapper<ShadowType>> valueModel = new PropertyModel<>(getModel(), "value");
 		
-		List<? extends ItemWrapper<?, ?, ?, ?>> items = valueModel.getObject().getItems();
-		
-		List<PrismContainerWrapper<ShadowType>> containers = new ArrayList<PrismContainerWrapper<ShadowType>>();
-		
-		for(ItemWrapper<?, ?, ?, ?> item : items) {
-			if(QNameUtil.match(item.getName(), ShadowType.F_ATTRIBUTES) ||
-					QNameUtil.match(item.getName(), ShadowType.F_ACTIVATION)) {
-				containers.add((PrismContainerWrapper<ShadowType>)item);
-			}
-			if(QNameUtil.match(item.getName(), ShadowType.F_ASSOCIATION) && 
-					!((PrismContainerWrapper)item).getValues().isEmpty()) {
-				containers.add((PrismContainerWrapper<ShadowType>)item);
-			}
+		try {
+				Panel attributesPanel = getPageBase().initItemPanel(ID_ATTRIBUTES, ShadowAttributesType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ATTRIBUTES), 
+					itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+			add(attributesPanel);
+    		
+    		Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION), 
+    				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
+    		add(associationsPanel);
+    		
+    		
+    		Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION), 
+    				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		add(activationPanel);
 			
-			if(QNameUtil.match(item.getName(), ShadowType.F_CREDENTIALS)) {
-				try {
-					containers.add(((PrismContainerWrapper<ShadowType>)item).findContainer(CredentialsType.F_PASSWORD));
-				} catch (SchemaException e) {
-					e.printStackTrace();
-				}
-			}
+    		Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), 
+    				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		add(passwordPanel);
+		} catch (SchemaException e) {
+			getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
+			LOGGER.error("Cannot create panels for shadow, reason: {}", e.getMessage(), e);
+//			ErrorPanel errorPanel = new ErrorPanel(ID_ERROR, createStringResource("Error creatinf shadow panels"));
+//			specificContainers.add(errorPanel);
 		}
-		
-		
-		final ListView<PrismContainerWrapper<ShadowType>> shadowPanel = new ListView<PrismContainerWrapper<ShadowType>>(
-				ID_SHADOW , Model.of((Collection)containers)) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void populateItem(ListItem<PrismContainerWrapper<ShadowType>> item) {
-				try {
-		    		Panel shadowContainerPanel = getPageBase().initItemPanel(ID_SHADOWS_CONTAINER, item.getModelObject().getTypeName(), item.getModel(), 
-		    				itemWrapper -> checkShadowContainerVisibility(itemWrapper, valueModel));
-		    		item.add(shadowContainerPanel);
-				} catch (SchemaException e) {
-					LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
-					getSession().error("Cannot create panle for logging");
-				}
-			}
-
-		};
-		add(shadowPanel);
 	}
 	
-	private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<PrismObjectValueWrapper<ShadowType>> valueModel) {
+	private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<ShadowWrapper> model) {
+
+		ShadowType shadowType = model.getObject().getObjectOld().asObjectable();
+		return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
+	}
+	
+	private boolean checkAssociationsVisibility() {
 		
-		if(itemWrapper.getPath().equivalent(ItemPath.create(ShadowType.F_ASSOCIATION))) {
-			if(!((PrismContainerWrapper)itemWrapper).isEmpty() ) {
-				return ItemVisibility.AUTO;
-			} else {
-				return ItemVisibility.HIDDEN;
-			}
-		}
+		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+		return WebComponentUtil.isAssociationSupported(shadowType);
 		
-		return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, valueModel);
 	}
 }

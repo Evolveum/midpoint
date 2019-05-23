@@ -99,6 +99,11 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 	public PrismObject<O> getObject() {
 		return (PrismObject<O>) getItem();
 	}
+	
+	@Override
+	public PrismObject<O> getObjectOld() {
+		return (PrismObject<O>) getOldItem();
+	}
 
 	@Override
 	public PrismObjectValueWrapper<O> getValue() {

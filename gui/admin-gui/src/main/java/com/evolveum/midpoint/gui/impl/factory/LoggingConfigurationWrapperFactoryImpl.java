@@ -90,7 +90,7 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 	 */
 	@Override
 	public int getOrder() {
-		return Integer.MAX_VALUE;
+		return 10;
 	}
 
 	

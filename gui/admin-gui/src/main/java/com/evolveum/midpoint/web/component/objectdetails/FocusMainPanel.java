@@ -71,11 +71,11 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusMainPanel.class);
 
-	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel;
+	private LoadableModel<List<ShadowWrapper>> projectionModel;
 	private TaskDtoProvider taskDtoProvider;
 
 	public FocusMainPanel(String id, LoadableModel<PrismObjectWrapper<F>> objectModel,
-			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel,
+			LoadableModel<List<ShadowWrapper>> projectionModel,
 			PageAdminObjectDetails<F> parentPage) {
 		super(id, objectModel, parentPage);
 		Validate.notNull(projectionModel, "Null projection model");

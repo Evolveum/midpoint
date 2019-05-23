@@ -53,9 +53,6 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 
 	@Override
 	protected void initButtons() {
-//		add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMultiValue()));
-		
-		
 		 AjaxLink<Void> addButton = new AjaxLink<Void>(ID_ADD_BUTTON) {
 				private static final long serialVersionUID = 1L;
 
@@ -69,9 +66,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	        
 	        
 	        initExpandCollapseButton();
-//	        initAddButton();
 	        //TODO: sorting
-	        //TODO add/remove
 	}
 		
 	private void addValue(AjaxRequestTarget target) {
@@ -110,8 +105,6 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 	
 	
 	protected void initExpandCollapseButton() {
-//		Fragment expandCollapseFragment = new Fragment(contentAreaId, ID_EXPAND_COLLAPSE_FRAGMENT, this);
-		
 		ToggleIconButton<?> expandCollapseButton = new ToggleIconButton<Void>(ID_EXPAND_COLLAPSE_BUTTON,
 				GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
 			
@@ -129,9 +122,6 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
         };
         expandCollapseButton.setOutputMarkupId(true);
         add(expandCollapseButton);
-//        expandCollapseFragment.add(expandCollapseButton);
-//        
-//        return expandCollapseFragment;
 	}
 	
 	private void onExpandClick(AjaxRequestTarget target) {
@@ -139,7 +129,6 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
 		PrismContainerWrapper<C> wrapper = getModelObject();
 		wrapper.setExpanded(!wrapper.isExpanded());
 		target.add(getParent());
-//		onButtonClick(target);
 	}
 
 	

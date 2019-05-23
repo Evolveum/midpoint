@@ -24,6 +24,8 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -63,6 +65,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	private boolean showEmpty;
 	private boolean readOnly;
 	private boolean selected;
+	private boolean heterogenous;
 	
 	private List<ItemWrapper<?, ?, ?,?>> items = new ArrayList<>();
 	
@@ -174,10 +177,20 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	@Override
+	public boolean isHeterogenous() {
+		return heterogenous;
+	}
+	
+	@Override
+	public void setHeterogenous(boolean heterogenous) {
+		this.heterogenous = heterogenous;
+	}
+	
+	@Override
 	public List<PrismContainerDefinition<C>> getChildContainers() {
 		List<PrismContainerDefinition<C>> childContainers = new ArrayList<>();
 		for (ItemDefinition<?> def : getContainerDefinition().getDefinitions()) {
-			if (!(def instanceof PrismContainerDefinition) || def.isSingleValue()) {
+			if (!(def instanceof PrismContainerDefinition)) {
 				continue;
 			}
 			
@@ -202,11 +215,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 
 	@Override
-	public List<PrismContainerWrapper<C>> getContainers() {
-		List<PrismContainerWrapper<C>> containers = new ArrayList<>();
+	public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
+		List<PrismContainerWrapper<T>> containers = new ArrayList<>();
 		for (ItemWrapper<?,?,?,?> container : items) {
 			if (container instanceof PrismContainerWrapper) {
-				containers.add((PrismContainerWrapper<C>) container);
+				containers.add((PrismContainerWrapper<T>) container);
 			}
 		}
 		return containers;
@@ -367,8 +380,15 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 		collator.setDecomposition(Collator.FULL_DECOMPOSITION); 
 		
-		Collections.sort(getNonContainers(), new ItemWrapperComparator<>(collator, sorted));
-//		Collections.sort(getContainers(), new ItemWrapperComparator<>(collator));
+		List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = getNonContainers();
+		if (CollectionUtils.isNotEmpty(nonContainers)) {
+			Collections.sort(nonContainers, new ItemWrapperComparator<>(collator, sorted));
+		}
+		
+		List<PrismContainerWrapper> containers = (List) getContainers();
+		if (CollectionUtils.isNotEmpty(containers)) {
+			Collections.sort(containers, new ItemWrapperComparator<>(collator, sorted));
+		}
 		
 		computeStripes();
 	}
@@ -385,9 +405,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 			}
 			
 			if (visibleProperties % 2 == 0) {
-				item.setStripe(true);
-			} else {
 				item.setStripe(false);
+			} else {
+				item.setStripe(true);
 			}
 			
 		}

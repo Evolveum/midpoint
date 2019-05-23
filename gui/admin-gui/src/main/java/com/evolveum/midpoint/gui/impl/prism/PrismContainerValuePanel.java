@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -24,7 +22,6 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,7 +36,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
@@ -56,7 +52,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
@@ -128,6 +123,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         
         initButtons();
         
+        add(new VisibleBehaviour(() -> getModelObject() != null && ValueStatus.DELETED != getModelObject().getStatus()));
         //TODO always visible if isObject
 	}
 	
@@ -357,7 +353,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	        	}
 	        };
 	        
-			addChildContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown() && CollectionUtils.isNotEmpty(getModelObject().getChildContainers())));
+			addChildContainerButton.add(new VisibleBehaviour(() -> shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous()));
 			addChildContainerButton.setOutputMarkupId(true);
 			addChildContainerButton.setOutputMarkupPlaceholderTag(true);
 			add(addChildContainerButton);

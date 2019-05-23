@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.web.model;
 
-import javax.xml.namespace.QName;
-
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -28,15 +26,11 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
@@ -90,24 +84,23 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
 			return null;
 		}
 		
-		ItemWrapper item = null;
-		ItemDefinition def = null;
-		ItemPath path = this.path;
-		try {
 		if (fromContainerValue) {
 			return null;
-		} else {
+		}
+		
+		try {
 			PrismContainerWrapper container = (PrismContainerWrapper) this.parent.getObject();
-			def = container.getItem().getDefinition().findItemDefinition(path, type);
-		}
-		if (!type.isAssignableFrom(def.getClass())) {
-			return null;
-		}
-		return createItemWrapper(def.instantiate(), pageBase);
-			} catch (SchemaException e) {
-				LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, path, this.parent.getObject(), e.getMessage(), e);
+			ItemDefinition<?> def = container.getItem().getDefinition().findItemDefinition(path, type);
+			if (!type.isAssignableFrom(def.getClass())) {
 				return null;
 			}
+		
+			return createItemWrapper(def.instantiate(), pageBase);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot get {} with path {} from parent {}\nReason: {}", ItemWrapper.class, path,
+					this.parent.getObject(), e.getMessage(), e);
+			return null;
+		}
 	}
 
 	private ItemWrapper createItemWrapper(Item i, PageBase pageBase) throws SchemaException {

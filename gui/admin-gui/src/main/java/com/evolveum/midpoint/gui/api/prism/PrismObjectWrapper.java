@@ -35,6 +35,8 @@ public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainer
 	
 	PrismObject<O> getObject();
 	
+	PrismObject<O> getObjectOld();
+	
 	String getOid();
 	
 	PrismObjectValueWrapper<O> getValue();
