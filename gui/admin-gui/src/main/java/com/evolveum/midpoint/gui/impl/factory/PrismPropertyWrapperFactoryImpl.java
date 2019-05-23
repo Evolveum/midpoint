@@ -15,11 +15,15 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.util.Collection;
+
 import javax.annotation.PostConstruct;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
@@ -27,12 +31,32 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author katka
@@ -41,6 +65,15 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 @Component
 public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<PrismPropertyWrapper<T>, PrismPropertyValue<T>, PrismProperty<T>, PrismPropertyValueWrapper<T>>{
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismPropertyWrapperFactoryImpl.class);
+	
+	@Autowired private ModelService modelService;
+	@Autowired private SchemaHelper schemaHelper;
+	@Autowired private TaskManager taskManager;
+	
+	private static final String DOT_CLASS = PrismPropertyWrapperFactoryImpl.class.getSimpleName() + ".";
+	private static final String OPERATION_LOAD_LOOKUP_TABLE = DOT_CLASS + "loadLookupTable";
+	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof PrismPropertyDefinition;
@@ -69,6 +102,22 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 			ItemStatus status) {
 		getRegistry().registerWrapperPanel(item.getDefinition().getTypeName(), PrismPropertyPanel.class);
 		PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
+		PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
+		if (valueEnumerationRef != null) {
+			Task task = taskManager.createTaskInstance(OPERATION_LOAD_LOOKUP_TABLE);
+			OperationResult result = new OperationResult(OPERATION_LOAD_LOOKUP_TABLE);
+			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
+					.createLookupTableRetrieveOptions(schemaHelper);
+			
+			try {
+				PrismObject<LookupTableType> lookupTable = modelService.getObject(LookupTableType.class, valueEnumerationRef.getOid(), options, task, result);
+				propertyWrapper.setPredefinedValues(lookupTable.asObjectable());
+			} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | CommunicationException
+					| ConfigurationException | ExpressionEvaluationException e) {
+				LOGGER.error("Cannot load lookup table for {} ", item);
+				//TODO throw???
+			}
+		}
 		return propertyWrapper;
 	}
 	

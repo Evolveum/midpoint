@@ -492,13 +492,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 			//TODO error handling
 		}
 		model.getValues().add((PrismContainerValueWrapper) valueWrapper);
-//
-//    	ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-//		Task task = getPageBase().createSimpleTask("Creating new object policy");
-//		PrismContainerValueWrapper<C> valueWrapper = factory.createContainerValueWrapper(model.getObject(), newItem,
-//				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-//		valueWrapper.setShowEmpty(true, true);
-//		model.getObject().getValues().add(valueWrapper);
 		return (PrismContainerValueWrapper<C>) valueWrapper;
 	}
 	

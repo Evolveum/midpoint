@@ -36,6 +36,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationReferenceWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
