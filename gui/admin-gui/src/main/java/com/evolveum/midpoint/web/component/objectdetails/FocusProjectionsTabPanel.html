@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -22,35 +22,8 @@
 		</div>
 		
 		<wicket:fragment wicket:id="specificContainersFragment">
-			<div wicket:id="attributes"/>
-            <div wicket:id="associations"/>
-            <div wicket:id="activation"/>
-            <div wicket:id="password"/>
+			<div wicket:id="shadowPanel"></div>
 		</wicket:fragment>
-	
-		<!-- <div class="row">
-			<div class="col-md-12">
-			<div wicket:id="shadowTable"/>
-				<div class="projections" wicket:id="shadows">
-					<div class="row assignable-header projections-header">
-						<div class="col-xs-10">
-							<input type="checkbox" wicket:id="shadowCheckAll" />
-							<h3>
-								<wicket:message key="pageAdminFocus.projections" />
-							</h3>
-						</div>
-						<div class="col-xs-2 cog" wicket:id="shadowMenu"
-							about="shadowMenu" />
-					</div>
-					<div class="box projection" wicket:id="shadowList">
-						<div class="box-header with-border" wicket:id="shadowHeader"/>
-						<div class="box-body" wicket:id="shadow">
-							<div class="box-body" wicket:id="shadowContainer" />
-						</div>
-					</div>
-				</div>
-			</div>
-		</div> -->
 	</wicket:panel>
 </html>
 

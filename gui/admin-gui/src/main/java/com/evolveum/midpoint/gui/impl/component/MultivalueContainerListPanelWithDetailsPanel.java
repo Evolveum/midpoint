@@ -136,6 +136,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 				itemDetailsVisible = false;
 				cancelItemDetailsPerformed(ajaxRequestTarget);
 				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
+				ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
 			}
 		};
 		details.add(cancelButton);
@@ -155,7 +156,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	}
 	
 	@Override
-	protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+	public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
 			List<PrismContainerValueWrapper<C>> listItems) {
 		
 		if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
