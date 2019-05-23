@@ -38,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.util.ClassUtils;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -108,6 +109,13 @@ public class CloneUtil {
 		 */
 		if (orig instanceof XMLGregorianCalendar) {
 			return (T) XmlTypeConverter.createXMLGregorianCalendar((XMLGregorianCalendar) orig);
+		}
+		/*
+		 * The following is because of: "Cloning a Serializable (class com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl). It could harm performance."
+		 */
+		if (orig instanceof Duration) {
+			//noinspection unchecked
+			return (T) XmlTypeConverter.createDuration((Duration) orig);
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
