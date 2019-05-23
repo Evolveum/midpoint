@@ -290,6 +290,9 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
 		for (ItemDeltaType delta : itemDelta) {
 			delta.accept(visitor);
 		}
+		if (objectToAdd != null) {
+			objectToAdd.accept(visitor);
+		}
 	}
 
 	/**
