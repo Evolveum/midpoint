@@ -165,7 +165,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		}
 		
 		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
 			return true;
 		}
 		
