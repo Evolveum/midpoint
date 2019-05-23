@@ -123,6 +123,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         
         initButtons();
         
+        add(new VisibleBehaviour(() -> getModelObject() != null && ValueStatus.DELETED != getModelObject().getStatus()));
         //TODO always visible if isObject
 	}
 	

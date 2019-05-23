@@ -56,7 +56,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	ValueStatus getStatus();
 	void setStatus(ValueStatus status);
 	
-	List<PrismContainerWrapper<C>> getContainers();
+	<T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
 	
 	List<? extends ItemWrapper<?,?,?,?>> getNonContainers();
 	
