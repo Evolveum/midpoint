@@ -19,6 +19,7 @@ package com.evolveum.midpoint.testing.story.ldap;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
@@ -30,10 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -146,7 +144,26 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	protected String getLdapResourceOid() {
 		return RESOURCE_OPENDJ_OID;
 	}
-	
+
+	@Test
+	public void test000ClonePerformance() throws SchemaException {
+		final String TEST_NAME = "test000ClonePerformance";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		long start = System.currentTimeMillis();
+
+		final int COUNT = 1000;
+		for (int i = 0; i < COUNT; i++) {
+			CloneUtil.clone(systemConfiguration.asObjectable().getGlobalPolicyRule());
+		}
+		long duration = System.currentTimeMillis() - start;
+		System.out.println("Time per clone = " + duration*1000.0/COUNT + " us");
+
+	}
 	@Test
     public void test010Sanity() throws Exception {
 		final String TEST_NAME = "test010Sanity";

@@ -115,11 +115,13 @@ public class CloneUtil {
 				return clone;
 			}
 		}
+		if (orig instanceof PrismList) {
+			// The result is different from shallow cloning. But we probably can live with this.
+			return (T) CloneUtil.cloneCollectionMembers((Collection) orig);
+		}
 		if (orig instanceof Serializable) {
 			// Brute force
-			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-				PERFORMANCE_ADVISOR.debug("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
-			}
+			PERFORMANCE_ADVISOR.info("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
 			return (T)SerializationUtils.clone((Serializable)orig);
 		}
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
@@ -157,9 +159,7 @@ public class CloneUtil {
 			Object clone = cloneMethod.invoke(orig);
 			return (T) clone;
 		} catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|RuntimeException e) {
-			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-				PERFORMANCE_ADVISOR.debug("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
-			}
+			PERFORMANCE_ADVISOR.info("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
 			return null;
 		}
 	}
