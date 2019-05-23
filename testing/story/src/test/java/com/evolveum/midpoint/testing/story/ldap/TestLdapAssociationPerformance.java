@@ -93,7 +93,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	private static final int RECOMPUTE_TASK_WAIT_TIMEOUT = 60000;
 
 	private static final String SUMMARY_LINE_FORMAT = "%30s: %5d ms (%4d ms/user, %7.2f ms/user/role)\n";
-	private static final String REPO_LINE_FORMAT = "%30s: %6d (%8.1f/%s)\n";
+	private static final String REPO_LINE_FORMAT = "%6d (%8.1f/%s)\n";
 
 	private Map<String,Long> durations = new LinkedHashMap<>();
 
@@ -299,8 +299,9 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		Map<String, OperationPerformanceInformation> counters = performanceInformation.getAllData();
 		ArrayList<String> kinds = new ArrayList<>(counters.keySet());
 		kinds.sort(String::compareToIgnoreCase);
+		int max = kinds.stream().mapToInt(String::length).max().orElse(0);
 		StringBuilder sb = new StringBuilder();
-		kinds.forEach(kind -> sb.append(String.format(REPO_LINE_FORMAT, kind, counters.get(kind).getInvocationCount(), (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
+		kinds.forEach(kind -> sb.append(String.format("%" + (max+2) + "s: " + REPO_LINE_FORMAT, kind, counters.get(kind).getInvocationCount(), (double) counters.get(kind).getInvocationCount() / unitCount, unit)));
 		display(label + " (" + NUMBER_OF_GENERATED_USERS + " users, " + NUMBER_OF_GENERATED_ROLES + " roles) - per " + unit, sb.toString());
 	}
 

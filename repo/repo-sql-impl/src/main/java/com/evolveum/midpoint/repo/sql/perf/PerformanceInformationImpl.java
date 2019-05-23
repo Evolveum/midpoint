@@ -50,11 +50,15 @@ public class PerformanceInformationImpl implements PerformanceInformation {
 		return rv;
 	}
 
-	public void register(OperationRecord operation) {
+	public void register(OperationRecord operation, boolean alsoObjectType) {
 		// operationMap.compute is also atomic, but always replaces new value (even if the reference did not change)
 		// so I think this is more efficient, even if it creates empty object each time
-		operationMap.putIfAbsent(operation.getKind(), new OperationPerformanceInformation());
-		operationMap.get(operation.getKind()).register(operation);
+		String key = operation.getKind();
+		if (alsoObjectType) {
+			key += "." + operation.getObjectTypeName();
+		}
+		operationMap.putIfAbsent(key, new OperationPerformanceInformation());
+		operationMap.get(key).register(operation);
 	}
 
 	@Override

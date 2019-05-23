@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.api.perf;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsReportingConfigurationType;
+
 /**
  *  EXPERIMENTAL. Probably temporary.
  */
@@ -36,4 +38,6 @@ public interface PerformanceMonitor {
 	void stopThreadLocalPerformanceInformationCollection();
 
 	PerformanceInformation getThreadLocalPerformanceInformation();
+
+	void setConfiguration(RepositoryStatisticsReportingConfigurationType statistics);
 }

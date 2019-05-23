@@ -40,11 +40,11 @@ class OutputFormatter {
 	    try {
 	        PrintWriter pw = new PrintWriter(new FileWriter(file, true));
 	        for (OperationRecord or : finishedOperations) {
-	            pw.println(new Date(or.getStartTime()) + "\t" + or.getKind() + "\t" + or.getAttempts() + "\t" + or.getTotalTime()
+	            pw.println(new Date(or.getStartTime()) + "\t" + or.getKind() + "\t" + or.getObjectTypeName() + "\t" + or.getAttempts() + "\t" + or.getTotalTime()
 			            + "\t" + or.getWastedTime());
 	        }
 	        for (OperationRecord or : outstandingOperations.values()) {
-	            pw.println(new Date(or.getStartTime()) + "\t" + or.getKind() + "\t" + "?" + "\t" + "?" + "\t" + or
+	            pw.println(new Date(or.getStartTime()) + "\t" + or.getKind() + "\t" + or.getObjectTypeName() + "\t" + "?" + "\t" + "?" + "\t" + or
 			            .getWastedTime());
 	        }
 	        pw.close();

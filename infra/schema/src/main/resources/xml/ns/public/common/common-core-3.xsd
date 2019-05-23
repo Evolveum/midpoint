@@ -16793,16 +16793,137 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="statistics" type="tns:RepositoryStatisticsReportingType" minOccurs="0">
+			<xsd:element name="statistics" type="tns:RepositoryStatisticsReportingConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Level of details when reporting repository performance statistics.
+						How repository statistics are collected and reported.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="repositoryConfiguration" type="tns:RepositoryConfigurationType" />
+
+	<xsd:complexType name="RepositoryStatisticsReportingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How repository statistics are collected and reported.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="collection" type="tns:RepositoryStatisticsCollectionStyleType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to collect resource statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="classification" type="tns:RepositoryStatisticsClassificationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to collect resource statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="repositoryStatisticsReportingConfiguration" type="tns:RepositoryStatisticsReportingConfigurationType" />
+
+	<xsd:simpleType name="RepositoryStatisticsClassificationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Level of details when reporting repository performance statistics.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="perOperationType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_OPERATION_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected per operation type (getObject, modifyObject, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perOperationAndObjectType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_OPERATION_AND_OBJECT_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected per operation and object type (e.g. getObject.UserType, modifyObject.ShadowType, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="RepositoryStatisticsCollectionStyleType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How are repository statistics collected. (TODO find better name for this)
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are not collected nor reported.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="globally">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GLOBALLY"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected globally (system-wide), not for individual threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="globallyAndLocally">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GLOBALLY_AND_LOCALLY"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected both system-wide and for individual threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="operations">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="OPERATIONS"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for the repository are collected individually for each operation. (This is usually a level
+						that is too deep; useful mainly within tests or for detailed performance analysis.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="CachingConfigurationType">
 		<xsd:annotation>
@@ -17012,7 +17133,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="statistics" type="tns:CacheStatisticsReportingType" minOccurs="0">
+			<xsd:element name="statistics" type="tns:CacheStatisticsReportingConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						How detailed statistics are provided for this cache.
@@ -17084,7 +17205,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="statistics" type="tns:CacheStatisticsReportingType" minOccurs="0">
+			<xsd:element name="statistics" type="tns:CacheStatisticsReportingConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						How detailed statistics are provided for this object type in this cache.
@@ -17095,7 +17216,107 @@
 	</xsd:complexType>
 	<xsd:element name="cacheObjectTypeSettings" type="tns:CacheObjectTypeSettingsType" />
 
-	<xsd:simpleType name="CacheStatisticsReportingType">
+	<xsd:complexType name="CacheStatisticsReportingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How cache statistics are collected and reported.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="collection" type="tns:CacheStatisticsCollectionStyleType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to collect resource statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="classification" type="tns:CacheStatisticsClassificationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How to collect resource statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cacheStatisticsReportingConfiguration" type="tns:CacheStatisticsReportingConfigurationType" />
+
+	<xsd:simpleType name="CacheStatisticsClassificationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Level of details when reporting cache performance statistics.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="perCache">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_CACHE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics are collected per cache type (local repository object cache, local repository query cache, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="perCacheAndObjectType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PER_CACHE_AND_OBJECT_TYPE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics are collected per cache and object type (e.g. local repository object cache.UserType, etc).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="CacheStatisticsCollectionStyleType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How are cache statistics collected. (TODO find better name for this)
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="none">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NONE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for this cache are not collected nor reported.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="globallyAndLocally">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="GLOBALLY_AND_LOCALLY"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Statistics for this cache are collected both system-wide and for individual threads.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="CacheStatisticsConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Level of details when reporting cache performance statistics.
@@ -17134,51 +17355,6 @@
 					</xsd:appinfo>
 					<xsd:documentation>
 						Statistics for this cache or object type are collected "per object type" i.e. one number for each object type.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:simpleType name="RepositoryStatisticsReportingType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Level of details when reporting repository performance statistics.
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
-				<a:since>4.0</a:since>
-				<a:experimental>true</a:experimental>
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="skip">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="SKIP"/>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Statistics for the repository are not collected nor reported.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="perOperationType">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="PER_OPERATION_TYPE"/>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Statistics for the repository are collected per operation type (getObject, modifyObject, etc).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="perOperationAndObjectType">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="PER_OPERATION_AND_OBJECT_TYPE"/>
-					</xsd:appinfo>
-					<xsd:documentation>
-						Statistics for the repository are collected per operation and object type (e.g. getObject.UserType, modifyObject.ShadowType, etc).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:enumeration>

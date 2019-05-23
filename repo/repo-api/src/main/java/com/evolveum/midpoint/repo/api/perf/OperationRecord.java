@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.api.perf;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Date;
 
 /**
@@ -24,14 +26,16 @@ import java.util.Date;
 public class OperationRecord {
 
     private String kind;
+    private Class<?> objectType;
     private long handle;
     private int attempts;
     private long startTime;
     private long totalTime;
     private long wastedTime;
 
-    public OperationRecord(String kind, long handle) {
+    public OperationRecord(String kind, Class<?> objectType, long handle) {
         this.kind = kind;
+        this.objectType = objectType;
         this.handle = handle;
         this.startTime = System.currentTimeMillis();
     }
@@ -40,6 +44,7 @@ public class OperationRecord {
     public String toString() {
         return "OperationRecord{" +
                 "kind='" + kind + '\'' +
+                ", objectType=" + getObjectTypeName() +
                 ", handle=" + handle +
                 ", attempts=" + attempts +
                 ", startTime=" + new Date(startTime) +
@@ -48,12 +53,25 @@ public class OperationRecord {
                 '}';
     }
 
+    @NotNull
+    public String getObjectTypeName() {
+        return objectType != null ? objectType.getSimpleName() : "null";
+    }
+
     public String getKind() {
         return kind;
     }
 
     public void setKind(String kind) {
         this.kind = kind;
+    }
+
+    public Class<?> getObjectType() {
+        return objectType;
+    }
+
+    public void setObjectType(Class<?> objectType) {
+        this.objectType = objectType;
     }
 
     public long getHandle() {

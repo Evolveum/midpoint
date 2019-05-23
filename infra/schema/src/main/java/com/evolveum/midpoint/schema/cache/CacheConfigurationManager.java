@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CacheStatisticsClassificationType.PER_CACHE;
 import static java.util.Collections.emptySet;
 
 /**
@@ -269,8 +271,9 @@ public class CacheConfigurationManager {
 		if (increment.getTimeToLive() != null) {
 			configuration.setTimeToLive(increment.getTimeToLive());
 		}
-		if (increment.getStatistics() != null) {
-			configuration.setStatisticsLevel(convertStatisticsLevel(increment.getStatistics()));
+		CacheStatisticsReportingConfigurationType statistics = increment.getStatistics();
+		if (statistics != null) {
+			configuration.setStatisticsLevel(convertStatisticsLevel(statistics));
 		}
 		if (increment.isTraceMiss() != null) {
 			configuration.setTraceMiss(increment.isTraceMiss());
@@ -313,15 +316,14 @@ public class CacheConfigurationManager {
 		return rv;
 	}
 
-	private CacheConfiguration.StatisticsLevel convertStatisticsLevel(CacheStatisticsReportingType statistics) {
-		if (statistics == null) {
-			return null;
+	private CacheConfiguration.StatisticsLevel convertStatisticsLevel(CacheStatisticsReportingConfigurationType statistics) {
+		if (statistics.getCollection() == CacheStatisticsCollectionStyleType.NONE) {
+			return CacheConfiguration.StatisticsLevel.SKIP;
 		} else {
-			switch (statistics) {
-				case SKIP: return CacheConfiguration.StatisticsLevel.SKIP;
+			switch (ObjectUtils.defaultIfNull(statistics.getClassification(), PER_CACHE)) {
 				case PER_CACHE: return CacheConfiguration.StatisticsLevel.PER_CACHE;
-				case PER_OBJECT_TYPE: return CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE;
-				default: throw new IllegalArgumentException("statistics: " + statistics);
+				case PER_CACHE_AND_OBJECT_TYPE: return CacheConfiguration.StatisticsLevel.PER_OBJECT_TYPE;
+				default: throw new IllegalArgumentException("classification: " + statistics.getClassification());
 			}
 		}
 	}

@@ -21,6 +21,9 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsClassificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsCollectionStyleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsReportingConfigurationType;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,7 +41,10 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
     public static final int LEVEL_LOCAL_STATISTICS = 4;
     public static final int LEVEL_DETAILS = 10;
 
+    private int initialLevel = 0;
     private int level = 0;
+
+    private boolean perObjectType = false;
 
     private AtomicLong currentHandle = new AtomicLong();
 
@@ -99,16 +105,14 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         globalPerformanceInformation.clear();
         threadLocalPerformanceInformation.remove();         // at least for this thread; other threads have to do their own homework
         this.sqlRepositoryFactory = sqlRepositoryFactory;
-        this.level = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
-        if (level >= LEVEL_NONE) {
-            LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
-        }
+        this.level = this.initialLevel = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
+        LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
     }
 
     public void shutdown() {
-        if (level > LEVEL_NONE) {
-            LOGGER.info("SQL Performance Monitor shutting down.");
-            synchronized (finishedOperations) {
+        LOGGER.info("SQL Performance Monitor shutting down.");
+        synchronized (finishedOperations) {
+            if (!finishedOperations.isEmpty()) {
                 LOGGER.info("Statistics:\n{}", OutputFormatter.getFormattedStatistics(finishedOperations, outstandingOperations));
                 String file = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsFile();
                 if (file != null) {
@@ -121,7 +125,7 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         }
     }
 
-    public long registerOperationStart(String kind) {
+    public long registerOperationStart(String kind, Class<?> objectType) {
         if (level > LEVEL_NONE) {
             long handle = currentHandle.getAndIncrement();
             if (outstandingOperations.containsKey(handle)) {
@@ -129,10 +133,10 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
                 LOGGER.error("Unfinished operation -- should never occur: {}", unfinishedOperation);
                 throw new IllegalStateException("Unfinished operation -- should never occur: " + unfinishedOperation);
             }
-            outstandingOperations.put(handle, new OperationRecord(kind, handle));
+            outstandingOperations.put(handle, new OperationRecord(kind, objectType, handle));
             return handle;
         } else {
-            return 0L;
+            return -1L;
         }
     }
 
@@ -166,12 +170,12 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
             finishedOperations.add(operation);
         }
         if (level >= LEVEL_GLOBAL_STATISTICS) {
-            globalPerformanceInformation.register(operation);
+            globalPerformanceInformation.register(operation, perObjectType);
         }
         if (level >= LEVEL_LOCAL_STATISTICS) {
             PerformanceInformationImpl localInformation = threadLocalPerformanceInformation.get();
             if (localInformation != null) {
-                localInformation.register(operation);
+                localInformation.register(operation, perObjectType);
             }
         }
     }
@@ -213,4 +217,24 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         return rv;
     }
 
+    public void setConfiguration(RepositoryStatisticsReportingConfigurationType configuration) {
+        int newLevel;
+        RepositoryStatisticsClassificationType classification = configuration != null ? configuration.getClassification() : null;
+        RepositoryStatisticsCollectionStyleType collection = configuration != null ? configuration.getCollection() : null;
+        if (collection == null) {
+            newLevel = initialLevel;
+        } else {
+            switch (collection) {
+                case NONE: newLevel = LEVEL_NONE; break;
+                case GLOBALLY: newLevel = LEVEL_GLOBAL_STATISTICS; break;
+                case GLOBALLY_AND_LOCALLY: newLevel = LEVEL_LOCAL_STATISTICS; break;
+                case OPERATIONS: newLevel = LEVEL_DETAILS; break;
+                default: throw new IllegalArgumentException("collection: " + collection);
+            }
+        }
+        if (newLevel != level) {
+            LOGGER.info("Changing collection level to {} (configured as {})", newLevel, collection);
+        }
+        perObjectType = classification == RepositoryStatisticsClassificationType.PER_OPERATION_AND_OBJECT_TYPE;
+    }
 }

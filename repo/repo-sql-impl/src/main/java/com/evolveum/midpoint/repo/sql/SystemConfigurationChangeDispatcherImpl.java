@@ -37,10 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -110,6 +107,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 		applyRelationsConfiguration(configuration);
 		applyOperationResultHandlingConfiguration(configuration);
 		applyCachingConfiguration(configuration);
+		applyRepositoryConfiguration(configuration);
 
 		if (lastVersionApplied != null) {
 			LOGGER.trace("System configuration version {} applied successfully", lastVersionApplied);
@@ -198,6 +196,18 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 			cacheConfigurationManager.applyCachingConfiguration(configuration);
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply caching configuration", t);
+			lastVersionApplied = null;
+		}
+	}
+
+	private void applyRepositoryConfiguration(SystemConfigurationType configuration) {
+		try {
+			RepositoryStatisticsReportingConfigurationType statistics =
+					configuration.getInternals() != null && configuration.getInternals().getRepository() != null ?
+					configuration.getInternals().getRepository().getStatistics() : null;
+			repositoryService.getPerformanceMonitor().setConfiguration(statistics);
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply repository configuration", t);
 			lastVersionApplied = null;
 		}
 	}

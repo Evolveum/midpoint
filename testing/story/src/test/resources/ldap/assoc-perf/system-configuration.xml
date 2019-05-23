@@ -50,9 +50,10 @@
 				<globalRepoCache>
 					<append>false</append>
 					<timeToLive>60</timeToLive>
-<!--					<traceMiss>true</traceMiss>-->
-<!--					<tracePass>true</tracePass>-->
-<!--					<statistics>perObjectType</statistics>-->
+					<tracePass>true</tracePass>
+					<statistics>
+						<classification>perCacheAndObjectType</classification>
+					</statistics>
 					<objectTypeSettings>
 						<objectType>SystemConfigurationType</objectType>
 						<objectType>ArchetypeType</objectType>
@@ -61,26 +62,22 @@
 						<objectType>ValuePolicyType</objectType>
 					</objectTypeSettings>
 				</globalRepoCache>
-<!--				<localRepoCache>-->
-<!--					<traceMiss>true</traceMiss>-->
-<!--					<tracePass>true</tracePass>-->
-<!--					<statistics>perObjectType</statistics>-->
-<!--				</localRepoCache>-->
-<!--				<localShadowConstraintCheckerCache>-->
-<!--					<traceMiss>true</traceMiss>-->
-<!--					<tracePass>true</tracePass>-->
-<!--					<statistics>perObjectType</statistics>-->
-<!--				</localShadowConstraintCheckerCache>-->
-<!--				<localFocusConstraintCheckerCache>-->
-<!--					<traceMiss>true</traceMiss>-->
-<!--					<tracePass>true</tracePass>-->
-<!--					<statistics>perObjectType</statistics>-->
-<!--				</localFocusConstraintCheckerCache>-->
-<!--				<localAssociationTargetSearchEvaluatorCache>-->
-<!--					<traceMiss>true</traceMiss>-->
-<!--					<tracePass>true</tracePass>-->
-<!--					<statistics>perObjectType</statistics>-->
-<!--				</localAssociationTargetSearchEvaluatorCache>-->
+				<localRepoCache>
+					<tracePass>true</tracePass>
+					<statistics>
+						<classification>perCacheAndObjectType</classification>
+					</statistics>
+				</localRepoCache>
+				<localAssociationTargetSearchEvaluatorCache>
+					<statistics>
+						<collection>none</collection>
+					</statistics>
+				</localAssociationTargetSearchEvaluatorCache>
+				<localFocusConstraintCheckerCache>
+					<statistics>
+						<collection>none</collection>
+					</statistics>
+				</localFocusConstraintCheckerCache>
 			</profile>
 			<profile>
 				<name>roles-and-shadows</name>
@@ -105,5 +102,11 @@
 				</globalRepoCache>
 			</profile>
 		</caching>
+		<repository>
+			<statistics>
+				<collection>globallyAndLocally</collection>
+				<classification>perOperationAndObjectType</classification>
+			</statistics>
+		</repository>
 	</internals>
 </systemConfiguration>

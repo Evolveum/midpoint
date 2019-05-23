@@ -62,7 +62,7 @@ public class ExtItemDictionary {
     }
 
     private void fetchItems() {
-        executeAttempts(RepositoryService.OP_FETCH_EXT_ITEMS, "fetch ext items", () -> fetchItemsAttempt());
+        executeAttempts(RepositoryService.OP_FETCH_EXT_ITEMS, RExtItem.class, "fetch ext items", () -> fetchItemsAttempt());
     }
 
     private void fetchItemsAttempt() {
@@ -158,9 +158,9 @@ public class ExtItemDictionary {
         }
     }
 
-    private void executeAttempts(String operationName, String operationVerb, Runnable runnable) {
+    private void executeAttempts(String operationName, Class<?> type, String operationVerb, Runnable runnable) {
         SqlPerformanceMonitorImpl pm = repositoryService.getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operationName);
+        long opHandle = pm.registerOperationStart(operationName, type);
         int attempt = 1;
         try {
             while (true) {
