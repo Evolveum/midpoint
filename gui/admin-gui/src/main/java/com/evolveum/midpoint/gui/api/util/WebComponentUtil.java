@@ -3011,7 +3011,7 @@ public final class WebComponentUtil {
 			}
 		}
 		
-		if (SchemaConstants.PATH_ASSOCIATION.equivalent(itemWrapper.getPath())) {
+		if (ShadowType.F_ASSOCIATION.equivalent(itemWrapper.getPath())) {
 			if (ocd != null && CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions())) {
 				return ItemVisibility.AUTO;
 			} else {
@@ -3021,6 +3021,30 @@ public final class WebComponentUtil {
 		
 		return ItemVisibility.AUTO;
 		
+	}
+	
+	public static boolean isAssociationSupported(ShadowType shadowType) {
+		ResourceType resource = shadowType.getResource();
+		
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return false;
+		}
+		
+		CompositeRefinedObjectClassDefinition ocd = null;
+		
+		try {
+			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
+		}
+		
+		if (ocd == null) {
+			return false;
+		}
+		
+		return CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions());
 	}
 	
 	private static boolean isCapabilityEnabled(CapabilityType cap) {

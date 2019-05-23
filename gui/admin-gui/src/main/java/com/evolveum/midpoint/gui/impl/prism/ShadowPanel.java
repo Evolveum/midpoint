@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -76,6 +77,7 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     		
     		Panel associationsPanel = getPageBase().initItemPanel(ID_ASSOCIATIONS, ShadowAssociationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ASSOCIATION), 
     				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		associationsPanel.add(new VisibleBehaviour(() -> checkAssociationsVisibility()));
     		add(associationsPanel);
     		
     		
@@ -96,7 +98,14 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 	
 	private ItemVisibility checkShadowContainerVisibility(ItemWrapper itemWrapper, IModel<ShadowWrapper> model) {
 
-		ShadowType shadowType = model.getObject().getObject().asObjectable();
+		ShadowType shadowType = model.getObject().getObjectOld().asObjectable();
 		return WebComponentUtil.checkShadowActivationAndPasswordVisibility(itemWrapper, shadowType);
+	}
+	
+	private boolean checkAssociationsVisibility() {
+		
+		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+		return WebComponentUtil.isAssociationSupported(shadowType);
+		
 	}
 }

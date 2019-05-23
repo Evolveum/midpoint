@@ -396,9 +396,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 			}
 			
 			if (visibleProperties % 2 == 0) {
-				item.setStripe(true);
-			} else {
 				item.setStripe(false);
+			} else {
+				item.setStripe(true);
 			}
 			
 		}

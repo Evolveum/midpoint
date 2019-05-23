@@ -20,8 +20,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +35,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationReferenceWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
@@ -59,12 +54,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
@@ -75,8 +65,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-
-import javassist.expr.NewArray;
 
 /**
  * @author skublik
@@ -93,7 +81,6 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	@Autowired private PrismContext prismContext;
 	@Autowired private ModelService modelService;
 	@Autowired private TaskManager taskManager;
-	@Autowired private PrismReferenceWrapperFactory refFactory;
 	
 	private static final String CREATE_ASSOCIATION_WRAPPER = "createAssociationWrapper";
 	
@@ -104,7 +91,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	
 	@Override
 	public int getOrder() {
-		return Integer.MAX_VALUE-2;
+		return 10;
 	}
 	
 	@Override
@@ -236,10 +223,6 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 						prismContext, resource.getOid()));
 				item.setReadOnly(true);
 				
-//				for (PrismValueWrapperImpl valueWrapper : (List<PrismValueWrapperImpl>) associationValueWrapper.getValues()) {
-//					valueWrapper.getParent().setEditEnabled(valueWrapper);
-//				}
-//				associationValueWrapper.setTargetTypes(Collections.singletonList(ShadowType.COMPLEX_TYPE));
 				items.add(item);
 			}
 			shadowValueWrapper.setExpanded(true);
