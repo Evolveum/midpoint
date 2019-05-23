@@ -43,6 +43,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_DIR;
 import static com.evolveum.midpoint.test.util.MidPointTestConstants.TEST_RESOURCES_PATH;
 import static java.util.Collections.singleton;
@@ -58,6 +59,7 @@ public class TestCryptoUtil {
     private static final File TEST_DIR = new File(TEST_RESOURCES_DIR, "crypto");
     private static final File FILE_USER_JACK = new File(TEST_DIR, "user-jack.xml");
     private static final File FILE_TASK_MODIFY_JACK_PASSWORD = new File(TEST_DIR, "task-modify-jack-password.xml");
+    private static final File FILE_TASK_ADD_JACK = new File(TEST_DIR, "task-add-jack.xml");
     private static final File FILE_SYSTEM_CONFIGURATION = new File(TEST_DIR, "system-configuration.xml");
 
 	private static final String KEYSTORE_PATH = TEST_RESOURCES_PATH + "/keystore.jceks";
@@ -112,6 +114,26 @@ public class TestCryptoUtil {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_MODIFY_JACK_PASSWORD).xml().parse();
+
+		// WHEN
+		CryptoUtil.encryptValues(protector, task);
+
+		// THEN
+		String serialized = prismContext.xmlSerializer().serialize(task);
+		System.out.println("After encryption:\n" + serialized);
+		assertFalse("Serialized object contains the password!", serialized.contains(PASSWORD_PLAINTEXT));
+
+		CryptoUtil.checkEncrypted(task);
+	}
+
+	@Test
+	public void test130EncryptUserInDelta() throws Exception {
+		final String TEST_NAME = "test130EncryptUserInDelta";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+		PrismObject<UserType> task = prismContext.parserFor(FILE_TASK_ADD_JACK).xml().parse();
 
 		// WHEN
 		CryptoUtil.encryptValues(protector, task);
