@@ -153,10 +153,10 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
          };
 
          //empty projections model
-         LoadableModel<List<ShadowWrapper<ShadowType>>> shadows = new LoadableModel<List<ShadowWrapper<ShadowType>>>() {
+         LoadableModel<List<ShadowWrapper>> shadows = new LoadableModel<List<ShadowWrapper>>() {
          	private static final long serialVersionUID = 1L;
                      @Override
-                     protected List<ShadowWrapper<ShadowType>> load() {
+                     protected List<ShadowWrapper> load() {
                          return new ArrayList<>();
                      }
                  };

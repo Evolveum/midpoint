@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.gui.api.component.tabs;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 
 /**
@@ -27,7 +27,7 @@ import org.apache.wicket.model.IModel;
  *
  * @author semancik
  */
-public abstract class PanelTab<T extends ObjectType> extends AbstractTab {
+public abstract class PanelTab extends AbstractTab {
 
     private static final long serialVersionUID = 1L;
 

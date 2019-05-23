@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,14 +27,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author skublik
  *
  */
-public class ShadowWrapperImpl<S extends ShadowType> extends PrismObjectWrapperImpl<S> implements ShadowWrapper<S> {
+public class ShadowWrapperImpl extends PrismObjectWrapperImpl<ShadowType> implements ShadowWrapper {
 
 	private static final long serialVersionUID = 1L;
 	
 	UserDtoStatus status;
 	boolean noFetch = false;
 
-	public ShadowWrapperImpl(PrismObject<S> item, ItemStatus status) {
+	public ShadowWrapperImpl(PrismObject<ShadowType> item, ItemStatus status) {
 		super(item, status);
 	}
 
@@ -54,5 +56,16 @@ public class ShadowWrapperImpl<S extends ShadowType> extends PrismObjectWrapperI
 	@Override
 	public void setLoadWithNoFetch(boolean noFetch) {
 		this.noFetch = noFetch;
+	}
+	
+	
+	@Override
+	public boolean isProtected() {
+		if (getObject() == null) {
+			return false;
+		}
+		
+		ShadowType shadowType = getObject().asObjectable();
+		return BooleanUtils.isTrue(shadowType.isProtectedObject());
 	}
 }

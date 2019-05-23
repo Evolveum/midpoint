@@ -18,15 +18,12 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -37,16 +34,16 @@ public abstract class AbstractFocusTabPanel<F extends FocusType> extends Abstrac
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractFocusTabPanel.class);
 
-	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel;
+	private LoadableModel<List<ShadowWrapper>> projectionModel;
 
-	public AbstractFocusTabPanel(String id, Form mainForm,
+	public AbstractFocusTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm,
 			LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
+			LoadableModel<List<ShadowWrapper>> projectionModel) {
 		super(id, mainForm, focusWrapperModel);
 		this.projectionModel = projectionModel;
 	}
 
-	public LoadableModel<List<ShadowWrapper<ShadowType>>> getProjectionModel() {
+	public LoadableModel<List<ShadowWrapper>> getProjectionModel() {
 		return projectionModel;
 	}
 

@@ -171,6 +171,11 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
             @Override
             public String getObject() {
                 SystemInfoDto dto = getModelObject();
+                
+                if (dto == null) {
+                	return null;
+                }
+                
                 int minutes = (int)(dto.uptime / 1000L / 60L);
                 return WebComponentUtil.formatDurationWordsForLocal(minutes < 1 ? dto.uptime : (long)minutes * 1000L * 60L, true, true,
                         SystemInfoPanel.this.getPageBase());

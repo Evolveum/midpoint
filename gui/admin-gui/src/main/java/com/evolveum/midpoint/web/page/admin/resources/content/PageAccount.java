@@ -33,6 +33,7 @@ import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
@@ -75,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 				description = "PageAccount.auth.resourcesAccount.description")})
 public class PageAccount extends PageAdmin {
 
+	private static final long serialVersionUID = 1L;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
 	private static final String DOT_CLASS = PageAccount.class.getName() + ".";
 	private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
@@ -89,13 +92,15 @@ public class PageAccount extends PageAdmin {
 
 	public static final String PARAMETER_SELECTED_TAB = "tab";
 
-	private LoadableModel<PrismObjectWrapper<ShadowType>> accountModel;
+	private LoadableModel<ShadowWrapper> accountModel;
 
 	public PageAccount(final PageParameters parameters) {
-		accountModel = new LoadableModel<PrismObjectWrapper<ShadowType>>(false) {
+		accountModel = new LoadableModel<ShadowWrapper>(false) {
+
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected PrismObjectWrapper<ShadowType> load() {
+			protected ShadowWrapper load() {
 				return loadAccount(parameters);
 			}
 		};
@@ -107,7 +112,7 @@ public class PageAccount extends PageAdmin {
 		initLayout();
 	}
 
-	private PrismObjectWrapper<ShadowType> loadAccount(PageParameters parameters) {
+	private ShadowWrapper loadAccount(PageParameters parameters) {
 		Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
 		OperationResult result = task.getResult();
 
@@ -126,22 +131,17 @@ public class PageAccount extends PageAdmin {
 
 		PrismObjectWrapperFactory<ShadowType> owf = getRegistry().getObjectWrapperFactory(account.getDefinition());
 		WrapperContext context = new WrapperContext(task, result);
-//		context.setCreateIfEmpty(false);
-		PrismObjectWrapper<ShadowType> wrapper = null;
+		context.setShowEmpty(false);
+		ShadowWrapper wrapper = null;
 		try {
-			wrapper = owf.createObjectWrapper(account, ItemStatus.NOT_CHANGED, context);
+			wrapper = (ShadowWrapper) owf.createObjectWrapper(account, ItemStatus.NOT_CHANGED, context);
+			//TODO: fetch result???
 		} catch (SchemaException e) {
-			//TODO error handling
+			LOGGER.error("Cannot create wrapper for shadow {}", account);
+			result.recordFatalError("Cannot create ");
+			throw new RestartResponseException(PageResources.class);
 		}
 		
-//		ObjectWrapperOld wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, task, this);
-//		OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
-//		try {
-//			wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
-//		} catch (SchemaException e) {
-//			throw new SystemException(e.getMessage(), e);
-//		}
-//		wrapper.setShowEmpty(false);
 		return wrapper;
 	}
 
@@ -151,13 +151,13 @@ public class PageAccount extends PageAdmin {
 
 		WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
 		protectedMessage.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
-				PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
-				return false;
-				//TODO protected
-//				return wrapper.isProtectedAccount();
+				ShadowWrapper wrapper = accountModel.getObject();
+				return wrapper.isProtected();
 			}
 		});
 		add(protectedMessage);
@@ -180,7 +180,7 @@ public class PageAccount extends PageAdmin {
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
-				return new ShadowDetailsTabPanel(panelId, form, accountModel);
+				return new ShadowDetailsTabPanel(panelId, form, (LoadableModel) accountModel);
 			}
 		});
 
@@ -201,6 +201,8 @@ public class PageAccount extends PageAdmin {
 	private void initButtons(Form mainForm) {
 		AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("pageAccount.button.save")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			protected void onSubmit(AjaxRequestTarget target) {
 				savePerformed(target);
@@ -212,19 +214,21 @@ public class PageAccount extends PageAdmin {
 			}
 		};
 		save.add(new VisibleEnableBehaviour() {
+			
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			public boolean isVisible() {
-				PrismObjectWrapper<ShadowType> wrapper = accountModel.getObject();
-				//TODO protected
-				return true;
-//				return !wrapper.isProtectedAccount();
+				ShadowWrapper wrapper = accountModel.getObject();
+				return wrapper.isProtected();
 			}
 		});
 		mainForm.add(save);
 
 		AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageAccount.button.back")) {
 
+			private static final long serialVersionUID = 1L;
+			
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				cancelPerformed(target);
@@ -237,6 +241,7 @@ public class PageAccount extends PageAdmin {
 	protected IModel<String> createPageTitleModel() {
 		return new LoadableModel<String>(false) {
 
+			private static final long serialVersionUID = 1L;
 			@Override
 			protected String load() {
 				PrismObject<ShadowType> account = accountModel.getObject().getObject();
@@ -245,6 +250,7 @@ public class PageAccount extends PageAdmin {
 				ResourceType resource = account.asObjectable().getResource();
 				String name = WebComponentUtil.getName(resource);
 
+				//TODO: refactor
 				return createStringResourceStatic(PageAccount.this, "PageAccount.title", accName, name).getString();
 			}
 		};

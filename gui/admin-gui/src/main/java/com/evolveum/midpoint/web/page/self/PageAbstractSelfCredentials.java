@@ -402,33 +402,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         redirectBack();
     }
 
-//    private List<ShadowType> loadShadowTypeList() {
-//        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
-//        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
-//        List<ShadowType> shadowTypeList = new ArrayList<>();
-//
-//        for (ObjectReferenceType reference : references) {
-//            OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
-//            try {
-//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-//                        GetOperationOptions.createResolve());
-//
-//                if (reference.getOid() == null) {
-//                    continue;
-//                }
-//                PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
-//                shadowTypeList.add(shadow.asObjectable());
-//            } catch (Exception ex) {
-//                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
-//                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-//            } finally {
-//                subResult.computeStatus();
-//            }
-//        }
-//        return shadowTypeList;
-//
-//    }
-
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
@@ -447,7 +420,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
 
-         return ResourceTypeUtil.isPasswordCapabilityEnabled(shadow.asObjectable().getResource());
+    	ShadowType shadowType = shadow.asObjectable();
+    	ResourceType resource = shadowType.getResource();
+    	ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+    	
+         return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 

@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.protocol.http.WebSession;
@@ -74,7 +75,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModelNew;
+	private LoadableModel<List<ShadowWrapper>> projectionModelNew;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -89,11 +90,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {
 		super.initializeModel(objectToEdit, isNewObject, isReadonly);
 
-		projectionModelNew = new LoadableModel<List<ShadowWrapper<ShadowType>>>(false) {
+		projectionModelNew = new LoadableModel<List<ShadowWrapper>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<ShadowWrapper<ShadowType>> load() {
+			protected List<ShadowWrapper> load() {
 				return loadShadowWrappers(true);
 			}
 		};
@@ -109,7 +110,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
     }
 
-    public LoadableModel<List<ShadowWrapper<ShadowType>>> getProjectionModel() {
+    public LoadableModel<List<ShadowWrapper>> getProjectionModel() {
 		return projectionModelNew;
 	}
 
@@ -117,7 +118,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return delegatedToMeModel;
 	}
 
-	public List<ShadowWrapper<ShadowType>> getFocusShadows() {
+	public List<ShadowWrapper> getFocusShadows() {
 		return projectionModelNew.getObject();
 	}
 
@@ -207,8 +208,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		target.add(this);
 	}
 
-	private List<ShadowWrapper<ShadowType>> loadShadowWrappers(boolean noFetch) {
-		List<ShadowWrapper<ShadowType>> list = new ArrayList<>();
+	private List<ShadowWrapper> loadShadowWrappers(boolean noFetch) {
+		List<ShadowWrapper> list = new ArrayList<>();
 
 		PrismObjectWrapper<F> focusWrapper = getObjectModel().getObject();
 		PrismObject<F> focus = focusWrapper.getObject();
@@ -231,11 +232,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 			
 			try {
-				ShadowWrapper<ShadowType> wrapper = loadShadowWrapper(projection, task, subResult);
+				ShadowWrapper wrapper = loadShadowWrapper(projection, task, subResult);
 				wrapper.setLoadWithNoFetch(noFetch);
 				
 				if (wrapper != null) {
-					list.add((ShadowWrapper<ShadowType>)wrapper);
+					list.add((ShadowWrapper)wrapper);
 				} else {
 					showResult(subResult, "pageAdminFocus.message.shadowWrapperIsNull");
 					LOGGER.error("ShadowWrapper is null");
@@ -254,16 +255,16 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					.build();
 	}
 	
-	public ShadowWrapper<ShadowType> loadShadowWrapper(PrismObject<ShadowType> projection, Task task, OperationResult result) throws SchemaException{
+	public ShadowWrapper loadShadowWrapper(PrismObject<ShadowType> projection, Task task, OperationResult result) throws SchemaException{
 		PrismObjectWrapperFactory<ShadowType> factory = getRegistry().getObjectWrapperFactory(projection.getDefinition());
 		WrapperContext context = new WrapperContext(task, result);
 		context.setCreateIfEmpty(false);
-		ShadowWrapper<ShadowType> wrapper = (ShadowWrapper<ShadowType>) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
+		ShadowWrapper wrapper = (ShadowWrapper) factory.createObjectWrapper(projection, ItemStatus.NOT_CHANGED, context);
 		wrapper.setProjectionStatus(UserDtoStatus.MODIFY);
 		return wrapper; 
 	}
 
-	public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue) {
+	public void loadFullShadow(PrismObjectValueWrapper<ShadowType> shadowWrapperValue, AjaxRequestTarget target) {
 		if(shadowWrapperValue.getRealValue() == null) {
 			error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
 			LOGGER.error("Couldn't create shadow wrapper, because RealValue is null in " + shadowWrapperValue);
@@ -274,7 +275,15 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		OperationResult result = task.getResult();
 		PrismObject<ShadowType> projection = getPrismObjectForWrapper(ShadowType.class, oid, false, task,
 				result, createLoadOptionForShadowWrapper());
-		ShadowWrapper<ShadowType> shadowWrapperNew;
+		
+		if (projection == null) {
+			result.recordFatalError("Cannot full projection for " + shadowWrapperValue.getRealValue());
+			showResult(result);
+			target.add(getFeedbackPanel());
+			return;
+		}
+		
+		ShadowWrapper shadowWrapperNew;
 		try {
 			shadowWrapperNew = loadShadowWrapper(projection, task, result);
 			
@@ -286,7 +295,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			
 			shadowWrapperValue.getItems().clear();
 			shadowWrapperValue.getItems().addAll((Collection) shadowWrapperNew.getValue().getItems());
-			((ShadowWrapper<ShadowType>)shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
+			((ShadowWrapper)shadowWrapperValue.getParent()).setLoadWithNoFetch(false);
 		} catch (SchemaException e) {
 			error(getString("pageAdminFocus.message.couldntCreateShadowWrapper"));
 			LOGGER.error("Couldn't create shadow wrapper", e);
@@ -340,6 +349,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded projection {} ({}):\n{}", oid, loadOptions, projection==null?null:projection.debugDump());
 		}
+		
 		return projection;
 	}
 
@@ -582,10 +592,10 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private ObjectDelta<F> getForceDeleteDelta(PrismObjectWrapper<F> focusWrapper) throws SchemaException {
 
-		List<ShadowWrapper<ShadowType>> accounts = getFocusShadows();
+		List<ShadowWrapper> accounts = getFocusShadows();
 		List<ReferenceDelta> refDeltas = new ArrayList<>();
 		ObjectDelta<F> forceDeleteDelta = null;
-		for (ShadowWrapper<ShadowType> account : accounts) {
+		for (ShadowWrapper account : accounts) {
 //			if (!accDto.isLoadedOK()) {
 //				continue;
 //			}
@@ -647,9 +657,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		return projectionsToAdd;
 	}
 
-	private <S extends ShadowType> List<S> prepareShadowObject(List<ShadowWrapper<S>> projections) throws SchemaException{
-		List<S> projectionsToAdd = new ArrayList<>();
-		for (ShadowWrapper<S> projection : projections) {
+	private List<ShadowType> prepareShadowObject(List<ShadowWrapper> projections) throws SchemaException{
+		List<ShadowType> projectionsToAdd = new ArrayList<>();
+		for (ShadowWrapper projection : projections) {
 //			if (!projection.isLoadedOK()) {
 //				continue;
 //			}
@@ -666,8 +676,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 
 //			ObjectWrapperOld<P> projectionWrapper = projection.getObjectOld();
-			ObjectDelta<S> delta = projection.getObjectDelta();
-			PrismObject<S> proj = delta.getObjectToAdd();
+			ObjectDelta<ShadowType> delta = projection.getObjectDelta();
+			PrismObject<ShadowType> proj = delta.getObjectToAdd();
 			WebComponentUtil.encryptCredentials(proj, true, getMidpointApplication());
 
 			projectionsToAdd.add(proj.asObjectable());
@@ -684,9 +694,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	private List<ObjectDelta<? extends ObjectType>> getShadowModifyDeltas(OperationResult result) {
 		List<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
 
-		List<ShadowWrapper<ShadowType>> accounts = getFocusShadows();
+		List<ShadowWrapper> accounts = getFocusShadows();
 		OperationResult subResult = null;
-		for (ShadowWrapper<ShadowType> account : accounts) {
+		for (ShadowWrapper account : accounts) {
 //			if (!account.isLoadedOK()) {
 //				continue;
 //			}
@@ -755,8 +765,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			throws SchemaException {
 		ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().create(refDef);
 
-		List<ShadowWrapper<ShadowType>> accounts = getFocusShadows();
-		for (ShadowWrapper<ShadowType> accountWrapper : accounts) {
+		List<ShadowWrapper> accounts = getFocusShadows();
+		for (ShadowWrapper accountWrapper : accounts) {
 //			if (accDto.isLoadedOK()) {
 //				ObjectWrapperOld accountWrapper = accDto.getObjectOld();
 				accountWrapper.revive(getPrismContext());

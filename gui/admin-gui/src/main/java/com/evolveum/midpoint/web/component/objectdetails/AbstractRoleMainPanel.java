@@ -87,7 +87,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
 	public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
-			LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel,
+			LoadableModel<List<ShadowWrapper>> projectionModel,
 			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
 	}
@@ -198,7 +198,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 		});
 
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"),
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"),
 				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
@@ -216,7 +216,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 		});
 		
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.governance"),
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"),
 				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
@@ -307,11 +307,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return isAllowed;
     }
 
-	
-//	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
-//		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-//	}
-
 	private String getInducementsCount(){
 			PrismObject<R> focus = getObjectModel().getObject().getObject();
 			List<AssignmentType> inducements = focus.asObjectable().getInducement();
@@ -321,31 +316,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			return Integer.toString(inducements.size());
 	}
 
-	private String getInducedEntitlementsCount(){
-			PrismObject<R> focus = getObjectModel().getObject().getObject();
-			List<AssignmentType> inducements = focus.asObjectable().getInducement();
-			if (inducements == null){
-				return "";
-			}
-			int count = 0;
-			//TODO the whole tab will be removed
-//			for (AssignmentType inducement : inducements){
-//				if (inducement.getConstruction() == null){
-//					continue;
-//				}
-//				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
-//					continue;
-//				}
-//				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
-//					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
-//							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
-//						count++;
-//						break;
-//					}
-//				}
-//			}
-			return Integer.toString(count);
-	}
 
 	//TODO what? why? when?
 	@Override

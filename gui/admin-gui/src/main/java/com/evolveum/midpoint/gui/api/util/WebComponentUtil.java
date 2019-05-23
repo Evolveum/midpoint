@@ -22,7 +22,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
-import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
@@ -45,55 +44,21 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.gui.api.SubscriptionType;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.model.api.util.ResourceUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskBinding;
-import com.evolveum.midpoint.util.*;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
-import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
-import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.apache.wicket.*;
+import org.apache.wicket.Application;
+import org.apache.wicket.Component;
+import org.apache.wicket.Localizer;
+import org.apache.wicket.MarkupContainer;
+import org.apache.wicket.Page;
+import org.apache.wicket.PageReference;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
@@ -107,10 +72,19 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -121,50 +95,125 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joda.time.format.DateTimeFormat;
 
+import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyHeaderPanel;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.util.ResourceUtils;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.LocalizableMessageList;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -174,6 +223,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -184,17 +234,93 @@ import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationDisplayFormatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericPcpAspectConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.google.common.base.Equivalence.Wrapper;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -2816,19 +2942,31 @@ public final class WebComponentUtil {
 	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
-																	 IModel<PrismContainerValueWrapper<ShadowType>> shadowModel) {
+																	 ShadowType shadowType) {
 		
-		PrismContainerValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
-		ShadowType shadowType = shadowWrapper.getRealValue();
-		
+//		PrismContainerValueWrapper<ShadowType> shadowWrapper = shadowModel.getObject();
+//		ShadowType shadowType = shadowWrapper.getRealValue();
+//		
 		ResourceType resource = shadowType.getResource();
+		
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return ItemVisibility.AUTO;
 		}
 		
+		CompositeRefinedObjectClassDefinition ocd = null;
+		
+		try {
+			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
+		}
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+		
+		
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource)) {
+			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2836,7 +2974,7 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource)) {
+			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2844,15 +2982,23 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource)) {
+			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
 			}
 		}
 		
-		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath()) || SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource)) {
+		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath())) {
+			if (ResourceTypeUtil.isActivationValidityFromCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
+		}
+		
+		if (SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
+			if (ResourceTypeUtil.isActivationValidityToCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2860,8 +3006,15 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(),
-					shadowType.getKind(), shadowType.getIntent()))) {
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+				return ItemVisibility.AUTO;
+			} else {
+				return ItemVisibility.HIDDEN;
+			}
+		}
+		
+		if (SchemaConstants.PATH_ASSOCIATION.equivalent(itemWrapper.getPath())) {
+			if (ocd != null && CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions())) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2870,6 +3023,14 @@ public final class WebComponentUtil {
 		
 		return ItemVisibility.AUTO;
 		
+	}
+	
+	private static boolean isCapabilityEnabled(CapabilityType cap) {
+		if (cap == null) {
+			return false;
+		}
+		
+		return BooleanUtils.isNotFalse(cap.isEnabled());
 	}
 
 	public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase){
