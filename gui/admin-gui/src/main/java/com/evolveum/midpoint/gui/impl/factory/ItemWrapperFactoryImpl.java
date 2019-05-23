@@ -23,9 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -47,6 +49,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	@Autowired private GuiComponentRegistryImpl registry; 
 	@Autowired private PrismContext prismContext;
+	@Autowired private ModelInteractionService modelInteractionService;
 	
 	@Override
 	public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
@@ -155,7 +158,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	}
 	
 	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
 		if (def.isOperational()) {
 			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
 			return true;
@@ -163,6 +166,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		
 		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
 			LOGGER.trace("Skipping creating wrapper for search filter.", def.getName());
+			return true;
+		}
+		
+		if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelInteractionService, wrapperContext.getTask(), wrapperContext.getResult())) {
 			return true;
 		}
 		

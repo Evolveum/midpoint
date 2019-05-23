@@ -755,6 +755,26 @@ public class WebModelServiceUtils {
 		
 	}
 	
+	public static boolean isEnableExperimentalFeature(ModelInteractionService modelInteractionService, Task task, OperationResult result) {
+		CompiledUserProfile adminGuiConfig = null;
+		try {
+			adminGuiConfig = modelInteractionService.getCompiledUserProfile(task, result);
+			result.recomputeStatus();
+			result.recordSuccessIfUnknown();
+		} catch (Exception e) {
+			LoggingUtils.logException(LOGGER, "Cannot load admin gui config", e);
+			result.recordPartialError("Cannot load admin gui config. Reason: " + e.getLocalizedMessage());
+			
+		}
+		
+		if (adminGuiConfig == null) {
+			return false;
+		}
+		
+		return BooleanUtils.isTrue(adminGuiConfig.isEnableExperimentalFeatures());
+		
+	}
+	
 	public static boolean isEnableExperimentalFeature(ModelServiceLocator pageBase) {
 		Task task = pageBase.createSimpleTask("Load admin gui config");
 		return isEnableExperimentalFeature(task, pageBase);

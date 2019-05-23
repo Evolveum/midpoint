@@ -104,6 +104,7 @@ public class PrismPropertyWrapperFactoryImpl<T> extends ItemWrapperFactoryImpl<P
 		PrismPropertyWrapper<T> propertyWrapper = new PrismPropertyWrapperImpl<>(parent, item, status);
 		PrismReferenceValue valueEnumerationRef = item.getDefinition().getValueEnumerationRef();
 		if (valueEnumerationRef != null) {
+			//TODO: task and result from context
 			Task task = taskManager.createTaskInstance(OPERATION_LOAD_LOOKUP_TABLE);
 			OperationResult result = new OperationResult(OPERATION_LOAD_LOOKUP_TABLE);
 			Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils
