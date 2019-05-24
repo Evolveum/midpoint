@@ -301,4 +301,8 @@ public class PolyStringLangType implements Serializable {
         	langIterator.remove();
         }
     }
+
+    public boolean isEmpty() {
+    	return lang.isEmpty();
+    }
 }
