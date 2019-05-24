@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
 
@@ -50,8 +51,9 @@ public class FunctionExpressionEvaluatorFactory extends AbstractObjectResolvable
 	private final Protector protector;
 	private final PrismContext prismContext;
 
-	public FunctionExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector, PrismContext prismContext) {
-		super(expressionFactory);
+	public FunctionExpressionEvaluatorFactory(ExpressionFactory expressionFactory, Protector protector, PrismContext prismContext,
+			CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.protector = protector;
 		this.prismContext = prismContext;
 	}

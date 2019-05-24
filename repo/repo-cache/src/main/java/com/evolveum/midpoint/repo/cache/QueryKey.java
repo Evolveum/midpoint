@@ -18,10 +18,7 @@ package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * @author Pavol Mederly
@@ -29,15 +26,11 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 public class QueryKey {
 
     private Class<? extends ObjectType> type;
-    private QueryType query;
+    private ObjectQuery query;
 
-    public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query, PrismContext prismContext) {
+    public <T extends ObjectType> QueryKey(Class<T> type, ObjectQuery query) {
         this.type = type;
-        try {
-            this.query = query != null ? prismContext.getQueryConverter().createQueryType(query) : null;
-        } catch (SchemaException e) {
-            throw new SystemException(e);
-        }
+        this.query = query;
     }
 
     @Override
@@ -62,5 +55,17 @@ public class QueryKey {
 
     public Class<? extends ObjectType> getType() {
         return type;
+    }
+
+    public ObjectQuery getQuery() {
+        return query;
+    }
+
+    @Override
+    public String toString() {
+        return "QueryKey{" +
+                "type=" + type +
+                ", query=" + query +
+                '}';
     }
 }

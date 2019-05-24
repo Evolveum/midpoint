@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -277,7 +278,7 @@ public class PolicyRuleProcessor {
 
 	private <AH extends AssignmentHolderType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<AH> context) {
 		return context.getSystemConfiguration() != null
-				? context.getSystemConfiguration().asObjectable().getGlobalPolicyRule()
+				? CloneUtil.clone(context.getSystemConfiguration().asObjectable().getGlobalPolicyRule())
 				: Collections.emptyList();
 	}
 
@@ -319,7 +320,7 @@ public class PolicyRuleProcessor {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
 				if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
+					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, prismContext));
 					globalRulesFound++;
 				} else {
 					LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
@@ -593,7 +594,7 @@ public class PolicyRuleProcessor {
 						LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
 						continue;
 					}
-					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone(), prismContext);
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), target.getAssignmentPath().clone(), prismContext);
 					boolean direct = target.isDirectlyAssigned();
 					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);

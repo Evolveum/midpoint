@@ -130,6 +130,7 @@
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg ref="protector"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -139,6 +140,7 @@
         <constructor-arg ref="protector"/>
         <constructor-arg ref="valuePolicyProcessor"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -147,6 +149,7 @@
         <constructor-arg ref="expressionFactory"/>
         <constructor-arg name="prismContext" ref="prismContext"/>
         <constructor-arg name="protector" ref="protector"/>
+        <constructor-arg ref="cacheConfigurationManager"/>
         <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
             
@@ -158,6 +161,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityContextManager"/>
+          <constructor-arg ref="cacheConfigurationManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
     
@@ -169,6 +173,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityContextManager"/>
+          <constructor-arg ref="cacheConfigurationManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -180,6 +185,7 @@
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
           <constructor-arg ref="securityContextManager"/>
+          <constructor-arg ref="cacheConfigurationManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
 
@@ -190,6 +196,7 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelController"/>
+          <constructor-arg ref="cacheConfigurationManager"/>
           <property name="objectResolver" ref="modelObjectResolver"/>
     </bean>
         

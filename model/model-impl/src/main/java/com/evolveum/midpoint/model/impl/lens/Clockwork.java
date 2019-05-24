@@ -33,7 +33,11 @@ import java.util.UUID;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -143,7 +147,7 @@ public class Clockwork {
 	@Autowired private Projector projector;
 	@Autowired private ContextLoader contextLoader;
 	@Autowired private ChangeExecutor changeExecutor;
-    @Autowired private AuditService auditService;
+    @Autowired private AuditHelper auditHelper;
     @Autowired private Clock clock;
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private transient ProvisioningService provisioningService;
@@ -160,7 +164,8 @@ public class Clockwork {
 	@Autowired private PolicyRuleScriptExecutor policyRuleScriptExecutor;
 	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
-	
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
 
@@ -188,8 +193,9 @@ public class Clockwork {
 			if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
 				context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 			}
-			FocusConstraintsChecker.enterCache();
+			FocusConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
 			enterAssociationSearchExpressionEvaluatorCache();
+			//enterDefaultSearchExpressionEvaluatorCache();
 			provisioningService.enterConstraintsCheckerCache();
 
 			while (context.getState() != ModelState.FINAL) {
@@ -218,6 +224,7 @@ public class Clockwork {
 		} finally {
 			context.unregisterConflictWatchers(repositoryService);
 			FocusConstraintsChecker.exitCache();
+			//exitDefaultSearchExpressionEvaluatorCache();
 			exitAssociationSearchExpressionEvaluatorCache();
 			provisioningService.exitConstraintsCheckerCache();
 			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
@@ -262,7 +269,7 @@ public class Clockwork {
 		} catch (PreconditionViolationException e) {
 			ModelImplUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
-			// We do not want to propagate PreconditionViolationException to model API as that might break compatiblity
+			// We do not want to propagate PreconditionViolationException to model API as that might break compatibility
 			// ... and we do not really need that in 3.6.1
 			// TODO: expose PreconditionViolationException in 3.7
 			throw new SystemException(e);
@@ -415,7 +422,8 @@ public class Clockwork {
 	}
 
 	private void enterAssociationSearchExpressionEvaluatorCache() {
-		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache();
+		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache(
+				cacheConfigurationManager.getConfiguration(CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE));
 		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
 		cache.setClientContextInformation(invalidator);
 		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
@@ -435,6 +443,14 @@ public class Clockwork {
 		}
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
 		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
+	}
+
+	private void enterDefaultSearchExpressionEvaluatorCache() {
+		//DefaultSearchExpressionEvaluatorCache.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_DEFAULT_SEARCH_EVALUATOR_CACHE));
+	}
+
+	private void exitDefaultSearchExpressionEvaluatorCache() {
+		//DefaultSearchExpressionEvaluatorCache.exitCache();
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -888,7 +904,7 @@ public class Clockwork {
 			String channel, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		OperationExecutionType operation = new OperationExecutionType(prismContext);
-		OperationResult summaryResult = new OperationResult("dummy");
+		OperationResult summaryResult = new OperationResult("recordOperationExecution");
 		String oid = object.getOid();
 		for (LensObjectDeltaOperation<F> deltaOperation : executedDeltas) {
 			operation.getOperation().add(createObjectDeltaOperation(deltaOperation));
@@ -1203,7 +1219,7 @@ public class Clockwork {
 
 		addRecordMessage(auditRecord, result);
 
-		auditService.audit(auditRecord, task);
+		auditHelper.audit(auditRecord, task);
 
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave

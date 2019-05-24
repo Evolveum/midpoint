@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 
 /**
  * This is NOT autowired evaluator. There is special need to manipulate objectResolver.
@@ -28,11 +29,14 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 public abstract class AbstractObjectResolvableExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
 	private final ExpressionFactory expressionFactory;
+	protected final CacheConfigurationManager cacheConfigurationManager;
 	private ObjectResolver objectResolver;
 
-	public AbstractObjectResolvableExpressionEvaluatorFactory(ExpressionFactory expressionFactory) {
+	public AbstractObjectResolvableExpressionEvaluatorFactory(ExpressionFactory expressionFactory,
+			CacheConfigurationManager cacheConfigurationManager) {
 		super();
 		this.expressionFactory = expressionFactory;
+		this.cacheConfigurationManager = cacheConfigurationManager;
 	}
 	
 	protected ExpressionFactory getExpressionFactory() {

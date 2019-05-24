@@ -124,7 +124,7 @@ public class CollectionProcessor {
 		assignmentPathSegment.setEvaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry));
 		assignmentPath.add(assignmentPathSegment);
 		
-		EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType, assignmentPath, prismContext);
+		EvaluatedPolicyRuleImpl evaluatedPolicyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), assignmentPath, prismContext);
 		
 		PolicyConstraintsType policyConstraints = policyRuleType.getPolicyConstraints();
 		if (policyConstraints == null) {

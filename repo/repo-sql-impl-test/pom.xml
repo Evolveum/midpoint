@@ -118,7 +118,6 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <dependency>

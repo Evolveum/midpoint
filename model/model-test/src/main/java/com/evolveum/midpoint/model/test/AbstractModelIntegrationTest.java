@@ -280,7 +280,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired protected DashboardService dashboardService;
 	@Autowired protected ModelAuditService modelAuditService;
 	@Autowired protected ModelPortType modelWeb;
-	@Autowired protected RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	protected RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("testSqlRepositoryServiceImpl")
+	protected RepositoryService plainRepositoryService;
+
 	@Autowired protected SystemObjectCache systemObjectCache;
 	@Autowired protected RelationRegistry relationRegistry;
 	@Autowired protected ProvisioningService provisioningService;
@@ -3094,11 +3100,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			try {
 				Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
 				OperationResult result = freshTask.getResult();
-				LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+				LOGGER.debug("Result of timed-out task:\n{}", result != null ? result.debugDump() : null);
 				assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
-			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Exception during task refresh: {}", e,e);
-			} catch (SchemaException e) {
+			} catch (ObjectNotFoundException | SchemaException e) {
 				LOGGER.error("Exception during task refresh: {}", e,e);
 			}
 		}

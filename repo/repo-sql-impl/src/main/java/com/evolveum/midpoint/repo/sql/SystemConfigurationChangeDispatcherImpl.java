@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -36,10 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,6 +57,7 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Collection<SystemConfigurationChangeListener> listeners = new HashSet<>();
 
@@ -107,6 +106,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 		applyFullTextSearchConfiguration(configuration);
 		applyRelationsConfiguration(configuration);
 		applyOperationResultHandlingConfiguration(configuration);
+		applyCachingConfiguration(configuration);
+		applyRepositoryConfiguration(configuration);
 
 		if (lastVersionApplied != null) {
 			LOGGER.trace("System configuration version {} applied successfully", lastVersionApplied);
@@ -186,6 +187,27 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 			SystemConfigurationTypeUtil.applyOperationResultHandling(configuration);
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply operation result handling configuration", t);
+			lastVersionApplied = null;
+		}
+	}
+
+	private void applyCachingConfiguration(SystemConfigurationType configuration) {
+		try {
+			cacheConfigurationManager.applyCachingConfiguration(configuration);
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply caching configuration", t);
+			lastVersionApplied = null;
+		}
+	}
+
+	private void applyRepositoryConfiguration(SystemConfigurationType configuration) {
+		try {
+			RepositoryStatisticsReportingConfigurationType statistics =
+					configuration.getInternals() != null && configuration.getInternals().getRepository() != null ?
+					configuration.getInternals().getRepository().getStatistics() : null;
+			repositoryService.getPerformanceMonitor().setConfiguration(statistics);
+		} catch (Throwable t) {
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply repository configuration", t);
 			lastVersionApplied = null;
 		}
 	}

@@ -22,6 +22,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.ItemImpl;
+import com.evolveum.midpoint.prism.util.PrismList;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -43,7 +44,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
  *
  * @author Radovan Semancik
  */
-public class AnyArrayList<C extends Containerable> extends AbstractList<Object> {
+public class AnyArrayList<C extends Containerable> extends AbstractList<Object> implements PrismList {
 
     private PrismContainerValue<C> containerValue;
 

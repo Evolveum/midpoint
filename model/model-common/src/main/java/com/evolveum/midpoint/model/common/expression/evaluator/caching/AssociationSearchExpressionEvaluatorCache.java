@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,8 +55,9 @@ public class AssociationSearchExpressionEvaluatorCache
     public static AbstractSearchExpressionEvaluatorCache getCache() {
         return cacheInstances.get();
     }
-    public static AssociationSearchExpressionEvaluatorCache enterCache() {
-        return enter(cacheInstances, AssociationSearchExpressionEvaluatorCache.class, LOGGER);
+
+    public static AssociationSearchExpressionEvaluatorCache enterCache(CacheConfiguration configuration) {
+        return enter(cacheInstances, AssociationSearchExpressionEvaluatorCache.class, configuration, LOGGER);
     }
 
     public static AssociationSearchExpressionEvaluatorCache exitCache() {

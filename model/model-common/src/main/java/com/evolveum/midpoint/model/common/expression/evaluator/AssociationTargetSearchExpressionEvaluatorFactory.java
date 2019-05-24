@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -53,8 +54,10 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
 	private final ModelService modelService;
     private final SecurityContextManager securityContextManager;
 
-	public AssociationTargetSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
-		super(expressionFactory);
+	public AssociationTargetSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
+			Protector protector, ModelService modelService, SecurityContextManager securityContextManager,
+			CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
@@ -98,7 +101,7 @@ public class AssociationTargetSearchExpressionEvaluatorFactory extends AbstractO
             throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssociationTargetSearchExpressionEvaluator evaluator = new AssociationTargetSearchExpressionEvaluator(ELEMENT_NAME, (SearchObjectExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService());
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService(), cacheConfigurationManager);
         return (ExpressionEvaluator<V,D>) evaluator;
 	}
 

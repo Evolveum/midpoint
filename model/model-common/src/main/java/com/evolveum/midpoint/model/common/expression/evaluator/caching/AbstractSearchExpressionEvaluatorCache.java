@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
@@ -46,7 +46,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Pavol Mederly
  */
-public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends AbstractCache {
+public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
+		AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
 
