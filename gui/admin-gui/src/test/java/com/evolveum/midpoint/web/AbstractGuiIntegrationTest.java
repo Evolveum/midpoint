@@ -121,6 +121,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	protected static final String ORG_KIDNAP_AND_MARRY_ELAINE_OID = "00000000-8888-6666-0000-200000000002";
 	
 	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
 	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();

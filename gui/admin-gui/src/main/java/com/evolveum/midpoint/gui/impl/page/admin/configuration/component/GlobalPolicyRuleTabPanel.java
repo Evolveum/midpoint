@@ -159,10 +159,9 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     }
     
     protected void newGlobalPolicuRuleClickPerformed(AjaxRequestTarget target) {
+    	//TODO maybe change to itemFactory.createContainerValue()???
         PrismContainerValue<GlobalPolicyRuleType> newObjectPolicy = getModelObject().getItem().createNewValue();
-        PrismContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject());
-//        newObjectPolicyWrapper.setShowEmpty(true, true);
-//        newObjectPolicyWrapper.computeStripes();
+        PrismContainerValueWrapper<GlobalPolicyRuleType> newObjectPolicyWrapper = getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, getModelObject(), target);
         getMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newObjectPolicyWrapper));
 	}
     
@@ -211,7 +210,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 				getMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
 
-			protected DisplayType getIconDisplayType(IModel<ContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<GlobalPolicyRuleType>> rowModel) {
 				return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(SystemConfigurationType.COMPLEX_TYPE));
 
 			}
@@ -221,17 +220,16 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 		
 		columns.add(linkColumn);
 		   
-        //TODO wrapper form wrapper model
         columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(), GlobalPolicyRuleType.F_POLICY_CONSTRAINTS, getPageBase()));
 		
         columns.add(new PrismContainerWrapperColumn<GlobalPolicyRuleType>(getModel(),GlobalPolicyRuleType.F_POLICY_ACTIONS, getPageBase()));
 		
-        //todo property from container model
-        
         columns.add(new PrismPropertyWrapperColumn<GlobalPolicyRuleType, String>(getModel(), GlobalPolicyRuleType.F_POLICY_SITUATION, ColumnType.STRING, getPageBase()));
 		
 		List<InlineMenuItem> menuActionsList = getMultivalueContainerListPanel().getDefaultMenuActions();
 		columns.add(new InlineMenuButtonColumn(menuActionsList, getPageBase()) {
+			
+			private static final long serialVersionUID = 1L;
 			
 			@Override
 			public String getCssClass() {

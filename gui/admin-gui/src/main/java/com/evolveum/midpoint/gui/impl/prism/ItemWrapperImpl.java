@@ -288,26 +288,33 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 
 
-	private <IW extends ItemWrapper> ItemStatus findObjectStatus() {
+	@Override
+	public <O extends ObjectType> ItemStatus findObjectStatus() {
 		if (parent == null) {
 			return status;
 		}
 		
-		IW parentWrapper = parent.getParent();
+		ItemWrapper parentWrapper = parent.getParent();
 		
-		return findObjectStatus(parentWrapper);
+		PrismObjectWrapper<O> objectWrapper = findObjectWrapper(parentWrapper);
+		if (objectWrapper == null) {
+			return status;
+		}
+		
+		return objectWrapper.getStatus();
 	}
 	
-	private <IW extends ItemWrapper> ItemStatus findObjectStatus(IW parent) {
+	@Override
+	public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper(ItemWrapper parent) {
 		if (parent != null) {
 			if (parent instanceof PrismObjectWrapper) {
-				return ((PrismObjectWrapper) parent).getStatus();
+				return (OW) parent;
 			}
 			if (parent.getParent() != null) {
-				return findObjectStatus(parent.getParent().getParent());
+				return findObjectWrapper(parent.getParent().getParent());
 			}
 		} 
-		return status;
+		return null;
 		
 	}
 	

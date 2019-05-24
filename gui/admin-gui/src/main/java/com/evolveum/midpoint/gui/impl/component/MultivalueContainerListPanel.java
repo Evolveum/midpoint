@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,9 +89,13 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String DOT_CLASS = MultivalueContainerListPanel.class.getName() + ".";
+	private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
+	
 	public static final String ID_ITEMS = "items";
 	private static final String ID_ITEMS_TABLE = "itemsTable";
 	public static final String ID_SEARCH_ITEM_PANEL = "search";
+	
 
 	private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
@@ -343,35 +349,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	}
 
 	private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-
-//		MultivalueContainerListDataProvider<C> provider = getDataProvider();
-
-//		ObjectQuery finalQuery = null;
-//
-//		ObjectQuery searchQuery = getQuery();
-//
-//		ObjectQuery customQuery = createQuery();
-//
-//		if (query != null && query.getFilter() != null) {
-//			if (customQuery != null && customQuery.getFilter() != null) {
-//				finalQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(customQuery.getFilter(), query.getFilter()));
-//			}
-//			finalQuery = query;
-//
-//		} else {
-//			finalQuery = customQuery;
-//		}
-//
-//		provider.setQuery(finalQuery);
-//		String storageKey = getStorageKey();
-//		if (StringUtils.isNotEmpty(storageKey)) {
-//			PageStorage storage = getPageStorage(storageKey);
-//			if (storage != null) {
-//				storage.setSearch(searchModel.getObject());
-//				storage.setPaging(null);
-//			}
-//		}
-//		
 		Table table = getItemTable();
 		table.setCurrentPage(null);
 		target.add((Component) table);
@@ -382,7 +359,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	private ObjectQuery getQuery() {
 		Search search = searchModel.getObject();
 		ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
-//		query = addFilterToContentQuery(query);
 		return query;
 	}
 	
@@ -481,18 +457,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	//TODO generalize for properites
 	public PrismContainerValueWrapper<C> createNewItemContainerValueWrapper(
 			PrismContainerValue<C> newItem,
-			PrismContainerWrapper<C> model) {
+			PrismContainerWrapper<C> model, AjaxRequestTarget target) {
 
-		WrapperContext context = new WrapperContext(null, null);
-		context.setCreateIfEmpty(true);
-		PrismValueWrapper<?,?> valueWrapper = null;
-		try {
-			valueWrapper = getPageBase().createValueWrapper(model, newItem, ValueStatus.ADDED, context);
-		} catch (SchemaException e) {
-			//TODO error handling
-		}
-		model.getValues().add((PrismContainerValueWrapper) valueWrapper);
-		return (PrismContainerValueWrapper<C>) valueWrapper;
+		return WebPrismUtil.createNewValueWrapper(model, newItem, getPageBase(), target);
+		
 	}
 	
 	public ColumnMenuAction<PrismContainerValueWrapper<C>> createDeleteColumnAction() {

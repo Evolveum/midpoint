@@ -32,12 +32,15 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,6 +57,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private static final long serialVersionUID = 1L;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ItemPanel.class);
+	
+	private static final String DOT_CLASS = ItemPanel.class.getName() + ".";
+	private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 	
 	private static final String ID_HEADER = "header";
 	private static final String ID_VALUES = "values";
@@ -91,41 +97,31 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	protected boolean getHeaderVisibility() {
 		return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
 	}
-	
-	 protected abstract Panel createHeaderPanel();
-	 
-	 protected ListView<VW> createValuesPanel() {
-		 
-		 ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) { 
-		 
+
+	protected abstract Panel createHeaderPanel();
+
+	protected ListView<VW> createValuesPanel() {
+
+		ListView<VW> values = new ListView<VW>(ID_VALUES, new PropertyModel<>(getModel(), "values")) {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<VW> item) {
-				 GuiComponentFactory componentFactory = getPageBase().getRegistry().findValuePanelFactory(ItemPanel.this.getModelObject());
-				 
-				 createValuePanel(item, componentFactory, visibilityHandler);
-				 createButtons(item);
-			}
-		 
-		 };
-		 
-//		        ListView<ValueWrapper<T>> values = new ListView<ValueWrapper<T>>(idComponent,
-//		            new PropertyModel<>(model, "values")) {
-//		        	private static final long serialVersionUID = 1L;
-//
-//		            @Override
-//		            protected void populateItem(final ListItem<ValueWrapper<T>> item) {
-//		            	
-//		        		
-//		        };
-//		        values.add(new AttributeModifier("class", getValuesClass()));
-		        values.setReuseItems(true);
-		        return values;
-		    }
-		    
-		    //VALUE REGION
+				GuiComponentFactory componentFactory = getPageBase().getRegistry()
+						.findValuePanelFactory(ItemPanel.this.getModelObject());
 
+				createValuePanel(item, componentFactory, visibilityHandler);
+				createButtons(item);
+			}
+
+		};
+
+		values.setReuseItems(true);
+		return values;
+	}
+
+	// VALUE REGION
 
 	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
 	 
@@ -208,22 +204,14 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	  
 	 private void addValue(AjaxRequestTarget target) {
 			IW propertyWrapper = getModel().getObject();
-			LOGGER.debug("Adding value of {}", propertyWrapper);
 			PrismPropertyValue<?> newValue = getPrismContext().itemFactory().createPropertyValue();
-			try {
-				propertyWrapper.getItem().add(newValue);
-				WrapperContext context = new WrapperContext(null, null);
-				VW newValueWrapper = getPageBase().createValueWrapper(propertyWrapper, newValue, ValueStatus.ADDED, context);
-				propertyWrapper.getValues().add(newValueWrapper);
-			} catch (SchemaException e) {
-				LOGGER.error("Cannot create new value for {}", propertyWrapper, e);
-				getSession().error("Cannot create new value for " + propertyWrapper + ". Reason: " + e.getMessage());
-				target.add(getPageBase().getFeedbackPanel());
-			}
+			
+			WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
+			
 			target.add(ItemPanel.this);
 		}
 		
-		private void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+		protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
 			LOGGER.debug("Removing value of {}", valueToRemove);
 			List<VW> values = getModelObject().getValues();
 			

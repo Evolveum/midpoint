@@ -115,3 +115,6 @@
 .fe-handy:before {
   content: "\e91d";
 }
+.fe-case-object:before {
+  content: "\e91a";
+}
