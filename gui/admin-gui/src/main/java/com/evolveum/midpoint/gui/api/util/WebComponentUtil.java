@@ -1,5 +1,4 @@
 /*
-
  * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -393,7 +392,7 @@ public final class WebComponentUtil {
 		storageTableIdMap.put(TableId.SERVICE_MEMEBER_PANEL, SessionStorage.KEY_SERVICE_MEMEBER_PANEL);
 
 	}
-	
+
 	private static final Map<String, LoggingComponentType> componentMap = new HashMap<>();
 
 	static {
@@ -946,7 +945,7 @@ public final class WebComponentUtil {
 		 if (FocusType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
     		 return createFocusTypeList();
     	 } 
-		 
+
 		 if (AssignmentHolderType.COMPLEX_TYPE.equals(targetTypeFromDef)) {
 			 return createAssignmentHolderTypeQnamesList();
 		 }
@@ -2163,7 +2162,7 @@ public final class WebComponentUtil {
 	public static String createTaskIcon(PrismObject<TaskType> object) {
 		return GuiStyleConstants.CLASS_OBJECT_TASK_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
 	}
-	
+
 	public static String createShadowIcon(PrismContainerValue<ShadowType> prismContainerValue) {
 		return createShadowIcon(((ShadowType)prismContainerValue.getRealValue()).asPrismContainer());
 	}
@@ -2284,7 +2283,7 @@ public final class WebComponentUtil {
 //		return cpuUsage;
 	}
 
-	
+
 	public static double getMaxRam() {
 		int MB = 1024 * 1024;
 
@@ -2905,16 +2904,16 @@ public final class WebComponentUtil {
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
 																	 ShadowType shadowType) {
-//		
+//
 		ResourceType resource = shadowType.getResource();
-		
+
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return ItemVisibility.AUTO;
 		}
 		
 		CompositeRefinedObjectClassDefinition ocd = null;
-		
+
 		try {
 			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
 			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
@@ -2922,8 +2921,8 @@ public final class WebComponentUtil {
 			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
 		}
 		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
-		
-		
+
+
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
 			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
@@ -2955,7 +2954,7 @@ public final class WebComponentUtil {
 				return ItemVisibility.HIDDEN;
 			}
 		}
-		
+
 		if (SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
 			if (ResourceTypeUtil.isActivationValidityToCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
@@ -2981,38 +2980,38 @@ public final class WebComponentUtil {
 		}
 		
 		return ItemVisibility.AUTO;
-		
+
 	}
-	
+
 	public static boolean isAssociationSupported(ShadowType shadowType) {
 		ResourceType resource = shadowType.getResource();
-		
+
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return false;
 		}
-		
+
 		CompositeRefinedObjectClassDefinition ocd = null;
-		
+
 		try {
 			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
 			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
 		}
-		
+
 		if (ocd == null) {
 			return false;
 		}
-		
+
 		return CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions());
 	}
-	
+
 	private static boolean isCapabilityEnabled(CapabilityType cap) {
 		if (cap == null) {
 			return false;
 		}
-		
+
 		return BooleanUtils.isNotFalse(cap.isEnabled());
 	}
 
@@ -3145,11 +3144,11 @@ public final class WebComponentUtil {
 	public static LookupTableType createAppenderChoices(PageBase pageBase, Task task, OperationResult result) {
         return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(pageBase, task, result).getRealValue().getLogging().getAppender());
 	}
-	
+
 	private static LookupTableType createAppenderChoices(List<AppenderConfigurationType> appenders) {
 		LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
-         
+
         for (AppenderConfigurationType appender : appenders) {
         		LookupTableRowType row = new LookupTableRowType();
         		String name = appender.getName();
@@ -3160,13 +3159,13 @@ public final class WebComponentUtil {
         }
         return lookupTable;
 	}
-	
+
 	public static LookupTableType createLoggerPackageChoices(PageBase pageBase) {
 		LookupTableType lookupTable = new LookupTableType();
         List<LookupTableRowType> list = lookupTable.createRowList();
         IModel<List<StandardLoggerType>> standardLoggers = WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class);
     	IModel<List<LoggingComponentType>> componentLoggers = WebComponentUtil.createReadonlyModelFromEnum(LoggingComponentType.class);
-    	
+
     	for(StandardLoggerType standardLogger : standardLoggers.getObject()) {
     		LookupTableRowType row = new LookupTableRowType();
     		row.setKey(standardLogger.getValue());
@@ -3319,7 +3318,7 @@ public final class WebComponentUtil {
 		
 		return duration;
 	}
-	
+
 //	@Deprecated
 //	public static <IW extends ItemWrapperOld> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
 //        return new IModel<String>() {
@@ -3337,8 +3336,8 @@ public final class WebComponentUtil {
 //            }
 //        };
 //    }
-//	
-	
+//
+
 //	public static <IW extends ItemWrapper<V, I, ID>> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
 //        return new IModel<String>() {
 //        	private static final long serialVersionUID = 1L;
@@ -3433,7 +3432,7 @@ public final class WebComponentUtil {
 			pageBase.getSession().error("Cannot find association wrapper, reason: " + e.getMessage());
 			return null;
 		}
-		
+
 		if (association == null || association.getValues() == null || association.getValues().size() == 0){
 			return null;
 		}
@@ -3927,12 +3926,12 @@ public final class WebComponentUtil {
 		return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ?
 				deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
 	}
-    
+
     public static IModel<String> getResourceLabelModel(ShadowType shadow, PageBase pageBase){
     	return pageBase.createStringResource("DisplayNamePanel.resource",
 				WebComponentUtil.getReferencedObjectDisplayNamesAndNames(shadow.getResourceRef(), false));
     }
-    
+
     public static IModel<String> getResourceAttributesLabelModel(ShadowType shadow, PageBase pageBase){
     	StringBuilder sb = new StringBuilder();
 		if(shadow != null) {
@@ -3943,12 +3942,12 @@ public final class WebComponentUtil {
 				sb.append(", ");
 				sb.append(pageBase.createStringResource("DisplayNamePanel.kind", shadow.getKind().name()).getString());
 			}
-			
+
 			if(!StringUtils.isBlank(shadow.getIntent())) {
 				sb.append(", ");
 				sb.append(pageBase.createStringResource("DisplayNamePanel.intent", shadow.getIntent()).getString());
 			}
-			
+
 			if(!StringUtils.isBlank(shadow.getTag())) {
 				sb.append(", ");
 				sb.append(pageBase.createStringResource("DisplayNamePanel.tag", shadow.getTag()).getString());
@@ -3957,4 +3956,13 @@ public final class WebComponentUtil {
 		}
 		return Model.of("");
     }
+
+
+    public static String getObjectListPageStorageKey(String additionalKeyValue){
+        if (StringUtils.isEmpty(additionalKeyValue)){
+            return SessionStorage.KEY_OBJECT_LIST;
+        }
+        return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
+    }
+
 }

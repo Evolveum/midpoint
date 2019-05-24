@@ -171,8 +171,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             @Override
             protected String getStorageKey() {
                 StringValue collectionName = getCollectionNameParameterValue();
-                String key = isCollectionViewPage() ?
-                        SessionStorage.KEY_OBJECT_LIST + "." + collectionName : SessionStorage.KEY_OBJECT_LIST + "." + getType().getSimpleName();
+                String collectionNameValue = collectionName != null ? collectionName.toString() : "";
+                String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
+                        WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
                 return key;
             }
         };
