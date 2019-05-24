@@ -46,7 +46,7 @@ public class WrapperContext {
 	
 	public WrapperContext(Task task, OperationResult result) {
 		this.task = task;
-		this.result = result;
+		this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
 	}
 	
 	public AuthorizationPhaseType getAuthzPhase() {

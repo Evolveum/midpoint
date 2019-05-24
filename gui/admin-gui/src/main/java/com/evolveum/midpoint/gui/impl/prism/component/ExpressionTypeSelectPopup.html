@@ -17,11 +17,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-md-2 col-xs-12 prism-property-label " wicket:id="header"/>
-    <div class="row">
-        <div class="col-md-12 col-xs-12 prism-property-value" wicket:id="values">
-            <div wicket:id="expressionPanel"/>
+    <div style="padding-left: 10px; padding-right: 5px;">
+        <div class="row">
+            <input class="col-md-2" type="checkbox" wicket:id="shadowRefCheckBox"/>
+            <div class="col-md-10"><wicket:message key="ExpressionTypeSelectPopup.shadowRefLabel" /></div>
         </div>
+        <div class="row">
+            <input class="col-md-2" type="checkbox" wicket:id="associationTargetSearchCheckBox"/>
+            <div class="col-md-10"><wicket:message key="ExpressionTypeSelectPopup.associationTargetSearchExpressionLabel" /></div>
+        </div>
+
+        <a class="btn btn-primary pull-right" wicket:id="addButton"/>
     </div>
 </wicket:panel>
 </html>

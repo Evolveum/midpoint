@@ -211,7 +211,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 			target.add(ItemPanel.this);
 		}
 		
-		private void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
+		protected void removeValue(VW valueToRemove, AjaxRequestTarget target) throws SchemaException {
 			LOGGER.debug("Removing value of {}", valueToRemove);
 			List<VW> values = getModelObject().getValues();
 			
