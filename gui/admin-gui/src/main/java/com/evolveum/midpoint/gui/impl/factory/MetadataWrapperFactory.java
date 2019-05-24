@@ -67,7 +67,7 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
 	}
 	
 	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
 		return false;
 	}
 	

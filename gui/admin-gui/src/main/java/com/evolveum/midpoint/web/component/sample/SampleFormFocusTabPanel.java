@@ -73,9 +73,9 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
-    public SampleFormFocusTabPanel(String id, Form mainForm,
+    public SampleFormFocusTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<ShadowWrapper<ShadowType>>> projectionModel) {
+                                   LoadableModel<List<ShadowWrapper>> projectionModel) {
         super(id, mainForm, focusWrapperModel);
 
     }
@@ -108,8 +108,6 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractObject
         }
 
         PrismContainerWrapperModel<F, AssignmentType> assignmentsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
-//        PrismContainerWrapper<AssignmentType> assignmentsContainerWrapper = getObjectWrapper().findContainer(FocusType.F_ASSIGNMENT);
-
         add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
     }
 

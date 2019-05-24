@@ -21,5 +21,5 @@ package com.evolveum.midpoint.web.component.prism;
  */
 public enum ValueStatus {
 
-    ADDED, DELETED, NOT_CHANGED;
+    ADDED, DELETED, MODIFIED, NOT_CHANGED;
 }

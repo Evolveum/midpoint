@@ -60,9 +60,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.StatePolicyConstrain
  *
  */
 @Component
-public class PolicyConstraintPresentationTypeFactory<C extends Containerable> implements PrismContainerWrapperFactory<C> {
+public class HeterogenousContainerWrapperFactory<C extends Containerable> implements PrismContainerWrapperFactory<C> {
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PolicyConstraintPresentationTypeFactory.class); 
+	private static final transient Trace LOGGER = TraceManager.getTrace(HeterogenousContainerWrapperFactory.class); 
 	
 	@Autowired private GuiComponentRegistry registry; 
 	
@@ -93,8 +93,25 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 			PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
+		containerValueWrapper.setHeterogenous(true);
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
+		
+		for (ItemDefinition<?> def : value.getDefinition().getDefinitions()) {
+			
+			Item<?,?> childItem = value.findItem(def.getName());
+			
+			if (childItem == null && def instanceof PrismContainerDefinition) {
+				LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");
+				continue;
+			}
+			
+			ItemWrapperFactory<?,?,?> factory = registry.findWrapperFactory(def);
+			
+			ItemWrapper<?, ?, ?, ?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
+			wrappers.add(wrapper);
+		}
+		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		return containerValueWrapper;
 	}
@@ -103,6 +120,12 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 		List<PrismContainerValueWrapper<C>> pvWrappers = new ArrayList<>();
 		
 //		PrismContainerDefinition<C> definition = item.getDefinition();
+		
+		if (item.getValues() == null || item.getValues().isEmpty()) {
+			PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, item.createNewValue(), ValueStatus.ADDED, context);
+			pvWrappers.add(valueWrapper);
+			return pvWrappers;
+		}
 		
 		for (PrismContainerValue<C> pcv : item.getValues()) {
 			PrismContainerValueWrapper<C> valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
@@ -113,14 +136,44 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 	
 	}
 
+	/**
+	 * 
+	 * match single value containers which contains a looot of other conainers, e.g. policy rule, policy action, notification configuration, etc
+	 */
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		QName defName = def.getTypeName();
-		return PolicyConstraintPresentationType.COMPLEX_TYPE.equals(defName) 
-				|| StatePolicyConstraintType.COMPLEX_TYPE.equals(defName)
-				|| HasAssignmentPolicyConstraintType.COMPLEX_TYPE.equals(defName)
-				|| ExclusionPolicyConstraintType.COMPLEX_TYPE.equals(defName)
-				|| PolicyConstraintsType.COMPLEX_TYPE.equals(defName);
+		
+		if (!(def instanceof PrismContainerDefinition)) {
+			return false;
+		}
+		
+		PrismContainerDefinition<?> containerDef = (PrismContainerDefinition<?>) def;
+		
+		if (containerDef.isMultiValue()) {
+			return false;
+		}
+		
+		List<? extends ItemDefinition> defs = containerDef.getDefinitions();
+		int containers = 0;
+		for (ItemDefinition<?> itemDef : defs) {
+			if (itemDef instanceof PrismContainerDefinition<?> && itemDef.isMultiValue()) {			
+				containers++;
+			}
+		}
+		
+		if (containers > 2) {
+			return true;
+		}
+		
+		return false;
+		
+//		if (def.isSingleValue() && )
+//		return PolicyConstraintPresentationType.COMPLEX_TYPE.equals(defName) 
+//				|| StatePolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//				|| HasAssignmentPolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//				|| ExclusionPolicyConstraintType.COMPLEX_TYPE.equals(defName)
+//				|| PolicyConstraintsType.COMPLEX_TYPE.equals(defName);
 	}
 
 	@Override
@@ -131,7 +184,7 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 
 	@Override
 	public int getOrder() {
-		return 10;
+		return 110;
 	}
 
 	@Override
@@ -149,7 +202,7 @@ public class PolicyConstraintPresentationTypeFactory<C extends Containerable> im
 	}
 	
 	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def) {
+	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
 		return false;
 	}
 

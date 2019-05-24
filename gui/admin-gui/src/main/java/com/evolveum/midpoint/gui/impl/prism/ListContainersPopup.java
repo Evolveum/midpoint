@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 
 /**
  * @author katka
@@ -64,7 +66,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 	
 	private void initLayout() {
 		
-		IModel<List<ContainersPopupDto>> popupModel = new LoadableModel<List<ContainersPopupDto>>() {
+		IModel<List<ContainersPopupDto>> popupModel = new LoadableModel<List<ContainersPopupDto>>(false) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -93,7 +95,15 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 					};
 					
 				};
-				checkFormGroup.getCheck().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+//				checkFormGroup.getCheck().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+				checkFormGroup.getCheck().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+//				checkFormGroup.getCheck().add(new OnChangeAjaxBehavior() {
+//					
+//					@Override
+//					protected void onUpdate(AjaxRequestTarget target) {
+//						item.getModelObject().setSelected(!item.getModelObject().isSelected());
+//					}
+//				});
 				checkFormGroup.add(AttributeAppender.append("class", " checkbox-without-margin-bottom "));
 				checkFormGroup.setOutputMarkupId(true);
 				item.add(checkFormGroup);
@@ -106,7 +116,8 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 			
 			
 		};
-		
+		listView.setOutputMarkupId(true);
+		listView.setReuseItems(true);
 		add(listView);
 		
 		
@@ -122,11 +133,12 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 					if (child.isSelected()) {
 						selected.add(child.getDef());
 					}
-					processSelectedChildren(target, selected);
+					
 				});
-				
+				processSelectedChildren(target, selected);
 			}
 		};
+		select.setOutputMarkupId(true);
 		add(select);
 	}
 	

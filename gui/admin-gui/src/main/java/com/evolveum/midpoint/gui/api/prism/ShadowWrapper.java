@@ -22,10 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author skublik
  *
  */
-public interface ShadowWrapper<S extends ShadowType> extends PrismObjectWrapper<S> {
+public interface ShadowWrapper extends PrismObjectWrapper<ShadowType> {
 
 	UserDtoStatus getProjectionStatus();
 	void setProjectionStatus(UserDtoStatus status);
 	boolean isLoadWithNoFetch();
 	void setLoadWithNoFetch(boolean noFetch);
+	
+	
+	boolean isProtected();
 }

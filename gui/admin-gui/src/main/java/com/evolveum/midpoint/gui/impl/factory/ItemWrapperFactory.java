@@ -36,6 +36,6 @@ public interface ItemWrapperFactory<IW extends ItemWrapper, VW extends PrismValu
 	IW createWrapper(Item childContainer, ItemStatus status, WrapperContext context) throws SchemaException;
 	VW createValueWrapper(IW parent, PV value, ValueStatus status, WrapperContext context) throws SchemaException;
 	
-	boolean skipCreateWrapper(ItemDefinition<?> def);
+	boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext);
 
 }

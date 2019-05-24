@@ -51,4 +51,8 @@ public class ContainersPopupDto implements Serializable {
 		return selected;
 	}
 	
+	public void setSelected(boolean selected) {
+		this.selected = selected;
+	}
+	
 }

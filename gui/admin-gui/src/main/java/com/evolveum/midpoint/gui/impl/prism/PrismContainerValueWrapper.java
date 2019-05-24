@@ -56,7 +56,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	ValueStatus getStatus();
 	void setStatus(ValueStatus status);
 	
-	List<PrismContainerWrapper<C>> getContainers();
+	<T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
 	
 	List<? extends ItemWrapper<?,?,?,?>> getNonContainers();
 	
@@ -90,5 +90,8 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	
 	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 	PrismContainerValue<C> getValueToAdd() throws SchemaException;
+	
+	boolean isHeterogenous();
+	void setHeterogenous(boolean heterogenous);
 	
 }

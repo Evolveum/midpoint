@@ -70,7 +70,10 @@ public class MainPopupDialog extends ModalWindow {
         });
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
+        content.setOutputMarkupId(true);
         setContent(content);
+        
+        setOutputMarkupId(true);
     }
 
     @Override
@@ -87,6 +90,7 @@ public class MainPopupDialog extends ModalWindow {
 
     private void setBody(Component component){
     	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+    	component.setOutputMarkupId(true);
     	content.addOrReplace(component);
     }
 
