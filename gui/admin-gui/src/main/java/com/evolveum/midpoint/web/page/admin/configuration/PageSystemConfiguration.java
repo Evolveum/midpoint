@@ -90,6 +90,9 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 	public static final String SELECTED_SERVER_INDEX = "mailServerIndex";
 	public static final String SERVER_LIST_SIZE = "mailServerListSize";
 
+	private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
+	private static final String OPERATION_LOAD_SYSTEM_CONFIG = DOT_CLASS + "load";
+	
 	public static final int CONFIGURATION_TAB_BASIC = 0;
 	public static final int CONFIGURATION_TAB_OBJECT_POLICY = 1;
 	public static final int CONFIGURATION_TAB_GLOBAL_POLICY_RULE = 2;
@@ -132,7 +135,9 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 	
 	@Override
 	protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
-		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(this).getObject(), false, isReadonly);
+		Task task = createSimpleTask(OPERATION_LOAD_SYSTEM_CONFIG);
+		OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIG);
+		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(this, task, result), false, isReadonly);
     }
 	
 	private List<ITab> getTabs(){

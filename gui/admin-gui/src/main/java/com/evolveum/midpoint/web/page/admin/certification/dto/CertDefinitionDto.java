@@ -416,9 +416,10 @@ public class CertDefinitionDto implements Serializable {
 			}
 			reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
             reviewerObject.getDefaultReviewerRef().clear();
-            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
-            reviewerObject.getAdditionalReviewerRef().clear();
-            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
+            //TODO TODO TODO
+//            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
+//            reviewerObject.getAdditionalReviewerRef().clear();
+//            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
         }
         return reviewerObject;
     }

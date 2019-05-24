@@ -1,5 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2017 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,14 +14,13 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:panel>
-    <div wicket:id="displayName"/>
-    <div wicket:id="specificContainers" />
-    <div class="container-fluid prism-object" wicket:id="basicAssignmentPanel" />
-    <div class="container-fluid prism-object" wicket:id="activationPanel" />
- </wicket:panel>
-</body>
-</html>
+
+<user oid="50053534-36dc-11e6-86f7-035182a6f689"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name>empty</name>
+    <linkRef oid="0c22d5a3-d3da-4ccd-a0bd-16357876aebb" type="c:ShadowType"/>
+</user>

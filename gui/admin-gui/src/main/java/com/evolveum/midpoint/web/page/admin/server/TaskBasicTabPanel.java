@@ -15,22 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
-import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerPanelFactory;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,9 +33,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+import com.evolveum.midpoint.web.page.admin.server.handlers.HandlerPanelFactory;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author semancik

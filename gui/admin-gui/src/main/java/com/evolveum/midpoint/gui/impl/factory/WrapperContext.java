@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -37,6 +38,7 @@ public class WrapperContext {
 	private boolean showEmpty;
 	private boolean forceCreate;
 	
+	private ItemStatus objectStatus;
 	
 	//Shadow related attributes
 	private ResourceType resource;
@@ -113,5 +115,14 @@ public class WrapperContext {
 	
 	public void setForceCreate(boolean forceCreate) {
 		this.forceCreate = forceCreate;
+	}
+	
+	
+	public ItemStatus getObjectStatus() {
+		return objectStatus;
+	}
+	
+	public void setObjectStatus(ItemStatus objectStatus) {
+		this.objectStatus = objectStatus;
 	}
 }

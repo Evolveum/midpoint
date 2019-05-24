@@ -15,48 +15,45 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.ContainerWrapperOnlyForHeaderModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.ExpressionUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Created by honchar.
@@ -99,52 +96,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
         List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
         
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_KIND), ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismPropertyColumn<AssignmentType>(
-//        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
-//        		ConstructionType.F_KIND, getPageBase()) {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-//						item.add(new Label(componentId, getKindLabelModel(rowModel.getObject())));
-//					}
-//        });
 
         columns.add(new PrismPropertyWrapperColumn<AssignmentType, String>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_INTENT), ColumnType.STRING, getPageBase()));
-//        columns.add(new PrismPropertyColumn<AssignmentType>(
-//        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
-//        		ConstructionType.F_INTENT, getPageBase()) {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-//                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-//						item.add(new Label(componentId, getIntentLabelModel(rowModel.getObject())));
-//					}
-//        });
         
         columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
-        
-//        columns.add(new AbstractItemWrapperColumn<AssignmentType>(
-//        		new ContainerWrapperOnlyForHeaderModel(getModel(), AssignmentType.F_CONSTRUCTION,getPageBase()),
-//        		ConstructionType.F_ASSOCIATION, getPageBase()) {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-//                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-//						String assocLabel = getAssociationLabel(rowModel.getObject());
-//						//in case when association label contains "-" symbol, break-all words property will
-//						//wrap the label text incorrectly. In order to avoid this, we add additional style
-//						if (assocLabel != null && assocLabel.contains("-")){
-//							item.add(AttributeModifier.append("style", "white-space: pre-line"));
-//						}
-//						item.add(new Label(componentId, Model.of(assocLabel)));
-//					}
-//        });
-        
-        
-        
+                
         columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("InducedEntitlements.value")){
             private static final long serialVersionUID = 1L;
 
@@ -223,7 +179,9 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     @Override
     protected void addCustomSpecificContainers(Fragment specificContainers,
     		IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-    	specificContainers.add(getConstructionAssociationPanel(modelObject));
+    	
+    	//TODO TODO TODO see comment in getConstructionAssociationPanel
+//    	specificContainers.add(getConstructionAssociationPanel(modelObject));
     	specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
    
     }
@@ -242,43 +200,17 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     	return panel;
     }
     
-    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
-//    	PrismContainerWrapper<ConstructionType> constructionContainer = modelObject.findContainer(modelObject.getPath().append((AssignmentType.F_CONSTRUCTION)));
-        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
-        constructionDetailsPanel.setOutputMarkupId(true);
-        return constructionDetailsPanel;
-    }
+//    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+//    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
+    	//TODO TODO TODO implement after constructionAssociationPanel refactored
+//        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
+//        constructionDetailsPanel.setOutputMarkupId(true);
+//        return constructionDetailsPanel;
+//    }
 
     protected List<ObjectTypes> getObjectTypesList(){
         return Arrays.asList(ObjectTypes.RESOURCE);
     }
-
-//    private IModel<String> getKindLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
-//        if (assignmentWrapper == null){
-//            return Model.of("");
-//        }
-//        AssignmentType assignment = new ItemRealValueModel<AssignmentType>(assignmentWrapper).getObject();
-//        ConstructionType construction = assignment.getConstruction();
-//        if (construction == null || construction.getKind() == null){
-//            return Model.of("");
-//        }
-//        return WebComponentUtil.createLocalizedModelForEnum(construction.getKind(), InducedEntitlementsPanel.this);
-//
-//    }
-//
-//    private IModel<String> getIntentLabelModel(ContainerValueWrapper<AssignmentType> assignmentWrapper){
-//        if (assignmentWrapper == null){
-//            return Model.of("");
-//        }
-//        AssignmentType assignment = new ItemRealValueModel<AssignmentType>(assignmentWrapper).getObject();
-//        ConstructionType construction = assignment.getConstruction();
-//        if (construction == null || construction.getIntent() == null){
-//            return Model.of("");
-//        }
-//        return Model.of(construction.getIntent());
-//
-//    }
 
     @Override
     protected boolean isEntitlementAssignment(){

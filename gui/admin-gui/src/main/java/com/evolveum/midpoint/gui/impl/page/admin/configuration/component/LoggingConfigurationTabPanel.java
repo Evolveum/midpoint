@@ -23,8 +23,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,24 +42,16 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditableLinkPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.EditablePrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.LinkPrismPropertyColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.model.PropertyOrReferenceWrapperFromContainerModel;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -75,18 +65,12 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -94,9 +78,9 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
@@ -167,7 +151,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
 				PrismContainerValue<ClassLoggerConfigurationType> newLogger = loggerModel.getObject().getItem().createNewValue();
-		        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject());
+		        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject(), target);
 		        loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
 			}
 			
@@ -396,7 +380,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     	newObjectPolicy.setParent(appenders.getModelObject().getItem());
     	newObjectPolicy.setPrismContext(getPageBase().getPrismContext());
     	
-    	PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject());
+    	PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject(), target);
         getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAppenderContainerWrapper));
 	}
     

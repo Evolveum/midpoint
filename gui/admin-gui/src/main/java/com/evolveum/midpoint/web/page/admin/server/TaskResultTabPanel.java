@@ -15,22 +15,12 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.component.result.OpResult;
-import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -45,11 +35,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author semancik

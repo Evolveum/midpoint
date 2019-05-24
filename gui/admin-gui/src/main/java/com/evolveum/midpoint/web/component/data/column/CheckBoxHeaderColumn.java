@@ -16,15 +16,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.SelectableDataTable;
-import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serializable;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -36,8 +29,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.visit.IVisit;
 import org.apache.wicket.util.visit.IVisitor;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.TableHeadersToolbar;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
@@ -113,9 +112,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             if (object instanceof Selectable) {
                 Selectable selectable = (Selectable) object;
                 selectable.setSelected(selected);
-            } else if (object instanceof ContainerValueWrapper){
-                ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
-                valueWrapper.setSelected(selected);
             } else if (object instanceof PrismContainerValueWrapper){
             	PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
                 valueWrapper.setSelected(selected);
@@ -155,8 +151,8 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         if (object instanceof Selectable) {
             Selectable selectable = (Selectable) object;
             return selectable.isSelected();
-        } else if (object instanceof ContainerValueWrapper){
-            ContainerValueWrapper valueWrapper = (ContainerValueWrapper) object;
+        } else if (object instanceof PrismContainerValueWrapper){
+        	PrismContainerValueWrapper valueWrapper = (PrismContainerValueWrapper) object;
             return valueWrapper.isSelected();
         }
         return false;

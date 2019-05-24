@@ -16,15 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.prism.HeaderStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import java.io.Serializable;
 
 import org.apache.commons.lang.Validate;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
@@ -32,7 +30,6 @@ import java.io.Serializable;
 public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-	private ObjectWrapperOld<O> objectOld;
 	private PrismObjectWrapper<O> object;
     private UserDtoStatus status;
 
@@ -40,10 +37,6 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
     private String description;
     private OperationResult result;
 
-    public FocusSubwrapperDto(ObjectWrapperOld<O> objectOld, UserDtoStatus status) {
-        setObjectOld(objectOld);
-        setStatus(status);
-    }
     
     public FocusSubwrapperDto(PrismObjectWrapper<O> object, UserDtoStatus status) {
         setObject(object);
@@ -84,15 +77,6 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
 		this.object = object;
 	}
 
-    public ObjectWrapperOld<O> getObjectOld() {
-        return objectOld;
-    }
-
-    public void setObjectOld(ObjectWrapperOld<O> object) {
-        Validate.notNull(object, "Object wrapper must not be null.");
-        this.objectOld = object;
-    }
-
     public UserDtoStatus getStatus() {
         return status;
     }
@@ -100,19 +84,5 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
     public void setStatus(UserDtoStatus status) {
         Validate.notNull(status, "Status must not be null.");
         this.status = status;
-
-//        switch (status) {
-//            case DELETE:
-//                objectOld.setHeaderStatus(HeaderStatus.DELETED);
-//                break;
-//            case UNLINK:
-//                objectOld.setHeaderStatus(HeaderStatus.UNLINKED);
-//                break;
-//            case ADD:
-//                objectOld.setHeaderStatus(HeaderStatus.ADDED);
-//                break;
-//            default:
-//                objectOld.setHeaderStatus(HeaderStatus.NORMAL);
-//        }
     }
 }

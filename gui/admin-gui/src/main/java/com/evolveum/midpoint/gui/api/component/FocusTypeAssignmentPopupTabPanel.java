@@ -15,11 +15,19 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
+
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -34,12 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Fragment;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Created by honchar

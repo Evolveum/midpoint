@@ -50,19 +50,16 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.EditableColumn;
 import com.evolveum.midpoint.gui.impl.component.form.TriStateFormGroup;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
@@ -72,7 +69,6 @@ import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -80,10 +76,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.objectdetails.FocusMainPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
@@ -106,6 +100,9 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 	private static final long serialVersionUID = 1L;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(NotificationConfigTabPanel.class);
+	
+	private static final String DOT_CLASS = NotificationConfigTabPanel.class.getName() + ".";
+	private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
 	private static final String ID_MAIL_CONFIG_HEADER = "mailConfigurationHeader";
 	private static final String ID_DEFAULT_FROM = "defaultFrom";
@@ -147,22 +144,8 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 	protected void initLayout() {
 		
 		PrismPropertyWrapperModel<NotificationConfigurationType, MailConfigurationType> mailConfig = PrismPropertyWrapperModel.fromContainerWrapper(getModel(), NotificationConfigurationType.F_MAIL);
-//		IModel<PrismPropertyWrapper<MailConfigurationType>> mailConfig = Model.of(getModel().getObject().findProperty(NotificationConfigurationType.F_MAIL));
 		
-		
-		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig)); //mailConfig.getObject().getTypeName().getLocalPart() + ".details"));
-		
-		Form form = new Form<>("form");
-		
-		
-//		if(mailConfig != null) {
-//			mailConfigType = new PropertyModel<MailConfigurationType>(mailConfig, "values[0].value.value").getObject();
-//		}
-//		
-//		if(mailConfigType == null) {
-//			mailConfigType = new MailConfigurationType();
-//			((PrismPropertyValue<MailConfigurationType>)((List<PrismPropertyValueWrapper<MailConfigurationType>>)mailConfig.getObject().getValues()).get(0)).setValue(mailConfigType);
-//    	}
+		add(createHeader(ID_MAIL_CONFIG_HEADER, mailConfig));
 		
 		PropertyModel<MailConfigurationType> mailConfigType = new ItemRealValueModel<>(new PropertyModel<>(mailConfig, "values[0]"));
 		
@@ -255,20 +238,14 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
             	@Override
             	public void onClick(AjaxRequestTarget target) {
+            		
             		PrismPropertyWrapper<FileConfigurationType> propertyWrapper = fileConfig.getObject();
-            		try {
-            			PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
-            			propertyWrapper.getItem().add(newValue);
-            			WrapperContext context = new WrapperContext(null, null);
-            			PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper =
-            				getPageBase().createValueWrapper(propertyWrapper, newValue, ValueStatus.ADDED, context);
-            			newValueWrapper.setRealValue(new FileConfigurationType());
-            			propertyWrapper.getValues().add(newValueWrapper);
-					} catch (SchemaException e) {
-						LOGGER.error("Cannot create new value for {}", propertyWrapper, e);
-						getSession().error("Cannot create new value for " + propertyWrapper + ". Reason: " + e.getMessage());
-						target.add(getPageBase().getFeedbackPanel());
-					}
+            		PrismPropertyValue<FileConfigurationType> newValue = getPrismContext().itemFactory().createPropertyValue();
+            		
+            		PrismPropertyValueWrapper<FileConfigurationType> newValueWrapper = WebPrismUtil.createNewValueWrapper(propertyWrapper, newValue, getPageBase(), target);
+            		//TODO: do we really need to set real value?? why??
+            		newValueWrapper.setRealValue(new FileConfigurationType());
+            		
             		target.add(files);
             	}
             };
@@ -340,14 +317,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 	}
 	
 	private <T> Panel createHeader(String id, IModel<PrismPropertyWrapper<T>> model) {
-//	    if (StringUtils.isEmpty(displayName)) {
-//	    	displayName = "displayName.not.set";
-//	    }
-	    
 	    PrismPropertyHeaderPanel<T> header = new PrismPropertyHeaderPanel<>(id, model);
-	    
-//	    StringResourceModel headerLabelModel = createStringResource(new PropertyModel<>(model, "displayName"));
-//	    Label header = new Label(id, headerLabelModel);
 	    header.add(AttributeAppender.prepend("class", "prism-title pull-left"));
 	    return header;
 	}

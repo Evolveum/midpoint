@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katka
@@ -76,5 +77,10 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	<D extends ItemDelta<V, ID>> void applyDelta(D delta) throws SchemaException;
 
 	<D extends ItemDelta<V, ID>> Collection<D> getDelta() throws SchemaException;
+
+	<O extends ObjectType> ItemStatus findObjectStatus();
+
+	<OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper(ItemWrapper parent);
+	
 	
 }
