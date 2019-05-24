@@ -160,7 +160,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             @Override
             public void setObject(String object) {
                 if (getModelObject() == null){
-                    getModel().setObject(new PolyString(null));
+                    getModel().setObject(new PolyString(""));
                 }
                 if (getModelObject().getTranslation() == null){
                     getModelObject().setTranslation(new PolyStringTranslationType());
@@ -363,7 +363,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     //todo refactor with PolyStringWrapper
     private void updateLanguageValue(String language, String value){
         if (getModelObject() == null){
-            getModel().setObject(new PolyString(null));
+            getModel().setObject(new PolyString(""));
         }
         if (getModelObject().getLang() == null){
             getModelObject().setLang(new HashMap<>());
