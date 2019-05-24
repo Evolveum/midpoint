@@ -582,25 +582,19 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		}
 
 		newAssignmentsList.forEach(assignment -> {
-			PrismContainerDefinition<AssignmentType> definition = getModelObject().getItem().getDefinition();
-			PrismContainerValue<AssignmentType> newAssignment;
-			try {
-				newAssignment = definition.instantiate().createNewValue();
-				AssignmentType assignmentType = newAssignment.asContainerable();
+			
+			PrismContainerValue<AssignmentType> newAssignment = getModelObject().getItem().createNewValue();
+			AssignmentType assignmentType = newAssignment.asContainerable();
 
-				if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
-					assignmentType.setConstruction(assignment.getConstruction());
-				} else {
-					assignmentType.setTargetRef(assignment.getTargetRef());
-				}
-				getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject());
-				getMultivalueContainerListPanel().refreshTable(target);
-				getMultivalueContainerListPanel().reloadSavePreviewButtons(target);
-			} catch (SchemaException e) {
-				getSession().error("Cannot create new assignment " + e.getMessage());
-				target.add(getPageBase().getFeedbackPanel());
-				target.add(this);
+			if (assignment.getConstruction() != null && assignment.getConstruction().getResourceRef() != null) {
+				assignmentType.setConstruction(assignment.getConstruction());
+			} else {
+				assignmentType.setTargetRef(assignment.getTargetRef());
 			}
+			getMultivalueContainerListPanel().createNewItemContainerValueWrapper(newAssignment, getModelObject(),
+					target);
+			getMultivalueContainerListPanel().refreshTable(target);
+			getMultivalueContainerListPanel().reloadSavePreviewButtons(target);			
 
 		});
 
