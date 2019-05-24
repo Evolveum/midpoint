@@ -32,6 +32,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -53,14 +55,16 @@ public class PolyStringLangType implements Serializable {
     protected List<Element> any = new CustomList();
 
     @XmlTransient
+    @NotNull
     protected Map<String,String> lang = new HashMap<>();
 
+    @NotNull
     public Map<String,String> getLang() {
 		return lang;
 	}
 
-	public void setLang(Map<String,String> lang) {
-		this.lang = lang;
+	public void setLang(@Nullable Map<String,String> lang) {
+		this.lang = lang != null ? lang : new HashMap<>();
 	}
 
     public List<Element> getAny() {
@@ -71,10 +75,11 @@ public class PolyStringLangType implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
+		result = prime * result + lang.hashCode();
 		return result;
 	}
 
+	@SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
 	@Override
 	public boolean equals(Object obj) {
 		return equals(obj, false);
@@ -88,21 +93,16 @@ public class PolyStringLangType implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		PolyStringLangType other = (PolyStringLangType) obj;
-		if (lang == null) {
-			if (other.lang != null)
-				return false;
-		} else if (!lang.equals(other.getLang()))
+		if (!lang.equals(other.getLang()))
 			return false;
 		return true;
 	}
 
     public PolyStringLangType clone() {
         PolyStringLangType clone = new PolyStringLangType();
-        if (lang != null) {
-            //clone.schema = (Element) schema.cloneNode(true);
-            clone.lang = new HashMap<>(lang);
-        }
-        return clone;
+	    //clone.schema = (Element) schema.cloneNode(true);
+	    clone.lang = new HashMap<>(lang);
+	    return clone;
     }
 
     class CustomList implements Serializable, List<Element> {
@@ -128,11 +128,13 @@ public class PolyStringLangType implements Serializable {
             return false;
         }
 
+        @NotNull
         @Override
         public CustomIterator iterator() {
             return new CustomIterator(lang.entrySet().iterator());
         }
 
+        @NotNull
         @Override
         public Object[] toArray() {
         	Object[] a = new Object[lang.size()];
@@ -143,11 +145,14 @@ public class PolyStringLangType implements Serializable {
         	return a;
         }
 
+        @NotNull
         @Override
-        public <T> T[] toArray(T[] a) {
-            return (T[]) toArray();
+        public <T> T[] toArray(@NotNull T[] a) {
+	        //noinspection unchecked
+	        return (T[]) toArray();
         }
 
+        // Note: we don't stick to the contract for List.add() here. (We should always add the value, and always return true.)
         @Override
         public boolean add(Element e) {
         	String key = e.getLocalName();
@@ -189,17 +194,17 @@ public class PolyStringLangType implements Serializable {
 
         @Override
         public boolean addAll(int index, Collection<? extends Element> c) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
         @Override
         public boolean removeAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
         @Override
         public boolean retainAll(Collection<?> c) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
         @Override
@@ -240,27 +245,30 @@ public class PolyStringLangType implements Serializable {
 
         @Override
         public int indexOf(Object o) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
         @Override
         public int lastIndexOf(Object o) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
+        @NotNull
         @Override
         public ListIterator<Element> listIterator() {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
+        @NotNull
         @Override
         public ListIterator<Element> listIterator(int index) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
+        @NotNull
         @Override
         public List<Element> subList(int fromIndex, int toIndex) {
-            throw new UnsupportedOperationException("Lazyness is one of the greatest virtues of a programmer");
+            throw new UnsupportedOperationException("Laziness is one of the greatest virtues of a programmer");
         }
 
     }

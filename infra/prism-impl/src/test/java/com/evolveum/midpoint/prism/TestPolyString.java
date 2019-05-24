@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.foo.UserType;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.prism.impl.polystring.PassThroughPolyStringNormaliz
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
+
+import java.util.HashMap;
 
 /**
  * @author semancik
@@ -280,7 +283,121 @@ public class TestPolyString extends AbstractPrismTest {
 		assertTrue(polyName.compareTo(null) != 0);
 
 	}
-	
+
+	@Test
+	public void testConversion() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		executeConversionTest(TEST_NAME, polyString);
+	}
+
+	@Test
+	public void testConversionWithEmptyLang() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		polyString.setLang(new HashMap<>());
+		executeConversionTest(TEST_NAME, polyString);
+	}
+
+	@Test
+	public void testConversionWithOneLang() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		polyString.setLang(new HashMap<>());
+		polyString.getLang().put("sk", "Lalala");
+		executeConversionTest(TEST_NAME, polyString);
+	}
+
+	private void executeConversionTest(String TEST_NAME, PolyString polyString) {
+		// WHEN
+		displayWhen(TEST_NAME);
+		PolyStringType polyStringType = PolyString.toPolyStringType(polyString);
+		PolyString polyString2 = PolyString.toPolyString(polyStringType);
+		PolyStringType polyStringType2 = PolyString.toPolyStringType(polyString2);
+
+		System.out.println("polyString = " + polyString);
+		System.out.println("polyString2 = " + polyString2);
+		System.out.println("polyStringType = " + polyStringType);
+		System.out.println("polyStringType2 = " + polyStringType2);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertEquals("PolyString differs", polyString, polyString2);
+		assertEquals("PolyStringType differs", polyStringType, polyStringType2);
+		assertEquals("PolyString.hashCode differs", polyString.hashCode(), polyString2.hashCode());
+		assertEquals("PolyStringType.hashCode differs", polyStringType.hashCode(), polyStringType2.hashCode());
+	}
+
+	@Test
+	public void testSerialization() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		executeSerializationTest(TEST_NAME, ctx, user, polyString);
+	}
+
+	@Test
+	public void testSerializationWithEmptyLang() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		polyString.setLang(new HashMap<>());
+		executeSerializationTest(TEST_NAME, ctx, user, polyString);
+	}
+
+	@Test
+	public void testSerializationWithOneLang() throws Exception {
+		final String TEST_NAME = "testConversion";
+		displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext ctx = constructInitializedPrismContext();
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObject<UserType> user = userDefinition.instantiate();
+
+		PolyString polyString = new PolyString("Ľala ho papľuha");
+		polyString.setLang(new HashMap<>());
+		polyString.getLang().put("sk", "Lalala");
+		executeSerializationTest(TEST_NAME, ctx, user, polyString);
+	}
+
+	private void executeSerializationTest(String TEST_NAME, PrismContext ctx, PrismObject<UserType> user, PolyString polyString)
+			throws com.evolveum.midpoint.util.exception.SchemaException {
+		PrismProperty<Object> polyNameProperty = user.findOrCreateProperty(USER_POLYNAME_QNAME);
+		polyNameProperty.setRealValue(polyString);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		String xml = ctx.xmlSerializer().serialize(user);
+		System.out.println(xml);
+		PrismObject<Objectable> parsed = ctx.parserFor(xml).parse();
+		String xml2 = ctx.xmlSerializer().serialize(parsed);
+		PrismObject<Objectable> parsed2 = ctx.parserFor(xml2).parse();
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertEquals("original and parsed are different", user, parsed);
+		assertEquals("parsed and parsed2 are different", parsed, parsed2);
+	}
+
 	private String unicodeEscape(String input) {
 		StringBuilder sb = new StringBuilder();
 	    for (char c : input.toCharArray()) {

@@ -58,11 +58,13 @@ public class JaxbTypeConverter {
 		if (polyStringType == null || polyStringType.getOrig() == null) {
 			return null;
 		}
-		PolyString polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm(),
-				polyStringType.getTranslation());
-		if(polyStringType.getLang() != null) {
+		PolyString polyString;
+		PolyStringLangType lang = polyStringType.getLang();
+		if (lang != null && !lang.getLang().isEmpty()) {
 			polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm(),
-					polyStringType.getTranslation(), polyStringType.getLang().getLang());
+					polyStringType.getTranslation(), lang.getLang());
+		} else {
+			polyString = new PolyString(polyStringType.getOrig(), polyStringType.getNorm(), polyStringType.getTranslation());
 		}
 		return polyString;
 	}
