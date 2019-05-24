@@ -51,12 +51,14 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
     private String resourceType;
     private OperationResultStatusType status;			// TODO store full operation result here
 
+    private Class<? extends ObjectType> type;
     private String fullName;
 
-    public DebugObjectItem(String oid, String name, String description) {
+    public DebugObjectItem(String oid, String name, String description, Class<? extends ObjectType> type) {
         this.name = name;
         this.oid = oid;
         this.description = description;
+        this.type = type;
     }
 
     public String getName() {
@@ -65,6 +67,10 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public String getOid() {
         return oid;
+    }
+
+    public Class<? extends ObjectType> getType() {
+        return type;
     }
 
     public String getResourceName() {
@@ -97,7 +103,7 @@ public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static DebugObjectItem createDebugObjectItem(PrismObject<? extends ObjectType> object) {
         DebugObjectItem item = new DebugObjectItem(object.getOid(), WebComponentUtil.getName(object),
-				object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
+				object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class), object.getCompileTimeClass());
 
         if (object.asObjectable().getFetchResult() != null) {
         	item.setStatus(object.asObjectable().getFetchResult().getStatus());
