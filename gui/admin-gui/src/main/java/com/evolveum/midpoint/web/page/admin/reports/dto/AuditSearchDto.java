@@ -46,6 +46,7 @@ public class AuditSearchDto implements Serializable {
 	public static final String F_INITIATOR_NAME = "initiatorName";
 	public static final String F_CHANNEL = "channel";
 	public static final String F_HOST_IDENTIFIER = "hostIdentifier";
+	public static final String F_REQUEST_IDENTIFIER = "requestIdentifier";
 	public static final String F_TARGET_NAME = "targetName";
 	public static final String F_TARGET_NAMES_OBJECTS = "targetNamesObjects";
 	public static final String F_TARGET_OWNER_NAME = "targetOwnerName";
@@ -61,6 +62,7 @@ public class AuditSearchDto implements Serializable {
 	private ObjectReferenceType initiatorName;
 	private Channel channel;
 	private String hostIdentifier;
+	private String requestIdentifier;
 	private List<ObjectReferenceType> targetNames = new ArrayList<>();
 	private List<ObjectType> targetNamesObjects = new ArrayList<>();
 	private ObjectReferenceType targetOwnerName;
@@ -112,6 +114,14 @@ public class AuditSearchDto implements Serializable {
 
 	public void setHostIdentifier(String hostIdentifier) {
 		this.hostIdentifier = hostIdentifier;
+	}
+
+	public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
+
+	public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
 	}
 
 	public List<ObjectReferenceType> getTargetNames() {
