@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.web.component.prism;
+package com.evolveum.midpoint.gui.impl.prism.component;
 
 /**
- * @author lazyman
+ * Created by honchar
  */
-public enum ValueStatus {
+public enum ExpressionValueTypes {
 
-    ADDED, DELETED, MODIFIED, NOT_CHANGED;
+    SHADOW_REF_EXPRESSION,
+    ASSOCIATION_TARGET_SEARCH_EXPRESSION;
+
+    ExpressionValueTypes(){
+    }
 }

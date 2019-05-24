@@ -39,7 +39,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 	private ValueStatus status;
 	
 	
-	public PrismValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, V value, ValueStatus status) {
+	PrismValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, V value, ValueStatus status) {
 		this.parent = parent;
 		this.newValue = value;
 		this.oldValue = (V) value.clone();
@@ -63,7 +63,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 				if (!isChanged()) {
 					break;
 				}
-				
+			case MODIFIED:				
 				if (parent.isSingleValue()) {
 					delta.addValueToReplace((V) newValue.clone());
 					break;

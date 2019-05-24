@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferencePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;

@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.gui.impl.factory;
+package com.evolveum.midpoint.gui.impl.prism;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapperImpl;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,7 +38,7 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 
 	@Override
 	public void setRealValue(T realValue) {
-		LOGGER.trace("Nothing to do");
+		LOGGER.info("#####$$$$$Nothing to do");
 	}
 	
 	

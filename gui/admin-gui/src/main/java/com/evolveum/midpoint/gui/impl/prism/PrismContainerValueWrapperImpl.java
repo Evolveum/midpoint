@@ -31,7 +31,6 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.factory.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -57,7 +56,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 
 	private static final long serialVersionUID = 1L;
 
-	private static final transient Trace LOGGER = TraceManager.getTrace(PrismReferenceValueWrapperImpl.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerValueWrapperImpl.class);
 	
 	private boolean expanded;
 	private boolean showMetadata = false;
@@ -83,14 +82,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 				modifications.addAll(subDelta);
 			}
 		}
+		
+		
+		PrismContainerValue<C> valueToAdd = getOldValue().clone();
 		if (!modifications.isEmpty()) {
-			PrismContainerValue<C> valueToAdd = getOldValue().clone();
 			for (ItemDelta delta : modifications) {
 				delta.applyTo(valueToAdd);
 			}
-			return valueToAdd;
 		}
 	
+		if (!valueToAdd.isEmpty()) {
+			return valueToAdd;
+		}
 		
 		return null;
 	}
@@ -107,7 +110,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	
 	@Override
 	public void setRealValue(C realValue) {
-		LOGGER.trace("Nothing to do");
+		LOGGER.info("######$$$$$$Nothing to do");
 	}
 	
 	@Override

@@ -112,6 +112,17 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
         this.construction = construction;
     }
 
+    @Override
+    public Integer getDisplayOrder() {
+        if (isAssociationExpression() || isAssociationExpression()) {
+            //todo MAX_VALUE doesn't guarantee that expression property
+            //will be displayed the last, as further there will be properties
+            //without any displayOrder displayed
+            return Integer.MAX_VALUE;
+        } else {
+            return super.getDisplayOrder();
+        }
+    }
 //    @Override
 //    public boolean hasChanged() {
 //        for (ValueWrapperOld valueWrapper : getValues()) {

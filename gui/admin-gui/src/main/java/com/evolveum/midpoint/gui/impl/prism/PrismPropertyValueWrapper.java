@@ -43,6 +43,7 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T, Prism
 	@Override
 	public void setRealValue(T realValue) {
 		getNewValue().setValue(realValue);
+		setStatus(ValueStatus.MODIFIED);
 	}
 	
 	public String toShortString() {

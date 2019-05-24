@@ -68,7 +68,7 @@ public class ExpressionUtil {
         }
     }
 
-    private final static QName SHADOW_REF_KEY = new QName("shadowRef");
+    public final static QName SHADOW_REF_KEY = new QName("shadowRef");
     private final static QName SHADOW_OID_KEY = new QName("oid");
     private final static QName SHADOW_TYPE_KEY = new QName("type");
 
@@ -481,6 +481,27 @@ public class ExpressionUtil {
         return shadowRefList;
     }
 
+    public static boolean isShadowRefNodeExists(ExpressionType expression) {
+        if (expression == null) {
+            return false;
+        }
+        JAXBElement element = ExpressionUtil.findFirstEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+        if (element == null) {
+            return false;
+        }
+        if (element.getValue() instanceof RawType) {
+            RawType raw = (RawType) element.getValue();
+            XNode node = raw.getXnode();
+            if (node == null) {
+                return false;
+            }
+            if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static ListXNode getShadowRefNodesList(ExpressionType expression, boolean createIfNotExist, PrismContext prismContext){
         if (expression == null) {
             return null;
@@ -538,11 +559,12 @@ public class ExpressionUtil {
            expression.getExpressionEvaluator().add(valueElement);
         }
         ListXNode shadowRefNodes = getShadowRefNodesList(expression, true, prismContext);
-
-        Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
-        shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
-        shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
-        prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
+        if (StringUtils.isNotEmpty(oid)) {
+            Map<QName, XNode> shadowRefNodeSource = new HashMap<>();
+            shadowRefNodeSource.put(SHADOW_OID_KEY, factory.primitive(oid));
+            shadowRefNodeSource.put(SHADOW_TYPE_KEY, factory.primitive(ShadowType.COMPLEX_TYPE.getLocalPart()));
+            prismContext.xnodeMutator().addToListXNode(shadowRefNodes, factory.map(shadowRefNodeSource));
+        }
     }
 
     public static List<String> getLiteralExpressionValues(ExpressionType expression) throws SchemaException{
