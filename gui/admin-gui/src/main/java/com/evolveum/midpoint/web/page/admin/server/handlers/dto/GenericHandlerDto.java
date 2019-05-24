@@ -16,24 +16,33 @@
 
 package com.evolveum.midpoint.web.page.admin.server.handlers.dto;
 
+import java.io.Serializable;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author mederly
@@ -58,13 +67,12 @@ public class GenericHandlerDto extends HandlerDto {
 		return new ExtensionItem(name, type);
 	}
 
-	private final ContainerWrapperImpl containerWrapper;
+	private PrismContainerWrapper containerWrapper = null;
 
 	public GenericHandlerDto(TaskDto taskDto, @NotNull List<ExtensionItem> extensionItems, PageBase pageBase) {
 		super(taskDto);
 		PrismContext prismContext = pageBase.getPrismContext();
-		ContainerWrapperFactory cwf = new ContainerWrapperFactory(pageBase);
-
+		
 		PrismContainer container = prismContext.itemFactory().createContainer(new QName("test"));
 		ComplexTypeDefinition ctd = prismContext.definitionFactory().createComplexTypeDefinition(new QName("Test"));
 		int displayOrder = 1;
@@ -106,10 +114,21 @@ public class GenericHandlerDto extends HandlerDto {
 		container.setDefinition(containerDefinition);
 		Task task = pageBase.createSimpleTask("Adding new container wrapper");
 		//noinspection unchecked
-		containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, ItemPath.EMPTY_PATH, true, task);
+		ItemWrapperFactory factory = pageBase.findWrapperFactory(containerDefinition);
+		if (factory instanceof PrismContainerWrapperFactory) {
+		
+			PrismContainerWrapperFactory containerF = (PrismContainerWrapperFactory) factory;
+			
+			WrapperContext ctx = new WrapperContext(task, task.getResult());
+		try {
+			containerWrapper = (PrismContainerWrapper) containerF.createWrapper(container, ItemStatus.NOT_CHANGED, ctx);
+		} catch (SchemaException e) {
+			LOGGER.error("Error creating wrapper for {}", container);
+		}
+		}
 	}
 
-	public ContainerWrapperImpl getContainer() {
+	public PrismContainerWrapper getContainer() {
 		return containerWrapper;
 	}
 }

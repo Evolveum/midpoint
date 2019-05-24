@@ -21,31 +21,24 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.progress.ProgressPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.time.Duration;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -56,7 +49,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -69,14 +61,22 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import org.apache.wicket.util.time.Duration;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DetailsPageSaveMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsPageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -154,27 +154,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		}
 		
 		return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), name);
-		
-//		return new LoadableModel<String>() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected String load() {
-//				if (!isOidParameterExists() && !editingFocus) {
-//					String key = "PageAdminObjectDetails.title.new" + getCompileTimeClass().getSimpleName();
-//					return createStringResource(key).getObject();
-//				}
-//
-//				String name = null;
-//				if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-//					name = WebComponentUtil.getName(getObjectWrapper().getObject());
-//				}
-//
-//				String key = (getObjectWrapper().isReadonly() ? "PageAdminObjectDetails.title.view" : "PageAdminObjectDetails.title.edit")
-//						+ getCompileTimeClass().getSimpleName();
-//				return createStringResource(key, name).getObject();
-//			}
-//		};
 	}
 	
 	private boolean isAdd() {
@@ -183,10 +162,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	public LoadableModel<PrismObjectWrapper<O>> getObjectModel() {
 		return objectModel;
-	}
-
-	public LoadableModel<List<FocusSubwrapperDto<OrgType>>> getParentOrgModel() {
-		return parentOrgModel;
 	}
 
 	protected AbstractObjectMainPanel<O> getMainPanel() {
@@ -518,9 +493,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			reviveModels();
 
 			delta = objectWrapper.getObjectDelta();
-//			if (objectWrapper.getOldDelta() != null) {
-//				delta = ObjectDeltaCollectionsUtil.summarize(objectWrapper.getOldDelta(), delta);
-//			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
@@ -528,6 +500,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			result.recordFatalError(getString("pageAdminObjectDetails.message.cantCreateObject"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Create Object failed", ex);
 			showResult(result);
+			target.add(getFeedbackPanel());
 			return;
 		}
 
@@ -564,7 +537,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			case NOT_CHANGED:
 				try {
 					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
-					prepareObjectDeltaForModify(delta);
+					//prepareObjectDeltaForModify(delta);
 
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });

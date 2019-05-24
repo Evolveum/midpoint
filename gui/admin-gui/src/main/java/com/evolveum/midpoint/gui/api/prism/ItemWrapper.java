@@ -21,7 +21,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Item;

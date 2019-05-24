@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.gui.impl.component;
 
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.Containerable;
 
 /**
  * Created by honchar

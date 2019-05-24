@@ -1,10 +1,6 @@
 package com.evolveum.midpoint.gui.impl.factory;
 
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.Component;
@@ -14,22 +10,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapperImpl;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.prism.PropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Serializable {
 

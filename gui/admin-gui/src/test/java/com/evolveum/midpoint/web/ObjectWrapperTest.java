@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web;
 
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,33 +44,33 @@ public class ObjectWrapperTest extends AbstractGuiIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 	}
 
-	@Test
-    public void testEmptyPolyString() throws Exception {
-        PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
-
-        Task task = taskManager.createTaskInstance("testEmptyPolyString");
-
-        ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
-        ObjectWrapperOld<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
-        //simulate change on honorific prefix
-        ContainerWrapperImpl containerWrapper = null;
-        for (ContainerWrapperImpl container : wrapper.getContainers()) {
-            if (container.isMain()) {
-                containerWrapper = container;
-                break;
-            }
-        }
-
-        PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
-        ValueWrapperOld valueWrapper = (ValueWrapperOld) propertyWrapper.getValues().get(0);
-        PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
-
-        Field orig = PolyString.class.getDeclaredField("orig");
-        orig.setAccessible(true);
-        orig.set(value, null);
-        orig.setAccessible(false);
-
-        ObjectDelta delta = wrapper.getObjectDelta();
-        AssertJUnit.assertNotNull(delta);
-    }
+//	@Test
+//    public void testEmptyPolyString() throws Exception {
+//        PrismObject<UserType> user = prismContext.parseObject(new File("./src/test/resources/wrapper/user.xml"));
+//
+//        Task task = taskManager.createTaskInstance("testEmptyPolyString");
+//
+//        ObjectWrapperFactory owf = new ObjectWrapperFactory(null);
+//        ObjectWrapperOld<UserType> wrapper = owf.createObjectWrapper(null, null, user, ContainerStatus.MODIFYING, task);
+//        //simulate change on honorific prefix
+//        ContainerWrapperImpl containerWrapper = null;
+//        for (ContainerWrapperImpl container : wrapper.getContainers()) {
+//            if (container.isMain()) {
+//                containerWrapper = container;
+//                break;
+//            }
+//        }
+//
+//        PropertyWrapper propertyWrapper = (PropertyWrapper) containerWrapper.findPropertyWrapper(UserType.F_HONORIFIC_SUFFIX);
+//        ValueWrapperOld valueWrapper = (ValueWrapperOld) propertyWrapper.getValues().get(0);
+//        PolyString value = (PolyString) ((PrismPropertyValue) valueWrapper.getValue()).getValue();
+//
+//        Field orig = PolyString.class.getDeclaredField("orig");
+//        orig.setAccessible(true);
+//        orig.set(value, null);
+//        orig.setAccessible(false);
+//
+//        ObjectDelta delta = wrapper.getObjectDelta();
+//        AssertJUnit.assertNotNull(delta);
+//    }
 }

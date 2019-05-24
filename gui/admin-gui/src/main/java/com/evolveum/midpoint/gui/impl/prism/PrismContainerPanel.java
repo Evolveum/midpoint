@@ -24,7 +24,6 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**

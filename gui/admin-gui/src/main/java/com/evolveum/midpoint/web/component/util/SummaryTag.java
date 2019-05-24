@@ -15,14 +15,12 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.prism.Containerable;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
+import com.evolveum.midpoint.prism.Containerable;
 
 /**
  * @author semancik
