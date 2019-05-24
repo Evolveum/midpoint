@@ -80,6 +80,7 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_EVENT_IDENTIFIER = "eventIdentifier";
     private static final String ID_PARAMETERS_SESSION_IDENTIFIER = "sessionIdentifier";
     private static final String ID_PARAMETERS_TASK_IDENTIFIER = "taskIdentifier";
+    private static final String ID_PARAMETERS_REQUEST_IDENTIFIER = "requestIdentifier";
     private static final String ID_PARAMETERS_TASK_OID = "taskOID";
     private static final String ID_PARAMETERS_HOST_IDENTIFIER = "hostIdentifier";
     private static final String ID_PARAMETERS_NODE_IDENTIFIER = "nodeIdentifier";
@@ -292,6 +293,10 @@ public class PageAuditLogDetails extends PageBase {
         final Label taskOID = new Label(ID_PARAMETERS_TASK_OID, new PropertyModel(recordModel,ID_PARAMETERS_TASK_OID));
         taskOID.setOutputMarkupId(true);
         eventDetailsPanel.add(taskOID);
+
+        final Label requestIdentifier = new Label(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_REQUEST_IDENTIFIER));
+        requestIdentifier.setOutputMarkupId(true);
+        eventDetailsPanel.add(requestIdentifier);
 
         final Label hostIdentifier = new Label(ID_PARAMETERS_HOST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_HOST_IDENTIFIER));
         hostIdentifier.setOutputMarkupId(true);

@@ -74,6 +74,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	public static final String PARAMETER_INITIATOR_NAME = "initiatorName";
 	public static final String PARAMETER_CHANNEL = "channel";
 	public static final String PARAMETER_HOST_IDENTIFIER = "hostIdentifier";
+	public static final String PARAMETER_REQUEST_IDENTIFIER = "requestIdentifier";
 	public static final String PARAMETER_TARGET_OWNER_NAME = "targetOwnerName";
 	public static final String PARAMETER_TARGET_NAMES = "targetNames";
 	public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
@@ -215,6 +216,11 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			conditions.add("aer.hostIdentifier = :hostIdentifier");
 		} else {
 			parameters.remove(PARAMETER_HOST_IDENTIFIER);
+		}
+		if (parameters.get(PARAMETER_REQUEST_IDENTIFIER) != null) {
+			conditions.add("aer.requestIdentifier = :requestIdentifier");
+		} else {
+			parameters.remove(PARAMETER_REQUEST_IDENTIFIER);
 		}
 		if (parameters.get(PARAMETER_TARGET_OWNER_NAME) != null) {
 			conditions.add("aer.targetOwnerOid = :targetOwnerName");
