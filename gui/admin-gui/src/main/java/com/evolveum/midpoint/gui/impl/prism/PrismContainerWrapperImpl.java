@@ -265,7 +265,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		Collection<D> deltas = new ArrayList<D>();
 		
 		
-		ContainerDelta<C> delta = createEmptyDelta(getPath());
+		ContainerDelta<C> delta = createEmptyDelta(getDeltaPathForStatus(getStatus()));
 		
 		switch (getStatus()) {
 		
@@ -327,6 +327,14 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		return deltas;
 	}
 	
+	private ItemPath getDeltaPathForStatus(ItemStatus status) {
+		if (ItemStatus.ADDED == status) {
+			return getName();
+		}
+		
+		return getPath();
+	}
+
 	@Override
 	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
 		

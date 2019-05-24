@@ -167,7 +167,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
 				PrismContainerValue<ClassLoggerConfigurationType> newLogger = loggerModel.getObject().getItem().createNewValue();
-		        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject());
+		        PrismContainerValueWrapper<ClassLoggerConfigurationType> newLoggerWrapper = getLoggersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newLogger, loggerModel.getObject(), target);
 		        loggerEditPerformed(target, Model.of(newLoggerWrapper), null);
 			}
 			
@@ -396,7 +396,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     	newObjectPolicy.setParent(appenders.getModelObject().getItem());
     	newObjectPolicy.setPrismContext(getPageBase().getPrismContext());
     	
-    	PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject());
+    	PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject(), target);
         getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAppenderContainerWrapper));
 	}
     
