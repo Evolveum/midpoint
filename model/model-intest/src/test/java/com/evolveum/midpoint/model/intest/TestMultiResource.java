@@ -669,8 +669,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	 * MID-2134, MID-3093
 	 */
 	@Test
-    public void test226JackKillBothAccounsAndRecompute() throws Exception {
-		final String TEST_NAME = "test226JackKillBothAccounsAndRecompute";
+    public void test226JackKillBothAccountsAndRecompute() throws Exception {
+		final String TEST_NAME = "test226JackKillBothAccountsAndRecompute";
 		displayTestTitle(TEST_NAME);
 
 		// GIVEN

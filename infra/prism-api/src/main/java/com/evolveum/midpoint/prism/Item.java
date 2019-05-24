@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -554,6 +555,8 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	// should be always called on non-overlapping objects! (for the synchronization to work correctly)
 	void modifyUnfrozen(Runnable mutator);
+
+	void modifyUnfrozen(Consumer<Item<V, D>> mutator);
 
 	@NotNull
 	static <V extends PrismValue> Collection<V> getValues(Item<V, ?> item) {

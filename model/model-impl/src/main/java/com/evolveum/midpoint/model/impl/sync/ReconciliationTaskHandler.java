@@ -21,6 +21,8 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +32,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -127,7 +128,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	@Autowired private ProvisioningService provisioningService;
 	@Autowired private PrismContext prismContext;
 	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
-	@Autowired private AuditService auditService;
+	@Autowired private AuditHelper auditHelper;
 	@Autowired private Clock clock;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -135,6 +136,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	
 	@Autowired private AssignmentCollector assignmentCollector;
 	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -271,7 +273,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource, prismContext);
 		requestRecord.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
-		auditService.audit(requestRecord, localCoordinatorTask);
+		auditHelper.audit(requestRecord, localCoordinatorTask);
 
 		try {
 			if (isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
@@ -354,7 +356,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		executionRecord.setMessage(requestRecord.getMessage());
-		auditService.audit(executionRecord, localCoordinatorTask);
+		auditHelper.audit(executionRecord, localCoordinatorTask);
 
 		long reconEndTimestamp = clock.currentTimeMillis();
 
@@ -487,7 +489,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
 		executionRecord.setMessage(ex.getMessage());
-		auditService.audit(executionRecord , task);
+	    auditHelper.audit(executionRecord , task);
 	}
 
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
@@ -625,7 +627,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			}
 
 			countHolder.setValue(countHolder.getValue() + 1);
-			incrementAndRecordProgress(localCoordinatorTask, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
+			incrementAndRecordProgress(localCoordinatorTask, new OperationResult("performShadowReconciliation.incrementAndRecordProgress"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
 			return localCoordinatorTask.canRun();
 		};
 
@@ -740,10 +742,9 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			long started = System.currentTimeMillis();
 			task.recordIterativeOperationStart(shadow.asObjectable());
 
+			RepositoryCache.enter(cacheConfigurationManager);
 			OperationResult provisioningResult = new OperationResult(OperationConstants.RECONCILIATION+".finishOperation");
 			try {
-				RepositoryCache.enter();
-
 				ProvisioningOperationOptions options = ProvisioningOperationOptions.createCompletePostponed(false);
                 ModelImplUtils.clearRequestee(task);
 				provisioningService.refreshShadow(shadow, options, task, provisioningResult);

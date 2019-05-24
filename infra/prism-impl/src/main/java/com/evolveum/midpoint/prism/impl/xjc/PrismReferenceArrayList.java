@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.impl.xjc;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.util.PrismList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -34,7 +35,7 @@ import java.util.List;
  *
  * TODO: account for concurrent structural modifications using modCount property
  */
-public abstract class PrismReferenceArrayList<T> extends AbstractList<T>  implements Serializable {
+public abstract class PrismReferenceArrayList<T> extends AbstractList<T> implements Serializable, PrismList {
 
     private PrismReference reference;
     private PrismContainerValue<?> parent;

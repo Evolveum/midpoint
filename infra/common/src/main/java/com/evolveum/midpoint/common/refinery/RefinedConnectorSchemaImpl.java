@@ -62,7 +62,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 				throw new IllegalStateException("Parsed schema is null: most likely an internall error");
 			}
             parsedSchema.setUsualNamespacePrefix(ConnectorSchemaImpl.retrieveUsualNamespacePrefix(connector.asObjectable()));
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema);
+			connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema));
 			return parsedSchema;
 		}
 	}
@@ -72,7 +72,7 @@ public class RefinedConnectorSchemaImpl extends ConnectorSchemaImpl implements R
 			return;
 		}
 		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
-		connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema);
+		connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, parsedSchema));
 	}
 
 	public static boolean hasParsedSchema(ConnectorType connectorType) {

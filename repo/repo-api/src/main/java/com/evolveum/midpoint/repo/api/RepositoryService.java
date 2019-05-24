@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -161,6 +162,7 @@ public interface RepositoryService {
 	String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
+	String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
 
 	String OP_ADD_OBJECT = "addObject";
 	String OP_DELETE_OBJECT = "deleteObject";
@@ -176,6 +178,8 @@ public interface RepositoryService {
 	String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
 	String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
 	String OP_SEARCH_OBJECTS = "searchObjects";
+	String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+	String OP_FETCH_EXT_ITEMS = "fetchExtItems";
 
 	/**
 	 * Returns object for provided OID.
@@ -442,13 +446,16 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
@@ -468,7 +475,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	@NotNull
+	<T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns the User object representing owner of specified account (account
@@ -678,4 +686,6 @@ public interface RepositoryService {
 	 */
 	<T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+	PerformanceMonitor getPerformanceMonitor();
 }

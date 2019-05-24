@@ -342,7 +342,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         display("Resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
 
 		assertResourceDummy(resource, false);
 
@@ -390,7 +390,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  2);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, false);
@@ -441,7 +441,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         assertSuccess(result);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  4);
 
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource, false);

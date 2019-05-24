@@ -24,7 +24,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -39,6 +38,9 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -69,13 +71,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.ConflictWatcher;
-import com.evolveum.midpoint.repo.api.ModificationPrecondition;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.api.RepoModifyOptions;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.ObjectRetriever;
@@ -115,15 +110,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -142,6 +128,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
     public static final int MAIN_LOG_WARN_THRESHOLD = 8;
+
+    private static final int RESTART_LIMIT = 1000;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
     private static final Trace LOGGER_PERFORMANCE = TraceManager.getTrace(PERFORMANCE_LOG_NAME);
@@ -199,7 +187,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Getting object '{}' with oid '{}': {}", type.getSimpleName(), oid, result.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
         OperationResult subResult = result.createMinorSubresult(GET_OBJECT);
@@ -209,7 +197,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         PrismObject<T> object = null;
         try {
         	
-		    PrismObject<T> attemptobject = executeAttempts(oid, OP_GET_OBJECT, "getting",
+		    PrismObject<T> attemptobject = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
 				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
 		    );
 		    object = attemptobject;
@@ -222,10 +210,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	    return object;
     }
 
-    private <RV> RV executeAttempts(String oid, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeAttempts(String oid, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             ResultSupplier<RV> supplier) throws ObjectNotFoundException, SchemaException {
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operationName);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operationName, type);
         int attempt = 1;
         try {
             while (true) {
@@ -241,25 +229,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <RV> RV executeAttemptsNoSchemaException(String oid, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeAttemptsNoSchemaException(String oid, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             ResultSupplier<RV> supplier) throws ObjectNotFoundException {
         try {
-            return executeAttempts(oid, operationName, operationVerb, subResult, supplier);
+            return executeAttempts(oid, operationName, type, operationVerb, subResult, supplier);
         } catch (SchemaException e) {
             throw new AssertionError("Should not occur", e);
         }
     }
 
-    private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) {
         try {
-            return executeQueryAttempts(query, operationName, operationVerb, subResult, emptyQueryResultSupplier, supplier);
+            return executeQueryAttempts(query, operationName, type, operationVerb, subResult, emptyQueryResultSupplier, supplier);
         } catch (SchemaException e) {
             throw new AssertionError("Should not occur", e);
         }
     }
 
-    private <RV> RV executeQueryAttempts(ObjectQuery query, String operationName, String operationVerb, OperationResult subResult,
+    private <RV> RV executeQueryAttempts(ObjectQuery query, String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) throws SchemaException {
 
         if (query != null) {
@@ -269,8 +257,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operationName);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operationName, type);
         int attempt = 1;
         try {
             while (true) {
@@ -297,7 +285,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("shadowOid", shadowOid);
 
         try {
-            return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, "searching shadow owner",
+            return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, FocusType.class, "searching shadow owner",
 					subResult, () -> objectRetriever.searchShadowOwnerAttempt(shadowOid, options, subResult)
 			);
         } catch (ObjectNotFoundException|SchemaException e) {
@@ -318,7 +306,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("accountOid", accountOid);
 
         try {
-            return executeAttempts(accountOid, OP_LIST_ACCOUNT_SHADOW_OWNER, "listing account shadow owner",
+            return executeAttempts(accountOid, OP_LIST_ACCOUNT_SHADOW_OWNER, UserType.class, "listing account shadow owner",
                     subResult, () -> objectRetriever.listAccountShadowOwnerAttempt(accountOid, subResult)
             );
         } catch (ObjectNotFoundException|SchemaException e) {
@@ -339,7 +327,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeQueryAttempts(query, OP_SEARCH_OBJECTS, "searching", subResult,
+        return executeQueryAttempts(query, OP_SEARCH_OBJECTS, type, "searching", subResult,
                 () -> new SearchResultList<>(new ArrayList<>(0)),
                 (q) -> objectRetriever.searchObjectsAttempt(type, q, options, subResult));
     }
@@ -378,7 +366,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         result.addParam("type", type.getName());
         result.addParam("query", query);
 
-        return executeQueryAttempts(query, "searchContainers", "searching", result,
+        return executeQueryAttempts(query, "searchContainers", type, "searching", result,
                 () -> new SearchResultList<>(new ArrayList<T>(0)),
                 (q) -> objectRetriever.searchContainersAttempt(type, q, options, result));
     }
@@ -398,7 +386,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         result.addParam("type", type.getName());
         result.addParam("query", query);
 
-        return executeQueryAttemptsNoSchemaException(query, "countContainers", "counting", result,
+        return executeQueryAttemptsNoSchemaException(query, "countContainers", type, "counting", result,
                 () -> 0,
                 (q) -> objectRetriever.countContainersAttempt(type, q, options, result));
     }
@@ -457,9 +445,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("object", object);
         subResult.addParam("options", options.toString());
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
         int attempt = 1;
+        int restarts = 0;
         try {
 	        // TODO use executeAttempts
 	        final String operation = "adding";
@@ -467,9 +456,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	        String proposedOid = object.getOid();
 	        while (true) {
 	            try {
-	                String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
-		            invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
-		            return createdOid;
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+                    invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
+                    return createdOid;
+                } catch (RestartOperationRequestedException ex) {
+	                // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    }
 	            } catch (RuntimeException ex) {
 	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
@@ -492,8 +488,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -507,10 +504,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         try {
 	        
-        	executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, "deleting",
+        	DeleteObjectResult rv = executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, type, "deleting",
 	                subResult, () -> objectUpdater.deleteObjectAttempt(type, oid, subResult)
 	        );
 		    invokeConflictWatchers((w) -> w.afterDeleteObject(oid));
+		    return rv;
 		    
         } finally {
         	OperationLogger.logDelete(type, oid, subResult);
@@ -536,32 +534,34 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("type", type.getName());
         subResult.addParam("query", query);
 
-        return executeQueryAttemptsNoSchemaException(query, OP_COUNT_OBJECTS, "counting", subResult,
+        return executeQueryAttemptsNoSchemaException(query, OP_COUNT_OBJECTS, type, "counting", subResult,
                 () -> 0,
                 (q) -> objectRetriever.countObjectsAttempt(type, q, options, subResult));
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-                                                    Collection<? extends ItemDelta> modifications,
-                                                    OperationResult result)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid,
+            Collection<? extends ItemDelta> modifications, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        modifyObject(type, oid, modifications, null, result);
+        return modifyObject(type, oid, modifications, null, result);
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 	    try {
-		    modifyObject(type, oid, modifications, null, options, result);
+		    return modifyObject(type, oid, modifications, null, options, result);
 	    } catch (PreconditionViolationException e) {
 		    throw new AssertionError(e);    // with null precondition we couldn't get this exception
 	    }
     }
 
+    @NotNull
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
@@ -578,7 +578,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
             subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
-            return;
+            return new ModifyObjectResult<>(modifications);
         }
 
         if (InternalsConfig.encryptionChecks) {
@@ -609,16 +609,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts?
         final String operation = "modifying";
         int attempt = 1;
+        int restarts = 0;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT, type);
 
         try {
             while (true) {
                 try {
-                    objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
+                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
-                    return;
+	                return rv;
+                } catch (RestartOperationRequestedException ex) {
+                    // special case: we want to restart but we do not want to count these
+                    LOGGER.trace("Restarting because of {}", ex.getMessage());
+                    restarts++;
+                    if (restarts > RESTART_LIMIT) {
+                        throw new IllegalStateException("Too many operation restarts");
+                    }
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
@@ -649,8 +657,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "listing resource object shadows";
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_LIST_RESOURCE_OBJECT_SHADOWS);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_LIST_RESOURCE_OBJECT_SHADOWS, ShadowType.class);
 
         // TODO executeAttempts
         try {
@@ -816,8 +824,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("oid", oid);
 
         // TODO executeAttempts
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_GET_VERSION);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_GET_VERSION, type);
 
         final String operation = "getting version";
         int attempt = 1;
@@ -956,7 +964,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 				}
 			}
 		} finally {
-			//            pm.registerOperationFinish(opHandle, attempt);
+		    // temporary workaround, just to know the number of calls
+            SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+            long opHandle = pm.registerOperationStart(OP_SEARCH_OBJECTS_ITERATIVE, type);
+            pm.registerOperationFinish(opHandle, attempt);
 		}
 		// TODO conflict checking (if needed)
 	}
@@ -977,8 +988,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_IS_ANY_SUBORDINATE);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_IS_ANY_SUBORDINATE, OrgType.class);
         try {
             while (true) {
                 try {
@@ -1010,8 +1021,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_ADVANCE_SEQUENCE);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_ADVANCE_SEQUENCE, SequenceType.class);
         try {
             while (true) {
                 try {
@@ -1047,8 +1058,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // TODO executeAttempts
         int attempt = 1;
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_RETURN_UNUSED_VALUES_TO_SEQUENCE);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_RETURN_UNUSED_VALUES_TO_SEQUENCE, SequenceType.class);
         try {
             while (true) {
                 try {
@@ -1078,8 +1089,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         subResult.addParam("query", request.toString());
 
         // TODO executeAttempts
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_EXECUTE_QUERY_DIAGNOSTICS, null);
 
         try {
             while (true) {

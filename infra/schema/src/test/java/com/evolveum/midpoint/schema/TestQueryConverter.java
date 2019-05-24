@@ -813,4 +813,28 @@ public class TestQueryConverter {
 		}
 	}
 
+	// Q{AND(IN OID: 8657eccf-c60d-4b5c-bbd4-4c73ecfd6436; ,REF: resourceRef,PRV(oid=aeff994e-381a-4fb3-af3b-f0f5dcdc9653, targetType=null),EQUAL: kind,PPV(ShadowKindType:ENTITLEMENT),EQUAL: intent,PPV(String:group)),null
+
+	@Test
+	public void test920QueryTypeEquals() throws Exception {
+		final String TEST_NAME = "test920QueryTypeEquals";
+		ObjectQuery query1 = getPrismContext().queryFor(ShadowType.class)
+				.id("8657eccf-c60d-4b5c-bbd4-4c73ecfd6436")
+				.and().item(ShadowType.F_RESOURCE_REF).ref("aeff994e-381a-4fb3-af3b-f0f5dcdc9653")
+				.and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
+				.and().item(ShadowType.F_INTENT).eq("group")
+				.build();
+		ObjectQuery query2 = getPrismContext().queryFor(ShadowType.class)
+				.id("8657eccf-c60d-4b5c-bbd4-4c73ecfd6436")
+				.and().item(ShadowType.F_RESOURCE_REF).ref("aeff994e-381a-4fb3-af3b-f0f5dcdc9653")
+				.and().item(ShadowType.F_KIND).eq(ShadowKindType.ENTITLEMENT)
+				.and().item(ShadowType.F_INTENT).eq("group")
+				.build();
+		System.out.println(query1.equals(query2));
+		QueryType bean1 = getPrismContext().getQueryConverter().createQueryType(query1);
+		QueryType bean2 = getPrismContext().getQueryConverter().createQueryType(query2);
+		System.out.println(bean1.equals(bean2));
+		System.out.println(bean1.hashCode() == bean2.hashCode());
+	}
+
 }

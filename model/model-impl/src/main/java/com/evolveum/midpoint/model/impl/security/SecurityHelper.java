@@ -19,6 +19,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.soap.SOAPMessage;
 
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 
@@ -37,7 +38,6 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -80,7 +80,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     public static final String CONTEXTUAL_PROPERTY_AUDITED_NAME = SecurityHelper.class.getName() + ".audited";
 
     @Autowired private TaskManager taskManager;
-	@Autowired private AuditService auditService;
+	@Autowired private AuditHelper auditHelper;
 	@Autowired private ModelObjectResolver objectResolver;
 	@Autowired private SecurityEnforcer securityEnforcer;
 
@@ -117,7 +117,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         record.setMessage(message);
 		storeConnectionEnvironment(record, connEnv);
 
-        auditService.audit(record, task);
+	    auditHelper.audit(record, task);
     }
 
 	@Override
@@ -127,7 +127,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 		record.setTimestamp(System.currentTimeMillis());
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		storeConnectionEnvironment(record, connEnv);
-		auditService.audit(record, task);
+		auditHelper.audit(record, task);
     }
 
 	private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {

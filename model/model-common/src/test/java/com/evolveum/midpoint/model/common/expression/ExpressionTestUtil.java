@@ -84,14 +84,14 @@ public class ExpressionTestUtil {
     	expressionFactory.registerEvaluatorFactory(constFactory);
 
     	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, prismContext, protector);
+    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(expressionFactory, prismContext, protector, null);
     	pathFactory.setObjectResolver(resolver);
     	expressionFactory.registerEvaluatorFactory(pathFactory);
 
     	// generate
     	ValuePolicyProcessor valuePolicyGenerator = new ValuePolicyProcessor();
     	valuePolicyGenerator.setExpressionFactory(expressionFactory);
-    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyGenerator, prismContext);
+    	GenerateExpressionEvaluatorFactory generateFactory = new GenerateExpressionEvaluatorFactory(expressionFactory, protector, valuePolicyGenerator, prismContext, null);
     	generateFactory.setObjectResolver(resolver);
     	expressionFactory.registerEvaluatorFactory(generateFactory);
 

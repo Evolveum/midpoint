@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -90,7 +91,7 @@ public class AssignmentCollector {
 	@Autowired private MappingEvaluator mappingEvaluator;
 	@Autowired private ActivationComputer activationComputer;
 	@Autowired private Clock clock;
-
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 	
 	public <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> collect(PrismObject<AH> assignmentHolder, PrismObject<SystemConfigurationType> systemConfiguration, boolean loginMode, Task task, OperationResult result) throws SchemaException {
 		
@@ -145,8 +146,8 @@ public class AssignmentCollector {
 	private <AH extends AssignmentHolderType> Collection<EvaluatedAssignment<AH>> evaluateAssignments(AH assignmentHolder, Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<AH> assignmentEvaluator, Task task, OperationResult result) {
 		
 		List<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
+		RepositoryCache.enter(cacheConfigurationManager);
 		try {
-			RepositoryCache.enter();
 			for (AssignmentType assignmentType: assignments) {
 				try {
 					PrismContainerDefinition definition = assignmentType.asPrismContainerValue().getDefinition();

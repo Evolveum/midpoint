@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -51,8 +52,8 @@ public class AssociationFromLinkExpressionEvaluatorFactory extends AbstractObjec
 	private final ModelService modelService;
 
 	public AssociationFromLinkExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
-			Protector protector, ModelService modelService) {
-		super(expressionFactory);
+			Protector protector, ModelService modelService, CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;

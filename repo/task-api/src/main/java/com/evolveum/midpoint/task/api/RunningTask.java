@@ -85,6 +85,11 @@ public interface RunningTask extends Task {
 
 	void storeOperationStatsDeferred();
 
+	/**
+	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
+	 */
+	void refreshStoredThreadLocalPerformanceStats();
+
 	void storeOperationStats();
 
 	// stores operation statistics if the time has come

@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
@@ -281,6 +282,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private Clockwork clockwork;
 	@Autowired private CollectionProcessor collectionProcessor;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final String OPERATION_GENERATE_VALUE = ModelInteractionService.class.getName() +  ".generateValue";
 	private static final String OPERATION_VALIDATE_VALUE = ModelInteractionService.class.getName() +  ".validateValue";
@@ -319,7 +321,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		LensContext<F> context = null;
 
 		try {
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 		// used cloned deltas instead of origin deltas, because some of the
 		// values should be lost later..
 		context = contextFactory.createContext(clonedDeltas, options, task, result);
@@ -1521,7 +1523,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public List<ObjectReferenceType> getDeputyAssignees(AbstractWorkItemType workItem, Task task, OperationResult parentResult)
 			throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 		try {
 			Set<String> oidsToSkip = new HashSet<>();
 			List<ObjectReferenceType> deputies = new ArrayList<>();
@@ -1542,7 +1544,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	public List<ObjectReferenceType> getDeputyAssignees(ObjectReferenceType assigneeRef, QName limitationItemName, Task task,
 			OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createMinorSubresult(GET_DEPUTY_ASSIGNEES);
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 		try {
 			Set<String> oidsToSkip = new HashSet<>();
 			oidsToSkip.add(assigneeRef.getOid());

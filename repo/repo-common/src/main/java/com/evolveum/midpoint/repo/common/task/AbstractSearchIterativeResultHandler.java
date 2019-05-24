@@ -17,15 +17,14 @@ package com.evolveum.midpoint.repo.common.task;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
@@ -299,6 +298,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
 			while (workerTask.canRun()) {
+				workerTask.refreshStoredThreadLocalPerformanceStats();
 				ProcessingRequest request;
 				try {
 					request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
@@ -306,6 +306,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					LOGGER.trace("Interrupted when waiting for next request", e);
 					return;
 				}
+				workerTask.refreshStoredThreadLocalPerformanceStats();
 				if (request != null) {
 					processRequest(request, workerTask, workerSpecificResult);
 				} else {
@@ -332,9 +333,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		long startTime = System.currentTimeMillis();
 
-		try {
+		RepositoryCache.enter(taskManager.getCacheConfigurationManager());
 
-			RepositoryCache.enter();
+		try {
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
@@ -553,6 +554,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			subtask.setCategory(coordinatorTask.getCategory());
 			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, (String) null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
+			subtask.getTaskType().setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getTaskType().getExecutionEnvironment()));
 			subtask.startLightweightHandler();
 			LOGGER.trace("Worker subtask {} created", subtask);
 		}
