@@ -1808,12 +1808,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void addMenuItem(MainMenuItem item, String key, Class<? extends PageBase> page) {
-        MenuItem menu = new MenuItem(createStringResource(key), page);
+        addMenuItem(item, key, "", page);
+    }
+
+    private void addMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> page) {
+        MenuItem menu = new MenuItem(createStringResource(key), iconClass, page);
         item.getItems().add(menu);
     }
 
     private MainMenuItem createWorkItemsItems() {
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED,
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_CASE_OBJECT_ICON,
                 createStringResource("PageAdmin.menu.top.cases"), null) {
 
             private static final long serialVersionUID = 1L;
@@ -1829,14 +1833,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCases.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.approvalCases", PageCasesAll.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.myApprovalCases", PageCasesAll.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.myRequests", PageCasesAll.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.requestsAboutMe", PageCasesAll.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.manualProvisionCases", PageCasesAll.class);
 //        addMenuItem(item, "PageAdmin.menu.top.cases.myManualProvisionCases", PageCasesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
 
 //        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
