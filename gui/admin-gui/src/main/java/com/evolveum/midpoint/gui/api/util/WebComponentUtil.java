@@ -3667,4 +3667,11 @@ public final class WebComponentUtil {
 		return deploymentInfo != null && StringUtils.isNotEmpty(deploymentInfo.getSystemName()) ?
 				deploymentInfo.getSystemName() : pageBase.createStringResource(defaultSystemNameKey).getString();
 	}
+
+	public static String getObjectListPageStorageKey(String additionalKeyValue){
+    	if (StringUtils.isEmpty(additionalKeyValue)){
+    		return SessionStorage.KEY_OBJECT_LIST;
+		}
+    	return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
+	}
 }

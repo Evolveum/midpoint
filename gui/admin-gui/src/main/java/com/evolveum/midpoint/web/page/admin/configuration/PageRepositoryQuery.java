@@ -392,7 +392,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			}
 
 			Class<? extends PageBase> listPageClass = WebComponentUtil.getObjectListPage(request.getType());
-			String storageKey = listPageClass != null ? WebComponentUtil.getStorageKeyForPage(listPageClass) : null;
+			String storageKey = listPageClass != null ? WebComponentUtil.getObjectListPageStorageKey(dto.getObjectType().getLocalPart()) : null;
 			if (storageKey == null) {
 				// shouldn't occur because of button visibility
 				error("No page to redirect for " + dto.getObjectType());
