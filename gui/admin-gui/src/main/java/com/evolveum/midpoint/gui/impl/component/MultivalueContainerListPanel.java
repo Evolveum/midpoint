@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -400,7 +401,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	}
 	
 	public PrismObject getFocusObject(){
-		FocusMainPanel mainPanel = findParent(FocusMainPanel.class);
+		AssignmentHolderTypeMainPanel mainPanel = findParent(AssignmentHolderTypeMainPanel.class);
 		if (mainPanel != null) {
 			return mainPanel.getObjectWrapper().getObject();
 		}
