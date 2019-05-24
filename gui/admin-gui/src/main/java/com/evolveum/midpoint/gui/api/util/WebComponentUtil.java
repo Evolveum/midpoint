@@ -78,12 +78,10 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.RequestCycle;
@@ -108,16 +106,13 @@ import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -127,7 +122,6 @@ import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -210,11 +204,9 @@ import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -652,24 +644,6 @@ public final class WebComponentUtil {
 	    } else {
 		    return null;
 	    }
-	}
-
-	// quite a hack (temporary)
-	public static <T extends ObjectType> IModel<ObjectWrapperOld<T>> adopt(
-			PropertyModel<ObjectWrapperOld<T>> objectWrapperModel, PrismContext prismContext) {
-		if (objectWrapperModel == null) {
-			return null;
-		}
-		ObjectWrapperOld<T> wrapper = objectWrapperModel.getObject();
-		if (wrapper == null || wrapper.getObject() == null) {
-			return objectWrapperModel;
-		}
-		try {
-			prismContext.adopt(wrapper.getObject());
-		} catch (SchemaException e) {
-			throw new IllegalStateException("Unexpected SchemaException: " + e.getMessage());
-		}
-		return objectWrapperModel;
 	}
 
 	public static void safeResultCleanup(OperationResult result, Trace logger) {
@@ -1232,23 +1206,6 @@ public final class WebComponentUtil {
 //		}
 	}
 
-
-	public static <IW extends ItemWrapperOld, C extends Containerable> PropertyModel createPrismPropertySingleValueModel(IModel<ContainerValueWrapper<C>> containerModel,
-																													QName attributeName){
-		//todo should be refactored: wrap with some new  model
-		PropertyModel<List<IW>> propertiesModel = new PropertyModel<>(containerModel, "properties");
-		List<IW> propertiesList = propertiesModel.getObject();
-		for (final IW property : propertiesList){
-			if (property.getName().equals(attributeName)){
-				List<ValueWrapperOld> valuesList = property.getValues();
-				if (valuesList.size() == 1) {
-					return new PropertyModel<>(valuesList.get(0).getValue(), "value");
-				}
-
-			}
-		}
-		return null;
-	}
 
 	private static <T> List<DisplayableValue> getDisplayableValues(Collection<T> allowedValues) {
 		List<DisplayableValue> values = null;
@@ -3185,10 +3142,6 @@ public final class WebComponentUtil {
 		};
 	}
 	
-	public static LookupTableType createAppenderChoices(PageBase pageBase) {
-        return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(pageBase).getObject().getRealValue().getLogging().getAppender());
-	}
-	
 	public static LookupTableType createAppenderChoices(PageBase pageBase, Task task, OperationResult result) {
         return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(pageBase, task, result).getRealValue().getLogging().getAppender());
 	}
@@ -3350,24 +3303,6 @@ public final class WebComponentUtil {
 		return filter;
 	}
 
-	@Deprecated
-	public static <IW extends ItemWrapperOld> String loadHelpText(IModel<IW> model, Panel panel) {
-		if(model == null || model.getObject() == null) {
-			return null;
-		}
-        IW property = (IW) model.getObject();
-        ItemDefinition def = property.getItemDefinition();
-        String doc = def.getHelp();
-        if (StringUtils.isEmpty(doc)) {
-        	doc = def.getDocumentation();
-        	if (StringUtils.isEmpty(doc)) {
-            	return null;
-            }
-        }
-        
-        return PageBase.createStringResourceStatic(panel, doc).getString().replaceAll("\\s{2,}", " ").trim();
-    }
-	
 	public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
 	        boolean suppressTrailingZeroElements, PageBase pageBase){
 		

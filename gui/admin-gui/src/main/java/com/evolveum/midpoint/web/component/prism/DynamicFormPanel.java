@@ -15,12 +15,13 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
+import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -29,24 +30,31 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.FormTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FormTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormAuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.asObjectable;
-
-public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrapperOld<O>> {
+public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -56,7 +64,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 
 	private static final String ID_FORM_FIELDS = "formFields";
 
-	private LoadableModel<ObjectWrapperOld<O>> wrapperModel;
+	private LoadableModel<PrismObjectWrapper<O>> wrapperModel;
 	private FormType form;
 
 	public DynamicFormPanel(String id, final IModel<O> model, String formOid, Form<?> mainForm,
@@ -106,33 +114,45 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<ObjectWrap
 			return;
 		}
 
-		final ObjectWrapperFactory owf = new ObjectWrapperFactory(parentPage);
-		ObjectWrapperOld<O> objectWrapper = createObjectWrapper(owf, task, prismObject, enforceRequiredFields);
+		PrismObjectWrapperFactory<O> factory = parentPage.findObjectWrapperFactory(prismObject.getDefinition());
+		PrismObjectWrapper<O> objectWrapper = createObjectWrapper(factory, task, prismObject, enforceRequiredFields);
 		wrapperModel = LoadableModel.create(() -> objectWrapper, true);
 		initLayout(mainForm, parentPage);
 	}
 
-	private ObjectWrapperOld<O> createObjectWrapper(ObjectWrapperFactory owf, Task task, PrismObject<O> prismObject,
+	private PrismObjectWrapper<O> createObjectWrapper(PrismObjectWrapperFactory<O> factory, Task task, PrismObject<O> prismObject,
 			boolean enforceRequiredFields) {
+		
 		FormAuthorizationType formAuthorization = form.getFormDefinition().getAuthorization();
 		AuthorizationPhaseType authorizationPhase = formAuthorization != null && formAuthorization.getPhase() != null
 				? formAuthorization.getPhase()
 				: AuthorizationPhaseType.REQUEST;
-		ObjectWrapperOld<O> objectWrapper = owf.createObjectWrapper("DisplayName", "description",
-				prismObject, prismObject.getOid() == null ? ContainerStatus.ADDING : ContainerStatus.MODIFYING,
-				authorizationPhase, task);
-		objectWrapper.setShowEmpty(true);
-		objectWrapper.setEnforceRequiredFields(enforceRequiredFields);
+				
+		OperationResult result = task.getResult();
+		WrapperContext context = new WrapperContext(task, result);
+		context.setShowEmpty(true);
+		context.setAuthzPhase(authorizationPhase);
+		//TODO: enforce required fields???? what is it?
+		PrismObjectWrapper<O> objectWrapper = null;
+		try {
+			objectWrapper = factory.createObjectWrapper(prismObject, prismObject.getOid() == null ? ItemStatus.ADDED : ItemStatus.NOT_CHANGED,
+					context);
+			result.recordSuccess();
+		} catch (SchemaException e) {
+			result.recordFatalError("Cannot initialize form, " + e.getMessage());
+			getPageBase().showResult(result);
+			
+		}
 		return objectWrapper;
 	}
 
 	@Override
-	public IModel<ObjectWrapperOld<O>> getModel() {
+	public IModel<PrismObjectWrapper<O>> getModel() {
 		return wrapperModel;
 	}
 
 	private void initLayout(Form<?> mainForm, PageBase parenPage) {
-		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<>(ID_FORM_FIELDS, getModel(),
+		DynamicFieldGroupPanel<O> formFields = new DynamicFieldGroupPanel<O>(ID_FORM_FIELDS, getModel(),
 				form.getFormDefinition(), mainForm, parenPage);
 		formFields.setOutputMarkupId(true);
 		add(formFields);
