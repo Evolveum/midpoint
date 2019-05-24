@@ -853,4 +853,21 @@ public class SimpleTaskAdapter implements Task {
     public Collection<String> getCachingProfiles() {
         return emptySet();
     }
+
+    @Override
+    public TaskExecutionEnvironmentType getExecutionEnvironment() {
+        return null;
+    }
+
+    @Override
+    public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
+    }
 }

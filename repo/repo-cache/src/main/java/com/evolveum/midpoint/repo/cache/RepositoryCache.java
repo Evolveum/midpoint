@@ -209,7 +209,7 @@ public class RepositoryCache implements RepositoryService {
 		} else if (!global.supports) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
 			collector.registerPass(GlobalObjectCache.class, type, global.statisticsLevel);
-			log("Cache (local): PASS:CONFIGURATION {} getObject ({})", global.tracePass, oid, type.getSimpleName());
+			log("Cache (global): PASS:CONFIGURATION {} getObject ({})", global.tracePass, oid, type.getSimpleName());
 			PrismObject<T> object = getObjectInternal(type, oid, options, parentResult);
 			locallyCacheObject(localObjectsCache, local.supports, object, readOnly);
 			return object;

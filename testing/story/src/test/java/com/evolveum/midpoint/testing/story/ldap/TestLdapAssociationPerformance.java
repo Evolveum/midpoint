@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.perf.OperationPerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
@@ -47,7 +48,7 @@ import java.util.Map;
 /**
  * Performance tests for accounts with large number of role assignments and group associations; using assignmentTargetSearch,
  * associationFromLink and similar mappings.
- * 
+ *
  * MID-5341
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
@@ -57,6 +58,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	public static final File TEST_DIR = new File(LDAP_TEST_DIR, "assoc-perf");
 
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+	private static final File SYSTEM_CONFIGURATION_NO_ROLE_CACHE_FILE = new File(TEST_DIR, "system-configuration-no-role-cache.xml");
 
 	private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	private static final String RESOURCE_OPENDJ_OID = "aeff994e-381a-4fb3-af3b-f0f5dcdc9653";
@@ -76,6 +78,8 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
 	private static final File TASK_RECOMPUTE_1_FILE = new File(TEST_DIR, "task-recompute-1.xml");
 	private static final String TASK_RECOMPUTE_1_OID = "e3a446c5-07ef-4cbd-9bc9-d37fa5a10d70";
+	private static final File TASK_RECOMPUTE_4_FILE = new File(TEST_DIR, "task-recompute-4.xml");
+	private static final String TASK_RECOMPUTE_4_OID = "580a9fc0-c902-479e-a061-5d9e0f4e294a";
 	private static final File TASK_RECOMPUTE_NO_CACHE_FILE = new File(TEST_DIR, "task-recompute-no-role-and-shadow-cache.xml");
 	private static final String TASK_RECOMPUTE_NO_CACHE_OID = "aadb61f6-5bd2-4802-a44d-02f7911eb270";
 
@@ -129,7 +133,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		super.initSystem(initTask, initResult);
 
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);	
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
 		openDJController.setResource(resourceOpenDj);
 
 		importObjectFromFile(ROLE_LDAP_FILE);
@@ -168,7 +172,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
     public void test010Sanity() throws Exception {
 		final String TEST_NAME = "test010Sanity";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -180,7 +184,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 
      	// THEN
      	displayThen(TEST_NAME);
-     	
+
         dumpLdap();
 		openDJController.assertUniqueMember("cn=role-test,ou=groups,dc=example,dc=com", "uid=user-test,ou=people,dc=example,dc=com");
         assertLdapConnectorInstances(1);
@@ -318,10 +322,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		addTask(TASK_RECOMPUTE_1_FILE);
-
 		getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
 		resetCachePerformanceCollector();
+
+		addTask(TASK_RECOMPUTE_1_FILE);
 
 		waitForTaskFinish(TASK_RECOMPUTE_1_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
@@ -358,10 +362,10 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		// WHEN
 		displayWhen(TEST_NAME);
 
-		addTask(TASK_RECOMPUTE_NO_CACHE_FILE);
-
 		getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
 		resetCachePerformanceCollector();
+
+		addTask(TASK_RECOMPUTE_NO_CACHE_FILE);
 
 		waitForTaskFinish(TASK_RECOMPUTE_NO_CACHE_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
 
@@ -386,10 +390,52 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 	}
 
 	@Test
+	public void test130RecomputeUsersNoDefaultRoleCache() throws Exception {
+		final String TEST_NAME = "test130RecomputeUsersNoDefaultRoleCache";
+		displayTestTitle(TEST_NAME);
+
+		rememberConnectorResourceCounters();
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		PrismObject<SystemConfigurationType> newConfiguration = parseObject(SYSTEM_CONFIGURATION_NO_ROLE_CACHE_FILE);
+		repositoryService.addObject(newConfiguration, RepoAddOptions.createOverwrite(), result);
+
+		getRepoPerformanceMonitor().clearGlobalPerformanceInformation();
+		resetCachePerformanceCollector();
+
+		addTask(TASK_RECOMPUTE_4_FILE);
+		waitForTaskFinish(TASK_RECOMPUTE_4_OID, true, RECOMPUTE_TASK_WAIT_TIMEOUT);
+
+		// THEN
+		displayThen(TEST_NAME);
+
+		recordDuration(TEST_NAME,getRunDurationMillis(TASK_RECOMPUTE_4_OID));
+
+		// todo retrieve this information from finished task
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getGlobalPerformanceInformation();
+		dumpRepoSnapshotPerUser("SQL operations for " + TEST_NAME, performanceInformation);
+		dumpCachePerformanceData(TEST_NAME);
+
+		assertUsers(getNumberOfUsers() + NUMBER_OF_GENERATED_USERS);
+
+		assertLdapAccounts(getNumberOfLdapAccounts() + NUMBER_OF_GENERATED_USERS);
+//		assertLdapConnectorInstances(1);
+
+		assertSteadyResource();
+		//assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 0);
+	}
+
+	@Test
     public void test900Summarize() throws Exception {
 		final String TEST_NAME = "test900Summarize";
         displayTestTitle(TEST_NAME);
-        
+
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
@@ -398,14 +444,14 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         	sb.append(summary(entry.getKey(), entry.getValue()));
         }
         display("Summary ("+NUMBER_OF_GENERATED_USERS+" users, "+NUMBER_OF_GENERATED_ROLES+" roles)", sb.toString());
-     	
+
      	// THEN
      	displayThen(TEST_NAME);
 
      	// TODO: more thresholds
 
 	}
-	
+
 	private void rememberConnectorResourceCounters() {
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
@@ -417,7 +463,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         rememberCounter(InternalCounters.CONNECTOR_MODIFICATION_COUNT);
 	}
-	
+
 	private void assertSteadyResource() {
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
@@ -427,13 +473,13 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
         assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
         assertCounterIncrement(InternalCounters.RESOURCE_REPOSITORY_MODIFY_COUNT, 0);
 	}
-	
+
 	private long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<TaskType> reconTask = getTask(taskReconOpendjOid);
-     	return (XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunFinishTimestamp()) 
+     	return (XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunFinishTimestamp())
      			- XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunStartTimestamp()));
 	}
-	
+
 	protected void assertLdapConnectorInstances() throws NumberFormatException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException, InterruptedException {
 		assertLdapConnectorInstances(2,4);
 	}
@@ -442,7 +488,7 @@ public class TestLdapAssociationPerformance extends AbstractLdapTest {
 		durations.put(label, duration);
 		return duration;
 	}
-	
+
 	private Object summary(String label, long duration) {
 		return String.format(SUMMARY_LINE_FORMAT, label, duration, duration/NUMBER_OF_GENERATED_USERS, (double) duration/(NUMBER_OF_GENERATED_USERS * NUMBER_OF_GENERATED_ROLES));
 	}

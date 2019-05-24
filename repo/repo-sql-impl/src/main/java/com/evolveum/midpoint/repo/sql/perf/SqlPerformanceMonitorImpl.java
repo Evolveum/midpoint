@@ -233,7 +233,8 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
             }
         }
         if (newLevel != level) {
-            LOGGER.info("Changing collection level to {} (configured as {})", newLevel, collection);
+            LOGGER.info("Changing collection level from {} to {} (configured as {})", level, newLevel, collection);
+            level = newLevel;
         }
         perObjectType = classification == RepositoryStatisticsClassificationType.PER_OPERATION_AND_OBJECT_TYPE;
     }

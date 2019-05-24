@@ -2603,7 +2603,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@NotNull
 	@Override
 	public Collection<String> getCachingProfiles() {
-		TaskExecutionEnvironmentType executionEnvironment = getTaskType().getExecutionEnvironment();
-		return executionEnvironment != null ? executionEnvironment.getCachingProfile() : emptySet();
+		TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
+		return executionEnvironment != null ? Collections.unmodifiableCollection(executionEnvironment.getCachingProfile()) : emptySet();
+	}
+
+	@Override
+	public TaskExecutionEnvironmentType getExecutionEnvironment() {
+		return getProperty(TaskType.F_EXECUTION_ENVIRONMENT);
+	}
+
+	@Override
+	public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+		setProperty(TaskType.F_EXECUTION_ENVIRONMENT, value);
+	}
+
+	@Override
+	public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		setPropertyImmediate(TaskType.F_EXECUTION_ENVIRONMENT, value, parentResult);
+	}
+
+	@Override
+	public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
+		setPropertyTransient(TaskType.F_EXECUTION_ENVIRONMENT, value);
 	}
 }
