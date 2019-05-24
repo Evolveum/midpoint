@@ -69,7 +69,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	private RepositoryService repositoryService;
 
 	@Autowired(required = true)
-	private CorrelationConfirmationEvaluator evaluator;
+	private SynchronizationExpressionsEvaluator evaluator;
 
 	@Test
 	public void test001CorrelationOrFilter() throws Exception{

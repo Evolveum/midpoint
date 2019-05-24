@@ -142,6 +142,9 @@
 					</expression>
 					<target>
 						<path>organizationalUnit</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
 					</target>
 				</inbound>
 			</attribute>

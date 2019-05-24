@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -652,8 +653,7 @@ class EntitlementConverter {
 				throw new SchemaException("Association attribute '"+assocAttrName+"'defined in entitlement association was not found in entitlement intent(s) '"+entitlementIntents+"' in schema for "+resource);
 			}
 
-			ResourceAttributeContainer identifiersContainer =
-					ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+			ResourceAttributeContainer identifiersContainer = getIdentifiersAttributeContainer(associationCVal, entitlementOcDef);
 			Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
 
 			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiersFromAssociation);
@@ -758,6 +758,27 @@ class EntitlementConverter {
 
 		}
 		return subjectShadowAfter;
+	}
+
+	private ResourceAttributeContainer getIdentifiersAttributeContainer(PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition entitlementOcDef) throws SchemaException {
+		PrismContainer container = associationCVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+		if (container == null) {
+			return null;
+		}
+		if (container instanceof ResourceAttributeContainer) {
+			return (ResourceAttributeContainer)container;
+		}
+		ResourceAttributeContainer attributesContainer = entitlementOcDef.toResourceAttributeContainerDefinition().instantiate(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<?> cval = container.getValue();
+		for (PrismProperty<?> prop : cval.getProperties()) {
+			RefinedAttributeDefinition<Object> attrDef = entitlementOcDef.findAttributeDefinition(prop.getElementName());
+			ResourceAttribute<Object> attribute = attrDef.instantiate();
+			for (Object val : prop.getRealValues()) {
+				attribute.addRealValue(val);
+			}
+			attributesContainer.add(attribute);
+		}
+		return attributesContainer;
 	}
 
 

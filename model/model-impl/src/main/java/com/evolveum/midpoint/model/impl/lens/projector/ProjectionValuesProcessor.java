@@ -39,7 +39,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -106,7 +106,7 @@ public class ProjectionValuesProcessor {
 	private PrismContext prismContext;
 
 	@Autowired
-	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
 
 	@Autowired
 	private SynchronizationService synchronizationService;

@@ -895,7 +895,7 @@ main:       for (;;) {
                         break main;
                     }
                 }
-				if (objects.size() == 0) {
+				if (objects.size() == 0 || objects.size() < paging.getMaxSize()) {
                     break;
                 }
                 if (maxSize != null) {

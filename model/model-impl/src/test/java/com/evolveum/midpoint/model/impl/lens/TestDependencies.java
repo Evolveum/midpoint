@@ -464,9 +464,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 		assertEquals("Wrong wave in "+projCtx, expectedWave, projCtx.getWave());
 	}
 
-	private LensProjectionContext findAccountContext(LensContext<UserType> context,
-			String resourceOid, int order) {
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
+	private LensProjectionContext findAccountContext(LensContext<UserType> context, String resourceOid, int order) {
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
 		discr.setOrder(order);
 		return context.findProjectionContext(discr);
 	}

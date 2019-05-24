@@ -941,6 +941,32 @@ public class IntegrationTestTools {
 				accountOid, ShadowType.F_ASSOCIATION, association);
 		return delta;
 	}
+	
+	public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddContainer(ShadowType.class,
+				accountOid, ShadowType.F_ASSOCIATION, association);
+		PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
+		PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+		identifier.addRealValue(identifierValue);
+		identifiersContainerValue.add(identifier);
+		return delta;
+	}
+
+	public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
+				accountOid, ShadowType.F_ASSOCIATION, association);
+		PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
+		PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+		identifier.addRealValue(identifierValue);
+		identifiersContainerValue.add(identifier);
+		return delta;
+	}
 
 	public static void assertGroupMember(DummyGroup group, String accountId) {
 		assertGroupMember(group, accountId, false);

@@ -692,14 +692,16 @@ public class ResourceManager {
 			throws CommunicationException, GenericFrameworkException, ConfigurationException, ObjectNotFoundException, SchemaException {
 		ConnectorSpec connectorSpec = selectConnectorSpec(resource, capabilityMap, SchemaCapabilityType.class);
 		if (connectorSpec == null) {
-			LOGGER.trace("No connector has schema capability, cannot fetch resource schema");
+			LOGGER.debug("No connector has schema capability, cannot fetch resource schema");
 			return null;
 		}
 		InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT);
 		List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 		ConnectorInstance connectorInstance = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, parentResult);
-		LOGGER.trace("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
+		
+		LOGGER.debug("Trying to get schema from {}, objectClasses to generate: {}", connectorSpec, generateObjectClasses);
 		ResourceSchema resourceSchema = connectorInstance.fetchResourceSchema(parentResult);
+		
 		if (ResourceTypeUtil.isValidateSchema(resource.asObjectable())) {
 			ResourceTypeUtil.validateSchema(resourceSchema, resource);
 		}

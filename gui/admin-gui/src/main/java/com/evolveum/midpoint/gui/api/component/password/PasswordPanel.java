@@ -18,12 +18,17 @@ package com.evolveum.midpoint.gui.api.component.password;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.self.PageSelfProfile;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -43,6 +48,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -91,31 +97,28 @@ public class PasswordPanel extends InputPanel {
 		inputContainer.setOutputMarkupId(true);
 		add(inputContainer);
 
-        final PasswordTextField password1 = new PasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
+	    final PasswordTextField password1 = new SecureModelPasswordTextField(ID_PASSWORD_ONE, new PasswordModel(model));
         password1.setRequired(false);
-        password1.setResetPassword(false);
         password1.setOutputMarkupId(true);
         password1.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password1);
 
-        final PasswordTextField password2 = new PasswordTextField(ID_PASSWORD_TWO, new Model<>());
+        final PasswordTextField password2 = new SecureModelPasswordTextField(ID_PASSWORD_TWO, new PasswordModel(Model.of(new ProtectedStringType())));
         password2.setRequired(false);
-        password2.setResetPassword(false);
         password2.setOutputMarkupId(true);
-        password2.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         inputContainer.add(password2);
 
         password1.add(new AjaxFormComponentUpdatingBehavior("change") {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
-				boolean required = !StringUtils.isEmpty(password1.getModel().getObject());
+				boolean required = !StringUtils.isEmpty(password1.getModelObject());
 				password2.setRequired(required);
                 //fix of MID-2463
 //				target.add(password2);
 //				target.appendJavaScript("$(\"#"+ password2.getMarkupId() +"\").focus()");
 			}
 		});
-        password2.add(new PasswordValidator(password1, password2));
+        password2.add(new PasswordValidator(password1));
 
         final WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LINK_CONTAINER) {
 			@Override
@@ -217,26 +220,21 @@ public class PasswordPanel extends InputPanel {
     private static class PasswordValidator implements IValidator<String> {
 
         private PasswordTextField p1;
-        private PasswordTextField p2;
 
-        private PasswordValidator(PasswordTextField p1, PasswordTextField p2) {
-            Validate.notNull(p1, "Password field one must not be null.");
-            Validate.notNull(p2, "Password field two must not be null.");
+        private PasswordValidator(@NotNull PasswordTextField p1) {
             this.p1 = p1;
-            this.p2 = p2;
         }
 
         @Override
         public void validate(IValidatable<String> validatable) {
-            String s1 = p1.getValue();
-            String s2 = p2.getValue();
+            String s1 = p1.getModelObject();
+            String s2 = validatable.getValue();
 
             if (StringUtils.isEmpty(s1) && StringUtils.isEmpty(s2)) {
                 return;
             }
 
-            boolean equal = s1 != null ? s1.equals(s2) : s2 == null;
-            if (!equal) {
+	        if (!Objects.equals(s1, s2)) {
             	validatable = p1.newValidatable();
             	ValidationError err = new ValidationError();
     			err.addKey("passwordPanel.error");
@@ -260,21 +258,30 @@ public class PasswordPanel extends InputPanel {
 
     	IModel<ProtectedStringType> psModel;
 
-    	PasswordModel(IModel<ProtectedStringType> psModel) {
+	    PasswordModel(IModel<ProtectedStringType> psModel) {
     		this.psModel = psModel;
-    	}
+	    }
 
 		@Override
 		public void detach() {
 			// Nothing to do
 		}
 
+		private Protector getProtector() {
+	    	return ((MidPointApplication) Application.get()).getProtector();
+		}
+
 		@Override
 		public String getObject() {
-			if (psModel.getObject() == null) {
+			ProtectedStringType ps = psModel.getObject();
+			if (ps == null) {
 				return null;
 			} else {
-				return psModel.getObject().getClearValue();
+				try {
+					return getProtector().decryptString(ps);
+				} catch (EncryptionException e) {
+					throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
+				}
 			}
 		}
 
@@ -289,8 +296,12 @@ public class PasswordPanel extends InputPanel {
 					psModel.getObject().clear();
 				}
 				psModel.getObject().setClearValue(object);
+				try {
+					getProtector().encrypt(psModel.getObject());
+				} catch (EncryptionException e) {
+					throw new SystemException(e.getMessage(), e);   // todo handle somewhat better
+				}
 			}
 		}
-
     }
 }

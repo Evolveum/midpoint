@@ -13,6 +13,23 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+  
+<!--
+  Activate view for this archetype in adminGuiConfiguration like this:
+  
+  <adminGuiConfiguration>
+    <objectCollectionViews>
+        <objectCollectionView>
+            <identifier>business-roles</identifier>
+            <type>RoleType</type>
+            <collection>
+                <collectionRef oid="00000000-0000-0000-0000-000000000321" type="ArchetypeType"/>
+            </collection>
+        </objectCollectionView>
+    </objectCollectionViews>
+  </adminGuiConfiguration>
+  
+-->
 <archetype oid="00000000-0000-0000-0000-000000000321"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"

@@ -96,6 +96,16 @@ public class LinksAsserter<F extends FocusType, FA extends FocusAsserter<F, RA>,
 		return forLink(getLinks().get(0), null);
 	}
 	
+	public ShadowReferenceAsserter<LinksAsserter<F, FA, RA>> link(String oid) {
+		for ( PrismReferenceValue link : getLinks() ) {
+			if (oid.equals(link.getOid())) {
+				return forLink(link, null);
+			}
+		}
+		fail("No link with OID "+oid+" in "+desc());
+		return null; // not reached
+	}
+	
 	PrismObject<F> getFocus() {
 		return focusAsserter.getObject();
 	}

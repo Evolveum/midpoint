@@ -1882,8 +1882,10 @@ public class ShadowCache {
 						
 						//check and fix kind/intent
 						ShadowType repoShadowType = repoShadow.asObjectable();
-						if (repoShadowType.getKind() == null || repoShadowType.getIntent() == null) { //TODO: check also empty?
+						if (isDoDiscovery && (repoShadowType.getKind() == null || repoShadowType.getIntent() == null)) { //TODO: check also empty?
 							// notify resourceObjectChangeListeners to fix kind and intent for Shadow
+							// Do NOT invoke this if discovery is disabled. This may ruin the flow (e.g. when importing objects)
+							// or it may lead to discovery loops. 
 							notifyResourceObjectChangeListeners(repoShadow, ctx.getResource().asPrismObject(), false);
 						}
 						

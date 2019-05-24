@@ -71,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
-	public static final File TEST_DIR = new File("src/test/resources/multi");
+	public static final File TEST_DIR = new File("src/test/resources/multi-resource");
 
 	// LAVENDER dummy resource has a STRICT dependency on default dummy resource
 	protected static final File RESOURCE_DUMMY_LAVENDER_FILE = new File(TEST_DIR, "resource-dummy-lavender.xml");

@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -79,35 +80,89 @@ public class ArchetypeManager {
 	}
 	
 	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
-		ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
-		if (archetypeRef == null) {
-			return null;
+		return determineArchetype(assignmentHolder, null, result);
+	}
+	
+	private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+		String archetypeOid;
+		if (explicitArchetypeOid != null) {
+			archetypeOid = explicitArchetypeOid;
+		} else {
+			ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
+			if (archetypeRef == null) {
+				return null;
+			}
+			archetypeOid = archetypeRef.getOid();
 		}
 
 		PrismObject<ArchetypeType> archetype;
 		try {
-			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
+			archetype = systemObjectCache.getArchetype(archetypeOid, result);
 		} catch (ObjectNotFoundException e) {
-			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeOid, assignmentHolder);
 			return null;
 		}
 		return archetype;
 	}
-
+	
 	public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+		return determineArchetypePolicy(object, null, result);
+	}
+
+	public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
 		if (object == null) {
 			return null;
 		}
+		ArchetypePolicyType archetypePolicy = null;
 		if (object.canRepresent(AssignmentHolderType.class)) {
-			PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, result);
+			PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
 			if (archetype != null) {
-				return archetype.asObjectable().getArchetypePolicy();
+				archetypePolicy = archetype.asObjectable().getArchetypePolicy();
 			}
 		}
 		// No archetype for this object. Try to find appropriate system configuration section for this object.
-		return determineObjectPolicyConfiguration(object, result);
+		ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
+		// TODO: cache the result of the merge
+		return merge(archetypePolicy, objectPolicy);
 	}
 	
+	private ArchetypePolicyType merge(ArchetypePolicyType archetypePolicy, ObjectPolicyConfigurationType objectPolicy) {
+		if (archetypePolicy == null && objectPolicy == null) {
+			return null;
+		}
+		if (archetypePolicy == null) {
+			return objectPolicy.clone();
+		}
+		if (objectPolicy == null) {
+			return archetypePolicy.clone();
+		}
+		ArchetypePolicyType resultPolicy = archetypePolicy.clone();
+		if (archetypePolicy.getApplicablePolicies() == null && objectPolicy.getApplicablePolicies() != null) {
+			resultPolicy.setApplicablePolicies(objectPolicy.getApplicablePolicies().clone());
+		}
+		if (archetypePolicy.getConflictResolution() == null && objectPolicy.getConflictResolution() != null) {
+			resultPolicy.setConflictResolution(objectPolicy.getConflictResolution().clone());
+		}
+		if (archetypePolicy.getDisplay() == null && objectPolicy.getDisplay() != null) {
+			resultPolicy.setDisplay(objectPolicy.getDisplay().clone());
+		}
+		if (archetypePolicy.getExpressionProfile() == null && objectPolicy.getExpressionProfile() != null) {
+			resultPolicy.setExpressionProfile(objectPolicy.getExpressionProfile());
+		}
+		if (archetypePolicy.getLifecycleStateModel() == null && objectPolicy.getLifecycleStateModel() != null) {
+			resultPolicy.setLifecycleStateModel(objectPolicy.getLifecycleStateModel().clone());
+		}
+		if (archetypePolicy.getObjectTemplateRef() == null && objectPolicy.getObjectTemplateRef() != null) {
+			resultPolicy.setObjectTemplateRef(objectPolicy.getObjectTemplateRef().clone());
+		}
+		if (archetypePolicy.getPropertyConstraint().isEmpty()) {
+			for (PropertyConstraintType objPropertyConstraint : objectPolicy.getPropertyConstraint()) {
+				resultPolicy.getPropertyConstraint().add(objPropertyConstraint.clone());
+			}
+		}
+		return resultPolicy;
+	}
+
 	public <O extends ObjectType> ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
 		if (object == null) {
 			return null;

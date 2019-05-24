@@ -88,8 +88,8 @@ public class DummyGroupAsserter<R> extends DummyObjectAsserter<DummyGroup,R> {
 		return this;
 	}
 	
-	public DummyGroupAsserter<R> assertFullName(String expected) {
-		assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, expected);
+	public DummyGroupAsserter<R> assertDescription(String expected) {
+		assertAttribute(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, expected);
 		return this;
 	}
 	
@@ -103,6 +103,22 @@ public class DummyGroupAsserter<R> extends DummyObjectAsserter<DummyGroup,R> {
 		Collection<String> groupMembers = getDummyObjectAssertExists().getMembers();
 		if (groupMembers != null && !groupMembers.isEmpty()) {
 			fail("Unexpected members in "+desc()+": "+groupMembers);
+		}
+		return this;
+	}
+	
+	public DummyGroupAsserter<R> assertMember(String expectedMember) {
+		Collection<String> groupMembers = getDummyObjectAssertExists().getMembers();
+		if (!groupMembers.contains(expectedMember)) {
+			fail("Member "+expectedMember+" not found in "+desc());
+		}
+		return this;
+	}
+	
+	public DummyGroupAsserter<R> assertNotMember(String expectedMember) {
+		Collection<String> groupMembers = getDummyObjectAssertExists().getMembers();
+		if (groupMembers.contains(expectedMember)) {
+			fail("Member "+expectedMember+" found, but not expecting it, in "+desc());
 		}
 		return this;
 	}

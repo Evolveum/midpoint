@@ -269,7 +269,7 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 
     @Override
     public String getCategoryName(Task task) {
-        return TaskCategory.DELETE_NOT_UPDATED_SHADOWS;
+        return TaskCategory.UTIL;
     }
     
 	@Override

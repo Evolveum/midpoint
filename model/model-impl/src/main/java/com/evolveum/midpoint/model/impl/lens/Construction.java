@@ -392,7 +392,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
 		
-		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent());
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent(), null, false);
 		projectionContext = getLensContext().findProjectionContext(rat);
 		// projection context may not exist yet (existence might not be yet decided)
 	}

@@ -259,6 +259,7 @@ public class ContextLoader {
 		boolean isThombstone = false;
 		ShadowKindType kind = ShadowKindType.ACCOUNT;
 		String intent = null;
+		String tag = null;
 		int order = 0;
 		ResourceShadowDiscriminator rsd = projectionContext.getResourceShadowDiscriminator();
 		if (rsd != null) {
@@ -266,6 +267,7 @@ public class ContextLoader {
 			isThombstone = rsd.isTombstone();
 			kind = rsd.getKind();
 			intent = rsd.getIntent();
+			tag = rsd.getTag();
 			order = rsd.getOrder();
 		}
 		if (resourceOid == null && projectionContext.getObjectCurrent() != null) {
@@ -282,6 +284,7 @@ public class ContextLoader {
                 ShadowType shadowNewType = projectionContext.getObjectNew().asObjectable();
                 kind = ShadowUtil.getKind(shadowNewType);
                 intent = ShadowUtil.getIntent(shadowNewType);
+                tag = shadowNewType.getTag();
 			}
 			ResourceType resource = projectionContext.getResource();
 			if (resource == null) {
@@ -289,7 +292,7 @@ public class ContextLoader {
 				projectionContext.setResource(resource);
 			}
             String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-            rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, isThombstone);
+            rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, tag, isThombstone);
 			rsd.setOrder(order);
 			projectionContext.setResourceShadowDiscriminator(rsd);
 		}
@@ -424,14 +427,13 @@ public class ContextLoader {
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getFocusContext() != null) {
-        	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getArchetypePolicyType() == null) {
-				ArchetypePolicyType policyConfigurationType = archetypeManager.determineArchetypePolicy(object, result);
+				ArchetypePolicyType archetypePolicy = determineArchetypePolicy(context, task, result);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+					LOGGER.trace("Selected archetype policy:\n{}", 
+							archetypePolicy==null?null:archetypePolicy.asPrismContainerValue().debugDump(1));
 				}
-                context.getFocusContext().setArchetypePolicyType(policyConfigurationType);
+                context.getFocusContext().setArchetypePolicyType(archetypePolicy);
             }
         }
 
@@ -451,6 +453,46 @@ public class ContextLoader {
 		loadSecurityPolicy(context, task, result);
 	}
 
+	private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return null;
+		}
+		if (context.getFocusContext() == null) {
+			return null;
+		}
+		PrismObject<F> object = context.getFocusContext().getObjectAny();
+		String explicitArchetypeOid = null;
+		// Used in cases where archetype assignment haven't had the change to be processed yet.
+		// E.g. in case that we are creating a new object with archetype assignment
+		if (object.canRepresent(AssignmentHolderType.class)) {
+			AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
+			List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
+			if (archetypeRefs.isEmpty()) {
+				for (AssignmentType assignment : assignmentHolderType.getAssignment()) {
+					ObjectReferenceType targetRef = assignment.getTargetRef();
+					if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+						explicitArchetypeOid = targetRef.getOid();
+					}
+				}
+			}
+		}
+		return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
+	}
+	
+	public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+		if (context.getFocusContext() == null) {
+			return;
+		}
+		ArchetypePolicyType newArchetypePolicy = determineArchetypePolicy(context, task, result);
+		if (newArchetypePolicy != context.getFocusContext().getArchetypePolicyType()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Changed policy configuration because of changed subtypes:\n{}", 
+						newArchetypePolicy==null?null:newArchetypePolicy.asPrismContainerValue().debugDump(1));
+			}
+			context.getFocusContext().setArchetypePolicyType(newArchetypePolicy);
+		}
+	}
 
     // expects that object policy configuration is already set in focusContext
 	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
@@ -522,7 +564,7 @@ public class ContextLoader {
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);
 
-			if (!canBeLoaded(context, existingAccountContext)){
+			if (!canBeLoaded(context, existingAccountContext)) {
 				continue;
 			}
 
@@ -863,24 +905,24 @@ public class ContextLoader {
 	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> projection, Task task, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
-		ShadowType accountType = projection.asObjectable();
-		String resourceOid = ShadowUtil.getResourceOid(accountType);
+		ShadowType shadowType = projection.asObjectable();
+		String resourceOid = ShadowUtil.getResourceOid(shadowType);
 		if (resourceOid == null) {
 			throw new SchemaException("The " + projection + " has null resource reference OID");
 		}
 
-		LensProjectionContext projectionContext = context.findProjectionContextByOid(accountType.getOid());
+		LensProjectionContext projectionContext = context.findProjectionContextByOid(shadowType.getOid());
 
 		if (projectionContext == null) {
-			String intent = ShadowUtil.getIntent(accountType);
-			ShadowKindType kind = ShadowUtil.getKind(accountType);
+			String intent = ShadowUtil.getIntent(shadowType);
+			ShadowKindType kind = ShadowUtil.getKind(shadowType);
 			ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 			intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
 			boolean thombstone = false;
-			if (ShadowUtil.isDead(accountType)) {
+			if (ShadowUtil.isDead(shadowType)) {
 				thombstone = true;
 			}
-			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, thombstone);
+			ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, intent, shadowType.getTag(), thombstone);
 			projectionContext = LensUtil.getOrCreateProjectionContext(context, rsd);
 
 			if (projectionContext.getOid() == null) {
@@ -969,7 +1011,7 @@ public class ContextLoader {
 		ShadowKindType kind = ShadowUtil.getKind(shadowType);
 		ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
 		String accountIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent, shadowType.getTag(), false);
 		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext != null) {
 			throw new SchemaException("Attempt to add "+account+" to a user that already contains account of type '"+accountIntent+"' on "+resource);
@@ -999,7 +1041,7 @@ public class ContextLoader {
 		}
 
 		if (projContext.getResourceShadowDiscriminator() == null) {
-			projContext.setResourceShadowDiscriminator(new ResourceShadowDiscriminator(null, null, null, true));
+			projContext.setResourceShadowDiscriminator(new ResourceShadowDiscriminator(null, null, null, null, true));
 		} else {
 			projContext.markTombstone();
 		}
@@ -1184,9 +1226,9 @@ public class ContextLoader {
 				ShadowType accountShadowType = projectionObject.asObjectable();
 				String intent = ShadowUtil.getIntent(accountShadowType);
 				ShadowKindType kind = ShadowUtil.getKind(accountShadowType);
-				discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, tombstone);
+				discr = new ResourceShadowDiscriminator(resourceOid, kind, intent, accountShadowType.getTag(), tombstone);
 			} else {
-				discr = new ResourceShadowDiscriminator(null, null, null, tombstone);
+				discr = new ResourceShadowDiscriminator(null, null, null, null, tombstone);
 			}
 			projContext.setResourceShadowDiscriminator(discr);
 		} else {

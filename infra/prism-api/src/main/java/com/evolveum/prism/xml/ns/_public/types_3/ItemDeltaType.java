@@ -17,6 +17,8 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -60,7 +62,7 @@ import java.util.*;
     "value",
     "estimatedOldValue"
 })
-public class ItemDeltaType implements Serializable, Cloneable {
+public class ItemDeltaType implements Serializable, Cloneable, JaxbVisitable {
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ItemDeltaType");
 	public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
@@ -552,4 +554,21 @@ public class ItemDeltaType implements Serializable, Cloneable {
 				+ ", path=" + path + ", value=" + value + ", estimatedOldValue=" + estimatedOldValue + ")";
 	}
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		if (path != null) {
+			path.accept(visitor);
+		}
+		for (Object o : value) {
+			if (o instanceof JaxbVisitable) {
+				((JaxbVisitable) o).accept(visitor);
+			}
+		}
+		for (Object o : estimatedOldValue) {
+			if (o instanceof JaxbVisitable) {
+				((JaxbVisitable) o).accept(visitor);
+			}
+		}
+	}
 }

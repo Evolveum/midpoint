@@ -115,7 +115,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
 
-	private static final String RESOURCE_NONEXISTENT_OID = "00000000-f000-f000-f000-f000f000f000";;
+	private static final String RESOURCE_NONEXISTENT_OID = "00000000-f000-f000-f000-f000f000f000";
+	
+	public static final File SYSTEM_CONFIGURATION_STRANGE_FILE = new File(TEST_DIR, "system-configuration-strange.xml");
 
 	private static final XMLGregorianCalendar USER_DEGHOULASH_FUNERAL_TIMESTAMP =
 								XmlTypeConverter.createXMLGregorianCalendar(1771, 1, 2, 11, 22, 33);
@@ -159,8 +161,39 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
 //		DebugUtil.setDetailedDebugDump(true);
 	}
+	
+    @Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_STRANGE_FILE;
+	}
 
     /**
+     * Make sure we can log in as administrator. There are some problems in the
+     * system configuration (e.g. unknown collection). But this should not profibit
+     * login.
+     * 
+     * Note: this will probably die even before it gets to this test. Test class
+     * initialization won't work if administrator cannot log in. But initialization
+     * code may change in the future. Therefore it is better to have also an explicit
+     * test for this.
+     * 
+     * MID-5328
+     */
+    @Test
+    public void test010SanityAdministrator() throws Exception {
+		final String TEST_NAME = "test010SanityAdministrator";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        
+		// WHEN
+        loginAdministrator();
+
+		// THEN
+		assertLoggedInUsername(USER_ADMINISTRATOR_USERNAME);
+	}
+    
+	/**
      * Recursion role points to itself. The assignment should fail.
      * MID-3652
      */

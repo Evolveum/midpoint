@@ -34,6 +34,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import org.w3c.dom.Element;
 
@@ -49,7 +51,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
     "description",
     "filter"
 })
-public class ObjectReferenceType implements Serializable {
+public class ObjectReferenceType implements Serializable, JaxbVisitable {
 
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectReferenceType");
 
@@ -156,8 +158,12 @@ public class ObjectReferenceType implements Serializable {
         this.type = value;
     }
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 
-    /**
+	/**
      * <p>Java class for anonymous complex type.
      *
      * <p>The following schema fragment specifies the expected content contained within this class.

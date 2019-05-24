@@ -29,6 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.namespace.QName;
 
@@ -381,6 +382,18 @@ public final class PrismForJAXBUtil {
         } else {
         	rval.setTargetName(name.toPolyString());
         }
+    }
+
+    public static void accept(Object object, JaxbVisitor visitor) {
+    	if (object instanceof JaxbVisitable) {
+    		((JaxbVisitable) object).accept(visitor);
+	    } else if (object instanceof Collection) {
+		    for (Object item : ((Collection) object)) {
+			    accept(item, visitor);
+		    }
+	    } else if (object instanceof JAXBElement) {
+		    accept(((JAXBElement) object).getValue(), visitor);
+	    }
     }
 
 }

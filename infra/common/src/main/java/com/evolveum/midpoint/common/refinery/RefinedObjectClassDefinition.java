@@ -128,6 +128,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	ResourceObjectVolatilityType getVolatility();
 	
+	ResourceObjectMultiplicityType getMultiplicity();
+	
 	ProjectionPolicyType getProjection();
 	//endregion
 

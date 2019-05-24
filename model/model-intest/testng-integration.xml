@@ -27,6 +27,7 @@
         	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
             <class name="com.evolveum.midpoint.model.intest.TestMultiResource"/>
+            <class name="com.evolveum.midpoint.model.intest.TestMultiAccount"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplate"/>
             <class name="com.evolveum.midpoint.model.intest.TestUserTemplateWithRanges"/>
             <class name="com.evolveum.midpoint.model.intest.orgstruct.TestOrgStruct"/>

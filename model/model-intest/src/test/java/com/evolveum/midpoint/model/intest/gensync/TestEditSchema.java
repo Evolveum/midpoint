@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -1249,7 +1251,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
 
-        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null);
+        ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null, null, false);
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -1269,6 +1271,16 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("No definition for fullname attribute in shadow", attrFullNameDef);
 		assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
 		assertTrue("additionalName not readable", attrFullNameDef.canRead());
+		
+		PrismContainerDefinition<Containerable> identifiersDef = editDef.findContainerDefinition(ItemPath.create(ShadowType.F_ASSOCIATION,
+				ShadowAssociationType.F_IDENTIFIERS));
+		StringBuilder message = new StringBuilder();
+		message.append("Wrong type for ").append(ShadowAssociationType.F_IDENTIFIERS)
+			.append(", expected ResourceAttributeContainerDefinition but was ")
+			.append(identifiersDef == null ? null : identifiersDef.getClass().getName())
+			.append("; ");
+		assertClassType(message.toString(), identifiersDef, ResourceAttributeContainerDefinition.class);
+
 
         assertSteadyResources();
     }
@@ -1303,7 +1315,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
 		assertNotNull("No definition for fullname attribute in shadow", attrFullNameDef);
 		assertEquals("Wrong shadow fullname attribute displayName", "Full Name", attrFullNameDef.getDisplayName());
 		assertTrue("additionalName not readable", attrFullNameDef.canRead());
-
+		
         assertSteadyResources();
     }
 
@@ -1339,7 +1351,7 @@ public class TestEditSchema extends AbstractGenericSyncTest {
         assertSteadyResources();
     }
 
-    @Test
+	@Test
     public void test265EditShadowSchemaNull() throws Exception {
 		final String TEST_NAME="test265EditShadowSchemaNull";
         displayTestTitle(TEST_NAME);

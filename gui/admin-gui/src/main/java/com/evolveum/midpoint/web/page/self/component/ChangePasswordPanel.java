@@ -114,7 +114,6 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
         PasswordTextField oldPasswordField =
                 new PasswordTextField(ID_OLD_PASSWORD_FIELD, new PropertyModel<>(model, MyPasswordsDto.F_OLD_PASSWORD));
         oldPasswordField.setRequired(false);
-        oldPasswordField.setResetPassword(false);
         add(oldPasswordField);
         oldPasswordField.add(new VisibleEnableBehaviour() {
 
@@ -227,7 +226,7 @@ public class ChangePasswordPanel extends BasePanel<MyPasswordsDto> {
 
 					@Override
                 	public boolean isEnabled() {
-                		return passwordAccountDto.getCssClass() != NO_CAPABILITY_ICON_CSS;
+                		return !passwordAccountDto.getCssClass().equals(NO_CAPABILITY_ICON_CSS);
                 	}
                 });
             }

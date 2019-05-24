@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -372,6 +373,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		} else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
 			return false;
 		}
+    	if (!Objects.equals(rsd.getTag(), resourceShadowDiscriminator.getTag())) {
+    		return false;
+    	}
 
     	if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
     		return false;
@@ -1248,11 +1252,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return object.toString();
 		}
 	}
-
-	@Override
-    public String debugDump() {
-        return debugDump(0);
-    }
 
     @Override
     public String debugDump(int indent) {
