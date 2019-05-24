@@ -234,17 +234,19 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return this.orig.endsWith(value);
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
+		result = prime * result + ((lang == null || lang.isEmpty()) ? 0 : lang.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
 		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -257,8 +259,8 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return false;
 		}
 		PolyString other = (PolyString) obj;
-		if (lang == null) {
-			if (other.lang != null) {
+		if (lang == null || lang.isEmpty()) {
+			if (other.lang != null && !other.lang.isEmpty()) {
 				return false;
 			}
 		} else if (!lang.equals(other.lang)) {
