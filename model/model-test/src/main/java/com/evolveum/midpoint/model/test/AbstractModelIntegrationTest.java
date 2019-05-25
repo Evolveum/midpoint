@@ -3055,8 +3055,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
-	
-	
+
+	protected void dumpTaskTree(String oid, OperationResult result)
+			throws ObjectNotFoundException,
+			SchemaException {
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_SUBTASK).retrieve()
+				.build();
+		PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
+		dumpTaskAndSubtasks(task.asObjectable(), 0);
+	}
+
+	protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
+		String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
+		display("Task (level " + level + ")", xml);
+		for (TaskType subtask : task.getSubtask()) {
+			dumpTaskAndSubtasks(subtask, level + 1);
+		}
+	}
 
 	private class TaskFinishChecker implements Checker {
 		private final String taskOid;
@@ -3290,7 +3306,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			aggregateResult.getSubresults().clear();
 			List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
 			for (Task subtask : subtasks) {
-				subtask.refresh(waitResult);        // quick hack to get operation results
+				try {
+					subtask.refresh(waitResult);        // quick hack to get operation results
+				} catch (ObjectNotFoundException e) {
+					LOGGER.warn("Task {} does not exist any more", subtask);
+				}
 			}
 			Task failedTask = null;
 			for (Task subtask : subtasks) {
@@ -3303,6 +3323,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					return false;
 				}
 				OperationResult subtaskResult = subtask.getResult();
+				if (subtaskResult == null) {
+					display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
 				if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
 					display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
 					return false;

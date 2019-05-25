@@ -43,7 +43,6 @@ import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTes
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -241,7 +240,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
+	    dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+
+	    PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
@@ -267,7 +268,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
     }
 
-    /**
+	/**
      * Add wally also to the blue dummy resource. User should be linked to this account.
      */
     @Test
@@ -298,7 +299,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
+	    dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+	    dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
+	    PrismObject<ShadowType> accountWallyGreen = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), getDummyResource(RESOURCE_DUMMY_GREEN_NAME), "green", "Wally Feed");
         assertShadowOperationalData(accountWallyGreen, SynchronizationSituationType.LINKED);
         PrismObject<ShadowType> accountWallyBlue = checkWallyAccount(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME),
         		getDummyResource(RESOURCE_DUMMY_BLUE_NAME), "blue", "Wally Feed");
@@ -439,7 +443,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        // Make sure we have steady state
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
+		// Make sure we have steady state
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject());
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME));
         waitForSyncTaskNextRunAssertSuccess(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME));
@@ -563,7 +571,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
+		PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally B. Feed", null, "Wally B. Feed from Sync");
@@ -642,7 +654,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
+		PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
@@ -707,6 +723,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         // THEN
         displayThen(TEST_NAME);
+
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
 
         PrismObject<UserType> userWally = findUserByUsername(ACCOUNT_WALLY_DUMMY_USERNAME);
         display("User wally", userWally);
@@ -778,6 +798,10 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
         assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject())
         	.assertTombstone()
@@ -840,7 +864,11 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         // THEN
         displayThen(TEST_NAME);
 
-        assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+		dumpSyncTaskTree(getDummyResourceObject(), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_GREEN_NAME), result);
+		dumpSyncTaskTree(getDummyResourceObject(RESOURCE_DUMMY_BLUE_NAME), result);
+
+		assertNoDummyAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
         assertShadow(ACCOUNT_WALLY_DUMMY_USERNAME, getDummyResourceObject())
 	    	.assertTombstone()
 	    	.assertSynchronizationSituation(SynchronizationSituationType.DELETED);
@@ -1081,6 +1109,12 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
 	protected OperationResult waitForSyncTaskNextRunAssertSuccess(PrismObject<ResourceType> resource) throws Exception {
 		return waitForTaskNextRunAssertSuccess(getSyncTaskOid(resource), false, getWaitTimeout());
+	}
+
+	protected void dumpSyncTaskTree(PrismObject<ResourceType> resource, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		String oid = getSyncTaskOid(resource);
+		dumpTaskTree(oid, result);
 	}
 
 	protected OperationResult waitForSyncTaskNextRun(PrismObject<ResourceType> resource) throws Exception {
