@@ -421,6 +421,7 @@ public class RepositoryCache implements RepositoryService {
 			collector.registerHit(GlobalQueryCache.class, type, global.statisticsLevel);
 			log("Cache (global): HIT searchObjects {}", false, key);
 			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
+			searchResult = searchResult.clone();        // never return the value from the cache
 		}
 		return searchResult;
 	}
