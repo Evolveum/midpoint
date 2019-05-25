@@ -51,7 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 
 	// just to make sure we don't grow indefinitely
-	private static final int LISTENERS_SOFT_LIMIT = 500;
+	private static final int LISTENERS_SOFT_LIMIT = 200;
 	private static final int LISTENERS_HARD_LIMIT = 2000;
 
 	private static final long LISTENERS_WARNING_INTERVAL = 2000;
