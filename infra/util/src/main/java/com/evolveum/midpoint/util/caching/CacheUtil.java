@@ -18,6 +18,8 @@ package com.evolveum.midpoint.util.caching;
 
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.util.Locale;
+
 /**
  *
  */
@@ -35,5 +37,14 @@ public class CacheUtil {
 				performanceLogger.trace(message, params);
 			}
 		}
+	}
+
+	public static void formatPerformanceData(StringBuilder sb, int hits, int weakHits, int misses, int passes,
+			int notAvailable, int sum) {
+		sb.append(String.format(Locale.US,
+				"hits: %6d (%5.1f%%), weak hits: %6d (%.1f%%), misses: %6d, passes: %6d, not available: %6d",
+				hits, sum > 0 ? 100.0f * hits / sum : 0,
+				weakHits, sum > 0 ? 100.0f * weakHits / sum : 0,
+				misses, passes, notAvailable));
 	}
 }

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.Contract;
 import org.springframework.util.ClassUtils;
 
 import javax.xml.datatype.Duration;
@@ -135,6 +136,7 @@ public class CloneUtil {
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
 
+	@Contract("null -> null; !null -> !null")
 	public static <T> List<T> cloneCollectionMembers(Collection<T> collection) {
 		if (collection == null) {
 			return null;

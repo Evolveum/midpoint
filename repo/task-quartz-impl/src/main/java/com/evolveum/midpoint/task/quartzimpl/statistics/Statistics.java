@@ -23,19 +23,22 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.repo.api.perf.PerformanceInformationUtil;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.util.CachePerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
+import static java.util.Collections.emptySet;
 
 /**
  *  Code to manage operational statistics. Originally it was a part of the TaskQuartzImpl
@@ -69,6 +72,7 @@ public class Statistics {
 	 * while other threads should only read it.
 	 */
 	private volatile RepositoryPerformanceInformationType repositoryPerformanceInformation;
+	@Nullable private RepositoryPerformanceInformationType repositoryPerformanceInformationStartValue;
 
 	/**
 	 * Most current version of cache performance information. Original (live) form of this information is accessible only
@@ -78,6 +82,7 @@ public class Statistics {
 	 * while other threads should only read it.
 	 */
 	private volatile CachesPerformanceInformationType cachesPerformanceInformation;
+	@Nullable private CachesPerformanceInformationType cachesPerformanceInformationStartValue;
 
 	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
 		return environmentalPerformanceInformation;
@@ -165,10 +170,11 @@ public class Statistics {
 			return null;
 		}
 		RepositoryPerformanceInformationType rv = repositoryPerformanceInformation.clone();
+		RepositoryPerformanceInformationUtil.addTo(rv, repositoryPerformanceInformationStartValue);
 		for (Statistics child : children) {
-			RepositoryPerformanceInformationType info = child.getRepositoryPerformanceInformation();
+			RepositoryPerformanceInformationType info = child.getAggregateRepositoryPerformanceInformation(emptySet());
 			if (info != null) {
-				PerformanceInformationUtil.addTo(rv, info);
+				RepositoryPerformanceInformationUtil.addTo(rv, info);
 			}
 		}
 		return rv;
@@ -179,8 +185,9 @@ public class Statistics {
 			return null;
 		}
 		CachesPerformanceInformationType rv = cachesPerformanceInformation.clone();
+		CachePerformanceInformationUtil.addTo(rv, cachesPerformanceInformationStartValue);
 		for (Statistics child : children) {
-			CachesPerformanceInformationType info = child.getCachesPerformanceInformation();
+			CachesPerformanceInformationType info = child.getAggregateCachesPerformanceInformation(emptySet());
 			if (info != null) {
 				CachePerformanceInformationUtil.addTo(rv, info);
 			}
@@ -348,7 +355,7 @@ public class Statistics {
 	}
 
 	public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics,
-			boolean enableActionsExecutedStatistics) {
+			boolean enableActionsExecutedStatistics, PerformanceMonitor performanceMonitor) {
 		resetEnvironmentalPerformanceInformation(null);
 		if (enableIterationStatistics) {
 			resetIterativeTaskInformation(null);
@@ -359,10 +366,14 @@ public class Statistics {
 		if (enableActionsExecutedStatistics) {
 			resetActionsExecutedInformation(null);
 		}
+		repositoryPerformanceInformationStartValue = null;
+		cachesPerformanceInformationStartValue = null;
+		startCollectingRepoAndCacheStats(performanceMonitor);
 	}
 
 	public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
-			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics,
+			PerformanceMonitor performanceMonitor) {
 		if (stored == null) {
 			stored = new OperationStatsType();
 		}
@@ -382,6 +393,9 @@ public class Statistics {
 		} else {
 			actionsExecutedInformation = null;
 		}
+		repositoryPerformanceInformationStartValue = stored.getRepositoryPerformanceInformation();
+		cachesPerformanceInformationStartValue = stored.getCachesPerformanceInformation();
+		startCollectingRepoAndCacheStats(performanceMonitor);
 	}
 
 	/**
@@ -412,11 +426,8 @@ public class Statistics {
 		}
 	}
 
-	public RepositoryPerformanceInformationType getRepositoryPerformanceInformation() {
-		return repositoryPerformanceInformation;
-	}
-
-	public CachesPerformanceInformationType getCachesPerformanceInformation() {
-		return cachesPerformanceInformation;
+	public void startCollectingRepoAndCacheStats(PerformanceMonitor performanceMonitor) {
+		performanceMonitor.startThreadLocalPerformanceInformationCollection();
+		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 }

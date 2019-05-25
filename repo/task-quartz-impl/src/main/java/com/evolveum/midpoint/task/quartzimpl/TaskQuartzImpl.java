@@ -2532,15 +2532,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		return statistics.getLastFailures();
 	}
 
-	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
-		if (strategy.isStartFromZero()) {
-			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-			setProgress(0L);
-		} else {
-			OperationStatsType stored = getStoredOperationStats();
-			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-		}
-	}
 	//endregion
 
 	@Override
