@@ -35,12 +35,20 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 	public PrismReferenceValueWrapperImpl(ItemWrapper<?, ?, ?, ?> parent, PrismReferenceValue value, ValueStatus status) {
 		super(parent, value, status);
 	}
+	
+	private boolean editEnabled = true;
 
 	@Override
 	public void setRealValue(T realValue) {
 		LOGGER.info("#####$$$$$Nothing to do");
 	}
 	
+	public boolean isEditEnabled() {
+		return editEnabled;
+	}
 	
+	public void setEditEnabled(boolean editEnabled) {
+		this.editEnabled = editEnabled;
+	}
 
 }
