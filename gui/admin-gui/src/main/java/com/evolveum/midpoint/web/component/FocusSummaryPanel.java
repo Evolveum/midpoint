@@ -15,26 +15,8 @@
  */
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.RelationTypes;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ReadOnlyPrismObjectFromObjectWrapperModel;
-import com.evolveum.midpoint.web.model.ReadOnlyWrapperModel;
-import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
-import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -42,10 +24,31 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.RelationTypes;
+import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.web.component.util.SummaryTag;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.OrgSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.ServiceSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik

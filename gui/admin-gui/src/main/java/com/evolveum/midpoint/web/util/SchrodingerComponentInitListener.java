@@ -16,11 +16,9 @@
 
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
+import java.io.Serializable;
+
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.reflect.FieldUtils;
@@ -32,8 +30,11 @@ import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
 
-import javax.xml.namespace.QName;
-import java.io.Serializable;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -86,7 +87,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
     private void handleLocalization(Component component) {
         if (component instanceof PrismPropertyPanel) {
             PrismPropertyPanel ppp = (PrismPropertyPanel) component;
-            ItemWrapperOld iw = (ItemWrapperOld) ppp.getModel().getObject();
+            PrismPropertyWrapper iw = (PrismPropertyWrapper) ppp.getModel().getObject();
             String key = iw.getDisplayName();
 
             QName qname = iw.getName();

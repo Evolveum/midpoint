@@ -16,59 +16,81 @@
 
 package com.evolveum.midpoint.gui.api.util;
 
-import java.util.*;
+import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TimeZone;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
+import org.apache.wicket.ThreadContext;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemWrapperOld;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
-import org.apache.wicket.ThreadContext;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -839,47 +861,4 @@ public class WebModelServiceUtils {
 		return systemConfig;
 	}
 	
-	public static ObjectWrapperOld<SystemConfigurationType> loadSystemConfigurationAsObjectWrapper(PageBase pageBase) {
-		Task task = pageBase.createSimpleTask(OPERATION_GET_SYSTEM_CONFIG);
-		OperationResult result = new OperationResult(OPERATION_GET_SYSTEM_CONFIG);
-		
-		ObjectWrapperOld<SystemConfigurationType> wrapper = null;
-		try {
-			PrismObject<SystemConfigurationType> systemConfig = loadSystemConfigurationAsPrismObject(pageBase, task, result);
-		
-			ObjectWrapperFactory owf = new ObjectWrapperFactory(pageBase);
-		
-			wrapper = owf.createObjectWrapper("adminPage.systemConfiguration", null, systemConfig, ContainerStatus.MODIFYING, task);
-		
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load system configuration", ex);
-			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntLoadSystemConfiguration").getString(), ex);
-		}
-		
-		if (!WebComponentUtil.isSuccessOrHandledError(result) || wrapper == null) {
-			pageBase.showResult(result, false);
-			throw pageBase.getRestartResponseException(PageError.class);
-		}
-
-		return wrapper;
-	}
-	
-	public static <C extends Containerable> boolean isContainerValueWrapperEmpty(ContainerValueWrapper<C> value) {
-		for(ItemWrapperOld itemWrapper: value.getItems()) {
-				if(!itemWrapper.isEmpty()) {
-					return false;
-				} 
-		}
-		return true;
-	}
-	
-	public static <C extends Containerable> ContainerValueWrapper<C> createNewItemContainerValueWrapper(PageBase pageBase,
-			IModel<ContainerWrapperImpl<C>> model) {
-    	ContainerWrapperFactory factory = new ContainerWrapperFactory(pageBase);
-		Task task = pageBase.createSimpleTask("Creating new object policy");
-		PrismContainerValue<C> newItem = model.getObject().getItem().createNewValue();
-		return factory.createContainerValueWrapper(model.getObject(), newItem,
-				model.getObject().getObjectStatus(), ValueStatus.ADDED, model.getObject().getPath(), task);
-	}
 }

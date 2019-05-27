@@ -16,16 +16,14 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
-import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.component.assignment.ApplicablePolicyConfigPanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 
 /**
  * Created by honchar.

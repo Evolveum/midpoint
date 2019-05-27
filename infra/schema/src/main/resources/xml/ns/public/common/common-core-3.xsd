@@ -11533,6 +11533,8 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+	<!-- let's put shadow first, to be matched before "account" -->
+	<xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
      	<xsd:annotation>
      		<xsd:documentation>
@@ -11544,8 +11546,7 @@
       		</xsd:appinfo>
      	</xsd:annotation>
      </xsd:element>
-    <xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
-    
+
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
             <xsd:documentation>

@@ -1176,8 +1176,11 @@ public class BeanUnmarshaller {
 		if (xLang == null) {
 			return null;
 		}
+		if (xLang instanceof PrimitiveXNodeImpl && xLang.isEmpty()) {
+			return null;
+		}
 		if (!(xLang instanceof MapXNodeImpl)) {
-			throw new SchemaException("Polystring lang is not a map, it is "+xLang);
+			throw new SchemaException("Polystring lang is not a map nor empty primitive node, it is "+xLang);
 		}
 		MapXNodeImpl xLangMap = (MapXNodeImpl)xLang;
 		Map<String, String> lang = new HashMap<>();

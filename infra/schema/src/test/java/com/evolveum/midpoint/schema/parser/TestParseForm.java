@@ -29,9 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -136,6 +134,7 @@ public class TestParseForm extends AbstractObjectParserTest<FormType> {
 
 	private void assertFormJaxb(FormType form, boolean isObject) throws SchemaException {
 		assertEquals("Wrong name", PrismTestUtil.createPolyStringType("form1"), form.getName());
+		assertNull("Lang created unnecessarily", form.getName().getLang());
 		FormDefinitionType formDefinition = form.getFormDefinition();
 		assertNotNull("no formDefinition value", formDefinition);
 		assertEquals("Wrong formDefinition/display/label", "some label", formDefinition.getDisplay().getLabel().getOrig());

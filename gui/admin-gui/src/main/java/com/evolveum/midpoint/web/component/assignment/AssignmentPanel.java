@@ -48,8 +48,9 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
@@ -58,7 +59,6 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -81,11 +81,8 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.web.component.prism.ValueWrapperOld;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -136,8 +133,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 	protected static final String OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS = DOT_CLASS + "loadAssignmentTargetRelations";
 
 	protected int assignmentsRequestsLimit = -1;
-	private List<ContainerValueWrapper<AssignmentType>> detailsPanelAssignmentsList = new ArrayList<>();
-
+	
 	public AssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel) {
 		super(id, assignmentContainerWrapperModel);
 	}
@@ -956,20 +952,25 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 
 			@Override
 			public InlineMenuItemAction initAction() {
-				return new ColumnMenuAction<ContainerValueWrapper<AssignmentType>>() {
+				return new ColumnMenuAction<PrismContainerValueWrapper<AssignmentType>>() {
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public void onClick(AjaxRequestTarget target) {
-						ContainerValueWrapper<AssignmentType> assignmentContainer = getRowModel().getObject();
-						PropertyOrReferenceWrapper targetRef = assignmentContainer.findPropertyWrapper(assignmentContainer.getPath()
-								.append(AssignmentType.F_TARGET_REF));
+						PrismContainerValueWrapper<AssignmentType> assignmentContainer = getRowModel().getObject();
+						PrismReferenceWrapper<ObjectReferenceType> targetRef;
+						try {
+							targetRef = assignmentContainer.findReference(ItemPath.create(AssignmentType.F_TARGET_REF));
+						} catch (SchemaException e) {
+							getSession().error("Couldn't show details page. More information provided in log.");
+							LOGGER.error("Couldn't show detials page, no targetRef reference wrapper found: {}", e.getMessage(), e);
+							target.add(getPageBase().getFeedbackPanel());
+							return;
+						}
 
 						if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
-							ValueWrapperOld refWrapper = (ValueWrapperOld)targetRef.getValues().get(0);
-							PrismReferenceValue refValue = (PrismReferenceValue)refWrapper.getValue();
-							ObjectReferenceType ort = new ObjectReferenceType();
-							ort.setupReferenceValue(refValue);
+							PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = (PrismReferenceValueWrapperImpl<ObjectReferenceType>)targetRef.getValues().get(0);
+							ObjectReferenceType ort = refWrapper.getRealValue();
 							if (!StringUtils.isEmpty(ort.getOid())) {
 								WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
 							}

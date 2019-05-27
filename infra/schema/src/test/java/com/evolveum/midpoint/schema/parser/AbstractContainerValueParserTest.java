@@ -57,35 +57,41 @@ public abstract class AbstractContainerValueParserTest<C extends Containerable> 
 					serializer, serId);
 		}
 
+		//noinspection unchecked
 		process("parseRealValue - no hint",
 				p -> ((C) p.parseRealValue()).asPrismContainerValue(),
 				serializer, serId);
 
 		if (clazz != null) {
+			//noinspection unchecked
 			process("parseRealValue - " + clazz.getSimpleName() + ".class",
 					p -> p.parseRealValue(clazz).asPrismContainerValue(),
 					serializer, serId);
 		}
 
 		if (specificClass != null) {
+			//noinspection unchecked
 			process("parseRealValue - " + specificClass.getSimpleName() + ".class",
 					p -> p.parseRealValue(specificClass).asPrismContainerValue(),
 					serializer, serId);
 		}
 
 		if (type != null) {
+			//noinspection unchecked
 			process("parseRealValue - " + type.getLocalPart() + " (QName)",
 					p -> ((C) p.type(type).parseRealValue()).asPrismContainerValue(),
 					serializer, serId);
 		}
 
 		if (specificType != null) {
+			//noinspection unchecked
 			process("parseRealValue - " + specificType.getLocalPart() + " (QName)",
 					p -> ((C) p.type(specificType).parseRealValue()).asPrismContainerValue(),
 					serializer, serId);
 		}
 
 		if (isContainer()) {
+			//noinspection unchecked,deprecation
 			process("parseAnyData",
 					p -> ((PrismContainer<C>) p.parseItemOrRealValue()).getAnyValue(),
 					serializer, serId);

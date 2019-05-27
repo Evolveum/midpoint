@@ -16,6 +16,19 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -23,12 +36,12 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.prism.ContainerWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -41,9 +54,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanelOld;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -51,18 +61,6 @@ import com.evolveum.midpoint.web.page.admin.resources.component.TestConnectionRe
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -75,6 +73,7 @@ public class ConfigurationStep extends WizardStep {
     private static final String DOT_CLASS = ConfigurationStep.class.getName() + ".";
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
     private static final String OPERATION_SAVE = DOT_CLASS + "saveResource";
+    private static final String OPERATION_CREATE_CONFIGURATION_WRAPPERS = "createConfigurationWrappers";
 
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_TEST_CONNECTION = "testConnection";
@@ -139,6 +138,8 @@ public class ConfigurationStep extends WizardStep {
 		}
 
 		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
+		Task task = getPageBase().createSimpleTask(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
+		
 		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
 			PrismContainer container = configuration.findContainer(containerDef.getName());
 			ItemStatus status = ItemStatus.NOT_CHANGED;
@@ -147,22 +148,9 @@ public class ConfigurationStep extends WizardStep {
 				container = configuration.findOrCreateContainer(containerDef.getName());
 			}
 
-			WrapperContext ctx = new WrapperContext(null, getResult());
+			WrapperContext ctx = new WrapperContext(task, getResult());
 			ctx.setReadOnly(parentPage.isReadOnly());
 			PrismContainerWrapper<?> containerWrapper = getPageBase().createItemWrapper(container, status, ctx);
-//			
-//			
-//			
-//			ContainerWrapperFactory cwf = new ContainerWrapperFactory(parentPage);
-//			ContainerWrapperImpl containerWrapper;
-//			Task task = getPageBase().createSimpleTask("Creting configuration container");
-//			if (container != null) {
-//				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.MODIFYING, containerPath, parentPage.isReadOnly(), task);
-//			} else {
-//				container = containerDef.instantiate();
-//				containerWrapper = cwf.createContainerWrapper(null, container, ContainerStatus.ADDING, containerPath, parentPage.isReadOnly(), task);
-//				containerWrapper.setShowEmpty(true, true);
-//			}
 			containerWrappers.add(containerWrapper);
 		}
 		return containerWrappers;

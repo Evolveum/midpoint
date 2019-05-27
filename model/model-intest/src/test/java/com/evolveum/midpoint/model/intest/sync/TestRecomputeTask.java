@@ -129,7 +129,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
         ItemPath attrItemPath = ItemPath.create(RoleType.F_INDUCEMENT, 1111L, AssignmentType.F_CONSTRUCTION, 60004L, ConstructionType.F_ATTRIBUTE);
         PrismContainer<ResourceAttributeDefinitionType> attributeCont = rolePirate.findContainer(attrItemPath);
-        assertNotNull("No attribute property in "+rolePirate);
+        assertNotNull("No attribute property in "+rolePirate, attributeCont);
         PrismContainerValue<ResourceAttributeDefinitionType> oldAttrContainer = null;
         for (PrismContainerValue<ResourceAttributeDefinitionType> cval: attributeCont.getValues()) {
         	ResourceAttributeDefinitionType attrType = cval.getValue();
@@ -137,7 +137,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         		oldAttrContainer = cval;
         	}
         }
-        assertNotNull("Definition for weapon attribute not found in "+rolePirate);
+        assertNotNull("Definition for weapon attribute not found in "+rolePirate, oldAttrContainer);
         PrismContainerValue<ResourceAttributeDefinitionType> newAttrContainer = oldAttrContainer.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrContainer.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
         RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();

@@ -15,10 +15,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.impl.prism.ObjectWrapperOld;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
@@ -27,11 +32,6 @@ import com.evolveum.midpoint.web.component.progress.StatisticsDtoModel;
 import com.evolveum.midpoint.web.component.progress.StatisticsPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author semancik

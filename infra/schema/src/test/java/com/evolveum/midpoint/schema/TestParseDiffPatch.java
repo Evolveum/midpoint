@@ -92,7 +92,7 @@ public class TestParseDiffPatch {
         PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_FILE);
         userAfter.checkConsistence();
 
-        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter, EquivalenceStrategy.LITERAL);      // failedLogins is now operational property
         System.out.println("DELTA:");
         System.out.println(userDelta.debugDump());
 

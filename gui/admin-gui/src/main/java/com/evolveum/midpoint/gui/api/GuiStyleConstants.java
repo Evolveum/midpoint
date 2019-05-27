@@ -202,7 +202,8 @@ public class GuiStyleConstants {
 	public static final String EVO_ROLE_TIE_ICON = "fe fe-role-tie";
 	public static final String EVO_ROLE_TOP_HAT_ICON = "fe fe-role-top-hat";
 	public static final String EVO_ASSIGNMENT_THICKER_ICON = "fe assignment-thicker";
-	
+	public static final String EVO_CASE_OBJECT_ICON = "fe fe-case-object";
+
 	public static final String GREEN_COLOR = "color-green";
 	public static final String YELLOW_COLOR = "color-yellow";
 	public static final String RED_COLOR = "color-red";
