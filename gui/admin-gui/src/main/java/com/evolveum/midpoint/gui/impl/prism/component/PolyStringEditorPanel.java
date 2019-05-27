@@ -18,24 +18,18 @@ package com.evolveum.midpoint.gui.impl.prism.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.security.LocaleDescriptor;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -43,8 +37,6 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.boot.actuate.autoconfigure.metrics.MetricsProperties;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +56,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     private static final String ID_ORIGIN_VALUE_CONTAINER = "originValueContainer";
     private static final String ID_ORIG_VALUE_LABEL = "originValueLabel";
     private static final String ID_ORIG_VALUE = "origValue";
+    private static final String ID_ORIG_VALUE_WITH_BUTTON = "origValueWithButton";
     private static final String ID_KEY_VALUE = "keyValue";
     private static final String ID_LANGUAGES_REPEATER = "languagesRepeater";
     private static final String ID_LANGUAGE_NAME = "languageName";
@@ -101,7 +94,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         TextPanel<String> localizedValuePanel = new TextPanel<String>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        localizedValuePanel.add(getInputFileClassAppender());
+        localizedValuePanel.add(getInputFieldClassAppender());
         localizedValuePanel.add(new EnableBehaviour(() -> false));
         localizedValueContainer.add(localizedValuePanel);
 
@@ -114,6 +107,11 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         origValueLabel.setOutputMarkupId(true);
         origValueLabel.add(new VisibleBehaviour(() -> showFullData));
         originValueContainer.add(origValueLabel);
+
+        WebMarkupContainer origValueWithButton = new WebMarkupContainer(ID_ORIG_VALUE_WITH_BUTTON);
+        origValueWithButton.add(getInputFieldClassAppender());
+        origValueWithButton.setOutputMarkupId(true);
+        originValueContainer.add(origValueWithButton);
 
         //todo better to create PolyStringWrapper ? how to create new value?
         TextPanel<String> origValuePanel = new TextPanel<String>(ID_ORIG_VALUE, new IModel<String>() {
@@ -141,8 +139,8 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         });
         origValuePanel.setOutputMarkupId(true);
         origValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        origValuePanel.add(getInputFileClassAppender());
-        originValueContainer.add(origValuePanel);
+        origValuePanel.getBaseFormComponent().add(AttributeAppender.append("style", "border-right: none !important; "));
+        origValueWithButton.add(origValuePanel);
 
         WebMarkupContainer fullDataContainer = new WebMarkupContainer(ID_FULL_DATA_CONTAINER);
         fullDataContainer.setOutputMarkupId(true);
@@ -280,15 +278,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         addLanguageButton.setOutputMarkupId(true);
         fullDataContainer.add(addLanguageButton);
 
-        AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES, new LoadableModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected String load() {
-                return showFullData ? createStringResource("PolyStringEditorPanel.hideLanguages").getString() :
-                        createStringResource("PolyStringEditorPanel.showLanguages").getString();
-            }
-        }) {
+        AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES) {
 
             private static final long serialVersionUID = 1L;
 
@@ -300,7 +290,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         };
         showHideLanguagesButton.setOutputMarkupId(true);
         showHideLanguagesButton.add(AttributeAppender.append("style", "cursor: pointer;"));
-        add(showHideLanguagesButton);
+        origValueWithButton.add(showHideLanguagesButton);
 
     }
 
@@ -327,18 +317,20 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
     private void addNewLanguagePerformed(AjaxRequestTarget target){
         if (getModelObject() == null){
-            getModel().setObject(new PolyString(""));
+            Map<String, String> languagesMap = new HashMap<>();
+            languagesMap.put("", "");
+            getModel().setObject(new PolyString(null, null, null, languagesMap));
+        } else {
+            if (getModelObject().getLang() == null) {
+                getModelObject().setLang(new HashMap<String, String>());
+            }
+            getModelObject().getLang().put("", "");
         }
-        if (getModelObject().getLang() == null){
-            getModelObject().setLang(new HashMap<String, String>());
-        }
-        getModelObject().getLang().put("", "");
         target.add(PolyStringEditorPanel.this);
-
     }
 
-    private AttributeAppender getInputFileClassAppender(){
-        return AttributeAppender.append("class", new LoadableModel<String>() {
+    private AttributeAppender getInputFieldClassAppender(){
+        return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
                 return showFullData ? "col-md-9" : "col-md-12";
@@ -363,7 +355,10 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     //todo refactor with PolyStringWrapper
     private void updateLanguageValue(String language, String value){
         if (getModelObject() == null){
-            getModel().setObject(new PolyString(""));
+            Map<String, String> languagesMap = new HashMap<>();
+            languagesMap.put("", "");
+            getModel().setObject(new PolyString(null, null, null, languagesMap));
+            return;
         }
         if (getModelObject().getLang() == null){
             getModelObject().setLang(new HashMap<>());
