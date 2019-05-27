@@ -551,8 +551,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	@Override
 	public void initSystem(Task initTask,  OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
-		// We want logging config from logback-test.xml and not from system config object
-		InternalsConfig.setAvoidLoggingChange(true);
+
+		// We want logging config from logback-test.xml and not from system config object (unless suppressed)
+		InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
 		super.initSystem(initTask, initResult);
 
 		modelService.postInit(initResult);

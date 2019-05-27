@@ -143,7 +143,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		InternalsConfig.setAvoidLoggingChange(true);
+		InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
 		super.initSystem(initTask, initResult);
 
 		importObjectFromFile(PASSWORD_POLICY_UGLY_FILE);
