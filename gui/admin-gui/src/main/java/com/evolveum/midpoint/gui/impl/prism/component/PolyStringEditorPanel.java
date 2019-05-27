@@ -61,7 +61,9 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     private static final String ID_LANGUAGES_REPEATER = "languagesRepeater";
     private static final String ID_LANGUAGE_NAME = "languageName";
     private static final String ID_TRANSLATION = "translation";
-    private static final String ID_SHOW_HIDE_LANGUAGES = "showHideLanguages";
+    private static final String ID_SHOW_HIDE_LANGUAGES_ORIG = "showHideLanguagesOrig";
+    private static final String ID_SHOW_HIDE_LANGUAGES_LOCALIZED = "showHideLanguagesLocalized";
+    private static final String ID_LOCALIZED_VALUE_WITH_BUTTON = "localizedValueWithButton";
     private static final String ID_ADD_LANGUAGE = "addLanguage";
 
     private boolean showFullData = false;
@@ -91,12 +93,30 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         localizedValueLabel.add(new VisibleBehaviour(() -> showFullData));
         localizedValueContainer.add(localizedValueLabel);
 
+        WebMarkupContainer localizedValueWithButton = new WebMarkupContainer(ID_LOCALIZED_VALUE_WITH_BUTTON);
+        localizedValueWithButton.setOutputMarkupId(true);
+        localizedValueWithButton.add(getInputFieldClassAppender());
+        localizedValueContainer.add(localizedValueWithButton);
+
         TextPanel<String> localizedValuePanel = new TextPanel<String>(ID_LOCALIZED_VALUE_PANEL, Model.of(localizedValue));
         localizedValuePanel.setOutputMarkupId(true);
         localizedValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        localizedValuePanel.add(getInputFieldClassAppender());
+        localizedValuePanel.getBaseFormComponent().add(AttributeAppender.append("style", "border-right: none !important; "));
         localizedValuePanel.add(new EnableBehaviour(() -> false));
-        localizedValueContainer.add(localizedValuePanel);
+        localizedValueWithButton.add(localizedValuePanel);
+
+        AjaxButton showHideLanguagesLocalizedButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES_LOCALIZED) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showHideLanguagesPerformed(target);
+            }
+        };
+        showHideLanguagesLocalizedButton.setOutputMarkupId(true);
+        showHideLanguagesLocalizedButton.add(AttributeAppender.append("style", "cursor: pointer;"));
+        localizedValueWithButton.add(showHideLanguagesLocalizedButton);
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
         originValueContainer.setOutputMarkupId(true);
@@ -236,6 +256,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
                         },
                                 Model.ofList(allLanguagesList), true);
+                        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                         languageChoicePanel.setOutputMarkupId(true);
                         listItem.add(languageChoicePanel);
 
@@ -278,14 +299,13 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         addLanguageButton.setOutputMarkupId(true);
         fullDataContainer.add(addLanguageButton);
 
-        AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES) {
+        AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES_ORIG) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                showFullData = !showFullData;
-                target.add(PolyStringEditorPanel.this);
+                showHideLanguagesPerformed(target);
             }
         };
         showHideLanguagesButton.setOutputMarkupId(true);
@@ -326,6 +346,11 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             }
             getModelObject().getLang().put("", "");
         }
+        target.add(PolyStringEditorPanel.this);
+    }
+
+    private void showHideLanguagesPerformed(AjaxRequestTarget target){
+        showFullData = !showFullData;
         target.add(PolyStringEditorPanel.this);
     }
 
