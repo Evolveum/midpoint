@@ -20,7 +20,10 @@ import com.evolveum.midpoint.gui.impl.factory.ProfilingClassLoggerWrapperFactory
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 /**
  * @author skublik
@@ -47,5 +50,10 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
 	@Override
 	public boolean isMultiValue() {
 		return false;
+	}
+	
+	@Override
+	protected ItemPath getDeltaPathForStatus(ItemStatus status) {
+		return ItemPath.create(SystemConfigurationType.F_LOGGING, LoggingConfigurationType.F_CLASS_LOGGER);
 	}
 }
