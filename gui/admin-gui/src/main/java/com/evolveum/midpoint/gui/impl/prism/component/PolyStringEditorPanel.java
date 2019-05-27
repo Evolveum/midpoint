@@ -368,7 +368,11 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         if (getModelObject().getLang() == null){
             getModelObject().setLang(new HashMap<>());
         }
-        getModelObject().getLang().replace(language, value);
+        if (getModelObject().getLang().containsKey(language)){
+            getModelObject().getLang().replace(language, value);
+        } else {
+            getModelObject().getLang().put(language, value);
+        }
     }
 
     private void removeLanguageValue(String language){
