@@ -277,13 +277,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		InternalsConfig.reset();
-		InternalsConfig.setAvoidLoggingChange(true);
+		InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnAllChecks();
         // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
+	}
+
+	protected boolean isAvoidLoggingChange() {
+		return true;
 	}
 
 	@Override
