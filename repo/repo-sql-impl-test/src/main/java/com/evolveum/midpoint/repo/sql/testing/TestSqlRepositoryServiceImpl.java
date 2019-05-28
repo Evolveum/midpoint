@@ -38,7 +38,7 @@ import java.util.Collection;
 /**
  * @author lazyman
  */
-@Repository
+//@Repository           // (perhaps) temporarily disabled
 public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
 
     public TestSqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
