@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -63,7 +64,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+	protected Component createValuePanel(ListItem<PrismReferenceValueWrapperImpl<R>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
 		if (componentFactory != null) {
 			PrismReferencePanelContext<?> panelCtx = new PrismReferencePanelContext<>(getModel());
 			panelCtx.setComponentId(ID_VALUE);
@@ -72,6 +73,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			
 			Panel panel = componentFactory.createPanel(panelCtx);
 			item.add(panel);
+			return panel;
 		} else {
 			FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
 			feedback.setOutputMarkupId(true);
@@ -122,6 +124,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			
 			feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
 			item.add(panel);
+			
+			return panel;
 		}
 	}
 	

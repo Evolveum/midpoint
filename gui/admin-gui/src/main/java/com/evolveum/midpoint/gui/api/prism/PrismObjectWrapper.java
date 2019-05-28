@@ -37,6 +37,8 @@ public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainer
 	
 	PrismObject<O> getObjectOld();
 	
+	PrismObject<O> getObjectApplyDelta() throws SchemaException;
+	
 	String getOid();
 	
 	PrismObjectValueWrapper<O> getValue();

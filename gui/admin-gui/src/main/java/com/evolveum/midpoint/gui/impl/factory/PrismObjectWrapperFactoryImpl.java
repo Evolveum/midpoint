@@ -67,13 +67,15 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperFactoryImpl.class);
 	
 	@Autowired private GuiComponentRegistry registry;
-	@Autowired private ModelInteractionService modelInteractionService;
-	@Autowired private ModelService modelService;
+	@Autowired protected ModelInteractionService modelInteractionService;
 
 	public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
 		applySecurityConstraints(object, context);
-		
-		PrismObjectWrapperImpl<O> objectWrapper = new PrismObjectWrapperImpl<>(object, status);
+		if (context.getObjectStatus() == null) {
+			context.setObjectStatus(status);
+		}
+
+		PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
 		context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
 		PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 		objectWrapper.getValues().add(valueWrapper);
@@ -88,6 +90,10 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 		return new PrismObjectValueWrapperImpl<O>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
 	}
 	
+	public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status) {
+		return new PrismObjectWrapperImpl<O>(object, status);
+	}
+	
 	/** 
 	 * 
 	 * @param object
@@ -98,12 +104,9 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	 * apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
 	 */
 	protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
-		Class<O> objectClass = object.getCompileTimeClass();
-		
 		AuthorizationPhaseType phase = context.getAuthzPhase();
 		Task task = context.getTask();
 		OperationResult result = context.getResult();
-		if (!ShadowType.class.isAssignableFrom(objectClass)) {
 			try {
 					PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
 					object.applyDefinition(objectDef, true);
@@ -111,56 +114,10 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 						| CommunicationException | SecurityViolationException e) {
 					// TODO Auto-generated catch block
 					//TODO error handling
-			}
-				return;
-		}
+			}		
 		
-
-		try {
-			ShadowType shadow = (ShadowType) object.asObjectable();
-			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resolveOid(shadow.getResourceRef()),
-					shadow.getKind(), shadow.getIntent(), shadow.getTag(), false);
-			context.setDiscriminator(discr);
-			PrismObjectDefinition<ShadowType> shadowDefinition = modelInteractionService.getEditShadowDefinition(discr, phase, task, result);
-			object.applyDefinition((PrismContainerDefinition<O>) shadowDefinition);
-			
-			PrismObject<ResourceType> resource = resolveResource(shadow.getResourceRef(), task, result);
-			context.setResource(resource.asObjectable());
-			RefinedObjectClassDefinition objectClassDefinitionForEditing = 
-					modelInteractionService.getEditObjectClassDefinition(shadow.asPrismObject(), resource, phase, task, result);
-			if (objectClassDefinitionForEditing != null) {
-            	object.findOrCreateContainer(ShadowType.F_ATTRIBUTES).applyDefinition(
-            			(PrismContainerDefinition) objectClassDefinitionForEditing.toResourceAttributeContainerDefinition());
-            }
-			
-		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-				| CommunicationException | SecurityViolationException e) {
-			// TODO Auto-generated catch block
-			// TODO error handling
-		}
-		
-		
-	}
-
-	
-	private String resolveOid(ObjectReferenceType ref) throws SchemaException {
-		if (ref == null) {
-			throw new SchemaException("Cannot resolve oid from null reference");
-		}
-		
-		return ref.getOid();
 	}
 	
-	private PrismObject<ResourceType> resolveResource(ObjectReferenceType ref, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		if (ref == null) {
-			throw new SchemaException("Cannot resolve oid from null reference");
-		}
-		
-		return modelService.getObject(ResourceType.class, ref.getOid(), null, task, result);
-		
-	}
-
-
 
 	@Override
 	public boolean match(ItemDefinition<?> def) {

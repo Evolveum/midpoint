@@ -273,6 +273,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					showResult(subResult, "pageAdminFocus.message.shadowWrapperIsNull");
 					LOGGER.error("ShadowWrapper is null");
 				}
+				
+				//TODO catch Exception/Runtim,eException, Throwable
 			} catch (SchemaException e) {
 				showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);
