@@ -20,10 +20,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.TestTrafo;
+import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.mysql.cj.jdbc.Driver;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,6 +34,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -42,43 +46,49 @@ import static org.testng.AssertJUnit.assertNotNull;
  * This test is not meant to be run automatically.
  * It requires externally-configured MySQL database with the data to be imported.
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml","classpath:ctx-interceptor.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestImport extends AbstractStoryTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "perf/import");
 
-	public static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
+	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-	public static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "template-import.xml");
-	public static final String OBJECT_TEMPLATE_OID = "e84d7b5a-4634-4b75-a17c-df0b8b49b593";
+	private static final File OBJECT_TEMPLATE_FILE = new File(TEST_DIR, "template-import.xml");
+	private static final String OBJECT_TEMPLATE_OID = "e84d7b5a-4634-4b75-a17c-df0b8b49b593";
 
-	protected static final File RESOURCE_SOURCE_FILE = new File(TEST_DIR, "resource-source.xml");
-	protected static final String RESOURCE_SOURCE_OID = "f2dd9222-6aff-4099-b5a2-04ae6b3a00b7";
+	private static final File RESOURCE_SOURCE_FILE = new File(TEST_DIR, "resource-source.xml");
+	private static final String RESOURCE_SOURCE_OID = "f2dd9222-6aff-4099-b5a2-04ae6b3a00b7";
 
-	protected static final File ORG_BASIC_FILE = new File(TEST_DIR, "org-basic.xml");
+	private static final File ORG_BASIC_FILE = new File(TEST_DIR, "org-basic.xml");
 
-	protected static final File TASK_IMPORT_FILE = new File(TEST_DIR, "task-import.xml");
-	protected static final String TASK_IMPORT_OID = "50142510-8003-4a47-993a-2434119f5028";
+	private static final File TASK_IMPORT_FILE = new File(TEST_DIR, "task-import.xml");
+	private static final String TASK_IMPORT_OID = "50142510-8003-4a47-993a-2434119f5028";
 
-	private static final int IMPORT_TIMEOUT = 3600_000 * 3;     // 3 hours
+	private static final int IMPORT_TIMEOUT = (int) TimeUnit.HOURS.toMillis(3);
+	private static final long CHECK_INTERVAL = TimeUnit.SECONDS.toMillis(30);
+
+	private static final long PROFILING_INTERVAL = TimeUnit.MINUTES.toMillis(5);
+	private static final long PROFILING_DURATION = TimeUnit.MINUTES.toMillis(1);
 
 	private static final int USERS = 50000;
 
 	private int usersBefore;
 
-	private PrismObject<ResourceType> sourceResource;
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		MidpointInterceptor.deactivateMethodInvocationLogging();
+
 		super.initSystem(initTask, initResult);
+
+		DummyAuditService.getInstance().setEnabled(false);
 
 		InternalsConfig.turnOffAllChecks();
 
 		Class.forName(Driver.class.getName());
 
 		// Resources
-		sourceResource = importAndGetObjectFromFile(ResourceType.class, RESOURCE_SOURCE_FILE, RESOURCE_SOURCE_OID, initTask, initResult);
+		importAndGetObjectFromFile(ResourceType.class, RESOURCE_SOURCE_FILE, RESOURCE_SOURCE_OID, initTask, initResult);
 
 		// Object Templates
 		importObjectFromFile(OBJECT_TEMPLATE_FILE, initResult);
@@ -135,7 +145,30 @@ public class TestImport extends AbstractStoryTest {
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        waitForTaskFinish(TASK_IMPORT_OID, true, IMPORT_TIMEOUT);
+        long lastProfilingStarted = 0;
+        long start = System.currentTimeMillis();
+        for (;;) {
+	        PrismObject<TaskType> importTask = getTask(TASK_IMPORT_OID);
+	        TaskExecutionStatusType executionStatus = importTask.asObjectable().getExecutionStatus();
+	        if (executionStatus != TaskExecutionStatusType.RUNNABLE) {
+		        System.out.println("Task is not running any more; status = " + executionStatus);
+		        break;
+	        }
+	        if (System.currentTimeMillis() - start > IMPORT_TIMEOUT) {
+	        	display("Task failed to finish", importTask);
+		        fail("Task failed to finish in give time");
+	        }
+	        if (System.currentTimeMillis() - lastProfilingStarted > PROFILING_INTERVAL) {
+	        	lastProfilingStarted = System.currentTimeMillis();
+		        System.out.println("Starting profiling at " + new Date());
+		        MidpointInterceptor.activateMethodInvocationLogging();
+		        Thread.sleep(PROFILING_DURATION);
+		        MidpointInterceptor.deactivateMethodInvocationLogging();
+		        System.out.println("Stopping profiling at " + new Date());
+	        } else {
+	        	Thread.sleep(CHECK_INTERVAL);
+	        }
+        }
 
         result.computeStatus();
         TestUtil.assertSuccess(result);

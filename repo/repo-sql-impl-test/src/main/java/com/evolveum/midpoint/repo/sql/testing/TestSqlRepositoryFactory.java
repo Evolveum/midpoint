@@ -58,10 +58,10 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         super.init(configuration);
     }
 
-    @Override
-    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-        return new TestSqlRepositoryServiceImpl(this);
-    }
+//    @Override
+//    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+//        return new TestSqlRepositoryServiceImpl(this);
+//    }
 
     private void updateConfigurationFromFile(Configuration configuration, String filePath) throws RepositoryServiceFactoryException {
         Properties properties = new Properties();

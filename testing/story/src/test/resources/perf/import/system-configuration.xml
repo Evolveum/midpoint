@@ -22,6 +22,18 @@
     <logging>
     	<rootLoggerAppender>File Appender</rootLoggerAppender>
     	<rootLoggerLevel>INFO</rootLoggerLevel>
+<!--		<classLogger>-->
+<!--			<level>TRACE</level>-->
+<!--			<package>org.hibernate.SQL</package>-->
+<!--		</classLogger>-->
+<!--		<classLogger>-->
+<!--			<level>TRACE</level>-->
+<!--			<package>org.hibernate.type</package>-->
+<!--		</classLogger>-->
+		<classLogger>
+			<level>TRACE</level>
+			<package>PROFILING</package>
+		</classLogger>
         <appender xsi:type="c:FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
             <fileName>target/test.log</fileName>
