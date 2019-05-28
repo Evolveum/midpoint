@@ -114,7 +114,7 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
 
     @Override
     public Integer getDisplayOrder() {
-        if (isAssociationExpression() || isAssociationExpression()) {
+        if (isAssociationExpression() || isAttributeExpression()) {
             //todo MAX_VALUE doesn't guarantee that expression property
             //will be displayed the last, as further there will be properties
             //without any displayOrder displayed
