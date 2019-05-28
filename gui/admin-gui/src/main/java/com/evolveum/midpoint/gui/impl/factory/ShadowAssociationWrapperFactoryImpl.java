@@ -38,6 +38,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationReferenceWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -174,7 +175,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	    	PrismContainerWrapper associationWrapper;
 	    	if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
 	    		registry.registerWrapperPanel(associationTransformed.getDefinition().getTypeName(), PrismContainerPanel.class);
-	    		associationWrapper = new PrismContainerWrapperImpl((PrismContainerValueWrapper<C>) parent, associationTransformed, status);
+	    		associationWrapper = new ShadowAssociationWrapperImpl((PrismContainerValueWrapper<C>) parent, associationTransformed, status);
 			} else {
 	    		return super.createWrapper(parent, childContainer, status);
 			}
