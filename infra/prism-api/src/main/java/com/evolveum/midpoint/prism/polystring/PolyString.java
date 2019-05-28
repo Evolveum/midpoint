@@ -83,7 +83,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		this.norm = norm;
 		this.translation = translation;
 		this.lang = lang;
-		if (isEmpty()) {
+		if (isNull()) {
 			throw new IllegalArgumentException("Cannot create PolyString with all null attribute values");
 		}
 	}
@@ -124,6 +124,10 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	public boolean isEmpty() {
 		return isOrigEmpty() && isLocalizationKeyEmpty() && isLanguageMapEmpty();
+	}
+
+	public boolean isNull() {
+		return orig == null && norm == null && (translation == null || translation.getKey() == null) && lang == null;
 	}
 
 	private boolean isOrigEmpty(){
