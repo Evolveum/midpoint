@@ -39,6 +39,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Arrays;
+
 /**
  * @author katka
  *
@@ -114,15 +116,20 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 	}
 
 	private void addExpressionValuePerformed(AjaxRequestTarget target){
-		ExpressionTypeSelectPopup expressionTypeSelectPopup = new ExpressionTypeSelectPopup(getPageBase().getMainPopupBodyId()) {
-			private static final long serialVersionUID = 1L;
+		ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
+		if (expressionWrapper.isAttributeExpression()){
+			expressionValueAddPerformed(target, ExpressionValueTypes.LITERAL_VALUE_EXPRESSION);
+		} else {
+			ExpressionTypeSelectPopup expressionTypeSelectPopup = new ExpressionTypeSelectPopup(getPageBase().getMainPopupBodyId()) {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void addExpressionPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType) {
-				expressionValueAddPerformed(target, expressionType);
-			}
-		};
-		getPageBase().showMainPopup(expressionTypeSelectPopup, target);
+				@Override
+				protected void addExpressionPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType) {
+					expressionValueAddPerformed(target, expressionType);
+				}
+			};
+			getPageBase().showMainPopup(expressionTypeSelectPopup, target);
+		}
 	}
 
 	private void expressionValueAddPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType){
@@ -133,6 +140,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 				ExpressionUtil.addShadowRefEvaluatorValue(newExpressionValue, null, getPrismContext());
 			} else if (ExpressionValueTypes.ASSOCIATION_TARGET_SEARCH_EXPRESSION.equals(expressionType)){
 				ExpressionUtil.getOrCreateAssociationTargetSearchValues(newExpressionValue, getPrismContext());
+			} else if (ExpressionValueTypes.LITERAL_VALUE_EXPRESSION.equals(expressionType)){
+				ExpressionUtil.updateLiteralExpressionValue(newExpressionValue, Arrays.asList(""), getPrismContext());
 			}
 
 			WrapperContext context = new WrapperContext(null, null);
