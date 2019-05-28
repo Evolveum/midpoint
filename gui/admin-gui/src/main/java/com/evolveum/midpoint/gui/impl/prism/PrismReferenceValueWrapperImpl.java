@@ -39,8 +39,17 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 	private boolean editEnabled = true;
 
 	@Override
-	public void setRealValue(T realValue) {
-		LOGGER.info("#####$$$$$Nothing to do");
+	public void setRealValue(T realValueReferencable) {
+//		LOGGER.info("#####$$$$$Nothing to do");
+		PrismReferenceValue value = getNewValue();
+		PrismReferenceValue realValue = realValueReferencable.asReferenceValue();
+		value.setOid(realValue.getOid());
+		value.setOriginType(realValue.getOriginType());
+		value.setOriginObject(realValue.getOriginObject());
+		value.setTargetName(realValue.getTargetName());
+		value.setTargetType(realValue.getTargetType());
+		value.setRelation(realValue.getRelation());
+		value.setFilter(realValue.getFilter());
 	}
 	
 	public boolean isEditEnabled() {
