@@ -19,11 +19,21 @@
 <wicket:panel>
     <div wicket:id="localizedValueContainer" class="row prism-property">
         <div class="col-md-3" wicket:id="localizedValueLabel" />
-        <div wicket:id="localizedValue"/>
+        <div wicket:id="localizedValueWithButton" class="input-group">
+            <div class="pull-left col-md-11" style="padding-right: 0px !important;" wicket:id="localizedValue"/>
+            <a class="col-md-1" wicket:id="showHideLanguagesLocalized" style="padding-left: 0px !important; height: 30px !important;">
+                <i class="form-control fa fa-language" style="border-left: none !important; height: 30px !important;  background-color:#eee;"></i> 
+            </a>
+        </div>
     </div>
     <div wicket:id="originValueContainer" class="row prism-property">
         <div class="col-md-3" wicket:id="originValueLabel" />
-        <div wicket:id="origValue"/>
+        <div wicket:id="origValueWithButton" class="input-group">
+            <div class="pull-left col-md-11" style="padding-right: 0px !important;" wicket:id="origValue"/>
+            <a class="col-md-1" wicket:id="showHideLanguagesOrig" style="padding-left: 0px !important; height: 30px !important;">
+                <i class="form-control fa fa-language" style="border-left: none !important; height: 30px !important;"></i> 
+            </a>
+        </div>
     </div>
     <div wicket:id="fullDataContainer">
          <div class="row prism-property">
@@ -36,7 +46,6 @@
          </div>
           <div wicket:id="addLanguage" class="show-empty-button" />
     </div>
-    <div class="show-empty-button" wicket:id="showHideLanguages"/>
 
 </wicket:panel>
 </html>

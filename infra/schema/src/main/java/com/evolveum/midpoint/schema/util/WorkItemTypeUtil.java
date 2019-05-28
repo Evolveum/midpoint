@@ -80,4 +80,21 @@ public class WorkItemTypeUtil {
 		}
 		return null;
 	}
+
+	public static ObjectReferenceType getObjectReference(CaseWorkItemType workItem){
+		CaseType caseType = CaseTypeUtil.getCase(workItem);
+		if (caseType != null){
+			return caseType.getObjectRef();
+		}
+		return null;
+	}
+
+
+	public static ObjectReferenceType getTargetReference(CaseWorkItemType workItem){
+		CaseType caseType = CaseTypeUtil.getCase(workItem);
+		if (caseType != null){
+			return caseType.getTargetRef();
+		}
+		return null;
+	}
 }
