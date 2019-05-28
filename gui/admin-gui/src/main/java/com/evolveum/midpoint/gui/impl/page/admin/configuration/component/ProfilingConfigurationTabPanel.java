@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurati
  * 
  * rework to use special wrapper - smth like profiling wrapper which will prepare all the predefined values, profiling level etc.
  */
-@Deprecated
+
 public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrapper<ProfilingConfigurationType>> {
 
 	private static final long serialVersionUID = 1L;
@@ -108,48 +108,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 			getSession().error("Cannot create profiling panel.");
 		}
 
-//		PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), LoggingConfigurationType.F_CLASS_LOGGER);
-		
     	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
-		
-//		PrismContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
-
-//		if (loggerModel != null) {
-//
-//			for (PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-//				if (LOGGER_PROFILING.equals(
-//						new ItemRealValueModel<ClassLoggerConfigurationType>(Model.of(logger)).getObject().getPackage())) {
-//					profilingLogger = logger;
-//					continue;
-//				}
-//			}
-//		}
-
-//		// TODO init new value
-//		if (profilingLogger == null) {
-//			WrapperContext context = new WrapperContext(null, null);
-//			PrismContainerValue<ClassLoggerConfigurationType> newValue = loggerModel.getObject().createValue();
-//			try {
-//				getPageBase().createValueWrapper(loggerModel.getObject(), newValue, ValueStatus.ADDED, context);
-//			} catch (SchemaException e) {
-//				LOGGER.error("Cannot create new value for profiling. Reason: {}", e.getMessage(), e);
-//				getSession().error("Cannot create new value for profiling.");
-//			}
-//		}
-//
-//		PrismPropertyWrapperModel<ClassLoggerConfigurationType, String> appenders = PrismPropertyWrapperModel.fromContainerWrapper(loggerModel,
-//				ClassLoggerConfigurationType.F_APPENDER);
-//		// TODO special wrapper with loading predefined values.
-////		 appenders.getObject().setPredefinedValues(WebComponentUtil.createAppenderChoices(getPageBase()));
-//		 
-//		 try {
-//			Panel profilingLoggerLevel = getPageBase().initItemPanel(ID_PROFILING_LOGGER_APPENDERS, DOMUtil.XSD_STRING, appenders, null);
-//			add(profilingLoggerLevel);
-//		} catch (SchemaException e) {
-//			LOGGER.error("Cannot create panel for profiling logger appenders: ", e.getMessage(), e);
-//			getSession().error("Cannot create panel for profiling logger appenders.");
-//		}
-    	
     	try {
     		profilingLogger.getObject().setShowOnTopLevel(true);
 			Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, null);

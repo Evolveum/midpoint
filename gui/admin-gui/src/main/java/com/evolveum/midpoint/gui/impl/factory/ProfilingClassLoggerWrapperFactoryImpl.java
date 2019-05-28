@@ -78,7 +78,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl<C extends Containerable> ext
 	protected PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, PrismContainer<C> childContainer,
 			ItemStatus status) {
 		PrismContainer<C> clone = childContainer.clone();
-		clone.setElementName(PROFILING_LOGGER_PATH);
+//		clone.setElementName(PROFILING_LOGGER_PATH);
 		registry.registerWrapperPanel(PROFILING_LOGGER_PATH, PrismContainerPanel.class);
 		return new ProfilingClassLoggerContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, clone, status);
 	}

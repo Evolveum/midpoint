@@ -193,7 +193,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	    	return " col-md-offset-2 prism-value ";
 	    }
 	  
-	 private void addValue(AjaxRequestTarget target) {
+	 protected void addValue(AjaxRequestTarget target) {
 			IW propertyWrapper = getModel().getObject();
 			PrismPropertyValue<?> newValue = getPrismContext().itemFactory().createPropertyValue();
 			

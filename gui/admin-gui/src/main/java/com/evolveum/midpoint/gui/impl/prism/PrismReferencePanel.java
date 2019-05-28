@@ -20,6 +20,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -28,8 +29,11 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
@@ -81,16 +85,20 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 					return PrismReferencePanel.this.getModelObject().getFilter();
 				}
 
-//				@Override
-//				protected boolean isEditButtonEnabled() {
+				@Override
+				protected boolean isEditButtonEnabled() {
 //					if (getModel() == null) {
 //						return true;
 //					}
 //					
 //					//TODO only is association
 //					return getModelObject() == null;
-//					
-//				}
+					if (item.getModel() == null || item.getModelObject() == null) {
+						return true;
+					}
+					return item.getModelObject().isEditEnabled();
+					
+				}
 
 				@Override
 				public List<QName> getSupportedTypes() {
@@ -115,6 +123,15 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
 			item.add(panel);
 		}
+	}
+	
+	protected void addValue(AjaxRequestTarget target) {
+		PrismReferenceWrapper<R> referenceWrapper = getModel().getObject();
+		 PrismReferenceValue newValue = getPrismContext().itemFactory().createReferenceValue();
+		
+		WebPrismUtil.createNewValueWrapper(referenceWrapper, newValue, getPageBase(), target);
+		
+		target.add(PrismReferencePanel.this);
 	}
 
 }

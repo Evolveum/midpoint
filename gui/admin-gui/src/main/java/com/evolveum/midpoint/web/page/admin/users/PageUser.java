@@ -54,6 +54,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -189,7 +190,7 @@ public class PageUser extends PageAdminFocus<UserType> {
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior<UserType> authorization;
                 tabs.add(
-                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
+                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
                                 getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)){
 
                             private static final long serialVersionUID = 1L;
@@ -197,6 +198,21 @@ public class PageUser extends PageAdminFocus<UserType> {
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
                                 return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
+                            }
+                            
+                            @Override
+                            public String getCount() {
+                            	if(getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                            		return Integer.toString(0);
+                            	}
+                            	List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
+                            	int count = 0;
+                            	for(ObjectReferenceType object : personasRefList) {
+                            		if(object != null && !object.asReferenceValue().isEmpty()) {
+                            			count++;
+                            		}
+                            	}
+                                return Integer.toString(count);
                             }
 
                         });

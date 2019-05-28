@@ -38,6 +38,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationReferenceWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ShadowAssociationWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -174,7 +175,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	    	PrismContainerWrapper associationWrapper;
 	    	if (association.getDefinition().getCompileTimeClass().equals(ShadowAssociationType.class)) {
 	    		registry.registerWrapperPanel(associationTransformed.getDefinition().getTypeName(), PrismContainerPanel.class);
-	    		associationWrapper = new PrismContainerWrapperImpl((PrismContainerValueWrapper<C>) parent, associationTransformed, status);
+	    		associationWrapper = new ShadowAssociationWrapperImpl((PrismContainerValueWrapper<C>) parent, associationTransformed, status);
 			} else {
 	    		return super.createWrapper(parent, childContainer, status);
 			}
@@ -216,13 +217,22 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 				List<PrismReferenceValueWrapperImpl> refValues = new ArrayList<PrismReferenceValueWrapperImpl>();
 				for(PrismReferenceValue prismValue : shadowAss.getValues()) {
 					PrismReferenceValueWrapperImpl refValue = new PrismReferenceValueWrapperImpl(item, prismValue,
+							prismValue.isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED);
+					refValue.setEditEnabled(isEmpty(prismValue));
+					refValues.add(refValue);
+				}
+				if (shadowAss.getValues().isEmpty()) {
+					PrismReferenceValue prismReferenceValue = getPrismContext().itemFactory().createReferenceValue();
+					shadowAss.add(prismReferenceValue);
+					PrismReferenceValueWrapperImpl refValue = new PrismReferenceValueWrapperImpl(item, prismReferenceValue,
 							shadowAss.getValue().isEmpty() ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED);
+					refValue.setEditEnabled(true);
 					refValues.add(refValue);
 				}
 				item.getValues().addAll((Collection)refValues);
 				item.setFilter(WebComponentUtil.createAssociationShadowRefFilter(refinedAssocationDefinition,
 						prismContext, resource.getOid()));
-				item.setReadOnly(true);
+//				item.setReadOnly(true);
 				
 				items.add(item);
 			}
@@ -235,6 +245,15 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 		}
 		return null;
 	}
+	
+	private boolean isEmpty(PrismReferenceValue prismValue) {
+    	if (prismValue == null) {
+    		return true;
+    	}
+    	
+    	return prismValue.isEmpty();
+    	
+    }
 	
 	private <C extends Containerable> boolean isItemReadOnly(ItemDefinition def, PrismContainerValueWrapper<C> cWrapper) {
 		if (cWrapper == null || cWrapper.getStatus() == ValueStatus.NOT_CHANGED) {
