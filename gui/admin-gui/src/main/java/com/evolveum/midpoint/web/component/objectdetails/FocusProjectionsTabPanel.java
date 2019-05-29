@@ -101,9 +101,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
+ * @author skublik
  */
 public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
@@ -409,7 +411,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				shadow.setObjectClass(objectClass);
 				shadow.setIntent(accountDefinition.getObjectClassDefinition().getIntent());
 				shadow.setKind(accountDefinition.getObjectClassDefinition().getKind());
-				
+				shadow.setName(new PolyStringType("New projection"));
 				getPrismContext().adopt(shadow);
 
 				Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
