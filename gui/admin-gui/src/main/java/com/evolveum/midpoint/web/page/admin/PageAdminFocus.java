@@ -107,7 +107,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		implements ProgressReportingAwarePage {
 	private static final long serialVersionUID = 1L;
 
-	private LoadableModel<List<ShadowWrapper>> projectionModelNew;
+	private LoadableModel<List<ShadowWrapper>> projectionModel;
 	private LoadableModel<List<AssignmentEditorDto>> delegatedToMeModel;
 
 	private static final String DOT_CLASS = PageAdminFocus.class.getName() + ".";
@@ -122,7 +122,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {
 		super.initializeModel(objectToEdit, isNewObject, isReadonly);
 
-		projectionModelNew = new LoadableModel<List<ShadowWrapper>>(false) {
+		projectionModel = new LoadableModel<List<ShadowWrapper>>(false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -143,7 +143,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
     }
 
     public LoadableModel<List<ShadowWrapper>> getProjectionModel() {
-		return projectionModelNew;
+		return projectionModel;
 	}
 
 	public LoadableModel<List<AssignmentEditorDto>> getDelegatedToMeModel() {
@@ -151,12 +151,12 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	}
 
 	public List<ShadowWrapper> getFocusShadows() {
-		return projectionModelNew.getObject();
+		return projectionModel.getObject();
 	}
 
 	protected void reviveModels() throws SchemaException {
 		super.reviveModels();
-		WebComponentUtil.revive(projectionModelNew, getPrismContext());
+		WebComponentUtil.revive(projectionModel, getPrismContext());
 	}
 
 	@Override
@@ -498,7 +498,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			focusDelta.addModification(refDelta);
 		}
 
-		refDef = objectDefinition.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
+//		refDef = objectDefinition.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
 //		refDelta = prepareUserOrgsDeltaForModify(refDef);
 //		if (!refDelta.isEmpty()) {
 //			focusDelta.addModification(refDelta);
@@ -618,7 +618,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 //			if (!accDto.isLoadedOK()) {
 //				continue;
 //			}
-
 			if (account.getProjectionStatus() == UserDtoStatus.DELETE) {
 //				ObjectWrapperOld accWrapper = accDto.getObjectOld();
 				ReferenceDelta refDelta = getPrismContext().deltaFactory().reference().createModificationDelete(UserType.F_LINK_REF,
@@ -679,7 +678,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 //			if (!projection.isLoadedOK()) {
 //				continue;
 //			}
-
 			if (UserDtoStatus.MODIFY.equals(projection.getProjectionStatus())) {
 				// this is legal e.g. when child org is being create (one assignment comes pre-created)
 				// TODO do we need more specific checks here?
@@ -714,7 +712,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 //			if (!account.isLoadedOK()) {
 //				continue;
 //			}
-
 			try {
 				ObjectDelta<ShadowType> delta = account.getObjectDelta();
 				if (LOGGER.isTraceEnabled()) {

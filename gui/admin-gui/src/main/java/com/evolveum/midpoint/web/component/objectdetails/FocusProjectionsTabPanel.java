@@ -411,7 +411,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				shadow.setObjectClass(objectClass);
 				shadow.setIntent(accountDefinition.getObjectClassDefinition().getIntent());
 				shadow.setKind(accountDefinition.getObjectClassDefinition().getKind());
-				shadow.setName(new PolyStringType("New projection"));
 				getPrismContext().adopt(shadow);
 
 				Task task = getPageBase().createSimpleTask(OPERATION_ADD_ACCOUNT);
