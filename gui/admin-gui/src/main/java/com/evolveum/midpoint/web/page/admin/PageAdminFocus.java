@@ -30,6 +30,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -117,6 +118,23 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageAdminFocus.class);
 
+	public PageAdminFocus() {
+        initialize(null);
+    }
+
+    public PageAdminFocus(PageParameters parameters) {
+        getPageParameters().overwriteWith(parameters);
+        initialize(null);
+    }
+
+    public PageAdminFocus(final PrismObject<F> userToEdit) {
+        initialize(userToEdit);
+    }
+
+    public PageAdminFocus(final PrismObject<F> unitToEdit, boolean isNewObject)  {
+        initialize(unitToEdit, isNewObject);
+    }
+	
 
 	@Override
 	protected void initializeModel(final PrismObject<F> objectToEdit, boolean isNewObject, boolean isReadonly) {
@@ -273,6 +291,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 					showResult(subResult, "pageAdminFocus.message.shadowWrapperIsNull");
 					LOGGER.error("ShadowWrapper is null");
 				}
+				
+				//TODO catch Exception/Runtim,eException, Throwable
 			} catch (SchemaException e) {
 				showResult(subResult, "pageAdminFocus.message.couldntCreateShadowWrapper");
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create shadow wrapper", e);

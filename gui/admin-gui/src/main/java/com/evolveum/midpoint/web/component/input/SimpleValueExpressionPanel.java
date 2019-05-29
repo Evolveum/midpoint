@@ -21,9 +21,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +41,7 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
     private static final long serialVersionUID = 1L;
 
     private final static String ID_LITERAL_VALUE_INPUT = "literalValueInput";
+    private final static String ID_LITERAL_VALUE_CONTAINER = "literalValueContainer";
     private static final String ID_FEEDBACK = "feedback";
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleValueExpressionPanel.class);
@@ -59,6 +63,11 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupPlaceholderTag(true);
         add(feedback);
+
+        WebMarkupContainer literalValueContainer = new WebMarkupContainer(ID_LITERAL_VALUE_CONTAINER);
+        literalValueContainer.setOutputMarkupId(true);
+        literalValueContainer.add(new VisibleBehaviour(() -> isLiteralExpressionValueNotEmpty()));
+        add(literalValueContainer);
 
         MultiValueTextPanel<String> literalValueInput = new MultiValueTextPanel<String>(ID_LITERAL_VALUE_INPUT,
                 new IModel<List<String>>() {
@@ -96,8 +105,9 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
                         modelObject, SimpleValueExpressionPanel.this.getPageBase().getPrismContext());
             }
         };
+        literalValueInput.add(new VisibleBehaviour(() -> isLiteralExpressionValueNotEmpty()));
         literalValueInput.setOutputMarkupId(true);
-        add(literalValueInput);
+        literalValueContainer.add(literalValueInput);
     }
 
     private List<String> getLiteralValues(){
@@ -110,5 +120,13 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
         return literalValueList;
     }
 
+    private boolean isLiteralExpressionValueNotEmpty(){
+        try {
+            return ExpressionUtil.isLiteralExpressionValueNotEmpty(SimpleValueExpressionPanel.this.getModelObject());
+        } catch (SchemaException ex){
+            LOGGER.error("Unable to load literal expression value, ", ex.getLocalizedMessage());
+        }
+        return false;
+    }
 
 }

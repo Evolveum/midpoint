@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -56,19 +57,27 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		ItemName name = def.getName();
 		
 		I childItem = (I) parent.getNewValue().findItem(name);
-		ItemStatus status = ItemStatus.NOT_CHANGED;
+		ItemStatus status = getStatus(childItem);
+		
+		if (!canCreateNewWrapper(def, status, context)) {
+			LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
+			return null;
+		}
+			
 		if (childItem == null) {
-			if (!context.isForceCreate() && !canCreateNewWrapper(def)) {
-				LOGGER.trace("Skipping reating wrapper for non-existent item. It is not supported for {}", def);
-				return null;
-			}
-			
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
-			status = ItemStatus.ADDED;
-			
 		}
 		
 		return createWrapper(parent, childItem, status, context);
+	}
+	
+	private ItemStatus getStatus(I childItem) {
+		if (childItem == null) {
+			return ItemStatus.ADDED;
+		}
+		
+		return ItemStatus.NOT_CHANGED;
+		
 	}
 	
 	
@@ -83,7 +92,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
 		itemWrapper.getValues().addAll((Collection) valueWrappers);
 		itemWrapper.setShowEmpty(context.isShowEmpty(), false);
-		itemWrapper.setReadOnly(context.isReadOnly());
+		
+		boolean readOnly = determineReadOnly(itemWrapper, context);
+		itemWrapper.setReadOnly(readOnly);
 		
 		setupWrapper(itemWrapper);
 		
@@ -118,8 +129,62 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	}
 	
-	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
+	protected boolean canCreateNewWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+		if (def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return false;
+		}
+		
+		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
+			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
+			return false;
+		}
+		
+		if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelInteractionService, context.getTask(), context.getResult())) {
+			LOGGER.trace("Skipping creating wrapper for {}, because experimental GUI features are turned off.", def);
+			return false;
+		}
+		
+		
+		if (ItemStatus.ADDED == status && def.isDeprecated()) {
+			LOGGER.trace("Skipping creating wrapeer for {}, because item is deprecated and doesn't contain any value.", def);
+			return false;
+		}
+		
+		if (ItemStatus.ADDED == context.getObjectStatus() && !def.canAdd()) {
+			LOGGER.trace("Skipping creating wrapper for {}, becasue ADD operation is not supported");
+			return false;
+		}
+		
+		if (ItemStatus.NOT_CHANGED == context.getObjectStatus()) {
+			if (!def.canRead()) {
+				LOGGER.trace("Skipping creating wrapper for {}, because read operation is not supported");
+				return false;
+			}
+			
+		}
+					
 		return true;
+	}
+	
+	private boolean determineReadOnly(IW itemWrapper, WrapperContext context) {
+		
+		Boolean readOnly = context.getReadOnly();
+		if (readOnly != null) {
+			LOGGER.trace("Setting {} as readonly because context said so.", itemWrapper);
+			return readOnly.booleanValue();
+		}
+		
+		ItemStatus objectStatus = context.getObjectStatus();
+		
+		if (ItemStatus.NOT_CHANGED == objectStatus) {
+			if (itemWrapper.canRead() && !itemWrapper.canModify()) {
+				LOGGER.trace("Setting {} as readonly because authZ said so");
+				return true;
+			}
+		}
+		
+		return false;
 	}
 
 	protected boolean canCreateValueWrapper(PV pcv) {

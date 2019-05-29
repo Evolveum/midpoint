@@ -305,7 +305,18 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
-	public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper(ItemWrapper parent) {
+	public <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper() {
+		if (parent == null) {
+			return null;
+		}
+		
+		ItemWrapper parentWrapper = parent.getParent();
+		
+		return findObjectWrapper(parentWrapper);
+		
+	}
+	
+	private <OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper(ItemWrapper parent) {
 		if (parent != null) {
 			if (parent instanceof PrismObjectWrapper) {
 				return (OW) parent;
@@ -334,7 +345,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return showEmpty;
 	}
 
-	@Override
+	@Override	
 	public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
 		this.showEmpty = isShowEmpty;
 	}

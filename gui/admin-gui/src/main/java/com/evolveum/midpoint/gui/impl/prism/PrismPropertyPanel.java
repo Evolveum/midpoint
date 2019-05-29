@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,12 +34,16 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
 import com.evolveum.midpoint.gui.impl.factory.PrismPropertyPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -76,12 +81,10 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 	
 	@Override
-	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+	protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<T>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 		
-		
-		WebMarkupContainer panel = createInputPanel(item, factory);
-    	
-
+		return createInputPanel(item, factory);
+    
 		
         
 	}
@@ -92,7 +95,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 		valueContainer.setOutputMarkupId(true);
 		item.add(valueContainer);
 		// feedback
-		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+		FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 		feedback.setOutputMarkupId(true);
 		item.add(feedback);
 
@@ -188,34 +191,21 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 
 	}
     
-	 //TODO: implment
-    private <O extends ObjectType, C extends Containerable> O getObject() {
+    private <OW extends PrismObjectWrapper<O>, O extends ObjectType, C extends Containerable> O getObject() {
     	
-//    	PrismContainerValueWrapper<?> cValueWrapper = getModelObject().getParent();
-//		if (cValueWrapper == null) {
-//			return null;
-//		}
-//		PrismContainerWrapper<?> cWrapper = (PrismContainerWrapper<?>) cValueWrapper.getParent();
-//		
-////	cValueWrapper.
-////		ObjectWrapperOld<O> objectWrapper = cWrapper.getPaObjectWrapper();
-//		PrismObjectWrapper<O> objectWrapper = null;
-//		PrismObject<O> newObject = objectWrapper.getObject().clone();
-//		
-//		try {
-//			ObjectDelta<O> objectDelta = objectWrapper.getObjectDelta();
-//			if (objectDelta.isModify()) {
-//				objectDelta.applyTo(newObject);
-//			} else if (objectDelta.isAdd()) {
-//				newObject = objectDelta.getObjectToAdd().clone();
-//			} else if (objectDelta.isDelete()) {
-//				newObject = null;
-//			}
-//		} catch (SchemaException e) {
-//			return null;
-//		}
-//		
-//		return newObject.asObjectable();
-		return null;
+    	OW objectWrapper = getModelObject().findObjectWrapper();
+    	if (objectWrapper == null) {
+    		return null;
+    	}
+    	
+    	try {
+    		PrismObject<O> objectNew = objectWrapper.getObjectApplyDelta();
+    		return objectNew.asObjectable();
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot apply deltas to object for validation: {}", e.getMessage(), e);
+			return null;
+		}
+    	
+    	
 	}
 }

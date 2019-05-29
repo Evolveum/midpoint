@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -40,8 +41,8 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 	}
 	
 	@Override
-	protected boolean canCreateNewWrapper(ItemDefinition<?> def) {
+	protected boolean canCreateNewWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
 		return false;
 	}
-
+	
 }

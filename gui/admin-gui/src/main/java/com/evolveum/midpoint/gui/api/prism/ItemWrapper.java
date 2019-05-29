@@ -80,7 +80,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 
 	<O extends ObjectType> ItemStatus findObjectStatus();
 
-	<OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper(ItemWrapper parent);
+	<OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper();
 	
 	
 }

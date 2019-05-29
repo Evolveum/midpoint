@@ -356,6 +356,15 @@ public class ColumnUtils {
 
 		return columns;
 	}
+	
+	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultArchetypeColumns() {
+		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
+
+		columns.addAll((Collection)getDefaultAbstractRoleColumns(true));
+
+		return columns;
+	}
+	
 
 	public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
 

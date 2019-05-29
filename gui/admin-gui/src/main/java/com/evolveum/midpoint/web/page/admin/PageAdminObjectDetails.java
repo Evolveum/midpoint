@@ -347,41 +347,32 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			throw new RestartResponseException(getRestartResponsePage());
 		}
 
-		ContainerStatus status = isOidParameterExists() || editingFocus ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 		ItemStatus itemStatus = isOidParameterExists() || editingFocus ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
 		PrismObjectWrapper<O> wrapper;
 		
 		PrismObjectWrapperFactory<O> factory = getRegistry().getObjectWrapperFactory(object.getDefinition());
 		WrapperContext context = new WrapperContext(task, result);
 		context.setCreateIfEmpty(ItemStatus.ADDED == itemStatus);
-		context.setReadOnly(isReadonly);
+		//we don't want to set to false.. refactor this method to take either enum (READONLY, AUTO, ...) or 
+		// Boolean instead of boolean isReadonly
+		if (isReadonly) {
+			context.setReadOnly(isReadonly);
+		}
 		
 		
-		
-//		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
 		try {
 			wrapper = factory.createObjectWrapper(object, itemStatus, context);
-//			wrapper = factory.createWrapper(object, itemStatus, context);
-//			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, status, isReadonly, task);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
 				wrapper = factory.createObjectWrapper(object, itemStatus, context);
-//				wrapper = factory.createWrapper(object, itemStatus, context);
-//				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, status, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 		}
-//		wrapper.setLoadOptions(loadOptions);
 
 		showResult(result, false);
-
-//		loadParentOrgs(wrapper, task, result);
-
-//		wrapper.setShowEmpty(!isOidParameterExists() && !editingFocus);
-//		wrapper.setReadonly(isReadonly);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());

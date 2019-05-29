@@ -21,6 +21,7 @@ package com.evolveum.midpoint.gui.impl.prism.component;
 public enum ExpressionValueTypes {
 
     SHADOW_REF_EXPRESSION,
+    LITERAL_VALUE_EXPRESSION,
     ASSOCIATION_TARGET_SEARCH_EXPRESSION;
 
     ExpressionValueTypes(){

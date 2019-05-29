@@ -39,6 +39,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.util.Arrays;
+
 /**
  * @author katka
  *
@@ -91,10 +93,10 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+	protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 		ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
+		Component expressionPanel = null;
 		if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
-			Component expressionPanel = null;
 			ItemRealValueModel<ExpressionType> realValueModel = new ItemRealValueModel<ExpressionType>(item.getModel());
 			if (expressionWrapper.isAttributeExpression()) {
 				expressionPanel = new SimpleValueExpressionPanel(ID_EXPRESSION_PANEL, realValueModel);
@@ -105,22 +107,29 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 			expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
 			item.add(expressionPanel);
 		} else {
-            TextPanel expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
+            expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
             expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
             item.add(expressionPanel);
         }
+		
+		return expressionPanel;
 	}
 
 	private void addExpressionValuePerformed(AjaxRequestTarget target){
-		ExpressionTypeSelectPopup expressionTypeSelectPopup = new ExpressionTypeSelectPopup(getPageBase().getMainPopupBodyId()) {
-			private static final long serialVersionUID = 1L;
+		ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
+		if (expressionWrapper.isAttributeExpression()){
+			expressionValueAddPerformed(target, ExpressionValueTypes.LITERAL_VALUE_EXPRESSION);
+		} else {
+			ExpressionTypeSelectPopup expressionTypeSelectPopup = new ExpressionTypeSelectPopup(getPageBase().getMainPopupBodyId()) {
+				private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void addExpressionPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType) {
-				expressionValueAddPerformed(target, expressionType);
-			}
-		};
-		getPageBase().showMainPopup(expressionTypeSelectPopup, target);
+				@Override
+				protected void addExpressionPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType) {
+					expressionValueAddPerformed(target, expressionType);
+				}
+			};
+			getPageBase().showMainPopup(expressionTypeSelectPopup, target);
+		}
 	}
 
 	private void expressionValueAddPerformed(AjaxRequestTarget target, ExpressionValueTypes expressionType){
@@ -131,6 +140,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 				ExpressionUtil.addShadowRefEvaluatorValue(newExpressionValue, null, getPrismContext());
 			} else if (ExpressionValueTypes.ASSOCIATION_TARGET_SEARCH_EXPRESSION.equals(expressionType)){
 				ExpressionUtil.getOrCreateAssociationTargetSearchValues(newExpressionValue, getPrismContext());
+			} else if (ExpressionValueTypes.LITERAL_VALUE_EXPRESSION.equals(expressionType)){
+				ExpressionUtil.updateLiteralExpressionValue(newExpressionValue, Arrays.asList(""), getPrismContext());
 			}
 
 			WrapperContext context = new WrapperContext(null, null);
