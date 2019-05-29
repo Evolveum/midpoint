@@ -15,11 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
-import org.apache.wicket.RestartResponseException;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -28,20 +27,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
@@ -51,13 +39,6 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceBusinessConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(url = "/admin/case", encoder = OnePageParameterEncoder.class, action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
@@ -72,12 +53,15 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     private static final Trace LOGGER = TraceManager.getTrace(PageCase.class);
     private static final String DOT_CLASS = PageCase.class.getName() + ".";
     private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
-    private static final String DEFAULT_OPERATOR_OID = "00000000-0000-0000-0000-000000000002";  // administrator
 
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
 
     public PageCase() {
         initialize(null);
+    }
+
+    public PageCase(PrismObject<CaseType> unitToEdit, boolean isNewObject)  {
+        initialize(unitToEdit, isNewObject);
     }
 
     public PageCase(PageParameters parameters) {
@@ -91,114 +75,114 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 //        super.initializeModel(loadCase(), isNewObject, isReadonly);
 //    }
 
-    private PrismObject<CaseType> loadCase() {
-        Task task = createSimpleTask(OPERATION_LOAD_CASE);
-        OperationResult result = task.getResult();
-
-        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                .item(CaseType.F_OBJECT_REF).resolve()
-                .build();
-        boolean emptyCase = !isEditingFocus();
-        PrismObject<CaseType> caseInstance = null;
-        try {
-            if (emptyCase) {
-                LOGGER.trace("Loading case: New case (creating)");
-                CaseType newCase = new CaseType();
-                getMidpointApplication().getPrismContext().adopt(newCase);
-                caseInstance = newCase.asPrismObject();
-            } else {
-                String oid = getObjectOidParameter();
-
-                caseInstance = WebModelServiceUtils.loadObject(CaseType.class, oid, options,
-                        PageCase.this, task, result);
-
-                if (caseInstance == null) {
-                    LOGGER.trace("caseInstance:[oid]={} was null", oid);
-                    getSession().error(getString("pageCase.message.cantEditCase"));
-                    showResult(result);
-                    throw new RestartResponseException(PageCases.class);
-                }
-                LOGGER.debug("CASE WORK ITEMS: {}", caseInstance.asObjectable().getWorkItem());
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get case.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-        }
-
-        if (caseInstance == null) {
-            if (isEditingFocus()) {
-                getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
-            } else {
-                getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
-            }
-            throw new RestartResponseException(PageCases.class);
-        }
+//    private PrismObject<CaseType> loadCase() {
+//        Task task = createSimpleTask(OPERATION_LOAD_CASE);
+//        OperationResult result = task.getResult();
 //
-//        ObjectWrapper<CaseType> wrapper;
-//        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-//        ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+//        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+//                .item(CaseType.F_OBJECT_REF).resolve()
+//                .build();
+//        boolean emptyCase = !isEditingFocus();
+//        PrismObject<CaseType> caseInstance = null;
 //        try {
-//            wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, status, task);
+//            if (emptyCase) {
+//                LOGGER.trace("Loading case: New case (creating)");
+//                CaseType newCase = new CaseType();
+//                getMidpointApplication().getPrismContext().adopt(newCase);
+//                caseInstance = newCase.asPrismObject();
+//            } else {
+//                String oid = getObjectOidParameter();
+//
+//                caseInstance = WebModelServiceUtils.loadObject(CaseType.class, oid, options,
+//                        PageCase.this, task, result);
+//
+//                if (caseInstance == null) {
+//                    LOGGER.trace("caseInstance:[oid]={} was null", oid);
+//                    getSession().error(getString("pageCase.message.cantEditCase"));
+//                    showResult(result);
+//                    throw new RestartResponseException(PageCases.class);
+//                }
+//                LOGGER.debug("CASE WORK ITEMS: {}", caseInstance.asObjectable().getWorkItem());
+//            }
+//        } catch (Exception ex) {
+//            result.recordFatalError("Couldn't get case.", ex);
+//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
+//        }
+//
+//        if (caseInstance == null) {
+//            if (isEditingFocus()) {
+//                getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
+//            } else {
+//                getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
+//            }
+//            throw new RestartResponseException(PageCases.class);
+//        }
+////
+////        ObjectWrapper<CaseType> wrapper;
+////        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+////        ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+////        try {
+////            wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, status, task);
+////        } catch (Exception ex) {
+////            result.recordFatalError("Couldn't get case.", ex);
+////            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
+////            try {
+////				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status, task);
+////			} catch (SchemaException e) {
+////				throw new SystemException(e.getMessage(), e);
+////			}
+////        }
+////
+////        wrapper.setShowEmpty(emptyCase);
+////
+////        //for now decided to make targetRef readonly
+////        wrapper.getContainers().forEach(containerWrapper -> {
+////            if (containerWrapper.isMain()){
+////                containerWrapper.getValues().forEach(containerValueWrapper -> {
+////                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
+////                    if (itemWrapper != null){
+////                        itemWrapper.setReadonly(true);
+////                    }
+////                });
+////            }
+////        });
+//
+//        PrismObjectWrapperFactory<CaseType> owf = getRegistry().getObjectWrapperFactory(caseInstance.getDefinition());
+//        PrismObjectWrapper<CaseType> wrapper;
+////        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+//        ItemStatus status = isEditingFocus() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
+//        try {
+//        	WrapperContext context = new WrapperContext(task, result);
+//            wrapper = owf.createObjectWrapper(caseInstance, status, context);
 //        } catch (Exception ex) {
 //            result.recordFatalError("Couldn't get case.", ex);
 //            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
 //            try {
-//				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status, task);
+//            	WrapperContext context = new WrapperContext(task, result);
+//				wrapper = owf.createObjectWrapper(caseInstance,status, context);
 //			} catch (SchemaException e) {
 //				throw new SystemException(e.getMessage(), e);
 //			}
 //        }
 //
-//        wrapper.setShowEmpty(emptyCase);
+////        wrapper.setShowEmpty(emptyCase);
 //
 //        //for now decided to make targetRef readonly
-//        wrapper.getContainers().forEach(containerWrapper -> {
-//            if (containerWrapper.isMain()){
-//                containerWrapper.getValues().forEach(containerValueWrapper -> {
-//                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
-//                    if (itemWrapper != null){
-//                        itemWrapper.setReadonly(true);
-//                    }
-//                });
-//            }
-//        });
-
-        PrismObjectWrapperFactory<CaseType> owf = getRegistry().getObjectWrapperFactory(caseInstance.getDefinition());
-        PrismObjectWrapper<CaseType> wrapper;
-//        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-        ItemStatus status = isEditingFocus() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
-        try {
-        	WrapperContext context = new WrapperContext(task, result);
-            wrapper = owf.createObjectWrapper(caseInstance, status, context);
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get case.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-            try {
-            	WrapperContext context = new WrapperContext(task, result);
-				wrapper = owf.createObjectWrapper(caseInstance,status, context);
-			} catch (SchemaException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-        }
-
-//        wrapper.setShowEmpty(emptyCase);
-
-        //for now decided to make targetRef readonly
-
-        //TODO maybe do it while creating wrappers
-//        wrapper.getContainers().forEach(containerWrapper -> {
-//            if (containerWrapper.isMain()){
-//                containerWrapper.getValues().forEach(containerValueWrapper -> {
-//                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
-//                    if (itemWrapper != null){
-//                        itemWrapper.setReadonly(true);
-//                    }
-//                });
-//            }
-//        });
-
-        return wrapper.getObject();
-    }
+//
+//        //TODO maybe do it while creating wrappers
+////        wrapper.getContainers().forEach(containerWrapper -> {
+////            if (containerWrapper.isMain()){
+////                containerWrapper.getValues().forEach(containerValueWrapper -> {
+////                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
+////                    if (itemWrapper != null){
+////                        itemWrapper.setReadonly(true);
+////                    }
+////                });
+////            }
+////        });
+//
+//        return wrapper.getObject();
+//    }
 
     @Override
     protected AbstractObjectMainPanel<CaseType> createMainPanel(String id) {
@@ -210,6 +194,34 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected List<ITab> createTabs(final PageAdminObjectDetails<CaseType> parentPage) {
                 List<ITab> tabs = super.createTabs(parentPage);
 
+                if (matchCaseType(SystemObjectsType.ARCHETYPE_APPROVAL_CASE)) {
+                    tabs.add(0,
+                            new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {
+
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new ApprovalCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
+                            });
+                } else if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
+                    tabs.add(0,
+                            new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {
+
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new OperationRequestCaseTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
+
+                            });
+                } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
+                    //todo manual case tab
+                }
                 tabs.add(
                         new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
                                 getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
@@ -249,12 +261,6 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected boolean getOptionsPanelVisibility() {
                 return false;
             }
-
-//            @Override
-//            protected boolean isPreviewButtonVisible() {
-//                return false;
-//            }
-
         };
     }
 
@@ -312,35 +318,35 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 //        }
 //    }
 
-    private void createCaseWorkItems(CaseType caseInstance, Task task, OperationResult result) {
-        PrismObject<ResourceType> resource;
-        ObjectReferenceType resourceRef = caseInstance.getObjectRef();
-        if (resourceRef != null) {
-            String resourceOid = resourceRef.getOid();
-            resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid, PageCase.this, task, result);
-
-            if (resource != null) {
-                // If resource exists, create work items for each resource business operator
-                ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
-                List<ObjectReferenceType> operators = new ArrayList<>();
-                if (businessConfiguration != null) {
-                    operators.addAll(businessConfiguration.getOperatorRef());
-                }
-                if (operators.isEmpty()) {
-                    operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
-                }
-                for (ObjectReferenceType operator : operators) {
-                    CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
-                            .originalAssigneeRef(operator.clone())
-                            .assigneeRef(operator.clone())
-                            .name(caseInstance.getName().getOrig());
-                    caseInstance.getWorkItem().add(workItem);
-                    // TODO deadline and maybe other fields
-                }
-            }
-        }
-    }
-
+//    private void createCaseWorkItems(CaseType caseInstance, Task task, OperationResult result) {
+//        PrismObject<ResourceType> resource;
+//        ObjectReferenceType resourceRef = caseInstance.getObjectRef();
+//        if (resourceRef != null) {
+//            String resourceOid = resourceRef.getOid();
+//            resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid, PageCase.this, task, result);
+//
+//            if (resource != null) {
+//                // If resource exists, create work items for each resource business operator
+//                ResourceBusinessConfigurationType businessConfiguration = resource.asObjectable().getBusiness();
+//                List<ObjectReferenceType> operators = new ArrayList<>();
+//                if (businessConfiguration != null) {
+//                    operators.addAll(businessConfiguration.getOperatorRef());
+//                }
+//                if (operators.isEmpty()) {
+//                    operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
+//                }
+//                for (ObjectReferenceType operator : operators) {
+//                    CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
+//                            .originalAssigneeRef(operator.clone())
+//                            .assigneeRef(operator.clone())
+//                            .name(caseInstance.getName().getOrig());
+//                    caseInstance.getWorkItem().add(workItem);
+//                    // TODO deadline and maybe other fields
+//                }
+//            }
+//        }
+//    }
+//
 
     @Override
     protected ObjectSummaryPanel<CaseType> createSummaryPanel() {
@@ -372,7 +378,21 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
         return PageCases.class;
     }
 
-    private int countWorkItems(){
+    private boolean matchCaseType(SystemObjectsType archetypeType){
+        CaseType caseObject = getObjectWrapper().getObject().asObjectable();
+        if (caseObject == null || caseObject.getAssignment() == null){
+            return false;
+        }
+        for (AssignmentType assignment : caseObject.getAssignment()){
+            ObjectReferenceType targetRef = assignment.getTargetRef();
+            if (targetRef != null && archetypeType.value().equals(targetRef.getOid())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+   private int countWorkItems(){
         List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
         return workItemsList == null ? 0 : workItemsList.size();
     }
