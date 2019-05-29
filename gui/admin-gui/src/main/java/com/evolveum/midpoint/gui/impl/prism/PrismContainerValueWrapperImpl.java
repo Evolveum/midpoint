@@ -19,6 +19,7 @@ import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -382,15 +383,15 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		Collator collator = Collator.getInstance(locale);
 		collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
 		collator.setDecomposition(Collator.FULL_DECOMPOSITION); 
-		
+		ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, sorted);
 		List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = getNonContainers();
 		if (CollectionUtils.isNotEmpty(nonContainers)) {
-			Collections.sort(nonContainers, new ItemWrapperComparator<>(collator, sorted));
+			nonContainers.sort((Comparator) comparator);
 		}
 		
 		List<PrismContainerWrapper> containers = (List) getContainers();
 		if (CollectionUtils.isNotEmpty(containers)) {
-			Collections.sort(containers, new ItemWrapperComparator<>(collator, sorted));
+			Collections.sort(containers, (Comparator) comparator);
 		}
 		
 		computeStripes();

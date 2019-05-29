@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
 public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Serializable {
 
@@ -25,7 +26,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
 	private IModel<IW> itemWrapper;
 	private ItemRealValueModel<T> realValueModel;
 	
-	private FeedbackPanel feedbackPanel;
+	private FeedbackAlerts feedbackPanel;
 	
 	private Form<?> form;
 	
@@ -88,7 +89,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
 	}
 	
 	
-	public FeedbackPanel getFeedbackPanel() {
+	public FeedbackAlerts getFeedbackPanel() {
 		return feedbackPanel;
 	}
 	
@@ -107,7 +108,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
 	
 
 	
-public void setFeedbackPanel(FeedbackPanel feedbackPanel) {
+public void setFeedbackPanel(FeedbackAlerts feedbackPanel) {
 		this.feedbackPanel = feedbackPanel;
 	}
 	

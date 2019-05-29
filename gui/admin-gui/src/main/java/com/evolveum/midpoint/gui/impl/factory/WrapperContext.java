@@ -34,9 +34,8 @@ public class WrapperContext {
 	
 	private boolean createIfEmpty;
 	
-	private boolean readOnly;
+	private Boolean readOnly;
 	private boolean showEmpty;
-	private boolean forceCreate;
 	
 	private ItemStatus objectStatus;
 	
@@ -76,11 +75,11 @@ public class WrapperContext {
 		this.createIfEmpty = createIfEmpty;
 	};
 	
-	public boolean isReadOnly() {
+	public Boolean getReadOnly() {
 		return readOnly;
 	}
 	
-	public void setReadOnly(boolean readOnly) {
+	public void setReadOnly(Boolean readOnly) {
 		this.readOnly = readOnly;
 	}
 
@@ -107,14 +106,6 @@ public class WrapperContext {
 	
 	public void setShowEmpty(boolean showEmpty) {
 		this.showEmpty = showEmpty;
-	}
-	
-	public boolean isForceCreate() {
-		return forceCreate;
-	}
-	
-	public void setForceCreate(boolean forceCreate) {
-		this.forceCreate = forceCreate;
 	}
 	
 	

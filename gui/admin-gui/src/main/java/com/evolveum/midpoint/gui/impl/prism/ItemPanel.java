@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 /**
@@ -102,7 +104,8 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 				GuiComponentFactory componentFactory = getPageBase().getRegistry()
 						.findValuePanelFactory(ItemPanel.this.getModelObject());
 
-				createValuePanel(item, componentFactory, visibilityHandler);
+				Component panel = createValuePanel(item, componentFactory, visibilityHandler);
+				panel.add(new EnableBehaviour(() -> !ItemPanel.this.getModelObject().isReadOnly()));
 				createButtons(item);
 			}
 
@@ -114,7 +117,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 
 	// VALUE REGION
 
-	 protected abstract void createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
+	 protected abstract Component createValuePanel(ListItem<VW> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler);
 	 
 	 protected void createButtons(ListItem<VW> item) {
 		 WebMarkupContainer buttonContainer = new WebMarkupContainer(ID_BUTTON_CONTAINER);

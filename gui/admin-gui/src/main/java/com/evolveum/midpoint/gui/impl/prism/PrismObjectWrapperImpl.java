@@ -115,4 +115,25 @@ public class PrismObjectWrapperImpl<O extends ObjectType> extends PrismContainer
 		return "properties";
 	}
 
+	@Override
+	public PrismObject<O> getObjectApplyDelta() throws SchemaException {
+		PrismObject<O> oldObject = getObjectOld().clone();
+		
+		Collection<ItemDelta> deltas = new ArrayList<>();
+		for (ItemWrapper<?, ?, ?, ?> itemWrapper : getValue().getItems()) {
+			Collection<ItemDelta> delta = itemWrapper.getDelta();
+			if (delta == null || delta.isEmpty()) {
+				continue;
+			}
+			// objectDelta.addModification(delta);
+			deltas.addAll(delta);
+		}
+		
+		for (ItemDelta delta : deltas) {
+			delta.applyTo(oldObject);
+		}
+		
+		return oldObject;
+	}
+
 }

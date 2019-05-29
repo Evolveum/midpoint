@@ -93,10 +93,10 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
+	protected Component createValuePanel(ListItem<PrismPropertyValueWrapper<ExpressionType>> item, GuiComponentFactory factory, ItemVisibilityHandler visibilityHandler) {
 		ExpressionWrapper expressionWrapper = (ExpressionWrapper) getModelObject();
+		Component expressionPanel = null;
 		if (expressionWrapper != null && (expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression())) {
-			Component expressionPanel = null;
 			ItemRealValueModel<ExpressionType> realValueModel = new ItemRealValueModel<ExpressionType>(item.getModel());
 			if (expressionWrapper.isAttributeExpression()) {
 				expressionPanel = new SimpleValueExpressionPanel(ID_EXPRESSION_PANEL, realValueModel);
@@ -107,10 +107,12 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 			expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
 			item.add(expressionPanel);
 		} else {
-            TextPanel expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
+            expressionPanel = new TextPanel<ExpressionType>(ID_EXPRESSION_PANEL, Model.of(getModelObject().getItem().getRealValue()));
             expressionPanel.add(new VisibleBehaviour(() -> isExpanded));
             item.add(expressionPanel);
         }
+		
+		return expressionPanel;
 	}
 
 	private void addExpressionValuePerformed(AjaxRequestTarget target){

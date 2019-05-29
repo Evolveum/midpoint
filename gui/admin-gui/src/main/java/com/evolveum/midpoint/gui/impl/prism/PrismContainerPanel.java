@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -78,7 +79,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	}
 
 	@Override
-	protected void createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
+	protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item, GuiComponentFactory componentFactory, ItemVisibilityHandler visibilityHandler) {
 		if (componentFactory == null) {
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
@@ -88,7 +89,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 			}
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
-			return;
+			return valuePanel;
 		}
 		
 		
@@ -96,6 +97,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		Panel panel = componentFactory.createPanel(panelCtx);
 		panel.setOutputMarkupId(true);
 		item.add(panel);
+		return panel;
 		 
 	}
 	
