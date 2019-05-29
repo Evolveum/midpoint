@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
@@ -75,13 +76,20 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
  * @author lazyman
  * @author semancik
  */
-@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-                label = "PageAdminUsers.auth.usersAll.label",
-                description = "PageAdminUsers.auth.usersAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-                label = "PageUser.auth.user.label",
-                description = "PageUser.auth.user.description")})
+
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/user", matchUrlForSecurity = "/admin/user")
+		},
+		encoder = OnePageParameterEncoder.class,
+		action = {
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+		                label = "PageAdminUsers.auth.usersAll.label",
+		                description = "PageAdminUsers.auth.usersAll.description"),
+		        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+		                label = "PageUser.auth.user.label",
+		                description = "PageUser.auth.user.description")
+		})
 public class PageUser extends PageAdminFocus<UserType> {
     private static final long serialVersionUID = 1L;
 
@@ -96,22 +104,21 @@ public class PageUser extends PageAdminFocus<UserType> {
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
-
+    
     public PageUser() {
-        initialize(null);
+        super();
     }
 
     public PageUser(PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);
-        initialize(null);
+        super(parameters);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-        initialize(userToEdit);
+    	super(userToEdit);
     }
 
-    public PageUser(final PrismObject<UserType> unitToEdit, boolean isNewObject)  {
-        initialize(unitToEdit, isNewObject);
+    public PageUser(final PrismObject<UserType> userToEdit, boolean isNewObject)  {
+        super(userToEdit, isNewObject);
     }
 
     @Override

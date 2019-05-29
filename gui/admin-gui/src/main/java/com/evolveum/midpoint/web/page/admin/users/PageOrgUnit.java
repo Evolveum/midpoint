@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * @author lazyman
@@ -60,26 +61,25 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
 
 	public PageOrgUnit() {
-		initialize(null);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
-		initialize(unitToEdit);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject)  {
-		initialize(unitToEdit, isNewObject);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject, boolean isReadonly) {
-		initialize(unitToEdit, isNewObject, isReadonly);
+		super();
 	}
 
 	public PageOrgUnit(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		initialize(null);
+		super(parameters);
 	}
 
+	public PageOrgUnit(final PrismObject<OrgType> role) {
+		super(role);
+	}
+
+	public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
+		super(userToEdit, isNewObject);
+	}
+	
+	public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
+		super(abstractRole, isNewObject, isReadonly);
+	}
+	
 	@Override
 	protected OrgType createNewObject() {
 		return new OrgType();
