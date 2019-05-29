@@ -97,7 +97,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						}
 
 						for (LookupTableRowType row : lookupTable.getRow()) {
-							if (value.equals(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage()))) {
+							if (value.equals(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
 								return (C) row.getKey();
 							}
 						}
@@ -115,7 +115,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						if (lookupTable != null) {
 							for (LookupTableRowType row : lookupTable.getRow()) {
 								if (key.equals(row.getKey())) {
-									return (String) WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null, (PageBase) getPage());
+									return (String) WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
 								}
 							}
 						}
