@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -47,7 +48,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katka
@@ -222,6 +226,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
 		List<PrismContainerWrapper<T>> containers = new ArrayList<>();
 		for (ItemWrapper<?,?,?,?> container : items) {
+			
+			collectExtensionItems(container, true, containers);
+			
 			if (container instanceof PrismContainerWrapper) {
 				containers.add((PrismContainerWrapper<T>) container);
 			}
@@ -233,6 +240,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	public List<? extends ItemWrapper<?,?,?,?>> getNonContainers() {
 		List<? extends ItemWrapper<?,?,?,?>> nonContainers = new ArrayList<>();
 		for (ItemWrapper<?,?,?,?> item : items) {
+			
+			collectExtensionItems(item, false, nonContainers);
+			
 			if (!(item instanceof PrismContainerWrapper)) {
 				((List)nonContainers).add(item);
 			}
@@ -240,10 +250,40 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		return nonContainers;
 	}
 	
+	protected <IW extends ItemWrapper<?, ?, ?, ?>> void collectExtensionItems(ItemWrapper<?, ?, ?, ?> item, boolean containers, List<IW> itemWrappers) {
+		if (!ObjectType.F_EXTENSION.equals(item.getName())) {
+			return;
+		}
+		
+		try {
+			PrismContainerValueWrapper<ExtensionType> extenstion = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
+			List<IW> extensionItems = (List<IW>) extenstion.getItems();
+			for (IW extensionItem : extensionItems) {
+				if (extensionItem instanceof PrismContainerWrapper) {
+					if (containers) {
+						itemWrappers.add(extensionItem);
+					}
+					continue;
+				}
+				
+				if (!containers) {
+					itemWrappers.add(extensionItem);
+				}
+			}
+		} catch (SchemaException e) {
+			//in this case we could ignroe the error. extension is single value container so this error should not happened
+			// but just to be sure we won't miss if something strange happened just throw runtime error
+			LOGGER.error("Something unexpected happenned. Please, check your schema");
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		
+		
+	}
+	
 	private PrismContainerDefinition<C> getContainerDefinition() {
 		return getNewValue().getDefinition();
 	}
-
+ 
 	private ContainerStatus findObjectStatus() {
 		return ContainerStatus.ADDING;
 	}

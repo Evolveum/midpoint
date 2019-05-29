@@ -116,9 +116,6 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		LOGGER.trace("Found factory {} for {}", factory, def);
-		if (factory.skipCreateWrapper(def, context)) {
-			return;
-		}
 		
 		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
 		

@@ -65,6 +65,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	ExpressionType getFormComponentValidator();
 	
 	List<VW> getValues();
+	VW getValue() throws SchemaException;
 	
 	boolean isStripe();
 	void setStripe(boolean stripe);

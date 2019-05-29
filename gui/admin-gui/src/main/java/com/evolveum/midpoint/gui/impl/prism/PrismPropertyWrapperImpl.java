@@ -47,18 +47,6 @@ public class PrismPropertyWrapperImpl<T> extends ItemWrapperImpl<PrismPropertyVa
 		super(parent, item, status);
 	}
 
-	PrismPropertyValueWrapper<T> getValue() throws SchemaException {
-		if (CollectionUtils.isEmpty(getValues())) {
-			return null;
-		}
-		
-		if (isMultiValue()) {
-			throw new SchemaException("Attempt to get sngle value from multi-value property.");
-		}
-		
-		return getValues().iterator().next();
-	}
-	
 	@Override
 	public Collection<? extends DisplayableValue<T>> getAllowedValues() {
 		return getItemDefinition().getAllowedValues();

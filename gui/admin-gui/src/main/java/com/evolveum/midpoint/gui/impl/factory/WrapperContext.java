@@ -43,6 +43,9 @@ public class WrapperContext {
 	private ResourceType resource;
 	private ResourceShadowDiscriminator discriminator;
 	
+	//used e.g. for metadata - opertionsla attributes but want to create wrappers for them
+	private boolean createOperational;
+	
 	public WrapperContext(Task task, OperationResult result) {
 		this.task = task;
 		this.result = result != null ? result : new OperationResult("temporary");       // TODO !!!
@@ -115,5 +118,13 @@ public class WrapperContext {
 	
 	public void setObjectStatus(ItemStatus objectStatus) {
 		this.objectStatus = objectStatus;
+	}
+	
+	public boolean isCreateOperational() {
+		return createOperational;
+	}
+	
+	public void setCreateOperational(boolean createOperational) {
+		this.createOperational = createOperational;
 	}
 }

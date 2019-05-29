@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
@@ -61,14 +62,15 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
 		
 		ItemWrapperFactory<?, ?, ?> factory = registry.findWrapperFactory(def);
 		
+		context.setCreateOperational(true);
 		ItemWrapper<?,?,?,?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
 		wrapper.setReadOnly(true);
 		wrappers.add(wrapper);
+		context.setCreateOperational(false);
 	}
 	
 	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
-		return false;
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+		return true;
 	}
-	
 }

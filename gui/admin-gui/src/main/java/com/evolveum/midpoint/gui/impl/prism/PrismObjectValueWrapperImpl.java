@@ -15,10 +15,13 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -36,8 +39,15 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 	}
 	
 	@Override
-	public List<PrismContainerWrapper<O>> getContainers() {
-		return null;
+	public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
+		List<PrismContainerWrapper<T>> containers = new ArrayList<>();
+		for (ItemWrapper<?, ?, ?, ?> container : getItems()) {
+
+			collectExtensionItems(container, true, containers);
+
+		}
+		return containers;
+		
 	}
 
 	@Override

@@ -201,9 +201,5 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 		return null;
 	}
 	
-	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
-		return false;
-	}
 
 }

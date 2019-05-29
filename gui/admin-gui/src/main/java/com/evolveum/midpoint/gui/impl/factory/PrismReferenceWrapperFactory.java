@@ -62,7 +62,6 @@ public class PrismReferenceWrapperFactory<R extends Referencable> extends ItemWr
 	@Override
 	protected PrismReferenceValue createNewValue(PrismReference item) throws SchemaException {
 		PrismReferenceValue prv = getPrismContext().itemFactory().createReferenceValue();
-		item.add(prv);
 		return prv;
 	}
 

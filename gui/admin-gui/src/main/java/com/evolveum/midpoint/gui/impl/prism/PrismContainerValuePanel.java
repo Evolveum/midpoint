@@ -179,6 +179,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				
 	            item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
             }
+			
+			
         };
         properties.setReuseItems(true);
         properties.setOutputMarkupId(true);

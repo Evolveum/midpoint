@@ -336,6 +336,19 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
+	public VW getValue() throws SchemaException {
+		if (CollectionUtils.isEmpty(getValues())) {
+			return null;
+		}
+		
+		if (isMultiValue()) {
+			throw new SchemaException("Attempt to get sngle value from multi-value property.");
+		}
+		
+		return getValues().iterator().next();
+	}
+	
+	@Override
 	public boolean checkRequired(PageBase pageBase) {
 		return newItem.getDefinition().isMandatory();
 	}

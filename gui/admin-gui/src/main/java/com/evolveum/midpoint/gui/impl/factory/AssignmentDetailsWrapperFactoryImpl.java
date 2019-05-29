@@ -41,7 +41,7 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 	}
 	
 	@Override
-	protected boolean canCreateNewWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
 		return false;
 	}
 	

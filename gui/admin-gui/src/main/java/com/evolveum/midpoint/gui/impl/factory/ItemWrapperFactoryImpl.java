@@ -59,15 +59,15 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = getStatus(childItem);
 		
-		if (!canCreateNewWrapper(def, status, context)) {
+		if (!skipCreateWrapper(def, status, context)) {
 			LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
 			return null;
 		}
-			
+		
 		if (childItem == null) {
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
 		}
-		
+			
 		return createWrapper(parent, childItem, status, context);
 	}
 	
@@ -129,12 +129,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	}
 	
-	protected boolean canCreateNewWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
-		if (def.isOperational()) {
-			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
-			return false;
-		}
-		
+	private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
 		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
 			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
 			return false;
@@ -163,7 +158,16 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			}
 			
 		}
-					
+		
+		return canCreateWrapper(def, status, context);
+	}
+	
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+		if (!context.isCreateOperational() && def.isOperational()) {
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			return false;
+		}
+		
 		return true;
 	}
 	
@@ -220,25 +224,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	 */
 	public PrismContext getPrismContext() {
 		return prismContext;
-	}
-	
-	@Override
-	public boolean skipCreateWrapper(ItemDefinition<?> def, WrapperContext wrapperContext) {
-		if (def.isOperational()) {
-			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
-			return true;
-		}
-		
-		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
-			return true;
-		}
-		
-		if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelInteractionService, wrapperContext.getTask(), wrapperContext.getResult())) {
-			return true;
-		}
-		
-		return false;
 	}
 	
 
