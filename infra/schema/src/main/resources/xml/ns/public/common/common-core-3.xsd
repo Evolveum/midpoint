@@ -14709,6 +14709,52 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="adminGuiConfiguration" type="tns:ArchetypeAdminGuiConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Definition of GUI-related configuration for the archetyped objects. This is using
+							principle similar to adminGuiConfiguration in system configuraiton.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>ArchetypePolicyType.adminGuiConfiguration</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ArchetypeAdminGuiConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of GUI-related configuration for the archetyped objects.
+				This is similar to AdminGuiConfigurationType, but it is supposed to be
+				applicable to a specific (archetyped) type. Therefore the elements that
+				select a type are removed or they are simply ignored.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="objectDetails" type="tns:GuiObjectDetailsPageType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies the look and feel of the pages for displaying object details and
+      						editing of objects.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>AdminGuiConfigurationType.objectDetails</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: default view for archetyped objects? -->
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -17431,6 +17477,7 @@
 							Specifies the set of default forms that are used for displaying and
       						editing of objects, such as User, Role, Org, ...
 						</p>
+						<!-- TODO: This has to be moved to  objectDetails/objectDetailsPage/forms -->
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>3.4</a:since>
@@ -23927,6 +23974,23 @@
 	           				</xsd:documentation>
 							<xsd:appinfo>
 								<a:displayName>GuiObjectDetailsPageType.saveMethod</a:displayName>
+							</xsd:appinfo>
+	           			</xsd:annotation>
+	           		</xsd:element>
+	           		<xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
+	           			<xsd:annotation>
+	           				<xsd:documentation>
+	           					<p>
+	           						Specification of forms (tabs) to be used on object details page.
+	           					</p>
+	           					<p>
+	           						NOTE: As of midPoint 4.0 this works for archetypes only.
+	           						It is not supposed to work anywhere else than in archetypePolicy.
+	           					</p>
+	           				</xsd:documentation>
+							<xsd:appinfo>
+								<a:since>4.0</a:since>
+								<a:displayName>GuiObjectDetailsPageType.forms</a:displayName>
 							</xsd:appinfo>
 	           			</xsd:annotation>
 	           		</xsd:element>
