@@ -249,7 +249,7 @@ public class R_AtomicFilter implements S_ConditionEntry, S_MatchingRuleEntry, S_
 
 	@Override
 	public S_AtomicFilterExit ref(Collection<PrismReferenceValue> values) {
-		return ref(values, false);
+		return ref(values, true);
 	}
 
 	@Override

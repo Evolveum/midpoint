@@ -635,7 +635,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		
 		LOGGER.trace("Collecting {} policy rule '{}' in {}", focusRule ? "focus" : "target", policyRuleType.getName(), segment.source);
 		
-		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType, ctx.assignmentPath.clone(), prismContext);
+		EvaluatedPolicyRuleImpl policyRule = new EvaluatedPolicyRuleImpl(policyRuleType.clone(), ctx.assignmentPath.clone(), prismContext);
 
 		if (focusRule) {
 			ctx.evalAssignment.addFocusPolicyRule(policyRule);

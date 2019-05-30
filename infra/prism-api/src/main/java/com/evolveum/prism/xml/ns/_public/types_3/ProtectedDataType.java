@@ -32,6 +32,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
@@ -55,7 +57,7 @@ import com.evolveum.midpoint.util.QNameUtil;
     ProtectedByteArrayType.class,
     ProtectedStringType.class
 })
-public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable {
+public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable, JaxbVisitable {
 	private static final long serialVersionUID = 1L;
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedDataType");
@@ -361,7 +363,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         // content is virtual, there is no point in copying it
     }
 
-    class ContentList implements List<Object>, Serializable {
+	class ContentList implements List<Object>, Serializable {
 
 		@Override
 		public int size() {

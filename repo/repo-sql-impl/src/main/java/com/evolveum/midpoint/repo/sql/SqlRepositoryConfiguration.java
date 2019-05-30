@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -478,7 +479,7 @@ public class SqlRepositoryConfiguration {
         useReadOnlyTransactions = configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, defaultUseReadOnlyTransactions);
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
-        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, 0);
+        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
 
         computeDefaultIterativeSearchParameters();
         iterativeSearchByPaging = configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, defaultIterativeSearchByPaging);

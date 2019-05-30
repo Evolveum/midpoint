@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -85,21 +87,18 @@ public class AssignmentHolderProcessor {
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
+	@Autowired private ContextLoader contextLoader;
 	@Autowired private InboundProcessor inboundProcessor;
 	@Autowired private AssignmentProcessor assignmentProcessor;
 	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
 	@Autowired private PrismContext prismContext;
-	@Autowired private CredentialsProcessor credentialsProcessor;
-	@Autowired private ModelObjectResolver modelObjectResolver;
-	@Autowired private ActivationComputer activationComputer;
 	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private MappingEvaluator mappingHelper;
-	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
-	
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+
 	@Autowired private FocusProcessor focusProcessor;
 
 	@Autowired
@@ -206,6 +205,7 @@ public class AssignmentHolderProcessor {
 					        inboundProcessor.processInbound(context, now, task, result);
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
+					        contextLoader.updateArchetypePolicy(context, task, result);
 					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},
@@ -331,6 +331,7 @@ public class AssignmentHolderProcessor {
 				checker.setPrismContext(prismContext);
 		        checker.setContext(context);
 		        checker.setRepositoryService(cacheRepositoryService);
+		        checker.setCacheConfigurationManager(cacheConfigurationManager);
 		        checker.check(previewObjectNew, result);
 		        if (checker.isSatisfiesConstraints()) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);

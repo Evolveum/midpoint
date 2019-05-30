@@ -55,7 +55,7 @@ import static com.evolveum.midpoint.audit.api.AuditEventType.WORKFLOW_PROCESS_IN
 /**
  *  Deals with preparation and recording of audit events.
  */
-@Component
+@Component("wfAuditHelper")
 public class AuditHelper {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AuditHelper.class);

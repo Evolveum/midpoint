@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.impl.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
+import com.evolveum.midpoint.schema.xjc.util.ProcessorUtils;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.sun.codemodel.*;
@@ -35,6 +36,7 @@ import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.CTypeInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
@@ -134,6 +136,10 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     private static final String METHOD_PRISM_UTIL_CREATE_TARGET_INSTANCE = "createTargetInstance";
+    private static final String METHOD_PRISM_UTIL_ACCEPT = "accept";
+
+    private static final String METHOD_ACCEPT = "accept";
+    private static final String METHOD_VISIT = "visit";
 
     // ???
     private static final String METHOD_PRISM_GET_ANY = "getAny";
@@ -198,6 +204,8 @@ public class SchemaProcessor implements Processor {
             updateObjectReferenceType(outline);
 
             updateObjectFactoryElements(outline);
+
+            createAcceptMethods(outline);
         } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Couldn't process MidPoint JAXB customisation, reason: "
@@ -2096,5 +2104,37 @@ public class SchemaProcessor implements Processor {
 	public static void printWarning(String s) {
 		System.out.println(s);
 	}
+
+
+    private void createAcceptMethods(Outline outline) {
+        Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
+        for (Map.Entry<NClass, CClassInfo> entry : set) {
+            ClassOutline classOutline = outline.getClazz(entry.getValue());
+            if (!hasParentAnnotation(classOutline, A_PRISM_OBJECT) && !hasParentAnnotation(classOutline, A_PRISM_CONTAINER)) {
+                createAcceptMethod(classOutline);
+            }
+        }
+    }
+
+    private void createAcceptMethod(ClassOutline classOutline) {
+        JDefinedClass impl = classOutline.implClass;
+        impl._implements(JaxbVisitable.class);
+
+        JMethod acceptMethod = impl.method(JMod.PUBLIC, classOutline.parent().getCodeModel().VOID, METHOD_ACCEPT);
+        acceptMethod.annotate(Override.class);
+        JVar visitor = acceptMethod.param(JaxbVisitor.class, "visitor");
+        JBlock body = acceptMethod.body();
+        JInvocation visitInvocation = body.invoke(visitor, METHOD_VISIT);
+        visitInvocation.arg(JExpr._this());
+
+        for (JFieldVar fieldVar : impl.fields().values()) {
+            if ((fieldVar.mods().getValue() & (JMod.STATIC|JMod.FINAL)) != 0) {
+                continue;
+            }
+            JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class), METHOD_PRISM_UTIL_ACCEPT);
+            invocation.arg(fieldVar);
+            invocation.arg(visitor);
+        }
+    }
 
 }

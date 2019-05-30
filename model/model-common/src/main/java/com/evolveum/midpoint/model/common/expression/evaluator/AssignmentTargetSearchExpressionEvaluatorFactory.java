@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -54,8 +55,9 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
     private final SecurityContextManager securityContextManager;
 
 	public AssignmentTargetSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
-			Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
-		super(expressionFactory);
+			Protector protector, ModelService modelService, SecurityContextManager securityContextManager,
+			CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
@@ -99,7 +101,7 @@ public class AssignmentTargetSearchExpressionEvaluatorFactory extends AbstractOb
             throw new SchemaException("assignment expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator(ELEMENT_NAME, (AssignmentTargetSearchExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismContainerDefinition<AssignmentType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService());
+        		(PrismContainerDefinition<AssignmentType>) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService(), cacheConfigurationManager);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

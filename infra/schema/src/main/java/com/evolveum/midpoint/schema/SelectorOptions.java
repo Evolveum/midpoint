@@ -31,6 +31,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -184,7 +186,16 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 		    ItemPath.create(LookupTableType.F_ROW),
 		    ItemPath.create(AccessCertificationCampaignType.F_CASE)));
 
-    public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+	private static final Set<Class<?>> OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT = new HashSet<>(Arrays.asList(
+			UserType.class, FocusType.class, AssignmentHolderType.class, ObjectType.class,
+			TaskType.class, LookupTableType.class, AccessCertificationCampaignType.class
+	));
+
+	public static boolean isRetrievedFullyByDefault(Class<?> objectType) {
+		return !OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT.contains(objectType);
+	}
+
+	public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
             return !ItemPathCollectionsUtil.containsEquivalent(PATHS_NOT_RETURNED_BY_DEFAULT, path);

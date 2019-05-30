@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
@@ -47,7 +48,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
 
-    private SqlPerformanceMonitor performanceMonitor;
+    private SqlPerformanceMonitorImpl performanceMonitor;
 
     public SqlRepositoryConfiguration getSqlConfiguration() {
         Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
@@ -133,7 +134,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("Repository is not running in embedded mode.");
         }
 
-        performanceMonitor = new SqlPerformanceMonitor();
+        performanceMonitor = new SqlPerformanceMonitorImpl();
         performanceMonitor.initialize(this);
 
         LOGGER.info("Repository initialization finished.");
@@ -289,7 +290,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
     }
 
-    public SqlPerformanceMonitor getPerformanceMonitor() {
+    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return performanceMonitor;
     }
 }

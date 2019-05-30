@@ -28,7 +28,9 @@ import java.util.Random;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.apache.commons.lang.mutable.MutableBoolean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
@@ -95,6 +97,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestDummyParallelism extends AbstractBasicDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummyParallelism.class);
+
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-parallelism");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
@@ -345,7 +349,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					
-					RepositoryCache.enter();
+					RepositoryCache.enter(cacheConfigurationManager);
 					// Playing with cache, trying to make a worst case
 					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountMorganOid, null, localResult);
 
@@ -404,7 +408,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					
-					RepositoryCache.enter();
+					RepositoryCache.enter(cacheConfigurationManager);
 					
 					try {
 						display("Thread "+Thread.currentThread().getName()+" START");
@@ -465,7 +469,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					
-					RepositoryCache.enter();
+					RepositoryCache.enter(cacheConfigurationManager);
 					
 					randomDelay(getConcurrentTestSlowRandomStartDelayRange());
 					LOGGER.info("{} starting to do some work", Thread.currentThread().getName());
@@ -555,7 +559,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 
-					RepositoryCache.enter();
+					RepositoryCache.enter(cacheConfigurationManager);
 					// Playing with cache, trying to make a worst case
 					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
 
@@ -615,7 +619,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 					Task localTask = createTask(TEST_NAME + ".local");
 					OperationResult localResult = localTask.getResult();
 					
-					RepositoryCache.enter();
+					RepositoryCache.enter(cacheConfigurationManager);
 					// Playing with cache, trying to make a worst case
 					PrismObject<ShadowType> shadowBefore = repositoryService.getObject(ShadowType.class, accountElizabethOid, null, localResult);
 

@@ -23,6 +23,7 @@ import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,14 +64,10 @@ public class AuditController implements ModelAuditService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AuditController.class);
 
-	@Autowired(required=true)
-	private AuditService auditService;
-
-	@Autowired(required=true)
-	private ModelObjectResolver objectResolver;
-
-	@Autowired(required = true)
-	private SecurityEnforcer securityEnforcer;
+	@Autowired private AuditService auditService;
+	@Autowired private AuditHelper auditHelper;
+	@Autowired private ModelObjectResolver objectResolver;
+	@Autowired private SecurityEnforcer securityEnforcer;
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.audit.api.AuditService#audit(com.evolveum.midpoint.audit.api.AuditEventRecord, com.evolveum.midpoint.task.api.Task)
@@ -78,7 +75,7 @@ public class AuditController implements ModelAuditService {
 	@Override
 	public void audit(AuditEventRecord record, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorize(ModelAuthorizationAction.AUDIT_RECORD, task, result);
-		auditService.audit(record, task);
+		auditHelper.audit(record, task);
 	}
 
 	@Override

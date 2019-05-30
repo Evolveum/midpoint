@@ -37,8 +37,9 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -65,13 +66,24 @@ public class AssociationTargetSearchExpressionEvaluator
 	public AssociationTargetSearchExpressionEvaluator(QName elementName, SearchObjectExpressionEvaluatorType expressionEvaluatorType,
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition, Protector protector, PrismContext prismContext, ObjectResolver objectResolver,
 			ModelService modelService, SecurityContextManager securityContextManager,
-			LocalizationService localizationService) {
-		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService);
+			LocalizationService localizationService, CacheConfigurationManager cacheConfigurationManager) {
+		super(elementName, expressionEvaluatorType, outputDefinition, protector, prismContext, objectResolver, modelService, securityContextManager, localizationService,
+				cacheConfigurationManager);
 	}
 
 	@Override
 	protected AbstractSearchExpressionEvaluatorCache getCache() {
 		return AssociationSearchExpressionEvaluatorCache.getCache();
+	}
+
+	@Override
+	protected Class<?> getCacheClass() {
+		return AssociationSearchExpressionEvaluatorCache.class;
+	}
+
+	@Override
+	protected CacheType getCacheType() {
+		return CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE;
 	}
 
 	@Override

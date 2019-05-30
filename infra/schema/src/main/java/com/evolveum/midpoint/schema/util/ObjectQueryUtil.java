@@ -512,7 +512,7 @@ public class ObjectQueryUtil {
 			PrismContext prismContext) throws SchemaException {
 		String resourceOid = getResourceOidFromFilter(filter, prismContext);
         QName objectClass = getPropertyRealValueFromFilter(filter, ShadowType.F_OBJECT_CLASS, prismContext);
-        ShadowKindType kind = getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
+        ShadowKindType kind = getKindFromFilter(filter, prismContext);
         String intent = getPropertyRealValueFromFilter(filter, ShadowType.F_INTENT, prismContext);
         String tag = getPropertyRealValueFromFilter(filter, ShadowType.F_TAG, prismContext);
 
@@ -526,6 +526,10 @@ public class ObjectQueryUtil {
         ResourceShadowDiscriminator coordinates = new ResourceShadowDiscriminator(resourceOid, kind, intent, tag, false);
         coordinates.setObjectClass(objectClass);
         return coordinates;
+	}
+
+	private static ShadowKindType getKindFromFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+		return getPropertyRealValueFromFilter(filter, ShadowType.F_KIND, prismContext);
 	}
 
 	// TODO better API for all this

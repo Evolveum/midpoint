@@ -38,6 +38,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.springframework.util.ClassUtils;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -109,17 +110,26 @@ public class CloneUtil {
 		if (orig instanceof XMLGregorianCalendar) {
 			return (T) XmlTypeConverter.createXMLGregorianCalendar((XMLGregorianCalendar) orig);
 		}
+		/*
+		 * The following is because of: "Cloning a Serializable (class com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl). It could harm performance."
+		 */
+		if (orig instanceof Duration) {
+			//noinspection unchecked
+			return (T) XmlTypeConverter.createDuration((Duration) orig);
+		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
 				return clone;
 			}
 		}
+		if (orig instanceof PrismList) {
+			// The result is different from shallow cloning. But we probably can live with this.
+			return (T) CloneUtil.cloneCollectionMembers((Collection) orig);
+		}
 		if (orig instanceof Serializable) {
 			// Brute force
-			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-				PERFORMANCE_ADVISOR.debug("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
-			}
+			PERFORMANCE_ADVISOR.info("Cloning a Serializable ({}). It could harm performance.", orig.getClass());
 			return (T)SerializationUtils.clone((Serializable)orig);
 		}
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
@@ -164,9 +174,7 @@ public class CloneUtil {
 			Object clone = cloneMethod.invoke(orig);
 			return (T) clone;
 		} catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException|RuntimeException e) {
-			if (PERFORMANCE_ADVISOR.isDebugEnabled()) {
-				PERFORMANCE_ADVISOR.debug("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
-			}
+			PERFORMANCE_ADVISOR.info("Error when cloning {}, will try serialization instead.", orig.getClass(), e);
 			return null;
 		}
 	}

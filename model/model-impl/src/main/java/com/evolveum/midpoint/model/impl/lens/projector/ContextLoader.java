@@ -427,14 +427,13 @@ public class ContextLoader {
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 
         if (context.getFocusContext() != null) {
-        	PrismObject<F> object = context.getFocusContext().getObjectAny();
             if (context.getFocusContext().getArchetypePolicyType() == null) {
-				ArchetypePolicyType policyConfigurationType = archetypeManager.determineArchetypePolicy(object, result);
+				ArchetypePolicyType archetypePolicy = determineArchetypePolicy(context, task, result);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-							FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
+					LOGGER.trace("Selected archetype policy:\n{}", 
+							archetypePolicy==null?null:archetypePolicy.asPrismContainerValue().debugDump(1));
 				}
-                context.getFocusContext().setArchetypePolicyType(policyConfigurationType);
+                context.getFocusContext().setArchetypePolicyType(archetypePolicy);
             }
         }
 
@@ -454,6 +453,46 @@ public class ContextLoader {
 		loadSecurityPolicy(context, task, result);
 	}
 
+	private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return null;
+		}
+		if (context.getFocusContext() == null) {
+			return null;
+		}
+		PrismObject<F> object = context.getFocusContext().getObjectAny();
+		String explicitArchetypeOid = null;
+		// Used in cases where archetype assignment haven't had the change to be processed yet.
+		// E.g. in case that we are creating a new object with archetype assignment
+		if (object.canRepresent(AssignmentHolderType.class)) {
+			AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
+			List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
+			if (archetypeRefs.isEmpty()) {
+				for (AssignmentType assignment : assignmentHolderType.getAssignment()) {
+					ObjectReferenceType targetRef = assignment.getTargetRef();
+					if (targetRef != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, targetRef.getType())) {
+						explicitArchetypeOid = targetRef.getOid();
+					}
+				}
+			}
+		}
+		return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
+	}
+	
+	public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+		if (context.getFocusContext() == null) {
+			return;
+		}
+		ArchetypePolicyType newArchetypePolicy = determineArchetypePolicy(context, task, result);
+		if (newArchetypePolicy != context.getFocusContext().getArchetypePolicyType()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Changed policy configuration because of changed subtypes:\n{}", 
+						newArchetypePolicy==null?null:newArchetypePolicy.asPrismContainerValue().debugDump(1));
+			}
+			context.getFocusContext().setArchetypePolicyType(newArchetypePolicy);
+		}
+	}
 
     // expects that object policy configuration is already set in focusContext
 	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {

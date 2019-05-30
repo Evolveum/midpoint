@@ -390,9 +390,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void incrementProjectionWave() {
 		projectionWave++;
+		LOGGER.trace("Incrementing projection wave to {}", projectionWave);
 	}
 
 	public void resetProjectionWave() {
+		LOGGER.trace("Resetting projection wave from {} to {}", projectionWave, executionWave);
 		projectionWave = executionWave;
 	}
 
@@ -406,6 +408,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void incrementExecutionWave() {
 		executionWave++;
+		LOGGER.trace("Incrementing lens context execution wave to {}", executionWave);
 	}
 
 	public int getMaxWave() {

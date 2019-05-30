@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
 import org.apache.commons.lang.Validate;
 
@@ -49,8 +50,9 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
 	private final PrismContext prismContext;
 	private final Protector protector;
 
-	public PathExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector) {
-		super(expressionFactory);
+	public PathExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector,
+			CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.prismContext = prismContext;
 		this.protector = protector;
 	}

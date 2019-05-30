@@ -207,4 +207,7 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
 		assertEquals("Wrong number of LDAP accounts ("+OBJECTCLASS_INETORGPERSON+")", expectedNumber, entries.size());
 	}
 
+	protected int getNumberOfLdapAccounts() {
+		return 4;   // idm, jgibbs, hbarbossa, jbeckett
+	}
 }

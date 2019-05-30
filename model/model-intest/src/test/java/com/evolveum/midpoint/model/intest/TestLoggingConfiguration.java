@@ -126,7 +126,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 					systemConfigurationTypeDefinition, logging.asPrismContainerValue().clone());
 		
 		// Modify directly in repository, so the logging code in model will not notice the change
-		repositoryService.modifyObject(SystemConfigurationType.class, AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
+		plainRepositoryService.modifyObject(SystemConfigurationType.class, AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_OID,
 				modifications, result);
 
 		// precondition

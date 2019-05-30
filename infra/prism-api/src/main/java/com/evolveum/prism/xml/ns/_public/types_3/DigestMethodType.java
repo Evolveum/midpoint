@@ -15,6 +15,9 @@
  */
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -36,7 +39,7 @@ import javax.xml.bind.annotation.XmlType;
 	"salt",
     "workFactor"
 })
-public class DigestMethodType  implements Serializable, Cloneable {
+public class DigestMethodType implements Serializable, Cloneable, JaxbVisitable {
 
     @XmlElement(required = true)
     @XmlSchemaType(name = "anyURI")
@@ -143,4 +146,8 @@ public class DigestMethodType  implements Serializable, Cloneable {
         return cloned;
     }
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

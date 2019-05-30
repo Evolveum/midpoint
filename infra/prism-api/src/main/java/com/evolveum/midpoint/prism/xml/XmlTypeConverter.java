@@ -194,6 +194,10 @@ public class XmlTypeConverter {
     	return getDatatypeFactory().newDuration(durationInMilliSeconds);
     }
 
+    public static Duration createDuration(Duration duration) {
+	    return getDatatypeFactory().newDuration(duration.getSign() >= 0, duration.getYears(), duration.getMonths(), duration.getDays(), duration.getHours(), duration.getMinutes(), duration.getSeconds());
+    }
+
     public static Duration createDuration(String lexicalRepresentation) {
     	return lexicalRepresentation != null ? getDatatypeFactory().newDuration(lexicalRepresentation) : null;
     }

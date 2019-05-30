@@ -21,15 +21,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Cache for search expression-based evaluators.
@@ -46,7 +46,8 @@ import java.util.Map;
  *
  * @author Pavol Mederly
  */
-public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends AbstractCache {
+public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
+		AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
 
@@ -62,7 +63,9 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         this.clientContextInformation = clientContextInformation;
     }
 
-    protected Map<QK, QR> queries = new HashMap<>();
+    // ConcurrentHashMap should not be required here because the cache should be accessed only from a single thread.
+    // However, there could be bugs that make this assumption invalid (see e.g. MID-5355). So just for sure let's make this thread-safe.
+    protected Map<QK, QR> queries = new ConcurrentHashMap<>();
 
     public List<V> getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);

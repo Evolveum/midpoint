@@ -843,4 +843,10 @@ public class SimpleTaskAdapter implements Task {
     public ObjectReferenceType getOwnerRef() {
         return null;
     }
+
+    @NotNull
+    @Override
+    public Collection<String> getCachingProfiles() {
+        return emptySet();
+    }
 }

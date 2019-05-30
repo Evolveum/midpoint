@@ -43,6 +43,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -235,78 +237,6 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationDisplayFormatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DeploymentInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExclusionPolicyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericPcpAspectConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GlobalPolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectColumnType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyConstraintType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RichHyperlinkType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskRecurrenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -347,6 +277,7 @@ public final class WebComponentUtil {
 		objectDetailsPageMap.put(TaskType.class, PageTaskEdit.class);
 		objectDetailsPageMap.put(ReportType.class, PageReport.class);
 		objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
+		objectDetailsPageMap.put(CaseType.class, PageCase.class);
 	}
 
 	static{
@@ -3867,7 +3798,7 @@ public final class WebComponentUtil {
 		}
 		result.recomputeStatus();
 	}
-	
+
 	public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
 		String value = getLocalizedPolyStringValue(polyString);
 		if(value == null) {
@@ -3875,7 +3806,7 @@ public final class WebComponentUtil {
 		}
 		return value;
 	}
-	
+
 	public static String getLocalizedPolyStringValue(PolyString polyString){
 		if (polyString == null){
 			return null;

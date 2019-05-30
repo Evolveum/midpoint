@@ -167,6 +167,8 @@ public class JobExecutor implements InterruptableJob {
 
             taskManagerImpl.registerRunningTask(task);
 
+			taskManagerImpl.getCacheConfigurationManager().setThreadLocalProfiles(task.getCachingProfiles());
+
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logThreadRunStart(handler);
             taskManagerImpl.notifyTaskThreadStart(task, isRecovering);
@@ -207,6 +209,7 @@ public class JobExecutor implements InterruptableJob {
 			try {
 				waitForTransientChildrenAndCloseThem(executionResult);              // this is only a safety net; because we've waited for children just after executing a handler
 
+				taskManagerImpl.getCacheConfigurationManager().unsetThreadLocalProfiles();
 				taskManagerImpl.unregisterRunningTask(task);
 				executingThread = null;
 

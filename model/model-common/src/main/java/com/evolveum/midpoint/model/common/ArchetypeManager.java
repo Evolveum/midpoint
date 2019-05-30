@@ -80,28 +80,42 @@ public class ArchetypeManager {
 	}
 	
 	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
-		ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
-		if (archetypeRef == null) {
-			return null;
+		return determineArchetype(assignmentHolder, null, result);
+	}
+	
+	private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+		String archetypeOid;
+		if (explicitArchetypeOid != null) {
+			archetypeOid = explicitArchetypeOid;
+		} else {
+			ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
+			if (archetypeRef == null) {
+				return null;
+			}
+			archetypeOid = archetypeRef.getOid();
 		}
 
 		PrismObject<ArchetypeType> archetype;
 		try {
-			archetype = systemObjectCache.getArchetype(archetypeRef.getOid(), result);
+			archetype = systemObjectCache.getArchetype(archetypeOid, result);
 		} catch (ObjectNotFoundException e) {
-			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeRef.getOid(), assignmentHolder);
+			LOGGER.warn("Archetype {} for object {} cannot be found", archetypeOid, assignmentHolder);
 			return null;
 		}
 		return archetype;
 	}
-
+	
 	public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, OperationResult result) throws SchemaException, ConfigurationException {
+		return determineArchetypePolicy(object, null, result);
+	}
+
+	public <O extends ObjectType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> object, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
 		if (object == null) {
 			return null;
 		}
 		ArchetypePolicyType archetypePolicy = null;
 		if (object.canRepresent(AssignmentHolderType.class)) {
-			PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, result);
+			PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
 			if (archetype != null) {
 				archetypePolicy = archetype.asObjectable().getArchetypePolicy();
 			}

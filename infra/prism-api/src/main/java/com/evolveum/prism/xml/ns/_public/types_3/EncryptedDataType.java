@@ -24,6 +24,9 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -65,7 +68,7 @@ import javax.xml.bind.annotation.XmlType;
     "keyInfo",
     "cipherData"
 })
-public class EncryptedDataType implements Serializable, Cloneable {
+public class EncryptedDataType implements Serializable, Cloneable, JaxbVisitable {
 
     protected EncryptionMethodType encryptionMethod;
     protected KeyInfoType keyInfo;
@@ -164,4 +167,18 @@ public class EncryptedDataType implements Serializable, Cloneable {
         cloned.setKeyInfo(getKeyInfo().clone());
         return cloned;
     }
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		if (encryptionMethod != null) {
+			encryptionMethod.accept(visitor);
+		}
+		if (keyInfo != null) {
+			keyInfo.accept(visitor);
+		}
+		if (cipherData != null) {
+			cipherData.accept(visitor);
+		}
+	}
 }

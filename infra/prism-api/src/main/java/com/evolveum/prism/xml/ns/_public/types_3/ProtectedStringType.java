@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 
@@ -93,4 +94,8 @@ public class ProtectedStringType extends ProtectedDataType<String> implements Cl
         }
     }
 
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

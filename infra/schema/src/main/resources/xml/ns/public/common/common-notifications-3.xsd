@@ -433,6 +433,46 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+	    <xsd:element name="proxyHost" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Proxy host.
+                    </xsd:documentation>
+		    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	    <xsd:element name="proxyPort" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Proxy port.
+                    </xsd:documentation>
+		    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	    <xsd:element name="proxyUsername" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the proxy.
+                    </xsd:documentation>
+		    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	    <xsd:element name="proxyPassword" type="t:ProtectedStringType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to authenticate to the proxy.
+                    </xsd:documentation>
+		    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
