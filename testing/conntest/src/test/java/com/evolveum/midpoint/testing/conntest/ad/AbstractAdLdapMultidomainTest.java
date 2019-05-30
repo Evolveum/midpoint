@@ -970,6 +970,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	
 	/**
 	 * Change to different password. This should go well for both admin and self-service.
+	 * MID-5242
 	 */
 	@Test
     public void test224ModifyUserBarbossaPasswordSelfServicePassword2() throws Exception {
