@@ -30,6 +30,16 @@
     			<cssClass>fe fe-approver</cssClass>
     		</icon>
     	</display>
+    	<adminGuiConfiguration>
+    		<objectDetails>
+    			<forms>
+    				<formSpecification>
+    					<panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewApproval</panelUri>
+    				</formSpecification>
+    				<includeDefaultForms>true</includeDefaultForms>
+    			</forms>
+    		</objectDetails>
+    	</adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
     	<assignmentRelation>

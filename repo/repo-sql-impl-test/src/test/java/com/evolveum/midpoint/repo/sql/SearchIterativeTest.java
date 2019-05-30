@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -352,7 +353,7 @@ public class SearchIterativeTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of objects after operation", COUNT, count);
     }
 
-    private SqlPerformanceMonitor getPerformanceMonitor() {
+    private SqlPerformanceMonitorImpl getPerformanceMonitor() {
         return ((SqlRepositoryServiceImpl) repositoryService).getPerformanceMonitor();
     }
 

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -71,6 +72,7 @@ public class ModelCrudService {
 	@Autowired TaskService taskService;
 	@Autowired PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") RepositoryService repository;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -157,7 +159,7 @@ public class ModelCrudService {
 		ModelImplUtils.resolveReferences(object, repository, false, false, EvaluationTimeType.IMPORT, true, prismContext, result);
 
 		String oid;
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 		try {
 
 			if (LOGGER.isTraceEnabled()) {
@@ -227,7 +229,7 @@ public class ModelCrudService {
 		OperationResult result = parentResult.createSubresult(DELETE_OBJECT);
 		result.addParam(OperationResult.PARAM_OID, oid);
 
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 
 		try {
 			ObjectDelta<T> objectDelta = prismContext.deltaFactory().object().create(clazz, ChangeType.DELETE);
@@ -312,7 +314,7 @@ public class ModelCrudService {
 		OperationResult result = parentResult.createSubresult(MODIFY_OBJECT);
 		result.addArbitraryObjectCollectionAsParam("modifications", modifications);
 
-		RepositoryCache.enter();
+		RepositoryCache.enter(cacheConfigurationManager);
 
 		try {
 

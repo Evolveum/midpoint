@@ -501,6 +501,12 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-impl-builtin</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>4.0-SNAPSHOT</version>

@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -747,4 +748,7 @@ public interface TaskManager {
 
 	// TEMPORARY HACK -- DO NOT USE OUTSIDE task-quartz-impl module
 	Object getWorkStateManager();
+
+	// A little bit of hack as well
+	CacheConfigurationManager getCacheConfigurationManager();
 }

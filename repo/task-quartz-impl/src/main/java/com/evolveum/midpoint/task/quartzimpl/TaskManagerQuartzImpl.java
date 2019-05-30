@@ -42,7 +42,10 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -177,6 +180,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private Protector protector;
+    @Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private InfrastructureConfigurationType infrastructureConfiguration;
 	private String webContextPath;
@@ -977,6 +981,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		}
 
 		try {
+			CryptoUtil.encryptValues(protector, taskImpl.getLiveTaskPrismObject());
 			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
@@ -984,6 +989,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		} catch (SchemaException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
 			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
+		} catch (EncryptionException e) {
+			// TODO handle this better
+			throw new SystemException("Couldn't encrypt plain text values in " + task + ": " + e.getMessage(), e);
 		}
 	}
 
@@ -1245,7 +1253,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                 try {
                     task.setLightweightHandlerExecuting(true);
                     task.setLightweightThread(Thread.currentThread());
+                    task.startCollectingRepoAndCacheStats();
+                    cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
                     lightweightTaskHandler.run(task);
+                    cacheConfigurationManager.unsetThreadLocalProfiles();
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
                 } finally {
@@ -2552,5 +2563,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	@Override
 	public NodeType getLocalNode() {
 		return ObjectTypeUtil.asObjectable(clusterManager.getLocalNodeObject());
+	}
+
+	public CacheConfigurationManager getCacheConfigurationManager() {
+		return cacheConfigurationManager;
 	}
 }

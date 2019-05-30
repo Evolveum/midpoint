@@ -34,7 +34,7 @@ public class RefFilterImpl extends ValueFilterImpl<PrismReferenceValue, PrismRef
 
 	// these are currently supported only by built-in match(..) method; e.g. the repo query interpreter simply ignores them
 	private boolean oidNullAsAny = false;
-	private boolean targetTypeNullAsAny = false;
+	private boolean targetTypeNullAsAny = true;         // "true" to be consistent with the repo implementation
 	private boolean relationNullAsAny = false;          // currently not supported at all
 	
 	public RefFilterImpl(@NotNull ItemPath fullPath, @Nullable PrismReferenceDefinition definition,

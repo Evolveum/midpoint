@@ -40,6 +40,13 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+			<xsd:element name="memberOf" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:indexed>false</a:indexed>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

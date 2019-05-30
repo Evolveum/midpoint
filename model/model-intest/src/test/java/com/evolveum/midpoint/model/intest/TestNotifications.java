@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.intest;
 import com.evolveum.midpoint.notifications.api.events.CustomEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -59,9 +58,9 @@ import java.net.ServerSocket;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -634,6 +633,32 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
 		String expectedAuthorization = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes(StandardCharsets.ISO_8859_1));
 		assertEquals("Wrong Authorization header", singletonList(expectedAuthorization), httpHandler.lastRequest.headers.get("authorization"));
 		assertEquals("Wrong 1st line of body", "Body=\"body\"&To=[%2B123, %2B456, %2B789]&From=from", httpHandler.lastRequest.body.get(0));
+	}
+	
+	@Test
+	public void test220SendSmsViaProxy() {
+		final String TEST_NAME = "test220SendSmsViaProxy";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		Event event = new CustomEvent(lightweightIdentifierGenerator, "get-via-proxy", null,
+				"hello world via proxy", EventOperationType.ADD, EventStatusType.SUCCESS, null);
+		notificationManager.processEvent(event, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess("processEvent result", result);
+
+		assertNotNull("No http request found", httpHandler.lastRequest);
+		assertEquals("Wrong HTTP method", "GET", httpHandler.lastRequest.method);
+		assertTrue("Header proxy-connection not found in request headers", httpHandler.lastRequest.headers.keySet().contains("proxy-connection"));
+		assertEquals("Wrong proxy-connection header", "Keep-Alive", httpHandler.lastRequest.headers.get("proxy-connection").get(0));
 	}
 
 	@Test

@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -194,6 +195,16 @@ public class ModelObjectResolver implements ObjectResolver {
 			provisioning.searchObjectsIterative(type, query, options, handler, task, parentResult);
 		} else {
 			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);		// TODO pull up into resolver interface
+		}
+	}
+
+	@Override
+	public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		if (ObjectTypes.isClassManagedByProvisioning(type)) {
+			return provisioning.searchObjects(type, query, options, task, parentResult);
+		} else {
+			return cacheRepositoryService.searchObjects(type, query, options, parentResult);
 		}
 	}
 

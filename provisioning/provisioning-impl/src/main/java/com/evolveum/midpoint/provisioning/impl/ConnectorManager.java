@@ -347,7 +347,7 @@ public class ConnectorManager implements Cacheable {
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
+			connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema));
 		}
 		return connectorType;
 	}
@@ -362,7 +362,7 @@ public class ConnectorManager implements Cacheable {
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
+			connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema));
 		} else {
 			if (userDataEntry instanceof PrismSchema) {
 				connectorSchema = (PrismSchema)userDataEntry;

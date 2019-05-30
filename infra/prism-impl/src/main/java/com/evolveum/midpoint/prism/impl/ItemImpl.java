@@ -973,6 +973,23 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		}
 	}
 
+	// should be always called on non-overlapping objects! (for the synchronization to work correctly)
+	public void modifyUnfrozen(Consumer<Item<V, D>> mutator) {
+		synchronized (this) {
+			boolean wasImmutable = immutable;
+			if (wasImmutable) {
+				setImmutable(false);
+			}
+			try {
+				mutator.accept(this);
+			} finally {
+				if (wasImmutable) {
+					setImmutable(true);
+				}
+			}
+		}
+	}
+
 	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
 	// Note that the path can contain name segments only (at least for now)
 	@NotNull

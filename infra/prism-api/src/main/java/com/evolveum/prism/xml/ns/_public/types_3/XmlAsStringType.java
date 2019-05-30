@@ -16,6 +16,8 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
@@ -43,7 +45,7 @@ import java.util.List;
 @XmlType(name = "XmlAsStringType", propOrder = {
         "content"
 })
-public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCode {
+public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCode, JaxbVisitable {
 
     private final static long serialVersionUID = 201105211233L;
     @XmlMixed
@@ -150,5 +152,10 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
             }
         }
         return clone;
+    }
+
+    @Override
+    public void accept(JaxbVisitor visitor) {
+        visitor.visit(this);
     }
 }

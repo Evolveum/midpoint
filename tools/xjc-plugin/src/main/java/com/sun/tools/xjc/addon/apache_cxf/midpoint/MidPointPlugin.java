@@ -30,7 +30,7 @@ import org.xml.sax.SAXException;
  */
 public class MidPointPlugin extends Plugin {
 
-    private final Processor[] processors = {new SchemaProcessor(), new CloneProcessor()};
+    private final Processor[] processors = { new SchemaProcessor(), new CloneProcessor() };
 
     @Override
     public String getOptionName() {

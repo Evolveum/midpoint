@@ -214,7 +214,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 		long count = recordCountInternal(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
 		if (cloneTimingEnabled) {
 			Object cloneStartObject = orig.getUserData(CLONE_START_TIMESTAMP_KEY);
-			if (cloneStartObject != null && cloneStartObject instanceof Long) {
+			if (cloneStartObject instanceof Long) {
 				long cloneDurationNanos = System.nanoTime() - (Long)cloneStartObject;
 				prismObjectCloneDurationNanos += cloneDurationNanos;
 				LOGGER.debug("MONITOR prism object clone end: {} (duration {} ns)", orig, cloneDurationNanos);

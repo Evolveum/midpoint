@@ -1,0 +1,51 @@
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<cachingProfile xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+	<global>true</global>
+	<localRepoCache>
+		<objectTypeSettings>
+			<objectType>__ALL__</objectType>
+		</objectTypeSettings>
+	</localRepoCache>
+	<globalRepoCache>
+		<timeToLive>60</timeToLive>
+		<objectTypeSettings>
+			<objectType>SystemConfigurationType</objectType>
+			<objectType>ArchetypeType</objectType>
+			<objectType>ObjectTemplateType</objectType>
+			<timeToVersionCheck>10</timeToVersionCheck>
+		</objectTypeSettings>
+	</globalRepoCache>
+	<localFocusConstraintCheckerCache>
+		<objectTypeSettings>
+			<objectType>__ALL__</objectType>
+		</objectTypeSettings>
+	</localFocusConstraintCheckerCache>
+	<localShadowConstraintCheckerCache>
+		<objectTypeSettings>
+			<objectType>ShadowType</objectType>
+		</objectTypeSettings>
+	</localShadowConstraintCheckerCache>
+	<localAssociationTargetSearchEvaluatorCache>
+		<objectTypeSettings>
+			<objectType>ShadowType</objectType>
+		</objectTypeSettings>
+	</localAssociationTargetSearchEvaluatorCache>
+<!--	<localDefaultSearchEvaluatorCache>-->
+<!--		<maxSize>0</maxSize>-->
+<!--	</localDefaultSearchEvaluatorCache>-->
+</cachingProfile>

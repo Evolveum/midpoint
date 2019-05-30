@@ -18,12 +18,14 @@ package com.evolveum.prism.xml.ns._public.types_3;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.midpoint.util.exception.TunnelException;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +40,7 @@ import java.util.Objects;
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable {
+public class RawType implements Serializable, Cloneable, Equals, Revivable, ShortDumpable, JaxbVisitable {
 	private static final long serialVersionUID = 4430291958902286779L;
 
     /**
@@ -107,11 +109,15 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		}
 	}
 
+	public Object getValue() throws SchemaException {
+		return getValue(false);
+	}
+
 	/**
 	 * Extracts a "real value" from RawType object without expecting any specific type beforehand.
 	 * If no explicit type is present, assumes xsd:string (and fails if the content is structured).
 	 */
-	public Object getValue() throws SchemaException {
+	public Object getValue(boolean store) throws SchemaException {
 		if (parsed != null) {
 			return parsed.getRealValue();
 		}
@@ -121,11 +127,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		if (xnode.getTypeQName() != null) {
 			TypeDefinition typeDefinition = prismContext.getSchemaRegistry().findTypeDefinitionByType(xnode.getTypeQName());
 			if (typeDefinition != null && typeDefinition.getCompileTimeClass() != null) {
-				return getParsedRealValue(typeDefinition.getCompileTimeClass());
+				return storeIfRequested(getParsedRealValue(typeDefinition.getCompileTimeClass()), store);
 			}
 			Class<?> javaClass = XsdTypeMapper.getXsdToJavaMapping(xnode.getTypeQName());
 			if (javaClass != null) {
-				return getParsedRealValue(javaClass);
+				return storeIfRequested(getParsedRealValue(javaClass), store);
 			}
 		}
 		// unknown or null type -- try parsing as string
@@ -134,6 +140,25 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 		} else {
 			return ((PrimitiveXNode) xnode).getStringValue();
 		}
+	}
+
+	private Object storeIfRequested(Object parsedValue, boolean store) {
+		if (parsed == null && store) {
+			if (parsedValue instanceof Containerable) {
+				parsed = ((Containerable) parsedValue).asPrismContainerValue();
+				xnode = null;
+			} else if (parsedValue instanceof Referencable) {
+				parsed = ((Referencable) parsedValue).asReferenceValue();
+				xnode = null;
+			} else if (parsedValue instanceof PolyStringType) {
+				parsed = prismContext.itemFactory().createPropertyValue(PolyString.toPolyString((PolyStringType) parsedValue));   // hack
+				xnode = null;
+			} else if (parsedValue != null) {
+				parsed = prismContext.itemFactory().createPropertyValue(parsedValue);
+				xnode = null;
+			}
+		}
+		return parsedValue;
 	}
 
 	/**
@@ -446,6 +471,26 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 			return ((PrimitiveXNode) xnode).getGuessedFormattedValue();
 		} else {
 			return null;
+		}
+	}
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		if (isParsed()) {
+			Object realValue = parsed.getRealValue();
+			if (realValue instanceof JaxbVisitable) {
+				((JaxbVisitable) realValue).accept(visitor);
+			}
+		} else if (explicitTypeName != null) {
+			try {
+				Object value = getValue(true);
+				if (value instanceof JaxbVisitable) {
+					((JaxbVisitable) value).accept(visitor);
+				}
+			} catch (SchemaException e) {
+				throw new TunnelException(e);
+			}
 		}
 	}
 }

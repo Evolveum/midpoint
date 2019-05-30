@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
@@ -101,20 +102,9 @@ public class FocusProcessor {
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
-	@Autowired private InboundProcessor inboundProcessor;
-	@Autowired private AssignmentProcessor assignmentProcessor;
-	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
 	@Autowired private PrismContext prismContext;
 	@Autowired private CredentialsProcessor credentialsProcessor;
-	@Autowired private ModelObjectResolver modelObjectResolver;
 	@Autowired private ActivationComputer activationComputer;
-	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private MappingEvaluator mappingHelper;
-	@Autowired private OperationalDataManager metadataManager;
-	@Autowired private PolicyRuleProcessor policyRuleProcessor;
-	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
-	@Autowired private ClockworkMedic medic;
-	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
 	
 
 	public <AH extends AssignmentHolderType, F extends FocusType> void processActivationBeforeAssignments(LensContext<AH> context, XMLGregorianCalendar now,

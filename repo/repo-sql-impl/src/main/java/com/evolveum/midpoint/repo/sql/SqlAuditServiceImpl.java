@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -374,8 +375,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxAge";
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE, AuditEventRecord.class);
         int attempt = 1;
 
         if (policy.getMaxAge() == null) {
@@ -431,8 +432,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         final String operation = "deletingMaxRecords";
 
-        SqlPerformanceMonitor pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS);
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS, AuditEventRecord.class);
         int attempt = 1;
 
         if (policy.getMaxRecords() == null) {

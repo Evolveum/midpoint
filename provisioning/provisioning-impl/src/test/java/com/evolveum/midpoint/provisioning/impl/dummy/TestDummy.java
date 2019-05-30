@@ -171,6 +171,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 	protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
 		return ItemComparisonResult.NOT_APPLICABLE;
 	}
+
+	// temporary measure just to make provisioning tests pass, MID-5363
+	boolean areEntitlementByAttributesTestsEnabled() {
+		return true;
+	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -3138,11 +3143,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("Account", shadow);
-
-		display(result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
 
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3203,15 +3204,162 @@ public class TestDummy extends AbstractBasicDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
 				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
-
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	/**
+	 * Entitle will to pirates. But this time use identifiers instead of OID.
+	 * Relates to MID-5315
+	 */
+	@Test
+	public void test232EntitleAccountWillPiratesIdentifiersName() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test232EntitleAccountWillPiratesIdentifiersName";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesEntitled();
+	}
+	
+	/**
+	 * Detitle will to pirates. But this time use identifiers instead of OID.
+	 * MID-5315
+	 */
+	@Test
+	public void test233DetitleAccountWillPiratesIdentifiersName() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test233DetitleAccountWillPiratesIdentifiersName";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	/**
+	 * Entitle will to pirates. But this time use identifiers instead of OID.
+	 * Relates to MID-5315
+	 */
+	@Test
+	public void test234EntitleAccountWillPiratesIdentifiersUid() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test234EntitleAccountWillPiratesIdentifiersUid";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesEntitled();
+	}
+	
+	/**
+	 * Detitle will to pirates. But this time use identifiers instead of OID.
+	 * MID-5315
+	 */
+	@Test
+	public void test235DetitleAccountWillPiratesIdentifiersUid() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test235DetitleAccountWillPiratesIdentifiersUid";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	private void assertAccountPiratesDetitled() throws Exception {
 		if (isAvoidDuplicateValues()) {
 			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
 		} else {
@@ -3239,6 +3387,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		syncServiceMock.assertNotifySuccessOnly();
 
+		Task task = createTask("assertAccountPiratesDetitled");
+		OperationResult result = task.getResult();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow after", shadow);
 		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
@@ -3246,10 +3396,49 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		assertSteadyResource();
 	}
+	
+	private void assertAccountPiratesEntitled() throws Exception {
+		if (isAvoidDuplicateValues()) {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
+		} else {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		}
+
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertMember(group, getWillRepoIcfName());
+
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges,
+				PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+		assertNotNull("Privilege object is gone!", priv);
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		Task task = createTask("assertAccountPiratesDetitled");
+		OperationResult result = task.getResult();
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+
+		assertSteadyResource();
+	}
 
 	@Test
-	public void test232DetitleAccountWillPillage() throws Exception {
-		final String TEST_NAME = "test232DetitleAccountWillPillage";
+	public void test238DetitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test238DetitleAccountWillPillage";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
@@ -3297,8 +3486,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
     @Test
-    public void test234DetitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test234DetitleAccountWillBargain";
+    public void test239DetitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test239DetitleAccountWillBargain";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);

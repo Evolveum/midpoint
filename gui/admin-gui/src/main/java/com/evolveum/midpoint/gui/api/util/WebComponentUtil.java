@@ -3798,7 +3798,7 @@ public final class WebComponentUtil {
 		}
 		result.recomputeStatus();
 	}
-	
+
 	public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
 		String value = getLocalizedPolyStringValue(polyString);
 		if(value == null) {
@@ -3806,7 +3806,7 @@ public final class WebComponentUtil {
 		}
 		return value;
 	}
-	
+
 	public static String getLocalizedPolyStringValue(PolyString polyString){
 		if (polyString == null){
 			return null;

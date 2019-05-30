@@ -36,10 +36,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
@@ -184,15 +183,15 @@ public class AssociationFromLinkExpressionEvaluator
 		}
 		ObjectQuery query = filter.build();
 
-		ResultHandler<ShadowType> handler = (object, parentResult) -> {
-			PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
-			ShadowAssociationType shadowAssociationType = newValue.asContainerable();
-			shadowAssociationType.setName(assocName);
-			toAssociation(object, shadowAssociationType);
-			return true;
-		};
 		try {
-			objectResolver.searchIterative(ShadowType.class, query, createNoFetchCollection(), handler, params.getTask(), params.getResult());
+			SearchResultList<PrismObject<ShadowType>> objects = objectResolver
+					.searchObjects(ShadowType.class, query, createNoFetchCollection(), params.getTask(), params.getResult());
+			for (PrismObject<ShadowType> object : objects) {
+				PrismContainerValue<ShadowAssociationType> newValue = output.createNewValue();
+				ShadowAssociationType shadowAssociationType = newValue.asContainerable();
+				shadowAssociationType.setName(assocName);
+				toAssociation(object, shadowAssociationType);
+			}
 		} catch (CommonException e) {
 			throw new SystemException("Couldn't search for relevant shadows: " + e.getMessage(), e);
 		}
