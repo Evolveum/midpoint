@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentRelationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -300,10 +302,26 @@ public class AssignmentsUtil {
 			}
 			return sb.toString();
 		}
+		
+		//TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
+		if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
+			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+				sb.append("Assignment relation");
+				List<QName> holders = assignmentRelation.getHolderType();
+				if (!holders.isEmpty()) {
+					sb.append(": ").append(holders.iterator().next());
+				}
+				
+			}
+			String name = sb.toString();
+			if (name.length() > 1) {
+				return name;
+			}
+		}
 
 		if (assignment.getTarget() != null) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
-		} else if (assignment.getTargetRef() != null) {
+		} else if (isNotEmptyRef(assignment.getTargetRef())) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
@@ -323,6 +341,11 @@ public class AssignmentsUtil {
 		return sb.toString();
 	}
 
+    
+    private static boolean isNotEmptyRef(ObjectReferenceType ref) {
+    	return ref != null && ref.getOid() != null && ref.getType() != null;
+    }
+    
     private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
 		if (tenantRef != null && !tenantRef.asReferenceValue().isEmpty()) {

@@ -134,12 +134,14 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 		tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMEBER_PANEL);
 		tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMEBER_PANEL);
 		tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMEBER_PANEL);
+		tablesId.put(ArchetypeType.COMPLEX_TYPE, TableId.ARCHETYPE_MEMEBER_PANEL);
 	}
 	
 	static {
 		authorizations.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
 		authorizations.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
 		authorizations.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
+		authorizations.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
 	}
 	
 	public AbstractRoleMemberPanel(String id, IModel<R> model) {
@@ -378,25 +380,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 				AbstractRoleMemberPanel.this.createStringResource("abstractRoleMemberPanel.menu.assignMember", "", "").getString());
 	}
 
-	private List<InlineMenuItem> createRowActions() {
+	protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
-        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
-            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-							MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getSupportedRelations(), null);
-                        }
-                    };
-                }
-			});
-        }
+        createAssignMemberRowAction(menu);
 
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_UNASSIGN)) {
             menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.unassign")) {
@@ -422,36 +408,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             });
         }
 
-        if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
-            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public InlineMenuItemAction initAction() {
-                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            recomputeMembersPerformed(target);
-                        }
-                    };
-                }
-
-				@Override
-				public IModel<String> getConfirmationMessageModel() {
-					return getMemberTable().getSelectedObjectsCount() > 0 ?
-							createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
-							: createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
-				}
-
-				@Override
-				public String getButtonIconCssClass() {
-					return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
-				}
-
-			});
-        }
+        createRecomputeMemberRowAction(menu);
+        
         if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_CREATE)) {
             menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.create")) {
                 private static final long serialVersionUID = 1L;
@@ -489,6 +447,61 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         }
         return menu;
 	}
+	
+	protected void createAssignMemberRowAction(List<InlineMenuItem> menu) {
+		 if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_ASSIGN)) {
+	            menu.add(new InlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.assign")) {
+	                private static final long serialVersionUID = 1L;
+
+	                @Override
+	                public InlineMenuItemAction initAction() {
+	                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+	                        private static final long serialVersionUID = 1L;
+
+	                        @Override
+	                        public void onClick(AjaxRequestTarget target) {
+								MemberOperationsHelper.assignMembers(getPageBase(), AbstractRoleMemberPanel.this.getModelObject(), target, getSupportedRelations(), null);
+	                        }
+	                    };
+	                }
+				});
+	        }
+	}
+	
+	protected void createRecomputeMemberRowAction(List<InlineMenuItem> menu) {
+		 if (isAuthorized(GuiAuthorizationConstants.MEMBER_OPERATION_RECOMPUTE)) {
+	            menu.add(new ButtonInlineMenuItem(createStringResource("abstractRoleMemberPanel.menu.recompute")) {
+	                private static final long serialVersionUID = 1L;
+
+	                @Override
+	                public InlineMenuItemAction initAction() {
+	                    return new HeaderMenuAction(AbstractRoleMemberPanel.this) {
+	                        private static final long serialVersionUID = 1L;
+
+	                        @Override
+	                        public void onClick(AjaxRequestTarget target) {
+	                            recomputeMembersPerformed(target);
+	                        }
+	                    };
+	                }
+
+					@Override
+					public IModel<String> getConfirmationMessageModel() {
+						return getMemberTable().getSelectedObjectsCount() > 0 ?
+								createStringResource("abstractRoleMemberPanel.recomputeSelectedMembersConfirmationLabel")
+								: createStringResource("abstractRoleMemberPanel.recomputeAllMembersConfirmationLabel");
+					}
+
+					@Override
+					public String getButtonIconCssClass() {
+						return GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM;
+					}
+
+				});
+	        }
+	}
+	
+	
 	
 	protected abstract List<QName> getSupportedRelations();
 

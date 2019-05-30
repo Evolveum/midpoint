@@ -865,7 +865,7 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 
 			@Override
 			public C getObject() {
-				if (assignment.getTargetRef() != null) {
+				if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid() != null) {
 					Task task = getPageBase().createSimpleTask("Load target");
 					com.evolveum.midpoint.schema.result.OperationResult result = task.getResult();
 					PrismObject<ObjectType> targetObject = WebModelServiceUtils.loadObject(assignment.getTargetRef(), getPageBase(), task, result);
@@ -879,8 +879,7 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 					return (C) assignment.getPersonaConstruction();
 				} else if (assignment.getPolicyRule() !=null) {
 					return (C) assignment.getPolicyRule();
-				}
-
+				} 
 				return null;
 			}
 

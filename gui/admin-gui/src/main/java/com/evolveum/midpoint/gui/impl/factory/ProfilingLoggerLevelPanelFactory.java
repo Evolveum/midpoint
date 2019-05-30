@@ -30,6 +30,8 @@ import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingLevel;
+import com.evolveum.midpoint.gui.impl.prism.ProfilingClassLoggerContainerValueWrapperImpl;
+import com.evolveum.midpoint.gui.impl.prism.ProfilingClassLoggerContainerWrapperImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
@@ -42,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
  *
  */
 @Component
-public class LoggingLevelPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LoggingLevelType>>, Serializable {
+public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<PrismPropertyPanelContext<LoggingLevelType>>, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -60,16 +62,7 @@ public class LoggingLevelPanelFactory implements GuiComponentFactory<PrismProper
 	
 	@Override
 	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		if(!wrapper.getPath().removeIds().equivalent(
-				ItemPath.create(
-						SystemConfigurationType.F_LOGGING,
-						LoggingConfigurationType.F_CLASS_LOGGER,
-						ClassLoggerConfigurationType.F_LEVEL))) {
-			return false;
-		}
-		ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType)wrapper.getParent().getRealValue();
-		return logger != null && logger.getPackage() != null
-				&& logger.getPackage().equals(ProfilingClassLoggerWrapperFactoryImpl.LOGGER_PROFILING);
+		return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getName().equals(ClassLoggerConfigurationType.F_LEVEL);
 	}
 
 	@Override

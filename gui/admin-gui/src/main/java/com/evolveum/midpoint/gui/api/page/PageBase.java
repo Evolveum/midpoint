@@ -108,6 +108,8 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
@@ -1679,6 +1681,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createServicesItems());
         }
+        
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            items.add(createArchetypesItems());
+        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
@@ -2245,6 +2252,33 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.services.new", "PageAdmin.menu.top.services.edit",
                 PageService.class, true);
+
+        return item;
+    }
+    
+    private MainMenuItem createArchetypesItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
+                createStringResource("PageAdmin.menu.top.archetypes"), null);
+
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.archetypes.list"),
+                GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
+        addCollectionsMenuItems(item.getItems(), ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
+
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.archetypes.new", "PageAdmin.menu.top.archetypes.edit",
+                PageArchetype.class, true);
 
         return item;
     }

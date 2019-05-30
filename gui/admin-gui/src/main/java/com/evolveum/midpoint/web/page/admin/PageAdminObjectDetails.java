@@ -528,7 +528,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			case NOT_CHANGED:
 				try {
 					WebComponentUtil.encryptCredentials(delta, true, getMidpointApplication());
-					//prepareObjectDeltaForModify(delta);
+					prepareObjectDeltaForModify(delta); //preparing of deltas for projections (ADD, DELETE, UNLINK) 
 
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Delta before modify user:\n{}", new Object[] { delta.debugDump(3) });

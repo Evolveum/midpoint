@@ -3798,8 +3798,16 @@ public final class WebComponentUtil {
 		}
 		result.recomputeStatus();
 	}
-
-	public static String getLocalizedPolyStringValue(PolyString polyString, PageBase pageBase){
+	
+	public static String getLocalizedOrOriginPolyStringValue(PolyString polyString){
+		String value = getLocalizedPolyStringValue(polyString);
+		if(value == null) {
+			return getOrigStringFromPoly(polyString);
+		}
+		return value;
+	}
+	
+	public static String getLocalizedPolyStringValue(PolyString polyString){
 		if (polyString == null){
 			return null;
 		}
@@ -3824,13 +3832,17 @@ public final class WebComponentUtil {
 				String translationValue = "";
 				if (argument.getTranslation() != null){
 					String argumentKey = argument.getTranslation().getKey();
-					String valueByKey = StringUtils.isNotEmpty(argumentKey) ? pageBase.createStringResource(argumentKey).getString() : null;
+					String valueByKey = StringUtils.isNotEmpty(argumentKey) ? new StringResourceModel(argumentKey).getString() : null;
 					translationValue = StringUtils.isNotEmpty(valueByKey) ? valueByKey : argument.getTranslation().getFallback();
 				}
 				argumentValue = StringUtils.isNotEmpty(translationValue) ? translationValue : argument.getValue();
 				argumentValues.add(argumentValue);
 			});
-			return pageBase.createStringResource(polyString.getTranslation().getKey(), argumentValues.toArray()).getString();
+			return new StringResourceModel(polyString.getTranslation().getKey())
+					.setDefaultValue(polyString.getTranslation().getKey())
+					.setModel(new Model<String>())
+					.setParameters(argumentValues.toArray())
+					.getString();
 		}
 		return null;
 	}
