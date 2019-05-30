@@ -174,6 +174,10 @@ public class ColumnUtils {
 			return WebComponentUtil.createResourceIcon(object.asPrismContainer());
 		} else if (type.equals(AccessCertificationDefinitionType.class)) {
 			return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON + " " + GuiStyleConstants.CLASS_ICON_STYLE_NORMAL;
+		} else if (type.equals(CaseType.class)) {
+			return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
+		} else if (type.equals(CaseWorkItemType.class)) {
+			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
 		}
 
 		return "";

@@ -17,6 +17,10 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="btn btn-primary pull-right" wicket:id="workItemActivityButton"/>
+    <div class="pull-right" wicket:id="actionButtons">
+        <div class="btn btn-danger" wicket:id="workItemRejectButton"/>
+        <div class="btn btn-success" wicket:id="workItemApproveButton"/>
+        <div class="btn btn-primary" wicket:id="workItemDelegateButton"/>
+    </div>
 </wicket:extend>
 </html>

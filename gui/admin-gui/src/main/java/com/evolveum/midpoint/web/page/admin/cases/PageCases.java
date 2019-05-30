@@ -177,7 +177,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
                                      String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType object = rowModel.getObject().getValue();
                 MetadataType metadata = object != null ? object.getMetadata() : null;
-                XMLGregorianCalendar createdCal = metadata.getCreateTimestamp();
+                XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
                 final Date created;
                 if (createdCal != null) {
                     created = createdCal.toGregorianCalendar().getTime();
@@ -201,7 +201,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
                                      String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType object = rowModel.getObject().getValue();
-                XMLGregorianCalendar closedCal = object.getCloseTimestamp();
+                XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
                 final Date closed;
                 if (closedCal != null) {
                     closed = closedCal.toGregorianCalendar().getTime();

@@ -143,12 +143,12 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
                     .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
         }
         IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
-        if (includeClosedCases == null || !includeClosedCases.getValue()) {
-            query.addFilter(
-                getPrismContext().queryFor(CaseWorkItemType.class)
-                            .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq("open").build().getFilter()
-            );
-        }
+//        if (includeClosedCases == null || !includeClosedCases.getValue()) {
+//            query.addFilter(
+//                getPrismContext().queryFor(CaseWorkItemType.class)
+//                            .item(PrismConstants.T_PARENT, CaseType.F_STATE).eq("open").build().getFilter()
+//            );
+//        }
 
         // Resource Filter
         SingleValueChoosePanel<ObjectReferenceType, ObjectType> resourceChoice = (SingleValueChoosePanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_RESOURCE);
