@@ -28,6 +28,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -59,6 +60,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	
 	public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
 		super(id, model, tableId, pageStorage);
+	}
+	
+	public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
+		super(id, def, tableId, pageStorage);
 	}
 	
 	@Override

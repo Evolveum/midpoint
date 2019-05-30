@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -41,6 +42,15 @@ import org.apache.wicket.model.Model;
                 label = "PageSelfProfile.auth.profile.label",
                 description = "PageSelfProfile.auth.profile.description")})
 public class PageSelfProfile extends PageUser {
+
+	
+	public PageSelfProfile() {
+		super();
+	}
+
+	public PageSelfProfile(PageParameters parameters) {
+		super(parameters);
+	}
 
 	public PageSelfProfile(PrismObject<UserType> user) {
 		super(user);

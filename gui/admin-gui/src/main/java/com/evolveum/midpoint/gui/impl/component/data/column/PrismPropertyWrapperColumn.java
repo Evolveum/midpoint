@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.tools.ant.property.GetProperty;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -24,12 +23,12 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
@@ -46,7 +45,7 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
 
 	private PageBase pageBase;
 	
-	public PrismPropertyWrapperColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
+	public PrismPropertyWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
 		super(mainModel, itemName, columnType);
 		this.pageBase = pageBase;
 	}
@@ -58,7 +57,7 @@ public class PrismPropertyWrapperColumn<C extends Containerable, T> extends Abst
 	}
 
 	@Override
-	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
+	protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
 		return new PrismPropertyHeaderPanel<>(componentId, new PrismPropertyWrapperHeaderModel(mainModel, itemName, pageBase));
 	}
 

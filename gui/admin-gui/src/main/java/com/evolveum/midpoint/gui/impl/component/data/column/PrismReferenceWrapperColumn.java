@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.tools.ant.property.GetProperty;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -24,20 +23,15 @@ import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyHeaderPanel;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperHeaderModel;
-import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.model.PrismReferenceWrapperHeaderModel;
 import com.evolveum.midpoint.web.model.PrismReferenceWrapperModel;
 
@@ -53,7 +47,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
 
 	private PageBase pageBase;
 	
-	public PrismReferenceWrapperColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
+	public PrismReferenceWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType, PageBase pageBase) {
 		super(mainModel, itemName, columnType);
 		this.pageBase = pageBase;
 	}
@@ -65,7 +59,7 @@ public class PrismReferenceWrapperColumn<C extends Containerable, R extends Refe
 	}
 
 	@Override
-	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
+	protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
 		return new PrismReferenceHeaderPanel<>(componentId, new PrismReferenceWrapperHeaderModel(mainModel, itemName, pageBase));
 	}
 

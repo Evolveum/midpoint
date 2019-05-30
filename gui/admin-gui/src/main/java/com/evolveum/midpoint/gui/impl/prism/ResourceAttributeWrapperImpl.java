@@ -41,11 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
  * @author skublik
  *
  */
-public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionType> extends PrismPropertyWrapperImpl<ResourceAttributeDefinitionType> implements ResourceAttributeDefinitionWrapper<ResourceAttributeDefinitionType>{
+public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T> implements ResourceAttributeWrapper<T>{
 
 	private static final long serialVersionUID = 1L;
 
-	public ResourceAttributeDefinitionWrapperImpl(PrismContainerValueWrapper<?> parent, PrismProperty<ResourceAttributeDefinitionType> item, ItemStatus status) {
+	public ResourceAttributeWrapperImpl(PrismContainerValueWrapper<?> parent, ResourceAttribute<T> item, ItemStatus status) {
 		super(parent, item, status);
 	}
 
@@ -64,18 +64,39 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
+	public boolean canAdd() {
+		return canAdd(LayerType.PRESENTATION);
+	}
+	
+	@Override
 	public boolean canAdd(LayerType layer) {
 		return getRefinedAttributeDefinition().canAdd(layer);
 	}
 
 	@Override
+	public boolean canRead() {
+		return canRead(LayerType.PRESENTATION);
+	}
+	
+	
+	@Override
 	public boolean canRead(LayerType layer) {
 		return getRefinedAttributeDefinition().canRead(layer);
+	}
+	
+	@Override
+	public boolean canModify() {
+		return canModify(LayerType.PRESENTATION);
 	}
 
 	@Override
 	public boolean canModify(LayerType layer) {
 		return getRefinedAttributeDefinition().canModify(layer);
+	}
+	
+	@Override
+	public boolean isIgnored() {
+		return isIgnored(LayerType.PRESENTATION);
 	}
 
 	@Override
@@ -83,6 +104,11 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 		return getRefinedAttributeDefinition().isIgnored(layer);
 	}
 
+	@Override
+	public ItemProcessing getProcessing() {
+		return getProcessing(LayerType.PRESENTATION);
+	}
+	
 	@Override
 	public ItemProcessing getProcessing(LayerType layer) {
 		return getRefinedAttributeDefinition().getProcessing(layer);
@@ -94,7 +120,7 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
-	public ResourceAttributeDefinition<ResourceAttributeDefinitionType> getAttributeDefinition() {
+	public ResourceAttributeDefinition<T> getAttributeDefinition() {
 		return getRefinedAttributeDefinition().getAttributeDefinition();
 	}
 
@@ -114,30 +140,60 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
+	public int getMaxOccurs() {
+		return getMaxOccurs(LayerType.PRESENTATION);
+	}
+	
+	@Override
 	public int getMaxOccurs(LayerType layer) {
 		return getRefinedAttributeDefinition().getMaxOccurs(layer);
+	}
+	
+	@Override
+	public int getMinOccurs() {
+		return getMinOccurs(LayerType.PRESENTATION);
 	}
 
 	@Override
 	public int getMinOccurs(LayerType layer) {
 		return getRefinedAttributeDefinition().getMinOccurs(layer);
 	}
+	
+	@Override
+	public boolean isOptional() {
+		return isOptional(LayerType.PRESENTATION);
+	}
 
 	@Override
 	public boolean isOptional(LayerType layer) {
 		return getRefinedAttributeDefinition().isOptional(layer);
+	}
+	
+	@Override
+	public boolean isMandatory() {
+		return isMandatory(LayerType.PRESENTATION);
 	}
 
 	@Override
 	public boolean isMandatory(LayerType layer) {
 		return getRefinedAttributeDefinition().isMandatory(layer);
 	}
+	
+	@Override
+	public boolean isMultiValue() {
+		return isMultiValue(LayerType.PRESENTATION);
+	}
 
 	@Override
 	public boolean isMultiValue(LayerType layer) {
 		return getRefinedAttributeDefinition().isMultiValue(layer);
 	}
-
+	
+	@Override
+	public boolean isSingleValue() {
+		return isSingleValue(LayerType.PRESENTATION);
+	}
+	
 	@Override
 	public boolean isSingleValue(LayerType layer) {
 		return getRefinedAttributeDefinition().isSingleValue(layer);
@@ -174,17 +230,22 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
-	public RefinedAttributeDefinition<ResourceAttributeDefinitionType> clone() {
+	public RefinedAttributeDefinition<T> clone() {
 		return getRefinedAttributeDefinition().clone();
 	}
 
 	@Override
-	public RefinedAttributeDefinition<ResourceAttributeDefinitionType> deepClone(
+	public RefinedAttributeDefinition<T> deepClone(
 			Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath,
 			Consumer<ItemDefinition> postCloneAction) {
 		return getRefinedAttributeDefinition().deepClone(ctdMap, onThisPath, postCloneAction);
 	}
 
+	@Override
+	public String debugDump(int indent) {
+		return debugDump(indent, LayerType.PRESENTATION);
+	}
+	
 	@Override
 	public String debugDump(int indent, LayerType layer) {
 		return getRefinedAttributeDefinition().debugDump(indent, layer);
@@ -206,12 +267,12 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
-	public ResourceAttribute<ResourceAttributeDefinitionType> instantiate() {
+	public ResourceAttribute<T> instantiate() {
 		return getRefinedAttributeDefinition().instantiate();
 	}
 
 	@Override
-	public ResourceAttribute<ResourceAttributeDefinitionType> instantiate(QName name) {
+	public ResourceAttribute<T> instantiate(QName name) {
 		return getRefinedAttributeDefinition().instantiate(name);
 	}
 
@@ -251,7 +312,7 @@ public class ResourceAttributeDefinitionWrapperImpl<ResourceAttributeDefinitionT
 	}
 
 	@Override
-	public MutableResourceAttributeDefinition<ResourceAttributeDefinitionType> toMutable() {
+	public MutableResourceAttributeDefinition<T> toMutable() {
 		return getRefinedAttributeDefinition().toMutable();
 	}
 }

@@ -43,7 +43,7 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 	 * @param id
 	 * @param model
 	 */
-	public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeDefinitionWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
+	public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
 		super(id, (IModel)model, visibilitytHandler);
 	}
 	
@@ -52,7 +52,7 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 		return new ResourceAttributeDefinitionHeaderPanel<>(ID_HEADER, getResourceAttributeDefinitionModel());
 	}
 	
-	private IModel<ResourceAttributeDefinitionWrapper<T>> getResourceAttributeDefinitionModel(){
+	private IModel<ResourceAttributeWrapper<T>> getResourceAttributeDefinitionModel(){
 		return (IModel)getModel();
 	}
 

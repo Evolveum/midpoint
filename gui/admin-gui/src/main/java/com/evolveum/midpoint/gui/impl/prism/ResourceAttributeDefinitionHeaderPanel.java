@@ -34,7 +34,7 @@ public class ResourceAttributeDefinitionHeaderPanel<T> extends PrismPropertyHead
 	 * @param id
 	 * @param model
 	 */
-	public ResourceAttributeDefinitionHeaderPanel(String id, IModel<ResourceAttributeDefinitionWrapper<T>> model) {
+	public ResourceAttributeDefinitionHeaderPanel(String id, IModel<ResourceAttributeWrapper<T>> model) {
 		super(id, (IModel) model);
 	}
 
@@ -50,7 +50,7 @@ public class ResourceAttributeDefinitionHeaderPanel<T> extends PrismPropertyHead
         getLabelContainer().add(hasOutbound);
 	}
 	
-	private IModel<ResourceAttributeDefinitionWrapper<T>> getResourceAttributeDefinitionModel(){
+	private IModel<ResourceAttributeWrapper<T>> getResourceAttributeDefinitionModel(){
 		return (IModel)getModel();
 	}
 	

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -89,8 +90,8 @@ public abstract class ItemWrapperModel<C extends Containerable, IW extends ItemW
 		}
 		
 		try {
-			PrismContainerWrapper container = (PrismContainerWrapper) this.parent.getObject();
-			ItemDefinition<?> def = container.getItem().getDefinition().findItemDefinition(path, type);
+			PrismContainerDefinition container = (PrismContainerDefinition) this.parent.getObject();
+			ItemDefinition<?> def = container.findItemDefinition(path, type);
 			if (!type.isAssignableFrom(def.getClass())) {
 				return null;
 			}

@@ -141,28 +141,48 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		initLayout();
 	}
 
+	private PrismObjectDefinition<ShadowType> getShadowDefinition() {
+		return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+	}
+	
 	private void initLayout() {
 
 		TableId tableId = UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE;
     	PageStorage pageStorage = getPageBase().getSessionStorage().getFocusProjectionTableStorage();
     	
-    	IModel<PrismContainerWrapper<ShadowType>> emptyShadowWrapperModel = createEmptyShadowWrapperModel();
+    	
     	MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-				new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, emptyShadowWrapperModel,
+				new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition(),
 						tableId, pageStorage) {
 			
+    		
 			private static final long serialVersionUID = 1L;
 
-			@Override
-			protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
-					List<PrismContainerValueWrapper<ShadowType>> itemss) {
-				List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<PrismContainerValueWrapper<ShadowType>>();
-				for (ShadowWrapper projection : projectionModel.getObject()) {
-					items.add(projection.getValue());
-				}
-				return items;
-			}
-			
+					@Override
+					protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
+						return new LoadableModel<List<PrismContainerValueWrapper<ShadowType>>>(false) {
+							
+							private static final long serialVersionUID = 1L;
+							
+							@Override
+							protected List<PrismContainerValueWrapper<ShadowType>> load() {
+								List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<PrismContainerValueWrapper<ShadowType>>();
+								for (ShadowWrapper projection : projectionModel.getObject()) {
+									items.add(projection.getValue());
+								}
+								return items;
+							}
+						};
+						
+					}
+					
+					@Override
+					protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
+							List<PrismContainerValueWrapper<ShadowType>> items) {
+						
+						return items;
+					}
+
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
 				List<QName> supportedTypes = new ArrayList<>(1);
@@ -205,7 +225,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			
 			@Override
 			protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
-				return initBasicColumns(emptyShadowWrapperModel);
+				return initBasicColumns();
 			}
 
 			@Override
@@ -321,7 +341,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         return WebComponentUtil.createDisplayType(iconCssClass);
     }
 	
-	private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns(IModel<PrismContainerWrapper<ShadowType>> emptyShadowWrapperModel) {
+	private List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> initBasicColumns() {
+		
+		IModel<PrismContainerDefinition<ShadowType>> shadowDef = Model.of(getShadowDefinition());
+		
 		List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> columns = new ArrayList<>();
 		columns.add(new CheckBoxHeaderColumn<>());
 		columns.add(new IconColumn<PrismContainerValueWrapper<ShadowType>>(Model.of("")) {
@@ -335,7 +358,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 		});
 		
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(emptyShadowWrapperModel, ShadowType.F_NAME, ColumnType.LINK, getPageBase()){
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_NAME, ColumnType.LINK, getPageBase()){
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -344,10 +367,10 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				target.add(getFeedbackPanel());
 			}
 		});
-		columns.add(new PrismReferenceWrapperColumn(emptyShadowWrapperModel, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(emptyShadowWrapperModel, ShadowType.F_OBJECT_CLASS, ColumnType.STRING, getPageBase()));
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(emptyShadowWrapperModel, ShadowType.F_KIND, ColumnType.STRING, getPageBase()));
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(emptyShadowWrapperModel, ShadowType.F_INTENT, ColumnType.STRING, getPageBase()));
+		columns.add(new PrismReferenceWrapperColumn(shadowDef, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_OBJECT_CLASS, ColumnType.STRING, getPageBase()));
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_KIND, ColumnType.STRING, getPageBase()));
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_INTENT, ColumnType.STRING, getPageBase()));
 		
 		columns.add(new InlineMenuButtonColumn<>(createShadowMenu(), getPageBase()));
 		

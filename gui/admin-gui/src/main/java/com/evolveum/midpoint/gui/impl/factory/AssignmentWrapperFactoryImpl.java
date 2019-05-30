@@ -64,12 +64,4 @@ public class AssignmentWrapperFactoryImpl extends PrismContainerWrapperFactoryIm
 		return false;
 	}
 	
-	@Override
-	public PrismContainerValueWrapper<AssignmentType> createValueWrapper(PrismContainerWrapper<AssignmentType> parent,
-			PrismContainerValue<AssignmentType> value, ValueStatus status, WrapperContext context) throws SchemaException {
-		context.setCreateIfEmpty(false);
-		return super.createValueWrapper(parent, value, status, context);
-	}
-
-
 }

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
  * @author skublik
  *
  */
-public interface ResourceAttributeDefinitionWrapper<T> extends PrismPropertyWrapper<T>, RefinedAttributeDefinition<T> {
+public interface ResourceAttributeWrapper<T> extends PrismPropertyWrapper<T>, RefinedAttributeDefinition<T> {
 	
 	
 }

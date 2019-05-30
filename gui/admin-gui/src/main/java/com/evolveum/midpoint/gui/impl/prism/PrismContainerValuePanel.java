@@ -153,7 +153,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				IW itemWrapper = item.getModelObject();
 				try {
 					QName typeName = itemWrapper.getTypeName();
-					if(item.getModelObject() instanceof ResourceAttributeDefinitionWrapper) {
+					if(item.getModelObject() instanceof ResourceAttributeWrapper) {
 						typeName = new QName("ResourceAttributeDefinition");
 					}
 					Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), visibilityHandler);

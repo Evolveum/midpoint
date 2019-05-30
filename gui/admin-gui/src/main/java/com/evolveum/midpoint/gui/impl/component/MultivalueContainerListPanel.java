@@ -113,6 +113,28 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 		};
 	}
 	
+	
+	public MultivalueContainerListPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
+		super(id);
+		this.tableId = tableId;
+		this.pageStorage = pageStorage;
+
+		searchModel = new LoadableModel<Search>(false) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected Search load() {
+                List<SearchItemDefinition> availableDefs = initSearchableItems(def);
+
+                Search search = new Search(def.getCompileTimeClass(), availableDefs);
+                return search;
+			}
+
+
+		};
+	}
+	
 	protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
 	
 	@Override
@@ -164,9 +186,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	
 	protected abstract boolean enableActionNewObject();
 
+	protected IModel<List<PrismContainerValueWrapper<C>>> loadValuesModel() {
+		if (getModel() == null) {
+			LOGGER.info("Parent model is null. Cannot load model for values for table: {}", tableId.name());
+		}
+		
+		return new PropertyModel<>(getModel(), "values");
+	}
+	
 	private BoxedTablePanel<PrismContainerValueWrapper<C>> initItemTable() {
 
-		MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, new PropertyModel<>(getModel(), "values")) {
+		MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override

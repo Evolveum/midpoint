@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerColumnHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerHeaderPanel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,7 +46,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 	
 	private PageBase pageBase;
 	
-	public PrismContainerWrapperColumn(IModel<PrismContainerWrapper<C>> rowModel, ItemPath itemName, PageBase pageBase) {
+	public PrismContainerWrapperColumn(IModel<? extends PrismContainerDefinition<C>> rowModel, ItemPath itemName, PageBase pageBase) {
 		super(rowModel, itemName, ColumnType.STRING);
 		this.pageBase = pageBase;
 	}
@@ -56,7 +57,7 @@ public class PrismContainerWrapperColumn<C extends Containerable> extends Abstra
 	}
 
 	@Override
-	protected Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel) {
+	protected Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel) {
 		return new PrismContainerColumnHeaderPanel<>(componentId, new PrismContainerWrapperHeaderModel(mainModel, itemName, pageBase));
 	}
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
@@ -56,9 +57,9 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 	private static final String ID_VALUE = "value";
 	
 	
-	private IModel<PrismContainerWrapper<C>> mainModel = null;
+	private IModel<? extends PrismContainerDefinition<C>> mainModel = null;
 	
-	AbstractItemWrapperColumn(IModel<PrismContainerWrapper<C>> mainModel, ItemPath itemName, ColumnType columnType) {
+	AbstractItemWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType) {
 		super(null);
 		Validate.notNull(mainModel, "no model");
 		Validate.notNull(mainModel.getObject(), "no ContainerWrappe from model");
@@ -82,7 +83,7 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 		
 	}
 	
-	protected abstract Component createHeader(String componentId, IModel<PrismContainerWrapper<C>> mainModel);
+	protected abstract Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel);
 	protected abstract <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel);
 	
 	
@@ -90,8 +91,5 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
 		return columnType;
 	}
 	
-	protected IModel<PrismContainerWrapper<C>> getMainModel() {
-		return mainModel;
-	}
 	
 }
