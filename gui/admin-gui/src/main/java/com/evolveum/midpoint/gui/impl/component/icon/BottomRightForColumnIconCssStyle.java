@@ -19,7 +19,7 @@ package com.evolveum.midpoint.gui.impl.component.icon;
 /**
  * @author skublik
  */
-public class CenterIconCssStyle implements LayeredIconCssStyle {
+public class BottomRightForColumnIconCssStyle implements LayeredIconCssStyle {
 
 	@Override
 	public String getBasicCssClass() {
@@ -33,12 +33,12 @@ public class CenterIconCssStyle implements LayeredIconCssStyle {
 
 	@Override
 	public String getLayerCssClass() {
-		return "center-layer-for-column";
+		return "bottom-right-layer-for-column";
 	}
 
 	@Override
 	public String getStrokeLayerCssClass() {
-		return "center-icon-stroke-layer";
+		return "icon-stroke-layer";
 	}
 
 }

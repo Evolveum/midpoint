@@ -19,16 +19,16 @@ package com.evolveum.midpoint.gui.impl.component.icon;
 /**
  * @author skublik
  */
-public class CenterIconCssStyle implements LayeredIconCssStyle {
+public class CenterForColumnIconCssStyle implements LayeredIconCssStyle {
 
 	@Override
 	public String getBasicCssClass() {
-		return "icon-basic-transparent-for-column";
+		return "icon-basic-transparent";
 	}
 
 	@Override
 	public String getBasicLayerCssClass() {
-		return "icon-basic-layer-for-column";
+		return "icon-basic-layer";
 	}
 
 	@Override
