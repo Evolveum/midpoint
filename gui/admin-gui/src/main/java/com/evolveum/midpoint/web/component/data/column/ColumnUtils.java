@@ -18,15 +18,20 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemListWithDetailsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -431,4 +436,96 @@ public class ColumnUtils {
 
 	}
 
+	public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase){
+		List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("WorkItemsPanel.stage")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				cellItem.add(new Label(componentId, WfContextUtil.getStageInfo(unwrapRowModel(rowModel))));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				return Model.of(WfContextUtil.getStageInfo(unwrapRowModel(rowModel)));
+			}
+
+
+		});
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("WorkItemsPanel.actors")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+
+				String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
+				cellItem.add(new Label(componentId,
+						assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true)));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
+				return Model.of(assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true));
+			}
+		});
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("WorkItemsPanel.created")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				cellItem.add(new Label(componentId,
+						WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase)));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase));
+			}
+		});
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("WorkItemsPanel.deadline")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				cellItem.add(new Label(componentId,
+						WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(), pageBase)));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(),
+						pageBase));
+			}
+		});
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("WorkItemsPanel.escalationLevel")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				cellItem.add(new Label(componentId, WfContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				return Model.of(WfContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
+			}
+		});
+		return columns;
+	}
+
+	public static <C extends Containerable> C unwrapRowModel(IModel<PrismContainerValueWrapper<C>> rowModel){
+		return rowModel.getObject().getRealValue();
+	}
 }

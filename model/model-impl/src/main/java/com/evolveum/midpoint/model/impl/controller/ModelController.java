@@ -997,7 +997,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+		final OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
