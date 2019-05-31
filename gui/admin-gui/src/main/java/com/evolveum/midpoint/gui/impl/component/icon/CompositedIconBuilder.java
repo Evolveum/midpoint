@@ -36,17 +36,15 @@ public class CompositedIconBuilder {
 	private String basicIcon = "";
 	private List<IconType> layerIcons = new ArrayList<IconType>();
 	private String colorHtmlValue = "";
+	private String title = "";
 	
 	public CompositedIcon build() {
-		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue);
+		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue, title);
 	}
 	
 	private void setBasicIcon(String icon, String style) {
 		StringBuilder sb = new StringBuilder(icon);
-		if (StringUtils.isNotEmpty(basicIcon)) {
-			sb.append(" ");
-		}
-		sb.append(style);
+		sb.append(" ").append(style);
 		basicIcon = sb.toString();
 	}
 	
@@ -164,5 +162,9 @@ public class CompositedIconBuilder {
 			return "font-size-130-per";
 		}
 		return "";
+	}
+	
+	public void setTitle(String title) {
+		this.title = title;
 	}
 }
