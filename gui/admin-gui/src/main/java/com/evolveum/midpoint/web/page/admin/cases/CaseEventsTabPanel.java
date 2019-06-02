@@ -18,9 +18,14 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -146,6 +151,31 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
+            }
+        });
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<CaseEventType>, String>(createStringResource("CaseEventsTabPanel.stageNumber")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseEventType>>> cellItem,
+                                     String componentId, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
+
+                CaseEventType caseEventType = rowModel.getObject().getRealValue();
+                cellItem.add(new Label(componentId,
+                        caseEventType != null ? caseEventType.getStageNumber() : ""));
+            }
+        });
+
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<CaseEventType>, String>(createStringResource("CaseEventsTabPanel.Iteration")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseEventType>>> cellItem,
+                                     String componentId, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
+
+                CaseEventType caseEventType = rowModel.getObject().getRealValue();
+                cellItem.add(new Label(componentId,
+                        caseEventType != null ? caseEventType.getIteration() : ""));
             }
         });
 

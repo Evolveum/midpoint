@@ -18,20 +18,29 @@ package com.evolveum.midpoint.web.component.data.column;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemListWithDetailsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -46,10 +55,9 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
 public class ColumnUtils {
 
@@ -455,6 +463,71 @@ public class ColumnUtils {
 
 
 		});
+		columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getObjectRef(), pageBase));
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+
+				dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+			}
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+									 final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				super.populateItem(cellItem, componentId, rowModel);
+				Component c = cellItem.get(componentId);
+
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				PrismReferenceValue refVal = caseType.getObjectRef().asReferenceValue();
+				String descriptionValue = refVal.getObject() != null ?
+						refVal.getObject().asObjectable().getDescription() : "";
+
+				c.add(new AttributeAppender("title", descriptionValue));
+			}
+		});
+		columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				return Model.of(WebModelServiceUtils.resolveReferenceName(caseType.getTargetRef(), pageBase));
+			}
+
+			@Override
+			public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				dispatchToObjectDetailsPage(caseType.getTargetRef(), pageBase, false);
+			}
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+									 final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				super.populateItem(cellItem, componentId, rowModel);
+				Component c = cellItem.get(componentId);
+
+				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+				PrismReferenceValue refVal = caseType.getTargetRef().asReferenceValue();
+				String descriptionValue = refVal.getObject() != null ?
+						refVal.getObject().asObjectable().getDescription() : "";
+
+				c.add(new AttributeAppender("title", descriptionValue));
+			}
+		});
 		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
 				createStringResource("WorkItemsPanel.actors")) {
 			private static final long serialVersionUID = 1L;
@@ -488,6 +561,24 @@ public class ColumnUtils {
 			@Override
 			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
 				return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getCreateTimestamp(), pageBase));
+			}
+		});
+		columns.add(new AbstractColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(createStringResource("WorkItemsPanel.started")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem, String componentId,
+									 final IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				cellItem.add(new DateLabelComponent(componentId, new IModel<Date>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public Date getObject() {
+						CaseWorkItemType workItem = rowModel.getObject().getRealValue();
+						CaseType caseType = CaseTypeUtil.getCase(workItem);
+						return XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(caseType));
+					}
+				}, WebComponentUtil.getShortDateTimeFormat(pageBase)));
 			}
 		});
 		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
