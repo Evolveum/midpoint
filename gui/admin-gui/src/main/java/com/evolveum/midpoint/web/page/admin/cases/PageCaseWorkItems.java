@@ -31,12 +31,14 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -325,8 +327,12 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-//                PageCaseWorkItems.this.itemDetailsPerformed(target, rowModel);
-
+                PageParameters pageParameters = new PageParameters();
+                CaseWorkItemType caseWorkItemType = rowModel.getObject().getRealValue();
+                CaseType parentCase = CaseTypeUtil.getCase(caseWorkItemType);
+                WorkItemId workItemId = WorkItemId.create(parentCase != null ? parentCase.getOid() : "", caseWorkItemType.getId());
+                pageParameters.add(OnePageParameterEncoder.PARAMETER, workItemId.asString());
+                navigateToNext(PageCaseWorkItem.class, pageParameters);
             }
         });
 
