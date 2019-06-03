@@ -73,9 +73,6 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
     		
     		@Override
     		protected <T> IModel<T> wrapModel(IModel<T> model) {
-    			System.out.println("XXXXXXXXXXXXXXX model " + model.getObject());
-    			System.out.println("XXXXXXXXXXXXXXX model " + (model.getObject() == null));
-    			System.out.println("XXXXXXXXXXXXXXX --------------------- ");
     			if(model.getObject() == null) {
     				return new IModel<T>() {
 
