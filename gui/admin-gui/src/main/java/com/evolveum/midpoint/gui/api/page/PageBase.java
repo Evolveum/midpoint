@@ -1842,29 +1842,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
 
         addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.approvalCases", PageCasesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.myApprovalCases", PageCasesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.myRequests", PageCasesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.requestsAboutMe", PageCasesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.manualProvisionCases", PageCasesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.myManualProvisionCases", PageCasesAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
 
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
-//        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
-//        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
-
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
-        MenuItem newCaseMenu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCase.class, null,
-                new VisibleEnableBehaviour());
-        item.getItems().add(newCaseMenu);
+        //todo for now disable the possibility to create case manually
+//        MenuItem newCaseMenu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCase.class, null,
+//                new VisibleEnableBehaviour());
+//        item.getItems().add(newCaseMenu);
 
         return item;
     }

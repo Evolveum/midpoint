@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -165,6 +166,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonAdditionalDisplayType(buttonObject);
             }
         };
+        createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
@@ -258,6 +260,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
         }
         return false;
+    }
+
+    protected boolean isCreateNewObjectEnabled(){
+        return true;
     }
 
     protected List<S> getNewObjectInfluencesList(){

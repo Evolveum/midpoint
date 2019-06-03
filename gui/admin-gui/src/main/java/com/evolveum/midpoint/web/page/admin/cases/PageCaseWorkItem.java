@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.CaseWorkItemSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.List;
@@ -65,6 +68,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItem.class);
 	private static final String ID_WORK_ITEM_DETAILS = "workItemDetails";
 	private static final String ID_SUMMARY_PANEL = "summaryPanel";
+	private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
 	private static final String ID_DELTA_PANEL = "deltaPanel";
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_CASE_WORK_ITEM_FORM = "caseWorkItemForm";
@@ -203,6 +207,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		};
 		back.setOutputMarkupId(true);
 		add(back);
+
+		CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, caseWorkItemModel);
+		actionsPanel.setOutputMarkupId(true);
+		actionsPanel.add(new VisibleBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(caseModel.getObject().getState())));
+		add(actionsPanel);
 
 	}
 
