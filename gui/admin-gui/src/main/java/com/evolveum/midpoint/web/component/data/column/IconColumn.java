@@ -28,7 +28,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-public abstract class IconColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String> {
+public abstract class IconColumn<T> extends AbstractColumn<T, String> {//implements IExportableColumn<T, String> {
     private static final long serialVersionUID = 1L;
 
     public IconColumn(IModel<String> displayModel) {
@@ -52,8 +52,8 @@ public abstract class IconColumn<T> extends AbstractColumn<T, String> implements
 
     protected abstract DisplayType getIconDisplayType(final IModel<T> rowModel);
 
-    @Override
-    public IModel<String> getDataModel(IModel<T> rowModel) {
-        return Model.of("");
-    }
+//    @Override
+//    public IModel<String> getDataModel(IModel<T> rowModel) {
+//        return Model.of("");
+//    }
 }

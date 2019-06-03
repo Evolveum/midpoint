@@ -84,8 +84,7 @@ public class ModelHelper {
 
 	    LocalizableMessage rootCaseName = determineRootCaseName(ctx);
 	    String rootCaseNameInDefaultLocale = localizationService.translate(rootCaseName, Locale.getDefault());
-	    instruction.setLocalizableName(rootCaseName);
-	    instruction.setName(rootCaseNameInDefaultLocale);
+	    instruction.setName(rootCaseNameInDefaultLocale, rootCaseName);
 	    instruction.setObjectRef(ctx);
 		instruction.setRequesterRef(ctx.getRequestor(result));
         return instruction;

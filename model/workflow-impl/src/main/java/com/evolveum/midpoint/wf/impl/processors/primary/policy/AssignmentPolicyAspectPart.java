@@ -337,8 +337,7 @@ public class AssignmentPolicyAspectPart {
 //						.arg(processNameInDefaultLocale)
 //						.build(), Locale.getDefault());
 
-		instruction.setName(processNameInDefaultLocale);
-		instruction.setLocalizableName(processName);
+		instruction.setName(processNameInDefaultLocale, processName);
 
 		return instruction;
 	}

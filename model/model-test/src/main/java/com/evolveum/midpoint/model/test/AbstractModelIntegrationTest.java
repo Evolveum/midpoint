@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
@@ -90,7 +89,6 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.ModelAuditService;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
@@ -112,7 +110,6 @@ import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.UserValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
-import com.evolveum.midpoint.model.test.asserter.AssignmentObjectRelationsAsserter;
 import com.evolveum.midpoint.model.test.asserter.AssignmentCandidatesSpecificationAsserter;
 import com.evolveum.midpoint.model.test.asserter.CompiledUserProfileAsserter;
 import com.evolveum.midpoint.model.test.asserter.EvaluatedPolicyRulesAsserter;
@@ -159,7 +156,6 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
@@ -2169,12 +2165,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedOrg(user, orgOid);
 	}
 
-    protected <F extends FocusType> void assertHasOrgs(PrismObject<F> user, String... orgOids) throws Exception {
-        for (String orgOid: orgOids) {
-            assertHasOrg(user, orgOid);
-        }
-        assertHasOrgs(user, orgOids.length);
-    }
+	protected <F extends FocusType> void assertHasOrgs(PrismObject<F> user, String... orgOids) throws Exception {
+		for (String orgOid: orgOids) {
+			assertHasOrg(user, orgOid);
+		}
+		assertHasOrgs(user, orgOids.length);
+	}
 
 	protected <O extends ObjectType> void assertHasOrg(PrismObject<O> focus, String orgOid) {
 		MidPointAsserts.assertHasOrg(focus, orgOid);
@@ -2198,6 +2194,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
 		MidPointAsserts.assertHasOrgs(user, expectedNumber);
+	}
+
+	protected <AH extends AssignmentHolderType> void assertHasArchetypes(PrismObject<AH> object, String... oids) {
+		for (String oid : oids) {
+			assertHasArchetype(object, oid);
+		}
+		assertHasArchetypes(object, oids.length);
+	}
+
+	protected <O extends AssignmentHolderType> void assertHasArchetypes(PrismObject<O> object, int expectedNumber) {
+		MidPointAsserts.assertHasArchetypes(object, expectedNumber);
+	}
+
+	protected <AH extends AssignmentHolderType> void assertHasArchetype(PrismObject<AH> object, String oid) {
+		MidPointAsserts.assertHasArchetype(object, oid);
 	}
 
 	protected void assertSubOrgs(String baseOrgOid, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
