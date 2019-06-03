@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -58,6 +59,9 @@ public class StartInstruction implements DebugDumpable {
         this.changeProcessor = changeProcessor;
 	    PrismContext prismContext = changeProcessor.getPrismContext();
 	    aCase = new CaseType(prismContext);
+	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), ObjectTypes.ARCHETYPE);
+	    aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
+	    aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
 		aCase.setWorkflowContext(new WfContextType(prismContext));
 		aCase.setMetadata(new MetadataType(prismContext));
 	    aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
