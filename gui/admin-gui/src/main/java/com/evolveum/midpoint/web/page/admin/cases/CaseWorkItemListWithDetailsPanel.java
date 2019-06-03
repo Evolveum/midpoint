@@ -220,7 +220,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     private CaseWorkItemType unwrapPanelModel(){
-        return getModelObject().getItem().getRealValue();
+        return getModelObject() != null ? (getModelObject().getItem().getValue() != null ? getModelObject().getItem().getValue().asContainerable() : null)
+                : null;
     }
 
 }
