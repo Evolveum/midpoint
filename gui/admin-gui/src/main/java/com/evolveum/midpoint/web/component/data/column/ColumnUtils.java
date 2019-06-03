@@ -149,10 +149,10 @@ public class ColumnUtils {
 				return displayType;
 			}
 
-			@Override
-			public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
-				return getIconColumnDataModel(rowModel);
-			}
+//			@Override
+//			public IModel<String> getDataModel(IModel<SelectableBean<O>> rowModel) {
+//				return getIconColumnDataModel(rowModel);
+//			}
 		};
 
 	}
