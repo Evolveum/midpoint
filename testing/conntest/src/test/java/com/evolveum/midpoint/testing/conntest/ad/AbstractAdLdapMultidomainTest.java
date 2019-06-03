@@ -108,13 +108,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected static final File ROLE_META_ORG_GROUP_FILE = new File(TEST_DIR, "role-meta-org-group.xml");
 	protected static final String ROLE_META_ORG_GROUP_OID = "c5d3294a-0d8e-11e7-bd9d-ff848c2e7e3f";
 
-	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
-	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
-	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
-	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
-	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
-	public static final String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
-
 	protected static final String ACCOUNT_JACK_SAM_ACCOUNT_NAME = "jack";
 	protected static final String ACCOUNT_JACK_SID = "S-1-5-21-3305462238-3617280118-659738602-4878";
 	protected static final String ACCOUNT_JACK_FULL_NAME = "Jack Sparrow";
@@ -128,7 +121,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	private static final String GROUP_MELEE_ISLAND_PIRATES_NAME = "Mêlée Island Pirates";
 	private static final String GROUP_MELEE_ISLAND_PIRATES_DESCRIPTION = "swashbuckle and loot";
 
-	protected static final int NUMBER_OF_ACCOUNTS = 17;
+	protected static final int NUMBER_OF_ACCOUNTS = 18;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -158,6 +151,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	private static final String INTENT_OU_TOP = "ou-top";
 
 	private static final String USER_EMPTYHEAD_NAME = "emptyhead";
+
+	private static final String PROXY_ADDRES_ADDR_UPCASE = "smpt:ADDR";
+	private static final String PROXY_ADDRES_ADDR_LOWCASE = "smpt:addr";
 
 	private boolean allowDuplicateSearchResults = false;
 
@@ -290,8 +286,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_OBJECT_GUID_NAME);
-		binaryAttributeDetector.addBinaryAttribute(ATTRIBUTE_UNICODE_PWD_NAME);
+		binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_OBJECT_GUID_NAME);
+		binaryAttributeDetector.addBinaryAttribute(AdUtils.ATTRIBUTE_UNICODE_PWD_NAME);
 
 		// Users
 		repoAddObjectFromFile(USER_BARBOSSA_FILE, initResult);
@@ -822,7 +818,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         // MID-4624
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
@@ -846,7 +842,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
 		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
-        QName attrQName = new QName(MidPointConstants.NS_RI, "title");
+        QName attrQName = new QName(MidPointConstants.NS_RI, AdUtils.ATTRIBUTE_TITLE_NAME);
         ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
         PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
 		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, "Captain");
@@ -854,15 +850,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
         assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
-        assertAttribute(entry, "title", "Captain");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_TITLE_NAME, "Captain");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -891,7 +887,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -899,7 +895,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "TRUE");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -941,7 +937,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -949,6 +945,50 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
         assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * Just normal modification of proxyAddress, directly on the account.
+	 * As proxyAddress is multivalue, this is ADD and not REPLACE. This is what GUI would do.
+	 * No previous value for proxyAddress is set in the AD account.
+	 * MID-5330
+	 */
+	@Test
+    public void test214ModifyAccountBarbossaProxyAddressesSimple() throws Exception {
+		final String TEST_NAME = "test214ModifyAccountBarbossaProxyAddressesSimple";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object()
+		        .createEmptyModifyDelta(ShadowType.class, accountBarbossaOid);
+        QName attrQName = new QName(MidPointConstants.NS_RI, AdUtils.ATTRIBUTE_PROXY_ADDRESSES_NAME);
+        ResourceAttributeDefinition<String> attrDef = accountObjectClassDefinition.findAttributeDefinition(attrQName);
+        assertNotNull("No definition for attribute "+attrQName, attrDef);
+        PropertyDelta<String> attrDelta = prismContext.deltaFactory().property().createModificationAddProperty(
+		       ItemPath.create(ShadowType.F_ATTRIBUTES, attrQName), attrDef, PROXY_ADDRES_ADDR_UPCASE);
+        delta.addModification(attrDelta);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        executeChanges(delta, null, task, result);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, AdUtils.ATTRIBUTE_PROXY_ADDRESSES_NAME, PROXY_ADDRES_ADDR_UPCASE);
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD);
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+//        assertLdapConnectorInstances(2);
 	}
 
 	@Test
@@ -1212,8 +1252,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
-        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1232,9 +1272,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         display("disabled Barbossa entry", entry);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
-        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1276,7 +1316,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         assertLdapGroupMember(entry, GROUP_PIRATES_NAME);
 
@@ -1313,7 +1353,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         TestUtil.assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         try {
         	assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
@@ -1348,7 +1388,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1911,7 +1951,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, USER_SUBMAN_PASSWORD);
 
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         // MID-4624
         ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
@@ -1946,7 +1986,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         display("Sub entry", entry);
         assertAttribute(entry, "title", "Underdog");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -1979,7 +2019,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         assertAttribute(entry, "title", "Underdog");
         assertLdapPassword(getSubLdapConnectionConfig(), USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME, "SuB.321");
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
         String shadowOid = getSingleLinkOid(user);
@@ -2014,7 +2054,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -2054,7 +2094,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -2180,7 +2220,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         		AdUtils.formatGuidToDashedNotation(MiscUtil.binaryToHex(entry.get(getPrimaryIdentifierAttributeName()).getBytes())),
         		accountIcfUid);
 
-        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+        assertAttribute(entry, AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
 //        assertLdapConnectorInstances(2);
 	}
@@ -2235,14 +2275,14 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected Entry assertLdapAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
 		Entry entry = searchLdapAccount("(cn="+cn+")");
 		assertAttribute(entry, "cn", cn);
-		assertAttribute(entry, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
+		assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
 		return entry;
 	}
 
 	protected Entry assertLdapSubAccount(String samAccountName, String cn) throws LdapException, IOException, CursorException {
 		Entry entry = searchLdapAccount(getSubLdapConnectionConfig(), "(cn="+cn+")");
 		assertAttribute(entry, "cn", cn);
-		assertAttribute(entry, ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
+		assertAttribute(entry, AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName);
 		return entry;
 	}
 
@@ -2345,7 +2385,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 	protected ObjectQuery createSamAccountNameQuery(String samAccountName) throws SchemaException {
 		ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
+		ObjectQueryUtil.filterAnd(query.getFilter(), createAttributeFilter(AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, samAccountName),
 				prismContext);
 		return query;
 	}
@@ -2355,12 +2395,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		byte[] password = encodePassword("Secret.123");
 		Entry entry = new DefaultEntry(toAccountDn(uid, cn),
 				"objectclass", getLdapAccountObjectClass(),
-				ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
+				AdUtils.ATTRIBUTE_SAM_ACCOUNT_NAME_NAME, uid,
 				"cn", cn,
 				"givenName", givenName,
 				"sn", sn,
-				ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
-				ATTRIBUTE_UNICODE_PWD_NAME, password);
+				AdUtils.ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512",
+				AdUtils.ATTRIBUTE_UNICODE_PWD_NAME, password);
 		return entry;
 	}
 
