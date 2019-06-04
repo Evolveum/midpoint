@@ -48,7 +48,7 @@ public abstract class AbstractAdLdapRawTest extends AbstractAdLdapTest {
         assertFalse("No native activation capability", ResourceTypeUtil.hasResourceNativeActivationCapability(resourceType));
         assertFalse("No native activation status capability", ResourceTypeUtil.hasResourceNativeActivationStatusCapability(resourceType));
         assertFalse("No native lockout capability", ResourceTypeUtil.hasResourceNativeActivationLockoutCapability(resourceType));
-        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType));
+        assertTrue("No native credentias capability", ResourceTypeUtil.isCredentialsCapabilityEnabled(resourceType, null));
 	}
 
 

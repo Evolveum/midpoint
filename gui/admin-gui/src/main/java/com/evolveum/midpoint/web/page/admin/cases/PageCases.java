@@ -1,22 +1,28 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
-import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -30,9 +36,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author acope on 9/14/17.
@@ -54,6 +58,8 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
     private static final String DOT_CLASS = PageCases.class.getName() + ".";
     private static final String OPERATION_LOAD_REFERENCE_DISPLAY_NAME = DOT_CLASS + "loadReferenceDisplayName";
+    private static final String OPERATION_DELETE_CASE_OBJECT = DOT_CLASS + "deleteCaseObject";
+    private static final String OPERATION_STOP_CASE_PROCESS = DOT_CLASS + "stopCaseProcess";
 
     private static final long serialVersionUID = 1L;
 
@@ -64,53 +70,13 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         super();
     }
 
-//    private void initLayout() {
-//        Form mainForm = new Form(ID_MAIN_FORM);
-//        add(mainForm);
-//
-//        LOGGER.trace("Creating casePanel");
-//        MainObjectListPanel<CaseType, CompiledObjectCollectionView> casePanel =
-//                new MainObjectListPanel<CaseType, CompiledObjectCollectionView>(
-//                ID_CASES_TABLE,
-//                CaseType.class,
-//                UserProfileStorage.TableId.TABLE_CASES,
-//                null,
-//                this) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
-//                PageCases.this.caseDetailsPerformed(target, caseInstance);
-//            }
-//
-//            @Override
-//            protected void newObjectPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-//                navigateToNext(PageCase.class);
-//            }
-//
-//            @Override
-//            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
-//                return PageCases.this.initColumns();
-//            }
-//
-//            @Override
-//            protected List<InlineMenuItem> createInlineMenu() {
-//                return new ArrayList<>();
-//            }
-//
-//        };
-//        casePanel.setOutputMarkupId(true);
-//        mainForm.add(casePanel);
-//
-//    }
-
     @Override
     protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {
         LOGGER.trace("caseDetailsPerformed()");
 
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
+        navigateToNext(PageCase.class, pageParameters);
         navigateToNext(PageCase.class, pageParameters);
     }
 
@@ -256,21 +222,134 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         return UserProfileStorage.TableId.TABLE_CASES;
     }
 
+
+    @Override
+    protected boolean isCreateNewObjectEnabled(){
+        return false;
+    }
+
+    @Override
+    protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions(){
+        return getOperationOptionsBuilder()
+                .item(CaseType.F_OBJECT_REF).resolve()
+                .item(CaseType.F_TARGET_REF).resolve()
+                .build();
+    }
+
     @Override
     protected List<InlineMenuItem> createRowActions() {
         List<InlineMenuItem> menu = new ArrayList<>();
+
+        menu.add(new ButtonInlineMenuItem(createStringResource("pageCases.button.stopProcess")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<CaseType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            stopCaseProcessConfirmed(target);
+                        } else {
+                            stopCaseProcessConfirmed(target, Arrays.asList(getRowModel().getObject().getValue()));
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public String getButtonIconCssClass(){
+                return GuiStyleConstants.CLASS_STOP_MENU_ITEM;
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                return getObjectListPanel().getSelectedObjectsCount() > 0 ?
+                        createStringResource("pageCases.button.stopProcess.multiple.confirmationMessage", getObjectListPanel().getSelectedObjectsCount()) :
+                        createStringResource("pageCases.button.stopProcess.confirmationMessage");
+            }
+
+        });
+        menu.add(new ButtonInlineMenuItem(createStringResource("pageCases.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<CaseType>>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        if (getRowModel() == null) {
+                            deleteCaseObjectsConfirmed(target);
+                        } else {
+                            deleteCaseObjectsConfirmed(target, Arrays.asList(getRowModel().getObject().getValue()));
+                        }
+                    }
+                };
+            }
+
+            @Override
+            public String getButtonIconCssClass(){
+                return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            }
+
+            @Override
+            public IModel<String> getConfirmationMessageModel(){
+                return getObjectListPanel().getSelectedObjectsCount() > 0 ?
+                        createStringResource("pageCases.button.delete.multiple.confirmationMessage", getObjectListPanel().getSelectedObjectsCount()) :
+                        createStringResource("pageCases.button.delete.confirmationMessage");
+            }
+
+        });
+
         return menu;
     }
 
-    private String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {
+    private <O extends ObjectType> String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {
         CaseType caseModelObject = caseModel.getObject().getValue();
         if (caseModelObject.getObjectRef() == null) {
             return "";
         }
-        if (caseModelObject.getObjectRef().getTargetName() != null && StringUtils.isNotEmpty(caseModelObject.getObjectRef().getTargetName().getOrig())) {
-            return caseModelObject.getObjectRef().getTargetName().getOrig();
-        } else {
-            return caseModelObject.getObjectRef().getOid();
+        return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, PageCases.this,
+                OPERATION_LOAD_REFERENCE_DISPLAY_NAME);
+    }
+
+    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target){
+        deleteCaseObjectsConfirmed(target, getObjectListPanel().getSelectedObjects());
+    }
+
+    private void deleteCaseObjectsConfirmed(AjaxRequestTarget target, List<CaseType> casesToDelete){
+        if (casesToDelete == null){
+            return;
         }
+        casesToDelete.forEach(caseObject -> {
+            WebModelServiceUtils.deleteObject(CaseType.class, caseObject.getOid(),
+                    ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(),
+                    new OperationResult(OPERATION_DELETE_CASE_OBJECT), PageCases.this);
+        });
+        target.add(PageCases.this);
+    }
+
+    private void stopCaseProcessConfirmed(AjaxRequestTarget target){
+        stopCaseProcessConfirmed(target, getObjectListPanel().getSelectedObjects());
+    }
+
+    private void stopCaseProcessConfirmed(AjaxRequestTarget target, List<CaseType> casesToStop){
+        if (casesToStop == null){
+            return;
+        }
+        casesToStop.forEach(caseObject -> {
+            Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
+            OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
+            try {
+                getWorkflowService().stopProcessInstance(caseObject.getOid(), task, result);
+            } catch (Exception ex){
+                LOGGER.error("Couldn't stop case process, ", ex.getLocalizedMessage());
+                result.recordFatalError("Couldn't stop case process, ", ex);
+                showResult(result);
+            }
+        });
+        target.add(PageCases.this);
     }
 }

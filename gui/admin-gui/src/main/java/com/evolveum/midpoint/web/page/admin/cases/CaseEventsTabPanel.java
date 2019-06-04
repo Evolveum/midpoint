@@ -145,8 +145,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseEventType>> rowModel) {
-                //TODO should we check any authorization?
-                return true;
+                return false;
             }
 
             @Override

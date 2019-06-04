@@ -16,7 +16,11 @@
 
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<wicket:extend>
-    <div class="pull-right" wicket:id="caseWorkItemActionsPanel" />
-</wicket:extend>
+<wicket:panel>
+    <div wicket:id="actionButtons">
+        <div class="btn btn-danger" wicket:id="workItemRejectButton"/>
+        <div class="btn btn-success" wicket:id="workItemApproveButton"/>
+        <div class="btn btn-primary" wicket:id="workItemDelegateButton"/>
+    </div>
+</wicket:panel>
 </html>

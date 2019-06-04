@@ -198,8 +198,7 @@ public class ObjectPolicyAspectPart {
 //							.arg(processNameInDefaultLocale)
 //							.build(), Locale.getDefault());
 
-			instruction.setName(processNameInDefaultLocale);
-			instruction.setLocalizableName(processName);
+			instruction.setName(processNameInDefaultLocale, processName);
 			//instruction.setProcessInstanceName(processNameInDefaultLocale);
 
 			instructions.add(instruction);

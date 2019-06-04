@@ -412,6 +412,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="caseWorkItem" type="tns:CaseWorkItemType" />
 
     <xsd:complexType name="CaseEventType">
         <xsd:annotation>

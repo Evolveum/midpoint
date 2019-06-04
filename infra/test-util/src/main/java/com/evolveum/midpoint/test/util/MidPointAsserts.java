@@ -303,9 +303,22 @@ public class MidPointAsserts {
 
 	public static <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
 		O userType = user.asObjectable();
-		assertEquals("Unexepected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
+		assertEquals("Unexpected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
 	}
 
+	public static <O extends AssignmentHolderType> void assertHasArchetypes(PrismObject<O> object, int expectedNumber) {
+		O objectable = object.asObjectable();
+		assertEquals("Unexpected number of archetypes in "+object+": "+objectable.getArchetypeRef(), expectedNumber, objectable.getArchetypeRef().size());
+	}
+
+	public static <AH extends AssignmentHolderType> void assertHasArchetype(PrismObject<AH> object, String oid) {
+		for (ObjectReferenceType orgRef: object.asObjectable().getArchetypeRef()) {
+			if (oid.equals(orgRef.getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail(object + " does not have archetype " + oid);
+	}
 
     public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
 		Long versionOld = parseVersion(objectOld);
