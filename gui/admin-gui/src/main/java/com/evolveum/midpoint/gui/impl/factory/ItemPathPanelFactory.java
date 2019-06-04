@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import java.io.Serializable;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.Priority;
 
@@ -36,11 +38,11 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  */
 @Component
 @Priority(1000)
-public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> {
+public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@Autowired private GuiComponentRegistry registry;
+	@Autowired private transient GuiComponentRegistry registry;
 
 	@PostConstruct
 	public void register() {
