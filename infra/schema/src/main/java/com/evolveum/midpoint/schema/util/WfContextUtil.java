@@ -779,7 +779,13 @@ public class WfContextUtil {
 
 	public static List<EvaluatedPolicyRuleType> getAllRules(SchemaAttachedPolicyRulesType policyRules) {
 		List<EvaluatedPolicyRuleType> rv = new ArrayList<>();
+		if (policyRules == null){
+			return rv;
+		}
 		for (SchemaAttachedPolicyRuleType entry : policyRules.getEntry()) {
+			if (entry == null){
+				continue;
+			}
 			if (!rv.contains(entry.getRule())) {
 				rv.add(entry.getRule());
 			}

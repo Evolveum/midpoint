@@ -48,6 +48,9 @@ public class ComponentConstants {
     public static final QName UI_CASE_TAB_WORKITEMS = new QName(NS_COMPONENTS_PREFIX, "caseTabWorkitems");
     public static final String UI_CASE_TAB_WORKITEMS_URL = QNameUtil.qNameToUri(UI_CASE_TAB_WORKITEMS);
 
+    public static final QName UI_CASE_TAB_CHILD_CASES = new QName(NS_COMPONENTS_PREFIX, "caseTabChildCases");
+    public static final String UI_CASE_TAB_CHILD_CASES_URL = QNameUtil.qNameToUri(UI_CASE_TAB_CHILD_CASES);
+
     public static final QName UI_CASE_TAB_APPROVAL = new QName(NS_COMPONENTS_PREFIX, "caseTabApproval");
     public static final String UI_CASE_TAB_APPROVAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_WORKITEMS);
 

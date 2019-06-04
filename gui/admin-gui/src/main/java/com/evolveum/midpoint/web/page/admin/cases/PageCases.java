@@ -77,7 +77,6 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         PageParameters pageParameters = new PageParameters();
         pageParameters.add(OnePageParameterEncoder.PARAMETER, caseInstance.getOid());
         navigateToNext(PageCase.class, pageParameters);
-        navigateToNext(PageCase.class, pageParameters);
     }
 
     @Override
@@ -308,7 +307,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
     private <O extends ObjectType> String getObjectRef(IModel<SelectableBean<CaseType>> caseModel) {
         CaseType caseModelObject = caseModel.getObject().getValue();
-        if (caseModelObject.getObjectRef() == null) {
+        if (caseModelObject == null || caseModelObject.getObjectRef() == null) {
             return "";
         }
         return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, PageCases.this,
