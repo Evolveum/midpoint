@@ -315,7 +315,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
 		    CaseType rootCase) throws SchemaException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty()) {
-            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this);
+            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
             instruction0.setName("Changes that do not require approval");
 	        instruction0.setObjectRef(ctx);
 	        instruction0.setDeltasToProcess(changesWithoutApproval);
