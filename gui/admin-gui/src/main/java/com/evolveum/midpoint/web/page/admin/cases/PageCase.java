@@ -57,132 +57,18 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
     private static final String ID_SUMMARY_PANEL = "summaryPanel";
 
     public PageCase() {
-        initialize(null);
+        this(null, true);
     }
 
     public PageCase(PrismObject<CaseType> unitToEdit, boolean isNewObject)  {
-        initialize(unitToEdit, isNewObject);
+        initialize(unitToEdit, isNewObject, true);
     }
 
     public PageCase(PageParameters parameters) {
         getPageParameters().overwriteWith(parameters);
-        initialize(null);
+        initialize(null, true, true);
     }
 
-
-//    @Override
-//    protected void initializeModel(final PrismObject<CaseType> caseObject, boolean isNewObject, boolean isReadonly) {
-//        super.initializeModel(loadCase(), isNewObject, isReadonly);
-//    }
-
-//    private PrismObject<CaseType> loadCase() {
-//        Task task = createSimpleTask(OPERATION_LOAD_CASE);
-//        OperationResult result = task.getResult();
-//
-//        Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-//                .item(CaseType.F_OBJECT_REF).resolve()
-//                .build();
-//        boolean emptyCase = !isEditingFocus();
-//        PrismObject<CaseType> caseInstance = null;
-//        try {
-//            if (emptyCase) {
-//                LOGGER.trace("Loading case: New case (creating)");
-//                CaseType newCase = new CaseType();
-//                getMidpointApplication().getPrismContext().adopt(newCase);
-//                caseInstance = newCase.asPrismObject();
-//            } else {
-//                String oid = getObjectOidParameter();
-//
-//                caseInstance = WebModelServiceUtils.loadObject(CaseType.class, oid, options,
-//                        PageCase.this, task, result);
-//
-//                if (caseInstance == null) {
-//                    LOGGER.trace("caseInstance:[oid]={} was null", oid);
-//                    getSession().error(getString("pageCase.message.cantEditCase"));
-//                    showResult(result);
-//                    throw new RestartResponseException(PageCases.class);
-//                }
-//                LOGGER.debug("CASE WORK ITEMS: {}", caseInstance.asObjectable().getWorkItem());
-//            }
-//        } catch (Exception ex) {
-//            result.recordFatalError("Couldn't get case.", ex);
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-//        }
-//
-//        if (caseInstance == null) {
-//            if (isEditingFocus()) {
-//                getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
-//            } else {
-//                getSession().error(getString("pageAdminFocus.message.cantNewFocus"));
-//            }
-//            throw new RestartResponseException(PageCases.class);
-//        }
-////
-////        ObjectWrapper<CaseType> wrapper;
-////        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-////        ContainerStatus status = isEditingFocus() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-////        try {
-////            wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, status, task);
-////        } catch (Exception ex) {
-////            result.recordFatalError("Couldn't get case.", ex);
-////            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-////            try {
-////				wrapper = owf.createObjectWrapper("PageCase.details", null, caseInstance, null, null, status, task);
-////			} catch (SchemaException e) {
-////				throw new SystemException(e.getMessage(), e);
-////			}
-////        }
-////
-////        wrapper.setShowEmpty(emptyCase);
-////
-////        //for now decided to make targetRef readonly
-////        wrapper.getContainers().forEach(containerWrapper -> {
-////            if (containerWrapper.isMain()){
-////                containerWrapper.getValues().forEach(containerValueWrapper -> {
-////                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
-////                    if (itemWrapper != null){
-////                        itemWrapper.setReadonly(true);
-////                    }
-////                });
-////            }
-////        });
-//
-//        PrismObjectWrapperFactory<CaseType> owf = getRegistry().getObjectWrapperFactory(caseInstance.getDefinition());
-//        PrismObjectWrapper<CaseType> wrapper;
-////        ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
-//        ItemStatus status = isEditingFocus() ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
-//        try {
-//        	WrapperContext context = new WrapperContext(task, result);
-//            wrapper = owf.createObjectWrapper(caseInstance, status, context);
-//        } catch (Exception ex) {
-//            result.recordFatalError("Couldn't get case.", ex);
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load case", ex);
-//            try {
-//            	WrapperContext context = new WrapperContext(task, result);
-//				wrapper = owf.createObjectWrapper(caseInstance,status, context);
-//			} catch (SchemaException e) {
-//				throw new SystemException(e.getMessage(), e);
-//			}
-//        }
-//
-////        wrapper.setShowEmpty(emptyCase);
-//
-//        //for now decided to make targetRef readonly
-//
-//        //TODO maybe do it while creating wrappers
-////        wrapper.getContainers().forEach(containerWrapper -> {
-////            if (containerWrapper.isMain()){
-////                containerWrapper.getValues().forEach(containerValueWrapper -> {
-////                    PropertyOrReferenceWrapper itemWrapper = containerValueWrapper.findPropertyWrapperByName(CaseType.F_TARGET_REF);
-////                    if (itemWrapper != null){
-////                        itemWrapper.setReadonly(true);
-////                    }
-////                });
-////            }
-////        });
-//
-//        return wrapper.getObject();
-//    }
 
     @Override
     protected AbstractObjectMainPanel<CaseType> createMainPanel(String id) {

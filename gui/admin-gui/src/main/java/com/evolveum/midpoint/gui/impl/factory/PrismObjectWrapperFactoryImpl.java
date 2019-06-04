@@ -76,6 +76,9 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 		}
 
 		PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
+		if (context.getReadOnly() != null) {
+			objectWrapper.setReadOnly(context.getReadOnly().booleanValue());
+		}
 		context.setShowEmpty(ItemStatus.ADDED == status ? true : false);
 		PrismContainerValueWrapper<O> valueWrapper = createValueWrapper(objectWrapper, object.getValue(), ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 		objectWrapper.getValues().add(valueWrapper);
