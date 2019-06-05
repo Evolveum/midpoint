@@ -43,7 +43,12 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -161,10 +166,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -3858,6 +3859,35 @@ public final class WebComponentUtil {
         }).collect(Collectors.toList());
         return sortedList;
     }
+
+    public static SceneDto createSceneDto(CaseWorkItemType caseWorkItem, PageBase pageBase, String operation){
+    	if (caseWorkItem == null){
+    		return null;
+		}
+		return createSceneDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
+	}
+
+    public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation){
+		if (caseObject == null || caseObject.getWorkflowContext() == null) {
+			return null;
+		}
+		if (!(caseObject.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+			return null;
+		}
+		ObjectReferenceType objectRef = caseObject.getObjectRef();
+		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) caseObject.getWorkflowContext().getProcessorSpecificState();
+
+		OperationResult result = new OperationResult(operation);
+		Task task = pageBase.createSimpleTask(operation);
+		try {
+			Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), "pageWorkItem.delta",
+					pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
+			return new SceneDto(deltasScene);
+		} catch (SchemaException | ExpressionEvaluationException ex){
+			LOGGER.error("Unable to create delta visualization for case  " + caseObject.getName(), ex.getLocalizedMessage());
+		}
+		return null;
+	}
 
     public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
 		DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
