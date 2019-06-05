@@ -172,7 +172,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
 		aCase.getEvent().stream()
 				.filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
-				.forEach(e -> rv.getEvent().add(e));
+				.forEach(e -> rv.getEvent().add(e.clone()));
 		if (stageNumber == currentStageNumber) {
 			rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(aCase.getWorkItem()));
 		}
