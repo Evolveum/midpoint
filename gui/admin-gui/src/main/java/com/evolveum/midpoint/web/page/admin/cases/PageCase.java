@@ -20,6 +20,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
@@ -94,7 +95,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                             });
                 } else if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
                     tabs.add(0,
-                            new PanelTab(parentPage.createStringResource("PageCase.approvalTab"),
+                            new PanelTab(parentPage.createStringResource("PageCase.operationRequestTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_APPROVAL_URL, true, parentPage)) {
 
                                 private static final long serialVersionUID = 1L;
@@ -108,22 +109,38 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                 } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
                     //todo manual case tab
                 }
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
-                                getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
+                if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)){
+                    tabs.add(
+                            new PanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_CHILD_CASES_URL, false, parentPage)) {
 
-                            private static final long serialVersionUID = 1L;
+                                private static final long serialVersionUID = 1L;
 
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
-                            }
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new ChildCasesTabPanel(panelId, getMainForm(), getObjectModel());
+                                }
+                            });
+                } else {
+                    //todo do manual cases have workitems?
+                    tabs.add(
+                            new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
 
-                            @Override
-                            public String getCount() {
-                                return Integer.toString(countWorkItems());
-                            }
-                        });
+                                private static final long serialVersionUID = 1L;
+
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
+
+                                @Override
+                                public String getCount() {
+                                    return Integer.toString(countWorkItems());
+                                }
+                            });
+                }
+
                 tabs.add(
                         new CountablePanelTab(parentPage.createStringResource("PageCase.events"),
                                 getTabVisibility(ComponentConstants.UI_CASE_TAB_EVENTS_URL, false, parentPage)) {

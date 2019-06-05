@@ -52,10 +52,10 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 	private static final String ID_WHOLE_PROCESS_CONTAINER = "wholeProcessContainer";
 	private static final String ID_WHOLE_PROCESS = "wholeProcess";
 	private static final String ID_WHOLE_PROCESS_HELP = "wholeProcessHelp";
-	private static final String ID_SHOW_NEXT_STAGES_CONTAINER = "showNextStagesContainer";
+//	private static final String ID_SHOW_NEXT_STAGES_CONTAINER = "showNextStagesContainer";
 	private static final String ID_SHOW_NEXT_STAGES = "showNextStages";
 	private static final String ID_SHOW_NEXT_STAGES_HELP = "showNextStagesHelp";
-	private static final String ID_SHOW_WHOLE_PROCESS_CONTAINER = "showWholeProcessContainer";
+//	private static final String ID_SHOW_WHOLE_PROCESS_CONTAINER = "showWholeProcessContainer";
 	private static final String ID_SHOW_WHOLE_PROCESS = "showWholeProcess";
 	private static final String ID_SHOW_WHOLE_PROCESS_HELP = "showWholeProcessHelp";
 
@@ -137,48 +137,48 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 	private void initLayout(IModel<Boolean> showNextStagesModel) {
 		setOutputMarkupId(true);
 
-		WebMarkupContainer nextStagesContainer = new WebMarkupContainer(ID_NEXT_STAGES_CONTAINER);
-		nextStagesContainer.add(new ApprovalProcessExecutionInformationPanel(ID_NEXT_STAGES, nextStagesModel));
-		nextStagesContainer.add(WebComponentUtil.createHelp(ID_NEXT_STAGES_HELP));
-		nextStagesContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.NEXT_STAGES));
-		add(nextStagesContainer);
+//		WebMarkupContainer nextStagesContainer = new WebMarkupContainer(ID_NEXT_STAGES_CONTAINER);
+//		nextStagesContainer.add(new ApprovalProcessExecutionInformationPanel(ID_NEXT_STAGES, nextStagesModel));
+//		nextStagesContainer.add(WebComponentUtil.createHelp(ID_NEXT_STAGES_HELP));
+////		nextStagesContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.NEXT_STAGES));
+//		add(nextStagesContainer);
 
 		WebMarkupContainer wholeProcessContainer = new WebMarkupContainer(ID_WHOLE_PROCESS_CONTAINER);
 		wholeProcessContainer.add(new ApprovalProcessExecutionInformationPanel(ID_WHOLE_PROCESS, wholeProcessModel));
 		wholeProcessContainer.add(WebComponentUtil.createHelp(ID_WHOLE_PROCESS_HELP));
-		wholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.WHOLE_PROCESS));
+//		wholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.WHOLE_PROCESS));
 		add(wholeProcessContainer);
 
-		WebMarkupContainer showNextStagesContainer = new WebMarkupContainer(ID_SHOW_NEXT_STAGES_CONTAINER);
-		showNextStagesContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_NEXT_STAGES) {
-			
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(Optional<AjaxRequestTarget> target) {
-				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
-				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
-			}
-
-		});
-		showNextStagesContainer.add(WebComponentUtil.createHelp(ID_SHOW_NEXT_STAGES_HELP));
-		showNextStagesContainer.add(new VisibleBehaviour(() ->
-				Boolean.TRUE.equals(showNextStagesModel.getObject()) && displayedProcessInfoBox != ProcessInfoBox.NEXT_STAGES));
-		add(showNextStagesContainer);
-
-		WebMarkupContainer showWholeProcessContainer = new WebMarkupContainer(ID_SHOW_WHOLE_PROCESS_CONTAINER);
-		showWholeProcessContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_WHOLE_PROCESS) {
-			private static final long serialVersionUID = 1L;
-			
-			@Override
-			public void onClick(Optional<AjaxRequestTarget> target) {
-				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
-				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
-			}
-		});
-		showWholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox != ProcessInfoBox.WHOLE_PROCESS));
-		showWholeProcessContainer.add(WebComponentUtil.createHelp(ID_SHOW_WHOLE_PROCESS_HELP));
-		add(showWholeProcessContainer);
+//		WebMarkupContainer showNextStagesContainer = new WebMarkupContainer(ID_SHOW_NEXT_STAGES_CONTAINER);
+//		showNextStagesContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_NEXT_STAGES) {
+//
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(Optional<AjaxRequestTarget> target) {
+//				displayedProcessInfoBox = ProcessInfoBox.NEXT_STAGES;
+//				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
+//			}
+//
+//		});
+//		showNextStagesContainer.add(WebComponentUtil.createHelp(ID_SHOW_NEXT_STAGES_HELP));
+////		showNextStagesContainer.add(new VisibleBehaviour(() ->
+////				Boolean.TRUE.equals(showNextStagesModel.getObject()) && displayedProcessInfoBox != ProcessInfoBox.NEXT_STAGES));
+//		add(showNextStagesContainer);
+//
+//		WebMarkupContainer showWholeProcessContainer = new WebMarkupContainer(ID_SHOW_WHOLE_PROCESS_CONTAINER);
+//		showWholeProcessContainer.add(new AjaxFallbackLink<Void>(ID_SHOW_WHOLE_PROCESS) {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//			public void onClick(Optional<AjaxRequestTarget> target) {
+//				displayedProcessInfoBox = ProcessInfoBox.WHOLE_PROCESS;
+//				((AjaxRequestTarget) target.get()).add(SwitchableApprovalProcessPreviewsPanel.this);
+//			}
+//		});
+////		showWholeProcessContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox != ProcessInfoBox.WHOLE_PROCESS));
+//		showWholeProcessContainer.add(WebComponentUtil.createHelp(ID_SHOW_WHOLE_PROCESS_HELP));
+//		add(showWholeProcessContainer);
 
 	}
 

@@ -156,24 +156,24 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			}
 		}
 		// not needed after "create work item" events will be implemented
-		for (CaseWorkItemType workItem : executionRecord.getWorkItem()) {
-			ObjectReferenceType approver = workItem.getOriginalAssigneeRef();
-			if (approver == null) {
-				LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);
-				continue;
-			}
-			WorkItemId externalWorkItemId = WorkItemId.of(workItem);        // fixme work item has no parent here!!!
-			if (externalWorkItemId == null) {
-				LOGGER.warn("No external work item ID in work item {} -- ignoring it", workItem);
-				continue;
-			}
-			ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
-			if (engagement == null) {
-				resolve(approver, resolver, session, opTask, result);
-				engagement = new ApproverEngagementDto(approver, externalWorkItemId);
-				rv.addApproverEngagement(engagement);
-			}
-		}
+//		for (CaseWorkItemType workItem : executionRecord.getWorkItem()) {
+//			ObjectReferenceType approver = workItem.getOriginalAssigneeRef();
+//			if (approver == null) {
+//				LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);
+//				continue;
+//			}
+//			WorkItemId externalWorkItemId = WorkItemId.of(workItem);        // fixme work item has no parent here!!!
+//			if (externalWorkItemId == null) {
+//				LOGGER.warn("No external work item ID in work item {} -- ignoring it", workItem);
+//				continue;
+//			}
+//			ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
+//			if (engagement == null) {
+//				resolve(approver, resolver, session, opTask, result);
+//				engagement = new ApproverEngagementDto(approver, externalWorkItemId);
+//				rv.addApproverEngagement(engagement);
+//			}
+//		}
 	}
 
 	private void addApproverEngagement(ApproverEngagementDto engagement) {

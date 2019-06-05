@@ -214,7 +214,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 AuditSearchDto.F_COLLECTION + ".auditSearch.recordQuery"));
         usedQuery.setOutputMarkupId(true);
         usedQuery.setEnabled(false);
-        parametersPanel.add(usedQuery);
+        usedQueryContainer.add(usedQuery);
         
         WebMarkupContainer usedIntervalContainer = new WebMarkupContainer(ID_USED_INTERVAL_CONTAINER);
         usedIntervalContainer.setOutputMarkupId(true);
@@ -225,7 +225,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 AuditSearchDto.F_COLLECTION + ".auditSearch.interval"));
         usedInterval.setOutputMarkupId(true);
         usedInterval.setEnabled(false);
-        parametersPanel.add(usedInterval);
+        usedIntervalContainer.add(usedInterval);
 
         DropDownChoicePanel<AuditEventTypeType> eventType = new DropDownChoicePanel<>(
             ID_EVENT_TYPE, new PropertyModel<>(
