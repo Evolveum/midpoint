@@ -1218,8 +1218,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isWorkflowChild() {
-		// TODO-WF
-		throw new UnsupportedOperationException("TODO");
+		return false;
+//		// TODO-WF
+//		throw new UnsupportedOperationException("TODO");
 //
 //		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getCaseOid() != null;
 	}
