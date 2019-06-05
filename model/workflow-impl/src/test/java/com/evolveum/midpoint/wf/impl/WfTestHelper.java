@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -48,7 +49,9 @@ public class WfTestHelper {
 
 	private boolean verbose = false;
 
-	@Autowired private RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 
 	public static CaseType findAndRemoveCase0(List<CaseType> subcases) {
 	    CaseType case0 = null;

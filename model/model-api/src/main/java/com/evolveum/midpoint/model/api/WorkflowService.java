@@ -41,10 +41,12 @@ public interface WorkflowService {
 		    ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
     void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
-		    throws SecurityViolationException, ObjectNotFoundException, SchemaException;
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
-		    throws ObjectNotFoundException, SecurityViolationException, SchemaException;
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException,

@@ -154,4 +154,11 @@ public abstract class AbstractThreadLocalCache {
     public void setConfiguration(CacheConfiguration configuration) {
         this.configuration = configuration;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "{" +
+                "entryCount=" + entryCount +
+                '}';
+    }
 }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1001,4 +1002,18 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
 	@Override
 	public abstract Item<V,D> clone();
+
+	@Override
+	public Long getHighestId() {
+		Holder<Long> highest = new Holder<>();
+		this.accept(visitable -> {
+			if (visitable instanceof PrismContainerValue) {
+				Long id = ((PrismContainerValue<?>) visitable).getId();
+				if (id != null && (highest.isEmpty() || id > highest.getValue())) {
+					highest.setValue(id);
+				}
+			}
+		});
+		return highest.getValue();
+	}
 }

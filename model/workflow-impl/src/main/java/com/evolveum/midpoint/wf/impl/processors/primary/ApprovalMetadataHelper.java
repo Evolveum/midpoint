@@ -59,7 +59,6 @@ public class ApprovalMetadataHelper {
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
     @Autowired private MiscHelper miscHelper;
-    @Autowired private RepositoryService repositoryService;
     @Autowired private WorkflowManager workflowManager;
 
     public void addAssignmentApprovalMetadata(ObjectDelta<?> objectDelta, CaseType aCase,

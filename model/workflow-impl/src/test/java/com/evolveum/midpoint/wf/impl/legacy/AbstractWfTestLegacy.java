@@ -307,7 +307,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 //String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
                 //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
-                SearchResultList<CaseWorkItemType> workItems = workflowEngine.getWorkItemsForCase(subcase.getOid(), null, result);
+                List<CaseWorkItemType> workItems = getWorkItemsForCase(subcase.getOid(), null, result);
                 CaseWorkItemType workItem = MiscUtil.extractSingleton(workItems);
                 assertNotNull("work item not found", workItem);
 

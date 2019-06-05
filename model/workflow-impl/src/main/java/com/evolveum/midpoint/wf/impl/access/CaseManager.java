@@ -17,46 +17,46 @@
 package com.evolveum.midpoint.wf.impl.access;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.api.request.CancelCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * @author mederly
+ *
  */
 
-@Component
-public class ProcessInstanceManager {
+@Component("wfCaseManager")
+public class CaseManager {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ProcessInstanceManager.class);
+    private static final transient Trace LOGGER = TraceManager.getTrace(CaseManager.class);
 
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
 	@Autowired private WorkflowEngine workflowEngine;
-	@Autowired private RepositoryService repositoryService;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_STOP_PROCESS_INSTANCE = DOT_INTERFACE + "stopProcessInstance";
     private static final String OPERATION_DELETE_PROCESS_INSTANCE = DOT_INTERFACE + "deleteProcessInstance";
 
-    public void closeCase(String caseOid, Task task, OperationResult parentResult)
-		    throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult)
+		    throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ConfigurationException,
+		    CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(OPERATION_STOP_PROCESS_INSTANCE);
         result.addParam("caseOid", caseOid);
         try {
-            workflowEngine.closeCase(caseOid, task, result);
-        } catch (RuntimeException | SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException e) {
+        	CancelCaseRequest request = new CancelCaseRequest(caseOid);
+            workflowEngine.executeRequest(request, task, result);
+        } catch (RuntimeException | SchemaException | ObjectAlreadyExistsException | ObjectNotFoundException |
+		        SecurityViolationException | ExpressionEvaluationException | ConfigurationException | CommunicationException e) {
             result.recordFatalError("Case couldn't be stopped: " + e.getMessage(), e);
             throw e;
         } finally {
@@ -64,17 +64,19 @@ public class ProcessInstanceManager {
         }
     }
 
-    private void deleteCase(String caseOid, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(OPERATION_DELETE_PROCESS_INSTANCE);
-        result.addParam("caseOid", caseOid);
-        try {
-            workflowEngine.deleteCase(caseOid, parentResult);
-        } catch (RuntimeException e) {
-            result.recordFatalError("Case couldn't be deleted: " + e.getMessage(), e);
-			throw e;
-        } finally {
-			result.computeStatusIfUnknown();
-		}
-    }
+    // TODO cleanup and delete cases
+
+//    private void deleteCase(String caseOid, OperationResult parentResult) {
+//        OperationResult result = parentResult.createSubresult(OPERATION_DELETE_PROCESS_INSTANCE);
+//        result.addParam("caseOid", caseOid);
+//        try {
+//            repositoryService.deleteObject(CaseType.class, )
+//        } catch (RuntimeException e) {
+//            result.recordFatalError("Case couldn't be deleted: " + e.getMessage(), e);
+//			throw e;
+//        } finally {
+//			result.computeStatusIfUnknown();
+//		}
+//    }
 
 }

@@ -482,9 +482,22 @@ public abstract class SchemaConstants {
 	public static final String LIFECYCLE_FAILED = "failed";
 
 	// Case: generic reusable case states
+	// Not all cases use all these states; most common are OPEN and CLOSED.
 
+	// Case was created but it is not yet open. E.g. there should be no work items.
+	public static final String CASE_STATE_CREATED = "created";
+	public static final QName CASE_STATE_CREATED_QNAME = new QName(NS_CASE, CASE_STATE_CREATED);
+
+	// Case is open - work items are created, completed, delegated, etc. Associated work is carried out.
 	public static final String CASE_STATE_OPEN = "open";
 	public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+
+	// All human interaction regarding the case is over. But there might be some automated actions, like execution
+	// of approved changes.
+	public static final String CASE_STATE_CLOSING = "closing";
+	public static final QName CASE_STATE_CLOSING_QNAME = new QName(NS_CASE, CASE_STATE_CLOSING);
+
+	// The case is closed. No further actions nor changes are expected.
 	public static final String CASE_STATE_CLOSED = "closed";
 	public static final QName CASE_STATE_CLOSED_QNAME = new QName(NS_CASE, CASE_STATE_CLOSED);
 

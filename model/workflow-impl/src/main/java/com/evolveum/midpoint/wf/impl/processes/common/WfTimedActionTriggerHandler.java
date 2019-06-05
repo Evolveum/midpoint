@@ -25,25 +25,23 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.wf.api.WorkItemOperationSourceInfo;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.api.CompleteAction;
+import com.evolveum.midpoint.wf.api.request.CompleteWorkItemsRequest;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
+import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
-import com.evolveum.midpoint.wf.impl.engine.NotificationHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -103,42 +101,48 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			 * completed and the other ones cancelled because the stage is being closed. (Before midPoint 4.0 there has to be
 			 * a special code to treat this.)
 			 */
-			List<CompleteAction> completeActions = new ArrayList<>();
+			List<CompleteWorkItemsRequest.SingleCompletion> completeActions = new ArrayList<>();
+			Holder<WorkItemEventCauseInformationType> causeHolder = new Holder<>();
 			for (TriggerType trigger : triggers) {
 				boolean ok = true;
 				OperationResult opResult = triggersResult
 						.createSubresult(WfTimedActionTriggerHandler.class.getName() + ".handleTrigger");
-				String workItemId = ObjectTypeUtil
+				Long workItemId = ObjectTypeUtil
 						.getExtensionItemRealValue(trigger.getExtension(), SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
 				if (workItemId == null) {
 					LOGGER.warn("Trigger without workItemId; ignoring it: " + trigger);
 					opResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No work item ID");
 				} else {
 					try {
-						CaseWorkItemType workItem = workflowEngine.getWorkItem(WorkItemId.create(workItemId), opResult);
-						Duration timeBeforeAction = ObjectTypeUtil
-								.getExtensionItemRealValue(trigger.getExtension(),
-										SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
-						if (timeBeforeAction != null) {
-							AbstractWorkItemActionType action = ObjectTypeUtil
-									.getExtensionItemRealValue(trigger.getExtension(),
-											SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTION);
-							if (action == null) {
-								LOGGER.warn("Notification trigger without workItemAction; ignoring it: {}", trigger);
-								continue;
-							}
-							executeNotifications(timeBeforeAction, action, workItem, aCase, opTask, opResult);
+						CaseWorkItemType workItem = CaseWorkItemUtil.getWorkItem(aCase, workItemId);
+						if (workItem == null) {
+							LOGGER.warn("Work item {} couldn't be found; ignoring the trigger: {}", workItemId, trigger);
+							opResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "No work item with given ID");
 						} else {
-							WorkItemActionsType actions = ObjectTypeUtil
+							Duration timeBeforeAction = ObjectTypeUtil
 									.getExtensionItemRealValue(trigger.getExtension(),
-											SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
-							if (actions == null) {
-								LOGGER.warn("Trigger without workItemActions; ignoring it: " + trigger);
-								continue;
+											SchemaConstants.MODEL_EXTENSION_TIME_BEFORE_ACTION);
+							if (timeBeforeAction != null) {
+								AbstractWorkItemActionType action = ObjectTypeUtil
+										.getExtensionItemRealValue(trigger.getExtension(),
+												SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTION);
+								if (action == null) {
+									LOGGER.warn("Notification trigger without workItemAction; ignoring it: {}", trigger);
+									continue;
+								}
+								executeNotifications(timeBeforeAction, action, workItem, aCase, opTask, opResult);
+							} else {
+								WorkItemActionsType actions = ObjectTypeUtil
+										.getExtensionItemRealValue(trigger.getExtension(),
+												SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ACTIONS);
+								if (actions == null) {
+									LOGGER.warn("Trigger without workItemActions; ignoring it: " + trigger);
+									continue;
+								}
+								executeActions(actions, workItem, aCase, completeActions, causeHolder, opTask, opResult);
 							}
-							executeActions(actions, workItem, aCase, completeActions, opTask, opResult);
+							opResult.computeStatusIfUnknown();
 						}
-						opResult.computeStatusIfUnknown();
 					} catch (RuntimeException | ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 						String message =
 								"Exception while handling work item trigger for ID " + workItemId + ": " + e.getMessage();
@@ -155,7 +159,9 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 				OperationResult result = triggersResult
 						.createSubresult(WfTimedActionTriggerHandler.class.getName() + ".handleCompletions");
 				try {
-					workItemManager.completeWorkItems(completeActions, opTask, result);
+					CompleteWorkItemsRequest request = new CompleteWorkItemsRequest(aCase.getOid(), causeHolder.getValue());
+					request.getCompletions().addAll(completeActions);
+					workItemManager.completeWorkItems(request, opTask, result);
 					result.recordSuccessIfUnknown();
 				} catch (Throwable t) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't handler work item completion", t);
@@ -180,11 +186,13 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
 		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
 		notificationHelper.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction,
-				aCase, opTask, result);
+				aCase, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, CaseWorkItemType workItem, CaseType aCase,
-			List<CompleteAction> completeActions, Task opTask, OperationResult result)
+			List<CompleteWorkItemsRequest.SingleCompletion> completeActions,
+			Holder<WorkItemEventCauseInformationType> causeHolder,
+			Task opTask, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException {
 		for (WorkItemNotificationActionType notificationAction : actions.getNotify()) {
@@ -198,9 +206,9 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		}
 		CompleteWorkItemActionType complete = actions.getComplete();
 		if (complete != null) {
-			completeActions.add(new CompleteAction(WorkItemId.of(workItem), workItem,
-					defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT),
-					null, null, WfContextUtil.createCause(complete)));
+			completeActions.add(new CompleteWorkItemsRequest.SingleCompletion(workItem.getId(),
+					defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT), null, null));
+			causeHolder.setValue(WfContextUtil.createCause(complete));
 		}
 	}
 
@@ -253,10 +261,10 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {
-				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, opTask, notificationAction, result);
+				notificationHelper.notifyWorkItemCustom(assigneeOrDeputy, workItem, cause, aCase, notificationAction, result);
 			}
 		} else {
-			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, opTask, notificationAction, result);
+			notificationHelper.notifyWorkItemCustom(null, workItem, cause, aCase, notificationAction, result);
 		}
 
 	}

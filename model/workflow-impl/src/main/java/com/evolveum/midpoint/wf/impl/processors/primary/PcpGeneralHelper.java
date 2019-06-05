@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,7 +53,9 @@ public class PcpGeneralHelper {
     private static final Trace LOGGER = TraceManager.getTrace(PcpGeneralHelper.class);
 
     @Autowired private PrismContext prismContext;
-    @Autowired private RepositoryService repositoryService;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
     ObjectTreeDeltas retrieveDeltasToProcess(CaseType aCase) throws SchemaException {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()

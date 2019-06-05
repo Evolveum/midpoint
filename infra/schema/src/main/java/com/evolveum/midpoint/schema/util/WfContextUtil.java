@@ -604,7 +604,7 @@ public class WfContextUtil {
 	@NotNull
 	public static List<TriggerType> createTriggers(int escalationLevel, Date workItemCreateTime,
 			Date workItemDeadline, List<WorkItemTimedActionsType> timedActionsList,
-			PrismContext prismContext, Trace logger, @Nullable String workItemId, @NotNull String handlerUri)
+			PrismContext prismContext, Trace logger, @Nullable Long workItemId, @NotNull String handlerUri)
 			throws SchemaException {
 		List<TriggerType> triggers = new ArrayList<>();
 		for (WorkItemTimedActionsType timedActionsEntry : timedActionsList) {
@@ -653,7 +653,7 @@ public class WfContextUtil {
 
 	@NotNull
 	private static TriggerType createTrigger(XMLGregorianCalendar triggerTime, WorkItemActionsType actions,
-			Pair<Duration, AbstractWorkItemActionType> notifyInfo, PrismContext prismContext, @Nullable String workItemId, @NotNull String handlerUri)
+			Pair<Duration, AbstractWorkItemActionType> notifyInfo, PrismContext prismContext, Long workItemId, @NotNull String handlerUri)
 			throws SchemaException {
 		TriggerType trigger = new TriggerType(prismContext);
 		trigger.setTimestamp(triggerTime);
@@ -665,9 +665,9 @@ public class WfContextUtil {
 		if (workItemId != null) {
 			// work item id
 			@SuppressWarnings("unchecked")
-			@NotNull PrismPropertyDefinition<String> workItemIdDef =
+			@NotNull PrismPropertyDefinition<Long> workItemIdDef =
 					prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
-			PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
+			PrismProperty<Long> workItemIdProp = workItemIdDef.instantiate();
 			workItemIdProp.addRealValue(workItemId);
 			trigger.getExtension().asPrismContainerValue().add(workItemIdProp);
 		}

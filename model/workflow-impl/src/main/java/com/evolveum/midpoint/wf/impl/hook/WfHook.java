@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -76,7 +77,9 @@ public class WfHook implements ChangeHook {
     @Autowired private HookRegistry hookRegistry;
     @Autowired private WorkflowManager workflowManager;
     @Autowired private ClockworkMedic medic;
-    @Autowired private RepositoryService repositoryService;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService repositoryService;
 
     private static final String DOT_CLASS = WfHook.class.getName() + ".";
     private static final String OPERATION_INVOKE = DOT_CLASS + "invoke";

@@ -298,9 +298,15 @@ public class RepositoryCache implements RepositoryService {
 			monitor.recordRepoOperation(System.currentTimeMillis() - startTime);
 		}
 	}
-	
+
+	/*
+	 * Tasks are usually rapidly changing.
+	 *
+	 * Cases are perhaps not changing that rapidly but these are objects that are used for communication of various parties;
+	 * so - to avoid having stale data - we skip caching them altogether.
+	 */
 	private boolean alwaysNotCacheable(Class<?> type) {
-		return type.equals(TaskType.class);
+		return type.equals(TaskType.class) || type.equals(CaseType.class);
 	}
 
 	@Override

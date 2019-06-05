@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -186,6 +187,12 @@ public class StartInstruction implements DebugDumpable {
 
 	//region "Output" methods
 	public CaseType getCase() {
+    	if (startsWorkflowProcess()) {
+    		// These cases will be open explicitly using the workflow engine
+    		aCase.setState(SchemaConstants.CASE_STATE_CREATED);
+	    } else {
+		    aCase.setState(SchemaConstants.CASE_STATE_OPEN);
+	    }
 		return aCase;
 	}
 

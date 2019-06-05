@@ -3787,10 +3787,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	private TriggerType addRandomValue(TriggerType trigger) {
 		//noinspection unchecked
-		@NotNull PrismPropertyDefinition<String> workItemIdDef =
+		@NotNull PrismPropertyDefinition<Long> workItemIdDef =
 				prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORK_ITEM_ID);
-		PrismProperty<String> workItemIdProp = workItemIdDef.instantiate();
-		workItemIdProp.addRealValue(String.valueOf(Math.random()));
+		PrismProperty<Long> workItemIdProp = workItemIdDef.instantiate();
+		workItemIdProp.addRealValue((long) (Math.random() * 100000000000L));
 		try {
 			//noinspection unchecked
 			trigger.asPrismContainerValue().findOrCreateContainer(TriggerType.F_EXTENSION).add(workItemIdProp);

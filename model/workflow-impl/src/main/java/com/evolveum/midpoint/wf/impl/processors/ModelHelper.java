@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
@@ -129,10 +128,9 @@ public class ModelHelper {
 	 * @param result
 	 * @return reference to a newly created job
      * @throws SchemaException
-     * @throws ObjectNotFoundException
      */
-    public CaseType addRoot(StartInstruction rootInstruction, Task task,
-		    OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+    public CaseType addRoot(StartInstruction rootInstruction, Task task, OperationResult result)
+		    throws SchemaException, ObjectAlreadyExistsException {
         CaseType rootCase = addCase(rootInstruction, task, result);
 		result.setCaseOid(rootCase.getOid());
 		//wfTaskUtil.setRootTaskOidImmediate(task, rootCase.getOid(), result);
@@ -172,20 +170,14 @@ public class ModelHelper {
 
 	/**
 	 * TODO
-	 * @param parentCase the task that will be the parent of the task of newly created wf-task; it may be null
 	 * @param instruction the wf task creation instruction
-	 * @param task
+	 *
 	 */
 	public CaseType addCase(StartInstruction instruction, Task task, OperationResult result)
-			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+			throws SchemaException, ObjectAlreadyExistsException {
 		LOGGER.trace("Processing start instruction:\n{}", instruction.debugDumpLazily());
 		CaseType aCase = instruction.getCase();
 		repositoryService.addObject(aCase.asPrismObject(), null, result);
-
-		if (instruction.startsWorkflowProcess()) {
-			EngineInvocationContext ctx = new EngineInvocationContext(aCase, task);
-			workflowEngine.startProcessInstance(ctx, result);
-		}
 		return aCase;
 	}
 

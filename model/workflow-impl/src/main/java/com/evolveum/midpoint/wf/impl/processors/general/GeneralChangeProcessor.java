@@ -141,7 +141,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|ObjectAlreadyExistsException|ExpressionEvaluationException|RuntimeException|Error e) {
+        } catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException | ExpressionEvaluationException | RuntimeException | Error e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
@@ -154,7 +154,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Override
     public void onProcessEnd(EngineInvocationContext ctx, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
-        Task task = ctx.opTask;
+        Task task = ctx.getTask();
         // we simply put model context back into parent task
         // (or if it is null, we set the task to skip model context processing)
 
