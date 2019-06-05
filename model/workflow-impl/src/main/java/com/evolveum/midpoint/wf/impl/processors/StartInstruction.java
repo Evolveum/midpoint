@@ -57,11 +57,11 @@ public class StartInstruction implements DebugDumpable {
 	private final ChangeProcessor changeProcessor;
 
     //region Constructors
-    protected StartInstruction(@NotNull ChangeProcessor changeProcessor) {
+    protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         this.changeProcessor = changeProcessor;
 	    PrismContext prismContext = changeProcessor.getPrismContext();
 	    aCase = new CaseType(prismContext);
-	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value(), ObjectTypes.ARCHETYPE);
+	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
 	    aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
 	    aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
 		aCase.setWorkflowContext(new WfContextType(prismContext));
@@ -69,8 +69,8 @@ public class StartInstruction implements DebugDumpable {
 	    aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
     }
 
-	public static StartInstruction create(ChangeProcessor changeProcessor) {
-		return new StartInstruction(changeProcessor);
+	public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+		return new StartInstruction(changeProcessor, archetypeOid);
 	}
 	//endregion
 

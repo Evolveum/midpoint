@@ -28,33 +28,29 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
-import com.evolveum.midpoint.web.component.util.MultivalueContainerListDataProvider;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -84,14 +80,12 @@ import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.SingleValueChoosePanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 
 /**
@@ -164,23 +158,22 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectQuery query;
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
-//        S_AtomicFilterExit query = queryStart.asc(PrismConstants.T_PARENT, CaseType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).;
-//        if (all && authorizedToSeeAll) {
-            query = q.build();
-//        } else {
-            // not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-//            query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-//                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-//                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
-//        }
+        S_FilterEntryOrEmpty queryStart = getPrismContext().queryFor(CaseWorkItemType.class);
+        if (all && authorizedToSeeAll) {
+            query = queryStart.build();
+        } else {
+//             not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
+            query = QueryUtils.filterForAssignees(queryStart, SecurityUtils.getPrincipalUser(),
+                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
+        }
 //        IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
 //        if (includeClosedCases == null || !includeClosedCases.getValue()) {
             query.addFilter(
                 getPrismContext().queryFor(CaseWorkItemType.class)
                         .not()
                         .item(PrismConstants.T_PARENT, CaseType.F_STATE)
-                        .eq("closed")
+                        .eq(SchemaConstants.CASE_STATE_CLOSED)
                         .build()
                         .getFilter()
             );
@@ -203,34 +196,8 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 //            }
 //        }
 
-        // Assignee Filter
-//        SingleValueChoosePanel<ObjectReferenceType, ObjectType> assigneeChoice = (SingleValueChoosePanel) getCaseWorkItemsSearchField(createComponentPath(ID_SEARCH_FILTER_ASSIGNEE_CONTAINER, ID_SEARCH_FILTER_ASSIGNEE));
-//        if (assigneeChoice != null) {
-//            List<ObjectType> assignees = assigneeChoice.getModelObject();
-//            if (assignees != null && assignees.size() > 0) {
-//                ObjectType assignee = assignees.get(0);
-//                if (assignee != null) {
-//                    // TODO MID-3581
-//                    query.addFilter(
-//                        getPrismContext().queryFor(CaseWorkItemType.class)
-//                                .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(assignee, getPrismContext()).asReferenceValue()).buildFilter()
-//                    );
-//                }
-//            }
-//        }
-
         return query;
     }
-
-    private String getCurrentUserOid() {
-        try {
-            return getSecurityContextManager().getPrincipal().getOid();
-        } catch (SecurityViolationException e) {
-            // TODO handle more cleanly
-            throw new SystemException("Couldn't get currently logged user OID", e);
-        }
-    }
-    //endregion
 
     private void initModels(){
         searchModel = new LoadableModel<Search>(false) {
@@ -277,7 +244,6 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         };
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
-        table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         add(table);
 //        initSearch();
     }
@@ -286,31 +252,22 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         BoxedTablePanel table = (BoxedTablePanel) get(ID_CASE_WORK_ITEMS_TABLE);
         table.setCurrentPage(null);
         target.add((Component) table);
-        target.add(getFeedbackPanel());
 
     }
 
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
 
-//                        columns.add(new IconColumn<ContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
-//
-//                            private static final long serialVersionUID = 1L;
-//
-//                            @Override
-//                            protected IModel<String> createIconModel(IModel<ContainerValueWrapper<CaseWorkItemType>> rowModel) {
-//                                return new IModel<String>() {
-//
-//                                    private static final long serialVersionUID = 1L;
-//
-//                                    @Override
-//                                    public String getObject() {
-//                                        return WebComponentUtil.createDefaultBlackIcon(AssignmentsUtil.getTargetType(rowModel.getObject().getContainerValue().asContainerable()));
-//                                    }
-//                                };
-//                            }
-//
-//                        });
+        columns.add(new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
+            }
+
+        });
         columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 

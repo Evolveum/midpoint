@@ -34,6 +34,7 @@ import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import org.jetbrains.annotations.NotNull;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -79,7 +80,7 @@ public class ModelHelper {
      */
     public StartInstruction createInstructionForRoot(ChangeProcessor changeProcessor, @NotNull ModelInvocationContext<?> ctx,
 		    ModelContext<?> contextForRootCase, OperationResult result) throws SchemaException {
-        StartInstruction instruction = StartInstruction.create(changeProcessor);
+        StartInstruction instruction = StartInstruction.create(changeProcessor, SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
         instruction.setModelContext(contextForRootCase);
 
 	    LocalizableMessage rootCaseName = determineRootCaseName(ctx);

@@ -49,8 +49,8 @@ public class PcpStartInstruction extends StartInstruction {
 	private boolean executeApprovedChangeImmediately;     // should the child job execute approved change immediately (i.e. executeModelOperationHandler must be set as well!)
 
 
-	protected PcpStartInstruction(ChangeProcessor changeProcessor) {
-        super(changeProcessor);
+	protected PcpStartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+        super(changeProcessor, archetypeOid);
 		WfPrimaryChangeProcessorStateType state = new WfPrimaryChangeProcessorStateType(getPrismContext());
 		state.setProcessor(changeProcessor.getClass().getName());
 		getWfContext().setProcessorSpecificState(state);
@@ -63,13 +63,14 @@ public class PcpStartInstruction extends StartInstruction {
 		ItemApprovalProcessStateType processState = new ItemApprovalProcessStateType(prismContext)
 				.approvalSchema(approvalSchemaType)
 				.policyRules(attachedPolicyRules);
-		PcpStartInstruction instruction = new PcpStartInstruction(changeProcessor);
+		PcpStartInstruction instruction = new PcpStartInstruction(changeProcessor,
+				SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
 		instruction.setProcessState(processState);
 		return instruction;
 	}
 
-	public static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor) {
-		return new PcpStartInstruction(changeProcessor);
+	public static PcpStartInstruction createEmpty(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+		return new PcpStartInstruction(changeProcessor, archetypeOid);
 	}
 
 

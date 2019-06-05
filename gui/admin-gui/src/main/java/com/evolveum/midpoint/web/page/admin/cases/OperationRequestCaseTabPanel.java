@@ -29,6 +29,8 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final long serialVersionUID = 1L;
 
+    private static String ID_OPERATIONAL_REQUEST_CASE_PANEL = "operationRequestCasePanel";
+
     public OperationRequestCaseTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
         super(id, mainForm, objectWrapperModel);
     }
@@ -40,7 +42,9 @@ public class OperationRequestCaseTabPanel extends AbstractObjectTabPanel<CaseTyp
     }
 
     private void initLayout(){
-        add(new WebMarkupContainer("aoperationRequestCasePanel"));
+        WebMarkupContainer operationalRequestCasePanel = new WebMarkupContainer(ID_OPERATIONAL_REQUEST_CASE_PANEL);
+        operationalRequestCasePanel.setOutputMarkupId(true);
+        add(operationalRequestCasePanel);
     }
 
 }
