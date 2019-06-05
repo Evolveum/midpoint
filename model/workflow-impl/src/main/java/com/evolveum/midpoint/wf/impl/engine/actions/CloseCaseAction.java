@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
@@ -56,7 +55,6 @@ public class CloseCaseAction extends InternalAction {
 		String state = currentCase.getState();
 		if (state == null || SchemaConstants.CASE_STATE_CREATED.equals(state) || SchemaConstants.CASE_STATE_OPEN.equals(state)) {
 			currentCase.setOutcome(outcome);
-			currentCase.setCloseTimestamp(now);
 			currentCase.setState(SchemaConstants.CASE_STATE_CLOSING);
 			ctx.setWasClosed(true);
 			// audit and notification is done after the onProcessEnd is finished

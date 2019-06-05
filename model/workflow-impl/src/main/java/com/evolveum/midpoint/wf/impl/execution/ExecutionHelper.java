@@ -78,12 +78,21 @@ public class ExecutionHelper {
 
 	public void closeCaseInRepository(CaseType aCase, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		LOGGER.debug("Marking case {} as closed", aCase);
 		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
 				.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 				.item(CaseType.F_CLOSE_TIMESTAMP).replace(clock.currentTimeXMLGregorianCalendar())
 				.asItemDeltas();
 		repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
+		LOGGER.debug("Marked case {} as closed", aCase);
+	}
+
+	public void setCaseStateInRepository(CaseType aCase, String newState, OperationResult result)
+			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
+				.item(CaseType.F_STATE).replace(newState)
+				.asItemDeltas();
+		repositoryService.modifyObject(CaseType.class, aCase.getOid(), modifications, result);
+		LOGGER.debug("Marked case {} as {}", aCase, newState);
 	}
 
 	/**
@@ -98,6 +107,10 @@ public class ExecutionHelper {
 			return;
 		}
 		List<CaseType> subcases = miscHelper.getSubcases(rootOid, result);
+		LOGGER.debug("Subcases:");
+		for (CaseType subcase : subcases) {
+			LOGGER.debug(" - {}: state={}, closeTS={}", subcase, subcase.getState(), subcase.getCloseTimestamp());
+		}
 		List<String> openOids = subcases.stream()
 				.filter(c -> !CaseTypeUtil.isClosed(c))
 				.map(ObjectType::getOid)

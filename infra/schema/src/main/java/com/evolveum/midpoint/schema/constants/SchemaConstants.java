@@ -492,10 +492,15 @@ public abstract class SchemaConstants {
 	public static final String CASE_STATE_OPEN = "open";
 	public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
 
-	// All human interaction regarding the case is over. But there might be some automated actions, like execution
-	// of approved changes.
+	// All human interaction regarding the case is over. But there might be some actions pending, e.g.
+	// submitting change execution task, waiting for subtasks to be closed, and so on.
 	public static final String CASE_STATE_CLOSING = "closing";
 	public static final QName CASE_STATE_CLOSING_QNAME = new QName(NS_CASE, CASE_STATE_CLOSING);
+
+	// The case now proceeds by means of automated execution of defined actions (e.g. approved changes);
+	// or waiting for the execution to start.
+	public static final String CASE_STATE_EXECUTING = "executing";
+	public static final QName CASE_STATE_EXECUTING_QNAME = new QName(NS_CASE, CASE_STATE_EXECUTING);
 
 	// The case is closed. No further actions nor changes are expected.
 	public static final String CASE_STATE_CLOSED = "closed";

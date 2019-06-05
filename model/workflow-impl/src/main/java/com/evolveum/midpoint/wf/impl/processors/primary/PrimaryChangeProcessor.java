@@ -454,7 +454,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	    }
     }
 
-	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		Task task = taskManager.createTaskInstance("execute");
 		task.setName("Execution of " + aCase.getName().getOrig());
 		task.setOwner(getExecutionTaskOwner(result));
@@ -464,6 +465,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 		}
 		taskManager.switchToBackground(task, result);
+
+		executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
 	}
 
 	private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
