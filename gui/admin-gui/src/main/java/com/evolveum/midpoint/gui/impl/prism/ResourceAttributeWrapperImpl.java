@@ -27,7 +27,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.processor.MutableResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -70,7 +69,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 	
 	@Override
 	public boolean canAdd(LayerType layer) {
-		return getRefinedAttributeDefinition().canAdd(layer);
+		return getRefinedAttributeDefinition().canAdd();
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 	
 	@Override
 	public boolean canRead(LayerType layer) {
-		return getRefinedAttributeDefinition().canRead(layer);
+		return getRefinedAttributeDefinition().canRead();
 	}
 	
 	@Override
@@ -91,7 +90,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
 	@Override
 	public boolean canModify(LayerType layer) {
-		return getRefinedAttributeDefinition().canModify(layer);
+		return getRefinedAttributeDefinition().canModify();
 	}
 	
 	@Override

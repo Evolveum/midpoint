@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.gui.impl.factory;
 
+import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.gui.impl.prism.ResourceAttributeWrapperImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -45,7 +48,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
 	
 	@Override
 	public boolean match(ItemDefinition<?> def) {
-		return def instanceof RefinedAttributeDefinition;
+		return def instanceof ResourceAttributeDefinition;
 	}
 	
 	@Override
@@ -60,6 +63,7 @@ public class ResourceAttributeWrapperFactoryImpl<T> extends ItemWrapperFactoryIm
 		return valueWrapper;
 	}
 
+	@PostConstruct
 	@Override
 	public void register() {
 		registry.addToRegistry(this);

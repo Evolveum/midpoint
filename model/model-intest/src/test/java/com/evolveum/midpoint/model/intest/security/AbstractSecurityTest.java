@@ -58,6 +58,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -610,6 +613,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertAttributeFlags(RefinedObjectClassDefinition rOcDef, QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(attrName);
+		assertEquals("Wrong readability flag for "+attrName, expectedRead, rAttrDef.canRead());
+		assertEquals("Wrong addition flag for "+attrName, expectedAdd, rAttrDef.canAdd());
+		assertEquals("Wrong modification flag for "+attrName, expectedModify, rAttrDef.canModify());
+	}
+	
+	protected void assertAttributeFlags(ObjectClassComplexTypeDefinition rOcDef, QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
+		ResourceAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(attrName);
 		assertEquals("Wrong readability flag for "+attrName, expectedRead, rAttrDef.canRead());
 		assertEquals("Wrong addition flag for "+attrName, expectedAdd, rAttrDef.canAdd());
 		assertEquals("Wrong modification flag for "+attrName, expectedModify, rAttrDef.canModify());

@@ -512,6 +512,14 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	@Override
 	public <ID extends ItemDefinition> ID findLocalItemDefinition(@NotNull QName name, @NotNull Class<ID> clazz,
 			boolean caseInsensitive) {
+		if (layerRefinedAttributeDefinitions != null) {
+			for (LayerRefinedAttributeDefinition attrDef : layerRefinedAttributeDefinitions) {
+				if (attrDef.isValidFor(name, clazz, caseInsensitive)) {
+					return (ID) attrDef;
+				}
+			}
+		}
+		
 		ID def = refinedObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
 		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
 	}
