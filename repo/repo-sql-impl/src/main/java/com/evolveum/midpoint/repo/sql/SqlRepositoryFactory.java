@@ -236,7 +236,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             args.add(Integer.toString(config.getPort()));
         }
 
-        return args.toArray(new String[args.size()]);
+        return args.toArray(new String[0]);
     }
 
     private void dropDatabaseIfExists(SqlRepositoryConfiguration config) throws RepositoryServiceFactoryException {

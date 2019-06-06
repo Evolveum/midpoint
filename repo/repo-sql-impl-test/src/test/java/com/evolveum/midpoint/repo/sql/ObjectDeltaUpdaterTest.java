@@ -119,7 +119,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -155,7 +155,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(3, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -180,7 +180,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(2, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(3, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -234,7 +234,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -275,7 +275,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         // select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
         // select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(9, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(10, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -316,7 +316,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -352,7 +352,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -385,7 +385,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -448,7 +448,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -475,7 +475,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         Session session = factory.openSession();
@@ -635,7 +635,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
         }
 
         LOGGER.info("test280AddPhoto check");
@@ -666,7 +666,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(6, queryCountInterceptor.getQueryCount());
         }
 
         LOGGER.info("test290ReplacePhoto check");
@@ -697,7 +697,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryCountInterceptor.getQueryCount());
+            AssertJUnit.assertEquals(5, queryCountInterceptor.getQueryCount());
         }
 
         LOGGER.info("test300DeletePhoto check");

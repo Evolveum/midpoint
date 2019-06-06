@@ -622,7 +622,7 @@ public class SqlRepositoryConfiguration {
         if (isUsingH2()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
-            defaultLockForUpdateViaSql = false;
+            defaultLockForUpdateViaSql = true;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
 	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
