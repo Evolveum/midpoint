@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author Pavol Mederly
@@ -58,7 +58,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConcurrencyTest.class);
 
-    //private static final long WAIT_TIME = 60000;
+    private static final long WAIT_FOR_THREAD_NATURAL_STOP_TIME = 300000;
     //private static final long WAIT_STEP = 500;
 
     @Test
@@ -616,11 +616,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         assertEquals("Failures are there", 0, failures.size());
     }
 
-    private void waitForThreads(List<? extends WorkerThread> threads, long DURATION) throws InterruptedException {
-        LOGGER.info("*** Waiting {} ms ***", DURATION);
+    private void waitForThreads(List<? extends WorkerThread> threads, long duration) throws InterruptedException {
+        LOGGER.info("*** Waiting {} ms ***", duration);
         long startTime = System.currentTimeMillis();
         main:
-        while (System.currentTimeMillis() - startTime < DURATION) {
+        while (System.currentTimeMillis() - startTime < duration) {
 
             for (WorkerThread thread : threads) {
                 if (!thread.isAlive()) {
@@ -638,9 +638,14 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             LOGGER.info("Thread " + thread.id + " has done " + thread.counter.get() + " iterations");
         }
 
-        // we do not have to wait for the threads to be stopped, just examine their results
-
-        Thread.sleep(1000);         // give the threads a chance to finish (before repo will be shut down)
+        long start = System.currentTimeMillis();
+        boolean anyAlive = true;
+        while (anyAlive && System.currentTimeMillis() - start < WAIT_FOR_THREAD_NATURAL_STOP_TIME) {
+            anyAlive = threads.stream().anyMatch(Thread::isAlive);
+            Thread.sleep(100);
+        }
+        List<String> alive = threads.stream().filter(Thread::isAlive).map(Thread::getName).collect(Collectors.toList());
+        assertTrue("Some threads had not stopped in given time: " + alive, alive.isEmpty());
 
         for (WorkerThread thread : threads) {
             LOGGER.info("Modifier thread " + thread.id + " finished with an exception: ", thread.threadResult);
