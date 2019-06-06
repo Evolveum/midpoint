@@ -24,16 +24,23 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.apache.directory.api.ldap.model.schema.ObjectClass;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -53,9 +60,15 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -1657,7 +1670,82 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGlobalStateUntouched();
     }
+    
+    /**
+     * test getEditObjectDefinition for shadow. It should also call and apply edited schema for attributes
+     * @throws Exception
+     */
+    @Test
+    public void test259AutzJackSelfAccountsPartialControl() throws Exception {
+        final String TEST_NAME = "test259AutzJackSelfAccountsPartialControl";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_OID);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_NICK_NAME, PrismTestUtil.createPolyString("jackie"));
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
+        shadow.applyDefinition(rOcDef, true);
+        
+        ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
+        ObjectClassComplexTypeDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
+        
+        Item attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
+        ItemDefinition attrDf = attr.getDefinition();
+        AssertJUnit.assertTrue("Expected that attribute can be read", attrDf.canRead());
+        AssertJUnit.assertTrue("Expected that attribute cannot be added", !attrDf.canAdd());
+        AssertJUnit.assertTrue("Expected that attribute cannot be modified", !attrDf.canModify());
+        
+        display("Refined objectclass def", containerDef);
+        assertAttributeFlags(containerDef, SchemaConstants.ICFS_UID, true, false, false);
+        assertAttributeFlags(containerDef, SchemaConstants.ICFS_NAME, true, false, false);
+        assertAttributeFlags(containerDef, new ItemName("location"), true, true, true);
+        assertAttributeFlags(containerDef, new ItemName("weapon"), true, false, false);
+
+        // Not linked to jack
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+
+        // Not linked to jack
+        assertAddDeny(ACCOUNT_JACK_DUMMY_RED_FILE);
+        // Not even jack's account
+        assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
+
+        assertPasswordChangeAllow(UserType.class, USER_JACK_OID, "nbusr123");
+        assertPasswordChangeDeny(UserType.class, USER_GUYBRUSH_OID, "nbusr123");
+        
+		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
+		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
+
+        assertGlobalStateUntouched();
+    }
+    
     @Test
     public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
 		final String TEST_NAME = "test260AutzJackObjectFilterLocationShadowRole";

@@ -1834,6 +1834,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (!(object instanceof AssignmentHolderType)) {
 			return archetypeOid == null;
 		}
+		
+		LensContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext != null) {
+			LensFocusContext<O> focusContext = lensContext.getFocusContext();
+			ArchetypeType archetypeType = focusContext.getArchetype();
+			if (archetypeType != null) {
+				return archetypeType.getOid().equals(archetypeOid);
+			}
+		}
+		
 		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
 		if (archetypeOid == null) {
 			return archetypeRefs.isEmpty();

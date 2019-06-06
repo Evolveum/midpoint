@@ -456,6 +456,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
 	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+    	// We must do this before the task is started, because as part of task completion we set state to CLOSED.
+		// So if we set state to EXECUTING after the task is started, the case might be already closed at that point.
+		// (If task is fast enough.)
+		executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
+
 		Task task = taskManager.createTaskInstance("execute");
 		task.setName("Execution of " + aCase.getName().getOrig());
 		task.setOwner(getExecutionTaskOwner(result));
@@ -465,8 +471,6 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 		}
 		taskManager.switchToBackground(task, result);
-
-		executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
 	}
 
 	private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
