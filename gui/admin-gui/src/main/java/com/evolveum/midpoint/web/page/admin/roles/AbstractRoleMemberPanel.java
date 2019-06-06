@@ -739,7 +739,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					public Object getDisplayValue(QName qname) {
-						if (qname == null || AssignmentHolderType.COMPLEX_TYPE.equals(qname)){
+						if (qname == null || FocusType.COMPLEX_TYPE.equals(qname)){
 							return StringUtils.leftPad(createStringResource("ObjectTypes.all").getString(), 1);
 						} else {
 							return super.getDisplayValue(qname);
@@ -750,7 +750,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
                         QName qname = super.getObject(id, choices);
                         if (qname == null){
-                            return AssignmentHolderType.COMPLEX_TYPE;
+                            return FocusType.COMPLEX_TYPE;
                         }
                         return qname;
                     }
