@@ -23,17 +23,17 @@ public class CenterIconCssStyle implements LayeredIconCssStyle {
 
 	@Override
 	public String getBasicCssClass() {
-		return "icon-basic-transparent-for-column";
+		return "icon-basic-transparent";
 	}
 
 	@Override
 	public String getBasicLayerCssClass() {
-		return "icon-basic-layer-for-column";
+		return "icon-basic-layer";
 	}
 
 	@Override
 	public String getLayerCssClass() {
-		return "center-layer-for-column";
+		return "center-layer";
 	}
 
 	@Override
