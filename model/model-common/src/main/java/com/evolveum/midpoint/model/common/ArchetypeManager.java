@@ -83,7 +83,7 @@ public class ArchetypeManager {
 		return determineArchetype(assignmentHolder, null, result);
 	}
 	
-	private <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+	public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
 		String archetypeOid;
 		if (explicitArchetypeOid != null) {
 			archetypeOid = explicitArchetypeOid;
