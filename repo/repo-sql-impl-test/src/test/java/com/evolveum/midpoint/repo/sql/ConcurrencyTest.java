@@ -23,7 +23,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +35,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -42,6 +43,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author Pavol Mederly
@@ -58,8 +63,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     @Test
     public void test001TwoWriters_OneAttributeEach__NoReader() throws Exception {
-
-        PropertyModifierThread[] mts = new PropertyModifierThread[]{
+        PropertyModifierThread[] mts = new PropertyModifierThread[] {
                 new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
                 new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
 //                new ModifierThread(3, oid, UserType.F_DESCRIPTION, false),
@@ -69,33 +73,27 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 //                new ModifierThread(8, oid, UserType.F_EMAIL_ADDRESS),
 //                new ModifierThread(9, oid, UserType.F_EMPLOYEE_NUMBER)
         };
-
         concurrencyUniversal("Test1", 30000L, 500L, mts, null);
     }
 
     @Test
     public void test002FourWriters_OneAttributeEach__NoReader() throws Exception {
-
-        PropertyModifierThread[] mts = new PropertyModifierThread[]{
+        PropertyModifierThread[] mts = new PropertyModifierThread[] {
                 new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true, null, true),
                 new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true, null, true),
                 new PropertyModifierThread(3, UserType.F_DESCRIPTION, false, null, true),
                 new PropertyModifierThread(4, UserType.F_EMAIL_ADDRESS, false, null, true)
         };
-
         concurrencyUniversal("Test2", 60000L, 500L, mts, null);
     }
 
     @Test
     public void test003OneWriter_TwoAttributes__OneReader() throws Exception {
-
-        PropertyModifierThread[] mts = new PropertyModifierThread[]{
+        PropertyModifierThread[] mts = new PropertyModifierThread[] {
                 new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
                         ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true)
         };
-
-
         Checker checker = (iteration, oid) -> {
             PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
             String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
@@ -107,24 +105,19 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 throw new AssertionError(msg);
             }
         };
-
         concurrencyUniversal("Test3", 60000L, 0L, mts, checker);
     }
 
     @Test
     public void test004TwoWriters_TwoAttributesEach__OneReader() throws Exception {
-
-        PropertyModifierThread[] mts = new PropertyModifierThread[]{
+        PropertyModifierThread[] mts = new PropertyModifierThread[] {
                 new PropertyModifierThread(1, UserType.F_GIVEN_NAME, true,
                         ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
                         true),
-
                 new PropertyModifierThread(2, UserType.F_FAMILY_NAME, true,
                         ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_CONSTRUCTION),
                         true),
         };
-
-
         Checker checker = (iteration, oid) -> {
             PrismObject<UserType> userRetrieved = repositoryService.getObject(UserType.class, oid, null, new OperationResult("dummy"));
             String givenName = userRetrieved.asObjectable().getGivenName().getOrig();
@@ -143,7 +136,6 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 throw new AssertionError(msg);
             }
         };
-
         concurrencyUniversal("Test4", 60000L, 0L, mts, checker);
     }
 
@@ -165,47 +157,38 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("Concurrency Test");
         String oid = repositoryService.addObject(user, null, result);
 
-        LOGGER.info("*** Object added: " + oid + " ***");
-
+        LOGGER.info("*** Object added: {} ***", oid);
         LOGGER.info("*** Starting modifier threads ***");
 
-//        modifierThreads[1].setOid(oid);
-//        modifierThreads[1].runOnce();
-//        if(true) return;
-
         for (PropertyModifierThread mt : modifierThreads) {
-            mt.setOid(oid);
+            mt.setObject(UserType.class, oid);
             mt.start();
         }
 
-        LOGGER.info("*** Waiting " + duration + " ms ***");
+        LOGGER.info("*** Waiting {} ms ***", duration);
         long startTime = System.currentTimeMillis();
         int readIteration = 1;
         main:
         while (System.currentTimeMillis() - startTime < duration) {
-
             if (checker != null) {
                 checker.check(readIteration, oid);
             }
-
             if (waitStep > 0L) {
                 Thread.sleep(waitStep);
             }
-
             for (PropertyModifierThread mt : modifierThreads) {
                 if (!mt.isAlive()) {
                     LOGGER.error("At least one of threads died prematurely, finishing waiting.");
                     break main;
                 }
             }
-
             readIteration++;
         }
 
         for (PropertyModifierThread mt : modifierThreads) {
             mt.stop = true;             // stop the threads
-            System.out.println("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
-            LOGGER.info("Thread " + mt.id + " has done " + (mt.counter - 1) + " iterations");
+            System.out.println("Thread " + mt.id + " has done " + mt.counter.get() + " iterations");
+            LOGGER.info("Thread " + mt.id + " has done " + mt.counter.get() + " iterations");
         }
 
         // we do not have to wait for the threads to be stopped, just examine their results
@@ -213,7 +196,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         Thread.sleep(1000);         // give the threads a chance to finish (before repo will be shut down)
 
         for (PropertyModifierThread mt : modifierThreads) {
-            LOGGER.info("Modifier thread " + mt.id + " finished with an exception: ", mt.threadResult);
+            LOGGER.info("Modifier thread {} finished with an exception", mt.id, mt.threadResult);
         }
 
         for (PropertyModifierThread mt : modifierThreads) {
@@ -226,10 +209,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     abstract class WorkerThread extends Thread {
 
         int id;
-        String oid;                     // object to modify
+        Class<? extends ObjectType> objectClass;                // object to modify
+        String oid;                                             // object to modify
         String lastVersion = null;
         volatile Throwable threadResult;
-        volatile int counter = 1;
+        AtomicInteger counter = new AtomicInteger(0);
 
         WorkerThread(int id) {
             this.id = id;
@@ -242,8 +226,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             try {
                 while (!stop) {
                     OperationResult result = new OperationResult("run");
-                    counter++;
-                    LOGGER.info(" --- Iteration number {} for {} ---", counter, description());
+                    LOGGER.info(" --- Iteration number {} for {} ---", counter.incrementAndGet(), description());
                     runOnce(result);
                 }
             } catch (Throwable t) {
@@ -254,17 +237,16 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         abstract void runOnce(OperationResult result) throws Exception;
         abstract String description();
-
-        public void setOid(String oid) {
+        public void setObject(Class<? extends ObjectType> objectClass, String oid) {
+            this.objectClass = objectClass;
             this.oid = oid;
         }
-
     }
 
     class PropertyModifierThread extends WorkerThread {
 
-        ItemPath attribute1;           // attribute to modify
-        ItemPath attribute2;           // attribute to modify
+        final ItemPath attribute1;           // attribute to modify
+        final ItemPath attribute2;           // attribute to modify
         boolean poly;
         boolean checkValue;
 
@@ -296,7 +278,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             PrismObjectDefinition<?> userPrismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 
             String prefix = lastName(attribute1);
-            String dataWritten = "[" + prefix + ":" + Integer.toString(counter) + "]";
+            String dataWritten = "[" + prefix + ":" + counter.get() + "]";
 
             PrismPropertyDefinition<?> propertyDefinition1 = userPrismDefinition.findPropertyDefinition(attribute1);
             if (propertyDefinition1 == null) {
@@ -308,7 +290,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             List<ItemDelta> deltas = new ArrayList<>();
             deltas.add(delta1);
 
-            ItemDefinition propertyDefinition2 = null;
+            ItemDefinition propertyDefinition2;
             if (attribute2 != null) {
                 propertyDefinition2 = userPrismDefinition.findItemDefinition(attribute2);
                 if (propertyDefinition2 == null) {
@@ -317,18 +299,24 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 
                 ItemDelta delta2;
                 if (propertyDefinition2 instanceof PrismContainerDefinition) {
-                	delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2);
+                    //noinspection unchecked
+                    delta2 = prismContext.deltaFactory().container().create(attribute2, (PrismContainerDefinition) propertyDefinition2);
                 } else {
+                    //noinspection unchecked
                     delta2 = prismContext.deltaFactory().property().create(attribute2, (PrismPropertyDefinition) propertyDefinition2);
                 }
                 if (ConstructionType.COMPLEX_TYPE.equals(propertyDefinition2.getTypeName())) {
                     ConstructionType act = new ConstructionType();
                     act.setDescription(dataWritten);
+                    //noinspection unchecked
                     delta2.setValueToReplace(act.asPrismContainerValue());
                 } else {
+                    //noinspection unchecked
                     delta2.setValueToReplace(prismContext.itemFactory().createPropertyValue(dataWritten));
                 }
                 deltas.add(delta2);
+            } else {
+                propertyDefinition2 = null;
             }
 
             try {
@@ -348,6 +336,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
+                    // ignore
                 }
 
                 PrismObject<UserType> user;
@@ -400,20 +389,15 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 lastVersion = currentVersion;
             }
         }
-
-		public void setOid(String oid) {
-            this.oid = oid;
-        }
-
     }
 
     abstract class DeltaExecutionThread extends WorkerThread {
 
         String description;
 
-        DeltaExecutionThread(int id, String oid, String description) {
+        DeltaExecutionThread(int id, Class<? extends ObjectType> objectClass, String oid, String description) {
             super(id);
-            this.oid = oid;
+            setObject(objectClass, oid);
             this.description = description;
             this.setName("Executor: " + description);
         }
@@ -426,9 +410,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         abstract Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception;
 
         void runOnce(OperationResult result) throws Exception {
-
-            repositoryService.modifyObject(UserType.class, oid, getItemDeltas(), result);
-
+            repositoryService.modifyObject(objectClass, oid, getItemDeltas(), result);
         }
     }
 
@@ -454,6 +436,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 		                    .createModificationReplaceProperty(UserType.class, object.getOid(),
 		                    UserType.F_FULL_NAME, new PolyString(newFullName));
                     try {
+                        //noinspection unchecked
                         repositoryService.modifyObject(UserType.class,
                             object.getOid(),
                             delta.getModifications(),
@@ -466,7 +449,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 null, true, result);
 
         PrismObject<UserType> reloaded = repositoryService.getObject(UserType.class, oid, null, result);
-        AssertJUnit.assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());
+        assertEquals("Full name was not changed", newFullName, reloaded.asObjectable().getFullName().getOrig());
     }
 
     @Test
@@ -496,7 +479,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         for (int i = 0; i < THREADS; i++) {
             final int threadIndex = i;
 
-            DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "operationExecution adder #" + i) {
+            DeltaExecutionThread thread = new DeltaExecutionThread(i, UserType.class, oid, "operationExecution adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
                     return prismContext.deltaFor(UserType.class)
@@ -518,6 +501,20 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
     public void test110AddAssignments() throws Exception {
 
         if (getConfiguration().isUsingH2()) {
+            // Because of:
+            // Caused by: javax.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
+            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
+            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
+            //	at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)
+            //	at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1443)
+            //	at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:493)
+            //	at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:3207)
+            //	at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:2413)
+            //	at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:473)
+            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:156)
+            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
+            //	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
+            //	at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
             return;         // TODO
         }
 
@@ -537,7 +534,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         for (int i = 0; i < THREADS; i++) {
             final int threadIndex = i;
 
-            DeltaExecutionThread thread = new DeltaExecutionThread(i, oid, "assignment adder #" + i) {
+            DeltaExecutionThread thread = new DeltaExecutionThread(i, UserType.class, oid, "assignment adder #" + i) {
                 @Override
                 Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
                     return prismContext.deltaFor(UserType.class)
@@ -556,7 +553,70 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         display("user after", userAfter);
     }
 
-    protected void waitForThreads(List<? extends WorkerThread> threads, long DURATION) throws InterruptedException {
+    @Test
+    public void test120AddApproverRef() throws Exception {
+
+        int THREADS = 4;
+        long DURATION = 30000L;
+        final String APPROVER_REF_FORMAT = "oid-%d-%s";
+
+        RoleType role = new RoleType(prismContext).name("judge");
+
+        OperationResult result = new OperationResult("test120AddApproverRef");
+        String oid = repositoryService.addObject(role.asPrismObject(), null, result);
+
+        PrismTestUtil.display("object added", oid);
+
+        LOGGER.info("Starting worker threads");
+
+        List<DeltaExecutionThread> threads = new ArrayList<>();
+        for (int i = 0; i < THREADS; i++) {
+            final int threadIndex = i;
+
+            DeltaExecutionThread thread = new DeltaExecutionThread(i, RoleType.class, oid, "approverRef adder #" + i) {
+                @Override
+                Collection<ItemDelta<?, ?>> getItemDeltas() throws Exception {
+                    return prismContext.deltaFor(RoleType.class)
+                            .item(RoleType.F_APPROVER_REF).add(
+                                    ObjectTypeUtil.createObjectRef(String.format(APPROVER_REF_FORMAT, threadIndex, counter), ObjectTypes.USER))
+                            .asItemDeltas();
+                }
+            };
+            thread.start();
+            threads.add(thread);
+        }
+
+        waitForThreads(threads, DURATION);
+        PrismObject<RoleType> roleAfter = repositoryService.getObject(RoleType.class, oid, null, result);
+        display("role after", roleAfter);
+
+        int totalExecutions = threads.stream().mapToInt(t -> t.counter.get()).sum();
+        int totalApprovers = roleAfter.asObjectable().getApproverRef().size();
+        System.out.println("Total executions: " + totalExecutions);
+        System.out.println("Approvers: " + totalApprovers);
+
+        List<String> failures = new ArrayList<>();
+        for (DeltaExecutionThread thread : threads) {
+            for (int i = 1; i <= thread.counter.get(); i++) {
+                String expected = String.format(APPROVER_REF_FORMAT, thread.id, i);
+                List<String> matchingOids = roleAfter.asObjectable().getApproverRef().stream()
+                        .map(ObjectReferenceType::getOid)
+                        .filter(refOid -> refOid.equals(expected))
+                        .collect(Collectors.toList());
+                if (matchingOids.size() != 1) {
+                    failures.add("Wrong # of occurrences of " + expected + ": " + matchingOids);
+                }
+            }
+        }
+
+        System.out.println("Failures:");
+        failures.forEach(line -> System.out.println(" - " + line));
+
+        assertEquals("Wrong # of approvers", totalExecutions, totalApprovers);
+        assertEquals("Failures are there", 0, failures.size());
+    }
+
+    private void waitForThreads(List<? extends WorkerThread> threads, long DURATION) throws InterruptedException {
         LOGGER.info("*** Waiting {} ms ***", DURATION);
         long startTime = System.currentTimeMillis();
         main:
@@ -574,8 +634,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         for (WorkerThread thread : threads) {
             thread.stop = true;             // stop the threads
-            System.out.println("Thread " + thread.id + " has done " + (thread.counter - 1) + " iterations");
-            LOGGER.info("Thread " + thread.id + " has done " + (thread.counter - 1) + " iterations");
+            System.out.println("Thread " + thread.id + " has done " + thread.counter.get() + " iterations");
+            LOGGER.info("Thread " + thread.id + " has done " + thread.counter.get() + " iterations");
         }
 
         // we do not have to wait for the threads to be stopped, just examine their results
