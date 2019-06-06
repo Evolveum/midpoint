@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import java.text.Collator;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
@@ -40,6 +44,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -144,7 +150,43 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     	propertiesLabel.setOutputMarkupId(true);
     	
     	ListView<IW> properties = new ListView<IW>("properties",
-            new PropertyModel<>(getModel(), "nonContainers")) {
+    		new IModel<List<IW>>() {
+
+				@Override
+				public List<IW> getObject() {
+					List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = getModelObject().getNonContainers();
+					
+					Locale locale = WebModelServiceUtils.getLocale();
+					if (locale == null) {
+						locale = Locale.getDefault();
+					}
+					Collator collator = Collator.getInstance(locale);
+					collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+					collator.setDecomposition(Collator.FULL_DECOMPOSITION); 
+					ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
+					if (CollectionUtils.isNotEmpty(nonContainers)) {
+						nonContainers.sort((Comparator) comparator);
+						
+						int visibleProperties = 0;
+
+				 		for (ItemWrapper<?,?,?,?> item : nonContainers) {
+							if (item.isVisible(null)) {
+								visibleProperties++;
+							}
+							
+							if (visibleProperties % 2 == 0) {
+								item.setStripe(false);
+							} else {
+								item.setStripe(true);
+							}
+							
+						}
+					}
+					
+					return (List<IW>) nonContainers;
+				}
+			}) {
+//            new PropertyModel<>(getModel(), "nonContainers")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -182,7 +224,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 			
 			
         };
-        properties.setReuseItems(true);
+//        properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
         add(propertiesLabel);
        	propertiesLabel.add(properties);

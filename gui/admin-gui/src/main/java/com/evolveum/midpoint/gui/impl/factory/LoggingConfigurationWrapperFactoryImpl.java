@@ -115,7 +115,6 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
-		containerValueWrapper.sort();
 		return containerValueWrapper;
 	}
 
