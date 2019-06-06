@@ -109,6 +109,23 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                 } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
                     //todo manual case tab
                 }
+                tabs.add(
+                        new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
+                                getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public WebMarkupContainer createPanel(String panelId) {
+                                return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                            }
+
+                            @Override
+                            public String getCount() {
+                                return Integer.toString(countWorkItems());
+                            }
+                        });
+
                 if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)){
                     tabs.add(
                             new PanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
@@ -119,24 +136,6 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
                                     return new ChildCasesTabPanel(panelId, getMainForm(), getObjectModel());
-                                }
-                            });
-                } else {
-                    //todo do manual cases have workitems?
-                    tabs.add(
-                            new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
-                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
-
-                                private static final long serialVersionUID = 1L;
-
-                                @Override
-                                public WebMarkupContainer createPanel(String panelId) {
-                                    return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
-                                }
-
-                                @Override
-                                public String getCount() {
-                                    return Integer.toString(countWorkItems());
                                 }
                             });
                 }

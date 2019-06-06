@@ -21,7 +21,10 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
@@ -33,6 +36,8 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final long serialVersionUID = 1L;
 
     private static String ID_APPROVAL_CASE_PANEL = "approvalCasePanel";
+    private static String ID_HISTORY_PANEL = "historyPanel";
+
     public ApprovalCaseTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
         super(id, mainForm, objectWrapperModel);
     }
