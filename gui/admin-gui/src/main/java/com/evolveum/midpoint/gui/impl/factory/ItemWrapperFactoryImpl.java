@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -67,7 +68,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		if (childItem == null) {
 			childItem = (I) parent.getNewValue().findOrCreateItem(name);
 		}
-			
+		
 		return createWrapper(parent, childItem, status, context);
 	}
 	
@@ -182,7 +183,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		ItemStatus objectStatus = context.getObjectStatus();
 		
 		if (ItemStatus.NOT_CHANGED == objectStatus) {
-			if (itemWrapper.canRead() && !itemWrapper.canModify()) {
+			if (!itemWrapper.canModify()) {
 				LOGGER.trace("Setting {} as readonly because authZ said so");
 				return true;
 			}

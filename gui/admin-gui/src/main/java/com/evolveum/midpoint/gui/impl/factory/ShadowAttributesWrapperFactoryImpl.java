@@ -13,7 +13,9 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 
 
@@ -38,4 +40,11 @@ public class ShadowAttributesWrapperFactoryImpl<C extends Containerable> extends
 		return new PrismContainerWrapperImpl<C>((PrismContainerValueWrapper<C>) parent, childContainer, status);
 	}
 
+//	@Override
+//	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
+//			PrismContainerValue<C> value) {
+//		ObjectClassComplexTypeDefinition occtDef = (ObjectClassComplexTypeDefinition) parent.getComplexTypeDefinition();
+//		
+//		return occtDef.getDefinitions();
+//	}
 }
