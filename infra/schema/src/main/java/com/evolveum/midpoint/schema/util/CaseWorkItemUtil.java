@@ -58,4 +58,13 @@ public class CaseWorkItemUtil {
     public static WorkItemId getId(CaseWorkItemType workItem) {
         return WorkItemId.of(workItem);
     }
+
+    public static CaseWorkItemType getWorkItem(CaseType aCase, long id) {
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getId() != null && workItem.getId() == id) {
+                return workItem;
+            }
+        }
+        return null;
+    }
 }

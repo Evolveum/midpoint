@@ -28,7 +28,6 @@ import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,10 +49,12 @@ public interface WorkflowManager {
 			ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	void claimWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-			throws ObjectNotFoundException, SecurityViolationException, SchemaException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-			throws SecurityViolationException, ObjectNotFoundException, SchemaException;
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
@@ -63,7 +64,8 @@ public interface WorkflowManager {
 	//region Process instances
 
 	void stopProcessInstance(String caseOid, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
 	//endregion
 
@@ -77,9 +79,7 @@ public interface WorkflowManager {
 	// TODO remove this
 	PrismContext getPrismContext();
 
-	void registerProcessListener(ProcessListener processListener);
-
-	void registerWorkItemListener(WorkItemListener workItemListener);
+	void registerWorkflowListener(WorkflowListener workflowListener);
 
 	boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 

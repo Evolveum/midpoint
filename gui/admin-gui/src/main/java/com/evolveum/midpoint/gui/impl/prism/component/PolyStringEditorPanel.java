@@ -115,7 +115,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             }
         };
         showHideLanguagesLocalizedButton.setOutputMarkupId(true);
-        showHideLanguagesLocalizedButton.add(AttributeAppender.append("style", "cursor: pointer;"));
+//        showHideLanguagesLocalizedButton.add(AttributeAppender.append("style", "cursor: pointer;"));
         localizedValueWithButton.add(showHideLanguagesLocalizedButton);
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
@@ -309,7 +309,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             }
         };
         showHideLanguagesButton.setOutputMarkupId(true);
-        showHideLanguagesButton.add(AttributeAppender.append("style", "cursor: pointer;"));
+//        showHideLanguagesButton.add(AttributeAppender.append("style", "cursor: pointer;"));
         origValueWithButton.add(showHideLanguagesButton);
 
     }

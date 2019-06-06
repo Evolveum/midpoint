@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.engine;
+package com.evolveum.midpoint.wf.impl.engine.helpers;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -30,7 +30,6 @@ import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -38,7 +37,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -64,26 +64,30 @@ public class AuditHelper {
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MiscHelper miscHelper;
+	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;   // todo
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	//region Recoding of audit events
-	public void auditProcessStart(CaseType aCase, WfContextType wfContext,
-			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
-		auditProcessStartEnd(aCase, AuditEventStage.REQUEST, wfContext, changeProcessor, opTask, result);
+	public void prepareProcessStartRecord(EngineInvocationContext ctx, OperationResult result) {
+		prepareProcessStartEndRecord(ctx, AuditEventStage.REQUEST, result);
 	}
 
-	public void auditProcessEnd(CaseType aCase, WfContextType wfContext, ChangeProcessor changeProcessor, Task opTask,
-			OperationResult result) {
-		auditProcessStartEnd(aCase, AuditEventStage.EXECUTION, wfContext, changeProcessor, opTask, result);
+	public void prepareProcessEndRecord(EngineInvocationContext ctx, OperationResult result) {
+		prepareProcessStartEndRecord(ctx, AuditEventStage.EXECUTION, result);
 	}
 
-	private void auditProcessStartEnd(CaseType aCase, AuditEventStage stage, WfContextType wfContext,
-			ChangeProcessor changeProcessor, Task opTask, OperationResult result) {
-		AuditEventRecord auditEventRecord = changeProcessor.prepareProcessInstanceAuditRecord(aCase, stage, wfContext, result);
-		auditService.audit(auditEventRecord, opTask);
+	private void prepareProcessStartEndRecord(EngineInvocationContext ctx, AuditEventStage stage, OperationResult result) {
+		AuditEventRecord auditEventRecord = primaryChangeProcessor.prepareProcessInstanceAuditRecord(ctx.getCurrentCase(), stage, ctx.getWfContext(), result);
+		ctx.addAuditRecord(auditEventRecord);
+	}
+
+	public void auditPreparedRecords(EngineInvocationContext ctx) {
+		for (AuditEventRecord record : ctx.pendingAuditRecords) {
+			auditService.audit(record, ctx.getTask());
+		}
 	}
 	//endregion
 
@@ -152,28 +156,30 @@ public class AuditHelper {
 	private AuditEventRecord prepareWorkItemAuditRecordCommon(CaseWorkItemType workItem, CaseType aCase, AuditEventStage stage,
 			OperationResult result) {
 
+		WfContextType wfc = aCase.getWorkflowContext();
+
 		AuditEventRecord record = new AuditEventRecord();
 		record.setEventType(AuditEventType.WORK_ITEM);
 		record.setEventStage(stage);
 
-		ObjectReferenceType objectRef = resolveIfNeeded(WfContextUtil.getObjectRef(workItem), result);
+		ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), result);
 		record.setTarget(objectRef.asReferenceValue());
 
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		record.setParameter(miscHelper.getCompleteStageInfo(aCase));
 
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_OBJECT, objectRef);
-		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(WfContextUtil.getTargetRef(workItem), result));
+		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_TARGET, resolveIfNeeded(aCase.getTargetRef(), result));
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
 		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(workItem));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(workItem));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(wfc));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(aCase));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(aCase));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WfContextUtil.getEscalationLevelNumber(workItem));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, WfContextUtil.getEscalationLevelName(workItem));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WfContextUtil.getEscalationLevelDisplayName(workItem));
-		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, WorkItemId.of(workItem).asString());
+		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(aCase.getOid(), workItem.getId()).asString());
 		//record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
 		return record;
 	}

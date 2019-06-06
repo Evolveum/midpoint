@@ -2034,22 +2034,20 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public void stopProcessInstance(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
 		    ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, ObjectAlreadyExistsException {
-		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-			PrismObject<CaseType> caseObject = cacheRepositoryService.getObject(CaseType.class, caseOid, null, parentResult);
-			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, AuthorizationParameters.Builder.buildObject(caseObject), null, task, parentResult);
-		}
         getWorkflowManagerChecked().stopProcessInstance(caseOid, task, parentResult);
     }
 
     @Override
     public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
-		    throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
         getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
     public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
-		    throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
         getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
     }
 

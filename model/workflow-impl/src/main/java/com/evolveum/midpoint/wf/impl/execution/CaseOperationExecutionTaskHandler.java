@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.impl.tasks;
+package com.evolveum.midpoint.wf.impl.execution;
 
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -35,14 +34,14 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.ApprovalMetadataHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -63,14 +62,15 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
     public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/operation-execution/handler-3";
 
     @Autowired private TaskManager taskManager;
-    @Autowired private PrismContext prismContext;
 	@Autowired private ApprovalMetadataHelper metadataHelper;
 	@Autowired private Clockwork clockwork;
 	@Autowired private MiscHelper miscHelper;
 	@Autowired private PcpGeneralHelper pcpGeneralHelper;
 	@Autowired private ApprovalMetadataHelper approvalMetadataHelper;
-	@Autowired private WorkflowEngine workflowEngine;
-	@Autowired private RepositoryService repositoryService;
+	@Autowired private ExecutionHelper executionHelper;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 
 	@Override
 	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partitionDefinition) {
@@ -119,8 +119,8 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 		}
 		mergeDeltasToModelContext(modelContext, singletonList(deltas));
 		executeModelContext(modelContext, subcase, task, result);
-		workflowEngine.closeCaseInternal(subcase, task, result);
-		workflowEngine.checkDependentCases(subcase.getParentRef().getOid(), task, result);
+		executionHelper.closeCaseInRepository(subcase, result);
+		executionHelper.checkDependentCases(subcase.getParentRef().getOid(), result);
 	}
 
 	private void executeAllChanges(CaseType rootCase, RunningTask task, OperationResult result)
@@ -129,7 +129,7 @@ public class CaseOperationExecutionTaskHandler implements TaskHandler {
 			SecurityViolationException {
 		LensContext<?> modelContext = collectApprovedDeltasToModelContext(rootCase, task, result);
 		executeModelContext(modelContext, rootCase, task, result);
-		workflowEngine.closeCaseInternal(rootCase, task, result);
+		executionHelper.closeCaseInRepository(rootCase, result);
 	}
 
 	private LensContext<?> collectApprovedDeltasToModelContext(CaseType rootCase, RunningTask task, OperationResult result)

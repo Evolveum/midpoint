@@ -20,40 +20,33 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.impl.AbstractModelImplementationIntegrationTest;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.Checker;
-import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.impl.AbstractWfTest;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
 import com.evolveum.midpoint.wf.impl.WfTestUtil;
+import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
-import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,18 +54,17 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 
-import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.*;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
@@ -83,14 +75,11 @@ import static org.testng.AssertJUnit.*;
  */
 @ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class AbstractWfTestPolicy extends AbstractModelImplementationIntegrationTest {
+public class AbstractWfTestPolicy extends AbstractWfTest {
 
 	protected static final File TEST_RESOURCE_DIR = new File("src/test/resources/policy");
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_RESOURCE_DIR, "system-configuration.xml");
-	public static final File ROLE_SUPERUSER_FILE = new File(TEST_RESOURCE_DIR, "role-superuser.xml");
-	public static final File USER_ADMINISTRATOR_FILE = new File(TEST_RESOURCE_DIR, "user-administrator.xml");
 
-	protected static final File USER_JACK_FILE = new File(TEST_RESOURCE_DIR, "user-jack.xml");
 	protected static final File USER_JACK_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-jack-deputy.xml");        // delegation is created only when needed
 	protected static final File USER_BOB_FILE = new File(TEST_RESOURCE_DIR, "user-bob.xml");
 	protected static final File USER_CHUCK_FILE = new File(TEST_RESOURCE_DIR, "user-chuck.xml");
@@ -105,7 +94,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy.xml");
 	protected static final File USER_SECURITY_APPROVER_DEPUTY_LIMITED_FILE = new File(TEST_RESOURCE_DIR, "user-security-approver-deputy-limited.xml");
 
-	protected static final File ROLE_APPROVER_FILE = new File(TEST_RESOURCE_DIR, "041-role-approver.xml");
 	protected static final File METAROLE_DEFAULT_FILE = new File(TEST_RESOURCE_DIR, "metarole-default.xml");
 	protected static final File METAROLE_SECURITY_FILE = new File(TEST_RESOURCE_DIR, "metarole-security.xml");
 	// following 2 are not used by default (assigned when necessary)
@@ -134,7 +122,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 	protected static final String USER_ADMINISTRATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 
-	protected String userJackOid;
 	protected String userJackDeputyOid;
 	protected String userBobOid;
 	protected String userChuckOid;
@@ -149,7 +136,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected String userSecurityApproverDeputyOid;
 	protected String userSecurityApproverDeputyLimitedOid;
 
-	protected String roleApproverOid;
 	protected String metaroleDefaultOid;
 	protected String metaroleSecurityOid;
 	protected String metarolePruneTest2xRolesOid;
@@ -179,6 +165,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	@Autowired protected TaskManager taskManager;
 	@Autowired protected WorkflowManager workflowManager;
 	@Autowired protected WorkflowEngine workflowEngine;
+	@Autowired protected WorkItemManager workItemManager;
 	@Autowired protected PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired protected GeneralChangeProcessor generalChangeProcessor;
 	@Autowired protected SystemObjectCache systemObjectCache;
@@ -186,28 +173,15 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	@Autowired protected WfTestHelper testHelper;
 	@Autowired protected MiscHelper miscHelper;
 
-	protected PrismObject<UserType> userAdministrator;
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		modelService.postInit(initResult);
 
-		PrismObject<SystemConfigurationType> sysconfig = prismContext.parseObject(getSystemConfigurationFile());
-		updateSystemConfiguration(sysconfig.asObjectable());
-		repoAddObject(sysconfig, initResult);
-
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-		login(userAdministrator);
-
-		roleApproverOid = repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
 		metaroleDefaultOid = repoAddObjectFromFile(METAROLE_DEFAULT_FILE, initResult).getOid();
 		metaroleSecurityOid = repoAddObjectFromFile(METAROLE_SECURITY_FILE, initResult).getOid();
 		metarolePruneTest2xRolesOid = repoAddObjectFromFile(METAROLE_PRUNE_TEST2X_ROLES_FILE, initResult).getOid();
 		metaroleApproveUnassign = repoAddObjectFromFile(METAROLE_APPROVE_UNASSIGN_FILE, initResult).getOid();
 
-		userJackOid = repoAddObjectFromFile(USER_JACK_FILE, initResult).getOid();
 		userJackDeputyOid = repoAddObjectFromFile(USER_JACK_DEPUTY_FILE, initResult).getOid();
 		userBobOid = repoAddObjectFromFile(USER_BOB_FILE, initResult).getOid();
 		userChuckOid = repoAddObjectFromFile(USER_CHUCK_FILE, initResult).getOid();
@@ -242,15 +216,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		userTemplateAssigningRole1aOidAfter = repoAddObjectFromFile(USER_TEMPLATE_ASSIGNING_ROLE_1A_AFTER, initResult).getOid();
 	}
 
-	@Override
-	protected PrismObject<UserType> getDefaultActor() {
-		return userAdministrator;
-	}
-
-	protected void updateSystemConfiguration(SystemConfigurationType systemConfiguration) throws SchemaException, IOException {
-		// nothing to do by default
-	}
-
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
 	}
@@ -262,53 +227,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 	protected void importLead1Deputies(Task task, OperationResult result) throws Exception {
 		userLead1Deputy1Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_1_FILE, task, result);
 		userLead1Deputy2Oid = addAndRecomputeUser(USER_LEAD1_DEPUTY_2_FILE, task, result);
-	}
-
-	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult result) {
-		Map<String, WorkflowResult> retval = new HashMap<>();
-		retval.put(oid, result);
-		return retval;
-	}
-
-	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2,
-			WorkflowResult approved2) {
-		Map<String, WorkflowResult> retval = new HashMap<>();
-		retval.put(oid, approved);
-		retval.put(oid2, approved2);
-		return retval;
-	}
-
-	protected Map<String, WorkflowResult> createResultMap(String oid, WorkflowResult approved, String oid2,
-			WorkflowResult approved2, String oid3, WorkflowResult approved3) {
-		Map<String, WorkflowResult> retval = new HashMap<>();
-		retval.put(oid, approved);
-		retval.put(oid2, approved2);
-		retval.put(oid3, approved3);
-		return retval;
-	}
-
-	protected void checkAuditRecords(Map<String, WorkflowResult> expectedResults) {
-		checkWorkItemAuditRecords(expectedResults);
-		checkWfProcessAuditRecords(expectedResults);
-	}
-
-	protected void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults) {
-		WfTestUtil.checkWorkItemAuditRecords(expectedResults, dummyAuditService);
-	}
-
-	protected void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults) {
-		WfTestUtil.checkWfProcessAuditRecords(expectedResults, dummyAuditService);
-	}
-
-	protected void removeAllAssignments(String oid, OperationResult result) throws Exception {
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-		for (AssignmentType at : user.asObjectable().getAssignment()) {
-			ObjectDelta delta = prismContext.deltaFactory().object()
-					.createModificationDeleteContainer(UserType.class, oid, UserType.F_ASSIGNMENT,
-							at.asPrismContainerValue().clone());
-			repositoryService.modifyObject(UserType.class, oid, delta.getModifications(), result);
-			display("Removed assignment " + at + " from " + user);
-		}
 	}
 
 	public void createObject(final String TEST_NAME, ObjectType object, boolean immediate, boolean approve, String assigneeOid) throws Exception {
@@ -485,52 +403,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}, 1);
 	}
 
-	protected CaseWorkItemType getWorkItem(Task task, OperationResult result)
-			throws SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
-		//Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.resolveItemsNamed(CaseWorkItemType.F_TASK_REF);
-		SearchResultList<CaseWorkItemType> itemsAll = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
-		if (itemsAll.size() != 1) {
-			System.out.println("Unexpected # of work items: " + itemsAll.size());
-			for (CaseWorkItemType workItem : itemsAll) {
-				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
-			}
-		}
-		assertEquals("Wrong # of total work items", 1, itemsAll.size());
-		return itemsAll.get(0);
-	}
-
-	protected SearchResultList<CaseWorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
-	}
-
-	protected void displayWorkItems(String title, List<CaseWorkItemType> workItems) {
-		workItems.forEach(wi -> display(title, wi));
-	}
-
-	protected ObjectReferenceType ort(String oid) {
-		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER);
-	}
-
-	protected PrismReferenceValue prv(String oid) {
-		return ObjectTypeUtil.createObjectRef(oid, ObjectTypes.USER).asReferenceValue();
-	}
-
-	protected PrismReference ref(List<ObjectReferenceType> orts) {
-		PrismReference rv = prismContext.itemFactory().createReference(new QName("dummy"));
-		orts.forEach(ort -> {
-			try {
-				rv.add(ort.asReferenceValue().clone());
-			} catch (SchemaException e) {
-				throw new IllegalStateException(e);
-			}
-		});
-		return rv;
-	}
-
-	protected PrismReference ref(ObjectReferenceType ort) {
-		return ref(Collections.singletonList(ort));
-	}
-
 	protected abstract class TestDetails {
 		protected LensContext createModelContext(OperationResult result) throws Exception {
 			return null;
@@ -628,7 +500,7 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 
 			// now check the workflow state
 			String caseOid = subcase.getOid();
-			SearchResultList<CaseWorkItemType> caseWorkItems = workflowEngine.getWorkItemsForCase(caseOid, null, result);
+			List<CaseWorkItemType> caseWorkItems = getWorkItemsForCase(caseOid, null, result);
 			assertFalse("work item not found", caseWorkItems.isEmpty());
 
 			for (CaseWorkItemType caseWorkItem : caseWorkItems) {
@@ -693,47 +565,6 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		// Check audit
 		display("Audit", dummyAuditService);
 		display("Output context", modelContext);
-	}
-
-	protected void assertObjectInTaskTree(Task rootTask, String oid, boolean checkObjectOnSubtasks, OperationResult result)
-			throws SchemaException {
-		assertObjectInTask(rootTask, oid);
-		if (checkObjectOnSubtasks) {
-			for (Task task : rootTask.listSubtasks(result)) {
-				assertObjectInTask(task, oid);
-			}
-		}
-	}
-
-	protected void assertObjectInTask(Task task, String oid) {
-		assertEquals("Missing or wrong object OID in task " + task, oid, task.getObjectOid());
-	}
-
-	protected void waitForTaskClose(final Task task, final int timeout) throws Exception {
-		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class + ".waitForTaskClose");
-		Checker checker = new Checker() {
-			@Override
-			public boolean check() throws CommonException {
-				task.refresh(waitResult);
-				OperationResult result = task.getResult();
-				if (verbose)
-					display("Check result", result);
-				return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
-			}
-
-			@Override
-			public void timeout() {
-				try {
-					task.refresh(waitResult);
-				} catch (Throwable e) {
-					display("Exception during task refresh", e);
-				}
-				OperationResult result = task.getResult();
-				display("Result of timed-out task", result);
-				assert false : "Timeout (" + timeout + ") while waiting for " + task + " to finish. Last result " + result;
-			}
-		};
-		IntegrationTestTools.waitFor("Waiting for " + task + " finish", checker, timeout, 1000);
 	}
 
 	protected void assertWfContextAfterClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
@@ -944,51 +775,4 @@ public class AbstractWfTestPolicy extends AbstractModelImplementationIntegration
 		}, expectedSubTaskCount);
 	}
 
-	protected void assertDeltasEqual(String message, ObjectDelta expectedDelta, ObjectDelta realDelta) {
-//		removeOldValues(expectedDelta);
-//		removeOldValues(realDelta);
-		if (!expectedDelta.equivalent(realDelta)) {
-			fail(message + "\nExpected:\n" + expectedDelta.debugDump() + "\nReal:\n" + realDelta.debugDump());
-		}
-	}
-
-//	private void removeOldValues(ObjectDelta<?> delta) {
-//		if (delta.isModify()) {
-//			delta.getModifications().forEach(mod -> mod.setEstimatedOldValues(null));
-//		}
-//	}
-
-	protected void assertNoObject(ObjectType object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertNull("Object was created but it shouldn't be",
-				searchObjectByName(object.getClass(), object.getName().getOrig()));
-	}
-
-	protected void assertNoObject(PrismObject<? extends ObjectType> object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		assertNoObject(object.asObjectable());
-	}
-
-	protected <T extends ObjectType> void assertObject(T object) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<T> objectFromRepo = searchObjectByName((Class<T>) object.getClass(), object.getName().getOrig());
-		assertNotNull("Object " + object + " was not created", objectFromRepo);
-		objectFromRepo.removeItem(ObjectType.F_METADATA, Item.class);
-		objectFromRepo.removeItem(ObjectType.F_OPERATION_EXECUTION, Item.class);
-		assertEquals("Object is different from the one that was expected", object, objectFromRepo.asObjectable());
-	}
-
-	protected void checkVisibleWorkItem(ExpectedWorkItem expectedWorkItem, int count, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, CommunicationException {
-		S_AtomicFilterExit q = QueryUtils
-				.filterForAssignees(prismContext.queryFor(CaseWorkItemType.class), SecurityUtil.getPrincipal(),
-						OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, relationRegistry);
-		q = q.and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull();
-		List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, q.build(), null, task, result);
-		long found = currentWorkItems.stream().filter(wi -> expectedWorkItem == null || expectedWorkItem.matches(wi)).count();
-		assertEquals("Wrong # of matching work items", count, found);
-	}
-
-	protected ObjectQuery getOpenItemsQuery() {
-		return prismContext.queryFor(CaseWorkItemType.class)
-				.item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
-				.build();
-	}
 }

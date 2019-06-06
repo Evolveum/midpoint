@@ -48,6 +48,10 @@ public class ApprovalUtils {
 		return result != null ? approvalBooleanValue(fromUri(result.getOutcome())) : null;
 	}
 
+	public static Boolean approvalBooleanValue(String uri) {
+		return uri != null ? approvalBooleanValue(fromUri(uri)) : null;
+	}
+
 	private static Boolean approvalBooleanValue(WorkItemOutcomeType outcome) {
 		if (outcome == null) {
 			return null;
@@ -65,6 +69,10 @@ public class ApprovalUtils {
 
 	private static boolean isApproved(WorkItemOutcomeType outcome) {
 		return BooleanUtils.isTrue(approvalBooleanValue(outcome));
+	}
+
+	public static boolean isApproved(String result) {
+		return BooleanUtils.isTrue(approvalBooleanValue(result));
 	}
 
 	public static String toUri(WorkItemOutcomeType workItemOutcomeType) {

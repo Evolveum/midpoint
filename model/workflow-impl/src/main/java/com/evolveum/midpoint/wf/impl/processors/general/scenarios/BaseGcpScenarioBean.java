@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.impl.engine.AuditHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.StartInstruction;
@@ -90,7 +90,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
     @Override
     public StartInstruction prepareJobCreationInstruction(GeneralChangeProcessorScenarioType scenarioType, LensContext<?> context, CaseType rootCase, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        StartInstruction instruction = StartInstruction.create(generalChangeProcessor);
+        StartInstruction instruction = StartInstruction.create(generalChangeProcessor, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()); // todo reconsider the archetype
         instruction.setRequesterRef(taskFromModel.getOwner());
         instruction.setName("Workflow-monitoring task");
         return instruction;

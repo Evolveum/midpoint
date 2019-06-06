@@ -27,15 +27,14 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.schema.util.WorkItemId;
-import com.evolveum.midpoint.wf.api.WorkItemListener;
+import com.evolveum.midpoint.wf.api.WorkflowListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.access.ProcessInstanceManager;
+import com.evolveum.midpoint.wf.impl.access.CaseManager;
 import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
-import com.evolveum.midpoint.wf.impl.engine.NotificationHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
 import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -60,14 +60,16 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Autowired private PrismContext prismContext;
 	@Autowired private WfConfiguration wfConfiguration;
-	@Autowired private ProcessInstanceManager processInstanceManager;
+	@Autowired private CaseManager caseManager;
 	@Autowired private NotificationHelper notificationHelper;
 	@Autowired private WorkItemManager workItemManager;
 	@Autowired private ChangesSorter changesSorter;
 	@Autowired private AuthorizationHelper authorizationHelper;
 	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
 	@Autowired private TaskManager taskManager;
-	@Autowired private RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
@@ -92,13 +94,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-		    throws ObjectNotFoundException, SecurityViolationException, SchemaException {
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
         workItemManager.claimWorkItem(workItemId, task, result);
     }
 
     @Override
     public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult result)
-		    throws SecurityViolationException, ObjectNotFoundException, SchemaException {
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
         workItemManager.releaseWorkItem(workItemId, task, result);
     }
 
@@ -112,8 +116,9 @@ public class WorkflowManagerImpl implements WorkflowManager {
 	//region Process instances (cases)
     @Override
     public void stopProcessInstance(String caseOid, Task task, OperationResult parentResult)
-		    throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        processInstanceManager.closeCase(caseOid, task, parentResult);
+		    throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        caseManager.cancelCase(caseOid, task, parentResult);
     }
     //endregion
 
@@ -133,13 +138,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public void registerProcessListener(ProcessListener processListener) {
-        notificationHelper.registerProcessListener(processListener);
-    }
-
-    @Override
-    public void registerWorkItemListener(WorkItemListener workItemListener) {
-	    notificationHelper.registerWorkItemListener(workItemListener);
+    public void registerWorkflowListener(WorkflowListener workflowListener) {
+	    notificationHelper.registerWorkItemListener(workflowListener);
     }
 
 	@Override

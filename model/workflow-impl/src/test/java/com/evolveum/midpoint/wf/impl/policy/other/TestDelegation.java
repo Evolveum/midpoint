@@ -138,7 +138,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		CaseWorkItemType workItem1 = workflowEngine.getWorkItem(WorkItemId.of(workItem), result);
+		CaseWorkItemType workItem1 = workItemManager.getWorkItem(WorkItemId.of(workItem), result);
 		System.out.println("Work item: " + workItem1);
 		List<String> assigneeOids = getAssigneeOids(workItem1);
 		assertEquals("Wrong midpoint-assignee values", new HashSet<>(Arrays.asList(userLead1Oid, userLead2Oid)),
@@ -179,7 +179,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead3Oid);
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		CaseWorkItemType fullWorkItem = workflowEngine.getWorkItem(WorkItemId.of(workItem), result);
+		CaseWorkItemType fullWorkItem = workItemManager.getWorkItem(WorkItemId.of(workItem), result);
 		System.out.println("Full work item: " + fullWorkItem);
 		List<String> assigneeOids = getAssigneeOids(fullWorkItem);
 		assertEquals("Wrong assignees", Collections.singleton(userLead3Oid), new HashSet<>(assigneeOids));
@@ -213,7 +213,7 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertEquals("Wrong assigneeRef count", 0, workItem.getAssigneeRef().size());
 		assertRefEquals("Wrong originalAssigneeRef", ort(userLead1Oid), workItem.getOriginalAssigneeRef());
 
-		CaseWorkItemType fullWorkItem = workflowEngine.getWorkItem(WorkItemId.of(workItem), result);
+		CaseWorkItemType fullWorkItem = workItemManager.getWorkItem(WorkItemId.of(workItem), result);
 		System.out.println("Full work item: " + fullWorkItem);
 		assertEquals("Wrong # of assignees", 0, getAssigneeOids(fullWorkItem).size());
 

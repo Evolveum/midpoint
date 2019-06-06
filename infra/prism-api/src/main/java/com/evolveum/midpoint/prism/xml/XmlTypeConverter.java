@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.Contract;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -126,6 +127,7 @@ public class XmlTypeConverter {
         return createXMLGregorianCalendar(gregorianCalendar);
     }
 
+	@Contract("null -> null")
 	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
         if (date == null) {
             return null;

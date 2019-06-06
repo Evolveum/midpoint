@@ -41,6 +41,7 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -61,7 +62,9 @@ public class ApprovalSchemaExecutionInformationHelper {
 	@Autowired private StageComputeHelper computeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired private ConfigurationHelper configurationHelper;
-	@Autowired private RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 
 	ApprovalSchemaExecutionInformationType getApprovalSchemaExecutionInformation(String caseOid, Task opTask,
 			OperationResult result)
@@ -169,7 +172,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);
 		aCase.getEvent().stream()
 				.filter(e -> e.getStageNumber() != null && e.getStageNumber() == stageNumber)
-				.forEach(e -> rv.getEvent().add(e));
+				.forEach(e -> rv.getEvent().add(e.clone()));
 		if (stageNumber == currentStageNumber) {
 			rv.getWorkItem().addAll(CloneUtil.cloneCollectionMembers(aCase.getWorkItem()));
 		}

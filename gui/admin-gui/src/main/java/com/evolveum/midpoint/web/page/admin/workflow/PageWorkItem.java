@@ -379,7 +379,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         try {
             workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), task, result);
-        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
         }
 		processResult(target, result, true);
@@ -391,7 +391,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         try {
             workflowService.releaseWorkItem(WorkItemId.of(workItemDtoModel.getObject().getWorkItem()), task, result);
-        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException e) {
+        } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
             result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
         }
         processResult(target, result, true);

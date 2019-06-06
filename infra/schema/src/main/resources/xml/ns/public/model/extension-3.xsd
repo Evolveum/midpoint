@@ -420,7 +420,7 @@
 		</xsd:annotation>
 	</xsd:element>
 
-	<xsd:element name="workItemId" type="xsd:string">
+	<xsd:element name="workItemId" type="xsd:long">
 		<xsd:annotation>
 			<xsd:appinfo>
 				<a:minOccurs>0</a:minOccurs>

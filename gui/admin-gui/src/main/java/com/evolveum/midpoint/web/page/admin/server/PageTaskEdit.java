@@ -40,7 +40,6 @@ import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -466,7 +465,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isEditable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition = ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject()).findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead() && itemDefinition.canModify();
 		} else {
@@ -475,7 +474,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isReadable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition =  ((PrismObjectDefinition<TaskType>)objectWrapperModel.getObject()).findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition =  objectWrapperModel.getObject().findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead();
 		} else {

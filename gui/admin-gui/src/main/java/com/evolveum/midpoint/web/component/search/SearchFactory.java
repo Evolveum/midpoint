@@ -135,7 +135,7 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
                 ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
                 ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
-                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),
+//                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),
                 ItemPath.create(CaseWorkItemType.F_PERFORMER_REF)
         ));
 

@@ -159,6 +159,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
         Task opTask = taskManager.createTaskInstance();
         display("rootCase", rootCase);
+        assertHasArchetypes(rootCase.asPrismObject(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
         // TODO-WF
 //        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
 
@@ -168,6 +169,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             display("Subtask #"+(i+1)+": ", subcase);
             checkCase(subcase, subcase.toString(), processNames[i++]);
             WfTestUtil.assertRef("requester ref", subcase.getRequestorRef(), USER_ADMINISTRATOR_OID, false, false);
+            assertHasArchetypes(subcase.asPrismObject(), SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
         }
 
         final Collection<SelectorOptions<GetOperationOptions>> options1 = schemaHelper.getOperationOptionsBuilder()

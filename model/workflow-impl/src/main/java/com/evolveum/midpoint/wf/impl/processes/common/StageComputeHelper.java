@@ -25,7 +25,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
@@ -49,10 +49,11 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.APPROVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType.REJECT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.AUTO_COMPLETION_CONDITION;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.AutomatedCompletionReasonType.NO_ASSIGNEES_FOUND;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Helps with computing things needed for stage approval (e.g. approvers, auto-approval result, ...)
@@ -65,7 +66,9 @@ public class StageComputeHelper {
 	@Autowired private ExpressionEvaluationHelper evaluationHelper;
 	@Autowired private PrismContext prismContext;
 	@Autowired private MiscHelper miscHelper;
-	@Autowired private RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 
 	public ExpressionVariables getDefaultVariables(CaseType aCase,
 			WfContextType wfContext, String requestChannel, OperationResult result)
@@ -202,10 +205,8 @@ public class StageComputeHelper {
 
 			if (rv.approverRefs.isEmpty()) {
 				rv.noApproversFound = true;
-				if (stageDef.getOutcomeIfNoApprovers() != null) {       // should be always the case (default is REJECT)
-					rv.predeterminedOutcome = stageDef.getOutcomeIfNoApprovers();
-					rv.automatedCompletionReason = NO_ASSIGNEES_FOUND;
-				}
+				rv.predeterminedOutcome = defaultIfNull(stageDef.getOutcomeIfNoApprovers(), REJECT);
+				rv.automatedCompletionReason = NO_ASSIGNEES_FOUND;
 			}
 		}
 		return rv;

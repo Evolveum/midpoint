@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
@@ -49,16 +64,8 @@ import java.util.List;
 public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContainerListPanelWithDetailsPanel<CaseWorkItemType, String> {
 
     private static final long serialVersionUID = 1L;
-    private static final Trace LOGGER = TraceManager.getTrace(CaseWorkItemListWithDetailsPanel.class);
 
-    private static final String DOT_CLASS = CaseWorkItemListWithDetailsPanel.class.getName() + ".";
-    private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
-    private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
-
-    private static final String ID_WORK_ITEM_APPROVE_BUTTON = "workItemApproveButton";
-    private static final String ID_WORK_ITEM_REJECT_BUTTON = "workItemRejectButton";
-    private static final String ID_WORK_ITEM_DELEGATE_BUTTON = "workItemDelegateButton";
-    private static final String ID_ACTION_BUTTONS = "actionButtons";
+    private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
 
     public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId, PageStorage pageStorage){
         super(id, model, tableId, pageStorage);
@@ -68,46 +75,9 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     protected void onInitialize(){
         super.onInitialize();
 
-        WebMarkupContainer actionButtonsContainer = new WebMarkupContainer(ID_ACTION_BUTTONS);
-        actionButtonsContainer.setOutputMarkupId(true);
-        actionButtonsContainer.add(new VisibleBehaviour(() -> !isParentCaseClosed()));
-        getDetailsPanelContainer().add(actionButtonsContainer);
-
-        AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON,
-                createStringResource("pageWorkItem.button.approve")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                savePerformed(ajaxRequestTarget, unwrapPanelModel(), true);
-            }
-        };
-        workItemApproveButton.setOutputMarkupId(true);
-        actionButtonsContainer.add(workItemApproveButton);
-
-        AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON,
-                createStringResource("pageWorkItem.button.reject")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                savePerformed(ajaxRequestTarget, unwrapPanelModel(), false);
-            }
-        };
-        workItemRejectButton.setOutputMarkupId(true);
-        actionButtonsContainer.add(workItemRejectButton);
-
-        AjaxButton workItemDelegateButton = new AjaxButton(ID_WORK_ITEM_DELEGATE_BUTTON,
-                createStringResource("pageWorkItem.button.delegate")) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                delegatePerformed(ajaxRequestTarget);
-            }
-        };
-        workItemDelegateButton.setOutputMarkupId(true);
-        actionButtonsContainer.add(workItemDelegateButton);
+        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(unwrapPanelModel()));
+        actionsPanel.setOutputMarkupId(true);
+        getDetailsPanelContainer().add(actionsPanel);
     }
 
     @Override
@@ -245,98 +215,13 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         return columns;
     }
 
-    private boolean isParentCaseClosed(){
-        return CaseTypeUtil.isClosed(CaseWorkItemUtil.getCase(unwrapPanelModel()));
-    }
-
     private CaseWorkItemType unwrapRowModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel){
         return rowModel.getObject().getRealValue();
     }
 
     private CaseWorkItemType unwrapPanelModel(){
-        return getModelObject().getItem().getRealValue();
-    }
-
-
-    private void savePerformed(AjaxRequestTarget target, CaseWorkItemType workItem, boolean approved) {
-        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_WORK_ITEM);
-        OperationResult result = task.getResult();
-        try {
-            //todo implement custom panels
-//            WorkItemDto dto = workItemDtoModel.getObject();
-//            if (approved) {
-//                boolean requiredFieldsPresent = getWorkItemPanel().checkRequiredFields();
-//                if (!requiredFieldsPresent) {
-//                    target.add(getFeedbackPanel());
-//                    return;
-//                }
-//            }
-//            ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-//            if (delta != null) {
-//                //noinspection unchecked
-//                getPrismContext().adopt(delta);
-//            }
-            try {
-                assumePowerOfAttorneyIfRequested(result);
-                //todo fix comment and delta
-                getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, "",
-                        null, task, result);
-            } finally {
-                dropPowerOfAttorneyIfRequested(result);
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't save work item.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
-        }
-        getPageBase().processResult(target, result, false);
-    }
-
-    private void delegatePerformed(AjaxRequestTarget target) {
-        ObjectBrowserPanel<UserType> panel = new ObjectBrowserPanel<UserType>(
-                getPageBase().getMainPopupBodyId(), UserType.class,
-                Collections.singletonList(UserType.COMPLEX_TYPE), false, getPageBase(), null) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onSelectPerformed(AjaxRequestTarget target, UserType user) {
-                CaseWorkItemListWithDetailsPanel.this.getPageBase().hideMainPopup(target);
-                delegateConfirmedPerformed(target, user);
-            }
-
-        };
-        panel.setOutputMarkupId(true);
-        getPageBase().showMainPopup(panel, target);
-    }
-
-    private void delegateConfirmedPerformed(AjaxRequestTarget target, UserType delegate) {
-        Task task = getPageBase().createSimpleTask(OPERATION_DELEGATE_WORK_ITEM);
-        OperationResult result = task.getResult();
-        try {
-            List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
-            try {
-                assumePowerOfAttorneyIfRequested(result);
-                getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(unwrapPanelModel()), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES,
-                        task, result);
-            } finally {
-                dropPowerOfAttorneyIfRequested(result);
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't delegate work item.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
-        }
-        getPageBase().processResult(target, result, false);
-    }
-
-    private void assumePowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getModelInteractionService(), getTaskManager(), result);
-//        }
-    }
-
-    private void dropPowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), result);
-//        }
+        return getModelObject() != null ? (getModelObject().getItem().getValue() != null ? getModelObject().getItem().getValue().asContainerable() : null)
+                : null;
     }
 
 }

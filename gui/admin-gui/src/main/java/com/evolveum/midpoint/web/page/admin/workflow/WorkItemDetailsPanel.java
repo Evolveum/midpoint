@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
@@ -77,27 +78,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
             @Override
             protected SceneDto load() {
                 PageBase pageBase = WorkItemDetailsPanel.this.getPageBase();
-                // todo scene dto is taken from old code. ok?
-                CaseType aCase = CaseTypeUtil.getCase(WorkItemDetailsPanel.this.getModelObject());
-                if (aCase == null || aCase.getWorkflowContext() == null) {
-                    return null;
-                }
-                if (!(aCase.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
-                    return null;
-                }
-                ObjectReferenceType objectRef = aCase.getObjectRef();
-                WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) aCase.getWorkflowContext().getProcessorSpecificState();
-
-                OperationResult result = new OperationResult(OPERATION_PREPARE_DELTA_VISUALIZATION);
-                Task task = pageBase.createSimpleTask(OPERATION_PREPARE_DELTA_VISUALIZATION);
-                try {
-                    Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), "pageWorkItem.delta",
-                            pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
-                    return new SceneDto(deltasScene);
-                } catch (SchemaException | ExpressionEvaluationException ex){
-                    LOGGER.error("Unable to create delta visualization for work item " + WorkItemDetailsPanel.this.getModelObject(), ex.getLocalizedMessage());
-                }
-                return null;
+                return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
             }
         };
     }

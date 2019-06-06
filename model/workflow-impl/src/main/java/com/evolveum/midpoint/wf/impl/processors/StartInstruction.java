@@ -22,16 +22,19 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,29 +51,32 @@ import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createObjectRef;
  */
 public class StartInstruction implements DebugDumpable {
 
+	@SuppressWarnings("unused")
 	private static final Trace LOGGER = TraceManager.getTrace(StartInstruction.class);
 
 	protected final CaseType aCase;
 	private final ChangeProcessor changeProcessor;
 
     //region Constructors
-    protected StartInstruction(@NotNull ChangeProcessor changeProcessor) {
+    protected StartInstruction(@NotNull ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
         this.changeProcessor = changeProcessor;
 	    PrismContext prismContext = changeProcessor.getPrismContext();
 	    aCase = new CaseType(prismContext);
+	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
+	    aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
+	    aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
 		aCase.setWorkflowContext(new WfContextType(prismContext));
 		aCase.setMetadata(new MetadataType(prismContext));
 	    aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
     }
 
-	@SuppressWarnings("unchecked")
-	public static StartInstruction create(ChangeProcessor changeProcessor) {
-		return new StartInstruction(changeProcessor);
+	public static StartInstruction create(ChangeProcessor changeProcessor, @NotNull String archetypeOid) {
+		return new StartInstruction(changeProcessor, archetypeOid);
 	}
 	//endregion
 
     // region Getters and setters
-	public ChangeProcessor getChangeProcessor() {
+    protected ChangeProcessor getChangeProcessor() {
 		return changeProcessor;
 	}
 
@@ -80,12 +86,22 @@ public class StartInstruction implements DebugDumpable {
 //		aCase.getWorkflowContext().setProcessInstanceName(name);
 //	}
 
-	public void setLocalizableName(LocalizableMessage name) {
-	    aCase.setLocalizableName(LocalizationUtil.createLocalizableMessageType(name));
-	}
-
     public void setName(String name) {
     	aCase.setName(PolyStringType.fromOrig(name));
+    }
+
+    public void setName(String name, LocalizableMessage localizable) {
+	    PolyStringType polyName = PolyStringType.fromOrig(name);
+	    if (localizable != null) {
+		    if (!(localizable instanceof SingleLocalizableMessage)) {
+			    throw new UnsupportedOperationException(
+					    "Localizable messages other than SingleLocalizableMessage cannot be used for approval case names: "
+							    + localizable);
+		    } else {
+			    polyName.setTranslation(PolyStringTranslationType.fromLocalizableMessage((SingleLocalizableMessage) localizable));
+		    }
+	    }
+	    aCase.setName(polyName);
     }
 
     public boolean startsWorkflowProcess() {
@@ -171,6 +187,12 @@ public class StartInstruction implements DebugDumpable {
 
 	//region "Output" methods
 	public CaseType getCase() {
+    	if (startsWorkflowProcess()) {
+    		// These cases will be open explicitly using the workflow engine
+    		aCase.setState(SchemaConstants.CASE_STATE_CREATED);
+	    } else {
+		    aCase.setState(SchemaConstants.CASE_STATE_OPEN);
+	    }
 		return aCase;
 	}
 

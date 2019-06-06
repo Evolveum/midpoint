@@ -56,17 +56,6 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <!-- TODO payload -->
-                    <xsd:element name="localizableName" type="tns:LocalizableMessageType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Localizable name of the case. To be used e.g. in GUI.
-                                Consider moving this to ObjectType.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.0</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="parentRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -412,6 +401,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="caseWorkItem" type="tns:CaseWorkItemType" />
 
     <xsd:complexType name="CaseEventType">
         <xsd:annotation>

@@ -581,4 +581,5 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
 	void setPrismContext(PrismContext prismContext);        // todo remove
 
+	Long getHighestId();
 }

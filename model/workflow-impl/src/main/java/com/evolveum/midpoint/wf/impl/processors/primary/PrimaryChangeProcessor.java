@@ -46,24 +46,29 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.engine.AuditHelper;
+import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
+import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
+import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
 import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.wf.impl.tasks.CaseOperationExecutionTaskHandler;
-import com.evolveum.midpoint.wf.impl.processors.StartInstruction;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
@@ -83,9 +88,12 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private PcpGeneralHelper generalHelper;
 	@Autowired private MiscHelper miscHelper;
-	@Autowired private WorkflowEngine workflowEngine;
+	@Autowired private ExecutionHelper executionHelper;
 	@Autowired private TaskManager taskManager;
-	@Autowired private RepositoryService repositoryService;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
+	@Autowired private WorkflowEngine workflowEngine;
 
     private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
 
@@ -256,18 +264,23 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             List<CaseType> allSubcases = new ArrayList<>(instructions.size() + 1);
 	        CollectionUtils.addIgnoreNull(allSubcases, case0);
 
+	        List<String> casesToStart = new ArrayList<>();
+
 	        // create the regular (approval) child cases
             for (PcpStartInstruction instruction : instructions) {
             	instruction.setParent(rootCase);
-				CaseType wfCase = modelHelper.addCase(instruction, ctx.task, result);
-                allSubcases.add(wfCase);
+				CaseType subCase = modelHelper.addCase(instruction, ctx.task, result);
+                allSubcases.add(subCase);
                 if (instruction.isObjectCreationInstruction()) {
 	                if (objectCreationCase == null) {
-		                objectCreationCase = wfCase;
+		                objectCreationCase = subCase;
 	                } else {
                 		throw new IllegalStateException("More than one case that creates the object: " +
-				                objectCreationCase + " and " + wfCase);
+				                objectCreationCase + " and " + subCase);
 	                }
+                }
+                if (instruction.startsWorkflowProcess()) {
+                	casesToStart.add(subCase.getOid());
                 }
             }
 
@@ -283,19 +296,24 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		        generalHelper.addPrerequisites(subcase, prerequisites, result);
 	        }
 
+	        modelHelper.logJobsBeforeStart(rootCase, ctx.task, result);
+
 	        if (case0 != null) {
 	        	if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(ctx.modelContext.getOptions())) {
 	        		submitExecutionTask(case0, false, result);
 		        } else {
-	        		workflowEngine.closeCaseInternal(case0, ctx.task, result);
+	        		executionHelper.closeCaseInRepository(case0, result);
 		        }
 	        }
 
-            modelHelper.logJobsBeforeStart(rootCase, ctx.task, result);
+	        LOGGER.trace("Starting the cases: {}", casesToStart);
+	        for (String caseToStart : casesToStart) {
+	        	workflowEngine.executeRequest(new OpenCaseRequest(caseToStart), ctx.task, result);
+	        }
+
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException |
-		        ConfigurationException | ExpressionEvaluationException | RuntimeException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
@@ -305,7 +323,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     private CaseType addRoot(ModelInvocationContext<?> ctx, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+		    throws SchemaException, ObjectAlreadyExistsException {
 	    LensContext<?> contextForRoot = contextCopyWithNoDelta(ctx.modelContext);
         StartInstruction instructionForRoot =
 		        modelHelper.createInstructionForRoot(this, ctx, contextForRoot, result);
@@ -315,7 +333,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
 		    CaseType rootCase) throws SchemaException {
         if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty()) {
-            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this);
+            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
             instruction0.setName("Changes that do not require approval");
 	        instruction0.setObjectRef(ctx);
 	        instruction0.setDeltasToProcess(changesWithoutApproval);
@@ -372,15 +390,22 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region Processing process finish event
+
+	/**
+	 * This method is called OUTSIDE the workflow engine computation - i.e. changes are already committed into repository.
+	 */
     @Override
     public void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
 		    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
-	    ObjectTreeDeltas<?> deltas = prepareDeltaOut(ctx.aCase);
-	    generalHelper.storeResultingDeltas(ctx.aCase, deltas, result);
+	    CaseType currentCase = ctx.getCurrentCase();
+
+	    ObjectTreeDeltas<?> deltas = prepareDeltaOut(currentCase);
+	    generalHelper.storeResultingDeltas(currentCase, deltas, result);
+	    // note: resulting deltas are not stored in currentCase object (these are in repo only)
 
 	    // here we should execute the deltas, if appropriate!
 
-	    CaseType rootCase = generalHelper.getRootCase(ctx.aCase, result);
+	    CaseType rootCase = generalHelper.getRootCase(currentCase, result);
 	    LensContextType modelContext = rootCase.getModelContext();
 	    if (modelContext == null) {
 	    	throw new IllegalStateException("No model context in root case " + rootCase);
@@ -389,42 +414,48 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
 	    if (immediately) {
 	    	if (deltas != null) {
-			    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", ctx.aCase);
+			    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
 			    boolean waiting;
-			    if (!ctx.aCase.getPrerequisiteRef().isEmpty()) {
+			    if (!currentCase.getPrerequisiteRef().isEmpty()) {
 				    ObjectQuery query = prismContext.queryFor(CaseType.class)
-						    .id(ctx.aCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
+						    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
 						    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
 						    .build();
 				    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
 						    .searchObjects(CaseType.class, query, null, result);
 				    waiting = !openPrerequisites.isEmpty();
 				    if (waiting) {
-				    	LOGGER.debug("Case {} cannot be executed now because of the following open prerequisites: {}", openPrerequisites);
+				    	LOGGER.debug("Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
+							    currentCase, openPrerequisites);
 				    }
 			    } else {
 			    	waiting = false;
 			    }
-	    		submitExecutionTask(ctx.aCase, waiting, result);
+	    		submitExecutionTask(currentCase, waiting, result);
 		    } else {
-			    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", ctx.aCase, rootCase);
-			    workflowEngine.closeCaseInternal(ctx.aCase, ctx.opTask, result);
-			    workflowEngine.checkDependentCases(ctx.aCase.getParentRef().getOid(), ctx.opTask, result);
+			    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
+			    executionHelper.closeCaseInRepository(currentCase, result);
+			    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
 		    }
 	    } else {
-		    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}", ctx.aCase, rootCase);
-		    workflowEngine.closeCaseInternal(ctx.aCase, ctx.opTask, result);
+		    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
+				    currentCase, rootCase);
+		    executionHelper.closeCaseInRepository(currentCase, result);
 		    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
 		    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
 			    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
 			    submitExecutionTask(rootCase, false, result);
 		    } else {
 			    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
+			    for (CaseType subcase : subcases) {
+				    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(), CaseTypeUtil.isClosed(subcase));
+			    }
 		    }
 	    }
     }
 
-	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		Task task = taskManager.createTaskInstance("execute");
 		task.setName("Execution of " + aCase.getName().getOrig());
 		task.setOwner(getExecutionTaskOwner(result));
@@ -434,6 +465,8 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 		}
 		taskManager.switchToBackground(task, result);
+
+		executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
 	}
 
 	private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {

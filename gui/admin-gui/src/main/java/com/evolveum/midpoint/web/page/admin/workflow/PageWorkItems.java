@@ -26,9 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
@@ -267,7 +265,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             try {
                 workflowService.claimWorkItem(workItemDto.getWorkItemId(), task, result);
                 result.computeStatusIfUnknown();
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
             }
         }
@@ -304,7 +302,7 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
                 if (!result.isNotApplicable()) {
                     applicable++;
                 }
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.released").getString(), e);
             }
         }
