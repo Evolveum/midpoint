@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
@@ -59,7 +60,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		I childItem = (I) parent.getNewValue().findItem(name);
 		ItemStatus status = getStatus(childItem);
 		
-		if (!skipCreateWrapper(def, status, context)) {
+		if (!skipCreateWrapper(def, status, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues()))) {
 			LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
 			return null;
 		}
@@ -129,7 +130,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	}
 	
-	private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+	private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
 		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
 			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
 			return false;
@@ -159,10 +160,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			
 		}
 		
-		return canCreateWrapper(def, status, context);
+		return canCreateWrapper(def, status, context, isEmptyValue);
 	}
 	
-	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
 		if (!context.isCreateOperational() && def.isOperational()) {
 			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
 			return false;

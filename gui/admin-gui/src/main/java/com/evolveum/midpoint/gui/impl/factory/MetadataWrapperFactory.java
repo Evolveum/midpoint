@@ -70,7 +70,7 @@ public class MetadataWrapperFactory extends PrismContainerWrapperFactoryImpl<Met
 	}
 	
 	@Override
-	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
 		return true;
 	}
 }
