@@ -102,8 +102,8 @@ public class ExecutionHelper {
 	 */
 	public void checkDependentCases(String rootOid, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, PreconditionViolationException {
-		CaseType aCase = repositoryService.getObject(CaseType.class, rootOid, null, result).asObjectable();
-		if (CaseTypeUtil.isClosed(aCase)) {
+		CaseType rootCase = repositoryService.getObject(CaseType.class, rootOid, null, result).asObjectable();
+		if (CaseTypeUtil.isClosed(rootCase)) {
 			return;
 		}
 		List<CaseType> subcases = miscHelper.getSubcases(rootOid, result);
@@ -117,7 +117,7 @@ public class ExecutionHelper {
 				.collect(Collectors.toList());
 		LOGGER.debug("open cases OIDs: {}", openOids);
 		if (openOids.isEmpty()) {
-			closeCaseInRepository(aCase, result);
+			closeCaseInRepository(rootCase, result);
 		} else {
 			ObjectQuery query = prismContext.queryFor(TaskType.class)
 					.item(TaskType.F_OBJECT_REF).ref(openOids.toArray(new String[0]))
