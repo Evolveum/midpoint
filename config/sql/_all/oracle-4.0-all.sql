@@ -230,6 +230,7 @@ CREATE TABLE m_audit_event (
   outcome           NUMBER(10, 0),
   parameter         VARCHAR2(255 CHAR),
   remoteHostAddress VARCHAR2(255 CHAR),
+  requestIdentifier VARCHAR2(255 CHAR),
   result            VARCHAR2(255 CHAR),
   sessionIdentifier VARCHAR2(255 CHAR),
   targetName        VARCHAR2(255 CHAR),
@@ -238,7 +239,6 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR2(36 CHAR),
   targetOwnerType   NUMBER(10, 0),
   targetType        NUMBER(10, 0),
-  requestIdentifier VARCHAR2(255 CHAR),
   taskIdentifier    VARCHAR2(255 CHAR),
   taskOID           VARCHAR2(255 CHAR),
   timestampValue    TIMESTAMP,
@@ -292,12 +292,6 @@ CREATE TABLE m_case_wi_reference (
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR2(36 CHAR) NOT NULL,
   targetSystemType VARCHAR2(255 CHAR)
-) INITRANS 30;
-CREATE TABLE m_dashboard (
-  name_norm VARCHAR2(255 CHAR),
-  name_orig VARCHAR2(255 CHAR),
-  oid       VARCHAR2(36 CHAR) NOT NULL,
-  PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_ext_item (
   id       NUMBER(10, 0) GENERATED AS IDENTITY,
@@ -457,7 +451,6 @@ CREATE TABLE m_shadow (
 ) INITRANS 30;
 CREATE TABLE m_task (
   binding                  NUMBER(10, 0),
-  canRunOnNode             VARCHAR2(255 CHAR),
   category                 VARCHAR2(255 CHAR),
   completionTimestamp      TIMESTAMP,
   executionStatus          NUMBER(10, 0),
@@ -480,18 +473,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR2(255 CHAR),
   threadStopAction         NUMBER(10, 0),
   waitingReason            NUMBER(10, 0),
-  wfEndTimestamp           TIMESTAMP,
-  wfObjectRef_relation     VARCHAR2(157 CHAR),
-  wfObjectRef_targetOid    VARCHAR2(36 CHAR),
-  wfObjectRef_type         NUMBER(10, 0),
-  wfProcessInstanceId      VARCHAR2(255 CHAR),
-  wfRequesterRef_relation  VARCHAR2(157 CHAR),
-  wfRequesterRef_targetOid VARCHAR2(36 CHAR),
-  wfRequesterRef_type      NUMBER(10, 0),
-  wfStartTimestamp         TIMESTAMP,
-  wfTargetRef_relation     VARCHAR2(157 CHAR),
-  wfTargetRef_targetOid    VARCHAR2(36 CHAR),
-  wfTargetRef_type         NUMBER(10, 0),
   oid                      VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -534,13 +515,23 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_case (
-  name_norm           VARCHAR2(255 CHAR),
-  name_orig           VARCHAR2(255 CHAR),
-  objectRef_relation  VARCHAR2(157 CHAR),
-  objectRef_targetOid VARCHAR2(36 CHAR),
-  objectRef_type      NUMBER(10, 0),
-  state               VARCHAR2(255 CHAR),
-  oid                 VARCHAR2(36 CHAR) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  name_norm              VARCHAR2(255 CHAR),
+  name_orig              VARCHAR2(255 CHAR),
+  objectRef_relation     VARCHAR2(157 CHAR),
+  objectRef_targetOid    VARCHAR2(36 CHAR),
+  objectRef_type         NUMBER(10, 0),
+  parentRef_relation     VARCHAR2(157 CHAR),
+  parentRef_targetOid    VARCHAR2(36 CHAR),
+  parentRef_type         NUMBER(10, 0),
+  requestorRef_relation  VARCHAR2(157 CHAR),
+  requestorRef_targetOid VARCHAR2(36 CHAR),
+  requestorRef_type      NUMBER(10, 0),
+  state                  VARCHAR2(255 CHAR),
+  targetRef_relation     VARCHAR2(157 CHAR),
+  targetRef_targetOid    VARCHAR2(36 CHAR),
+  targetRef_type         NUMBER(10, 0),
+  oid                    VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_connector (
@@ -561,6 +552,12 @@ CREATE TABLE m_connector_host (
   name_norm VARCHAR2(255 CHAR),
   name_orig VARCHAR2(255 CHAR),
   port      VARCHAR2(255 CHAR),
+  oid       VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (oid)
+) INITRANS 30;
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR2(255 CHAR),
+  name_orig VARCHAR2(255 CHAR),
   oid       VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -876,6 +873,7 @@ CREATE INDEX iShadowNameOrig
   ON m_shadow (name_orig) INITRANS 30;
 CREATE INDEX iShadowNameNorm
   ON m_shadow (name_norm) INITRANS 30;
+-- maintained manually
 CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
   ON m_shadow (
                CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN primaryIdentifierValue END,
@@ -883,18 +881,7 @@ CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
                CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN resourceRef_targetOid END)
 CREATE INDEX iParent
   ON m_task (parent) INITRANS 30;
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId) INITRANS 30;
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp) INITRANS 30;
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp) INITRANS 30;
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid) INITRANS 30;
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid) INITRANS 30;
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid) INITRANS 30;
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid) INITRANS 30;
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig) INITRANS 30;
 ALTER TABLE m_task
@@ -908,8 +895,11 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig) INITRANS 30;
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm) INITRANS 30;
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig) INITRANS 30;
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp) INITRANS 30;
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig) INITRANS 30;
 CREATE INDEX iConnectorNameNorm
@@ -918,6 +908,10 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig) INITRANS 30;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig) INITRANS 30;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus) INITRANS 30;
 CREATE INDEX iFocusEffective
@@ -940,10 +934,6 @@ CREATE INDEX iGenericObjectNameOrig
   ON m_generic_object (name_orig) INITRANS 30;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT uc_generic_object_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig) INITRANS 30;
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iLookupTableNameOrig
   ON m_lookup_table (name_orig) INITRANS 30;
 ALTER TABLE m_lookup_table
@@ -1146,6 +1136,8 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_form
@@ -1154,8 +1146,6 @@ ALTER TABLE m_function_library
   ADD CONSTRAINT fk_function_library FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_generic_object
   ADD CONSTRAINT fk_generic_object FOREIGN KEY (oid) REFERENCES m_focus;
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table
   ADD CONSTRAINT fk_lookup_table FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_lookup_table_row

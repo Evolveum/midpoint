@@ -410,11 +410,11 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	@Override
 	public void setShowEmpty(boolean showEmpty) {
 		this.showEmpty = showEmpty;
-		computeStripes();
+		//computeStripes();
 	}
 	
 	
-	@Override
+	/* @Override
 	public void sort() {
 		Locale locale = WebModelServiceUtils.getLocale();
 		if (locale == null) {
@@ -455,5 +455,5 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 			}
 			
 		}
-	}
+	}*/
 }

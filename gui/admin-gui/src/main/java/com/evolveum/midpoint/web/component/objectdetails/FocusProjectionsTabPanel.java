@@ -365,15 +365,15 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         }
         if (ActivationStatusType.DISABLED.equals(value)) {
         	IconType icon = new IconType();
-        	icon.setCssClass("fa fa-ban " + GuiStyleConstants.RED_COLOR);
+        	icon.setCssClass("fe fe-slash " + GuiStyleConstants.RED_COLOR);
         	builder.appendLayerIcon(icon, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
             return builder.build();
         }
         
         if (ActivationStatusType.ARCHIVED.equals(value)) {
         	IconType icon = new IconType();
-        	icon.setCssClass("fa fa-file-excel-o " + GuiStyleConstants.BLUE_COLOR);
-        	builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_LEFT_FOR_COLUMN_STYLE);
+        	icon.setCssClass("fa fa-archive " + GuiStyleConstants.RED_COLOR);
+        	builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
             return builder.build();
         }
         return builder.build();

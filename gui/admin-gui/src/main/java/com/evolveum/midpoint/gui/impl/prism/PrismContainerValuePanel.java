@@ -154,7 +154,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 				@Override
 				public List<IW> getObject() {
-					List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = getModelObject().getNonContainers();
+					CVW containerValueWrapper = getModelObject();
+					List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = containerValueWrapper.getNonContainers();
 					
 					Locale locale = WebModelServiceUtils.getLocale();
 					if (locale == null) {
@@ -170,7 +171,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 						int visibleProperties = 0;
 
 				 		for (ItemWrapper<?,?,?,?> item : nonContainers) {
-							if (item.isVisible(null)) {
+							if (item.isVisible(containerValueWrapper.isShowEmpty(), containerValueWrapper.isExpanded(), visibilityHandler)) {
 								visibleProperties++;
 							}
 							
@@ -211,7 +212,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 						
 						@Override
 						public boolean isVisible() {
-							return item.getModelObject().isVisible(visibilityHandler);
+							CVW parent = PrismContainerValuePanel.this.getModelObject();
+							return item.getModelObject().isVisible(parent.isShowEmpty(), parent.isExpanded(), visibilityHandler);
 						}
 					});
 					item.add(panel);
@@ -269,7 +271,10 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				try {
 					Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
 					panel.setOutputMarkupId(true);
-					panel.add(new VisibleBehaviour(() -> item.getModelObject().isVisible(visibilityHandler)));
+					panel.add(new VisibleBehaviour(() -> {
+						CVW parent = PrismContainerValuePanel.this.getModelObject();
+						return item.getModelObject().isVisible(parent.isShowEmpty(), parent.isExpanded(), visibilityHandler);
+					}));
 					item.add(panel);
 				} catch (SchemaException e) {
 					throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
@@ -471,7 +476,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		CVW wrapper = getModelObject();
 		wrapper.setSorted(!wrapper.isSorted());
 		
-		wrapper.sort();
+		//wrapper.sort();
 
 		refreshPanel(target);
 	}

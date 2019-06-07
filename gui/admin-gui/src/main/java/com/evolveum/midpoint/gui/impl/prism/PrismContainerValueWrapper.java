@@ -86,7 +86,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	boolean isShowEmpty();
 	void setShowEmpty(boolean setShowEmpty);
 	
-	void sort();
+	//void sort();
 	
 	<ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException;
 	PrismContainerValue<C> getValueToAdd() throws SchemaException;

@@ -131,16 +131,16 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 
 		if (input == null || input.isEmpty()) {
 			for (LookupTableRowType row : rows) {
-				values.add(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null));
+				values.add(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null));
 			}
 		} else {
 			for (LookupTableRowType row : rows) {
 				if (row.getLabel() == null) {
 					continue;
 				}
-				if (WebComponentUtil.getLocalizedPolyStringValue(row.getLabel().toPolyString()) != null
-						&& WebComponentUtil.getLocalizedPolyStringValue(row.getLabel().toPolyString()).toLowerCase().contains(input.toLowerCase())) {
-					values.add(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel().toPolyString()));
+				if (WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()) != null
+						&& WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()).toLowerCase().contains(input.toLowerCase())) {
+					values.add(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()));
 				}
 			}
 		}
