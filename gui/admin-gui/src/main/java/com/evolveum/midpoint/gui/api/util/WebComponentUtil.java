@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -3867,7 +3868,23 @@ public final class WebComponentUtil {
 		return createSceneDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
 	}
 
-    public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation){
+	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc, Integer stage) {
+		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
+		if (wfc == null) {
+			return triggers;
+		}
+		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
+		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
+		for (int i = 0; i < rulesPerStageList.size(); i++) {
+			Integer stageNumber = i + 1;
+			boolean highlighted = stageNumber.equals(stage);
+			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
+			triggers.add(group);
+		}
+		return triggers;
+	}
+
+	public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation){
 		if (caseObject == null || caseObject.getWorkflowContext() == null) {
 			return null;
 		}

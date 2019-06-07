@@ -209,6 +209,13 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         return sb.toString();
     }
 
+    private boolean isButtonEnabled(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
+        if (id >= buttonMenuItems.size()){
+            return false;
+        }
+        return buttonMenuItems.get(id).getEnabled().getObject().booleanValue();
+    }
+
     private String getButtonIconCss(int id, List<ButtonInlineMenuItem> buttonMenuItems) {
         if (id >= buttonMenuItems.size()){
             return null;

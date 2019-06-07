@@ -234,6 +234,7 @@ CREATE TABLE m_audit_event (
   outcome           INTEGER,
   parameter         VARCHAR(255),
   remoteHostAddress VARCHAR(255),
+  requestIdentifier VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   targetName        VARCHAR(255),
@@ -242,7 +243,6 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR(36),
   targetOwnerType   INTEGER,
   targetType        INTEGER,
-  requestIdentifier VARCHAR(255),
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
@@ -455,7 +455,6 @@ CREATE TABLE m_shadow (
 );
 CREATE TABLE m_task (
   binding                  INTEGER,
-  canRunOnNode             VARCHAR(255),
   category                 VARCHAR(255),
   completionTimestamp      TIMESTAMP,
   executionStatus          INTEGER,
@@ -478,18 +477,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(255),
   threadStopAction         INTEGER,
   waitingReason            INTEGER,
-  wfEndTimestamp           TIMESTAMP,
-  wfObjectRef_relation     VARCHAR(157),
-  wfObjectRef_targetOid    VARCHAR(36),
-  wfObjectRef_type         INTEGER,
-  wfProcessInstanceId      VARCHAR(255),
-  wfRequesterRef_relation  VARCHAR(157),
-  wfRequesterRef_targetOid VARCHAR(36),
-  wfRequesterRef_type      INTEGER,
-  wfStartTimestamp         TIMESTAMP,
-  wfTargetRef_relation     VARCHAR(157),
-  wfTargetRef_targetOid    VARCHAR(36),
-  wfTargetRef_type         INTEGER,
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -532,12 +519,22 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_case (
+  closeTimestamp         TIMESTAMP,
   name_norm           VARCHAR(255),
   name_orig           VARCHAR(255),
   objectRef_relation  VARCHAR(157),
   objectRef_targetOid VARCHAR(36),
   objectRef_type      INTEGER,
+  parentRef_relation  VARCHAR(157),
+  parentRef_targetOid VARCHAR(36),
+  parentRef_type      INTEGER,
+  requestorRef_relation  VARCHAR(157),
+  requestorRef_targetOid VARCHAR(36),
+  requestorRef_type      INTEGER,
   state               VARCHAR(255),
+  targetRef_relation  VARCHAR(157),
+  targetRef_targetOid VARCHAR(36),
+  targetRef_type      INTEGER,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -559,6 +556,12 @@ CREATE TABLE m_connector_host (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   port      VARCHAR(255),
+  oid       VARCHAR(36) NOT NULL,
+  PRIMARY KEY (oid)
+);
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR(255),
+  name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -633,12 +636,6 @@ CREATE TABLE m_node (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_collection (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_dashboard (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
@@ -885,18 +882,7 @@ ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -910,8 +896,11 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -920,6 +909,9 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig ON m_dashboard(name_orig);
+ALTER TABLE m_dashboard
+    ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -956,10 +948,6 @@ CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1148,6 +1136,8 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_dashboard
+    ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_form
@@ -1164,8 +1154,6 @@ ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org

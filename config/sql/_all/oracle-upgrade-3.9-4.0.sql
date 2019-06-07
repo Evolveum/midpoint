@@ -39,4 +39,48 @@ CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
 
 ALTER TABLE m_audit_event ADD requestIdentifier VARCHAR2(255 CHAR);
 
+ALTER TABLE m_case ADD (
+  parentRef_relation  VARCHAR2(157 CHAR),
+  parentRef_targetOid VARCHAR2(36 CHAR),
+  parentRef_type      NUMBER(10, 0),
+  targetRef_relation  VARCHAR2(157 CHAR),
+  targetRef_targetOid VARCHAR2(36 CHAR),
+  targetRef_type      NUMBER(10, 0));
+
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid) INITRANS 30;
+
+DROP INDEX iTaskWfProcessInstanceId;
+DROP INDEX iTaskWfStartTimestamp;
+DROP INDEX iTaskWfEndTimestamp;
+DROP INDEX iTaskWfRequesterOid;
+DROP INDEX iTaskWfObjectOid;
+DROP INDEX iTaskWfTargetOid;
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid) INITRANS 30;
+
+ALTER TABLE m_task DROP COLUMN canRunOnNode;
+ALTER TABLE m_task DROP COLUMN wfEndTimestamp;
+ALTER TABLE m_task DROP COLUMN wfObjectRef_relation;
+ALTER TABLE m_task DROP COLUMN wfObjectRef_targetOid;
+ALTER TABLE m_task DROP COLUMN wfObjectRef_type;
+ALTER TABLE m_task DROP COLUMN wfProcessInstanceId;
+ALTER TABLE m_task DROP COLUMN wfRequesterRef_relation;
+ALTER TABLE m_task DROP COLUMN wfRequesterRef_targetOid;
+ALTER TABLE m_task DROP COLUMN wfRequesterRef_type;
+ALTER TABLE m_task DROP COLUMN wfStartTimestamp;
+ALTER TABLE m_task DROP COLUMN wfTargetRef_relation;
+ALTER TABLE m_task DROP COLUMN wfTargetRef_targetOid;
+ALTER TABLE m_task DROP COLUMN wfTargetRef_type;
+
+ALTER TABLE m_case ADD (
+  closeTimestamp         TIMESTAMP,
+  requestorRef_relation  VARCHAR2(157 CHAR),
+  requestorRef_targetOid VARCHAR2(36 CHAR),
+  requestorRef_type      NUMBER(10, 0)
+  );
+
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp) INITRANS 30;
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

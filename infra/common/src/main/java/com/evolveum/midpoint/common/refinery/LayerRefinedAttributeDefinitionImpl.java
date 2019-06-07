@@ -61,12 +61,12 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	static List<LayerRefinedAttributeDefinition<?>> wrapCollection(
 			Collection<? extends ItemDefinition> defs, LayerType layer) {
-		List outs = new ArrayList<LayerRefinedAttributeDefinition<?>>(defs.size());
+		List<LayerRefinedAttributeDefinition<?>> outs = new ArrayList<>(defs.size());
 		for (ItemDefinition itemDef: defs) {
             if (itemDef instanceof LayerRefinedAttributeDefinition) {
-                outs.add(itemDef);
+                outs.add(((LayerRefinedAttributeDefinition<?>) itemDef));
             } else if (itemDef instanceof RefinedAttributeDefinition) {
-                outs.add(wrap((RefinedAttributeDefinition)itemDef, layer));
+                outs.add(wrap((RefinedAttributeDefinition<?>) itemDef, layer));
             } else {
                 throw new IllegalStateException("Unexpected type of attribute definition: " + itemDef);
             }
@@ -168,26 +168,6 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return refinedAttributeDefinition.canModify(layer);
 	}
 	
-//	@Override
-	public void setCanRead(boolean val) {
-		throw new UnsupportedOperationException("read only");
-	}
-
-	//@Override
-	public void setCanModify(boolean val) {
-		throw new UnsupportedOperationException("read only");
-	}
-
-	//@Override
-	public void setCanAdd(boolean val) {
-		throw new UnsupportedOperationException("read only");
-	}
-
-	//	@Override
-//	public boolean isValidFor(QName elementQName, Class clazz) {
-//		return isValidFor(elementQName, clazz, false);
-//	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -197,6 +177,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 		return result;
 	}
 
+	@SuppressWarnings("RedundantIfStatement")
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -260,7 +241,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
-	public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
+	public <DT extends ItemDefinition> DT findItemDefinition(@NotNull ItemPath path, @NotNull Class<DT> clazz) {
 		return refinedAttributeDefinition.findItemDefinition(path, clazz);
 	}
 
@@ -544,7 +525,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean canAdd(LayerType layer) {
 		if (this.layer == layer) { 
 			if (overrideCanAdd != null) {
-				return overrideCanAdd.booleanValue();
+				return overrideCanAdd;
 			}
 		}
 		return refinedAttributeDefinition.canAdd(layer);
@@ -584,7 +565,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean canRead(LayerType layer) {
 		if (this.layer == layer) { 
 			if (overrideCanRead != null) {
-				return overrideCanRead.booleanValue();
+				return overrideCanRead;
 			}
 		}
 		return refinedAttributeDefinition.canRead(layer);
@@ -629,7 +610,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	public boolean canModify(LayerType layer) {
 		if (this.layer == layer) { 
 			if (overrideCanModify != null) {
-				return overrideCanModify.booleanValue();
+				return overrideCanModify;
 			}
 		}
 		return refinedAttributeDefinition.canModify(layer);
@@ -694,7 +675,7 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public String toString() {
-		return String.valueOf(refinedAttributeDefinition) + ":" + layer;
+		return refinedAttributeDefinition + ":" + layer;
 	}
 
 }

@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
@@ -99,6 +101,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                 WorkItemTypeUtil.getTargetReference(getModelObject()));
         target.setOutputMarkupId(true);
         add(target);
+
+        CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
+        EvaluatedTriggerGroupListPanel reasonPanel = new EvaluatedTriggerGroupListPanel(ID_REASON,
+                Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getWorkflowContext() : null,
+                        parentCase != null ? parentCase.getStageNumber() : 0)));
+        reasonPanel.setOutputMarkupId(true);
+        add(reasonPanel);
 
         add(new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel));
 

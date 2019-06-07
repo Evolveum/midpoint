@@ -436,6 +436,9 @@ public class AssignmentsUtil {
     }
 
     public static QName getTargetType(AssignmentType assignment) {
+        if (assignment.getConstruction() != null) {
+            return ConstructionType.COMPLEX_TYPE;
+        }
         if (assignment.getTarget() != null) {
             // object assignment
             return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();
