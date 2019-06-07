@@ -69,7 +69,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 	
 	@Override
 	public boolean canAdd(LayerType layer) {
-		return getRefinedAttributeDefinition().canAdd();
+		return getRefinedAttributeDefinition().canAdd(layer);
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 	
 	@Override
 	public boolean canRead(LayerType layer) {
-		return getRefinedAttributeDefinition().canRead();
+		return getRefinedAttributeDefinition().canRead(layer);
 	}
 	
 	@Override
@@ -90,7 +90,7 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 
 	@Override
 	public boolean canModify(LayerType layer) {
-		return getRefinedAttributeDefinition().canModify();
+		return getRefinedAttributeDefinition().canModify(layer);
 	}
 	
 	@Override

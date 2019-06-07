@@ -77,10 +77,6 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto.computeTriggers;
-
 /**
  * @author lazyman
  * @author mederly
@@ -1344,7 +1340,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public List<EvaluatedTriggerGroupDto> getTriggers() {
 		if (triggers == null) {
-			triggers = computeTriggers(getWorkflowContext());
+			triggers = WebComponentUtil.computeTriggers(getWorkflowContext(), 0); //todo how to get stageNumber for TaskType?
 		}
 		return triggers;
 	}

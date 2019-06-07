@@ -230,6 +230,7 @@ CREATE TABLE m_audit_event (
   outcome           INT4,
   parameter         VARCHAR(255),
   remoteHostAddress VARCHAR(255),
+  requestIdentifier VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   targetName        VARCHAR(255),
@@ -238,14 +239,13 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR(36),
   targetOwnerType   INT4,
   targetType        INT4,
-  requestIdentifier VARCHAR(255),
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
   PRIMARY KEY (id)
 );
 CREATE TABLE m_audit_item (
-  changedItemPath VARCHAR(255) NOT NULL,
+  changedItemPath VARCHAR(512) NOT NULL,
   record_id       INT8         NOT NULL,
   PRIMARY KEY (record_id, changedItemPath)
 );
@@ -292,12 +292,6 @@ CREATE TABLE m_case_wi_reference (
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) NOT NULL,
   targetSystemType VARCHAR(255)
-);
-CREATE TABLE m_dashboard (
-  name_norm VARCHAR(255),
-  name_orig VARCHAR(255),
-  oid       VARCHAR(36) NOT NULL,
-  PRIMARY KEY (oid)
 );
 CREATE TABLE m_ext_item (
   id       SERIAL NOT NULL,
@@ -539,7 +533,13 @@ CREATE TABLE m_case (
   objectRef_relation  VARCHAR(157),
   objectRef_targetOid VARCHAR(36),
   objectRef_type      INT4,
+  parentRef_relation  VARCHAR(157),
+  parentRef_targetOid VARCHAR(36),
+  parentRef_type      INT4,
   state               VARCHAR(255),
+  targetRef_relation  VARCHAR(157),
+  targetRef_targetOid VARCHAR(36),
+  targetRef_type      INT4,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -563,6 +563,12 @@ CREATE TABLE m_connector_host (
   port      VARCHAR(255),
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
+);
+CREATE TABLE m_dashboard (
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    oid       VARCHAR(36) NOT NULL,
+    PRIMARY KEY (oid)
 );
 CREATE TABLE m_focus (
   administrativeStatus    INT4,
@@ -905,8 +911,9 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE IF EXISTS m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -915,6 +922,9 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig ON m_dashboard(name_orig);
+ALTER TABLE IF EXISTS m_dashboard
+    ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -947,10 +957,6 @@ CREATE INDEX iNodeNameOrig
   ON m_node (name_orig);
 ALTER TABLE IF EXISTS m_node
   ADD CONSTRAINT uc_node_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE IF EXISTS m_object_collection

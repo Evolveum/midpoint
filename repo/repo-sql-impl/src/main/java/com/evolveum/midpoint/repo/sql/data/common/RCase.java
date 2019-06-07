@@ -37,14 +37,15 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * TODO fill-in relevant data
- *
  * @author mederly
  */
 @Entity
 @ForeignKey(name = "fk_case")
 @Table(indexes = {
                 @Index(name = "iCaseNameOrig", columnList = "name_orig"),
+                @Index(name = "iCaseTypeObjectRefTargetOid", columnList = "objectRef_targetOid"),
+                @Index(name = "iCaseTypeTargetRefTargetOid", columnList = "targetRef_targetOid"),
+                @Index(name = "iCaseTypeParentRefTargetOid", columnList = "parentRef_targetOid")
         }
 )
 @Persister(impl = MidPointJoinedPersister.class)
@@ -54,6 +55,7 @@ public class RCase extends RObject<CaseType> {
 
     private String state;
     private REmbeddedReference objectRef;
+    private REmbeddedReference targetRef;
     private REmbeddedReference parentRef;
     private Set<RCaseWorkItem> workItems = new HashSet<>();
 
@@ -90,6 +92,15 @@ public class RCase extends RObject<CaseType> {
     }
 
     @Embedded
+    public REmbeddedReference getTargetRef() {
+        return targetRef;
+    }
+
+    public void setTargetRef(REmbeddedReference targetRef) {
+        this.targetRef = targetRef;
+    }
+
+    @Embedded
     public REmbeddedReference getParentRef() {
         return parentRef;
     }
@@ -121,13 +132,14 @@ public class RCase extends RObject<CaseType> {
         RCase rCase = (RCase) o;
         return Objects.equals(nameCopy, rCase.nameCopy) &&
                 Objects.equals(objectRef, rCase.objectRef) &&
+                Objects.equals(targetRef, rCase.targetRef) &&
                 Objects.equals(parentRef, rCase.parentRef) &&
                 Objects.equals(workItems, rCase.workItems);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, objectRef, parentRef, workItems);
+        return Objects.hash(super.hashCode(), nameCopy, objectRef, targetRef, parentRef, workItems);
     }
 
     @Override
@@ -136,6 +148,7 @@ public class RCase extends RObject<CaseType> {
                 "name=" + nameCopy +
                 ", parentRef=" + parentRef +
                 ", objectRef=" + objectRef +
+                ", targetRef=" + targetRef +
                 '}';
     }
 
@@ -148,6 +161,7 @@ public class RCase extends RObject<CaseType> {
 
         repo.setParentRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getParentRef(), context.relationRegistry));
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.relationRegistry));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), context.relationRegistry));
         repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {
             repo.getWorkItems().add(RCaseWorkItem.toRepo(repo, workItem, context));

@@ -247,15 +247,16 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
             if (QNameUtil.match(definition.getName(), elementQName)) {
-                return definition;
+	            //noinspection unchecked
+	            return definition;
             }
         }
         return null;
 	}
 
     @Override
-	public LayerRefinedAttributeDefinition<?> findAttributeDefinition(String elementLocalname) {
-    	return LayerRefinedAttributeDefinitionImpl.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalname), layer);
+	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(String elementLocalName) {
+    	return LayerRefinedAttributeDefinitionImpl.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalName), layer);
 	}
 
     @Override
@@ -309,7 +310,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
     @Override
-	public boolean containsAttributeDefinition(QName attributeName) {
+	public boolean containsAttributeDefinition(@NotNull QName attributeName) {
 		return refinedObjectClassDefinition.containsAttributeDefinition(attributeName);
 	}
 
@@ -446,7 +447,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 
 	@Override
 	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
-		return (T) refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
+		return refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}
 
 	@Override
@@ -515,12 +516,14 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		if (layerRefinedAttributeDefinitions != null) {
 			for (LayerRefinedAttributeDefinition attrDef : layerRefinedAttributeDefinitions) {
 				if (attrDef.isValidFor(name, clazz, caseInsensitive)) {
+					//noinspection unchecked
 					return (ID) attrDef;
 				}
 			}
 		}
 		
 		ID def = refinedObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
+		//noinspection unchecked
 		return (ID) LayerRefinedAttributeDefinitionImpl.wrap((RefinedAttributeDefinition) def, layer);
 	}
 
@@ -548,6 +551,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 		return result;
 	}
 
+	@SuppressWarnings("RedundantIfStatement")
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
