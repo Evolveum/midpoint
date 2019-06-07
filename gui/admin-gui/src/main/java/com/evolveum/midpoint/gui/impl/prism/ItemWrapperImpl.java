@@ -364,18 +364,18 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	}
 	
 	@Override
-	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+	public boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
 		
-		if (!isVisibleByVisibilityHandler(visibilityHandler)) {
+		if (!isVisibleByVisibilityHandler(parentExpanded, visibilityHandler)) {
 			return false;
 		}
 		
 		ID def = getItemDefinition();
 		switch (findObjectStatus()) {
 			case NOT_CHANGED:
-				return isVisibleForModify(def);
+				return isVisibleForModify(parentShowEmpty, def);
 			case ADDED:
-				return isVisibleForAdd(def);
+				return isVisibleForAdd(parentShowEmpty, def);
 			case DELETED:
 				return false;
 		}
@@ -383,8 +383,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return false;
 	}
 	
-	protected boolean isVisibleByVisibilityHandler(ItemVisibilityHandler visibilityHandler) {
-		if (getParent() != null && !getParent().isExpanded()) {
+	protected boolean isVisibleByVisibilityHandler(boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
+		if (!parentExpanded) {
 			return false;
 		}
 		
@@ -407,16 +407,16 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	    
 	}
 	
-	private boolean isVisibleForModify(ID def) {
-		if (parent != null && parent.isShowEmpty()) {
+	private boolean isVisibleForModify(boolean parentShowEmpty, ID def) {
+		if (parentShowEmpty) {
 			return def.canRead();
 		}
 		
 		return def.canRead() && (def.isEmphasized() || !isEmpty());
 	}
 	
-	private boolean isVisibleForAdd(ID def) {
-		if (parent != null && parent.isShowEmpty()) {
+	private boolean isVisibleForAdd(boolean parentShowEmpty, ID def) {
+		if (parentShowEmpty) {
 			return def.canAdd();
 		}
 		

@@ -451,7 +451,6 @@ CREATE TABLE m_shadow (
 ) INITRANS 30;
 CREATE TABLE m_task (
   binding                  NUMBER(10, 0),
-  canRunOnNode             VARCHAR2(255 CHAR),
   category                 VARCHAR2(255 CHAR),
   completionTimestamp      TIMESTAMP,
   executionStatus          NUMBER(10, 0),
@@ -474,18 +473,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR2(255 CHAR),
   threadStopAction         NUMBER(10, 0),
   waitingReason            NUMBER(10, 0),
-  wfEndTimestamp           TIMESTAMP,
-  wfObjectRef_relation     VARCHAR2(157 CHAR),
-  wfObjectRef_targetOid    VARCHAR2(36 CHAR),
-  wfObjectRef_type         NUMBER(10, 0),
-  wfProcessInstanceId      VARCHAR2(255 CHAR),
-  wfRequesterRef_relation  VARCHAR2(157 CHAR),
-  wfRequesterRef_targetOid VARCHAR2(36 CHAR),
-  wfRequesterRef_type      NUMBER(10, 0),
-  wfStartTimestamp         TIMESTAMP,
-  wfTargetRef_relation     VARCHAR2(157 CHAR),
-  wfTargetRef_targetOid    VARCHAR2(36 CHAR),
-  wfTargetRef_type         NUMBER(10, 0),
   oid                      VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -528,19 +515,23 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_case (
-  name_norm           VARCHAR2(255 CHAR),
-  name_orig           VARCHAR2(255 CHAR),
-  objectRef_relation  VARCHAR2(157 CHAR),
-  objectRef_targetOid VARCHAR2(36 CHAR),
-  objectRef_type      NUMBER(10, 0),
-  parentRef_relation  VARCHAR2(157 CHAR),
-  parentRef_targetOid VARCHAR2(36 CHAR),
-  parentRef_type      NUMBER(10, 0),
-  state               VARCHAR2(255 CHAR),
-  targetRef_relation  VARCHAR2(157 CHAR),
-  targetRef_targetOid VARCHAR2(36 CHAR),
-  targetRef_type      NUMBER(10, 0),
-  oid                 VARCHAR2(36 CHAR) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  name_norm              VARCHAR2(255 CHAR),
+  name_orig              VARCHAR2(255 CHAR),
+  objectRef_relation     VARCHAR2(157 CHAR),
+  objectRef_targetOid    VARCHAR2(36 CHAR),
+  objectRef_type         NUMBER(10, 0),
+  parentRef_relation     VARCHAR2(157 CHAR),
+  parentRef_targetOid    VARCHAR2(36 CHAR),
+  parentRef_type         NUMBER(10, 0),
+  requestorRef_relation  VARCHAR2(157 CHAR),
+  requestorRef_targetOid VARCHAR2(36 CHAR),
+  requestorRef_type      NUMBER(10, 0),
+  state                  VARCHAR2(255 CHAR),
+  targetRef_relation     VARCHAR2(157 CHAR),
+  targetRef_targetOid    VARCHAR2(36 CHAR),
+  targetRef_type         NUMBER(10, 0),
+  oid                    VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
 CREATE TABLE m_connector (
@@ -890,18 +881,7 @@ CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
                CASE WHEN primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL THEN resourceRef_targetOid END)
 CREATE INDEX iParent
   ON m_task (parent) INITRANS 30;
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId) INITRANS 30;
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp) INITRANS 30;
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp) INITRANS 30;
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid) INITRANS 30;
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid) INITRANS 30;
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid) INITRANS 30;
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid) INITRANS 30;
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig) INITRANS 30;
 ALTER TABLE m_task
@@ -918,6 +898,8 @@ CREATE INDEX iCaseNameOrig
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid) INITRANS 30;
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid) INITRANS 30;
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp) INITRANS 30;
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig) INITRANS 30;
 CREATE INDEX iConnectorNameNorm

@@ -451,7 +451,6 @@ CREATE TABLE m_shadow (
 );
 CREATE TABLE m_task (
   binding                  INT4,
-  canRunOnNode             VARCHAR(255),
   category                 VARCHAR(255),
   completionTimestamp      TIMESTAMP,
   executionStatus          INT4,
@@ -474,18 +473,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(255),
   threadStopAction         INT4,
   waitingReason            INT4,
-  wfEndTimestamp           TIMESTAMP,
-  wfObjectRef_relation     VARCHAR(157),
-  wfObjectRef_targetOid    VARCHAR(36),
-  wfObjectRef_type         INT4,
-  wfProcessInstanceId      VARCHAR(255),
-  wfRequesterRef_relation  VARCHAR(157),
-  wfRequesterRef_targetOid VARCHAR(36),
-  wfRequesterRef_type      INT4,
-  wfStartTimestamp         TIMESTAMP,
-  wfTargetRef_relation     VARCHAR(157),
-  wfTargetRef_targetOid    VARCHAR(36),
-  wfTargetRef_type         INT4,
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -528,19 +515,23 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_case (
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
-  objectRef_relation  VARCHAR(157),
-  objectRef_targetOid VARCHAR(36),
-  objectRef_type      INT4,
-  parentRef_relation  VARCHAR(157),
-  parentRef_targetOid VARCHAR(36),
-  parentRef_type      INT4,
-  state               VARCHAR(255),
-  targetRef_relation  VARCHAR(157),
-  targetRef_targetOid VARCHAR(36),
-  targetRef_type      INT4,
-  oid                 VARCHAR(36) NOT NULL,
+  closeTimestamp         TIMESTAMP,
+  name_norm              VARCHAR(255),
+  name_orig              VARCHAR(255),
+  objectRef_relation     VARCHAR(157),
+  objectRef_targetOid    VARCHAR(36),
+  objectRef_type         INT4,
+  parentRef_relation     VARCHAR(157),
+  parentRef_targetOid    VARCHAR(36),
+  parentRef_type         INT4,
+  requestorRef_relation  VARCHAR(157),
+  requestorRef_targetOid VARCHAR(36),
+  requestorRef_type      INT4,
+  state                  VARCHAR(255),
+  targetRef_relation     VARCHAR(157),
+  targetRef_targetOid    VARCHAR(36),
+  targetRef_type         INT4,
+  oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_connector (
@@ -886,18 +877,7 @@ ALTER TABLE IF EXISTS m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE IF EXISTS m_task
@@ -914,6 +894,8 @@ CREATE INDEX iCaseNameOrig
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -1066,8 +1048,6 @@ ALTER TABLE IF EXISTS m_assignment_ext_reference
 ALTER TABLE IF EXISTS m_assignment_ext_string
   ADD CONSTRAINT fk_a_ext_string_item FOREIGN KEY (item_id) REFERENCES m_ext_item;
 
-ALTER TABLE IF EXISTS m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_audit_delta
   ADD CONSTRAINT fk_audit_delta FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE IF EXISTS m_audit_item
@@ -1151,6 +1131,8 @@ ALTER TABLE IF EXISTS m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE IF EXISTS m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE IF EXISTS m_form
