@@ -132,6 +132,9 @@ public class ColumnUtils {
 
 			@Override
 			protected DisplayType getIconDisplayType(IModel<SelectableBean<O>> rowModel){
+				if (rowModel.getObject().getValue() instanceof ArchetypeType && ((ArchetypeType)rowModel.getObject().getValue()).getArchetypePolicy() != null) {
+					return ((ArchetypeType)rowModel.getObject().getValue()).getArchetypePolicy().getDisplay();
+				}
 				DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(rowModel.getObject().getValue(), pageBase);
 				if (displayType != null){
 					String disabledStyle = "";
@@ -191,6 +194,8 @@ public class ColumnUtils {
 			return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
 		} else if (type.equals(CaseWorkItemType.class)) {
 			return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
+		} else if (ShadowType.class.equals(type)) {
+			return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
 		}
 
 		return "";
