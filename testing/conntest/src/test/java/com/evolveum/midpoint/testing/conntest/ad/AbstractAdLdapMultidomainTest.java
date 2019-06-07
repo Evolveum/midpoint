@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -281,6 +281,10 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 		config.setBaseContext(getLdapSubSuffix());
 		return config;
 	}
+	
+	protected abstract File getReconciliationTaskFile();
+
+	protected abstract String getReconciliationTaskOid();
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -1976,12 +1980,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         // WHEN
         displayWhen(TEST_NAME);
         modifyUserReplace(USER_SUBMAN_OID, UserType.F_TITLE, task, result,
-        		PrismTestUtil.createPolyString("Underdog"));
+        		createPolyString("Underdog"));
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         display("Sub entry", entry);
@@ -2013,8 +2016,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         assertAttribute(entry, "title", "Underdog");
@@ -2045,8 +2047,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
 //        assertLdapConnectorInstances(2);
 
@@ -2087,8 +2088,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_SUBMAN_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -2113,20 +2113,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createModifyUserReplaceDelta(USER_SUBMAN_OID, UserType.F_NAME,
-        		PrismTestUtil.createPolyString(USER_SUBDOG_USERNAME));
+        		createPolyString(USER_SUBDOG_USERNAME));
         objectDelta.addModificationReplaceProperty(UserType.F_FULL_NAME,
-        		PrismTestUtil.createPolyString(USER_SUBDOG_FULL_NAME));
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-
+        		createPolyString(USER_SUBDOG_FULL_NAME));
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.executeChanges(deltas, null, task, result);
+        executeChanges(objectDelta, null, task, result);
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapSubAccount(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME);
         assertAttribute(entry, "title", "Underdog");
@@ -2160,8 +2157,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertNoLdapSubAccount(USER_SUBMAN_USERNAME, USER_SUBMAN_FULL_NAME);
         assertNoLdapSubAccount(USER_SUBDOG_USERNAME, USER_SUBDOG_FULL_NAME);
@@ -2198,8 +2194,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -2240,13 +2235,38 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertNoLdapSubAccount(USER_SUBMARINE_USERNAME, USER_SUBMARINE_FULL_NAME);
 
         PrismObject<UserType> user = getUser(USER_SUBMARINE_OID);
         assertNoLinkedAccount(user);
+
+//        assertLdapConnectorInstances(2);
+	}
+	
+	@Test
+    public void test850ReconcileAccounts() throws Exception {
+		final String TEST_NAME = "test850ReconcileAccounts";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertUsers(6);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        addTask(getReconciliationTaskFile());
+        
+        waitForTaskFinish(getReconciliationTaskOid(), true);
+
+        // THEN
+        displayThen(TEST_NAME);
+        
+        assertUsers(23);
+        // TODO
 
 //        assertLdapConnectorInstances(2);
 	}
@@ -2425,4 +2445,5 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 	protected abstract void assertAccountDisabled(PrismObject<ShadowType> shadow);
 
 	protected abstract void assertAccountEnabled(PrismObject<ShadowType> shadow);
+
 }

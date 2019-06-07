@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
+public class TestAdLdapChimeraRunAs extends TestAdLdapChimera {
 
 	@Override
 	protected String getResourceOid() {
@@ -45,24 +46,25 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 		return new File(getBaseDir(), "resource-chimera-runas.xml");
 	}
 
+	/**
+	 * Try to set the same password again. In "selfservice mode" (runAs capability)
+	 * this change should fail.
+	 */
 	@Override
-	protected String getLdapServerHost() {
-		return "chimera.ad.evolveum.com";
+	@Test
+    public void test222ModifyUserBarbossaPasswordSelfServicePassword1Again() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordSelfServicePassword1Again";
+		testModifyUserBarbossaPasswordSelfServiceFailure(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_1, USER_BARBOSSA_PASSWORD_AD_1);
 	}
-
+	
+	/**
+	 * Change password back to the first password. This password was used before.
+	 * In self-service mode (in subclass) this should fail due to password history check.
+	 */
 	@Override
-	protected int getLdapServerPort() {
-		return 636;
+	@Test
+    public void test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain() throws Exception {
+		final String TEST_NAME = "test226ModifyUserBarbossaPasswordSelfServicePassword1AgainAgain";
+		testModifyUserBarbossaPasswordSelfServiceFailure(TEST_NAME, USER_BARBOSSA_PASSWORD_AD_2, USER_BARBOSSA_PASSWORD_AD_1);
 	}
-
-	@Override
-	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-	}
-
-	@Override
-	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-	}
-
 }
