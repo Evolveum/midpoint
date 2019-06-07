@@ -28,6 +28,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import net.sf.ehcache.CacheOperationOutcomes.GetAllOutcome;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -462,6 +464,35 @@ public class ContextLoader {
 			return null;
 		}
 		PrismObject<F> object = context.getFocusContext().getObjectAny();
+		String explicitArchetypeOid = determineExplicitArchetypeOid(context);
+		return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
+	}
+	
+	public <F extends AssignmentHolderType> ArchetypeType updateArchetype(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			return null;
+		}
+		if (context.getFocusContext() == null) {
+			return null;
+		}
+		
+		PrismObject<F> object = context.getFocusContext().getObjectAny();
+		
+		String explicitArchetypeOid = determineExplicitArchetypeOid(context);
+		PrismObject<ArchetypeType> archetype =  archetypeManager.determineArchetype(object, explicitArchetypeOid, result);
+		ArchetypeType archetypeType = null;
+		if (archetype != null) {
+			archetypeType = archetype.asObjectable();
+		}
+		
+		context.getFocusContext().setArchetype(archetypeType);
+		
+		return archetypeType;
+	}
+	
+	private <O extends ObjectType> String determineExplicitArchetypeOid(LensContext<O> context) {
+		PrismObject<O> object = context.getFocusContext().getObjectAny();
 		String explicitArchetypeOid = null;
 		// Used in cases where archetype assignment haven't had the change to be processed yet.
 		// E.g. in case that we are creating a new object with archetype assignment
@@ -477,7 +508,7 @@ public class ContextLoader {
 				}
 			}
 		}
-		return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
+		return explicitArchetypeOid;
 	}
 	
 	public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {

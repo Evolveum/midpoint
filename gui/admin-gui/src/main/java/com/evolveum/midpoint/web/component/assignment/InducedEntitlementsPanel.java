@@ -166,24 +166,11 @@ public class InducedEntitlementsPanel extends InducementsPanel{
                 .exists(AssignmentType.F_CONSTRUCTION)
                 .build();
     }
-    
-//    @Override
-//	protected Fragment getCustomSpecificContainers(String contentAreaId, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-//		Fragment specificContainers = new Fragment(contentAreaId, AssignmentPanel.ID_SPECIFIC_CONTAINERS_FRAGMENT, this);
-//		specificContainers.add(getConstructionAssociationPanel(modelObject));
-//
-//		specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
-//		return specificContainers;
-//	}
-    
+
     @Override
-    protected void addCustomSpecificContainers(Fragment specificContainers,
-    		IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
-    	
-    	//TODO TODO TODO see comment in getConstructionAssociationPanel
-//    	specificContainers.add(getConstructionAssociationPanel(modelObject));
-    	specificContainers.add(super.getBasicContainerPanel(ID_ASSIGNMENT_DETAILS, new Model(modelObject)));
-   
+    protected void addCustomSpecificContainers(Fragment specificContainers, IModel<PrismContainerValueWrapper<AssignmentType>> modelObject) {
+    	specificContainers.add(getConstructionAssociationPanel(modelObject));
+
     }
     
     
@@ -200,13 +187,12 @@ public class InducedEntitlementsPanel extends InducementsPanel{
     	return panel;
     }
     
-//    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
-//    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
-    	//TODO TODO TODO implement after constructionAssociationPanel refactored
-//        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
-//        constructionDetailsPanel.setOutputMarkupId(true);
-//        return constructionDetailsPanel;
-//    }
+    private ConstructionAssociationPanel getConstructionAssociationPanel(IModel<PrismContainerValueWrapper<AssignmentType>> model) {
+    	IModel<PrismContainerWrapper<ConstructionType>> constructionModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, AssignmentType.F_CONSTRUCTION);
+        ConstructionAssociationPanel constructionDetailsPanel = new ConstructionAssociationPanel(AssignmentPanel.ID_SPECIFIC_CONTAINER, constructionModel);
+        constructionDetailsPanel.setOutputMarkupId(true);
+        return constructionDetailsPanel;
+    }
 
     protected List<ObjectTypes> getObjectTypesList(){
         return Arrays.asList(ObjectTypes.RESOURCE);

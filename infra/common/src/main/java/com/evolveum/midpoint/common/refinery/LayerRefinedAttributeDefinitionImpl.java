@@ -542,6 +542,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean canAdd(LayerType layer) {
+		if (this.layer == layer) { 
+			if (overrideCanAdd != null) {
+				return overrideCanAdd.booleanValue();
+			}
+		}
 		return refinedAttributeDefinition.canAdd(layer);
 	}
 
@@ -577,6 +582,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean canRead(LayerType layer) {
+		if (this.layer == layer) { 
+			if (overrideCanRead != null) {
+				return overrideCanRead.booleanValue();
+			}
+		}
 		return refinedAttributeDefinition.canRead(layer);
 	}
 
@@ -617,6 +627,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	public boolean canModify(LayerType layer) {
+		if (this.layer == layer) { 
+			if (overrideCanModify != null) {
+				return overrideCanModify.booleanValue();
+			}
+		}
 		return refinedAttributeDefinition.canModify(layer);
 	}
 

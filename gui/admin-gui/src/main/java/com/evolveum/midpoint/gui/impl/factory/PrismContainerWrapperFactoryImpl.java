@@ -96,7 +96,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
-		containerValueWrapper.sort();
+//		containerValueWrapper.sort();
 		return containerValueWrapper;
 	}
 	

@@ -377,25 +377,9 @@ public class WorkItemDto extends Selectable {
 
 	public List<EvaluatedTriggerGroupDto> getTriggers() {
     	if (triggers == null) {
-    		triggers = computeTriggers(getWorkflowContext());
+    		triggers = WebComponentUtil.computeTriggers(getWorkflowContext(), 0); //TODO how to take stageNumber for TaskType?
 	    }
 	    return triggers;
-	}
-
-	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc) {
-		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
-		if (wfc == null) {
-			return triggers;
-		}
-		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
-		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
-		for (int i = 0; i < rulesPerStageList.size(); i++) {
-			Integer stageNumber = i + 1;
-			boolean highlighted = true; // TODO get from CaseType stageNumber.equals(wfc.getStageNumber());
-			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
-			triggers.add(group);
-		}
-		return triggers;
 	}
 
 	public List<InformationType> getAdditionalInformation() {

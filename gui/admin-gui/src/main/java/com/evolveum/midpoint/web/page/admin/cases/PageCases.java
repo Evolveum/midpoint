@@ -6,6 +6,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -258,6 +259,16 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
 
             @Override
+            public IModel<Boolean> getEnabled() {
+                IModel<SelectableBean<CaseType>> rowModel = ((ColumnMenuAction<SelectableBean<CaseType>>)getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
+                    return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
+                } else {
+                    return super.getEnabled();
+                }
+            }
+
+            @Override
             public String getButtonIconCssClass(){
                 return GuiStyleConstants.CLASS_STOP_MENU_ITEM;
             }
@@ -291,6 +302,16 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             @Override
             public String getButtonIconCssClass(){
                 return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
+            }
+
+            @Override
+            public IModel<Boolean> getEnabled() {
+                IModel<SelectableBean<CaseType>> rowModel = ((ColumnMenuAction<SelectableBean<CaseType>>)getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null){
+                    return Model.of(!CaseTypeUtil.isClosed(rowModel.getObject().getValue()));
+                } else {
+                    return super.getEnabled();
+                }
             }
 
             @Override

@@ -39,9 +39,12 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 		QName typeName = def.getTypeName();
 		return ConstructionType.COMPLEX_TYPE.equals(typeName) || PersonaConstructionType.COMPLEX_TYPE.equals(typeName) || MappingsType.COMPLEX_TYPE.equals(typeName) || PolicyRuleType.COMPLEX_TYPE.equals(typeName);
 	}
-	
+
 	@Override
-	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context) {
+	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+		if (!isEmptyValue){
+			return true;
+		}
 		return false;
 	}
 	

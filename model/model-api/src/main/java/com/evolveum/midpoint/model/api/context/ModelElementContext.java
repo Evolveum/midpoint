@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,4 +68,5 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 	Collection<EvaluatedPolicyRule> getPolicyRules();
 
 	boolean isOfType(Class<?> aClass);
+	
 }
