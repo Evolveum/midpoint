@@ -11365,6 +11365,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+					<a:displayName>ShadowType.resource</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11375,6 +11376,7 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReference>tns:resourceRef</a:objectReference>
+					<a:displayName>ShadowType.resource</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -11548,6 +11550,9 @@
                                 If not specified defaults to "generic".
                             </xsd:documentation>
                         </xsd:annotation>
+			<xsd:appinfo>
+		            <a:displayName>ShadowType.kind</a:displayName>
+		        </xsd:appinfo>
                     </xsd:element>
                     <xsd:element name="intent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
