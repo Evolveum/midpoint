@@ -18,16 +18,24 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
 import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.EvaluatedTriggerGroupListPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -35,8 +43,10 @@ import org.apache.wicket.model.Model;
 public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final long serialVersionUID = 1L;
 
-    private static String ID_APPROVAL_CASE_PANEL = "approvalCasePanel";
-    private static String ID_HISTORY_PANEL = "historyPanel";
+    private static final String ID_APPROVAL_CASE_PANEL = "approvalCasePanel";
+    private static final String ID_HISTORY_CONTAINER = "historyContainer";
+    private static final String ID_HISTORY_PANEL = "historyPanel";
+    private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 
     public ApprovalCaseTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
         super(id, mainForm, objectWrapperModel);
@@ -53,6 +63,38 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
                 Model.of(WfContextUtil.isInStageBeforeLastOne(getObjectWrapper().getObject().asObjectable())), getPageBase());
         approvalPanel.setOutputMarkupId(true);
         add(approvalPanel);
+
+        List<DecisionDto> decisionList = calculateDecisionList();
+        WebMarkupContainer historyContainer = new WebMarkupContainer(ID_HISTORY_CONTAINER);
+        historyContainer.setOutputMarkupId(true);
+        historyContainer.add(WebComponentUtil.createHelp(ID_HISTORY_HELP));
+        historyContainer.add(new VisibleBehaviour(() -> !CollectionUtils.isEmpty(decisionList)));
+        add(historyContainer);
+
+        DecisionsPanel historyPanel = new DecisionsPanel(ID_HISTORY_PANEL,
+                Model.ofList(decisionList), UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL,
+                        (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL));
+        historyPanel.setOutputMarkupId(true);
+        historyContainer.add(historyPanel);
+    }
+
+    public List<DecisionDto> calculateDecisionList() {
+        List<DecisionDto> rv = new ArrayList<>();
+        CaseType parentCase = getObjectWrapper().getObject().asObjectable();
+        if (parentCase == null) {
+            return rv;
+        }
+
+		if (parentCase.getEvent() != null && !parentCase.getEvent().isEmpty()) {
+            parentCase.getEvent().forEach(e -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(e, ApprovalCaseTabPanel.this.getPageBase())));
+		} else {
+			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(parentCase.getWorkflowContext());
+			if (instanceState != null) {
+			    //todo where we can take decisions now?
+//				instanceState.getDecisions().forEach(d -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(d)));
+			}
+		}
+        return rv;
     }
 
 }
