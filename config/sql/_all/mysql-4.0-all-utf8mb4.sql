@@ -280,6 +280,7 @@ CREATE TABLE m_audit_event (
   outcome           INTEGER,
   parameter         VARCHAR(255),
   remoteHostAddress VARCHAR(255),
+  requestIdentifier VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   targetName        VARCHAR(255),
@@ -288,7 +289,6 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   targetOwnerType   INTEGER,
   targetType        INTEGER,
-  requestIdentifier VARCHAR(255),
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255) CHARSET utf8 COLLATE utf8_bin ,
   timestampValue    DATETIME(6),
@@ -679,7 +679,13 @@ CREATE TABLE m_case (
   objectRef_relation  VARCHAR(157),
   objectRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
   objectRef_type      INTEGER,
+  parentRef_relation  VARCHAR(157),
+  parentRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  parentRef_type      INTEGER,
   state               VARCHAR(255),
+  targetRef_relation  VARCHAR(157),
+  targetRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  targetRef_type      INTEGER,
   oid                 VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -707,6 +713,15 @@ CREATE TABLE m_connector_host (
   name_norm VARCHAR(191),
   name_orig VARCHAR(191),
   port      VARCHAR(255),
+  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR(191),
+  name_orig VARCHAR(191),
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -811,15 +826,6 @@ CREATE TABLE m_object_collection (
   name_norm VARCHAR(191),
   name_orig VARCHAR(191),
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin  NOT NULL,
-  PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_bin
-  ENGINE = InnoDB;
-CREATE TABLE m_dashboard (
-  name_norm VARCHAR(191),
-  name_orig VARCHAR(191),
-  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8mb4
@@ -1127,8 +1133,9 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -1137,6 +1144,10 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -1173,10 +1184,6 @@ CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1365,6 +1372,8 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object (oid);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_form
@@ -1381,8 +1390,6 @@ ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object (oid);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_org

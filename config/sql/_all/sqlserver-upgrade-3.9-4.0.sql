@@ -37,4 +37,16 @@ CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
 
 ALTER TABLE m_audit_event ADD requestIdentifier NVARCHAR(255) COLLATE database_default;
 
+ALTER TABLE m_case ADD
+  parentRef_relation  NVARCHAR(157) COLLATE database_default,
+  parentRef_targetOid NVARCHAR(36) COLLATE database_default,
+  parentRef_type      INT,
+  targetRef_relation  NVARCHAR(157) COLLATE database_default,
+  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
+  targetRef_type      INT;
+
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

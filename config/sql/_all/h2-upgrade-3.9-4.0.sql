@@ -36,4 +36,15 @@ ALTER TABLE m_shadow
 
 ALTER TABLE m_audit_event ADD COLUMN requestIdentifier VARCHAR(255);
 
+ALTER TABLE m_case ADD COLUMN parentRef_relation  VARCHAR(157);
+ALTER TABLE m_case ADD COLUMN parentRef_targetOid VARCHAR(36);
+ALTER TABLE m_case ADD COLUMN parentRef_type      INTEGER;
+ALTER TABLE m_case ADD COLUMN targetRef_relation  VARCHAR(157);
+ALTER TABLE m_case ADD COLUMN targetRef_targetOid VARCHAR(36);
+ALTER TABLE m_case ADD COLUMN targetRef_type      INTEGER;
+
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';

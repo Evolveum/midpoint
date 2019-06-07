@@ -39,4 +39,16 @@ CREATE UNIQUE INDEX iPrimaryIdentifierValueWithOC
 
 ALTER TABLE m_audit_event ADD requestIdentifier VARCHAR2(255 CHAR);
 
+ALTER TABLE m_case ADD (
+  parentRef_relation  VARCHAR2(157 CHAR),
+  parentRef_targetOid VARCHAR2(36 CHAR),
+  parentRef_type      NUMBER(10, 0),
+  targetRef_relation  VARCHAR2(157 CHAR),
+  targetRef_targetOid VARCHAR2(36 CHAR),
+  targetRef_type      NUMBER(10, 0));
+
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid) INITRANS 30;
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid) INITRANS 30;
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
