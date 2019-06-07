@@ -65,7 +65,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstances.class);
     private static final String DOT_CLASS = PageProcessInstances.class.getName() + ".";
     private static final String OPERATION_STOP_PROCESS_INSTANCES = DOT_CLASS + "stopProcessInstances";
-    public static final String OPERATION_STOP_PROCESS_INSTANCE = DOT_CLASS + "stopProcessInstance";
+    public static final String OPERATION_STOP_PROCESS_INSTANCE = DOT_CLASS + "cancelCase";
     private static final String OPERATION_DELETE_PROCESS_INSTANCES = DOT_CLASS + "deleteProcessInstances";
     private static final String OPERATION_DELETE_PROCESS_INSTANCE = DOT_CLASS + "deleteProcessInstance";
 
@@ -171,7 +171,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         WorkflowService workflowService = getWorkflowService();
         for (ProcessInstanceDto instance : selectedStoppableInstances) {
             try {
-                workflowService.stopProcessInstance(instance.getProcessInstanceId(), task, result);
+                workflowService.cancelCase(instance.getProcessInstanceId(), task, result);
             } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException ex) {
                 result.createSubresult(OPERATION_STOP_PROCESS_INSTANCE)
 		                .recordPartialError(createStringResource("pageProcessInstances.message.stopProcessInstancesPerformed.partialError", instance.getName()).getString(), ex);

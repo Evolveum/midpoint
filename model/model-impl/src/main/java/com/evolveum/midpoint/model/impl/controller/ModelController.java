@@ -2031,10 +2031,10 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
     @Override
-    public void stopProcessInstance(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
 		    ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, ObjectAlreadyExistsException {
-        getWorkflowManagerChecked().stopProcessInstance(caseOid, task, parentResult);
+        getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
     }
 
     @Override

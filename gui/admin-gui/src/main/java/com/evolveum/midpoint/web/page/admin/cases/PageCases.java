@@ -363,7 +363,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
             OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
             try {
-                getWorkflowService().stopProcessInstance(caseObject.getOid(), task, result);
+                getWorkflowService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex){
                 LOGGER.error("Couldn't stop case process, ", ex.getLocalizedMessage());
                 result.recordFatalError("Couldn't stop case process, ", ex);

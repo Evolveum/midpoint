@@ -64,6 +64,7 @@ public class TreeNode<T> implements DebugDumpable {
 		return userObject;
 	}
 
+	@SuppressWarnings("unused")
 	public void setUserObject(T userObject) {
 		this.userObject = userObject;
 	}
@@ -79,10 +80,10 @@ public class TreeNode<T> implements DebugDumpable {
 		return sb.toString();
 	}
 
-	public <N> TreeNode<N> tranform(Function<T, N> transformation) {
+	public <N> TreeNode<N> transform(Function<T, N> transformation) {
 		TreeNode<N> rv = new TreeNode<>(transformation.apply(userObject));
 		for (TreeNode<T> child : children) {
-			rv.add(child.tranform(transformation));
+			rv.add(child.transform(transformation));
 		}
 		return rv;
 	}

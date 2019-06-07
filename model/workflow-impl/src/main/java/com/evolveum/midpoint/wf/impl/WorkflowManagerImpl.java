@@ -115,7 +115,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
 	//region Process instances (cases)
     @Override
-    public void stopProcessInstance(String caseOid, Task task, OperationResult parentResult)
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult)
 		    throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
 		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
         caseManager.cancelCase(caseOid, task, parentResult);

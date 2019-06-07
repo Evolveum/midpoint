@@ -406,49 +406,57 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	    // here we should execute the deltas, if appropriate!
 
 	    CaseType rootCase = generalHelper.getRootCase(currentCase, result);
-	    LensContextType modelContext = rootCase.getModelContext();
-	    if (modelContext == null) {
-	    	throw new IllegalStateException("No model context in root case " + rootCase);
-	    }
-	    boolean immediately = modelContext.getOptions() != null &&
-			    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
-	    if (immediately) {
-	    	if (deltas != null) {
-			    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
-			    boolean waiting;
-			    if (!currentCase.getPrerequisiteRef().isEmpty()) {
-				    ObjectQuery query = prismContext.queryFor(CaseType.class)
-						    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
-						    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
-						    .build();
-				    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
-						    .searchObjects(CaseType.class, query, null, result);
-				    waiting = !openPrerequisites.isEmpty();
-				    if (waiting) {
-				    	LOGGER.debug("Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
-							    currentCase, openPrerequisites);
-				    }
-			    } else {
-			    	waiting = false;
-			    }
-	    		submitExecutionTask(currentCase, waiting, result);
-		    } else {
-			    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
-			    executionHelper.closeCaseInRepository(currentCase, result);
-			    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
-		    }
-	    } else {
-		    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
-				    currentCase, rootCase);
+	    if (CaseTypeUtil.isClosed(rootCase)) {
+	    	LOGGER.debug("Root case ({}) is already closed; not starting any execution tasks for {}", rootCase, currentCase);
 		    executionHelper.closeCaseInRepository(currentCase, result);
-		    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
-		    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
-			    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
-			    submitExecutionTask(rootCase, false, result);
+	    } else {
+		    LensContextType modelContext = rootCase.getModelContext();
+		    if (modelContext == null) {
+			    throw new IllegalStateException("No model context in root case " + rootCase);
+		    }
+		    boolean immediately = modelContext.getOptions() != null &&
+				    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
+		    if (immediately) {
+			    if (deltas != null) {
+				    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
+				    boolean waiting;
+				    if (!currentCase.getPrerequisiteRef().isEmpty()) {
+					    ObjectQuery query = prismContext.queryFor(CaseType.class)
+							    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid)
+									    .toArray(String[]::new))
+							    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
+							    .build();
+					    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
+							    .searchObjects(CaseType.class, query, null, result);
+					    waiting = !openPrerequisites.isEmpty();
+					    if (waiting) {
+						    LOGGER.debug(
+								    "Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
+								    currentCase, openPrerequisites);
+					    }
+				    } else {
+					    waiting = false;
+				    }
+				    submitExecutionTask(currentCase, waiting, result);
+			    } else {
+				    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
+				    executionHelper.closeCaseInRepository(currentCase, result);
+				    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
+			    }
 		    } else {
-			    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
-			    for (CaseType subcase : subcases) {
-				    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(), CaseTypeUtil.isClosed(subcase));
+			    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
+					    currentCase, rootCase);
+			    executionHelper.closeCaseInRepository(currentCase, result);
+			    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+			    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
+				    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
+				    submitExecutionTask(rootCase, false, result);
+			    } else {
+				    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
+				    for (CaseType subcase : subcases) {
+					    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(),
+							    CaseTypeUtil.isClosed(subcase));
+				    }
 			    }
 		    }
 	    }

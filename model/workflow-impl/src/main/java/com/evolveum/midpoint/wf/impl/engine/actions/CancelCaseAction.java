@@ -42,7 +42,7 @@ public class CancelCaseAction extends RequestedAction<CancelCaseRequest> {
 			ConfigurationException, ExpressionEvaluationException {
 		traceEnter(LOGGER);
 
-		engine.securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null,
+		engine.securityEnforcer.authorize(ModelAuthorizationAction.CANCEL_CASE.getUrl(), null,
 				AuthorizationParameters.Builder.buildObject(ctx.getCurrentCase().asPrismObject()), null, ctx.getTask(), result);
 
 		// TODO consider putting some events and notifications here

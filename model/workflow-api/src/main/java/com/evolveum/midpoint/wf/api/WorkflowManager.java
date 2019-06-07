@@ -61,9 +61,9 @@ public interface WorkflowManager {
 			ExpressionEvaluationException, CommunicationException, ConfigurationException;
 	//endregion
 
-	//region Process instances
+	//region Process instances (cases)
 
-	void stopProcessInstance(String caseOid, Task task, OperationResult parentResult)
+	void cancelCase(String caseOid, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
 			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
