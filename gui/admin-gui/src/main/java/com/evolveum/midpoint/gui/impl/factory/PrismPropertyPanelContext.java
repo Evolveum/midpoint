@@ -46,4 +46,7 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
 		return unwrapWrapperModel().getPredefinedValues();
 	}
 	
+	public boolean hasValueEnumarationRef() {
+		return unwrapWrapperModel().getValueEnumerationRef() != null;
+	}
 }

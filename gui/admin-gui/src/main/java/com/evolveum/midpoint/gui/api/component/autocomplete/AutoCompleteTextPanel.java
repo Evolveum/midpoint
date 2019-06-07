@@ -62,6 +62,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, boolean strict, LookupTableType lookuptable) {
 		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
 		this.lookupTable = lookuptable;
+		this.strict = strict;
 	}
 	
 	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
@@ -97,7 +98,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						}
 
 						for (LookupTableRowType row : lookupTable.getRow()) {
-							if (value.equals(WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+							if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
 								return (C) row.getKey();
 							}
 						}
@@ -115,7 +116,7 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 						if (lookupTable != null) {
 							for (LookupTableRowType row : lookupTable.getRow()) {
 								if (key.equals(row.getKey())) {
-									return (String) WebComponentUtil.getLocalizedPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
+									return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
 								}
 							}
 						}
