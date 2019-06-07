@@ -63,7 +63,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
 		}
 		
 		return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),
-				panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumarationRef(), lookupTable) {
+				panelCtx.getRealValueModel(), panelCtx.getTypeClass(), panelCtx.hasValueEnumerationRef(), lookupTable) {
 
 			private static final long serialVersionUID = 1L;
 
