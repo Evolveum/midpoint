@@ -451,7 +451,6 @@ CREATE TABLE m_shadow (
 );
 CREATE TABLE m_task (
   binding                  INT,
-  canRunOnNode             NVARCHAR(255) COLLATE database_default,
   category                 NVARCHAR(255) COLLATE database_default,
   completionTimestamp      DATETIME2,
   executionStatus          INT,
@@ -474,18 +473,6 @@ CREATE TABLE m_task (
   taskIdentifier           NVARCHAR(255) COLLATE database_default,
   threadStopAction         INT,
   waitingReason            INT,
-  wfEndTimestamp           DATETIME2,
-  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfObjectRef_type         INT,
-  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
-  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
-  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
-  wfRequesterRef_type      INT,
-  wfStartTimestamp         DATETIME2,
-  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfTargetRef_type         INT,
   oid                      NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -528,6 +515,7 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_case (
+  closeTimestamp         DATETIME2,
   name_norm           NVARCHAR(255) COLLATE database_default,
   name_orig           NVARCHAR(255) COLLATE database_default,
   objectRef_relation  NVARCHAR(157) COLLATE database_default,
@@ -536,6 +524,9 @@ CREATE TABLE m_case (
   parentRef_relation  NVARCHAR(157) COLLATE database_default,
   parentRef_targetOid NVARCHAR(36) COLLATE database_default,
   parentRef_type      INT,
+  requestorRef_relation  NVARCHAR(157) COLLATE database_default,
+  requestorRef_targetOid NVARCHAR(36) COLLATE database_default,
+  requestorRef_type      INT,
   state               NVARCHAR(255) COLLATE database_default,
   targetRef_relation  NVARCHAR(157) COLLATE database_default,
   targetRef_targetOid NVARCHAR(36) COLLATE database_default,
@@ -888,18 +879,7 @@ CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
     WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -916,6 +896,8 @@ CREATE INDEX iCaseNameOrig
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm

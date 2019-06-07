@@ -576,7 +576,6 @@ CREATE TABLE m_shadow (
   ENGINE = InnoDB;
 CREATE TABLE m_task (
   binding                  INTEGER,
-  canRunOnNode             VARCHAR(255),
   category                 VARCHAR(255),
   completionTimestamp      DATETIME(6),
   executionStatus          INTEGER,
@@ -599,18 +598,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(191),
   threadStopAction         INTEGER,
   waitingReason            INTEGER,
-  wfEndTimestamp           DATETIME(6),
-  wfObjectRef_relation     VARCHAR(157),
-  wfObjectRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfObjectRef_type         INTEGER,
-  wfProcessInstanceId      VARCHAR(191),
-  wfRequesterRef_relation  VARCHAR(157),
-  wfRequesterRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfRequesterRef_type      INTEGER,
-  wfStartTimestamp         DATETIME(6),
-  wfTargetRef_relation     VARCHAR(157),
-  wfTargetRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfTargetRef_type         INTEGER,
   oid                      VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -674,19 +661,23 @@ CREATE TABLE m_archetype (
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case (
-  name_norm           VARCHAR(191),
-  name_orig           VARCHAR(191),
-  objectRef_relation  VARCHAR(157),
-  objectRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
-  objectRef_type      INTEGER,
-  parentRef_relation  VARCHAR(157),
-  parentRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
-  parentRef_type      INTEGER,
-  state               VARCHAR(255),
-  targetRef_relation  VARCHAR(157),
-  targetRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
-  targetRef_type      INTEGER,
-  oid                 VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  closeTimestamp         DATETIME(6),
+  name_norm              VARCHAR(191),
+  name_orig              VARCHAR(191),
+  objectRef_relation     VARCHAR(157),
+  objectRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  objectRef_type         INTEGER,
+  parentRef_relation     VARCHAR(157),
+  parentRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  parentRef_type         INTEGER,
+  requestorRef_relation  VARCHAR(157),
+  requestorRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  requestorRef_type      INTEGER,
+  state                  VARCHAR(255),
+  targetRef_relation     VARCHAR(157),
+  targetRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  targetRef_type         INTEGER,
+  oid                    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8mb4
@@ -1108,18 +1099,7 @@ ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -1136,6 +1116,8 @@ CREATE INDEX iCaseNameOrig
 CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
 CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
 CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
