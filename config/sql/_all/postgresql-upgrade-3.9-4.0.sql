@@ -36,4 +36,19 @@ ALTER TABLE IF EXISTS m_shadow
 
 ALTER TABLE m_audit_event ADD COLUMN requestIdentifier VARCHAR(255);
 
+ALTER TABLE m_case ADD COLUMN parentRef_relation VARCHAR(157),
+                   ADD COLUMN parentRef_targetOid VARCHAR(36),
+                   ADD COLUMN parentRef_type INT4,
+                   ADD COLUMN targetRef_relation VARCHAR(157),
+                   ADD COLUMN targetRef_targetOid VARCHAR(36),
+                   ADD COLUMN targetRef_type INT4;
+
+-- This is no longer valid
+-- ALTER TABLE IF EXISTS m_case
+--  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+--
+-- So use the following if you have it defined:
+-- ALTER TABLE IF EXISTS m_case
+--     DROP CONSTRAINT uc_case_name;
+
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
