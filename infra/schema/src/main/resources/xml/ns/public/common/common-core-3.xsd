@@ -11549,10 +11549,10 @@
                                 E.g. an account, entitlement, etc.
                                 If not specified defaults to "generic".
                             </xsd:documentation>
+			    <xsd:appinfo>
+		            	<a:displayName>ShadowType.kind</a:displayName>
+		            </xsd:appinfo>
                         </xsd:annotation>
-			<xsd:appinfo>
-		            <a:displayName>ShadowType.kind</a:displayName>
-		        </xsd:appinfo>
                     </xsd:element>
                     <xsd:element name="intent" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
