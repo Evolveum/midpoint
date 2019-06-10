@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -247,7 +247,7 @@ public class WorkItemPanel extends BasePanel<WorkItemDto> {
 			LOGGER.debug("Ignoring getModelObject exception because we're in constructor. It will occur later and will be correctly processed then.", t);
 			getSession().getFeedbackMessages().clear();
 		}
-		ApprovalStageDefinitionType level = dto != null ? WfContextUtil.getCurrentStageDefinition(dto.getCase()) : null;
+		ApprovalStageDefinitionType level = dto != null ? ApprovalContextUtil.getCurrentStageDefinition(dto.getCase()) : null;
 		WebMarkupContainer additionalAttributes = new WebMarkupContainer(ID_ADDITIONAL_ATTRIBUTES);
 		add(additionalAttributes);
 		additionalAttributes.add(new VisibleEnableBehaviour() {

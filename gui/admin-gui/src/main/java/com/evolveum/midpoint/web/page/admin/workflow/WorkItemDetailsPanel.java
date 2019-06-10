@@ -19,30 +19,16 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
-import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
-import com.evolveum.midpoint.web.page.admin.server.TaskChangesPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.List;
-
 
 /**
  * Created by honchar
@@ -104,7 +90,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
         CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
         EvaluatedTriggerGroupListPanel reasonPanel = new EvaluatedTriggerGroupListPanel(ID_REASON,
-                Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getWorkflowContext() : null,
+                Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getApprovalContext() : null,
                         parentCase != null ? parentCase.getStageNumber() : 0)));
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);

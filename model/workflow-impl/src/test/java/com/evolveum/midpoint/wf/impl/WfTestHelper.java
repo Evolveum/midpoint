@@ -56,7 +56,7 @@ public class WfTestHelper {
 	public static CaseType findAndRemoveCase0(List<CaseType> subcases) {
 	    CaseType case0 = null;
 	    for (CaseType subcase : subcases) {
-		    if (subcase.getWorkflowContext() == null || subcase.getWorkflowContext().getProcessSpecificState() == null) {
+		    if (subcase.getApprovalContext() == null || subcase.getApprovalContext().getApprovalSchema() == null) {
 			    assertNull("More than one non-wf-monitoring subtask", case0);
 			    case0 = subcase;
 		    }

@@ -181,19 +181,19 @@
          <type>TaskType</type>
       </object>
    </authorization>
-   <authorization id="11">
-      <name>assignment-target-read-task</name>
+    <authorization>
+    	<name>assignment-target-read-case</name>
       <description>
-    		Authorization that allows to read workflow status of tasks. This is used to display requests
+    		Authorization that allows to read approval status of cases. This is used to display requests
     		to the end users, especially in the "My Requests" box in user dashboard.
     		This authorization is a temporary solution. It will be replaced by a finer-grained
     		permissions in the future.
     	</description>
       <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-      <object id="28">
-         <type>TaskType</type>
+        <object>
+            <type>CaseType</type>
       </object>
-      <c:item>workflowContext</c:item>
+        <item>approvalContext</item>
    </authorization>
    <authorization id="12">
       <name>self-owned-task-read</name>

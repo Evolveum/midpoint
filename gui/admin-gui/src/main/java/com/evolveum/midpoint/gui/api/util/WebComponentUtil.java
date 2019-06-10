@@ -48,7 +48,6 @@ import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -3868,13 +3867,13 @@ public final class WebComponentUtil {
 		return createSceneDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
 	}
 
-	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc, Integer stage) {
+	public static List<EvaluatedTriggerGroupDto> computeTriggers(ApprovalContextType wfc, Integer stage) {
 		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
 		if (wfc == null) {
 			return triggers;
 		}
 		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
-		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
+		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = ApprovalContextUtil.getRulesPerStage(wfc);
 		for (int i = 0; i < rulesPerStageList.size(); i++) {
 			Integer stageNumber = i + 1;
 			boolean highlighted = stageNumber.equals(stage);
@@ -3885,19 +3884,15 @@ public final class WebComponentUtil {
 	}
 
 	public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation){
-		if (caseObject == null || caseObject.getWorkflowContext() == null) {
-			return null;
-		}
-		if (!(caseObject.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+		if (caseObject == null || caseObject.getApprovalContext() == null) {
 			return null;
 		}
 		ObjectReferenceType objectRef = caseObject.getObjectRef();
-		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) caseObject.getWorkflowContext().getProcessorSpecificState();
 
 		OperationResult result = new OperationResult(operation);
 		Task task = pageBase.createSimpleTask(operation);
 		try {
-			Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), "pageWorkItem.delta",
+			Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(), "pageWorkItem.delta",
 					pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
 			return new SceneDto(deltasScene);
 		} catch (SchemaException | ExpressionEvaluationException ex){

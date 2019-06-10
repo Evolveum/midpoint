@@ -83,13 +83,13 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// THEN
 		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
-		display("workflow context", aCase.getWorkflowContext());
+		display("workflow context", aCase.getApprovalContext());
 		List<? extends CaseEventType> events = aCase.getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
 
 		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
 		display("Event 1", event1);
-		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(aCase).getComment());
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, ApprovalContextUtil.getBusinessContext(aCase).getComment());
 
 		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
 		display("Event 2", event2);
@@ -150,13 +150,13 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 
 		// THEN
 		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
-		display("workflow context", aCase.getWorkflowContext());
+		display("workflow context", aCase.getApprovalContext());
 		List<? extends CaseEventType> events = aCase.getEvent();
 		assertEquals("Wrong # of events", 2, events.size());
 
 		CaseCreationEventType event1 = (CaseCreationEventType) events.get(0);
 		display("Event 1", event1);
-		assertEquals("Wrong requester comment", REQUESTER_COMMENT, WfContextUtil.getBusinessContext(aCase).getComment());
+		assertEquals("Wrong requester comment", REQUESTER_COMMENT, ApprovalContextUtil.getBusinessContext(aCase).getComment());
 
 		WorkItemEventType event2 = (WorkItemEventType) events.get(1);
 		display("Event 2", event2);

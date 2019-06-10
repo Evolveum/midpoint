@@ -77,9 +77,9 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
         approvalsVisible = !parentPage.isEdit()
-				&& parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
+				&& false //parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
 				&& (parentPage.getTaskDto().isWorkflowChild() || parentPage.getTaskDto().isWorkflowParent());
-                //&& parentPage.getTaskDto().getTaskType().getWorkflowContext() != null
+                //&& parentPage.getTaskDto().getTaskType().getApprovalContext() != null
                 //&& parentPage.getTaskDto().getWorkflowDeltaIn() != null;
         return approvalsVisible;
     }

@@ -740,14 +740,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public WfContextType getWorkflowContext() {
-        return null;
-    }
-
-    @Override public void setWorkflowContext(WfContextType context) {
-    }
-
-    @Override
     public TaskExecutionConstraintsType getExecutionConstraints() {
         return null;
     }

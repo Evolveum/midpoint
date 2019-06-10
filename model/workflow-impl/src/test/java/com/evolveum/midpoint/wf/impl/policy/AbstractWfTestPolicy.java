@@ -33,7 +33,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -62,9 +62,8 @@ import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ASSIGNEE_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_APPROVAL_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_DELTAS_TO_APPROVE;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.*;
@@ -493,7 +492,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 		for (int i = 0; i < subcases.size(); i++) {
 			CaseType subcase = subcases.get(i);
 			PrismProperty<ObjectTreeDeltasType> deltas = subcase.asPrismObject()
-					.findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+					.findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_DELTAS_TO_APPROVE));
 			assertNotNull("There are no modifications in subcase #" + i + ": " + subcase, deltas);
 			assertEquals("Incorrect number of modifications in subcase #" + i + ": " + subcase, 1, deltas.getRealValues().size());
 			// todo check correctness of the modification?
@@ -574,7 +573,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 			List<ExpectedWorkItem> expectedWorkItems) throws Exception {
 
 		final Collection<SelectorOptions<GetOperationOptions>> options =
-				SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
+				SelectorOptions.createCollection(prismContext.path(F_APPROVAL_CONTEXT, F_WORK_ITEM), createRetrieve());
 
 		Task opTask = taskManager.createTaskInstance();
 		display("rootCase", rootCase);
@@ -594,12 +593,12 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 			display("Work item #" + (i + 1) + ": ", workItem);
 			display("Case", CaseWorkItemUtil.getCase(workItem));
 			if (objectOid != null) {
-				WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), objectOid, true, true);
+				WfTestUtil.assertRef("object reference", ApprovalContextUtil.getObjectRef(workItem), objectOid, true, true);
 			}
 
 			String targetOid = expectedWorkItems.get(i).targetOid;
 			if (targetOid != null) {
-				WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), targetOid, true, true);
+				WfTestUtil.assertRef("target reference", ApprovalContextUtil.getTargetRef(workItem), targetOid, true, true);
 			}
 			WfTestUtil
 					.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), expectedWorkItems.get(i).assigneeOid, false, true);
@@ -616,7 +615,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
 	private void checkCase(CaseType subcase, String context, ExpectedTask expectedTask) {
 		assertNull("Unexpected fetch result in wf subtask: " + context, subcase.getFetchResult());
-		WfContextType wfc = subcase.getWorkflowContext();
+		ApprovalContextType wfc = subcase.getApprovalContext();
 		assertNotNull("Missing workflow context in wf subtask: " + context, wfc);
 		// TODO-WF
 //		assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getCaseOid());
@@ -727,7 +726,7 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 							testDetails2.getObjectOid(),
 							testDetails2.getExpectedTasks(), testDetails2.getExpectedWorkItems());
 					for (CaseType subcase : subcases) {
-						if (subcase.getWorkflowContext() != null && subcase.getWorkflowContext().getProcessSpecificState() != null) {
+						if (subcase.getApprovalContext() != null) {
 							OperationResult opResult = new OperationResult("dummy");
 							ApprovalSchemaExecutionInformationType info = workflowManager.getApprovalSchemaExecutionInformation(subcase.getOid(), opTask, opResult);
 							display("Execution info for " + subcase, info);

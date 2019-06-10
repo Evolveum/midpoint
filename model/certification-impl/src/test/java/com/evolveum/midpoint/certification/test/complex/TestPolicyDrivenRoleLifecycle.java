@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -258,14 +257,13 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
 		CaseType approvalCase = getApprovalCase(cases);
 		CaseType rootCase = getRootCase(cases);
-		WfContextType wfc = approvalCase.getWorkflowContext();
+		ApprovalContextType wfc = approvalCase.getApprovalContext();
 		//assertEquals("Modification of correct", wfc.getProcessInstanceName());            // MID-4200
 		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
 		CaseWorkItemType workItem = approvalCase.getWorkItem().get(0);
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
-		assertEquals("wrong # of approval stages", 1, info.getApprovalSchema().getStage().size());
-		assertEquals("wrong # of attached policy rules", 1, info.getPolicyRules().getEntry().size());
-		EvaluatedPolicyRuleType rule = info.getPolicyRules().getEntry().get(0).getRule();
+		assertEquals("wrong # of approval stages", 1, wfc.getApprovalSchema().getStage().size());
+		assertEquals("wrong # of attached policy rules", 1, wfc.getPolicyRules().getEntry().size());
+		EvaluatedPolicyRuleType rule = wfc.getPolicyRules().getEntry().get(0).getRule();
 		List<EvaluatedPolicyRuleTriggerType> triggers = rule.getTrigger();
 
 		// TODO check trigger
@@ -337,18 +335,17 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("Wrong # of approval cases for role", 2, cases.size());
 
 		CaseType approvalCase = getApprovalCase(cases);
-		WfContextType wfc = approvalCase.getWorkflowContext();
+		ApprovalContextType wfc = approvalCase.getApprovalContext();
 		// assertEquals("Modification of correct-high-risk", wfc.getProcessInstanceName());             // MID-4200
 		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
 		CaseWorkItemType workItem = approvalCase.getWorkItem().get(0);
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfc);
-		assertEquals("wrong # of approval stages", 2, info.getApprovalSchema().getStage().size());
-		assertEquals("wrong # of attached policy rules", 2, info.getPolicyRules().getEntry().size());
+		assertEquals("wrong # of approval stages", 2, wfc.getApprovalSchema().getStage().size());
+		assertEquals("wrong # of attached policy rules", 2, wfc.getPolicyRules().getEntry().size());
 
 		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
 		approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
-		wfc = approvalCase.getWorkflowContext();
+		wfc = approvalCase.getApprovalContext();
 		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
 		workItem = approvalCase.getWorkItem().get(0);
 		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);

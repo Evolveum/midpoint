@@ -178,7 +178,7 @@ public class ProcessInstancesPanel extends BasePanel {
 		return new ReadOnlyModel<>(() -> {
 			ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
 			return defaultIfNull(
-					WfGuiUtil.getLocalizedProcessName(processInstanceDto.getWorkflowContext(), ProcessInstancesPanel.this),
+					WfGuiUtil.getLocalizedProcessName(processInstanceDto.getApprovalContext(), ProcessInstancesPanel.this),
 					processInstanceDto.getName());
 		});
 	}

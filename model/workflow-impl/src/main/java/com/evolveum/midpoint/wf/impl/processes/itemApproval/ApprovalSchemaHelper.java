@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.processes.itemApproval;
 
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -37,7 +37,7 @@ import java.util.List;
 public class ApprovalSchemaHelper {
 
 	public void prepareSchema(ApprovalSchemaType schema, RelationResolver relationResolver, ReferenceResolver referenceResolver) {
-		WfContextUtil.normalizeStages(schema);
+		ApprovalContextUtil.normalizeStages(schema);
 		for (ApprovalStageDefinitionType stageDef : schema.getStage()) {
 			prepareStage(stageDef, relationResolver, referenceResolver);
 		}

@@ -70,7 +70,7 @@ Matches if (for any N) the value of 'attributeN' is equal to 'valueN'.
 								<script>
 									<code>
 										rulesLib.execute('computeApprovers', [
-											workflowContext : workflowContext,
+										    approvalContext : approvalContext,
 											stageDefinition : stageDefinition
 										])
 									</code>

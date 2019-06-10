@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -185,11 +185,11 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	public boolean isEmpty(PcpStartInstruction instruction,
 			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemApprovalProcessStateType state = instruction.getItemApprovalProcessState();
-		if (state == null) {
+		ApprovalContextType actx = instruction.getApprovalContext();
+		if (actx == null) {
 			return true;
 		}
-		List<ApprovalStageDefinitionType> stages = WfContextUtil.getStages(state.getApprovalSchema());
+		List<ApprovalStageDefinitionType> stages = ApprovalContextUtil.getStages(actx.getApprovalSchema());
 		// first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
 		for (ApprovalStageDefinitionType stage : stages) {
 			if (stage.getAutomaticallyCompleted() == null) {
@@ -210,7 +210,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
 			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getWfContext(), ctx.task.getChannel(), result);
+		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
 		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
 	}
 
@@ -336,7 +336,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
             instruction0.setName("Changes that do not require approval");
 	        instruction0.setObjectRef(ctx);
-	        instruction0.setDeltasToProcess(changesWithoutApproval);
+	        instruction0.setDeltasToApprove(changesWithoutApproval);
 	        instruction0.setResultingDeltas(changesWithoutApproval);
 	        instruction0.setParent(rootCase);
 			return instruction0;
@@ -486,7 +486,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	}
 
 	private ObjectTreeDeltas<?> prepareDeltaOut(CaseType aCase) throws SchemaException {
-		ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToProcess(aCase);
+		ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToApprove(aCase);
 		if (ApprovalUtils.isApprovedFromUri(aCase.getOutcome())) {
 			return deltaIn;
 		} else {
@@ -499,13 +499,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
 
         ObjectTreeDeltas<?> deltas;
         try {
             if (stage == REQUEST) {
-                deltas = generalHelper.retrieveDeltasToProcess(aCase);
+                deltas = generalHelper.retrieveDeltasToApprove(aCase);
             } else {
                 deltas = generalHelper.retrieveResultingDeltas(aCase);
             }
@@ -526,7 +526,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		    OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         try {
-            addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToProcess(aCase));
+            addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToApprove(aCase));
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
         }

@@ -86,7 +86,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			throw new IllegalArgumentException("Unexpected object type: should be CaseType: " + object);
 		}
 		CaseType aCase = (CaseType) object.asObjectable();
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 		if (wfc == null) {
 			LOGGER.warn("Task without workflow context; ignoring it: " + object);
 			return triggers;
@@ -179,8 +179,8 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 
 	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, CaseWorkItemType workItem,
 			CaseType aCase, RunningTask opTask, OperationResult result) throws SchemaException {
-		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
-		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
+		WorkItemOperationKindType operationKind = ApprovalContextUtil.getOperationKind(action);
+		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(action);
 		List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 		WorkItemAllocationChangeOperationInfo operationInfo =
 				new WorkItemAllocationChangeOperationInfo(operationKind, assigneesAndDeputies, null);
@@ -208,7 +208,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		if (complete != null) {
 			completeActions.add(new CompleteWorkItemsRequest.SingleCompletion(workItem.getId(),
 					defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT), null, null));
-			causeHolder.setValue(WfContextUtil.createCause(complete));
+			causeHolder.setValue(ApprovalContextUtil.createCause(complete));
 		}
 	}
 
@@ -224,11 +224,11 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	private void executeDelegateAction(CaseWorkItemType workItem, DelegateWorkItemActionType delegateAction, boolean escalate,
 			CaseType aCase, Task opTask, OperationResult result)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		WorkItemEscalationLevelType escLevel = escalate ? WfContextUtil.createEscalationLevelInformation(delegateAction) : null;
+		WorkItemEscalationLevelType escLevel = escalate ? ApprovalContextUtil.createEscalationLevelInformation(delegateAction) : null;
 		List<ObjectReferenceType> delegates = computeDelegateTo(delegateAction, workItem, aCase, opTask, result);
 		workItemManager.delegateWorkItem(WorkItemId.of(workItem), delegates,
 				delegateAction.getDelegationMethod(), escLevel,
-				delegateAction.getDuration(), WfContextUtil.createCause(delegateAction), opTask, result);
+				delegateAction.getDuration(), ApprovalContextUtil.createCause(delegateAction), opTask, result);
 	}
 
 	private List<ObjectReferenceType> computeDelegateTo(DelegateWorkItemActionType delegateAction, CaseWorkItemType workItem,
@@ -237,7 +237,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		rv.addAll(CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef()));
 		if (!delegateAction.getApproverExpression().isEmpty()) {
-			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getWorkflowContext(), getChannel(opTask), result);
+			ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, aCase.getApprovalContext(), getChannel(opTask), result);
 			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, CaseWorkItemType.class);
 			rv.addAll(evaluationHelper.evaluateRefExpressions(delegateAction.getApproverExpression(),
 					variables, "computing delegates", opTask, result));
@@ -257,7 +257,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 			CaseType aCase, Task opTask,
 			OperationResult result) throws SchemaException {
 		WorkItemTypeUtil.assertHasCaseOid(workItem);
-		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(notificationAction);
+		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(notificationAction);
 		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 			List<ObjectReferenceType> assigneesAndDeputies = miscHelper.getAssigneesAndDeputies(workItem, opTask, result);
 			for (ObjectReferenceType assigneeOrDeputy : assigneesAndDeputies) {

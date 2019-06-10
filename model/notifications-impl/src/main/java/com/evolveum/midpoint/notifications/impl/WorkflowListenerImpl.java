@@ -90,7 +90,7 @@ public class WorkflowListenerImpl implements WorkflowListener {
 		    CaseType aCase, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, assignee), null, null, null,
-			    aCase.getWorkflowContext(), aCase);
+			    aCase.getApprovalContext(), aCase);
 		initializeWorkflowEvent(event, aCase);
         processEvent(event, result);
     }
@@ -101,7 +101,7 @@ public class WorkflowListenerImpl implements WorkflowListener {
 		    CaseType aCase, OperationResult result) {
 	    WorkItemEvent event = new WorkItemLifecycleEvent(identifierGenerator, ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
-				getInitiator(sourceInfo), operationInfo, sourceInfo, aCase.getWorkflowContext(), aCase);
+				getInitiator(sourceInfo), operationInfo, sourceInfo, aCase.getApprovalContext(), aCase);
 		initializeWorkflowEvent(event, aCase);
 		processEvent(event, result);
     }
@@ -113,7 +113,7 @@ public class WorkflowListenerImpl implements WorkflowListener {
 	    WorkItemEvent event = new WorkItemCustomEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, assignee),
 				new WorkItemOperationSourceInfo(null, cause, notificationAction),
-				aCase.getWorkflowContext(), aCase, notificationAction.getHandler());
+				aCase.getApprovalContext(), aCase, notificationAction.getHandler());
 		initializeWorkflowEvent(event, aCase);
 		processEvent(event, result);
     }
@@ -154,7 +154,7 @@ public class WorkflowListenerImpl implements WorkflowListener {
     	WorkItemAllocationEvent event = new WorkItemAllocationEvent(identifierGenerator, ChangeType.ADD, workItem,
 				SimpleObjectRefImpl.create(functions, newActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				aCase.getWorkflowContext(), aCase, null);
+				aCase.getApprovalContext(), aCase, null);
     	initializeWorkflowEvent(event, aCase);
     	processEvent(event, result);
 	}
@@ -172,7 +172,7 @@ public class WorkflowListenerImpl implements WorkflowListener {
 				timeBefore != null ? ChangeType.MODIFY : ChangeType.DELETE, workItem,
 				SimpleObjectRefImpl.create(functions, currentActor),
 				getInitiator(sourceInfo), operationInfo, sourceInfo,
-				aCase.getWorkflowContext(), aCase, timeBefore);
+				aCase.getApprovalContext(), aCase, timeBefore);
 		initializeWorkflowEvent(event, aCase);
 		processEvent(event, result);
 	}

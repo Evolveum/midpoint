@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.wf.impl.legacy;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -147,7 +146,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
         });
@@ -161,7 +160,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         display("rootCase", rootCase);
         assertHasArchetypes(rootCase.asPrismObject(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
         // TODO-WF
-//        assertTrue("unexpected process instance id in root task", rootTaskType.getWorkflowContext() == null || rootTaskType.getWorkflowContext().getCaseOid() == null);
+//        assertTrue("unexpected process instance id in root task", rootTaskType.getApprovalContext() == null || rootTaskType.getApprovalContext().getCaseOid() == null);
 
         assertEquals("Wrong # of wf subcases w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subcases.size());
         int i = 0;
@@ -185,8 +184,8 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         for (CaseWorkItemType workItem : workItems) {
             display("Work item #"+(i+1)+": ", workItem);
             display("Case", CaseWorkItemUtil.getCase(workItem));
-            WfTestUtil.assertRef("object reference", WfContextUtil.getObjectRef(workItem), USER_JACK_OID, true, true);
-            WfTestUtil.assertRef("target reference", WfContextUtil.getTargetRef(workItem), ROLE_R1_OID, true, true);
+            WfTestUtil.assertRef("object reference", ApprovalContextUtil.getObjectRef(workItem), USER_JACK_OID, true, true);
+            WfTestUtil.assertRef("target reference", ApprovalContextUtil.getTargetRef(workItem), ROLE_R1_OID, true, true);
             WfTestUtil.assertRef("assignee reference", workItem.getOriginalAssigneeRef(), R1BOSS_OID, false, true);     // name is not known
             //WfTestUtil.assertRef("task reference", workItem.getTaskRef(), null, false, true);
             final CaseType subcase = CaseWorkItemUtil.getCaseRequired(workItem);
@@ -196,7 +195,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
     }
 
     private void checkCase(CaseType subcase, String context, String processName) {
-        WfContextType wfc = subcase.getWorkflowContext();
+        ApprovalContextType wfc = subcase.getApprovalContext();
         assertNotNull("Missing workflow context in subcase: " + context, wfc);
         assertEquals("Wrong process ID name in subtask: " + context, processName, subcase.getName().getOrig());
         assertNotNull("Missing process start time in subtask: " + context, CaseTypeUtil.getStartTimestamp(subcase));
@@ -211,7 +210,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         int i = 0;
         for (CaseType subcase : subcases) {
             display("Subtask #"+(i+1)+": ", subcase);
-            WfContextType wfc = subcase.getWorkflowContext();
+            ApprovalContextType wfc = subcase.getApprovalContext();
             assertNotNull("Missing workflow context in wf subcase: " + subcase, wfc);
             // TODO-WF
 //            assertNotNull("No process ID in wf subcase: " + subcase, wfc.getCaseOid());
@@ -276,7 +275,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -327,7 +326,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -392,7 +391,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -452,7 +451,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -507,7 +506,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -574,7 +573,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
 
@@ -632,7 +631,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return false;
             }
@@ -684,7 +683,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(USER_ADMINISTRATOR_OID));
                 return true;
             }
@@ -739,7 +738,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 ObjectReferenceType targetRef = subcase.getTargetRef();
                 if (targetRef != null && RoleType.COMPLEX_TYPE.equals(targetRef.getType())) {
                     return decideOnRoleApproval(subcase, wfContext);
@@ -789,7 +788,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -859,7 +858,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -909,7 +908,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -957,7 +956,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 throw new AssertionError("Decision should not be acquired in this scenario.");
             }
 
@@ -1027,7 +1026,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(R1BOSS_OID));
                 return true;
             }
@@ -1124,7 +1123,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1180,7 +1179,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }
@@ -1242,7 +1241,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 login(getUser(DUMMYBOSS_OID));
                 return true;
             }

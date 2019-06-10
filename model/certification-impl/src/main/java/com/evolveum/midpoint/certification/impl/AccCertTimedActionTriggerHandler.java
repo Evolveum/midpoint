@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -97,8 +97,8 @@ public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 	@SuppressWarnings("unused")
 	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, AccessCertificationCampaignType campaign,
 			Task wfTask, OperationResult result) {
-		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
-		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
+		WorkItemOperationKindType operationKind = ApprovalContextUtil.getOperationKind(action);
+		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(action);
 		// TODO notifications before
 		throw new UnsupportedOperationException("Custom notifications are not implemented yet.");
 //		WorkItemAllocationChangeOperationInfo operationInfo =

@@ -20,20 +20,26 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.ModelHelper;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.schema.ObjectTreeDeltas.fromObjectTreeDeltasType;
 
@@ -48,106 +54,106 @@ public class ChangesSorter {
 
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
-	@Autowired private ModelHelper modelHelper;
 
 	//region ========================================================================== Miscellaneous
 
 	// TODO move somewhere else?
-	public ChangesByState getChangesByStateForChild(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		ChangesByState rv = new ChangesByState(prismContext);
+	public ChangesByState<?> getChangesByStateForChild(CaseType approvalCase, CaseType rootCase, PrismContext prismContext,
+			OperationResult result) throws SchemaException {
+		ChangesByState<?> rv = new ChangesByState(prismContext);
 
-		// TODO implement this!
-
-//		final WfContextType wfc = childTask.getWorkflowContext();
-//		if (wfc != null) {
-//			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
-//			if (isApproved == null) {
-//				if (wfc.getEndTimestamp() == null) {
-//					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
-//				} else {
-//					recordChangesCanceled(rv, wfc, prismContext);
-//				}
-//			} else if (isApproved) {
-//				if (rootTask.getModelOperationContext() != null) {
-//					// this is "execute after all approvals"
-//					if (rootTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
-//						recordResultingChanges(rv.getApplied(), wfc, prismContext);
-//					} else if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI)) {
-//						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
-//					} else {
-//						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
-//					}
-//				} else {
-//					// "execute immediately"
-//					if (childTask.getModelOperationContext() == null || childTask.getModelOperationContext().getState() == ModelStateType.FINAL) {
-//						recordResultingChanges(rv.getApplied(), wfc, prismContext);
-//					} else if (!containsHandler(childTask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
-//						recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
-//					} else {
-//						recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
-//					}
-//				}
-//			} else {
-//				recordChangesRejected(rv, wfc, prismContext);
-//			}
-//		}
+		final ApprovalContextType wfc = approvalCase.getApprovalContext();
+		if (wfc != null) {
+			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(approvalCase.getOutcome());
+			if (isApproved == null) {
+				if (approvalCase.getCloseTimestamp() == null) {
+					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+				} else {
+					recordChangesCanceled(rv, wfc, prismContext);
+				}
+			} else if (isApproved) {
+				TaskType executionTask;
+				if (Boolean.TRUE.equals(approvalCase.getApprovalContext().isImmediateExecution())) {
+					executionTask = getExecutionTask(approvalCase, result);
+				} else {
+					executionTask = getExecutionTask(rootCase, result);
+				}
+				if (executionTask == null || executionTask.getExecutionStatus() == TaskExecutionStatusType.WAITING) {
+					recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+				} else if (executionTask.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE) {
+					recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+				} else {
+					// note: the task might be suspended here
+					recordResultingChanges(rv.getApplied(), wfc, prismContext);
+				}
+			} else {
+				recordChangesRejected(rv, wfc, prismContext);
+			}
+		}
 		return rv;
 	}
 
 	// TODO move somewhere else?
-	public ChangesByState getChangesByStateForRoot(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
+	public ChangesByState getChangesByStateForRoot(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
 		ChangesByState rv = new ChangesByState(prismContext);
-		recordChanges(rv, rootTask.getModelOperationContext(), modelInteractionService, task, result);
-		for (TaskType subtask : rootTask.getSubtask()) {
-			recordChanges(rv, subtask.getModelOperationContext(), modelInteractionService, task, result);
-			final WfContextType wfc = subtask.getWorkflowContext();
-			if (wfc != null) {
-				Boolean isApproved = null; // todo take outcome from CaseType! ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome());
+		LensContextType rootModelContext = getModelContext(rootCase, result);
+		recordChanges(rv, rootModelContext, modelInteractionService, task, result);
+		for (CaseType subcase : getSubcases(rootCase, result)) {
+			ApprovalContextType actx = subcase.getApprovalContext();
+			if (actx != null) {
+				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(subcase.getOutcome());
 				if (isApproved == null) {
-					if (true /* TODO wfc.getEndTimestamp() == null*/ ) {
-						recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+					if (subcase.getCloseTimestamp() == null) {
+						recordChangesWaitingToBeApproved(rv, actx, prismContext);
 					} else {
-						recordChangesCanceled(rv, wfc, prismContext);
+						recordChangesCanceled(rv, actx, prismContext);
 					}
 				} else if (isApproved) {
-					recordChangesApprovedIfNeeded(rv, subtask, rootTask, prismContext);
+					if (Boolean.TRUE.equals(actx.isImmediateExecution())) {
+						LensContextType subModelContext = getModelContext(subcase, result);
+						recordChanges(rv, subModelContext, modelInteractionService, task, result);
+					} else {
+						recordResultingChanges(rv.getWaitingToBeApplied(), actx, prismContext);
+					}
 				} else {
-					recordChangesRejected(rv, wfc, prismContext);
+					recordChangesRejected(rv, actx, prismContext);
 				}
 			}
 		}
 		return rv;
 	}
 
-	private void recordChangesApprovedIfNeeded(ChangesByState rv, TaskType subtask, TaskType rootTask, PrismContext prismContext) throws SchemaException {
-    	// TODO implement this!
-//		if (!containsHandler(rootTask, WfPrepareRootOperationTaskHandler.HANDLER_URI) &&
-//				!containsHandler(subtask, WfPrepareChildOperationTaskHandler.HANDLER_URI)) {
-//			return;			// these changes were already incorporated into one of model contexts
-//		}
-//		if (subtask.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-//			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) subtask.getWorkflowContext().getProcessorSpecificState();
-//			rv.getWaitingToBeApplied().merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
-//		}
+	private List<CaseType> getSubcases(CaseType aCase, OperationResult result) throws SchemaException {
+		ObjectQuery query = prismContext.queryFor(CaseType.class)
+				.item(CaseType.F_PARENT_REF).ref(aCase.getOid())
+				.build();
+		SearchResultList<PrismObject<CaseType>> subcases = repositoryService
+				.searchObjects(CaseType.class, query, null, result);
+		return ObjectTypeUtil.asObjectables(subcases);
 	}
 
-	private boolean containsHandler(TaskType taskType, String handlerUri) {
-		if (handlerUri.equals(taskType.getHandlerUri())) {
-			return true;
-		}
-		if (taskType.getOtherHandlersUriStack() == null) {
-			return false;
-		}
-		for (UriStackEntry uriStackEntry : taskType.getOtherHandlersUriStack().getUriStackEntry()) {
-			if (handlerUri.equals(uriStackEntry.getHandlerUri())) {
-				return true;
-			}
-		}
-		return false;
+	private LensContextType getModelContext(CaseType aCase, OperationResult result) throws SchemaException {
+		TaskType executionTask = getExecutionTask(aCase, result);
+		return executionTask != null ? executionTask.getModelOperationContext() : null;
 	}
 
+	private TaskType getExecutionTask(CaseType aCase, OperationResult result) throws SchemaException {
+		ObjectQuery query = prismContext.queryFor(TaskType.class)
+				.item(TaskType.F_OBJECT_REF).ref(aCase.getOid())
+				.build();
+		SearchResultList<PrismObject<TaskType>> tasks = repositoryService
+				.searchObjects(TaskType.class, query, null, result);
+		if (tasks.isEmpty()) {
+			return null;
+		}
+		if (tasks.size() > 1) {
+			LOGGER.warn("More than one task found for case {} ({} in total): taking an arbitrary one", aCase, tasks.size());
+		}
+		return tasks.get(0).asObjectable();
+	}
+
+	@SuppressWarnings("unchecked")
 	private <O extends ObjectType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
 			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (modelOperationContext == null) {
@@ -168,39 +174,30 @@ public class ChangesSorter {
 		target.merge(deltas);
 	}
 
-	protected void recordChangesWaitingToBeApproved(ChangesByState rv, WfContextType wfc, PrismContext prismContext)
+	private void recordChangesWaitingToBeApproved(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
 			throws SchemaException {
-		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-			rv.getWaitingToBeApproved().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
-		}
+		//noinspection unchecked
+		rv.getWaitingToBeApproved().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
 	}
 
-	protected void recordChangesCanceled(ChangesByState rv, WfContextType wfc, PrismContext prismContext)
+	private void recordChangesCanceled(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
 			throws SchemaException {
-		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-			rv.getCanceled().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
+		//noinspection unchecked
+		rv.getCanceled().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+	}
+
+	private void recordChangesRejected(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
+		if (ObjectTreeDeltas.isEmpty(wfc.getResultingDeltas())) {
+			//noinspection unchecked
+			rv.getRejected().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+		} else {
+			// it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
+			// however, this situation will not currently occur
 		}
 	}
 
-	private void recordChangesRejected(ChangesByState rv, WfContextType wfc, PrismContext prismContext) throws SchemaException {
-		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-			if (ObjectTreeDeltas.isEmpty(ps.getResultingDeltas())) {
-				rv.getRejected().merge(fromObjectTreeDeltasType(ps.getDeltasToProcess(), prismContext));
-			} else {
-				// it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
-				// however, this situation will not currently occur
-			}
-		}
+	private void recordResultingChanges(ObjectTreeDeltas<?> target, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
+		//noinspection unchecked
+		target.merge(fromObjectTreeDeltasType(wfc.getResultingDeltas(), prismContext));
 	}
-
-	private void recordResultingChanges(ObjectTreeDeltas<?> target, WfContextType wfc, PrismContext prismContext) throws SchemaException {
-		if (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType) {
-			WfPrimaryChangeProcessorStateType ps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-			target.merge(fromObjectTreeDeltasType(ps.getResultingDeltas(), prismContext));
-		}
-	}
-
 }

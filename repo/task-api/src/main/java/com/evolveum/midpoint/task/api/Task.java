@@ -1001,11 +1001,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Collection<ItemDelta<?,?>> getPendingModifications();
 
-    // not thread-safe!
-    WfContextType getWorkflowContext();
-
-	void setWorkflowContext(WfContextType context) throws SchemaException;
-
 	// TODO move into RunningTask?
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 

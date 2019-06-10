@@ -30,9 +30,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTreeDeltasType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -40,10 +40,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_RESULTING_DELTAS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_APPROVAL_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_DELTAS_TO_APPROVE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_RESULTING_DELTAS;
 
 /**
  * Methods generally useful for Primary change processor and its components.
@@ -57,9 +56,9 @@ public class PcpGeneralHelper {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    ObjectTreeDeltas retrieveDeltasToProcess(CaseType aCase) throws SchemaException {
+    ObjectTreeDeltas retrieveDeltasToApprove(CaseType aCase) throws SchemaException {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()
-                .findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+                .findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_DELTAS_TO_APPROVE));
         if (deltaTypePrismProperty != null) {
             return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
         } else {
@@ -67,16 +66,16 @@ public class PcpGeneralHelper {
         }
     }
 
-    public void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas deltas, OperationResult result)
+    void storeResultingDeltas(CaseType aCase, ObjectTreeDeltas deltas, OperationResult result)
             throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
-        if (aCase.getWorkflowContext().getProcessorSpecificState() == null) {
-            throw new IllegalStateException("No processor specific state in " + aCase);
+        if (aCase.getApprovalContext() == null) {
+            throw new IllegalStateException("No approval context in " + aCase);
         }
         ItemDefinition<?> def = prismContext.getSchemaRegistry()
-                .findContainerDefinitionByCompileTimeClass(WfPrimaryChangeProcessorStateType.class)
+                .findContainerDefinitionByCompileTimeClass(ApprovalContextType.class)
                 .findPropertyDefinition(F_RESULTING_DELTAS);
-        ItemPath path = ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS);
+        ItemPath path = ItemPath.create(F_APPROVAL_CONTEXT, F_RESULTING_DELTAS);
 
         repositoryService.modifyObject(CaseType.class, aCase.getOid(),
                 prismContext.deltaFor(CaseType.class)
@@ -89,7 +88,7 @@ public class PcpGeneralHelper {
 
     public ObjectTreeDeltas<?> retrieveResultingDeltas(CaseType aCase) throws SchemaException {
         PrismProperty<ObjectTreeDeltasType> deltaTypePrismProperty = aCase.asPrismObject()
-                .findProperty(ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_RESULTING_DELTAS));
+                .findProperty(ItemPath.create(F_APPROVAL_CONTEXT, F_RESULTING_DELTAS));
         if (deltaTypePrismProperty != null) {
             return ObjectTreeDeltas.fromObjectTreeDeltasType(deltaTypePrismProperty.getRealValue(), prismContext);
         } else {
@@ -97,7 +96,7 @@ public class PcpGeneralHelper {
         }
     }
 
-    public void addPrerequisites(CaseType subcase, List<CaseType> prerequisites, OperationResult result)
+    void addPrerequisites(CaseType subcase, List<CaseType> prerequisites, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(CaseType.class)
                 .item(CaseType.F_PREREQUISITE_REF)
@@ -111,7 +110,7 @@ public class PcpGeneralHelper {
 
     private static final int MAX_LEVEL = 5;
 
-    public CaseType getRootCase(CaseType aCase, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    CaseType getRootCase(CaseType aCase, OperationResult result) throws SchemaException, ObjectNotFoundException {
         CaseType origin = aCase;
         if (aCase.getParentRef() == null || aCase.getParentRef().getOid() == null) {
             throw new IllegalArgumentException("Case " + aCase + " has no parent case although it should have one");

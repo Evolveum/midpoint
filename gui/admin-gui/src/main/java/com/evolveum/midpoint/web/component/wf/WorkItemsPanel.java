@@ -221,7 +221,7 @@ public class WorkItemsPanel extends BasePanel {
 		return new ReadOnlyModel<>(() -> {
 			WorkItemDto workItemDto = workItemDtoModel.getObject();
 			return defaultIfNull(
-					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemsPanel.this),
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getApprovalContext(), WorkItemsPanel.this),
 					workItemDto.getName());
 		});
 	}

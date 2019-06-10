@@ -79,7 +79,7 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
 			CaseWorkItemType caseWorkItemType = CaseWorkItemSummaryPanel.this.getModelObject();
 			CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
 			return defaultIfNull(
-					WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getWorkflowContext() : null, CaseWorkItemSummaryPanel.this),
+					WfGuiUtil.getLocalizedProcessName(caseType != null ? caseType.getApprovalContext() : null, CaseWorkItemSummaryPanel.this),
 					caseWorkItemType != null ? caseWorkItemType.getName() : "");
 		});
 	}

@@ -29,14 +29,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemListWithDetailsPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -458,12 +454,12 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
 									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				cellItem.add(new Label(componentId, WfContextUtil.getStageInfo(unwrapRowModel(rowModel))));
+				cellItem.add(new Label(componentId, ApprovalContextUtil.getStageInfo(unwrapRowModel(rowModel))));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				return Model.of(WfContextUtil.getStageInfo(unwrapRowModel(rowModel)));
+				return Model.of(ApprovalContextUtil.getStageInfo(unwrapRowModel(rowModel)));
 			}
 
 
@@ -610,12 +606,12 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
 									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				cellItem.add(new Label(componentId, WfContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
+				cellItem.add(new Label(componentId, ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				return Model.of(WfContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
+				return Model.of(ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
 			}
 		});
 		return columns;

@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -39,13 +38,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.getPageBase;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 
 /**
  * @author lazyman

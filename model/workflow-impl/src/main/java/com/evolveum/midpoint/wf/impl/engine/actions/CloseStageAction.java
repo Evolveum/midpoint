@@ -19,11 +19,10 @@ package com.evolveum.midpoint.wf.impl.engine.actions;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
-import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper.ComputationResult;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -86,7 +85,7 @@ public class CloseStageAction extends InternalAction {
 			if (stageDef.getEvaluationStrategy() == LevelEvaluationStrategyType.FIRST_DECIDES) {
 				if (outcomes.size() > 1) {
 					LOGGER.warn("Ambiguous outcome with firstDecides strategy in {}: {} response(s), providing outcomes of {}",
-							WfContextUtil.getBriefDiagInfo(ctx.getCurrentCase()), answeredWorkItems.size(), outcomes);
+							ApprovalContextUtil.getBriefDiagInfo(ctx.getCurrentCase()), answeredWorkItems.size(), outcomes);
 					answeredWorkItems.sort(Comparator.nullsLast(Comparator.comparing(item -> XmlTypeConverter.toMillis(item.getCloseTimestamp()))));
 					CaseWorkItemType first = answeredWorkItems.get(0);
 					approved = ApprovalUtils.isApproved(first.getOutput());
@@ -104,7 +103,7 @@ public class CloseStageAction extends InternalAction {
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Closing the stage for approval process instance {} (case oid {}), stage {}: result of this stage: {}",
 					ctx.getProcessInstanceName(),
-					ctx.getCaseOid(), WfContextUtil.getStageDiagName(stageDef), approved);
+					ctx.getCaseOid(), ApprovalContextUtil.getStageDiagName(stageDef), approved);
 		}
 
 		Action next;

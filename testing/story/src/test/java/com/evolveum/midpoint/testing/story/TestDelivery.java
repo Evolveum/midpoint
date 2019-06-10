@@ -20,7 +20,7 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -215,8 +215,8 @@ public class TestDelivery extends AbstractStoryTest {
 
 		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
-		display("workflow context", workflowContext);
+		ApprovalContextType actx = ApprovalContextUtil.getApprovalContext(workItem);
+		display("workflow context", actx);
 
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
@@ -242,8 +242,8 @@ public class TestDelivery extends AbstractStoryTest {
 
 		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
-		display("workflow context", workflowContext);
+		ApprovalContextType actx = ApprovalContextUtil.getApprovalContext(workItem);
+		display("workflow context", actx);
 
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
@@ -252,8 +252,8 @@ public class TestDelivery extends AbstractStoryTest {
 
 		CaseWorkItemType workItem2 = getWorkItem(task, result);
 		display("work item2", workItem2);
-		WfContextType workflowContext2 = WfContextUtil.getWorkflowContext(workItem2);
-		display("workflow context2", workflowContext2);
+		ApprovalContextType actx2 = ApprovalContextUtil.getApprovalContext(workItem2);
+		display("workflow context2", actx2);
 
 		workflowService.completeWorkItem(WorkItemId.of(workItem2), true, null, null, task, result);
 
@@ -276,8 +276,8 @@ public class TestDelivery extends AbstractStoryTest {
 
 		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
-		display("workflow context", workflowContext);
+		ApprovalContextType actx = ApprovalContextUtil.getApprovalContext(workItem);
+		display("workflow context", actx);
 
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
@@ -303,8 +303,8 @@ public class TestDelivery extends AbstractStoryTest {
 
 		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		WfContextType workflowContext = WfContextUtil.getWorkflowContext(workItem);
-		display("workflow context", workflowContext);
+		ApprovalContextType actx = ApprovalContextUtil.getApprovalContext(workItem);
+		display("workflow context", actx);
 
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);

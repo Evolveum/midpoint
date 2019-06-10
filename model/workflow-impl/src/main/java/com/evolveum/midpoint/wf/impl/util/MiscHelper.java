@@ -27,7 +27,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -79,7 +79,7 @@ public class MiscHelper {
 	}
 
 	public String getCompleteStageInfo(CaseType aCase) {
-		return WfContextUtil.getCompleteStageInfo(aCase);
+		return ApprovalContextUtil.getCompleteStageInfo(aCase);
 	}
 
 	public String getAnswerNice(CaseType aCase) {
@@ -87,7 +87,7 @@ public class MiscHelper {
 	}
 
 	private String getOutcome(CaseType aCase) {
-		return aCase.getWorkflowContext() != null ? aCase.getOutcome() : null;
+		return aCase.getApprovalContext() != null ? aCase.getOutcome() : null;
 	}
 
 	public List<ObjectReferenceType> getAssigneesAndDeputies(CaseWorkItemType workItem, Task task, OperationResult result)
