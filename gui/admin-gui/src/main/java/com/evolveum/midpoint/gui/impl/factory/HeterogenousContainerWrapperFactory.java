@@ -109,7 +109,9 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 			ItemWrapperFactory<?,?,?> factory = registry.findWrapperFactory(def);
 			
 			ItemWrapper<?, ?, ?, ?> wrapper = factory.createWrapper(containerValueWrapper, def, context);
-			wrappers.add(wrapper);
+			if (wrapper != null) {
+				wrappers.add(wrapper);
+			}
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);

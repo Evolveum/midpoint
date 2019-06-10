@@ -242,7 +242,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
 					List<PrismContainerValueWrapper<ShadowType>> listItems) {
 
-				if(((ShadowWrapper)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
+				if(rowModel != null && rowModel.getObject() != null 
+						&& ((ShadowWrapper)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
 					((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
 				}
 				

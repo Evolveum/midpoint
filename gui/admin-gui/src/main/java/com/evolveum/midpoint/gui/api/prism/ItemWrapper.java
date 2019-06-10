@@ -43,7 +43,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	String debugDump(int indent);
 	
-	boolean isVisible(ItemVisibilityHandler visibilityHandler);
+	boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler);
 	
 	boolean checkRequired(PageBase pageBase);
 	

@@ -336,13 +336,13 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	}
 
 	@Override
-	public boolean isVisible(ItemVisibilityHandler visibilityHandler) {
+	public boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
 		
 		if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return (getParent() != null && getParent().isShowMetadata());
 		}
 		
-		return isVisibleByVisibilityHandler(visibilityHandler);
+		return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
 	}
 
 		
