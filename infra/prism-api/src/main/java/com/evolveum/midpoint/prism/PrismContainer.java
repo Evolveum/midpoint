@@ -92,6 +92,8 @@ public interface PrismContainer<C extends Containerable>
 
 	<T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException;
 
+	<C extends Containerable> void setContainerRealValue(QName containerName, C realValue) throws SchemaException;
+
 	<T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException;
 
 	<T> T getPropertyRealValue(ItemPath propertyPath, Class<T> type);

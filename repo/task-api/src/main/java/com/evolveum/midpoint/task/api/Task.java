@@ -308,6 +308,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     TaskExecutionConstraintsType getExecutionConstraints();
 
+    void setExecutionConstraints(TaskExecutionConstraintsType value);
+
     String getGroup();
 
     @NotNull

@@ -479,6 +479,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		if (waiting) {
 			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 		}
+		executionHelper.setExecutionConstraints(task, aCase, result);
 		taskManager.switchToBackground(task, result);
 	}
 
