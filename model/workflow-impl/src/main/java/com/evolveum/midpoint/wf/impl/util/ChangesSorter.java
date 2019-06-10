@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.util;
 
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.util.ModelContextUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -27,14 +24,15 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -55,71 +53,64 @@ public class ChangesSorter {
     @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
     @Autowired private PrismContext prismContext;
 
-	//region ========================================================================== Miscellaneous
+    private static class TaskHolder {
+    	boolean initialized = false;
+    	TaskType task;
+    }
 
-	// TODO move somewhere else?
 	public ChangesByState<?> getChangesByStateForChild(CaseType approvalCase, CaseType rootCase, PrismContext prismContext,
 			OperationResult result) throws SchemaException {
 		ChangesByState<?> rv = new ChangesByState(prismContext);
+		TaskHolder rootTaskHolder = new TaskHolder();
+		recordChangesFromApprovalCase(rv, approvalCase, rootCase, prismContext, rootTaskHolder, result);
+		return rv;
+	}
 
-		final ApprovalContextType wfc = approvalCase.getApprovalContext();
-		if (wfc != null) {
+	private void recordChangesFromApprovalCase(ChangesByState<?> rv, CaseType approvalCase, CaseType rootCase,
+			PrismContext prismContext, TaskHolder rootTaskHolder, OperationResult result) throws SchemaException {
+		ApprovalContextType actx = approvalCase.getApprovalContext();
+		if (actx != null) {
+			boolean hasApprovalSchema = actx.getApprovalSchema() != null;
 			Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(approvalCase.getOutcome());
-			if (isApproved == null) {
+			if (hasApprovalSchema && isApproved == null) {
 				if (approvalCase.getCloseTimestamp() == null) {
-					recordChangesWaitingToBeApproved(rv, wfc, prismContext);
+					recordChangesWaitingToBeApproved(rv, actx, prismContext);
 				} else {
-					recordChangesCanceled(rv, wfc, prismContext);
+					recordChangesCanceled(rv, actx, prismContext);
 				}
-			} else if (isApproved) {
+			} else if (!hasApprovalSchema || isApproved) {
 				TaskType executionTask;
 				if (Boolean.TRUE.equals(approvalCase.getApprovalContext().isImmediateExecution())) {
 					executionTask = getExecutionTask(approvalCase, result);
 				} else {
-					executionTask = getExecutionTask(rootCase, result);
+					if (!rootTaskHolder.initialized) {
+						rootTaskHolder.task = getExecutionTask(rootCase, result);
+						rootTaskHolder.initialized = true;
+					}
+					executionTask = rootTaskHolder.task;
 				}
 				if (executionTask == null || executionTask.getExecutionStatus() == TaskExecutionStatusType.WAITING) {
-					recordResultingChanges(rv.getWaitingToBeApplied(), wfc, prismContext);
+					recordResultingChanges(rv.getWaitingToBeApplied(), actx, prismContext);
 				} else if (executionTask.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE) {
-					recordResultingChanges(rv.getBeingApplied(), wfc, prismContext);
+					recordResultingChanges(rv.getBeingApplied(), actx, prismContext);
 				} else {
 					// note: the task might be suspended here
-					recordResultingChanges(rv.getApplied(), wfc, prismContext);
+					recordResultingChanges(rv.getApplied(), actx, prismContext);
 				}
 			} else {
-				recordChangesRejected(rv, wfc, prismContext);
+				recordChangesRejected(rv, actx, prismContext);
 			}
+		} else {
+			LOGGER.warn("Approval case with no approval context?\n{}", approvalCase.asPrismObject().debugDump());
 		}
-		return rv;
 	}
 
-	// TODO move somewhere else?
-	public ChangesByState getChangesByStateForRoot(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
+	public ChangesByState getChangesByStateForRoot(CaseType rootCase, PrismContext prismContext, OperationResult result)
+			throws SchemaException {
 		ChangesByState rv = new ChangesByState(prismContext);
-		LensContextType rootModelContext = getModelContext(rootCase, result);
-		recordChanges(rv, rootModelContext, modelInteractionService, task, result);
+		TaskHolder rootTaskHolder = new TaskHolder();
 		for (CaseType subcase : getSubcases(rootCase, result)) {
-			ApprovalContextType actx = subcase.getApprovalContext();
-			if (actx != null) {
-				Boolean isApproved = ApprovalUtils.approvalBooleanValueFromUri(subcase.getOutcome());
-				if (isApproved == null) {
-					if (subcase.getCloseTimestamp() == null) {
-						recordChangesWaitingToBeApproved(rv, actx, prismContext);
-					} else {
-						recordChangesCanceled(rv, actx, prismContext);
-					}
-				} else if (isApproved) {
-					if (Boolean.TRUE.equals(actx.isImmediateExecution())) {
-						LensContextType subModelContext = getModelContext(subcase, result);
-						recordChanges(rv, subModelContext, modelInteractionService, task, result);
-					} else {
-						recordResultingChanges(rv.getWaitingToBeApplied(), actx, prismContext);
-					}
-				} else {
-					recordChangesRejected(rv, actx, prismContext);
-				}
-			}
+			recordChangesFromApprovalCase(rv, subcase, rootCase, prismContext, rootTaskHolder, result);
 		}
 		return rv;
 	}
@@ -131,11 +122,6 @@ public class ChangesSorter {
 		SearchResultList<PrismObject<CaseType>> subcases = repositoryService
 				.searchObjects(CaseType.class, query, null, result);
 		return ObjectTypeUtil.asObjectables(subcases);
-	}
-
-	private LensContextType getModelContext(CaseType aCase, OperationResult result) throws SchemaException {
-		TaskType executionTask = getExecutionTask(aCase, result);
-		return executionTask != null ? executionTask.getModelOperationContext() : null;
 	}
 
 	private TaskType getExecutionTask(CaseType aCase, OperationResult result) throws SchemaException {
@@ -153,43 +139,22 @@ public class ChangesSorter {
 		return tasks.get(0).asObjectable();
 	}
 
-	@SuppressWarnings("unchecked")
-	private <O extends ObjectType> void recordChanges(ChangesByState rv, LensContextType modelOperationContext, ModelInteractionService modelInteractionService,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (modelOperationContext == null) {
-			return;
-		}
-		ModelContext<O> modelContext = ModelContextUtil.unwrapModelContext(modelOperationContext, modelInteractionService, task, result);
-		ObjectTreeDeltas<O> deltas = modelContext.getTreeDeltas();
-		ObjectTreeDeltas<O> target;
-		switch (modelContext.getState()) {
-			case INITIAL:
-			case PRIMARY: target = rv.getWaitingToBeApplied(); break;
-			case SECONDARY: target = rv.getBeingApplied(); break;
-			case EXECUTION:	// TODO reconsider this after EXECUTION and POSTEXECUTION states are really used
-			case POSTEXECUTION:
-			case FINAL: target = rv.getApplied(); break;
-			default: throw new IllegalStateException("Illegal model state: " + modelContext.getState());
-		}
-		target.merge(deltas);
-	}
-
 	private void recordChangesWaitingToBeApproved(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
 			throws SchemaException {
 		//noinspection unchecked
-		rv.getWaitingToBeApproved().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+		rv.getWaitingToBeApproved().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
 	}
 
 	private void recordChangesCanceled(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext)
 			throws SchemaException {
 		//noinspection unchecked
-		rv.getCanceled().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+		rv.getCanceled().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
 	}
 
 	private void recordChangesRejected(ChangesByState rv, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
 		if (ObjectTreeDeltas.isEmpty(wfc.getResultingDeltas())) {
 			//noinspection unchecked
-			rv.getRejected().merge(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
+			rv.getRejected().mergeUnordered(fromObjectTreeDeltasType(wfc.getDeltasToApprove(), prismContext));
 		} else {
 			// it's actually hard to decide what to display as 'rejected' - because the delta was partly approved
 			// however, this situation will not currently occur
@@ -198,6 +163,6 @@ public class ChangesSorter {
 
 	private void recordResultingChanges(ObjectTreeDeltas<?> target, ApprovalContextType wfc, PrismContext prismContext) throws SchemaException {
 		//noinspection unchecked
-		target.merge(fromObjectTreeDeltasType(wfc.getResultingDeltas(), prismContext));
+		target.mergeUnordered(fromObjectTreeDeltasType(wfc.getResultingDeltas(), prismContext));
 	}
 }

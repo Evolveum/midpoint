@@ -339,6 +339,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	        instruction0.setDeltasToApprove(changesWithoutApproval);
 	        instruction0.setResultingDeltas(changesWithoutApproval);
 	        instruction0.setParent(rootCase);
+	        instruction0.setExecuteApprovedChangeImmediately(ctx.modelContext);
 			return instruction0;
         } else {
             return null;

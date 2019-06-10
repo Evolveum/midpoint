@@ -283,8 +283,8 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             CaseType case0 = WfTestHelper.findAndRemoveCase0(subcases);
             testDetails.assertsAfterClockworkRun(rootCase, case0, subcases, task, result);
             if (testDetails.immediate()) {
-                testHelper.waitForCaseClose(case0, 20000);
-                testDetails.assertsAfterImmediateExecutionFinished(rootCase, result);
+                CaseType rootCaseAfter = testHelper.waitForCaseClose(case0, 20000);
+                testDetails.assertsAfterImmediateExecutionFinished(rootCaseAfter, result);
             }
 
             for (int i = 0; i < subcases.size(); i++) {
@@ -318,19 +318,19 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             }
         }
 
-        testHelper.waitForCaseClose(rootCase, 60000);
+        CaseType rootCaseAfter = testHelper.waitForCaseClose(rootCase, 60000);
 
-        List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+        List<CaseType> subcases = miscHelper.getSubcases(rootCaseAfter, result);
         WfTestHelper.findAndRemoveCase0(subcases);
         //TestUtil.assertSuccess(rootCase.getResult());
-        testDetails.assertsRootCaseFinishes(rootCase, subcases, task, result);
+        testDetails.assertsRootCaseFinishes(rootCaseAfter, subcases, task, result);
 
         if (focusOid == null) {
-            focusOid = testDetails.getObjectOid(rootCase, result);
+            focusOid = testDetails.getObjectOid(rootCaseAfter, result);
         }
         assertNotNull("object oid is null after operation", focusOid);
         if (!focusOid.equals(DONT_CHECK)) {
-            assertObjectInTaskTree(rootCase, focusOid, testDetails.checkObjectOnSubtasks(), result);
+            assertObjectInTaskTree(rootCaseAfter, focusOid, testDetails.checkObjectOnSubtasks(), result);
         }
 
         if (!testDetails.approvedAutomatically()) {

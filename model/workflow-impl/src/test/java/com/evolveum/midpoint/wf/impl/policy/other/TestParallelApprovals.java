@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.policy.other;
 
-import com.evolveum.midpoint.model.impl.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskListener;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -39,8 +37,12 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.impl.WfTestHelper;
+import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,7 +55,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createExecuteImmediatelyAfterApproval;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType.CLOSED;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.assertEquals;
@@ -139,11 +140,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		approveAllWorkItems(task, result);
 
-		testHelper.waitForCaseClose(rootCase, 120000);
+		rootCase = testHelper.waitForCaseClose(rootCase, 120000);
 
 		// THEN
 
-		rootCase = getObject(CaseType.class, rootCase.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
 		assertEquals("Wrong root case status", SchemaConstants.CASE_STATE_CLOSED, rootCase.getState());
 
@@ -186,11 +186,10 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 		listener.setCasesToCloseOnError(singleton(rootCase.getOid()));
 
 		approveAllWorkItems(task, result);
-		testHelper.waitForCaseClose(rootCase, 120000);
+		rootCase = testHelper.waitForCaseClose(rootCase, 120000);
 
 		// THEN
 
-		rootCase = getObject(CaseType.class, rootCase.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
 		assertEquals("Wrong root case status", SchemaConstants.CASE_STATE_CLOSED, rootCase.getState());
 
@@ -260,13 +259,11 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		approveAllWorkItems(task0, result0);
 
-		testHelper.waitForCaseClose(rootCase1, 120000);
-		testHelper.waitForCaseClose(rootCase2, 120000);
+		rootCase1 = testHelper.waitForCaseClose(rootCase1, 120000);
+		rootCase2 = testHelper.waitForCaseClose(rootCase2, 120000);
 
 		// THEN
 
-		rootCase1 = getObject(CaseType.class, rootCase1.getOid()).asObjectable();
-		rootCase2 = getObject(CaseType.class, rootCase2.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
 		assertEquals("Wrong root case1 status", SchemaConstants.CASE_STATE_CLOSED, rootCase1.getState());
 		assertEquals("Wrong root case2 status", SchemaConstants.CASE_STATE_CLOSED, rootCase2.getState());
@@ -324,15 +321,12 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		approveAllWorkItems(task0, result0);
 
-		testHelper.waitForCaseClose(rootCase1, 120000);
-		testHelper.waitForCaseClose(rootCase2, 120000);
-		testHelper.waitForCaseClose(rootCase3, 120000);
+		rootCase1 = testHelper.waitForCaseClose(rootCase1, 120000);
+		rootCase2 = testHelper.waitForCaseClose(rootCase2, 120000);
+		rootCase3 = testHelper.waitForCaseClose(rootCase3, 120000);
 
 		// THEN
 
-		rootCase1 = getObject(CaseType.class, rootCase1.getOid()).asObjectable();
-		rootCase2 = getObject(CaseType.class, rootCase2.getOid()).asObjectable();
-		rootCase3 = getObject(CaseType.class, rootCase3.getOid()).asObjectable();
 		assertNull("Exception has occurred " + listener.getException(), listener.getException());
 		assertEquals("Wrong root case1 status", SchemaConstants.CASE_STATE_CLOSED, rootCase1.getState());
 		assertEquals("Wrong root case2 status", SchemaConstants.CASE_STATE_CLOSED, rootCase2.getState());
@@ -371,7 +365,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		@Override
 		public synchronized void onTaskStart(Task task) {
-			if (!ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI.equals(task.getHandlerUri())) {
+			if (!CaseOperationExecutionTaskHandler.HANDLER_URI.equals(task.getHandlerUri())) {
 				return;
 			}
 			System.out.println(Thread.currentThread().getName() + ": Starting " + task + ", handler uri " + task.getHandlerUri() + ", groups " + task.getGroups());
@@ -401,7 +395,7 @@ public class TestParallelApprovals extends AbstractWfTestPolicy {
 
 		@Override
 		public synchronized void onTaskFinish(Task task, TaskRunResult runResult) {
-			if (!ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI.equals(task.getHandlerUri())) {
+			if (!CaseOperationExecutionTaskHandler.HANDLER_URI.equals(task.getHandlerUri())) {
 				return;
 			}
 			System.out.println(Thread.currentThread().getName() + ": Finishing " + task + ", handler uri " + task.getHandlerUri());

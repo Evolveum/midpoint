@@ -325,18 +325,9 @@ public class AssignmentPolicyAspectPart {
 								builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(main, modelContext, requester);
-
 		instruction.setDeltasToApprove(deltaToApprove);
-
 		instruction.setObjectRef(ctx);
 		instruction.setTargetRef(createObjectRef(target, prismContext), result);
-
-//		String taskNameInDefaultLocale = localizationService.translate(
-//				new LocalizableMessageBuilder()
-//						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
-//						.arg(processNameInDefaultLocale)
-//						.build(), Locale.getDefault());
-
 		instruction.setName(processNameInDefaultLocale, processName);
 
 		return instruction;

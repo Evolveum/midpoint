@@ -319,8 +319,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
 				return prismContext.deltaFactory().object()
-						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class
-						);
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class);
 			}
 
 			@Override

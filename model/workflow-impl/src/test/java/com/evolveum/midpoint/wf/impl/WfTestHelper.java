@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -74,12 +75,14 @@ public class WfTestHelper {
 		return repositoryService.getObject(CaseType.class, caseOid, null, result).asObjectable();
 	}
 
-	public void waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
+	public CaseType waitForCaseClose(CaseType aCase, final int timeout) throws Exception {
 	    final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForCaseClose");
+		Holder<CaseType> currentCaseHolder = new Holder<>();
 	    Checker checker = new Checker() {
 	        @Override
 	        public boolean check() throws CommonException {
 	            CaseType currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult).asObjectable();
+	            currentCaseHolder.setValue(currentCase);
 	            if (verbose) AbstractIntegrationTest.display("Case", currentCase);
 	            return SchemaConstants.CASE_STATE_CLOSED.equals(currentCase.getState());
 	        }
@@ -88,6 +91,7 @@ public class WfTestHelper {
 	            PrismObject<CaseType> currentCase;
 	            try {
 	                currentCase = repositoryService.getObject(CaseType.class, aCase.getOid(), null, waitResult);
+		            currentCaseHolder.setValue(currentCase.asObjectable());
 	            } catch (ObjectNotFoundException | SchemaException e) {
 	                throw new AssertionError("Couldn't retrieve case " + aCase, e);
 	            }
@@ -96,5 +100,6 @@ public class WfTestHelper {
 	        }
 	    };
 	    IntegrationTestTools.waitFor("Waiting for "+aCase+" finish", checker, timeout, 1000);
+	    return currentCaseHolder.getValue();
 	}
 }

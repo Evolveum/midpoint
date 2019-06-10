@@ -162,7 +162,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return changesSorter.getChangesByStateForRoot(rootCase, modelInteractionService, prismContext, task, result);
+		return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
 	}
 
 	@Override

@@ -69,13 +69,17 @@ public class PcpStartInstruction extends StartInstruction {
 		return actx != null && Boolean.TRUE.equals(actx.isImmediateExecution());
     }
 
-    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) {
+	void setExecuteApprovedChangeImmediately(ModelContext<?> modelContext) {
+		aCase.getApprovalContext().setImmediateExecution(
+				ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
+	}
+
+	public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, PrismObject<UserType> requester) {
 		if (requester != null) {
 			setRequesterRef(requester);
 		}
 
-		aCase.getApprovalContext().setImmediateExecution(
-				ModelExecuteOptions.isExecuteImmediatelyAfterApproval(modelContext.getOptions()));
+		setExecuteApprovedChangeImmediately(modelContext);
 
 	    getApprovalContext().setChangeAspect(aspect.getClass().getName());
 

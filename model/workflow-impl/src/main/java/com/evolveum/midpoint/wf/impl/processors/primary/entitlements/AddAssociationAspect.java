@@ -239,8 +239,6 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
 
-            String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
-
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpStartInstruction instruction =
                     PcpStartInstruction.createItemApprovalInstruction(

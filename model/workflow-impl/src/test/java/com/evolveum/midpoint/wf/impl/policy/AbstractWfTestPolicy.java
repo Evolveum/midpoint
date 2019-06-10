@@ -480,12 +480,17 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 
 		List<CaseWorkItemType> workItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), options1, opTask, result);
 
+		display("changes by state after first clockwork run", workflowManager
+				.getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
+
 		testDetails.afterFirstClockworkRun(rootCase, case0, subcases, workItems, opTask, result);
 
 		if (testDetails.executeImmediately()) {
 			if (case0 != null) {
 				testHelper.waitForCaseClose(case0, 20000);
 			}
+			display("changes by state after case0 finishes", workflowManager
+					.getChangesByState(rootCase, modelInteractionService, prismContext, opTask, result));
 			testDetails.afterCase0Finishes(rootCase, opTask, result);
 		}
 
@@ -553,11 +558,15 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 			}
 		}
 
-		testHelper.waitForCaseClose(rootCase, 60000);
+		CaseType rootCaseAfter = testHelper.waitForCaseClose(rootCase, 60000);
 
-		subcases = miscHelper.getSubcases(rootCase, result);
-		testHelper.findAndRemoveCase0(subcases);
-		testDetails.afterRootCaseFinishes(rootCase, subcases, opTask, result);
+		subcases = miscHelper.getSubcases(rootCaseAfter, result);
+		WfTestHelper.findAndRemoveCase0(subcases);
+
+		display("changes by state after root case finishes", workflowManager
+				.getChangesByState(rootCaseAfter, modelInteractionService, prismContext, opTask, result));
+
+		testDetails.afterRootCaseFinishes(rootCaseAfter, subcases, opTask, result);
 
 		notificationManager.setDisabled(true);
 
@@ -713,10 +722,6 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 					List<CaseWorkItemType> workItems,
 					Task opTask, OperationResult result) throws Exception {
 				if (!immediate) {
-//					ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
-//					ObjectDelta expectedDelta0 = testDetails2.getExpectedDelta0();
-//					ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-//					assertDeltasEqual("Wrong delta left as primary focus delta. ", expectedDelta0, realDelta0);
 					for (int i = 0; i <= testDetails2.getNumberOfDeltasToApprove(); i++) {
 						testDetails2.assertDeltaExecuted(i, false, opTask, result);
 					}
@@ -773,5 +778,4 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 			}
 		}, expectedSubTaskCount);
 	}
-
 }
