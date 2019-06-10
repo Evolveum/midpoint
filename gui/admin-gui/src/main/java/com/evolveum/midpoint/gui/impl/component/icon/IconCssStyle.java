@@ -31,6 +31,7 @@ public interface IconCssStyle {
 	public static final InRowIconCssStyle IN_ROW_STYLE = new InRowIconCssStyle();
 	public static final TopLeftIconCssStyle TOP_LEFT_STYLE = new TopLeftIconCssStyle();
 	public static final TopRightIconCssStyle TOP_RIGHT_STYLE = new TopRightIconCssStyle();
+	public static final TopRightForColumnIconCssStyle TOP_RIGHT_FOR_COLUMN_STYLE = new TopRightForColumnIconCssStyle();
 
 	public String getBasicCssClass();
 	
