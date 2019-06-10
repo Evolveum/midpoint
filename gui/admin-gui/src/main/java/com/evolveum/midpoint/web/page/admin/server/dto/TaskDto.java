@@ -412,37 +412,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				// modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
-	@NotNull
-	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
-																  ModelInteractionService modelInteractionService, PrismContext prismContext, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		List<TaskChangesDto> changes = new ArrayList<>();
-		if (!changesByState.getApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getBeingApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning",
-					changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-			changes.add(createChangesToBeApproved(changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef,
-					opTask, thisOpResult));
-		}
-		if (!changesByState.getRejected().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getCanceled().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		return changes;
-	}
 
 	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
 			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
