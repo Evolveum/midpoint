@@ -71,7 +71,7 @@ public class StageComputeHelper {
 	private RepositoryService repositoryService;
 
 	public ExpressionVariables getDefaultVariables(CaseType aCase,
-			WfContextType wfContext, String requestChannel, OperationResult result)
+			ApprovalContextType wfContext, String requestChannel, OperationResult result)
 			throws SchemaException {
 
 		ExpressionVariables variables = new ExpressionVariables();
@@ -81,33 +81,26 @@ public class StageComputeHelper {
 		variables.put(ExpressionConstants.VAR_TARGET, miscHelper.resolveTypedObjectReference(aCase.getTargetRef(), result));
 		variables.put(ExpressionConstants.VAR_OBJECT_DELTA, getFocusPrimaryDelta(wfContext), ObjectDelta.class);
 		variables.put(ExpressionConstants.VAR_CHANNEL, requestChannel, String.class);
-		variables.put(ExpressionConstants.VAR_WORKFLOW_CONTEXT, wfContext, WfContextType.class);
+		variables.put(ExpressionConstants.VAR_APPROVAL_CONTEXT, wfContext, ApprovalContextType.class);
 		// todo other variables?
 
 		return variables;
 	}
 
-	private ObjectDelta getFocusPrimaryDelta(WfContextType workflowContext) throws SchemaException {
-		ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(workflowContext);
+	private ObjectDelta getFocusPrimaryDelta(ApprovalContextType actx) throws SchemaException {
+		ObjectDeltaType objectDeltaType = getFocusPrimaryObjectDeltaType(actx);
 		return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
 	}
 
 	// mayBeNull=false means that the corresponding variable must be present (not that focus must be non-null)
 	// TODO: review/correct this!
-	private ObjectDeltaType getFocusPrimaryObjectDeltaType(WfContextType workflowContext) {
-		ObjectTreeDeltasType deltas = getObjectTreeDeltaType(workflowContext);
+	private ObjectDeltaType getFocusPrimaryObjectDeltaType(ApprovalContextType actx) {
+		ObjectTreeDeltasType deltas = getObjectTreeDeltaType(actx);
 		return deltas != null ? deltas.getFocusPrimaryDelta() : null;
 	}
 
-	private ObjectTreeDeltasType getObjectTreeDeltaType(WfContextType workflowContext) {
-		WfProcessorSpecificStateType state = workflowContext.getProcessorSpecificState();
-		if (state == null) {
-			return null;
-		} else if (!(state instanceof WfPrimaryChangeProcessorStateType)) {
-			throw new IllegalStateException("Expected WfPrimaryChangeProcessorStateType but got " + state);
-		} else {
-			return ((WfPrimaryChangeProcessorStateType) state).getDeltasToProcess();
-		}
+	private ObjectTreeDeltasType getObjectTreeDeltaType(ApprovalContextType actx) {
+		return actx != null ? actx.getDeltasToApprove() : null;
 	}
 
 	// TODO name

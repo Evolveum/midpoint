@@ -41,7 +41,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -62,7 +61,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
@@ -314,11 +312,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getTaskObjectName(TaskType taskType, PageBase pageBase, Task opTask, OperationResult thisOpResult) {
         OperationResult currentResult;
         ObjectReferenceType objectRef;
-	    if (taskType.getWorkflowContext() != null) {
+	    if (false /*taskType.getApprovalContext() != null*/) {
 	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
 		    // of avoiding displaying the error is to use a separate operation result.
 		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
-		    objectRef = null; // was: taskType.getWorkflowContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
+		    objectRef = null; // was: taskType.getApprovalContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
 	    } else {
 	    	currentResult = thisOpResult;
 	    	objectRef = null;
@@ -372,7 +370,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			PrismContext prismContext, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-        workflowDeltasIn = retrieveDeltasToProcess(taskType, modelInteractionService, opTask, thisOpResult);
+        workflowDeltasIn = retrieveDeltasToApprove(taskType, modelInteractionService, opTask, thisOpResult);
 		// TODO workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
 
 		final TaskType rootTask;
@@ -382,9 +380,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			rootTask = parentTaskType;
 		}
 
-		WfContextType wfc = taskType.getWorkflowContext();
-		if (wfc != null && parentTaskType != null && (wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
-			ChangesByState changesByState = workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
+		ApprovalContextType wfc = null; //taskType.getApprovalContext();
+		if (wfc != null && parentTaskType != null) {
+			ChangesByState changesByState = null; //workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
 			List<TaskChangesDto> changeCategories = Collections.emptyList();
 			// was:
 					// computeChangesCategorizationList(changesByState, wfc.getObjectRef(),
@@ -399,7 +397,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		workflowRequests = new ArrayList<>();
 		// TODO-WF
 //		for (TaskType wfSubtask : rootTask.getSubtask()) {
-//			final WfContextType subWfc = wfSubtask.getWorkflowContext();
+//			final WfContextType subWfc = wfSubtask.getApprovalContext();
 //			if (subWfc != null && subWfc.getCaseOid() != null) {
 //				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
 //					workflowRequests.add(new ProcessInstanceDto(wfSubtask, WebComponentUtil.getShortDateTimeFormat(pageBase)));
@@ -407,44 +405,13 @@ public class TaskDto extends Selectable implements InlineMenuable {
 //			}
 //		}
 
-		ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
+		//ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
 		this.changesCategorizationList = Collections.emptyList();
 		// was:
 				// computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRef() : null,
 				// modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
-	@NotNull
-	private List<TaskChangesDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
-																  ModelInteractionService modelInteractionService, PrismContext prismContext, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		List<TaskChangesDto> changes = new ArrayList<>();
-		if (!changesByState.getApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getBeingApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getWaitingToBeApplied().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning",
-					changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
-			changes.add(createChangesToBeApproved(changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef,
-					opTask, thisOpResult));
-		}
-		if (!changesByState.getRejected().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		if (!changesByState.getCanceled().isEmpty()) {
-			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(),
-					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
-		}
-		return changes;
-	}
 
 	public static TaskChangesDto createChangesToBeApproved(ObjectTreeDeltas<?> deltas, ModelInteractionService modelInteractionService,
 			PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
@@ -461,27 +428,26 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return new TaskChangesDto(sceneDto);
 	}
 
-	private List<SceneDto> retrieveDeltasToProcess(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
+	private List<SceneDto> retrieveDeltasToApprove(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        WfContextType wfc = taskType.getWorkflowContext();
-        if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+        ApprovalContextType wfc = null; //taskType.getApprovalContext();
+        if (wfc == null) {
             return null;
         }
-        WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
+        //WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
         return Collections.emptyList();
         //was:
-		      //  objectTreeDeltasToDeltaDtoList(pcps.getDeltasToProcess(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
+		      //  objectTreeDeltasToDeltaDtoList(pcps.getDeltasToApprove(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
 				//				wfc.getObjectRef(), opTask, thisOpResult);
     }
 
 	private SceneDto retrieveDeltaToProcess(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		WfContextType wfc = aCase.getWorkflowContext();
-		if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+		ApprovalContextType wfc = aCase.getApprovalContext();
+		if (wfc == null) {
 			return null;
 		}
-		WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-		Scene scene = SceneUtil.visualizeObjectTreeDeltas(pcps.getDeltasToProcess(), "", aCase.asPrismObject().getPrismContext(),
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(wfc.getDeltasToApprove(), "", aCase.asPrismObject().getPrismContext(),
 				modelInteractionService, aCase.getObjectRef(), opTask, thisOpResult);
 		return new SceneDto(scene);
 	}
@@ -501,12 +467,11 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     private List<SceneDto> retrieveResultingDeltas(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        WfContextType wfc = aCase.getWorkflowContext();
-        if (wfc == null || !(wfc.getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+        ApprovalContextType wfc = aCase.getApprovalContext();
+        if (wfc == null) {
             return null;
         }
-        WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return objectTreeDeltasToDeltaDtoList(pcps.getResultingDeltas(), aCase.asPrismObject().getPrismContext(), modelInteractionService,
+        return objectTreeDeltasToDeltaDtoList(wfc.getResultingDeltas(), aCase.asPrismObject().getPrismContext(), modelInteractionService,
 				aCase.getObjectRef(), opTask, thisOpResult);
     }
 
@@ -926,14 +891,14 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public String getWorkflowProcessInstanceId() {
     	// TODO-WF
 	    throw new UnsupportedOperationException("TODO");
-        //return taskType.getWorkflowContext() != null ? taskType.getWorkflowContext().getCaseOid() : null;
+        //return taskType.getApprovalContext() != null ? taskType.getApprovalContext().getCaseOid() : null;
     }
 
     public boolean isWorkflowProcessInstanceFinished() {
 	    // TODO-WF
 	    throw new UnsupportedOperationException("TODO");
-//        return taskType.getWorkflowContext() != null ?
-//				taskType.getWorkflowContext().getEndTimestamp() != null : false;
+//        return taskType.getApprovalContext() != null ?
+//				taskType.getApprovalContext().getEndTimestamp() != null : false;
     }
 
     @Deprecated
@@ -984,15 +949,15 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return taskType;
 	}
 
-	public WfContextType getWorkflowContext() {
-		return taskType.getWorkflowContext();
+	public ApprovalContextType getApprovalContext() {
+		return null;//taskType.getApprovalContext();
 	}
 
 	public List<WorkItemDto> getWorkItems() {
 		List<WorkItemDto> rv = new ArrayList<>();
 		// TODO from CaseType
-//		if (taskType.getWorkflowContext() != null) {
-//			for (CaseWorkItemType workItemType : taskType.getWorkflowContext().getWorkItem()) {
+//		if (taskType.getApprovalContext() != null) {
+//			for (CaseWorkItemType workItemType : taskType.getApprovalContext().getWorkItem()) {
 //				rv.add(new WorkItemDto(workItemType, pageBase));
 //			}
 //		}
@@ -1032,7 +997,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		// TODO-WF
 		throw new UnsupportedOperationException("TODO");
 //
-//		WfContextType wfc = getWorkflowContext();
+//		WfContextType wfc = getApprovalContext();
 //		return wfc != null ? wfc.getCaseOid() : null;
 	}
 
@@ -1041,20 +1006,20 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public String getRequestedBy() {
-		//WfContextType wfc = getWorkflowContext();
+		//WfContextType wfc = getApprovalContext();
 		return null; // TODO was wfc != null ? WebComponentUtil.getName(wfc.getRequesterRef()) : null;
 	}
 
 	public Date getRequestedOn() {
     	// TODO from Case!
 		return null;
-//		WfContextType wfc = getWorkflowContext();
+//		WfContextType wfc = getApprovalContext();
 //		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
 	}
 
 	public Boolean getWorkflowOutcome() {
     	// todo from Case!
-//		WfContextType wfc = getWorkflowContext();
+//		WfContextType wfc = getApprovalContext();
 //		return wfc != null ? ApprovalUtils.approvalBooleanValueFromUri(wfc.getOutcome()) : null;
 		return null;
 	}
@@ -1218,7 +1183,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 //		// TODO-WF
 //		throw new UnsupportedOperationException("TODO");
 //
-//		return isWorkflowCategory() && getWorkflowContext() != null && getWorkflowContext().getCaseOid() != null;
+//		return isWorkflowCategory() && getApprovalContext() != null && getApprovalContext().getCaseOid() != null;
 	}
 
 	public boolean isWorkflowParent() {
@@ -1324,7 +1289,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public boolean isInStageBeforeLastOne() {
-		//return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+		//return WfContextUtil.isInStageBeforeLastOne(getApprovalContext());
 		// TODO determine from Case
 		return false;
 	}
@@ -1340,7 +1305,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
 	public List<EvaluatedTriggerGroupDto> getTriggers() {
 		if (triggers == null) {
-			triggers = WebComponentUtil.computeTriggers(getWorkflowContext(), 0); //todo how to get stageNumber for TaskType?
+			triggers = WebComponentUtil.computeTriggers(getApprovalContext(), 0); //todo how to get stageNumber for TaskType?
 		}
 		return triggers;
 	}

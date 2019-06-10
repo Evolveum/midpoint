@@ -47,6 +47,9 @@ import java.util.Iterator;
  * called "modelContext". When this handler is executed, the context is retrieved, unwrapped from
  * its XML representation, and the model operation is (re)started.
  *
+ * This was to be used for workflow execution. Currently this responsibility is moved to CaseOperationExecutionTaskHandler
+ * and this class is unused.
+ *
  * @author mederly
  */
 

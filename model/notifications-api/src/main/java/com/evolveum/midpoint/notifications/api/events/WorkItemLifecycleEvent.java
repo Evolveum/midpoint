@@ -35,9 +35,9 @@ public class WorkItemLifecycleEvent extends WorkItemEvent {
 			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, @NotNull CaseType aCase) {
+			@NotNull ApprovalContextType approvalContext, @NotNull CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator,
-				operationInfo, sourceInfo, workflowContext, aCase, null, null);
+				operationInfo, sourceInfo, approvalContext, aCase, null, null);
     }
 
 	@Override

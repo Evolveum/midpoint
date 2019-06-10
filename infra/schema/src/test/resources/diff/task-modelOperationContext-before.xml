@@ -127,35 +127,4 @@
                           type="c:UserType"/>
         </requestMetadata>
     </modelOperationContext>
-    <workflowContext>
-        <localizableTaskName xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                             xsi:type="c:SingleLocalizableMessageType">
-            <key>ApprovingAndExecuting.ChangeOf</key>
-            <argument>
-                <localizable xsi:type="c:SingleLocalizableMessageType">
-                    <key>ObjectSpecification</key>
-                    <argument>
-                        <localizable xsi:type="c:SingleLocalizableMessageType">
-                            <key>ObjectTypeLowercase.UserType</key>
-                            <fallbackMessage>UserType</fallbackMessage>
-                        </localizable>
-                    </argument>
-                    <argument>
-                        <value>jack</value>
-                    </argument>
-                </localizable>
-            </argument>
-            <argument>
-                <value>Feb 1, 2018 11:28:55 AM</value>
-            </argument>
-        </localizableTaskName>
-        <startTimestamp>2018-02-01T11:28:55.805+01:00</startTimestamp>
-        <requesterRef oid="00000000-0000-0000-0000-000000000002"
-                      relation="org:default"
-                      type="c:UserType"/>
-        <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111"
-                   relation="org:default"
-                   type="c:UserType"/>
-        <changeProcessor>com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor</changeProcessor>
-    </workflowContext>
 </task>

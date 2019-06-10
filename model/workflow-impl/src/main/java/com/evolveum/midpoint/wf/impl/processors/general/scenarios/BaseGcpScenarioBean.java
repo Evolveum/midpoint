@@ -68,7 +68,7 @@ public class BaseGcpScenarioBean implements GcpScenarioBean {
 //    }
 
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfContextType wfContext, CaseType aCase, AuditEventStage stage, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(ApprovalContextType wfContext, CaseType aCase, AuditEventStage stage, OperationResult result) {
         return auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
         // TODO what with missing data (delta, result)? We could at least attempt to determine them ...
     }

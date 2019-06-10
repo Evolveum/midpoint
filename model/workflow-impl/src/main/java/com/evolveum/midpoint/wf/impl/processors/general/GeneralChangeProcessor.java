@@ -60,9 +60,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         configurationHelper.registerProcessor(this);
     }
 
-    private GcpScenarioBean getScenarioBean(WfContextType wfContext) {
-        String beanName = ((WfGeneralChangeProcessorStateType) wfContext.getProcessorSpecificState()).getScenario();
-        return findScenarioBean(beanName);
+    private GcpScenarioBean getScenarioBean(ApprovalContextType wfContext) {
+        //String beanName = ((WfGeneralChangeProcessorStateType) wfContext.getProcessorSpecificState()).getScenario();
+        //return findScenarioBean(beanName);
+        throw new UnsupportedOperationException("TODO");
     }
 
     public GcpScenarioBean findScenarioBean(String name) {
@@ -161,38 +162,39 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         // it is safe to directly access the parent, because (1) it is in waiting state, (2) we are its only child
 
         Task rootTask = task.getParentTask(result);
+        throw new UnsupportedOperationException("TODO");
 
-        WfGeneralChangeProcessorStateType processorSpecificState = (WfGeneralChangeProcessorStateType) ctx.getWfContext().getProcessorSpecificState();
-        LensContextType lensContextType = processorSpecificState != null ? processorSpecificState.getModelContext() : null;
-        if (lensContextType == null) {
-            LOGGER.debug(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", rootTask);
-            storeModelContext(rootTask, null, false);
-        } else {
-            LOGGER.debug("Putting (changed or unchanged) value of model context into the task {}", rootTask);
-            storeModelContext(rootTask, lensContextType);
-        }
-        rootTask.flushPendingModifications(result);
-        LOGGER.trace("onProcessEnd ending for task {}", task);
+//        WfGeneralChangeProcessorStateType processorSpecificState = (WfGeneralChangeProcessorStateType) ctx.getWfContext().getProcessorSpecificState();
+//        LensContextType lensContextType = processorSpecificState != null ? processorSpecificState.getModelContext() : null;
+//        if (lensContextType == null) {
+//            LOGGER.debug(GcpProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", rootTask);
+//            storeModelContext(rootTask, null, false);
+//        } else {
+//            LOGGER.debug("Putting (changed or unchanged) value of model context into the task {}", rootTask);
+//            storeModelContext(rootTask, lensContextType);
+//        }
+//        rootTask.flushPendingModifications(result);
+//        LOGGER.trace("onProcessEnd ending for task {}", task);
     }
     //endregion
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
         return getScenarioBean(wfContext).prepareProcessInstanceAuditRecord(wfContext, aCase, stage, result);
     }
 
     @Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
             OperationResult result) {
-        return getScenarioBean(aCase.getWorkflowContext()).prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        return getScenarioBean(aCase.getApprovalContext()).prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
     }
 
     @Override
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
             CaseType aCase,
             OperationResult result) {
-        return getScenarioBean(aCase.getWorkflowContext())
+        return getScenarioBean(aCase.getApprovalContext())
                 .prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
     }
     //endregion

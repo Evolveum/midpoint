@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -682,6 +683,10 @@ public class ObjectTypeUtil {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
 
+	public static <T extends Objectable> List<T> asObjectables(Collection<PrismObject<T>> objects) {
+    	return objects.stream().map(ObjectTypeUtil::asObjectable).collect(Collectors.toList());
+	}
+
 	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
 		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
 				&& ref1.getOid().equals(ref2.getOid());
@@ -851,5 +856,14 @@ public class ObjectTypeUtil {
 			}
 		}
 		return rv;
+	}
+
+	public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
+		for (ObjectReferenceType orgRef: object.asObjectable().getArchetypeRef()) {
+			if (oid.equals(orgRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

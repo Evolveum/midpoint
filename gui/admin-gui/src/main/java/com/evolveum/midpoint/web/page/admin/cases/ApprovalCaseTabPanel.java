@@ -19,17 +19,15 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
 import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsPanel;
-import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalHistoryPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
@@ -60,7 +58,7 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
 
     private void initLayout(){
         SwitchableApprovalProcessPreviewsPanel approvalPanel = new SwitchableApprovalProcessPreviewsPanel(ID_APPROVAL_CASE_PANEL, Model.of(getObjectWrapper().getOid()),
-                Model.of(WfContextUtil.isInStageBeforeLastOne(getObjectWrapper().getObject().asObjectable())), getPageBase());
+                Model.of(ApprovalContextUtil.isInStageBeforeLastOne(getObjectWrapper().getObject().asObjectable())), getPageBase());
         approvalPanel.setOutputMarkupId(true);
         add(approvalPanel);
 
@@ -88,11 +86,11 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
 		if (parentCase.getEvent() != null && !parentCase.getEvent().isEmpty()) {
             parentCase.getEvent().forEach(e -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(e, ApprovalCaseTabPanel.this.getPageBase())));
 		} else {
-			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(parentCase.getWorkflowContext());
-			if (instanceState != null) {
-			    //todo where we can take decisions now?
-//				instanceState.getDecisions().forEach(d -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(d)));
-			}
+			//ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(parentCase.getApprovalContext());
+//			if (instanceState != null) {
+//			    //todo where we can take decisions now?
+////				instanceState.getDecisions().forEach(d -> CollectionUtils.addIgnoreNull(rv, DecisionDto.create(d)));
+//			}
 		}
         return rv;
     }

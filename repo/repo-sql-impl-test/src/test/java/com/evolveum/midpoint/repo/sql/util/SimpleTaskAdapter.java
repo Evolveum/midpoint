@@ -740,14 +740,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public WfContextType getWorkflowContext() {
-        return null;
-    }
-
-    @Override public void setWorkflowContext(WfContextType context) {
-    }
-
-    @Override
     public TaskExecutionConstraintsType getExecutionConstraints() {
         return null;
     }
@@ -848,5 +840,9 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public Collection<String> getCachingProfiles() {
         return emptySet();
+    }
+
+    @Override
+    public void setExecutionConstraints(TaskExecutionConstraintsType value) {
     }
 }

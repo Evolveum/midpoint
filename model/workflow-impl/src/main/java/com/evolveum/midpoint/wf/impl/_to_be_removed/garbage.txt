@@ -14,7 +14,7 @@
 
 	@NotNull
 	private PrimaryChangeAspect getChangeAspect(CaseType aCase) {
-		String aspectClassName = getPrimaryChangeProcessorStateRequired(aCase.getWorkflowContext()).getChangeAspect();
+		String aspectClassName = getPrimaryChangeProcessorStateRequired(aCase.getApprovalContext()).getChangeAspect();
 		if (aspectClassName == null) {
 			throw new IllegalStateException("No wf primary change aspect defined in case " + aCase);
 		}
@@ -28,7 +28,7 @@
 
 	//    @Override
 //    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpWfTask job, OperationResult result) {
-//	    WfContextType wfc = job.getTask().getWorkflowContext();
+//	    WfContextType wfc = job.getTask().getApprovalContext();
 //	    List<ObjectReferenceType> rv = new ArrayList<>();
 //	    if (!ApprovalUtils.isApprovedFromUri(event.getOutcome())) {		// wfc.approved is not filled in yet
 //		    return rv;
@@ -60,10 +60,10 @@
     public static WfContextType getWorkflowContextChecked(Task task) {
         if (task == null) {
             throw new IllegalStateException("No task");
-        } else if (task.getWorkflowContext() == null) {
+        } else if (task.getApprovalContext() == null) {
             throw new IllegalStateException("No workflow context in " + task);
         } else {
-            return task.getWorkflowContext();
+            return task.getApprovalContext();
         }
     }
 
@@ -84,7 +84,7 @@
 
 	@NotNull
     public ChangeProcessor getChangeProcessor(Task task) {
-        String processorClassName = task.getWorkflowContext() != null ? task.getWorkflowContext().getChangeProcessor() : null;
+        String processorClassName = task.getApprovalContext() != null ? task.getApprovalContext().getChangeProcessor() : null;
         if (processorClassName == null) {
             throw new IllegalStateException("No change processor defined in task " + task);
         }
@@ -92,7 +92,7 @@
     }
 
     public boolean isProcessInstanceFinished(Task task) {
-        return task.getWorkflowContext() != null && task.getWorkflowContext().getEndTimestamp() != null;
+        return task.getApprovalContext() != null && task.getApprovalContext().getEndTimestamp() != null;
     }
 
     public void setRootTaskOidImmediate(Task task, String oid, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
@@ -108,7 +108,7 @@
     }
 
     public String getRootTaskOid(Task task) {
-        ObjectReferenceType ref = task.getWorkflowContext() != null ? task.getWorkflowContext().getRootTaskRef() : null;
+        ObjectReferenceType ref = task.getApprovalContext() != null ? task.getApprovalContext().getRootTaskRef() : null;
         return ref != null ? ref.getOid() : null;
     }
 

@@ -17,16 +17,19 @@
 package com.evolveum.midpoint.wf.impl.execution;
 
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -48,6 +51,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.Duration;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -75,6 +80,10 @@ public class ExecutionHelper {
 	@Autowired public ExpressionEvaluationHelper expressionEvaluationHelper;
 	@Autowired public WorkItemHelper workItemHelper;
 	@Autowired public AuthorizationHelper authorizationHelper;
+	@Autowired private SystemObjectCache systemObjectCache;
+
+	private static final String DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION = "$approval-task-group$:";
+	private static final long DEFAULT_SERIALIZATION_RETRY_TIME = 10000L;
 
 	public void closeCaseInRepository(CaseType aCase, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
@@ -144,6 +153,85 @@ public class ExecutionHelper {
 					LOGGER.trace("...task is not released and continues waiting for those cases");
 				}
 			}
+		}
+	}
+
+	public void setExecutionConstraints(Task task, CaseType aCase, OperationResult result) throws SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		WfConfigurationType wfConfiguration = systemConfiguration != null ? systemConfiguration.asObjectable().getWorkflowConfiguration() : null;
+		WfExecutionTasksConfigurationType tasksConfig = wfConfiguration != null ? wfConfiguration.getExecutionTasks() : null;
+		if (tasksConfig != null) {
+			// execution constraints
+			TaskExecutionConstraintsType constraints = tasksConfig.getExecutionConstraints();
+			if (constraints != null) {
+				task.setExecutionConstraints(constraints.clone());
+			}
+			// serialization
+			WfExecutionTasksSerializationType serialization = tasksConfig.getSerialization();
+			if (serialization != null && !Boolean.FALSE.equals(serialization.isEnabled())) {
+				List<WfExecutionTasksSerializationScopeType> scopes = new ArrayList<>(serialization.getScope());
+				if (scopes.isEmpty()) {
+					scopes.add(WfExecutionTasksSerializationScopeType.OBJECT);
+				}
+				List<String> groups = new ArrayList<>(scopes.size());
+				for (WfExecutionTasksSerializationScopeType scope : scopes) {
+					String groupPrefix = serialization.getGroupPrefix() != null
+							? serialization.getGroupPrefix() : DEFAULT_EXECUTION_GROUP_PREFIX_FOR_SERIALIZATION;
+					String groupSuffix = getGroupSuffix(scope, aCase, task);
+					if (groupSuffix == null) {
+						continue;
+					}
+					groups.add(groupPrefix + scope.value() + ":" + groupSuffix);
+				}
+				if (!groups.isEmpty()) {
+					Duration retryAfter;
+					if (serialization.getRetryAfter() != null) {
+						if (constraints != null && constraints.getRetryAfter() != null && !constraints.getRetryAfter()
+								.equals(serialization.getRetryAfter())) {
+							LOGGER.warn(
+									"Workflow configuration: task constraints retryAfter ({}) is different from serialization retryAfter ({}) -- using the latter",
+									constraints.getRetryAfter(), serialization.getRetryAfter());
+						}
+						retryAfter = serialization.getRetryAfter();
+					} else if (constraints != null && constraints.getRetryAfter() != null) {
+						retryAfter = constraints.getRetryAfter();
+					} else {
+						retryAfter = XmlTypeConverter.createDuration(DEFAULT_SERIALIZATION_RETRY_TIME);
+					}
+					TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
+					if (executionConstraints == null) {
+						executionConstraints = new TaskExecutionConstraintsType();
+						task.setExecutionConstraints(executionConstraints);
+					}
+					for (String group : groups) {
+						executionConstraints
+								.beginSecondaryGroup()
+								.group(group)
+								.groupTaskLimit(1);
+					}
+					executionConstraints.setRetryAfter(retryAfter);
+					LOGGER.trace("Setting groups {} with a limit of 1 for task {}", groups, task);
+				}
+			}
+		}
+	}
+
+	private String getGroupSuffix(WfExecutionTasksSerializationScopeType scope, CaseType aCase, Task task) {
+		switch (scope) {
+			case GLOBAL: return "";
+			case OBJECT:
+				String oid = aCase.getObjectRef() != null ? aCase.getObjectRef().getOid() : null;
+				if (oid == null) {
+					LOGGER.warn("No object OID present, synchronization with the scope of {} couldn't be set up for task {}", scope, task);
+					return null;
+				}
+				return oid;
+			case TARGET:
+				return aCase.getTargetRef() != null ? aCase.getTargetRef().getOid() : null;     // null can occur so let's be silent then
+			case OPERATION:
+				return aCase.getParentRef() != null ? aCase.getParentRef().getOid() : aCase.getOid();
+			default:
+				throw new AssertionError("Unknown scope: " + scope);
 		}
 	}
 }

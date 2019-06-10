@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -102,23 +102,12 @@ public class ApprovalSchemaExecutionInformationHelper {
 			OperationResult result) {
 		ApprovalSchemaExecutionInformationType rv = new ApprovalSchemaExecutionInformationType(prismContext);
 		rv.setCaseRef(ObjectTypeUtil.createObjectRefWithFullObject(aCase, prismContext));
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 		if (wfc == null) {
 			result.recordFatalError("Workflow context in " + aCase + " is missing or not accessible.");
 			return rv;
 		}
-		WfProcessSpecificStateType processSpecificState = wfc.getProcessSpecificState();
-		if (processSpecificState == null) {
-			result.recordFatalError("Approval process state in " + aCase + " is missing or not accessible.");
-			return rv;
-		}
-		if (!(processSpecificState instanceof ItemApprovalProcessStateType)) {
-			result.recordFatalError("Task " + aCase + " does not correspond to ItemApproval process: "
-					+ "its process specific state is " + processSpecificState.getClass());
-			return rv;
-		}
-		ItemApprovalProcessStateType itemApprovalState = (ItemApprovalProcessStateType) processSpecificState;
-		ApprovalSchemaType approvalSchema = itemApprovalState.getApprovalSchema();
+		ApprovalSchemaType approvalSchema = wfc.getApprovalSchema();
 		if (approvalSchema == null) {
 			result.recordFatalError("Approval schema in " + aCase + " is missing or not accessible.");
 			return rv;
@@ -129,7 +118,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 			result.recordFatalError("Information on current stage number in " + aCase + " is missing or not accessible.");
 			return rv;
 		}
-		List<ApprovalStageDefinitionType> stagesDef = WfContextUtil.sortAndCheckStages(approvalSchema);
+		List<ApprovalStageDefinitionType> stagesDef = ApprovalContextUtil.sortAndCheckStages(approvalSchema);
 		for (ApprovalStageDefinitionType stageDef : stagesDef) {
 			ApprovalStageExecutionInformationType stageExecution = new ApprovalStageExecutionInformationType(prismContext);
 			stageExecution.setNumber(stageDef.getNumber());
@@ -141,14 +130,14 @@ public class ApprovalSchemaExecutionInformationHelper {
 			}
 			rv.getStage().add(stageExecution);
 		}
-		if (itemApprovalState.getPolicyRules() != null) {
-			rv.setPolicyRules(itemApprovalState.getPolicyRules().clone());
+		if (wfc.getPolicyRules() != null) {
+			rv.setPolicyRules(wfc.getPolicyRules().clone());
 		}
 		return rv;
 	}
 
 	private ApprovalStageExecutionPreviewType createStageExecutionPreview(
-			CaseType aCase, WfContextType wfc, String requestChannel,
+			CaseType aCase, ApprovalContextType wfc, String requestChannel,
 			ApprovalStageDefinitionType stageDef, Task opTask, OperationResult result) {
 		ApprovalStageExecutionPreviewType rv = new ApprovalStageExecutionPreviewType(prismContext);
 		try {
@@ -166,7 +155,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 	}
 
 	private ApprovalStageExecutionRecordType createStageExecutionRecord(
-			CaseType aCase, WfContextType wfc,
+			CaseType aCase, ApprovalContextType wfc,
 			Integer stageNumberObject, int currentStageNumber) {
 		int stageNumber = stageNumberObject;
 		ApprovalStageExecutionRecordType rv = new ApprovalStageExecutionRecordType(prismContext);

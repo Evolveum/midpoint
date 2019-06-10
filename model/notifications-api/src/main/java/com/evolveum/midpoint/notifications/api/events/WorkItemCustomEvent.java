@@ -34,10 +34,10 @@ public class WorkItemCustomEvent extends WorkItemEvent {
 			@NotNull ChangeType changeType,
 			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, CaseType aCase,
+			@NotNull ApprovalContextType approvalContext, CaseType aCase,
 			@Nullable EventHandlerType handler) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, null, null,
-				sourceInfo, workflowContext, aCase, handler, null);
+				sourceInfo, approvalContext, aCase, handler, null);
 	}
 
 	@Override

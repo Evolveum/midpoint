@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -136,12 +137,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -5434,8 +5429,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected CaseType getApprovalCase(List<PrismObject<CaseType>> cases) {
 		List<CaseType> rv = cases.stream()
+				.filter(o -> ObjectTypeUtil.hasArchetype(o, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()))
 				.map(o -> o.asObjectable())
-				.filter(c -> c.getWorkflowContext() != null && c.getWorkflowContext().getProcessSpecificState() != null)
 				.collect(Collectors.toList());
 		if (rv.isEmpty()) {
 			throw new AssertionError("No approval case found");

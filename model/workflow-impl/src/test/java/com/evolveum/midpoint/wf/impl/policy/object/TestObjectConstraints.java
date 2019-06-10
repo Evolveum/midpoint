@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.wf.impl.policy.object;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -24,12 +23,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -131,10 +127,9 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 								Collections.singletonList(expectedWorkItem));
 
 						CaseType subcase = subcases.get(0);
-						WfContextType wfc = subcase.getWorkflowContext();
-						ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
-						assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
-						SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
+						ApprovalContextType wfc = subcase.getApprovalContext();
+						assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+						SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
 						assertEquals(1, attachedRule.getStageMin().intValue());
 						assertEquals(1, attachedRule.getStageMax().intValue());
 						assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
@@ -302,10 +297,9 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 						Collections.singletonList(expectedTask),
 						Collections.singletonList(expectedWorkItem));
 
-				WfContextType wfc = subcases.get(0).getWorkflowContext();
-				ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
-				assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
-				SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
+				ApprovalContextType wfc = subcases.get(0).getApprovalContext();
+				assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+				SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
 				assertEquals(1, attachedRule.getStageMin().intValue());
 				assertEquals(1, attachedRule.getStageMax().intValue());
 				assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());

@@ -19,12 +19,11 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelOutcomeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -74,12 +73,11 @@ public class ApprovalProcessExecutionInformationDto implements Serializable {
 		int currentStageNumber = info.getCurrentStageNumber() != null ? info.getCurrentStageNumber() : 0;
 		int numberOfStages = info.getStage().size();
 		ObjectResolver.Session session = resolver.openResolutionSession(null);
-		String processName = WfContextUtil.getProcessName(info);
-		String targetName = WfContextUtil.getTargetName(info);
-		WfContextType wfc = WfContextUtil.getWorkflowContext(info);
-		CaseType aCase = WfContextUtil.getCase(info);
+		String processName = ApprovalContextUtil.getProcessName(info);
+		String targetName = ApprovalContextUtil.getTargetName(info);
+		CaseType aCase = ApprovalContextUtil.getCase(info);
 		boolean running = aCase != null && !SchemaConstants.CASE_STATE_CLOSED.equals(aCase.getState());
-		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.initializeFromRules(WfContextUtil.getAllRules(info.getPolicyRules()), false, new EvaluatedTriggerGroupDto.UniquenessFilter());
+		EvaluatedTriggerGroupDto triggers = EvaluatedTriggerGroupDto.initializeFromRules(ApprovalContextUtil.getAllRules(info.getPolicyRules()), false, new EvaluatedTriggerGroupDto.UniquenessFilter());
 		ApprovalProcessExecutionInformationDto rv =
 				new ApprovalProcessExecutionInformationDto(wholeProcess, currentStageNumber, numberOfStages, processName,
 						targetName, triggers, running);

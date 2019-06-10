@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,7 +53,7 @@ public class TriggerHelper {
 		LOGGER.trace("Creating triggers for timed actions for work item {}, escalation level {}, create time {}, deadline {}, {} timed action(s)",
 				workItemId, escalationLevel, workItemCreateTime, workItemDeadline, timedActionsList.size());
 		try {
-			List<TriggerType> triggers = WfContextUtil.createTriggers(escalationLevel, workItemCreateTime, workItemDeadline,
+			List<TriggerType> triggers = ApprovalContextUtil.createTriggers(escalationLevel, workItemCreateTime, workItemDeadline,
 					timedActionsList, prismContext, LOGGER, workItemId, WfTimedActionTriggerHandler.HANDLER_URI);
 			LOGGER.trace("Adding {} triggers to {}:\n{}", triggers.size(), currentCase,
 					PrismUtil.serializeQuietlyLazily(prismContext, triggers));

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
@@ -240,20 +239,18 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
 
             String targetName = target.getName() != null ? target.getName().getOrig() : "(unnamed)";
 
-            String approvalTaskName = "Approve adding " + targetName + " to " + assigneeName;
-
             // create a JobCreateInstruction for a given change processor (primaryChangeProcessor in this case)
             PcpStartInstruction instruction =
                     PcpStartInstruction.createItemApprovalInstruction(
-                    		getChangeProcessor(), approvalTaskName,
-							approvalRequest.schema, null);
+                    		getChangeProcessor(),
+		                    approvalRequest.schema, null);
 
             // set some common task/process attributes
             instruction.prepareCommonAttributes(this, ctx.modelContext, requester);
 
             // prepare and set the delta that has to be approved
             ObjectTreeDeltas objectTreeDeltas = associationAdditionToDelta(ctx.modelContext, associationAddition);
-            instruction.setDeltasToProcess(objectTreeDeltas);
+            instruction.setDeltasToApprove(objectTreeDeltas);
 
             instruction.setObjectRef(ctx);     // TODO - or should we take shadow as an object?
             instruction.setTargetRef(ObjectTypeUtil.createObjectRef(target, prismContext), result);

@@ -158,19 +158,19 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
 	@Override
-	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
+	public ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return changesSorter.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, task, result);
+		return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
 	}
 
 	@Override
-	public ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
+	public ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 
 		// TODO op subresult
-		return changesSorter.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
+		return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);
 	}
 
 	@Override

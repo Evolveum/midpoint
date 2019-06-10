@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
@@ -95,7 +95,7 @@ public class AuditHelper {
 	//region Preparation of audit events
 	public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, OperationResult result) {
 
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 
 		AuditEventRecord record = new AuditEventRecord();
 		record.setEventType(WORKFLOW_PROCESS_INSTANCE);
@@ -117,12 +117,12 @@ public class AuditHelper {
 			record.setMessage(stageInfo != null ? stageInfo + " : " + answer : answer);
 
 			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, aCase.getStageNumber());
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(wfc));
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(aCase));
-			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(aCase));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
+			record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
 		}
 		record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, aCase.getOid());
-		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(aCase);
+		OperationBusinessContextType businessContext = ApprovalContextUtil.getBusinessContext(aCase);
 		String requesterComment = businessContext != null ? businessContext.getComment() : null;
 		if (requesterComment != null) {
 			record.addPropertyValue(WorkflowConstants.AUDIT_REQUESTER_COMMENT, requesterComment);
@@ -156,7 +156,7 @@ public class AuditHelper {
 	private AuditEventRecord prepareWorkItemAuditRecordCommon(CaseWorkItemType workItem, CaseType aCase, AuditEventStage stage,
 			OperationResult result) {
 
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 
 		AuditEventRecord record = new AuditEventRecord();
 		record.setEventType(AuditEventType.WORK_ITEM);
@@ -173,12 +173,12 @@ public class AuditHelper {
 		record.addReferenceValueIgnoreNull(WorkflowConstants.AUDIT_ORIGINAL_ASSIGNEE, resolveIfNeeded(workItem.getOriginalAssigneeRef(), result));
 		record.addReferenceValues(WorkflowConstants.AUDIT_CURRENT_ASSIGNEE, resolveIfNeeded(workItem.getAssigneeRef(), result));
 		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NUMBER, workItem.getStageNumber());
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, WfContextUtil.getStageCount(wfc));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, WfContextUtil.getStageName(aCase));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, WfContextUtil.getStageDisplayName(aCase));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, WfContextUtil.getEscalationLevelNumber(workItem));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, WfContextUtil.getEscalationLevelName(workItem));
-		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, WfContextUtil.getEscalationLevelDisplayName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_COUNT, ApprovalContextUtil.getStageCount(wfc));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_NAME, ApprovalContextUtil.getStageName(aCase));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_STAGE_DISPLAY_NAME, ApprovalContextUtil.getStageDisplayName(aCase));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NUMBER, ApprovalContextUtil.getEscalationLevelNumber(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_NAME, ApprovalContextUtil.getEscalationLevelName(workItem));
+		record.addPropertyValueIgnoreNull(WorkflowConstants.AUDIT_ESCALATION_LEVEL_DISPLAY_NAME, ApprovalContextUtil.getEscalationLevelDisplayName(workItem));
 		record.addPropertyValue(WorkflowConstants.AUDIT_WORK_ITEM_ID, WorkItemId.create(aCase.getOid(), workItem.getId()).asString());
 		//record.addPropertyValue(WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, WfContextUtil.getProcessInstanceId(workItem));
 		return record;

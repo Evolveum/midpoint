@@ -35,7 +35,6 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -312,15 +311,10 @@ public class MidPointAsserts {
 	}
 
 	public static <AH extends AssignmentHolderType> void assertHasArchetype(PrismObject<AH> object, String oid) {
-		for (ObjectReferenceType orgRef: object.asObjectable().getArchetypeRef()) {
-			if (oid.equals(orgRef.getOid())) {
-				return;
-			}
-		}
-		AssertJUnit.fail(object + " does not have archetype " + oid);
+		AssertJUnit.assertTrue(object + " does not have archetype " + oid, ObjectTypeUtil.hasArchetype(object, oid));
 	}
 
-    public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
+	public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
 		Long versionOld = parseVersion(objectOld);
 		Long versionNew = parseVersion(objectNew);
 		assertTrue("Version not increased (from "+versionOld+" to "+versionNew+")", versionOld < versionNew);

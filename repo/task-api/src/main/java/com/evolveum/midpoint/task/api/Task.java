@@ -308,6 +308,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     TaskExecutionConstraintsType getExecutionConstraints();
 
+    void setExecutionConstraints(TaskExecutionConstraintsType value);
+
     String getGroup();
 
     @NotNull
@@ -1000,11 +1002,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      * @return
      */
     Collection<ItemDelta<?,?>> getPendingModifications();
-
-    // not thread-safe!
-    WfContextType getWorkflowContext();
-
-	void setWorkflowContext(WfContextType context) throws SchemaException;
 
 	// TODO move into RunningTask?
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;

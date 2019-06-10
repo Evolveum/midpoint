@@ -27,7 +27,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -81,8 +81,8 @@ public class EngineInvocationContext implements DebugDumpable {
 		this.principal = principal;
 	}
 
-	public WfContextType getWfContext() {
-		return currentCase.getWorkflowContext();
+	public ApprovalContextType getWfContext() {
+		return currentCase.getApprovalContext();
 	}
 
 	@NotNull
@@ -97,7 +97,7 @@ public class EngineInvocationContext implements DebugDumpable {
 
 	@Override
 	public String debugDump(int indent) {
-		return currentCase.getWorkflowContext().asPrismContainerValue().debugDump(indent);     // TODO
+		return currentCase.getApprovalContext().asPrismContainerValue().debugDump(indent);     // TODO
 	}
 
 	public String getChannel() {
@@ -169,7 +169,7 @@ public class EngineInvocationContext implements DebugDumpable {
 	}
 
 	public int getNumberOfStages() {
-		Integer stageCount = WfContextUtil.getStageCount(getWfContext());
+		Integer stageCount = ApprovalContextUtil.getStageCount(getWfContext());
 		if (stageCount == null) {
 			LOGGER.error("Couldn't determine stage count from the workflow context\n{}", debugDump());
 			throw new IllegalStateException("Couldn't determine stage count from the workflow context");
@@ -191,7 +191,7 @@ public class EngineInvocationContext implements DebugDumpable {
 	}
 
 	public ApprovalStageDefinitionType getCurrentStageDefinition() {
-		return WfContextUtil.getCurrentStageDefinition(currentCase);
+		return ApprovalContextUtil.getCurrentStageDefinition(currentCase);
 	}
 
 	public boolean isAnyCurrentStageWorkItemOpen() {
@@ -210,9 +210,9 @@ public class EngineInvocationContext implements DebugDumpable {
 
 	public void updateDelta(ObjectDeltaType additionalDelta) throws SchemaException {
 		PrismContext prismContext = getPrismContext();
-		WfPrimaryChangeProcessorStateType state = WfContextUtil.getPrimaryChangeProcessorState(getWfContext());
-		ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(state.getDeltasToProcess(), additionalDelta, prismContext);
-		state.setDeltasToProcess(updatedDelta);
+		ApprovalContextType actx = getWfContext();
+		ObjectTreeDeltasType updatedDelta = ObjectTreeDeltas.mergeDeltas(actx.getDeltasToApprove(), additionalDelta, prismContext);
+		actx.setDeltasToApprove(updatedDelta);
 	}
 
 //	@NotNull

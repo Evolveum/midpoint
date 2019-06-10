@@ -154,7 +154,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-		            WfContextType wfContext) throws Exception {
+		            ApprovalContextType wfContext) throws Exception {
                 return true;
             }
         });
@@ -234,7 +234,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-		            WfContextType wfContext) throws Exception {
+		            ApprovalContextType wfContext) throws Exception {
                 return false;
             }
         });

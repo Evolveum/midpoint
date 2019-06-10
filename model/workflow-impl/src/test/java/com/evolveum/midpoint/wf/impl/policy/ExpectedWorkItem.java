@@ -17,10 +17,8 @@
 package com.evolveum.midpoint.wf.impl.policy;
 
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
@@ -41,7 +39,7 @@ public class ExpectedWorkItem {
 		if (!assigneeOid.equals(actualWorkItem.getOriginalAssigneeRef().getOid())) {
 			return false;
 		}
-		if (targetOid != null && !targetOid.equals(WfContextUtil.getTargetRef(actualWorkItem).getOid())) {
+		if (targetOid != null && !targetOid.equals(ApprovalContextUtil.getTargetRef(actualWorkItem).getOid())) {
 			return false;
 		}
 		CaseType actualCase = CaseWorkItemUtil.getCaseRequired(actualWorkItem);
