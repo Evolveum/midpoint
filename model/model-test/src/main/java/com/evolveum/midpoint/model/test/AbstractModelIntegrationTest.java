@@ -53,12 +53,15 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -3015,8 +3018,57 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
-	
-	
+
+	protected void dumpTaskTree(String oid, OperationResult result)
+			throws ObjectNotFoundException,
+			SchemaException {
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_SUBTASK).retrieve()
+				.build();
+		PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
+		dumpTaskAndSubtasks(task.asObjectable(), 0);
+	}
+
+	protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
+		String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
+		display("Task (level " + level + ")", xml);
+		for (TaskType subtask : task.getSubtask()) {
+			dumpTaskAndSubtasks(subtask, level + 1);
+		}
+	}
+
+	protected long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return getTaskRunDurationMillis(getTask(taskReconOpendjOid).asObjectable());
+	}
+
+	protected long getTaskRunDurationMillis(TaskType taskType) {
+		long duration = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp())
+				- XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+		System.out.println("Duration for " + taskType.getName() + " is " + duration);
+		return duration;
+	}
+
+	protected long getTreeRunDurationMillis(String rootTaskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+		return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+				.mapToLong(this::getTaskRunDurationMillis)
+				.max().orElse(0);
+	}
+
+	protected void displayOperationStatistics(String label, OperationStatsType statistics) {
+		display(label, StatisticsUtil.format(statistics));
+	}
+
+	@Nullable
+	protected OperationStatsType getTaskTreeOperationStatistics(String rootTaskOid)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+		return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+				.map(t -> t.getOperationStats())
+				.reduce(StatisticsUtil::sum)
+				.orElse(null);
+	}
 
 	private class TaskFinishChecker implements Checker {
 		private final String taskOid;
@@ -3250,7 +3302,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			aggregateResult.getSubresults().clear();
 			List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
 			for (Task subtask : subtasks) {
-				subtask.refresh(waitResult);        // quick hack to get operation results
+				try {
+					subtask.refresh(waitResult);        // quick hack to get operation results
+				} catch (ObjectNotFoundException e) {
+					LOGGER.warn("Task {} does not exist any more", subtask);
+				}
 			}
 			Task failedTask = null;
 			for (Task subtask : subtasks) {
@@ -3263,6 +3319,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					return false;
 				}
 				OperationResult subtaskResult = subtask.getResult();
+				if (subtaskResult == null) {
+					display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
 				if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
 					display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
 					return false;
@@ -3615,6 +3675,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getTask");
         OperationResult result = task.getResult();
 		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess("getObject(Task) result not success", result);
+		return retTask;
+	}
+
+	protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getTask");
+        OperationResult result = task.getResult();
+		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK), task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;

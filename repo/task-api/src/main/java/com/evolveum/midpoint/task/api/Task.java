@@ -944,6 +944,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
+	TaskExecutionEnvironmentType getExecutionEnvironment();
+
+	void setExecutionEnvironment(TaskExecutionEnvironmentType value);
+
+	void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
+
 	// ====================================================================================== Other methods
 
     /**
@@ -1038,6 +1046,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	ObjectReferenceType getOwnerRef();
 
+	// Returns immutable collection of caching profiles
 	@NotNull
 	Collection<String> getCachingProfiles();
 }
