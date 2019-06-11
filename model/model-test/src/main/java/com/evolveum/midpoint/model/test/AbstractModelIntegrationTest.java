@@ -232,7 +232,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
 	@Autowired
-	@Qualifier("testSqlRepositoryServiceImpl")
+	@Qualifier("sqlRepositoryServiceImpl")
 	protected RepositoryService plainRepositoryService;
 
 	@Autowired protected SystemObjectCache systemObjectCache;
@@ -3012,14 +3012,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
-		long startTime = System.currentTimeMillis();
-		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk);
+		return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
 	}
 	
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0);
+	}
+
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk, int showProgressEach) throws CommonException {
+		long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
+		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout, showProgressEach);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, realStartTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
 
@@ -3080,21 +3084,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		private final boolean checkSubresult;
 		private final boolean errorOk;
 		private final int timeout;
+		private final int showProgressEach;
 		private Task freshTask;
+		private long progressLastShown;
 		
 		public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
-				boolean errorOk, int timeout) {
+				boolean errorOk, int timeout, int showProgressEach) {
 			super();
 			this.taskOid = taskOid;
 			this.waitResult = waitResult;
 			this.checkSubresult = checkSubresult;
 			this.errorOk = errorOk;
 			this.timeout = timeout;
+			this.showProgressEach = showProgressEach;
 		}
 
 		@Override
 		public boolean check() throws CommonException {
 			freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+			long currentProgress = freshTask.getProgress();
+			if (showProgressEach != 0 && currentProgress - progressLastShown >= showProgressEach) {
+				System.out.println("Task progress: " + currentProgress);
+				progressLastShown = currentProgress;
+			}
 			OperationResult result = freshTask.getResult();
 			if (verbose) display("Check result", result);
 			if (isError(result, checkSubresult)) {
