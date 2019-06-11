@@ -356,6 +356,15 @@ public class SecurityUtil {
 		return (MidPointPrincipal) principalObject;
 	}
 
+	public static String getPrincipalOidIfAuthenticated() {
+		Authentication authentication = getAuthentication();
+		if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
+			return ((MidPointPrincipal) authentication.getPrincipal()).getOid();
+		} else {
+			return null;
+		}
+	}
+
 	public static boolean isAuthenticated() {
 		return getAuthentication() != null;
 	}

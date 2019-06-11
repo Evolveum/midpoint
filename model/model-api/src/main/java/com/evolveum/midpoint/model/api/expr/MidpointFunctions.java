@@ -1072,6 +1072,13 @@ public interface MidpointFunctions {
 	 */
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
+	/**
+	 * Returns OID of the current principal. After login is complete, the returned OID is the same as
+	 * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is
+	 * being authenticated/logged-in.
+	 */
+	String getPrincipalOid();
+
 	String getChannel();
 
 	WorkflowService getWorkflowService();

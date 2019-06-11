@@ -22,6 +22,7 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,9 +96,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private UserComputer userComputer;
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
+	@Autowired private SecurityContextManager securityContextManager;
 
-        //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
-        @Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
+	//optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
+	@Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
         
 	private MessageSourceAccessor messages;
 
@@ -144,14 +146,18 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         if (user == null) {
             return null;
         }
+	    securityContextManager.setTemporaryPrincipalOid(user.getOid());
+        try {
+	        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+	        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
 
-        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
-    	
-		userComputer.recompute(user, lifecycleModel);
-		MidPointUserProfilePrincipal principal = new MidPointUserProfilePrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
-        return principal;
+	        userComputer.recompute(user, lifecycleModel);
+	        MidPointUserProfilePrincipal principal = new MidPointUserProfilePrincipal(user.asObjectable());
+	        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
+	        return principal;
+        } finally {
+        	securityContextManager.clearTemporaryPrincipalOid();
+        }
     }
     
     private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
