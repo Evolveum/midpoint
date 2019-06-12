@@ -30,6 +30,16 @@
     			<cssClass>fa fa-hand-paper-o</cssClass>
     		</icon>
     	</display>
+    	<adminGuiConfiguration>
+    		<objectDetails>
+    			<forms>
+    				<formSpecification>
+    					<panelUri>http://midpoint.evolveum.com/xml/ns/public/gui/component-3#caseTabOverviewManual</panelUri>
+    				</formSpecification>
+    				<includeDefaultForms>true</includeDefaultForms>
+    			</forms>
+    		</objectDetails>
+    	</adminGuiConfiguration>
     </archetypePolicy>
     <assignment>
     	<assignmentRelation>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 
-	protected static final int NUMBER_OF_ACCOUNTS = 23;
+	protected static final int NUMBER_OF_ACCOUNTS = 12;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -412,7 +412,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         		NUMBER_OF_ACCOUNTS, task, result);
 
         // TODO: why 11? should be 1
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 11);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -606,8 +606,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
 
-        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
-        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(0), "CN=Administrator,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(1), "CN=Chuck LeChuck,CN=Users,DC=win,DC=evolveum,DC=com");
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -771,8 +771,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
@@ -795,7 +794,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue("here.There.Be.Monsters");
+        userPasswordPs.setClearValue(USER_BARBOSSA_PASSWORD_2);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -803,12 +802,46 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_2);
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * MID-5242
+	 */
+	@Test
+    public void test222ModifyUserBarbossaPasswordNational() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordNational";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(USER_BARBOSSA_PASSWORD_AD_1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -833,8 +866,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertLdapConnectorInstances(2);
 
@@ -849,7 +881,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountDisabled(shadow);
 
         try {
-        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
         	AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
         	// this is expected

@@ -114,11 +114,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     private static final String ID_VALUE_REF_TARGET_NAMES_FIELD = "valueRefTargetNamesField";
 	private static final String ID_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";
 	private static final String ID_USED_QUERY = "usedQueryField";
-	private static final String ID_USED_QUERY_LABEL = "usedQueryLabel";
-	private static final String ID_USED_QUERY_LABEL_KEY = "PageAuditLogViewer.usedQueryLabel";
+	private static final String ID_USED_QUERY_CONTAINER = "usedQueryContainer";
 	private static final String ID_USED_INTERVAL = "usedIntervalField";
-	private static final String ID_USED_INTERVAL_LABEL = "usedIntervalLabel";
-	private static final String ID_USED_INTERVAL_LABEL_KEY = "PageAuditLogViewer.usedIntervalLabel";
+	private static final String ID_USED_INTERVAL_CONTAINER = "usedIntervalContainer";
+	private static final String ID_REQUEST_IDENTIFIER_FIELD = "requestIdentifierField";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_BUTTON = "searchButton";
@@ -198,25 +197,32 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         hostIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         hostIdentifier.setOutputMarkupId(true);
         parametersPanel.add(hostIdentifier);
-        
-        Label usedQueryLabel = new Label(ID_USED_QUERY_LABEL, getString(ID_USED_QUERY_LABEL_KEY));
-        usedQueryLabel.add(getVisibleBehaviourForUsedQueryComponent());
-        parametersPanel.add(usedQueryLabel);
+
+        TextPanel<String> requestIdentifier = new TextPanel<>(ID_REQUEST_IDENTIFIER_FIELD, new PropertyModel<>(getModel(),
+                AuditSearchDto.F_REQUEST_IDENTIFIER));
+        requestIdentifier.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        requestIdentifier.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        requestIdentifier.setOutputMarkupId(true);
+        parametersPanel.add(requestIdentifier);
+
+        WebMarkupContainer usedQueryContainer = new WebMarkupContainer(ID_USED_QUERY_CONTAINER);
+        usedQueryContainer.add(getVisibleBehaviourForUsedQueryComponent());
+        usedQueryContainer.setOutputMarkupId(true);
+        parametersPanel.add(usedQueryContainer);
         
         TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_COLLECTION + ".auditSearch.recordQuery"));
-        usedQuery.getBaseFormComponent().add(getVisibleBehaviourForUsedQueryComponent());
         usedQuery.setOutputMarkupId(true);
         usedQuery.setEnabled(false);
         parametersPanel.add(usedQuery);
         
-        Label usedIntervalLabel = new Label(ID_USED_INTERVAL_LABEL, getString(ID_USED_INTERVAL_LABEL_KEY));
-        usedIntervalLabel.add(getVisibleBehaviourForUsedQueryComponent());
-        parametersPanel.add(usedIntervalLabel);
+        WebMarkupContainer usedIntervalContainer = new WebMarkupContainer(ID_USED_INTERVAL_CONTAINER);
+        usedIntervalContainer.setOutputMarkupId(true);
+        usedIntervalContainer.add(getVisibleBehaviourForUsedQueryComponent());
+        parametersPanel.add(usedIntervalContainer);
         
         TextPanel<String> usedInterval = new TextPanel<>(ID_USED_INTERVAL, new PropertyModel<>(getModel(),
                 AuditSearchDto.F_COLLECTION + ".auditSearch.interval"));
-        usedInterval.getBaseFormComponent().add(getVisibleBehaviourForUsedQueryComponent());
         usedInterval.setOutputMarkupId(true);
         usedInterval.setEnabled(false);
         parametersPanel.add(usedInterval);
@@ -442,6 +448,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, search.getChannel().getChannel());
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
+        parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
 
         if (search.getInitiatorName() != null) {
             parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());

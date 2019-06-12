@@ -1417,7 +1417,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	    }
     }
 
-	// task is Task or TaskType
+	// task is Task, TaskType or PrismObject<TaskType>
 	// subtask is Task or PrismObject<TaskType>
     private void addSubtask(Object task, Object subtask) {
     	TaskType subtaskBean;
@@ -1429,11 +1429,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	    } else {
 		    throw new IllegalArgumentException("subtask: " + task);
 	    }
-
+    	
     	if (task instanceof Task) {
 		    ((InternalTaskInterface) task).addSubtask(subtaskBean);
 	    } else if (task instanceof TaskType) {
 		    ((TaskType) task).getSubtask().add(subtaskBean);
+	    } else if (task instanceof PrismObject<?>) {
+	    	((PrismObject<TaskType>) task).asObjectable().getSubtask().add(subtaskBean);
 	    } else {
 		    throw new IllegalArgumentException("task: " + task);
 	    }

@@ -77,5 +77,14 @@ public class ComponentConstants {
 
     public static final QName UI_FOCUS_TAB_MEMBERS = new QName(NS_COMPONENTS_PREFIX, "focusTabMembers");
     public static final String UI_FOCUS_TAB_MEMBERS_URL = QNameUtil.qNameToUri(UI_FOCUS_TAB_MEMBERS);
+    
+    public static final QName UI_CASE_TAB_OVERVIEW_MANUAL = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewManual");
+    public static final String UI_CASE_TAB_OVERVIEW_MANUAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_MANUAL);
+    
+    public static final QName UI_CASE_TAB_OVERVIEW_REQUEST = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewRequest");
+    public static final String UI_CASE_TAB_OVERVIEW_REQUEST_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_REQUEST);
+    
+    public static final QName UI_CASE_TAB_OVERVIEW_APPROVAL = new QName(NS_COMPONENTS_PREFIX, "caseTabOverviewApproval");
+    public static final String UI_CASE_TAB_OVERVIEW_APPROVAL_URL = QNameUtil.qNameToUri(UI_CASE_TAB_OVERVIEW_APPROVAL);
 
 }
