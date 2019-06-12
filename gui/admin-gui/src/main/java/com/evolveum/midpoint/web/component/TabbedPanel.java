@@ -109,10 +109,12 @@ public class TabbedPanel<T extends ITab> extends Panel {
         };
 
         WebMarkupContainer tabsContainer = newTabsContainer(ID_TABS_CONTAINER);
+        tabsContainer.setOutputMarkupId(true);
+        tabsContainer.setOutputMarkupPlaceholderTag(true);
         add(tabsContainer);
 
         // add the loop used to generate tab names
-        tabsContainer.add(new Loop(ID_TABS, tabCount) {
+        Loop loop = new Loop(ID_TABS, tabCount) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -123,33 +125,36 @@ public class TabbedPanel<T extends ITab> extends Panel {
                 final WebMarkupContainer titleLink = newLink(ID_LINK, index);
 
                 titleLink.add(newTitle(ID_TITLE, tab.getTitle(), index));
+                titleLink.setOutputMarkupPlaceholderTag(true);
+                titleLink.setOutputMarkupId(true);
                 item.add(titleLink);
 
                 final IModel<String> countModel;
                 if (tab instanceof CountModelProvider) {
-                	countModel = ((CountModelProvider)tab).getCountModel();
+                    countModel = ((CountModelProvider)tab).getCountModel();
                 } else {
-                	countModel = null;
+                    countModel = null;
                 }
-				Label countLabel = new Label(ID_COUNT, countModel);
-				countLabel.setVisible(countModel != null);
-				countLabel.setOutputMarkupId(true);
-				countLabel.add(AttributeModifier.append("class", new IModel<String>() {
-					private static final long serialVersionUID = 1L;
+                Label countLabel = new Label(ID_COUNT, countModel);
+                countLabel.setVisible(countModel != null);
+                countLabel.setOutputMarkupId(true);
+                countLabel.setOutputMarkupPlaceholderTag(true);
+                countLabel.add(AttributeModifier.append("class", new IModel<String>() {
+                    private static final long serialVersionUID = 1L;
 
-					@Override
-					public String getObject() {
-						if (countModel == null) {
-							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-						}
-						String count = countModel.getObject();
-						if ("0".equals(count)) {
-							return GuiStyleConstants.CLASS_BADGE_PASSIVE;
-						} else {
-							return GuiStyleConstants.CLASS_BADGE_ACTIVE;
-						}
-					}
-				}));
+                    @Override
+                    public String getObject() {
+                        if (countModel == null) {
+                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                        }
+                        String count = countModel.getObject();
+                        if ("0".equals(count)) {
+                            return GuiStyleConstants.CLASS_BADGE_PASSIVE;
+                        } else {
+                            return GuiStyleConstants.CLASS_BADGE_ACTIVE;
+                        }
+                    }
+                }));
                 titleLink.add(countLabel);
             }
 
@@ -157,7 +162,13 @@ public class TabbedPanel<T extends ITab> extends Panel {
             protected LoopItem newItem(final int iteration) {
                 return newTabContainer(iteration);
             }
-        });
+        };
+
+        loop.setOutputMarkupId(true);
+        loop.setOutputMarkupPlaceholderTag(true);
+
+
+        tabsContainer.add(loop);
 
 		WebMarkupContainer rightSideTabItem = new WebMarkupContainer(RIGHT_SIDE_TAB_ITEM_ID);
 		Component rightSideTabPanel = rightSideItemProvider != null ? rightSideItemProvider.createRightSideItem(RIGHT_SIDE_TAB_ID) : null;
@@ -192,6 +203,7 @@ public class TabbedPanel<T extends ITab> extends Panel {
     protected WebMarkupContainer newTabsContainer(final String id) {
         WebMarkupContainer tabs = new WebMarkupContainer(id);
         tabs.setOutputMarkupId(true);
+        tabs.setOutputMarkupPlaceholderTag(true);
         return tabs;
     }
 
@@ -399,6 +411,8 @@ public class TabbedPanel<T extends ITab> extends Panel {
                             "]. You must always return a panel with id equal to the provided panelId parameter. TabbedPanel [" +
                             getPath() + "] ITab index [" + currentTab + "]");
         }
+        component.setOutputMarkupPlaceholderTag(true);
+        component.setOutputMarkupId(true);
 
         addOrReplace(component);
     }

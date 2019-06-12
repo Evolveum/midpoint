@@ -59,18 +59,19 @@ public class LinkPanel extends Panel {
 //                return null;
 //            }
         };
+		Label label;
         if(labelModel.getObject() instanceof QName) {
-        	link.add(new Label(ID_LABEL, new IModel<String>() {
+        	label = new Label(ID_LABEL, new IModel<String>() {
 
 				@Override
 				public String getObject() {
 					return ((QName) labelModel.getObject()).getLocalPart();
 				}
-			}));
+			});
         } else {
-        	link.add(new Label(ID_LABEL, labelModel));
+        	label = new Label(ID_LABEL, labelModel);
         }
-        
+        link.add(label);
         link.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 

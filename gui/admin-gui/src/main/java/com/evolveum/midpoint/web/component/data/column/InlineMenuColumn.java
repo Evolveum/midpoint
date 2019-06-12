@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -40,8 +41,11 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId,
                              IModel<T> rowModel) {
 
-        cellItem.add(new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
-                createMenuModel(rowModel)));
+        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId,
+                createMenuModel(rowModel));
+        inlineMenu.setOutputMarkupId(true);
+        inlineMenu.setOutputMarkupPlaceholderTag(true);
+        cellItem.add(inlineMenu);
     }
 
     private IModel<List<InlineMenuItem>> createMenuModel(final IModel<T> rowModel) {
