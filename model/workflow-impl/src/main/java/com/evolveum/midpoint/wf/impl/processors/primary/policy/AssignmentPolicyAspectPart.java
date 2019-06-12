@@ -321,22 +321,13 @@ public class AssignmentPolicyAspectPart {
 
 		PcpStartInstruction instruction =
 				PcpStartInstruction
-						.createItemApprovalInstruction(main.getChangeProcessor(), processNameInDefaultLocale,
-						builderResult.schemaType, builderResult.attachedRules);
+						.createItemApprovalInstruction(main.getChangeProcessor(),
+								builderResult.schemaType, builderResult.attachedRules);
 
 		instruction.prepareCommonAttributes(main, modelContext, requester);
-
-		instruction.setDeltasToProcess(deltaToApprove);
-
+		instruction.setDeltasToApprove(deltaToApprove);
 		instruction.setObjectRef(ctx);
 		instruction.setTargetRef(createObjectRef(target, prismContext), result);
-
-//		String taskNameInDefaultLocale = localizationService.translate(
-//				new LocalizableMessageBuilder()
-//						.key(instruction.isExecuteApprovedChangeImmediately() ? "ApprovalAndExecutionOf" : "ApprovalOf")
-//						.arg(processNameInDefaultLocale)
-//						.build(), Locale.getDefault());
-
 		instruction.setName(processNameInDefaultLocale, processName);
 
 		return instruction;

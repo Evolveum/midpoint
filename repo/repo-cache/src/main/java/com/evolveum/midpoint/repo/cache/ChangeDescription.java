@@ -200,8 +200,8 @@ public abstract class ChangeDescription {
         try {
             return mayMatchAfterChange(filter, list, matchingRuleRegistry);
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't match object being changed to "
-                    + "cached query -- continuing as if there might be an overlap: {}", t, this);
+            LOGGER.warn("Couldn't match object being changed to cached query -- continuing as if there might be an overlap:\n"
+                            + "change description = {}\nfilter = {}", this, filter, t);
             return true;
         }
     }

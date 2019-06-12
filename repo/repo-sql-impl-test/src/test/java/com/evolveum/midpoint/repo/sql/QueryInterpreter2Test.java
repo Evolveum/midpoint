@@ -87,9 +87,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.F_CREATOR_REF;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 import static org.testng.AssertJUnit.*;
 
 /**

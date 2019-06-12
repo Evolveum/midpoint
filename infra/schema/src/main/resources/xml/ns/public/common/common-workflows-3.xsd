@@ -1302,86 +1302,25 @@
     </xsd:complexType>
     <xsd:element name="associationAddition" type="tns:AssociationAdditionType"/>
 
-    <xsd:complexType name="WfContextType">
+    <xsd:complexType name="ApprovalContextType">
         <xsd:annotation>
             <xsd:documentation>
-                Describes the workflow (typically related to an approval) context, i.e. what has to be approved,
-				who are the approvers, and so on.
+                Describes the approval context, i.e. what has to be approved, the approval schema, and so on.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <!--<xsd:element name="approvedByRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">-->
-                <!--<xsd:annotation>-->
-                    <!--<xsd:documentation>-->
-                        <!--User(s) who approved current operation. Stored in repository.-->
-                    <!--</xsd:documentation>-->
-                    <!--<xsd:appinfo>-->
-                        <!--<a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>-->
-                    <!--</xsd:appinfo>-->
-                <!--</xsd:annotation>-->
-            <!--</xsd:element>-->
-            <xsd:element name="processorSpecificState" type="tns:WfProcessorSpecificStateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        State that is specific to a given change processor.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="processSpecificState" type="tns:WfProcessSpecificStateType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        State that is specific to a given BPMN process.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
+			<xsd:element name="changeAspect" type="xsd:string" minOccurs="0"/>
+			<xsd:element name="deltasToApprove" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
+			<xsd:element name="resultingDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
+			<xsd:element name="immediateExecution" type="xsd:boolean" minOccurs="0"/>
+			<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType" minOccurs="0"/>
+			<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="wfContextType" type="tns:WfContextType" />
-
-    <xsd:complexType name="WfProcessorSpecificStateType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                Describes states that are specific to a given change processor.
-            </xsd:documentation>
-        </xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="processor" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Contains name of implementation class of the change processor.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="wfProcessorSpecificStateType" type="tns:WfProcessorSpecificStateType" />
-
-    <xsd:complexType name="WfPrimaryChangeProcessorStateType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <a:container/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessorSpecificStateType">
-                <xsd:sequence>
-                    <xsd:element name="changeAspect" type="xsd:string"/>
-                    <xsd:element name="deltasToProcess" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
-                    <xsd:element name="resultingDeltas" type="tns:ObjectTreeDeltasType" minOccurs="0"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="wfPrimaryChangeProcessorStateType" type="tns:WfPrimaryChangeProcessorStateType" />
+    <xsd:element name="approvalContext" type="tns:ApprovalContextType" />
 
     <xsd:complexType name="WfGeneralChangeProcessorStateType">
         <xsd:annotation>
@@ -1389,51 +1328,16 @@
                 <a:container/>
             </xsd:appinfo>
             <xsd:documentation>
-                TODO
+                DEPRECATED
+				We need to decide what to do with this.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:WfProcessorSpecificStateType">
-                <xsd:sequence>
-                    <xsd:element name="scenario" type="xsd:string"/>
-					<xsd:element name="modelContext" type="c:LensContextType" minOccurs="0" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
+		<xsd:sequence>
+			<xsd:element name="scenario" type="xsd:string"/>
+			<xsd:element name="modelContext" type="c:LensContextType" minOccurs="0" />
+		</xsd:sequence>
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
-
-	<xsd:complexType name="WfProcessSpecificStateType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-			<xsd:documentation>
-				Describe states that are specific to a given BPMN process.
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:complexType>
-	<xsd:element name="wfProcessSpecificState" type="tns:WfProcessSpecificStateType" />
-
-	<xsd:complexType name="ItemApprovalProcessStateType">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:container/>
-			</xsd:appinfo>
-			<xsd:documentation>
-				TODO
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="tns:WfProcessSpecificStateType">
-				<xsd:sequence>
-					<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType"/>
-					<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="itemApprovalProcessState" type="tns:ItemApprovalProcessStateType" />
 
     <xsd:complexType name="InformationType">
 		<xsd:annotation>

@@ -21,6 +21,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -29,13 +30,11 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
@@ -64,11 +63,11 @@ import com.evolveum.midpoint.gui.impl.prism.PrismObjectValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -83,7 +82,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
@@ -101,16 +99,16 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -242,7 +240,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
 					List<PrismContainerValueWrapper<ShadowType>> listItems) {
 
-				if(((ShadowWrapper)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
+				if(rowModel != null && rowModel.getObject() != null 
+						&& ((ShadowWrapper)rowModel.getObject().getParent()).isLoadWithNoFetch()) {
 					((PageAdminFocus) getPage()).loadFullShadow((PrismObjectValueWrapper)rowModel.getObject(), target);
 				}
 				
@@ -333,6 +332,25 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		return new PropertyModel<ShadowWrapper>(model, "parent");
 	}
 	
+	private String createTriggerTooltip(PrismContainer<TriggerType> container) {
+        if (container == null || container.isEmpty()) {
+            return null;
+        }
+
+        List<String> triggers = new ArrayList<>();
+        for (PrismContainerValue<TriggerType> val : container.getValues()) {
+        	XMLGregorianCalendar time = val.getPropertyRealValue(TriggerType.F_TIMESTAMP, XMLGregorianCalendar.class);
+        
+        	if (time == null) {
+        		triggers.add(getString("CheckTableHeader.triggerUnknownTime"));
+        	} else {
+				triggers.add(getString("CheckTableHeader.triggerPlanned", WebComponentUtil.formatDate(time)));
+        	}
+        }
+
+        return StringUtils.join(triggers, '\n');
+    }
+	
 	private CompositedIcon createAccountIcon(IModel<PrismContainerValueWrapper<ShadowType>> prismContainerValue) {
          IModel<PrismValueWrapper> status = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
         		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)), "value");
@@ -340,8 +358,18 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)), "value");
          IModel<PrismValueWrapper> lockoutTimeStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
          		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)), "value");
+         PrismContainerWrapperModel<ShadowType, TriggerType> trigger = PrismContainerWrapperModel.fromContainerValueWrapper(
+          		prismContainerValue, ObjectType.F_TRIGGER);
+         PrismObject obj = ((PrismObjectWrapper)prismContainerValue.getObject().getParent()).getObject();
+         PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         String iconCssClass = WebComponentUtil.createShadowIcon(prismContainerValue.getObject().getNewValue());
         CompositedIconBuilder builder = new CompositedIconBuilder();
+        String title = createTriggerTooltip(container);
+        if(StringUtils.isNotBlank(title)) {
+        	IconType icon = new IconType();
+        	icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
+        	builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+        }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
         if((lockoutStatus != null && LockoutStatusType.LOCKED.equals(lockoutStatus.getObject().getRealValue()))
         		|| (lockoutTimeStatus.getObject() != null && lockoutTimeStatus.getObject().getRealValue() != null
@@ -349,14 +377,16 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         	IconType icon = new IconType();
         	icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
         	builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
-        	builder.setTitle(getPageBase().createStringResource("lower.LockoutStatusType.LOCKED").getString());
+        	builder.setTitle(getPageBase().createStringResource("LockoutStatusType.LOCKED").getString()
+        			+ (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
         	return builder.build();
         }
         ActivationStatusType value = null;
         if (status != null) {
 				value = (ActivationStatusType) status.getObject().getRealValue();
         }
-        builder.setTitle(getPageBase().createStringResource("lower.ActivationStatusType." +value).getString());
+        builder.setTitle(getPageBase().createStringResource("ActivationStatusType." +value).getString()
+        		+ (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
         if(value == null) {
         	IconType icon = new IconType();
         	icon.setCssClass("fa fa-question " + GuiStyleConstants.RED_COLOR);

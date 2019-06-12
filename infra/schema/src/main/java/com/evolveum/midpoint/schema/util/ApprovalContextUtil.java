@@ -44,16 +44,16 @@ import static java.util.Collections.emptyList;
  *
  * @author mederly
  */
-public class WfContextUtil {
+public class ApprovalContextUtil {
 
-	private static final Trace LOGGER = TraceManager.getTrace(WfContextUtil.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ApprovalContextUtil.class);
 
 	@Nullable
 	public static String getStageInfo(CaseType aCase) {
 		if (aCase == null || isClosed(aCase)) {
 			return null;
 		}
-		return getStageInfo(aCase.getStageNumber(), getStageCount(aCase.getWorkflowContext()), getStageName(aCase), getStageDisplayName(aCase));
+		return getStageInfo(aCase.getStageNumber(), getStageCount(aCase.getApprovalContext()), getStageName(aCase), getStageDisplayName(aCase));
 	}
 
 	@Nullable
@@ -62,10 +62,6 @@ public class WfContextUtil {
 			return null;
 		}
 		return getStageInfo(CaseWorkItemUtil.getCase(workItem));
-	}
-
-	public static Integer getStageCount(CaseWorkItemType workItem) {
-		return getStageCount(getWorkflowContext(workItem));
 	}
 
 	public static String getStageName(CaseWorkItemType workItem) {
@@ -82,12 +78,11 @@ public class WfContextUtil {
 		return def != null ? def.getDisplayName() : null;
 	}
 
-	public static ApprovalSchemaType getApprovalSchema(WfContextType wfc) {
-		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
-		return info != null ? info.getApprovalSchema() : null;
+	public static ApprovalSchemaType getApprovalSchema(ApprovalContextType wfc) {
+		return wfc != null ? wfc.getApprovalSchema() : null;
 	}
 
-	public static Integer getStageCount(WfContextType wfc) {
+	public static Integer getStageCount(ApprovalContextType wfc) {
 		ApprovalSchemaType schema = getApprovalSchema(wfc);
 		return schema != null ? schema.getStage().size() : null;
 	}
@@ -131,7 +126,7 @@ public class WfContextUtil {
 		}
 	}
 
-	public static boolean isClosed(WfContextType wfc) {
+	public static boolean isClosed(ApprovalContextType wfc) {
 		return CaseTypeUtil.isClosed(getCase(wfc));
 	}
 
@@ -139,7 +134,7 @@ public class WfContextUtil {
 		return CaseTypeUtil.isClosed(aCase);
 	}
 
-	private static CaseType getCase(WfContextType wfc) {
+	private static CaseType getCase(ApprovalContextType wfc) {
 		PrismContainerable parent = wfc != null ? wfc.asPrismContainerValue().getParent() : null;
 		if (parent == null) {
 			return null;
@@ -177,7 +172,7 @@ public class WfContextUtil {
 		} else if (stageDisplayName != null) {
 			sb.append(stageDisplayName);
 		}
-		appendNumber(stageNumber, getStageCount(aCase.getWorkflowContext()), sb);
+		appendNumber(stageNumber, getStageCount(aCase.getApprovalContext()), sb);
 		return sb.toString();
 	}
 
@@ -197,43 +192,12 @@ public class WfContextUtil {
 		}
 	}
 
-	public static ItemApprovalProcessStateType getItemApprovalProcessInfo(WfContextType wfc) {
-		if (wfc == null) {
-			return null;
-		}
-		WfProcessSpecificStateType processSpecificState = wfc.getProcessSpecificState();
-		return processSpecificState instanceof ItemApprovalProcessStateType ?
-				(ItemApprovalProcessStateType) processSpecificState : null;
-	}
-
-	public static WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState(WfContextType wfc) {
-		if (wfc == null) {
-			return null;
-		}
-		WfProcessorSpecificStateType state = wfc.getProcessorSpecificState();
-		return state instanceof WfPrimaryChangeProcessorStateType ?
-				(WfPrimaryChangeProcessorStateType) state : null;
-	}
-
 	@NotNull
-	public static WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorStateRequired(WfContextType wfc) {
-		if (wfc == null) {
-			throw new IllegalStateException("No workflow context");
-		}
-		WfProcessorSpecificStateType processorState = wfc.getProcessorSpecificState();
-		if (!(processorState instanceof WfPrimaryChangeProcessorStateType)) {
-			throw new IllegalStateException("Expected " + WfPrimaryChangeProcessorStateType.class + " but got " + processorState);
-		}
-		return (WfPrimaryChangeProcessorStateType) processorState;
-	}
-
-	@NotNull
-	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(WfContextType workflowContext, int order) {
-		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(workflowContext);
-		if (info == null || info.getPolicyRules() == null) {
+	public static List<SchemaAttachedPolicyRuleType> getAttachedPolicyRules(ApprovalContextType actx, int order) {
+		if (actx == null || actx.getPolicyRules() == null) {
 			return emptyList();
 		}
-		return info.getPolicyRules().getEntry().stream()
+		return actx.getPolicyRules().getEntry().stream()
 				.filter(e -> e.getStageMax() != null && e.getStageMax() != null
 						&& order >= e.getStageMin() && order <= e.getStageMax())
 				.collect(Collectors.toList());
@@ -243,16 +207,15 @@ public class WfContextUtil {
 		if (aCase == null || aCase.getStageNumber() == null) {
 			return null;
 		}
-		return getStageDefinition(aCase.getWorkflowContext(), aCase.getStageNumber());
+		return getStageDefinition(aCase.getApprovalContext(), aCase.getStageNumber());
 	}
 
 	// expects already normalized definition (using non-deprecated items, numbering stages from 1 to N)
-	public static ApprovalStageDefinitionType getStageDefinition(WfContextType wfc, int stageNumber) {
-		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
-		if (info == null || info.getApprovalSchema() == null) {
+	public static ApprovalStageDefinitionType getStageDefinition(ApprovalContextType actx, int stageNumber) {
+		if (actx == null || actx.getApprovalSchema() == null) {
 			return null;
 		}
-		ApprovalSchemaType approvalSchema = info.getApprovalSchema();
+		ApprovalSchemaType approvalSchema = actx.getApprovalSchema();
 		List<ApprovalStageDefinitionType> stages = approvalSchema.getStage().stream()
 				.filter(level -> level.getNumber() != null && level.getNumber() == stageNumber)
 				.collect(Collectors.toList());
@@ -272,7 +235,7 @@ public class WfContextUtil {
 	// we must be strict here; in case of suspicion, throw an exception
 	@SuppressWarnings("unchecked")
 	public static <T extends CaseEventType> List<T> getEventsForCurrentStage(@NotNull CaseType aCase, @NotNull Class<T> clazz) {
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 		if (wfc == null) {
 			throw new IllegalArgumentException("No workflow context in case " + aCase);
 		}
@@ -408,11 +371,11 @@ public class WfContextUtil {
 	}
 
 //	public static String getProcessInstanceId(WorkItemType workItem) {
-//		return getWorkflowContext(workItem).getCaseOid();
+//		return getApprovalContext(workItem).getCaseOid();
 //	}
 
-	public static WfContextType getWorkflowContext(CaseWorkItemType workItem) {
-		return CaseWorkItemUtil.getCaseRequired(workItem).getWorkflowContext();
+	public static ApprovalContextType getApprovalContext(CaseWorkItemType workItem) {
+		return CaseWorkItemUtil.getCaseRequired(workItem).getApprovalContext();
 //		PrismContainerValue<?> parent = PrismValueUtil.getParentContainerValue(workItem.asPrismContainerValue());
 //		if (parent == null) {
 //			LOGGER.error("No workflow context for workItem {}", workItem);
@@ -433,9 +396,9 @@ public class WfContextUtil {
 		return (CaseType) info.getCaseRef().asReferenceValue().getObject().asObjectable();
 	}
 
-	public static WfContextType getWorkflowContext(ApprovalSchemaExecutionInformationType info) {
+	public static ApprovalContextType getApprovalContext(ApprovalSchemaExecutionInformationType info) {
 		CaseType aCase = getCase(info);
-		return aCase != null ? aCase.getWorkflowContext() : null;
+		return aCase != null ? aCase.getApprovalContext() : null;
 	}
 
 	public static ObjectReferenceType getObjectRef(CaseWorkItemType workItem) {
@@ -504,10 +467,6 @@ public class WfContextUtil {
 
 	public static Integer getEscalationLevelNumber(WorkItemEventType event) {
 		return getEscalationLevelNumber(event.getEscalationLevel());
-	}
-
-	public static WfContextType getWorkflowContext(PrismObject<TaskType> task) {
-		return task != null ? task.asObjectable().getWorkflowContext() : null;
 	}
 
 	// TODO better place
@@ -756,11 +715,11 @@ public class WfContextUtil {
 		if (aCase == null || aCase.getStageNumber() == null) {
 			return false;
 		}
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(aCase.getWorkflowContext());
-		if (info == null) {
+		ApprovalContextType actx = aCase.getApprovalContext();
+		if (actx == null) {
 			return false;
 		}
-		return aCase.getStageNumber() < info.getApprovalSchema().getStage().size();
+		return aCase.getStageNumber() < actx.getApprovalSchema().getStage().size();
 	}
 
 	public static String getProcessName(ApprovalSchemaExecutionInformationType info) {
@@ -793,14 +752,13 @@ public class WfContextUtil {
 		return rv;
 	}
 
-	public static List<List<EvaluatedPolicyRuleType>> getRulesPerStage(WfContextType wfc) {
+	public static List<List<EvaluatedPolicyRuleType>> getRulesPerStage(ApprovalContextType actx) {
 		List<List<EvaluatedPolicyRuleType>> rv = new ArrayList<>();
-		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
-		if (info == null || info.getPolicyRules() == null) {
+		if (actx == null || actx.getPolicyRules() == null) {
 			return rv;
 		}
-		List<SchemaAttachedPolicyRuleType> entries = info.getPolicyRules().getEntry();
-		for (int i = 0; i < info.getApprovalSchema().getStage().size(); i++) {
+		List<SchemaAttachedPolicyRuleType> entries = actx.getPolicyRules().getEntry();
+		for (int i = 0; i < actx.getApprovalSchema().getStage().size(); i++) {
 			rv.add(getRulesForStage(entries, i+1));
 		}
 		return rv;
@@ -822,15 +780,14 @@ public class WfContextUtil {
 	// Use explicit stage number instead.
 	@NotNull
 	public static List<EvaluatedPolicyRuleType> getRulesForCurrentStage(CaseType aCase) {
-		return getRulesForStage(aCase.getWorkflowContext(), aCase.getStageNumber());
+		return getRulesForStage(aCase.getApprovalContext(), aCase.getStageNumber());
 	}
 
 	@NotNull
-	public static List<EvaluatedPolicyRuleType> getRulesForStage(WfContextType wfc, Integer stageNumber) {
-		ItemApprovalProcessStateType info = getItemApprovalProcessInfo(wfc);
-		if (info == null || info.getPolicyRules() == null || stageNumber == null) {
+	public static List<EvaluatedPolicyRuleType> getRulesForStage(ApprovalContextType actx, Integer stageNumber) {
+		if (actx == null || actx.getPolicyRules() == null || stageNumber == null) {
 			return emptyList();
 		}
-		return getRulesForStage(info.getPolicyRules().getEntry(), stageNumber);
+		return getRulesForStage(actx.getPolicyRules().getEntry(), stageNumber);
 	}
 }

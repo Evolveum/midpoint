@@ -40,10 +40,11 @@ public class MidpointInterceptor implements MethodInterceptor {
 
     private static AtomicInteger idcounter = new AtomicInteger(0);
 
-	// This logger provide profiling informations
+	// This logger provide profiling information
     private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
 
     private static boolean isProfilingActive = false;
+    private static boolean isMethodInvocationLoggingActive = true;           // used to override logging levels (experimental)
 
 	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
     public static final String INDENT_STRING = " ";
@@ -80,16 +81,19 @@ public class MidpointInterceptor implements MethodInterceptor {
 
         final StringBuilder infoLog = new StringBuilder("#### Entry: ");
 
+		boolean debugEnabled = isMethodInvocationLoggingActive && LOGGER_PROFILING.isDebugEnabled();
+		boolean traceEnabled = isMethodInvocationLoggingActive && LOGGER_PROFILING.isTraceEnabled();
+
 		try {
 			// Marking MDC->Subsystem with current one subsystem and mark previous
 			prev = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
 
-            if (LOGGER_PROFILING.isDebugEnabled()) {
+            if (debugEnabled) {
                 id = idcounter.incrementAndGet();
                 infoLog.append(id);
             }
 
-            if (LOGGER_PROFILING.isTraceEnabled()) {
+            if (traceEnabled) {
                 String depth = MDC.get("depth");
                 if (depth == null || depth.isEmpty()) {
                     d = 0;
@@ -104,12 +108,12 @@ public class MidpointInterceptor implements MethodInterceptor {
             }
 
             // is profiling info is needed
-            if (LOGGER_PROFILING.isDebugEnabled()) {
+            if (debugEnabled) {
                 infoLog.append(getClassName(invocation));
                 LOGGER_PROFILING.debug("{}->{}", infoLog, invocation.getMethod().getName());
 
                 // If debug enable get entry parameters and log them
-                if (LOGGER_PROFILING.isTraceEnabled()) {
+                if (traceEnabled) {
                     final Object[] args = invocation.getArguments();
                     final StringBuilder sb = new StringBuilder();
                     sb.append("###### args: ");
@@ -142,21 +146,19 @@ public class MidpointInterceptor implements MethodInterceptor {
 			}
 			return retValue;
 		} finally {
-            if (LOGGER_PROFILING.isTraceEnabled()) {
+            if (traceEnabled) {
                 d--;
                 MDC.put("depth", Integer.toString(d));
             }
 
             // Restore previously marked subsystem executed before return
-            if (LOGGER_PROFILING.isDebugEnabled()) {
+            if (debugEnabled) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("##### Exit: ");
-                if (LOGGER_PROFILING.isDebugEnabled()) {
-                    sb.append(id);
-                    sb.append(" ");
-                }
+	            sb.append(id);
+	            sb.append(" ");
                 // sb.append("/");
-                if (LOGGER_PROFILING.isTraceEnabled()) {
+                if (traceEnabled) {
                     for (int i = 0; i < d + 1; i++) {
                         sb.append(INDENT_STRING);
                     }
@@ -165,25 +167,23 @@ public class MidpointInterceptor implements MethodInterceptor {
                 sb.append("->");
                 sb.append(invocation.getMethod().getName());
 
-                if (LOGGER_PROFILING.isDebugEnabled()) {
-                    sb.append(" etime: ");
-                    // Mark end of processing
-                    elapsed = System.nanoTime() - startTime;
-                    sb.append((long) (elapsed / 1000000));
-                    sb.append('.');
-                    long mikros = (long) (elapsed / 1000) % 1000;
-                    if (mikros < 100) {
-                        sb.append('0');
-                    }
-                    if (mikros < 10) {
-                        sb.append('0');
-                    }
-                    sb.append(mikros);
-                    sb.append(" ms");
-                }
+	            sb.append(" etime: ");
+	            // Mark end of processing
+	            elapsed = System.nanoTime() - startTime;
+	            sb.append((long) (elapsed / 1000000));
+	            sb.append('.');
+	            long mikros = (long) (elapsed / 1000) % 1000;
+	            if (mikros < 100) {
+	                sb.append('0');
+	            }
+	            if (mikros < 10) {
+	                sb.append('0');
+	            }
+	            sb.append(mikros);
+	            sb.append(" ms");
 
-                LOGGER_PROFILING.debug(sb.toString());
-                if (LOGGER_PROFILING.isTraceEnabled()) {
+	            LOGGER_PROFILING.debug(sb.toString());
+                if (traceEnabled) {
                     if (exc) {
                         LOGGER_PROFILING.trace("###### return exception: {}", excName);
                     } else {
@@ -193,7 +193,7 @@ public class MidpointInterceptor implements MethodInterceptor {
             }
 
             if (isProfilingActive) {
-				Long processingStartTime = System.nanoTime();
+				long processingStartTime = System.nanoTime();
 				ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(getClassName(invocation), invocation.getMethod().getName(), invocation.getArguments(), subsystem, startTime, processingStartTime);
             }
 
@@ -272,4 +272,11 @@ public class MidpointInterceptor implements MethodInterceptor {
 		}
 	}
 
+	public static void activateMethodInvocationLogging() {
+		MidpointInterceptor.isMethodInvocationLoggingActive = true;
+	}
+
+	public static void deactivateMethodInvocationLogging() {
+		MidpointInterceptor.isMethodInvocationLoggingActive = false;
+	}
 }

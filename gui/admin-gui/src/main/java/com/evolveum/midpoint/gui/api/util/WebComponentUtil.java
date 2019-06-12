@@ -44,12 +44,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -157,10 +159,6 @@ import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -3868,13 +3866,13 @@ public final class WebComponentUtil {
 		return createSceneDto(CaseTypeUtil.getCase(caseWorkItem), pageBase, operation);
 	}
 
-	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc, Integer stage) {
+	public static List<EvaluatedTriggerGroupDto> computeTriggers(ApprovalContextType wfc, Integer stage) {
 		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
 		if (wfc == null) {
 			return triggers;
 		}
 		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
-		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
+		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = ApprovalContextUtil.getRulesPerStage(wfc);
 		for (int i = 0; i < rulesPerStageList.size(); i++) {
 			Integer stageNumber = i + 1;
 			boolean highlighted = stageNumber.equals(stage);
@@ -3885,19 +3883,15 @@ public final class WebComponentUtil {
 	}
 
 	public static SceneDto createSceneDto(CaseType caseObject, PageBase pageBase, String operation){
-		if (caseObject == null || caseObject.getWorkflowContext() == null) {
-			return null;
-		}
-		if (!(caseObject.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
+		if (caseObject == null || caseObject.getApprovalContext() == null) {
 			return null;
 		}
 		ObjectReferenceType objectRef = caseObject.getObjectRef();
-		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) caseObject.getWorkflowContext().getProcessorSpecificState();
 
 		OperationResult result = new OperationResult(operation);
 		Task task = pageBase.createSimpleTask(operation);
 		try {
-			Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), "pageWorkItem.delta",
+			Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(caseObject.getApprovalContext().getDeltasToApprove(), "pageWorkItem.delta",
 					pageBase.getPrismContext(), pageBase.getModelInteractionService(), objectRef, task, result);
 			return new SceneDto(deltasScene);
 		} catch (SchemaException | ExpressionEvaluationException ex){
@@ -3906,7 +3900,48 @@ public final class WebComponentUtil {
 		return null;
 	}
 
-    public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
+	@NotNull
+	public static List<SceneDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,
+																  ModelInteractionService modelInteractionService, PrismContext prismContext, Task opTask,
+																  OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
+		List<SceneDto> changes = new ArrayList<>();
+		if (!changesByState.getApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesApplied", "box-solid box-success", changesByState.getApplied(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		if (!changesByState.getBeingApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesBeingApplied", "box-solid box-info", changesByState.getBeingApplied(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		if (!changesByState.getWaitingToBeApplied().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApplied", "box-solid box-warning",
+					changesByState.getWaitingToBeApplied(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		if (!changesByState.getWaitingToBeApproved().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesWaitingToBeApproved", "box-solid box-primary",
+					changesByState.getWaitingToBeApproved(), modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		if (!changesByState.getRejected().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesRejected", "box-solid box-danger", changesByState.getRejected(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		if (!changesByState.getCanceled().isEmpty()) {
+			changes.add(createTaskChangesDto("TaskDto.changesCanceled", "box-solid box-danger", changesByState.getCanceled(),
+					modelInteractionService, prismContext, objectRef, opTask, thisOpResult));
+		}
+		return changes;
+	}
+
+	private static SceneDto createTaskChangesDto(String titleKey, String boxClassOverride, ObjectTreeDeltas deltas, ModelInteractionService modelInteractionService,
+													   PrismContext prismContext, ObjectReferenceType objectRef, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+		ObjectTreeDeltasType deltasType = ObjectTreeDeltas.toObjectTreeDeltasType(deltas);
+		Scene scene = SceneUtil.visualizeObjectTreeDeltas(deltasType, titleKey, prismContext, modelInteractionService, objectRef, opTask, result);
+		SceneDto sceneDto = new SceneDto(scene);
+		sceneDto.setBoxClassOverride(boxClassOverride);
+		return sceneDto;
+	}
+
+	public static String getMidpointCustomSystemName(PageBase pageBase, String defaultSystemNameKey){
 		DeploymentInformationType deploymentInfo = MidPointApplication.get().getDeploymentInfo();
 		String subscriptionId = deploymentInfo != null ? deploymentInfo.getSubscriptionIdentifier() : null;
 		if (!isSubscriptionIdCorrect(subscriptionId) ||

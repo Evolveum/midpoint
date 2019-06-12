@@ -17,5 +17,12 @@
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div wicket:id="approvalCasePanel" />
-    <!--<div wicket:id="historyPanel" />-->
+    <div class="box box-info" wicket:id="historyContainer">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="workItemPanel.approvalHistory"/></h3> <i wicket:id="approvalHistoryHelp" wicket:message="title:workItemPanel.approvalHistoryHelp"/>
+        </div>
+        <div class="box-body">
+            <div wicket:id="historyPanel" />
+        </div>
+    </div>
 </wicket:panel>

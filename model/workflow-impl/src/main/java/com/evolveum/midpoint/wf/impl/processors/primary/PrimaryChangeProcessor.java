@@ -37,7 +37,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -185,11 +185,11 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	public boolean isEmpty(PcpStartInstruction instruction,
 			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ItemApprovalProcessStateType state = instruction.getItemApprovalProcessState();
-		if (state == null) {
+		ApprovalContextType actx = instruction.getApprovalContext();
+		if (actx == null) {
 			return true;
 		}
-		List<ApprovalStageDefinitionType> stages = WfContextUtil.getStages(state.getApprovalSchema());
+		List<ApprovalStageDefinitionType> stages = ApprovalContextUtil.getStages(actx.getApprovalSchema());
 		// first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
 		for (ApprovalStageDefinitionType stage : stages) {
 			if (stage.getAutomaticallyCompleted() == null) {
@@ -210,7 +210,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 			ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
 			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getWfContext(), ctx.task.getChannel(), result);
+		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
 		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
 	}
 
@@ -336,9 +336,10 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
             PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
             instruction0.setName("Changes that do not require approval");
 	        instruction0.setObjectRef(ctx);
-	        instruction0.setDeltasToProcess(changesWithoutApproval);
+	        instruction0.setDeltasToApprove(changesWithoutApproval);
 	        instruction0.setResultingDeltas(changesWithoutApproval);
 	        instruction0.setParent(rootCase);
+	        instruction0.setExecuteApprovedChangeImmediately(ctx.modelContext);
 			return instruction0;
         } else {
             return null;
@@ -406,49 +407,57 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	    // here we should execute the deltas, if appropriate!
 
 	    CaseType rootCase = generalHelper.getRootCase(currentCase, result);
-	    LensContextType modelContext = rootCase.getModelContext();
-	    if (modelContext == null) {
-	    	throw new IllegalStateException("No model context in root case " + rootCase);
-	    }
-	    boolean immediately = modelContext.getOptions() != null &&
-			    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
-	    if (immediately) {
-	    	if (deltas != null) {
-			    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
-			    boolean waiting;
-			    if (!currentCase.getPrerequisiteRef().isEmpty()) {
-				    ObjectQuery query = prismContext.queryFor(CaseType.class)
-						    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid).toArray(String[]::new))
-						    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
-						    .build();
-				    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
-						    .searchObjects(CaseType.class, query, null, result);
-				    waiting = !openPrerequisites.isEmpty();
-				    if (waiting) {
-				    	LOGGER.debug("Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
-							    currentCase, openPrerequisites);
-				    }
-			    } else {
-			    	waiting = false;
-			    }
-	    		submitExecutionTask(currentCase, waiting, result);
-		    } else {
-			    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
-			    executionHelper.closeCaseInRepository(currentCase, result);
-			    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
-		    }
-	    } else {
-		    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
-				    currentCase, rootCase);
+	    if (CaseTypeUtil.isClosed(rootCase)) {
+	    	LOGGER.debug("Root case ({}) is already closed; not starting any execution tasks for {}", rootCase, currentCase);
 		    executionHelper.closeCaseInRepository(currentCase, result);
-		    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
-		    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
-			    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
-			    submitExecutionTask(rootCase, false, result);
+	    } else {
+		    LensContextType modelContext = rootCase.getModelContext();
+		    if (modelContext == null) {
+			    throw new IllegalStateException("No model context in root case " + rootCase);
+		    }
+		    boolean immediately = modelContext.getOptions() != null &&
+				    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
+		    if (immediately) {
+			    if (deltas != null) {
+				    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
+				    boolean waiting;
+				    if (!currentCase.getPrerequisiteRef().isEmpty()) {
+					    ObjectQuery query = prismContext.queryFor(CaseType.class)
+							    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid)
+									    .toArray(String[]::new))
+							    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
+							    .build();
+					    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
+							    .searchObjects(CaseType.class, query, null, result);
+					    waiting = !openPrerequisites.isEmpty();
+					    if (waiting) {
+						    LOGGER.debug(
+								    "Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
+								    currentCase, openPrerequisites);
+					    }
+				    } else {
+					    waiting = false;
+				    }
+				    submitExecutionTask(currentCase, waiting, result);
+			    } else {
+				    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
+				    executionHelper.closeCaseInRepository(currentCase, result);
+				    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
+			    }
 		    } else {
-			    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
-			    for (CaseType subcase : subcases) {
-				    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(), CaseTypeUtil.isClosed(subcase));
+			    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
+					    currentCase, rootCase);
+			    executionHelper.closeCaseInRepository(currentCase, result);
+			    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+			    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
+				    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
+				    submitExecutionTask(rootCase, false, result);
+			    } else {
+				    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
+				    for (CaseType subcase : subcases) {
+					    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(),
+							    CaseTypeUtil.isClosed(subcase));
+				    }
 			    }
 		    }
 	    }
@@ -470,6 +479,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		if (waiting) {
 			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
 		}
+		executionHelper.setExecutionConstraints(task, aCase, result);
 		taskManager.switchToBackground(task, result);
 	}
 
@@ -478,7 +488,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 	}
 
 	private ObjectTreeDeltas<?> prepareDeltaOut(CaseType aCase) throws SchemaException {
-		ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToProcess(aCase);
+		ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToApprove(aCase);
 		if (ApprovalUtils.isApprovedFromUri(aCase.getOutcome())) {
 			return deltaIn;
 		} else {
@@ -491,13 +501,13 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, WfContextType wfContext, OperationResult result) {
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
 
         ObjectTreeDeltas<?> deltas;
         try {
             if (stage == REQUEST) {
-                deltas = generalHelper.retrieveDeltasToProcess(aCase);
+                deltas = generalHelper.retrieveDeltasToApprove(aCase);
             } else {
                 deltas = generalHelper.retrieveResultingDeltas(aCase);
             }
@@ -518,7 +528,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		    OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
         try {
-            addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToProcess(aCase));
+            addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToApprove(aCase));
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
         }

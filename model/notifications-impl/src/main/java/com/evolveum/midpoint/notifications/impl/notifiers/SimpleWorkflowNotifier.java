@@ -21,7 +21,7 @@ import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -161,7 +161,7 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 						.append("\n");
 			}
 			body.append("Workflow context:\n")
-					.append(PrismUtil.serializeQuietly(prismContext, ((WorkflowEvent) event).getWorkflowContext()));
+					.append(PrismUtil.serializeQuietly(prismContext, ((WorkflowEvent) event).getApprovalContext()));
         }
         return body.toString();
     }
@@ -292,14 +292,14 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
 	}
 
 	private void appendEscalationInformation(StringBuilder sb, WorkItemEvent workItemEvent) {
-		String info = WfContextUtil.getEscalationLevelInfo(workItemEvent.getWorkItem());
+		String info = ApprovalContextUtil.getEscalationLevelInfo(workItemEvent.getWorkItem());
 		if (info != null) {
 			sb.append("Escalation level: ").append(info).append("\n");
 		}
 	}
 
 	private void appendStageInformation(StringBuilder sb, WorkflowEvent workflowEvent) {
-    	String info = WfContextUtil.getStageInfo(workflowEvent.getCase());
+    	String info = ApprovalContextUtil.getStageInfo(workflowEvent.getCase());
     	if (info != null) {
     		sb.append("Stage: ").append(info).append("\n");
 		}

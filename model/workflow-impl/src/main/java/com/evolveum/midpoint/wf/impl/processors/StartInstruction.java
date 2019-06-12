@@ -65,7 +65,6 @@ public class StartInstruction implements DebugDumpable {
 	    ObjectReferenceType approvalArchetypeRef = ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE);
 	    aCase.getArchetypeRef().add(approvalArchetypeRef.clone());
 	    aCase.beginAssignment().targetRef(approvalArchetypeRef).end();
-		aCase.setWorkflowContext(new WfContextType(prismContext));
 		aCase.setMetadata(new MetadataType(prismContext));
 	    aCase.getMetadata().setCreateTimestamp(createXMLGregorianCalendar(new Date()));
     }
@@ -81,10 +80,6 @@ public class StartInstruction implements DebugDumpable {
 	}
 
 	protected PrismContext getPrismContext() { return changeProcessor.getPrismContext(); }
-
-//	public void setProcessInstanceName(String name) {
-//		aCase.getWorkflowContext().setProcessInstanceName(name);
-//	}
 
     public void setName(String name) {
     	aCase.setName(PolyStringType.fromOrig(name));
@@ -105,7 +100,8 @@ public class StartInstruction implements DebugDumpable {
     }
 
     public boolean startsWorkflowProcess() {
-        return getWfContext().getProcessSpecificState() != null;
+	    ApprovalContextType actx = getApprovalContext();
+	    return actx != null && actx.getApprovalSchema() != null;
     }
 
     public void setModelContext(ModelContext<?> context) throws SchemaException {
@@ -145,8 +141,8 @@ public class StartInstruction implements DebugDumpable {
 		aCase.setRequestorRef(createObjectRef(requester, getPrismContext()));
     }
 
-	public WfContextType getWfContext() {
-		return aCase.getWorkflowContext();
+	public ApprovalContextType getApprovalContext() {
+		return aCase.getApprovalContext();
 	}
 
 	//endregion
@@ -195,10 +191,5 @@ public class StartInstruction implements DebugDumpable {
 	    }
 		return aCase;
 	}
-
-	protected void setProcessState(WfProcessSpecificStateType processState) {
-		getWfContext().setProcessSpecificState(processState);
-	}
-
 	//endregion
 }

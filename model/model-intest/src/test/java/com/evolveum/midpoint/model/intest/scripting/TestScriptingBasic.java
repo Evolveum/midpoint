@@ -1242,7 +1242,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
 		PrismObject<TaskType> taskToResume = prismContext.parseObject(TASK_TO_RESUME_FILE);
 		//TODO deal with this
-		//taskToResume.asObjectable().getWorkflowContext().setEndTimestamp(fromNow(createDuration(-1000L)));
+		//taskToResume.asObjectable().getApprovalContext().setEndTimestamp(fromNow(createDuration(-1000L)));
 		addObject(taskToResume);
 		display("task to resume", taskToResume);
 

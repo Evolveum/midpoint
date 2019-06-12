@@ -125,7 +125,9 @@ public class UserProfileCompiler {
 	@Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 	
-	public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getUser().asPrismObject(), systemConfiguration, task, result));
 
@@ -180,7 +182,9 @@ public class UserProfileCompiler {
 	}
 	
 	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
-			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 
 		AdminGuiConfigurationType globalAdminGuiConfig = null;
 		if (systemConfiguration != null) {
@@ -201,7 +205,9 @@ public class UserProfileCompiler {
 		return composite;
 	}
 
-	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
@@ -280,7 +286,9 @@ public class UserProfileCompiler {
 		}
 	}
 
-	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		if (viewsType == null) {
 			return;
 		}
@@ -347,7 +355,9 @@ public class UserProfileCompiler {
 		return collectionRef.getOid();
 	}
 
-	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		compileActions(existingView, objectListViewType);
 		compileAdditionalPanels(existingView, objectListViewType);
 		compileColumns(existingView, objectListViewType);
@@ -377,7 +387,9 @@ public class UserProfileCompiler {
 		existingView.setAdditionalPanels(newAdditionalPanels);
 	}
 
-	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
 		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
@@ -396,7 +408,9 @@ public class UserProfileCompiler {
 		compileCollection(existingView, collectionSpec, task, result);
 	}
 	
-	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		QName targetObjectType = existingView.getObjectType();
 		Class<? extends ObjectType> targetTypeClass = ObjectType.class;

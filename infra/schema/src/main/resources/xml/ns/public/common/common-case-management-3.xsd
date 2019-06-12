@@ -170,10 +170,10 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="workflowContext" type="tns:WfContextType" minOccurs="0">
+                    <xsd:element name="approvalContext" type="tns:ApprovalContextType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Workflow context for wf-related cases.
+                                Approval context for approval cases.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>

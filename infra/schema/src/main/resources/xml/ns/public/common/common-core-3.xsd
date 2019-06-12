@@ -2754,15 +2754,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="workflowContext" type="tns:WfContextType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Workflow context of the operation that is to be executed within this task.
-                                Points to a process instance in a workflow engine, and to an externalized view
-                                of its state.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
 					<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>

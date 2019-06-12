@@ -250,6 +250,17 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     	property.setRealValue(realValue);
     }
     
+    public <X extends Containerable> void setContainerRealValue(QName itemName, X realValue) throws SchemaException {
+		checkMutability();
+	    if (realValue != null) {
+		    PrismContainer<Containerable> container = findOrCreateContainer(ItemName.fromQName(itemName));
+		    //noinspection unchecked
+		    container.setValue(realValue.asPrismContainerValue());
+	    } else {
+	    	removeContainer(ItemName.fromQName(itemName));
+	    }
+    }
+
     public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
 		checkMutability();
     	PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));

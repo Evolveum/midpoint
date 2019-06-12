@@ -1860,12 +1860,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
 
-        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
+        addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
 
-        //todo for now disable the possibility to create case manually
-//        MenuItem newCaseMenu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCase.class, null,
-//                new VisibleEnableBehaviour());
-//        item.getItems().add(newCaseMenu);
+
+        createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 
         return item;
     }

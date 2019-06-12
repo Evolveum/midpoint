@@ -18,10 +18,10 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -212,6 +212,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 
 	@Override
 	public void storeOperationStatsDeferred() {
+		//System.out.println(String.format("[%s] storeOperationStatsDeferred called", Thread.currentThread().getName()));
 		refreshStoredThreadLocalPerformanceStats();
 		setOperationStats(getAggregatedLiveOperationStats());
 	}
@@ -282,17 +283,20 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	}
 
 	@Override
-	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
-		startCollectingRepoAndCacheStats();
-		super.startCollectingOperationStats(strategy);
-		if (strategy.isStartFromZero()) {
+	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
+		PerformanceMonitor performanceMonitor = repositoryService.getPerformanceMonitor();
+		if (initialExecution && strategy.isStartFromZero()) {
+			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(), performanceMonitor);
+			setProgress(0L);
 			storeOperationStats();
+		} else {
+			OperationStatsType stored = getStoredOperationStats();
+			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(), performanceMonitor);
 		}
 	}
 
 	public void startCollectingRepoAndCacheStats() {
-		repositoryService.getPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
-		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+		statistics.startCollectingRepoAndCacheStats(repositoryService.getPerformanceMonitor());
 	}
 
 	Statistics getStatistics() {

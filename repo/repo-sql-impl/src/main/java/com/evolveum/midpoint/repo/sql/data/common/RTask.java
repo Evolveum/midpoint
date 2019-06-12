@@ -349,7 +349,7 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
-//        WfContextType wfc = jaxb.getWorkflowContext();
+//        WfContextType wfc = jaxb.getApprovalContext();
 //        if (wfc != null) {
 //            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
 //            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));

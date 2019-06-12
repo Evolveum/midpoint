@@ -57,7 +57,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -248,8 +248,8 @@ public class TestStrings extends AbstractStoryTest {
 
 		assertTriggers(aCase, 2);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(aCase.getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalContextType actx = aCase.getApprovalContext();
+		ApprovalSchemaType schema = actx.getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
@@ -577,7 +577,7 @@ public class TestStrings extends AbstractStoryTest {
 		// TODO other items
 		// TODO-WF
 //		List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
-//				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getWorkflowContext().getCaseOid(), task, result),
+//				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
 //				AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
 //		assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 //		assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
@@ -705,8 +705,8 @@ public class TestStrings extends AbstractStoryTest {
 		PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
 		assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-		assertEquals("Wrong escalation level #", 1, WfContextUtil.getEscalationLevelNumber(workItem));
-		assertEquals("Wrong escalation level name", "Line manager escalation", WfContextUtil.getEscalationLevelName(workItem));
+		assertEquals("Wrong escalation level #", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
+		assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
 
 		List<CaseEventType> events = assertEvents(aCase, 2);
 		assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
@@ -1008,8 +1008,8 @@ public class TestStrings extends AbstractStoryTest {
 
 //		assertTargetTriggers(aCase, 2);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(aCase.getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalContextType actx = aCase.getApprovalContext();
+		ApprovalSchemaType schema = actx.getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 2, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Role approvers (first)", "P5D", 2);
@@ -1053,7 +1053,7 @@ public class TestStrings extends AbstractStoryTest {
 		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
 		assertStage(aCase, 2, 2, "Role approvers (first)", null);
 
-		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(aCase);
+		ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(aCase);
 		assertEquals("Wrong evaluation strategy", LevelEvaluationStrategyType.FIRST_DECIDES, level.getEvaluationStrategy());
 
 		// notifications
@@ -1158,8 +1158,7 @@ public class TestStrings extends AbstractStoryTest {
 		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
 		display("aCase", aCase);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(aCase.getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalSchemaType schema = aCase.getApprovalContext().getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
@@ -1242,11 +1241,11 @@ public class TestStrings extends AbstractStoryTest {
 
 
 	private void assertStage(CaseType aCase, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
-		WfContextType wfc = aCase.getWorkflowContext();
+		ApprovalContextType wfc = aCase.getApprovalContext();
 		assertEquals("Wrong stage number", stageNumber, aCase.getStageNumber());
-		assertEquals("Wrong stage count", stageCount, WfContextUtil.getStageCount(wfc));
-		assertEquals("Wrong stage name", stageName, WfContextUtil.getStageName(aCase));
-		assertEquals("Wrong stage name", stageDisplayName, WfContextUtil.getStageDisplayName(aCase));
+		assertEquals("Wrong stage count", stageCount, ApprovalContextUtil.getStageCount(wfc));
+		assertEquals("Wrong stage name", stageName, ApprovalContextUtil.getStageName(aCase));
+		assertEquals("Wrong stage name", stageDisplayName, ApprovalContextUtil.getStageDisplayName(aCase));
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {

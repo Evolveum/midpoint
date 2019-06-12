@@ -1262,7 +1262,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			PrismObject object = info.getCaseRef().asReferenceValue().getObject();
 			assertNotNull("No case in caseRef", object);
 			CaseType aCase = (CaseType) object.asObjectable();
-			WfContextType wfc = aCase.getWorkflowContext();
+			ApprovalContextType wfc = aCase.getApprovalContext();
 			assertNotNull("No wf context in caseRef", wfc);
 			assertNotNull("No targetRef in caseRef", aCase.getTargetRef());
 			if (targetOid.equals(aCase.getTargetRef().getOid())) {

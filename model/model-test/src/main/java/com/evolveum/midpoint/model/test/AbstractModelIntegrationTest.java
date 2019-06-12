@@ -52,12 +52,16 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,12 +140,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -234,7 +232,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Qualifier("cacheRepositoryService")
 	protected RepositoryService repositoryService;
 	@Autowired
-	@Qualifier("testSqlRepositoryServiceImpl")
+	@Qualifier("sqlRepositoryServiceImpl")
 	protected RepositoryService plainRepositoryService;
 
 	@Autowired protected SystemObjectCache systemObjectCache;
@@ -279,13 +277,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		startResources();
 		dummyAuditService = DummyAuditService.getInstance();
 		InternalsConfig.reset();
-		InternalsConfig.setAvoidLoggingChange(true);
+		InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
 		// Make sure the checks are turned on
 		InternalsConfig.turnOnAllChecks();
         // By default, notifications are turned off because of performance implications. Individual tests turn them on for themselves.
         if (notificationManager != null) {
             notificationManager.setDisabled(true);
         }
+	}
+
+	protected boolean isAvoidLoggingChange() {
+		return true;
 	}
 
 	@Override
@@ -3010,18 +3012,71 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, final int timeout, final boolean errorOk) throws CommonException {
-		long startTime = System.currentTimeMillis();
-		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk);
+		return waitForTaskFinish(taskOid, checkSubresult, 0, timeout, errorOk);
 	}
 	
 	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk) throws CommonException {
+		return waitForTaskFinish(taskOid, checkSubresult, startTime, timeout, errorOk, 0);
+	}
+
+	protected Task waitForTaskFinish(final String taskOid, final boolean checkSubresult, long startTime, final int timeout, final boolean errorOk, int showProgressEach) throws CommonException {
+		long realStartTime = startTime != 0 ? startTime : System.currentTimeMillis();
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskFinish");
-		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout);
-		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, startTime, timeout, DEFAULT_TASK_SLEEP_TIME);
+		TaskFinishChecker checker = new TaskFinishChecker(taskOid, waitResult, checkSubresult, errorOk, timeout, showProgressEach);
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " finish", checker, realStartTime, timeout, DEFAULT_TASK_SLEEP_TIME);
 		return checker.getLastTask();
 	}
-	
-	
+
+	protected void dumpTaskTree(String oid, OperationResult result)
+			throws ObjectNotFoundException,
+			SchemaException {
+		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+				.item(TaskType.F_SUBTASK).retrieve()
+				.build();
+		PrismObject<TaskType> task = taskManager.getObject(TaskType.class, oid, options, result);
+		dumpTaskAndSubtasks(task.asObjectable(), 0);
+	}
+
+	protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
+		String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
+		display("Task (level " + level + ")", xml);
+		for (TaskType subtask : task.getSubtask()) {
+			dumpTaskAndSubtasks(subtask, level + 1);
+		}
+	}
+
+	protected long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return getTaskRunDurationMillis(getTask(taskReconOpendjOid).asObjectable());
+	}
+
+	protected long getTaskRunDurationMillis(TaskType taskType) {
+		long duration = XmlTypeConverter.toMillis(taskType.getLastRunFinishTimestamp())
+				- XmlTypeConverter.toMillis(taskType.getLastRunStartTimestamp());
+		System.out.println("Duration for " + taskType.getName() + " is " + duration);
+		return duration;
+	}
+
+	protected long getTreeRunDurationMillis(String rootTaskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+		return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+				.mapToLong(this::getTaskRunDurationMillis)
+				.max().orElse(0);
+	}
+
+	protected void displayOperationStatistics(String label, OperationStatsType statistics) {
+		display(label, StatisticsUtil.format(statistics));
+	}
+
+	@Nullable
+	protected OperationStatsType getTaskTreeOperationStatistics(String rootTaskOid)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException {
+		PrismObject<TaskType> rootTask = getTaskTree(rootTaskOid);
+		return TaskTypeUtil.getAllTasksStream(rootTask.asObjectable())
+				.map(t -> t.getOperationStats())
+				.reduce(StatisticsUtil::sum)
+				.orElse(null);
+	}
 
 	private class TaskFinishChecker implements Checker {
 		private final String taskOid;
@@ -3029,21 +3084,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		private final boolean checkSubresult;
 		private final boolean errorOk;
 		private final int timeout;
+		private final int showProgressEach;
 		private Task freshTask;
+		private long progressLastShown;
 		
 		public TaskFinishChecker(String taskOid, OperationResult waitResult, boolean checkSubresult,
-				boolean errorOk, int timeout) {
+				boolean errorOk, int timeout, int showProgressEach) {
 			super();
 			this.taskOid = taskOid;
 			this.waitResult = waitResult;
 			this.checkSubresult = checkSubresult;
 			this.errorOk = errorOk;
 			this.timeout = timeout;
+			this.showProgressEach = showProgressEach;
 		}
 
 		@Override
 		public boolean check() throws CommonException {
 			freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+			long currentProgress = freshTask.getProgress();
+			if (showProgressEach != 0 && currentProgress - progressLastShown >= showProgressEach) {
+				System.out.println("Task progress: " + currentProgress);
+				progressLastShown = currentProgress;
+			}
 			OperationResult result = freshTask.getResult();
 			if (verbose) display("Check result", result);
 			if (isError(result, checkSubresult)) {
@@ -3255,7 +3318,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			aggregateResult.getSubresults().clear();
 			List<Task> subtasks = freshRootTask.listSubtasksDeeply(waitResult);
 			for (Task subtask : subtasks) {
-				subtask.refresh(waitResult);        // quick hack to get operation results
+				try {
+					subtask.refresh(waitResult);        // quick hack to get operation results
+				} catch (ObjectNotFoundException e) {
+					LOGGER.warn("Task {} does not exist any more", subtask);
+				}
 			}
 			Task failedTask = null;
 			for (Task subtask : subtasks) {
@@ -3268,6 +3335,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					return false;
 				}
 				OperationResult subtaskResult = subtask.getResult();
+				if (subtaskResult == null) {
+					display("No subtask operation result during waiting => continuing waiting: " + description, subtask);
+					return false;
+				}
 				if (subtaskResult.getStatus() == OperationResultStatus.IN_PROGRESS) {
 					display("Found 'in_progress' subtask operation result during waiting => continuing waiting: " + description, subtask);
 					return false;
@@ -3620,6 +3691,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getTask");
         OperationResult result = task.getResult();
 		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess("getObject(Task) result not success", result);
+		return retTask;
+	}
+
+	protected PrismObject<TaskType> getTaskTree(String taskOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getTask");
+        OperationResult result = task.getResult();
+		PrismObject<TaskType> retTask = modelService.getObject(TaskType.class, taskOid, retrieveItemsNamed(TaskType.F_RESULT, TaskType.F_SUBTASK), task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;
@@ -5434,8 +5514,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected CaseType getApprovalCase(List<PrismObject<CaseType>> cases) {
 		List<CaseType> rv = cases.stream()
+				.filter(o -> ObjectTypeUtil.hasArchetype(o, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value()))
 				.map(o -> o.asObjectable())
-				.filter(c -> c.getWorkflowContext() != null && c.getWorkflowContext().getProcessSpecificState() != null)
 				.collect(Collectors.toList());
 		if (rv.isEmpty()) {
 			throw new AssertionError("No approval case found");

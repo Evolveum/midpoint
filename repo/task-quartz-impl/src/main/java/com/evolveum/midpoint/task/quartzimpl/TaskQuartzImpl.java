@@ -60,7 +60,6 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -420,7 +419,14 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Nullable
-	ReferenceDelta createReferenceDeltaIfPersistent(ItemName name, ObjectReferenceType value) {
+	private <X extends Containerable> ContainerDelta<X> createContainerDeltaIfPersistent(ItemName name, X value)
+			throws SchemaException {
+		return isPersistent() ?
+				deltaFactory().container().createModificationReplace(name, TaskType.class, value) : null;
+	}
+
+	@Nullable
+	private ReferenceDelta createReferenceDeltaIfPersistent(ItemName name, ObjectReferenceType value) {
 		return isPersistent() ? deltaFactory().reference().createModificationReplace(name,
 				taskManager.getTaskObjectDefinition(), value != null ? value.clone().asReferenceValue() : null) : null;
 	}
@@ -443,10 +449,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		addPendingModification(setPropertyAndCreateDeltaIfPersistent(name, value));
 	}
 
+	private <X extends Containerable> void setContainer(ItemName name, X value) {
+		try {
+			addPendingModification(setContainerAndCreateDeltaIfPersistent(name, value));
+		} catch (SchemaException e) {
+			throw new SystemException("Couldn't set the task container '" + name + "': " + e.getMessage(), e);
+		}
+	}
+
 	private <X> void setPropertyTransient(ItemName name, X value) {
 		synchronized (PRISM_ACCESS) {
 			try {
 				taskPrism.setPropertyRealValue(name, value);
+			} catch (SchemaException e) {
+				throw new SystemException("Couldn't set the task property '" + name + "': " + e.getMessage(), e);
+			}
+		}
+	}
+
+	private <X extends Containerable> void setContainerTransient(ItemName name, X value) {
+		synchronized (PRISM_ACCESS) {
+			try {
+				taskPrism.setContainerRealValue(name, value);
 			} catch (SchemaException e) {
 				throw new SystemException("Couldn't set the task property '" + name + "': " + e.getMessage(), e);
 			}
@@ -466,6 +490,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	private <X> PropertyDelta<X> setPropertyAndCreateDeltaIfPersistent(ItemName name, X value) {
 		setPropertyTransient(name, value);
 		return createPropertyDeltaIfPersistent(name, value);
+	}
+
+	private <X extends Containerable> ContainerDelta<X> setContainerAndCreateDeltaIfPersistent(ItemName name, X value)
+			throws SchemaException {
+		setContainerTransient(name, value);
+		return createContainerDeltaIfPersistent(name, value);
 	}
 
 	private PrismReferenceValue getReferenceValue(ItemName name) {
@@ -1140,6 +1170,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		synchronized (PRISM_ACCESS) {
 			return taskPrism.asObjectable().getExecutionConstraints();
 		}
+	}
+
+	@Override
+	public void setExecutionConstraints(TaskExecutionConstraintsType value) {
+		setContainer(TaskType.F_EXECUTION_CONSTRAINTS, value);
 	}
 
 	@Override
@@ -1917,53 +1952,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	/*
-	 *  Workflow context
-	 */
-	public void setWorkflowContext(WfContextType value) throws SchemaException {
-		addPendingModification(setWorkflowContextAndPrepareDelta(value));
-	}
-
-	//@Override
-	public void setWorkflowContextImmediate(WfContextType value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		try {
-			modifyRepository(setWorkflowContextAndPrepareDelta(value), parentResult);
-		} catch (ObjectAlreadyExistsException ex) {
-			throw new SystemException(ex);
-		}
-	}
-
-	public void setWorkflowContextTransient(WfContextType value) {
-		synchronized (PRISM_ACCESS) {
-			taskPrism.asObjectable().setWorkflowContext(value);
-		}
-	}
-
-	private ItemDelta<?, ?> setWorkflowContextAndPrepareDelta(WfContextType value) throws SchemaException {
-		setWorkflowContextTransient(value);
-		if (!isPersistent()) {
-			return null;
-		}
-		if (value != null) {
-			return getPrismContext().deltaFor(TaskType.class)
-					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
-					.asItemDelta();
-		} else {
-			return getPrismContext().deltaFor(TaskType.class)
-					.item(F_WORKFLOW_CONTEXT).replace()
-					.asItemDelta();
-		}
-	}
-
-	// todo thread safety
-	@Override
-	public WfContextType getWorkflowContext() {
-		synchronized (PRISM_ACCESS) {
-			return taskPrism.asObjectable().getWorkflowContext();
-		}
-	}
-
-	/*
     * Node
     */
 
@@ -2524,15 +2512,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		return statistics.getLastFailures();
 	}
 
-	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy) {
-		if (strategy.isStartFromZero()) {
-			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-			setProgress(0L);
-		} else {
-			OperationStatsType stored = getStoredOperationStats();
-			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics());
-		}
-	}
 	//endregion
 
 	@Override
@@ -2595,7 +2574,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@NotNull
 	@Override
 	public Collection<String> getCachingProfiles() {
-		TaskExecutionEnvironmentType executionEnvironment = getTaskType().getExecutionEnvironment();
-		return executionEnvironment != null ? executionEnvironment.getCachingProfile() : emptySet();
+		TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
+		return executionEnvironment != null ? Collections.unmodifiableCollection(executionEnvironment.getCachingProfile()) : emptySet();
+	}
+
+	@Override
+	public TaskExecutionEnvironmentType getExecutionEnvironment() {
+		return getProperty(TaskType.F_EXECUTION_ENVIRONMENT);
+	}
+
+	@Override
+	public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+		setProperty(TaskType.F_EXECUTION_ENVIRONMENT, value);
+	}
+
+	@Override
+	public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		setPropertyImmediate(TaskType.F_EXECUTION_ENVIRONMENT, value, parentResult);
+	}
+
+	@Override
+	public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
+		setPropertyTransient(TaskType.F_EXECUTION_ENVIRONMENT, value);
 	}
 }

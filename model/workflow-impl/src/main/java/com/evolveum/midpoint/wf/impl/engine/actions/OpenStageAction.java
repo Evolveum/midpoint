@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.MidpointParsingMigrator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -195,7 +195,7 @@ class OpenStageAction extends InternalAction {
 			}
 			LOGGER.debug("Approval process instance {} (case oid {}), stage {}: predetermined outcome: {}, approvers: {}",
 					ctx.getProcessInstanceName(), ctx.getCurrentCase().getOid(),
-					WfContextUtil.getStageDiagName(stageDef), predeterminedOutcome, approverRefs);
+					ApprovalContextUtil.getStageDiagName(stageDef), predeterminedOutcome, approverRefs);
 		}
 	}
 }

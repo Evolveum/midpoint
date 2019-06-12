@@ -1450,6 +1450,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
+	public String getPrincipalOid() {
+		return securityContextManager.getPrincipalOid();
+	}
+
+	@Override
 	public String getChannel() {
 		Task task = getCurrentTask();
 		return task != null ? task.getChannel() : null;

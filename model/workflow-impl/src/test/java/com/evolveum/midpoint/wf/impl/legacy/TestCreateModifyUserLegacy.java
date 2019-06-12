@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.legacy;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -96,7 +95,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
         });
@@ -143,7 +142,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
 
             @Override
             boolean decideOnApproval(CaseType subcase,
-                    WfContextType wfContext) throws Exception {
+                    ApprovalContextType wfContext) throws Exception {
                 return decideOnRoleApproval(subcase, wfContext);
             }
         });

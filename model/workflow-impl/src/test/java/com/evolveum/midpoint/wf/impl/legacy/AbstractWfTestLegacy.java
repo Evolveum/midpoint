@@ -31,7 +31,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,9 +59,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_PROCESSOR_SPECIFIC_STATE;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfPrimaryChangeProcessorStateType.F_DELTAS_TO_PROCESS;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType.F_APPROVAL_CONTEXT;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType.F_DELTAS_TO_APPROVE;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -224,13 +222,13 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
         void assertsAfterImmediateExecutionFinished(CaseType task, OperationResult result) throws Exception { }
         void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                 OperationResult result) throws Exception { }
-        boolean decideOnApproval(CaseType subcase, WfContextType wfContext) throws Exception { return true; }
+        boolean decideOnApproval(CaseType subcase, ApprovalContextType wfContext) throws Exception { return true; }
         String getObjectOid(CaseType task, OperationResult result) throws SchemaException { return null; };
         boolean removeAssignmentsBeforeTest() { return true; }
     }
 
     protected boolean decideOnRoleApproval(CaseType subcase,
-            WfContextType wfContext) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+            ApprovalContextType wfContext) throws ConfigurationException, ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType targetRef = subcase.getTargetRef();
         assertNotNull("targetRef not found", targetRef);
         String roleOid = targetRef.getOid();
@@ -285,15 +283,15 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             CaseType case0 = WfTestHelper.findAndRemoveCase0(subcases);
             testDetails.assertsAfterClockworkRun(rootCase, case0, subcases, task, result);
             if (testDetails.immediate()) {
-                testHelper.waitForCaseClose(case0, 20000);
-                testDetails.assertsAfterImmediateExecutionFinished(rootCase, result);
+                CaseType rootCaseAfter = testHelper.waitForCaseClose(case0, 20000);
+                testDetails.assertsAfterImmediateExecutionFinished(rootCaseAfter, result);
             }
 
             for (int i = 0; i < subcases.size(); i++) {
                 CaseType subcase = subcases.get(i);
                 //noinspection unchecked
                 PrismProperty<ObjectTreeDeltasType> deltas = subcase.asPrismContainerValue().findProperty(
-                        ItemPath.create(F_WORKFLOW_CONTEXT, F_PROCESSOR_SPECIFIC_STATE, F_DELTAS_TO_PROCESS));
+                        ItemPath.create(F_APPROVAL_CONTEXT, F_DELTAS_TO_APPROVE));
                 assertNotNull("There are no modifications in subcase #" + i + ": " + subcase, deltas);
                 assertEquals("Incorrect number of modifications in subcase #" + i + ": " + subcase, 1, deltas.getRealValues().size());
                 // todo check correctness of the modification?
@@ -311,7 +309,7 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 CaseWorkItemType workItem = MiscUtil.extractSingleton(workItems);
                 assertNotNull("work item not found", workItem);
 
-                WfContextType wfContext = subcase.getWorkflowContext();
+                ApprovalContextType wfContext = subcase.getApprovalContext();
                 LOGGER.trace("wfContext = {}", wfContext);
 
                 boolean approve = testDetails.decideOnApproval(subcase, wfContext);
@@ -320,19 +318,19 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
             }
         }
 
-        testHelper.waitForCaseClose(rootCase, 60000);
+        CaseType rootCaseAfter = testHelper.waitForCaseClose(rootCase, 60000);
 
-        List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+        List<CaseType> subcases = miscHelper.getSubcases(rootCaseAfter, result);
         WfTestHelper.findAndRemoveCase0(subcases);
         //TestUtil.assertSuccess(rootCase.getResult());
-        testDetails.assertsRootCaseFinishes(rootCase, subcases, task, result);
+        testDetails.assertsRootCaseFinishes(rootCaseAfter, subcases, task, result);
 
         if (focusOid == null) {
-            focusOid = testDetails.getObjectOid(rootCase, result);
+            focusOid = testDetails.getObjectOid(rootCaseAfter, result);
         }
         assertNotNull("object oid is null after operation", focusOid);
         if (!focusOid.equals(DONT_CHECK)) {
-            assertObjectInTaskTree(rootCase, focusOid, testDetails.checkObjectOnSubtasks(), result);
+            assertObjectInTaskTree(rootCaseAfter, focusOid, testDetails.checkObjectOnSubtasks(), result);
         }
 
         if (!testDetails.approvedAutomatically()) {

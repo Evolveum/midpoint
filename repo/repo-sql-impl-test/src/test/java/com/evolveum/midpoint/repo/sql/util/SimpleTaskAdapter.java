@@ -740,14 +740,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public WfContextType getWorkflowContext() {
-        return null;
-    }
-
-    @Override public void setWorkflowContext(WfContextType context) {
-    }
-
-    @Override
     public TaskExecutionConstraintsType getExecutionConstraints() {
         return null;
     }
@@ -848,5 +840,26 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public Collection<String> getCachingProfiles() {
         return emptySet();
+    }
+
+    @Override
+    public void setExecutionConstraints(TaskExecutionConstraintsType value) {
+    }
+
+    @Override
+    public TaskExecutionEnvironmentType getExecutionEnvironment() {
+        return null;
+    }
+
+    @Override
+    public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
     }
 }

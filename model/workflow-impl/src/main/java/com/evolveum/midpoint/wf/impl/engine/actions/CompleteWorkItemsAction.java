@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.impl.engine.actions;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -91,7 +91,7 @@ public class CompleteWorkItemsAction extends RequestedAction<CompleteWorkItemsRe
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Recording decision for approval process instance {} (case oid {}), stage {}: decision: {}",
 						ctx.getProcessInstanceName(), ctx.getCaseOid(),
-						WfContextUtil.getStageDiagName(stageDef), itemResult.getOutcome());
+						ApprovalContextUtil.getStageDiagName(stageDef), itemResult.getOutcome());
 			}
 
 			ObjectReferenceType performerRef = ObjectTypeUtil.createObjectRef(ctx.getPrincipal().getUser(), engine.prismContext);

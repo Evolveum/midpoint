@@ -406,7 +406,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 */
         }
 
-        testHelper.waitForCaseClose(rootCase, 60000);
-        contextCreator.assertsRootTaskFinishes(rootCase, task, result);
+        CaseType rootCaseAfter = testHelper.waitForCaseClose(rootCase, 60000);
+        contextCreator.assertsRootTaskFinishes(rootCaseAfter, task, result);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,7 @@ package com.evolveum.midpoint.schema.parser;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -33,11 +32,11 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 @SuppressWarnings({ "Convert2MethodRef", "Duplicates" })
-public class TestParseWorkflowContext extends AbstractContainerValueParserTest<WfContextType> {
+public class TestParseApprovalContext extends AbstractContainerValueParserTest<ApprovalContextType> {
 
 	@Override
 	protected File getFile() {
-		return getFile("wf-context");
+		return getFile("approval-context");
 	}
 
 	@Test
@@ -57,13 +56,13 @@ public class TestParseWorkflowContext extends AbstractContainerValueParserTest<W
 		processParsings(v -> getPrismContext().serializerFor(language).root(new QName("dummy")).serializeAnyData(v.asContainerable()), "s4");
 	}
 
-	private void processParsings(SerializingFunction<PrismContainerValue<WfContextType>> serializer, String serId) throws Exception {
-		processParsings(WfContextType.class, null, WfContextType.COMPLEX_TYPE, null, serializer, serId);
+	private void processParsings(SerializingFunction<PrismContainerValue<ApprovalContextType>> serializer, String serId) throws Exception {
+		processParsings(ApprovalContextType.class, null, ApprovalContextType.COMPLEX_TYPE, null, serializer, serId);
 	}
 
 	@Override
-	public void assertPrismContainerValueLocal(PrismContainerValue<WfContextType> value) throws SchemaException {
-		WfContextType wfc = value.asContainerable();
+	public void assertPrismContainerValueLocal(PrismContainerValue<ApprovalContextType> value) throws SchemaException {
+		ApprovalContextType wfc = value.asContainerable();
 //		assertEquals("Wrong # of events", 1, wfc.getEvent().size());
 //		assertEquals("Wrong type of first event", WorkItemCompletionEventType.class, wfc.getEvent().get(0).getClass());
 

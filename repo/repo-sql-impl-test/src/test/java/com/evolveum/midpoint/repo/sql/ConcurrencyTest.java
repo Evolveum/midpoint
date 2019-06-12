@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -214,9 +215,15 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         String lastVersion = null;
         volatile Throwable threadResult;
         AtomicInteger counter = new AtomicInteger(0);
+        Integer limit;
 
         WorkerThread(int id) {
             this.id = id;
+        }
+
+        WorkerThread(int id, int limit) {
+            this.id = id;
+            this.limit = limit;
         }
 
         public volatile boolean stop = false;
@@ -224,7 +231,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         @Override
         public void run() {
             try {
-                while (!stop) {
+                while (!stop && (limit == null || counter.intValue() < limit)) {
                     OperationResult result = new OperationResult("run");
                     LOGGER.info(" --- Iteration number {} for {} ---", counter.incrementAndGet(), description());
                     runOnce(result);
@@ -240,6 +247,11 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         public void setObject(Class<? extends ObjectType> objectClass, String oid) {
             this.objectClass = objectClass;
             this.oid = oid;
+        }
+
+        @Override
+        public String toString() {
+            return description() + " @" + counter;
         }
     }
 
@@ -390,6 +402,58 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
             }
         }
     }
+
+    abstract class AddObjectsThread<T extends ObjectType> extends WorkerThread {
+
+        String description;
+
+        AddObjectsThread(int id, String description, int limit) {
+            super(id, limit);
+            this.description = description;
+            this.setName("Executor: " + description);
+        }
+
+        @Override
+        String description() {
+            return description;
+        }
+
+        void runOnce(OperationResult result) throws Exception {
+            repositoryService.addObject(getObjectToAdd(), null, result);
+        }
+
+        protected abstract PrismObject<T> getObjectToAdd();
+    }
+
+    abstract class DeleteObjectsThread<T extends ObjectType> extends WorkerThread {
+
+        private Class<T> objectClass;
+        String description;
+
+        DeleteObjectsThread(int id, Class<T> objectClass, String description) {
+            super(id);
+            this.objectClass = objectClass;
+            this.description = description;
+            this.setName("Executor: " + description);
+        }
+
+        @Override
+        String description() {
+            return description;
+        }
+
+        void runOnce(OperationResult result) throws Exception {
+            String oidToDelete = getOidToDelete();
+            if (oidToDelete != null) {
+                repositoryService.deleteObject(objectClass, oidToDelete, result);
+            } else {
+                stop = true;
+            }
+        }
+
+        protected abstract String getOidToDelete();
+    }
+
 
     abstract class DeltaExecutionThread extends WorkerThread {
 
@@ -614,6 +678,93 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         assertEquals("Wrong # of approvers", totalExecutions, totalApprovers);
         assertEquals("Failures are there", 0, failures.size());
+    }
+
+    @Test
+    public void test130AddDeleteObjects() throws Exception {
+
+        int ADD_THREADS = 4;
+        int DELETE_THREADS = 4;
+        int OBJECTS_PER_THREAD = 100;
+        long TIMEOUT = 30000L;
+
+        OperationResult result = new OperationResult("test130DeleteObjects");
+
+        SearchResultList<PrismObject<UserType>> users = repositoryService
+                .searchObjects(UserType.class, null, null, result);
+        for (PrismObject<UserType> user : users) {
+            repositoryService.deleteObject(UserType.class, user.getOid(), result);
+        }
+        assertEquals("Wrong # of users at the beginning", 0,
+                repositoryService.countObjects(UserType.class, null, null, result));
+
+        LOGGER.info("Starting ADD worker threads");
+
+        repositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
+        List<AddObjectsThread<UserType>> addThreads = new ArrayList<>();
+        for (int i = 0; i < ADD_THREADS; i++) {
+            int threadIndex = i;
+            AddObjectsThread<UserType> thread = new AddObjectsThread<UserType>(i, "adder #" + i, OBJECTS_PER_THREAD) {
+                @Override
+                protected PrismObject<UserType> getObjectToAdd() {
+                    return new UserType(prismContext).name(String.format("user-%d-%06d", threadIndex, counter.intValue())).asPrismObject();
+                }
+            };
+            thread.start();
+            addThreads.add(thread);
+        }
+        waitForThreadsFinish(addThreads, TIMEOUT);
+        System.out.println("Add performance information:\n" + repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
+
+        SearchResultList<PrismObject<UserType>> objectsCreated = repositoryService
+                .searchObjects(UserType.class, null, null, result);
+        assertEquals("Wrong # of users after creation", ADD_THREADS * OBJECTS_PER_THREAD, objectsCreated.size());
+
+        LOGGER.info("Starting DELETE worker threads");
+
+        repositoryService.getPerformanceMonitor().clearGlobalPerformanceInformation();
+        AtomicInteger objectsPointer = new AtomicInteger(0);
+        List<DeleteObjectsThread<UserType>> deleteThreads = new ArrayList<>();
+        for (int i = 0; i < DELETE_THREADS; i++) {
+            DeleteObjectsThread<UserType> thread = new DeleteObjectsThread<UserType>(i, UserType.class, "deleter #" + i) {
+                @Override
+                protected String getOidToDelete() {
+                    int pointer = objectsPointer.getAndIncrement();
+                    if (pointer < objectsCreated.size()) {
+                        return objectsCreated.get(pointer).getOid();
+                    } else {
+                        return null;
+                    }
+                }
+            };
+            thread.start();
+            deleteThreads.add(thread);
+        }
+        waitForThreadsFinish(deleteThreads, TIMEOUT);
+        System.out.println("Delete performance information:\n" + repositoryService.getPerformanceMonitor().getGlobalPerformanceInformation().debugDump());
+
+        assertEquals("Wrong # of users after deletion", 0,
+                repositoryService.countObjects(UserType.class, null, null, result));
+    }
+
+    private void waitForThreadsFinish(List<? extends WorkerThread> threads, long timeout) throws InterruptedException {
+        LOGGER.info("*** Waiting until finish, at most {} ms ***", timeout);
+        long startTime = System.currentTimeMillis();
+        main:
+        while (System.currentTimeMillis() - startTime < timeout) {
+            for (WorkerThread thread : threads) {
+                if (thread.isAlive()) {
+                    Thread.sleep(100);
+                    continue main;
+                } else if (thread.threadResult != null) {
+                    throw new AssertionError("Thread " + thread + " failed with " + thread.threadResult, thread.threadResult);
+                }
+            }
+            return;
+        }
+
+        List<WorkerThread> alive = threads.stream().filter(Thread::isAlive).collect(Collectors.toList());
+        assertTrue("These threads did not finish in " + timeout + " millis: " + alive, alive.isEmpty());
     }
 
     private void waitForThreads(List<? extends WorkerThread> threads, long duration) throws InterruptedException {

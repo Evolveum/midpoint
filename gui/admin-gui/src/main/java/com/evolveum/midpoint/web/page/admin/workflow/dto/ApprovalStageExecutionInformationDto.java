@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -83,7 +83,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			if (stageNumber < currentStageNumber) {
 				rv.outcome = ApprovalLevelOutcomeType.APPROVE;      // no stage before current stage could be manually rejected
 			} else if (stageNumber == currentStageNumber) {
-				rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(WfContextUtil.getOutcome(processInfo));
+				rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(ApprovalContextUtil.getOutcome(processInfo));
 			} else {
 				rv.outcome = null;
 			}
@@ -224,7 +224,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 
 	// TODO tweak this as needed
 	public String getNiceStageName(int totalStageNumber) {
-		return WfContextUtil.getStageInfo(stageNumber, totalStageNumber, stageName, stageDisplayName);
+		return ApprovalContextUtil.getStageInfo(stageNumber, totalStageNumber, stageName, stageDisplayName);
 	}
 
 	public boolean isFirstDecides() {

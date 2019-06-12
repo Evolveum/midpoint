@@ -21,7 +21,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -94,5 +97,93 @@ public class StatisticsUtil {
 		return provisioningStatistics == null || provisioningStatistics.getEntry().isEmpty();
 	}
 
+	public static void addTo(@NotNull OperationStatsType aggregate, @Nullable OperationStatsType increment) {
+    	if (increment == null) {
+    		return;
+	    }
+    	if (increment.getEnvironmentalPerformanceInformation() != null) {
+    		if (aggregate.getEnvironmentalPerformanceInformation() == null) {
+    			aggregate.setEnvironmentalPerformanceInformation(new EnvironmentalPerformanceInformationType());
+		    }
+    		EnvironmentalPerformanceInformation.addTo(aggregate.getEnvironmentalPerformanceInformation(), increment.getEnvironmentalPerformanceInformation());
+	    }
+    	if (increment.getIterativeTaskInformation() != null) {
+		    if (aggregate.getIterativeTaskInformation() == null) {
+			    aggregate.setIterativeTaskInformation(new IterativeTaskInformationType());
+		    }
+		    IterativeTaskInformation.addTo(aggregate.getIterativeTaskInformation(), increment.getIterativeTaskInformation(), false);
+	    }
+    	if (increment.getSynchronizationInformation() != null) {
+    		if (aggregate.getSynchronizationInformation() == null) {
+    			aggregate.setSynchronizationInformation(new SynchronizationInformationType());
+		    }
+    		SynchronizationInformation.addTo(aggregate.getSynchronizationInformation(), increment.getSynchronizationInformation());
+	    }
+    	if (increment.getActionsExecutedInformation() != null) {
+    		if (aggregate.getActionsExecutedInformation() == null) {
+    			aggregate.setActionsExecutedInformation(new ActionsExecutedInformationType());
+		    }
+    		ActionsExecutedInformation.addTo(aggregate.getActionsExecutedInformation(), increment.getActionsExecutedInformation());
+	    }
+    	if (increment.getRepositoryPerformanceInformation() != null) {
+    		if (aggregate.getRepositoryPerformanceInformation() == null) {
+    			aggregate.setRepositoryPerformanceInformation(new RepositoryPerformanceInformationType());
+		    }
+    		RepositoryPerformanceInformationUtil.addTo(aggregate.getRepositoryPerformanceInformation(), increment.getRepositoryPerformanceInformation());
+	    }
+    	if (increment.getCachesPerformanceInformation() != null) {
+    		if (aggregate.getCachesPerformanceInformation() == null) {
+    			aggregate.setCachesPerformanceInformation(new CachesPerformanceInformationType());
+		    }
+		    CachePerformanceInformationUtil.addTo(aggregate.getCachesPerformanceInformation(), increment.getCachesPerformanceInformation());
+	    }
+	}
 
+	public static OperationStatsType sum(OperationStatsType a, OperationStatsType b) {
+		if (a == null) {
+			return CloneUtil.clone(b);
+		} else {
+			OperationStatsType sum = CloneUtil.clone(a);
+			addTo(sum, b);
+			return sum;
+		}
+	}
+
+	public static String format(OperationStatsType statistics) {
+		if (statistics == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		if (statistics.getIterativeTaskInformation() != null) {
+			sb.append("Iterative task information:\n")
+					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
+					.append("\n");
+		}
+		if (statistics.getActionsExecutedInformation() != null) {
+			sb.append("Actions executed:\n")
+					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
+					.append("\n");
+		}
+//		if (statistics.getSynchronizationInformation() != null) {
+//			sb.append("Synchronization information:\n")
+//					.append(SynchronizationInformation.format(statistics.getSynchronizationInformation()))
+//					.append("\n");
+//		}
+		if (statistics.getEnvironmentalPerformanceInformation() != null) {
+			sb.append("Environmental performance information:\n")
+					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
+					.append("\n");
+		}
+		if (statistics.getRepositoryPerformanceInformation() != null) {
+			sb.append("Repository performance information:\n")
+					.append(RepositoryPerformanceInformationUtil.format(statistics.getRepositoryPerformanceInformation()))
+					.append("\n");
+		}
+		if (statistics.getCachesPerformanceInformation() != null) {
+			sb.append("Cache performance information:\n")
+					.append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
+					.append("\n");
+		}
+		return sb.toString();
+	}
 }

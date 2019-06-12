@@ -657,7 +657,6 @@ mainCycle:
 
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
-		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
 	    if (task.getResult() == null) {
 		    LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
 		    task.setResultTransient(task.createUnnamedTaskResult());
@@ -723,7 +722,7 @@ mainCycle:
                 }
             }
             task.setNode(null);
-            task.storeOperationStatsDeferred();
+            task.storeOperationStatsDeferred();     // maybe redundant, but better twice than never at all
             task.flushPendingModifications(result);
 
 			return true;

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
 public class WorkflowProcessEvent extends WorkflowEvent {
 
     public WorkflowProcessEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator, ChangeType changeType, CaseType aCase) {
-        super(lightweightIdentifierGenerator, changeType, aCase.getWorkflowContext(), aCase, null);
+        super(lightweightIdentifierGenerator, changeType, aCase.getApprovalContext(), aCase, null);
     }
 
     @Override

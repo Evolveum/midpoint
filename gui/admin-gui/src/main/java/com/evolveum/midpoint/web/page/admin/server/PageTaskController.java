@@ -226,7 +226,7 @@ public class PageTaskController implements Serializable {
 		Task task = parentPage.createSimpleTask(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
 		OperationResult result = task.getResult();
 		try {
-			parentPage.getWorkflowService().stopProcessInstance(instanceId, task, result);
+			parentPage.getWorkflowService().cancelCase(instanceId, task, result);
 			result.computeStatusIfUnknown();
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);

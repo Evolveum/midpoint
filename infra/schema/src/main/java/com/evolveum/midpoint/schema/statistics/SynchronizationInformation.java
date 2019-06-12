@@ -33,7 +33,7 @@ public class SynchronizationInformation {
 
     private final SynchronizationInformationType startValue;
 
-    // Record is part of the interface, simplifying it a bit
+	// Record is part of the interface, simplifying it a bit
     // It does *not* have to be thread-safe
     public static class Record {
 

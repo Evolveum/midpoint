@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -103,7 +103,8 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 
 		List<ObjectReferenceType> newAssignees = new ArrayList<>();
 		List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-		WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegation.getDelegates(), delegation.getMethod(), workItem.getAssigneeRef());
+		ApprovalContextUtil
+				.computeAssignees(newAssignees, delegatedTo, delegation.getDelegates(), delegation.getMethod(), workItem.getAssigneeRef());
 
 		workItem.getAssigneeRef().clear();
 		workItem.getAssigneeRef().addAll(CloneUtil.cloneCollectionMembers(newAssignees));
@@ -118,7 +119,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 			workItem.setDeadline(newDeadline);
 		}
 
-		int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
+		int escalationLevel = ApprovalContextUtil.getEscalationLevelNumber(workItem);
 		WorkItemEscalationLevelType newEscalationInfo;
 		if (delegation.getTargetEscalationInfo() != null) {
 			newEscalationInfo = delegation.getTargetEscalationInfo().clone();
@@ -127,7 +128,8 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 			newEscalationInfo = null;
 		}
 
-		WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
+		WorkItemDelegationEventType event = ApprovalContextUtil
+				.createDelegationEvent(newEscalationInfo, assigneesBefore, delegatedTo,
 				delegation.getMethod(), causeInformation, engine.prismContext);
 		if (newEscalationInfo != null) {
 			workItem.setEscalationLevel(newEscalationInfo);

@@ -54,8 +54,8 @@ public interface WorkflowService {
 
     //endregion
 
-	//region Process instances
-	void stopProcessInstance(String caseOid, Task task, OperationResult parentResult)
+	//region Cases
+	void cancelCase(String caseOid, Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException;
 	//endregion

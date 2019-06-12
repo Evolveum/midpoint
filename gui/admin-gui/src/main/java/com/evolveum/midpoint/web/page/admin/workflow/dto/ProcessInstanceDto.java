@@ -19,13 +19,11 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.datetime.PatternDateConverter;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +52,7 @@ public class ProcessInstanceDto extends Selectable {
         this.aCase = aCase;
         converter = new PatternDateConverter
                 (WebComponentUtil.getLocalizedDatePattern(dateTimeStyle), true );
-	    Validate.notNull(aCase.getWorkflowContext(), "Case has no workflow context");
+	    Validate.notNull(aCase.getApprovalContext(), "Case has no workflow context");
     }
 
     public XMLGregorianCalendar getStartTimestamp() {
@@ -76,8 +74,8 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     @NotNull
-    public WfContextType getWorkflowContext() {
-    	return aCase.getWorkflowContext();
+    public ApprovalContextType getApprovalContext() {
+    	return aCase.getApprovalContext();
     }
 
     public String getName() {
@@ -112,12 +110,8 @@ public class ProcessInstanceDto extends Selectable {
 		return WebComponentUtil.getName(aCase.getTargetRef());
 	}
 
-	//public String getState() {
-	//		return workflowContext.getState();
-	//}
-
 	public String getStage() {
-    	return WfContextUtil.getStageInfo(aCase);
+    	return ApprovalContextUtil.getStageInfo(aCase);
 	}
 
 	public String getProcessInstanceId() {
