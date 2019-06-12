@@ -47,7 +47,7 @@ public class OrgTreeAssignmentPopupTabPanel extends FocusTypeAssignmentPopupTabP
     protected void onInitialize() {
         super.onInitialize();
         OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-                ID_ORG_TREE_VIEW_PANEL, true, getPageBase()) {
+                ID_ORG_TREE_VIEW_PANEL, true) {
             private static final long serialVersionUID = 1L;
 
            @Override

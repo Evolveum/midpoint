@@ -157,12 +157,17 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 	private void initListPanel() {
 		WebMarkupContainer itemsContainer = new WebMarkupContainer(ID_ITEMS);
 		itemsContainer.setOutputMarkupId(true);
+		itemsContainer.setOutputMarkupPlaceholderTag(true);
 		add(itemsContainer);
 
 		BoxedTablePanel<PrismContainerValueWrapper<C>> itemTable = initItemTable();
+		itemTable.setOutputMarkupId(true);
+		itemTable.setOutputMarkupPlaceholderTag(true);
 		itemsContainer.add(itemTable);
 
 		WebMarkupContainer searchContainer = getSearchPanel(ID_SEARCH_ITEM_PANEL);
+		searchContainer.setOutputMarkupId(true);
+		searchContainer.setOutputMarkupPlaceholderTag(true);
 		itemsContainer.add(searchContainer);
 		itemsContainer.add(new VisibleEnableBehaviour() {
 

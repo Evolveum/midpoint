@@ -79,6 +79,7 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         List<ITab> tabs = createAssignmentTabs();
         TabbedPanel<ITab> tabPanel = WebComponentUtil.createTabPanel(ID_TABS_PANEL, getPageBase(), tabs, null);
         tabPanel.setOutputMarkupId(true);
+        tabPanel.setOutputMarkupPlaceholderTag(true);
         form.add(tabPanel);
 
         AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
@@ -128,232 +129,241 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
 
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
-                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ROLE))) {
+        if (isTabVisible(ObjectTypes.ROLE)) {
+            tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
+                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ROLE))) {
 
-                    private static final long serialVersionUID = 1L;
+                private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel<RoleType>(panelId, ObjectTypes.ROLE){
-                            private static final long serialVersionUID = 1L;
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new FocusTypeAssignmentPopupTabPanel<RoleType>(panelId, ObjectTypes.ROLE) {
+                        private static final long serialVersionUID = 1L;
 
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel){
-                                tabLabelPanelUpdate(target);
-                            }
+                        @Override
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
+                            tabLabelPanelUpdate(target);
+                        }
 
-                            @Override
-                            protected ObjectTypes getObjectType(){
-                                return ObjectTypes.ROLE;
-                            }
+                        @Override
+                        protected ObjectTypes getObjectType() {
+                            return ObjectTypes.ROLE;
+                        }
 
-                            @Override
-                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
-                                return AssignmentPopup.this.getAssignmentWrapperModel();
-                            }
+                        @Override
+                        protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                            return AssignmentPopup.this.getAssignmentWrapperModel();
+                        }
 
-                            @Override
-                            protected QName getPredefinedRelation() {
-                                return AssignmentPopup.this.getPredefinedRelation();
-                            }
+                        @Override
+                        protected QName getPredefinedRelation() {
+                            return AssignmentPopup.this.getPredefinedRelation();
+                        }
 
-                            @Override
-                            protected List<ObjectReferenceType> getArchetypeRefList(){
-                                return AssignmentPopup.this.getArchetypeRefList();
-                            }
-                        };
-                    }
+                        @Override
+                        protected List<ObjectReferenceType> getArchetypeRefList() {
+                            return AssignmentPopup.this.getArchetypeRefList();
+                        }
+                    };
+                }
 
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
-                    }
-                });
+                @Override
+                public String getCount() {
+                    return Integer.toString(getTabPanelSelectedCount(getPanel()));
+                }
+            });
+        }
 
-        tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
-                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
+        if (isTabVisible(ObjectTypes.ORG)) {
+            tabs.add(
+                    new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG))) {
 
-                    private static final long serialVersionUID = 1L;
+                        private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel<OrgType>(panelId, ObjectTypes.ORG){
-                            private static final long serialVersionUID = 1L;
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new FocusTypeAssignmentPopupTabPanel<OrgType>(panelId, ObjectTypes.ORG) {
+                                private static final long serialVersionUID = 1L;
 
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
-                                selectedOrgsListUpdate(rowModel);
-                                tabLabelPanelUpdate(target);
-                            }
+                                @Override
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                                    selectedOrgsListUpdate(rowModel);
+                                    tabLabelPanelUpdate(target);
+                                }
 
-                            @Override
-                            protected ObjectTypes getObjectType(){
-                                return ObjectTypes.ORG;
-                            }
+                                @Override
+                                protected ObjectTypes getObjectType() {
+                                    return ObjectTypes.ORG;
+                                }
 
-                            @Override
-                            protected List<OrgType> getPreselectedObjects(){
-                                return selectedOrgsList;
-                            }
+                                @Override
+                                protected List<OrgType> getPreselectedObjects() {
+                                    return selectedOrgsList;
+                                }
 
-                            @Override
-                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
-                                return AssignmentPopup.this.getAssignmentWrapperModel();
-                            }
+                                @Override
+                                protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                                    return AssignmentPopup.this.getAssignmentWrapperModel();
+                                }
 
-                            @Override
-                            protected QName getPredefinedRelation() {
-                                return AssignmentPopup.this.getPredefinedRelation();
-                            }
+                                @Override
+                                protected QName getPredefinedRelation() {
+                                    return AssignmentPopup.this.getPredefinedRelation();
+                                }
 
-                            @Override
-                            protected List<ObjectReferenceType> getArchetypeRefList(){
-                                return AssignmentPopup.this.getArchetypeRefList();
-                            }
+                                @Override
+                                protected List<ObjectReferenceType> getArchetypeRefList() {
+                                    return AssignmentPopup.this.getArchetypeRefList();
+                                }
 
-                            @Override
-                            protected ObjectFilter getSubtypeFilter(){
-                                return AssignmentPopup.this.getSubtypeFilter();
-                            }
-                        };
-                    }
+                                @Override
+                                protected ObjectFilter getSubtypeFilter() {
+                                    return AssignmentPopup.this.getSubtypeFilter();
+                                }
+                            };
+                        }
 
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(selectedOrgsList.size());
-                    }
-                });
+                        @Override
+                        public String getCount() {
+                            return Integer.toString(selectedOrgsList.size());
+                        }
+                    });
+        }
 
+        if (isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible()) {
+            tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
+                    new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible())) {
 
-        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
-                new VisibleBehaviour(() -> isTabVisible(ObjectTypes.ORG) && isOrgTreeTabVisible())) {
+                private static final long serialVersionUID = 1L;
 
-            private static final long serialVersionUID = 1L;
+                @Override
+                public WebMarkupContainer createPanel(String panelId) {
+                    return new OrgTreeAssignmentPopupTabPanel(panelId) {
+                        private static final long serialVersionUID = 1L;
 
-            @Override
-            public WebMarkupContainer createPanel(String panelId) {
-                return new OrgTreeAssignmentPopupTabPanel(panelId){
-                    private static final long serialVersionUID = 1L;
+                        @Override
+                        protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel) {
+                            selectedOrgsListUpdate(rowModel);
+                            tabLabelPanelUpdate(target);
+                        }
 
-                    @Override
-                    protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<OrgType>> rowModel){
-                        selectedOrgsListUpdate(rowModel);
-                        tabLabelPanelUpdate(target);
-                    }
+                        @Override
+                        protected List<OrgType> getPreselectedObjects() {
+                            return selectedOrgsList;
+                        }
 
-                    @Override
-                    protected List<OrgType> getPreselectedObjects(){
-                        return selectedOrgsList;
-                    }
+                        @Override
+                        protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                            return AssignmentPopup.this.getAssignmentWrapperModel();
+                        }
 
-                    @Override
-                    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
-                        return AssignmentPopup.this.getAssignmentWrapperModel();
-                    }
+                        @Override
+                        protected QName getPredefinedRelation() {
+                            return AssignmentPopup.this.getPredefinedRelation();
+                        }
 
-                    @Override
-                    protected QName getPredefinedRelation() {
-                        return AssignmentPopup.this.getPredefinedRelation();
-                    }
+                        @Override
+                        protected List<ObjectReferenceType> getArchetypeRefList() {
+                            return AssignmentPopup.this.getArchetypeRefList();
+                        }
 
-                    @Override
-                    protected List<ObjectReferenceType> getArchetypeRefList(){
-                        return AssignmentPopup.this.getArchetypeRefList();
-                    }
+                        @Override
+                        protected ObjectFilter getSubtypeFilter() {
+                            return AssignmentPopup.this.getSubtypeFilter();
+                        }
+                    };
+                }
 
-                    @Override
-                    protected ObjectFilter getSubtypeFilter(){
-                        return AssignmentPopup.this.getSubtypeFilter();
-                    }
-                };
-            }
+                @Override
+                public String getCount() {
+                    return Integer.toString(selectedOrgsList.size());
+                }
+            });
+        }
 
-            @Override
-            public String getCount() {
-                return Integer.toString(selectedOrgsList.size());
-            }
-        });
+        if (isTabVisible(ObjectTypes.SERVICE)) {
+            tabs.add(
+                    new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.SERVICE))) {
 
-        tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
-                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.SERVICE))) {
+                        private static final long serialVersionUID = 1L;
 
-                    private static final long serialVersionUID = 1L;
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new FocusTypeAssignmentPopupTabPanel<ServiceType>(panelId, ObjectTypes.SERVICE) {
+                                private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new FocusTypeAssignmentPopupTabPanel<ServiceType>(panelId, ObjectTypes.SERVICE){
-                            private static final long serialVersionUID = 1L;
+                                @Override
+                                protected ObjectTypes getObjectType() {
+                                    return ObjectTypes.SERVICE;
+                                }
 
-                            @Override
-                            protected ObjectTypes getObjectType(){
-                                return ObjectTypes.SERVICE;
-                            }
+                                @Override
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel) {
+                                    tabLabelPanelUpdate(target);
+                                }
 
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ServiceType>> rowModel){
-                                tabLabelPanelUpdate(target);
-                            }
-                            
-                            @Override
-                            protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
-                            	return AssignmentPopup.this.getAssignmentWrapperModel();
-                            }
+                                @Override
+                                protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+                                    return AssignmentPopup.this.getAssignmentWrapperModel();
+                                }
 
-                            @Override
-                            protected QName getPredefinedRelation() {
-                                return AssignmentPopup.this.getPredefinedRelation();
-                            }
+                                @Override
+                                protected QName getPredefinedRelation() {
+                                    return AssignmentPopup.this.getPredefinedRelation();
+                                }
 
-                            @Override
-                            protected List<ObjectReferenceType> getArchetypeRefList(){
-                                return AssignmentPopup.this.getArchetypeRefList();
-                            }
-                        };
-                    }
+                                @Override
+                                protected List<ObjectReferenceType> getArchetypeRefList() {
+                                    return AssignmentPopup.this.getArchetypeRefList();
+                                }
+                            };
+                        }
 
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
-                    }
-                });
+                        @Override
+                        public String getCount() {
+                            return Integer.toString(getTabPanelSelectedCount(getPanel()));
+                        }
+                    });
+        }
 
-        tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"),
-                        new VisibleBehaviour(() -> isTabVisible(ObjectTypes.RESOURCE))) {
+        if (isTabVisible(ObjectTypes.RESOURCE)) {
+            tabs.add(
+                    new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.RESOURCE"),
+                            new VisibleBehaviour(() -> isTabVisible(ObjectTypes.RESOURCE))) {
 
-                    private static final long serialVersionUID = 1L;
+                        private static final long serialVersionUID = 1L;
 
-                    @Override
-                    public WebMarkupContainer createPanel(String panelId) {
-                        return new ResourceTypeAssignmentPopupTabPanel(panelId){
-                            private static final long serialVersionUID = 1L;
+                        @Override
+                        public WebMarkupContainer createPanel(String panelId) {
+                            return new ResourceTypeAssignmentPopupTabPanel(panelId) {
+                                private static final long serialVersionUID = 1L;
 
-                            @Override
-                            protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel){
-                                super.onSelectionPerformed(target, rowModel);
-                                tabLabelPanelUpdate(target);
-                            }
+                                @Override
+                                protected void onSelectionPerformed(AjaxRequestTarget target, IModel<SelectableBean<ResourceType>> rowModel) {
+                                    super.onSelectionPerformed(target, rowModel);
+                                    tabLabelPanelUpdate(target);
+                                }
 
-                            @Override
-                            protected boolean isEntitlementAssignment(){
-                                return AssignmentPopup.this.isEntitlementAssignment();
-                            }
+                                @Override
+                                protected boolean isEntitlementAssignment() {
+                                    return AssignmentPopup.this.isEntitlementAssignment();
+                                }
 
-                            @Override
-                            protected List<ObjectReferenceType> getArchetypeRefList(){
-                                return AssignmentPopup.this.getArchetypeRefList();
-                            }
-                        };
-                    }
+                                @Override
+                                protected List<ObjectReferenceType> getArchetypeRefList() {
+                                    return AssignmentPopup.this.getArchetypeRefList();
+                                }
+                            };
+                        }
 
-                    @Override
-                    public String getCount() {
-                        return Integer.toString(getTabPanelSelectedCount(getPanel()));
-                    }
-                });
+                        @Override
+                        public String getCount() {
+                            return Integer.toString(getTabPanelSelectedCount(getPanel()));
+                        }
+                    });
+        }
 
         return tabs;
     }

@@ -185,6 +185,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                 return true;
             }
         });
+        saveButton.setOutputMarkupId(true);
+        saveButton.setOutputMarkupPlaceholderTag(true);
 		mainForm.setDefaultButton(saveButton);
 		mainForm.add(saveButton);
 	}
@@ -222,6 +224,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
                 return true;
             }
         });
+        previewButton.setOutputMarkupId(true);
+        previewButton.setOutputMarkupPlaceholderTag(true);
 		mainForm.add(previewButton);
 	}
 
@@ -239,6 +243,8 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 			}
 
 		};
+		back.setOutputMarkupId(true);
+		back.setOutputMarkupPlaceholderTag(true);
 		mainForm.add(back);
 	}
 

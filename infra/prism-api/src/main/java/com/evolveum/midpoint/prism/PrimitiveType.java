@@ -35,7 +35,7 @@ public enum PrimitiveType {
 	FLOAT("float"),
 	DOUBLE("double"),
 	BOOLEAN("boolean"),
-	BASE64BINARY("base64binary"),
+	BASE64BINARY("base64Binary"),
 	DATETIME("dateTime"),
 	DURATION("duration"),
 	BYTE("byte"),

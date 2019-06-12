@@ -60,6 +60,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 	 * Change password back to the first password. This password was used before.
 	 * In admin mode (in superclass) this should go well. Admin can set password to anything.
 	 * But in self-service mode this should fail due to password history check.
+	 * MID-5242
 	 */
 	@Test
 	@Override

@@ -154,6 +154,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	public static final ItemName ATTRIBUTE_DESCRIPTION_QNAME = new ItemName(RESOURCE_OPENDJ_NS, ATTRIBUTE_DESCRIPTION_NAME);
 
 	protected static final File QUERY_COMPLEX_FILTER_FILE = new File(TEST_DIR, "query-complex-filter.xml");
+	protected static final File QUERY_COMPLEX_FILTER_STARTS_WITH_FILE = new File(TEST_DIR, "query-complex-filter-starts-with.xml");
 	protected static final File QUERY_ALL_ACCOUNTS_FILE = new File(TEST_DIR, "query-filter-all-accounts.xml");
 	protected static final File QUERY_ALL_LDAP_GROUPS_FILE = new File(TEST_DIR, "query-filter-all-ldap-groups.xml");
 	protected static final File QUERY_VANHELGEN_FILE = new File(TEST_DIR, "query-vanhelgen.xml");

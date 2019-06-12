@@ -496,7 +496,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		final SelectableBean<OrgType> orgToMove = root;
 
 		OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
-				parentPage.getMainPopupBodyId(), false, parentPage) {
+				parentPage.getMainPopupBodyId(), false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -510,6 +510,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 		};
 
+		orgAssignablePanel.setOutputMarkupId(true);
 		parentPage.showMainPopup(orgAssignablePanel, target);
 
 	}

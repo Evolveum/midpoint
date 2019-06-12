@@ -549,6 +549,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			}
 		};
 		popupPanel.setOutputMarkupId(true);
+		popupPanel.setOutputMarkupPlaceholderTag(true);
 		getPageBase().showMainPopup(popupPanel, target);
 	}
 

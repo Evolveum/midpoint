@@ -20,4 +20,9 @@ package com.evolveum.midpoint.model.impl.trigger;
  *
  */
 public interface TriggerHandler {
+
+	default boolean isIdempotent() {
+		return false;
+	}
+
 }

@@ -59,10 +59,14 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 	private boolean selectable;
 	List<OrgType> allTabsSelectedOrgs = new ArrayList<>();
 
-	public OrgTreeAssignablePanel(String id, boolean selectable, PageBase parentPage) {
+	public OrgTreeAssignablePanel(String id, boolean selectable) {
 		super(id);
 		this.selectable = selectable;
-		setParent(parentPage);
+	}
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 
@@ -132,6 +136,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 				};
 
 				panel.setOutputMarkupId(true);
+				panel.setOutputMarkupPlaceholderTag(true);
 				return panel;
 			}
 
@@ -153,6 +158,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 		};
 
 		tabbedPanel.setOutputMarkupId(true);
+		tabbedPanel.setOutputMarkupPlaceholderTag(true);
 		add(tabbedPanel);
 
 		AjaxButton assignButton = new AjaxButton(ID_ASSIGN,
@@ -166,6 +172,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 			}
 		};
 		assignButton.setOutputMarkupId(true);
+		assignButton.setOutputMarkupPlaceholderTag(true);
 		assignButton.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 

@@ -17,7 +17,9 @@ package com.evolveum.midpoint.web.component.menu.cog;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,7 +41,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
  * @author lazyman
  */
 @Deprecated
-public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
+public class InlineMenu extends BasePanel<List<InlineMenuItem>> {
 
     private static String ID_MENU_ITEM_CONTAINER= "menuItemContainer";
     private static String ID_MENU_ITEM_BUTTON = "menuItemButton";
@@ -49,15 +51,22 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
 
     private boolean hideByDefault;
 
-    public InlineMenu(String id, IModel model) {
+    public InlineMenu(String id, IModel<List<InlineMenuItem>> model) {
         this(id, model, false);
     }
 
-    public InlineMenu(String id, IModel model, boolean hideByDefault) {
+    public InlineMenu(String id, IModel<List<InlineMenuItem>> model, boolean hideByDefault) {
         super(id, model);
         this.hideByDefault = hideByDefault;
 
         setOutputMarkupId(true);
+        setOutputMarkupPlaceholderTag(true);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     @Override
@@ -70,10 +79,10 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    @Override
-    protected void initLayout() {
+    private void initLayout() {
         WebMarkupContainer menuItemContainer = new WebMarkupContainer(ID_MENU_ITEM_CONTAINER);
         menuItemContainer.setOutputMarkupId(true);
+        menuItemContainer.setOutputMarkupPlaceholderTag(true);
         menuItemContainer.add(new AttributeAppender("class", getMenuItemContainerClass()));
         menuItemContainer.add(new AttributeAppender("style", getMenuItemContainerStyle()));
         add(menuItemContainer);
@@ -102,6 +111,8 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 initMenuItem(item);
             }
         };
+        li.setOutputMarkupId(true);
+        li.setOutputMarkupPlaceholderTag(true);
         li.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -111,6 +122,8 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             }
         });
         menuItemContainer.add(li);
+
+        menuItemContainer.add(new VisibleBehaviour(() -> InlineMenu.this.getModelObject() != null && !InlineMenu.this.getModelObject().isEmpty()));
     }
 
     private void initMenuItem(ListItem<InlineMenuItem> menuItem) {
@@ -143,6 +156,9 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 }
             });
 
+            menuItem.setOutputMarkupId(true);
+            menuItem.setOutputMarkupPlaceholderTag(true);
+
         WebMarkupContainer menuItemBody;
         if (item.isMenuHeader() || item.isDivider()) {
             menuItemBody = new MenuDividerPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
@@ -150,7 +166,10 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
             menuItemBody = new MenuLinkPanel(ID_MENU_ITEM_BODY, menuItem.getModel());
         }
         menuItemBody.setRenderBodyOnly(true);
+        menuItemBody.setOutputMarkupPlaceholderTag(true);
+        menuItemBody.setOutputMarkupId(true);
         menuItem.add(menuItemBody);
+
     }
 
     protected String getIconClass(){

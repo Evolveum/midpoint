@@ -341,6 +341,43 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
+	public void test147TwoTriggersIdempotent() throws Exception {
+		final String TEST_NAME = "test147TwoTriggersIdempotent";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+		testTriggerHandler.setIdempotent(true);
+
+		try {
+			XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+			XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+			startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
+			addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
+
+			/// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+
+			// THEN
+			XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+			assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+			assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+			assertNoTrigger(UserType.class, USER_JACK_OID);
+
+			assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+		} finally {
+			testTriggerHandler.setIdempotent(false);
+		}
+	}
+
+	@Test
     public void test150NoTriggerAgain() throws Exception {
 		final String TEST_NAME = "test115NoTriggerAgain";
         TestUtil.displayTestTitle(this, TEST_NAME);

@@ -20,6 +20,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -43,11 +45,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * Created by honchar
@@ -114,6 +111,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         };
         allAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ALL_ASSIGNMENTS)));
         allAssignmentsButton.setOutputMarkupId(true);
+        allAssignmentsButton.setOutputMarkupPlaceholderTag(true);
         buttonsContainer.add(allAssignmentsButton);
 
         AjaxButton roleTypeAssignmentsButton = new AjaxButton(ID_ROLE_TYPE_ASSIGNMENTS, createStringResource("ObjectType.RoleType")) {
@@ -267,9 +265,8 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         policyRuleTypeAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_POLICY_RULE_TYPE_ASSIGNMENTS)));
         policyRuleTypeAssignmentsButton.setOutputMarkupId(true);
         
-        //TODO visibility behaviour
-//        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  ->
-//                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
+        policyRuleTypeAssignmentsButton.add(new VisibleBehaviour(()  -> isAssignmentPanelVisible()));
+
         buttonsContainer.add(policyRuleTypeAssignmentsButton);
 
         AjaxButton dataProtectionButton = new AjaxButton(ID_DATA_PROTECTION_ASSIGNMENTS, createStringResource("pageAdminFocus.dataProtection")) {
@@ -328,9 +325,8 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         };
         entitlementAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ENTITLEMENT_ASSIGNMENTS)));
         entitlementAssignmentsButton.setOutputMarkupId(true);
-        //TODO visible behaviour
-//        entitlementAssignmentsButton.add(new VisibleBehaviour(()  ->
-//                (getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType) && isInducement()));
+
+        entitlementAssignmentsButton.add(new VisibleBehaviour(()  -> isAssignmentPanelVisible() && isInducement()));
         buttonsContainer.add(entitlementAssignmentsButton);
 
         AjaxButton focusMappingAssignmentsButton = new AjaxButton(ID_FOCUS_MAPPING_ASSIGNMENTS, createStringResource("AssignmentType.focusMappings")) {
@@ -403,9 +399,8 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         };
         focusMappingAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_FOCUS_MAPPING_ASSIGNMENTS)));
         focusMappingAssignmentsButton.setOutputMarkupId(true);
-        //TODO visible behaviour
-//        focusMappingAssignmentsButton.add(new VisibleBehaviour(()  ->
-//                getModelObject().getObjectWrapper().getObject().asObjectable() instanceof AbstractRoleType));
+
+        focusMappingAssignmentsButton.add(new VisibleBehaviour(()  -> isAssignmentPanelVisible()));
         buttonsContainer.add(focusMappingAssignmentsButton);
 
         //GDPR feature.. temporary disabled MID-4281
@@ -435,6 +430,14 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
 //        };
 //        consentsButton.setOutputMarkupId(true);
 //        buttonsContainer.add(consentsButton);
+    }
+
+    private boolean isAssignmentPanelVisible() {
+        PrismObjectWrapper<?> objectWrapper = getModelObject().findObjectWrapper();
+        if (objectWrapper == null ) {
+            return true;
+        }
+        return objectWrapper.getObject().asObjectable() instanceof AbstractRoleType;
     }
 
     private LoadableModel<Boolean> getButtonsContainerVisibilityModel(){

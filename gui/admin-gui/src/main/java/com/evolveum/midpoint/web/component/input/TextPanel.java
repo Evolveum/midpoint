@@ -57,6 +57,8 @@ public class TextPanel<T> extends InputPanel {
         	        super.convertInput();
                 }
             }
+
+
         };
         text.setType(clazz);
         add(text);

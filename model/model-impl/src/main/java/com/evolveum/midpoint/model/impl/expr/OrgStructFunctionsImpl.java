@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.expr.OrgStructFunctions;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -29,7 +30,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,19 +54,16 @@ import static com.evolveum.midpoint.schema.util.FocusTypeUtil.determineSubTypes;
 public class OrgStructFunctionsImpl implements OrgStructFunctions {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgStructFunctionsImpl.class);
+    private static final String CLASS_DOT = OrgStructFunctions.class.getName() + ".";
 
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    @Autowired
-    private ModelService modelService;
-
-    @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private RelationRegistry relationRegistry;
+    @Autowired private ModelService modelService;
+    @Autowired private PrismContext prismContext;
+    @Autowired private RelationRegistry relationRegistry;
+    @Autowired private MidpointFunctions midpointFunctions;
 
     /**
      * Returns a list of user's managers. Formally, for each Org O which this user has (any) relation to,
@@ -223,7 +220,7 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
     public OrgType getOrgByName(String name, boolean preAuthorized) throws SchemaException, SecurityViolationException {
         PolyString polyName = new PolyString(name);
         ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
-        List<PrismObject<OrgType>> result = searchObjects(OrgType.class, q, getCurrentResult(), preAuthorized);
+        List<PrismObject<OrgType>> result = searchObjects(OrgType.class, q, midpointFunctions.getCurrentResult(), preAuthorized);
         if (result.isEmpty()) {
             return null;
         }
@@ -345,11 +342,10 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         PrismObject<T> prismObject;
         if (preAuthorized) {
-            prismObject = repositoryService.getObject(type, oid, null, getCurrentResult());
+            prismObject = repositoryService.getObject(type, oid, null, midpointFunctions.getCurrentResult());
         } else {
         	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
-            OperationResult result = new OperationResult("getObject");
-            prismObject = modelService.getObject(type, oid, options, getCurrentTask(), result);
+            prismObject = modelService.getObject(type, oid, options, midpointFunctions.getCurrentTask(), midpointFunctions.getCurrentResult(CLASS_DOT + "getObject"));
         }
         return prismObject.asObjectable();
     }
@@ -361,18 +357,10 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
         } else {
             try {
             	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
-                return modelService.searchObjects(clazz, query, options, getCurrentTask(), result);
+                return modelService.searchObjects(clazz, query, options, midpointFunctions.getCurrentTask(), result);
             } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 throw new SystemException("Couldn't search objects: " + e.getMessage(), e);
             }
         }
-    }
-
-    private Task getCurrentTask() {
-        return ModelExpressionThreadLocalHolder.getCurrentTask();
-    }
-
-    private OperationResult getCurrentResult() {
-        return ModelExpressionThreadLocalHolder.getCurrentResult();
     }
 }
