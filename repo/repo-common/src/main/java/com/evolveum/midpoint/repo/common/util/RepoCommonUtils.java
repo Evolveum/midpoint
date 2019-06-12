@@ -45,6 +45,7 @@ public class RepoCommonUtils {
 				result.recordPartialError(e);
 			}
 			LOGGER.warn("Partial error while processing projection on {}: {}", object, e.getMessage(), e);
+			LOGGER.warn("Operation result:\n{}", result != null ? result.debugDump() : "(null)");
 			break;
 		case IGNORE:
 			LOGGER.debug("Exception {} criticality set as IGNORE in {}, continuing evaluation; exception message: {}", e.getClass().getSimpleName(), object, e.getMessage());
