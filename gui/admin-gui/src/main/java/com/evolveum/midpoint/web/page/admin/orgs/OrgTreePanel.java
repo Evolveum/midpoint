@@ -477,7 +477,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return storage != null ? storage.getSelectedItem() : null;
 	}
 
-	protected OrgTreeStateStorage getOrgTreeStateStorage(){
+	public OrgTreeStateStorage getOrgTreeStateStorage(){
 		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
 		SessionStorage storage = session.getSessionStorage();
 		return storage.getUsers();

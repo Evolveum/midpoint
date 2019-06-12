@@ -121,7 +121,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 					}
 
 					@Override
-					protected OrgTreeStateStorage getOrgTreeStateStorage(){
+					public OrgTreeStateStorage getOrgTreeStateStorage(){
 						return null;
 					}
 

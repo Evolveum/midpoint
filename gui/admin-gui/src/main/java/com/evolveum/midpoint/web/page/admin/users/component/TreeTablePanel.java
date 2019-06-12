@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -700,6 +702,14 @@ public class TreeTablePanel extends BasePanel<String> {
 		}
 		if (orgToDelete.getValue() == null) {
 			return;
+		}
+
+		if (CollectionUtils.isEmpty(orgToDelete.getValue().getParentOrgRef())) {
+			OrgTreeStateStorage storage = getTreePanel().getOrgTreeStateStorage();
+			if (storage != null) {
+				storage.setSelectedTabId(-1);
+			}
+			getTreePanel().setSelectedItem(null, storage);
 		}
 		String oidToDelete = orgToDelete.getValue().getOid();
 		WebModelServiceUtils.deleteObject(OrgType.class, oidToDelete, result, page);
