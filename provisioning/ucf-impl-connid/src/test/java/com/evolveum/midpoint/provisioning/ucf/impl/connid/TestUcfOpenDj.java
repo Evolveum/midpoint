@@ -642,7 +642,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ShadowResultHandler handler = new ShadowResultHandler() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> object) {
-				System.out.println("Search: found: " + object);
+				display("Search: found: " + object);
 				return true;
 			}
 		};

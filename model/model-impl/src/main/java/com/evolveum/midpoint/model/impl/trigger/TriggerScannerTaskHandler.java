@@ -165,6 +165,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			return;
 		}
 		LOGGER.trace("Firing triggers for {} ({} triggers)", object, triggerCValues.size());
+		Set<String> handlersExecuted = new HashSet<>();
 		List<TriggerType> triggers = getSortedTriggers(triggerCValues);
 		while (!triggers.isEmpty()) {
 			TriggerType trigger = triggers.get(0);
@@ -218,8 +219,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				LOGGER.trace("Trigger batch has {} members", compatibleTriggers.size());
 				compatibleTriggers.forEach(t -> InternalMonitor.recordCount(InternalCounters.TRIGGER_FIRED_COUNT));
 				try {
-					Collection<TriggerType> processedTriggers = ((MultipleTriggersHandler) handler)
-							.handle(object, compatibleTriggers, workerTask, result);
+					Collection<TriggerType> processedTriggers;
+					if (!handler.isIdempotent() || !handlersExecuted.contains(handlerUri)) {
+						processedTriggers = ((MultipleTriggersHandler) handler)
+								.handle(object, compatibleTriggers, workerTask, result);
+						handlersExecuted.add(handlerUri);
+				    } else {
+						processedTriggers = compatibleTriggers;
+					}
 					removeTriggers(object, processedTriggers, workerTask, triggerContainer.getDefinition());
 				} catch (Throwable e) {
 					LOGGER.error("Multiple triggers handler {} executed on {} thrown an error: {} -- it will be retried", handler,
@@ -229,7 +236,10 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			} else if (handler instanceof SingleTriggerHandler) {
 				try {
 					InternalMonitor.recordCount(InternalCounters.TRIGGER_FIRED_COUNT);
-					((SingleTriggerHandler) handler).handle(object, trigger, workerTask, result);
+					if (!handler.isIdempotent() || !handlersExecuted.contains(handlerUri)) {
+						((SingleTriggerHandler) handler).handle(object, trigger, workerTask, result);
+						handlersExecuted.add(handlerUri);
+					}
 					removeTriggers(object, Collections.singleton(trigger), workerTask, triggerContainer.getDefinition());
 				} catch (Throwable e) {
 					// Properly handle everything that the handler spits out. We do not want this task to die.

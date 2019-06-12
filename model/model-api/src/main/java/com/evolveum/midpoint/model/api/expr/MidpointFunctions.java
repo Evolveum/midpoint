@@ -1186,4 +1186,10 @@ public interface MidpointFunctions {
 	 * Assumes single archetype. May throw error if used on object that has more than one archetype.
 	 */
 	<O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
+
+	<O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
+			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+
+	<O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
 }

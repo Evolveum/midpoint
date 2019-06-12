@@ -41,6 +41,7 @@ import com.evolveum.midpoint.model.impl.messaging.MessageWrapper;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationContext;
 import com.evolveum.midpoint.model.impl.sync.SynchronizationServiceUtils;
+import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -49,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -116,6 +118,8 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidpointFunctionsImpl.class);
+
+	public static final String CLASS_DOT = MidpointFunctions.class.getName() + ".";
 
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
@@ -586,7 +590,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <T> Integer countAccounts(String resourceOid, QName attributeName, T attributeValue)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".countAccounts");
+		OperationResult result = getCurrentResult(CLASS_DOT + "countAccounts");
 		ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
 		return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
 	}
@@ -594,14 +598,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	public <T> Integer countAccounts(ResourceType resourceType, QName attributeName, T attributeValue)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".countAccounts");
+		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "countAccounts");
 		return countAccounts(resourceType, attributeName, attributeValue, getCurrentTask(), result);
 	}
 
 	public <T> Integer countAccounts(ResourceType resourceType, String attributeName, T attributeValue)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".countAccounts");
+		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "countAccounts");
 		QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return countAccounts(resourceType, attributeQName, attributeValue, getCurrentTask(), result);
 	}
@@ -625,7 +629,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniquePropertyValue");
+		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniquePropertyValue");
 		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		return isUniquePropertyValue(objectType, propertyPath, propertyValue, getCurrentTask(), result);
 	}
@@ -652,7 +656,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(propertyPathString, "Empty property path");
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".getObjectsInConflictOnPropertyValue");
+		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "getObjectsInConflictOnPropertyValue");
 		ItemPath propertyPath = prismContext.itemPathParser().asItemPath(propertyPathString);
 		QName matchingRuleQName = new QName(matchingRuleName);      // no namespace for now
 		return getObjectsInConflictOnPropertyValue(objectType, propertyPath, propertyValue, matchingRuleQName, getAllConflicting,
@@ -712,7 +716,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		Validate.notEmpty(attributeName, "Empty attribute name");
-		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + ".isUniqueAccountValue");
+		OperationResult result = getCurrentResult(MidpointFunctions.class.getName() + "isUniqueAccountValue");
 		QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, getCurrentTask(), result);
 	}
@@ -841,7 +845,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException {
 		return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentTask(),
-				getCurrentResult(MidpointFunctions.class.getName() + ".getObject"));
+				getCurrentResult(MidpointFunctions.class.getName() + "getObject"));
 	}
 
 	public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
@@ -1864,9 +1868,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	// MID-5243
 	@Override
 	public <O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException {
-		if (object == null || !(object instanceof AssignmentHolderType)) {
+		if (!(object instanceof AssignmentHolderType)) {
 			return null;
 		}
+		//noinspection unchecked
 		PrismObject<ArchetypeType> archetype = archetypeManager.determineArchetype((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
 		if (archetype == null) {
 			return null;
@@ -1877,9 +1882,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	// MID-5243
 	@Override
 	public <O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException {
-		if (object == null || !(object instanceof AssignmentHolderType)) {
+		if (!(object instanceof AssignmentHolderType)) {
 			return null;
 		}
+		//noinspection unchecked
 		ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
 		if (archetypeRef == null) {
 			return null;
@@ -1895,5 +1901,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	// temporary
 	public Map<String, Object> getMessageBodyAsMap(AsyncUpdateMessageType message) throws IOException {
 		return wrap(message).getBodyAsMap();
+	}
+
+	@Override
+	public <O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp) throws ObjectAlreadyExistsException,
+			SchemaException, ObjectNotFoundException {
+		addRecomputeTrigger(object.asPrismObject(), timestamp);
+	}
+
+	@Override
+	public <O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
+		TriggerType trigger = new TriggerType(prismContext)
+				.handlerUri(RecomputeTriggerHandler.HANDLER_URI)
+				.timestamp(XmlTypeConverter.createXMLGregorianCalendar(timestamp != null ? timestamp : System.currentTimeMillis()));
+		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(object.asObjectable().getClass())
+				.item(ObjectType.F_TRIGGER).add(trigger)
+				.asItemDeltas();
+		repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), itemDeltas,
+				getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,16 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 	@Override
 	protected int getLdapServerPort() {
 		return 636;
+	}
+	
+	@Override
+	protected File getReconciliationTaskFile() {
+		return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
+	}
+	
+	@Override
+	protected String getReconciliationTaskOid() {
+		return "6e2689dc-88fa-11e9-a382-0baf927677fd";
 	}
 
 	@Override

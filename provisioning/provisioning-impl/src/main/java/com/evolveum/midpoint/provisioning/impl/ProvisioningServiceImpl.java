@@ -1223,6 +1223,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			if (ObjectQueryUtil.hasAllDefinitions(query)) {
+				result.recordNotApplicableIfUnknown();
 				return;
 			}
 

@@ -1349,9 +1349,11 @@ public class TestOpenDj extends AbstractOpenDjTest {
         };
 
         // WHEN
+        displayWhen(TEST_NAME);
         SearchResultMetadata searchMetadata = provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, task, result);
 
         // THEN
+        displayThen(TEST_NAME);
         display("Count", objects.size());
         assertEquals("Unexpected number of shadows", 9, objects.size());
 
@@ -1460,7 +1462,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // No offset. Which means SPR search. We do not have result number estimate.
         assertApproxNumberOfAllResults(searchMetadata, null);
     }
-
+	
 	protected void assertShadows(int expectedCount) throws SchemaException {
 		OperationResult result = new OperationResult(TestOpenDj.class.getName() + ".assertShadows");
 		int actualCount = repositoryService.countObjects(ShadowType.class, null, null, result);
@@ -1796,8 +1798,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
 
-		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE,
-                QueryType.COMPLEX_TYPE);
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_FILE, QueryType.COMPLEX_TYPE);
 		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
 		provisioningService.applyDefinition(ShadowType.class, query, task, result);
 
@@ -1845,8 +1846,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		for (PrismObject<ShadowType> objType : objListType) {
 			assertNotNull("Null search result", objType);
@@ -1888,8 +1888,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		for (PrismObject<ShadowType> objType : objListType) {
 			assertNotNull("Null search result", objType);
@@ -1901,6 +1900,45 @@ public class TestOpenDj extends AbstractOpenDjTest {
 		assertConnectorOperationIncrement(1, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 	}
+	
+	/**
+	 * MID-5383
+	 */
+	@Test
+	public void test206SearchObjectsCompexFilterStartsWith() throws Exception {
+		final String TEST_NAME = "test206SearchObjectsCompexFilterStartsWith";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		QueryType queryType = PrismTestUtil.parseAtomicValue(QUERY_COMPLEX_FILTER_STARTS_WITH_FILE, QueryType.COMPLEX_TYPE);
+		ObjectQuery query = getQueryConverter().createObjectQuery(ShadowType.class, queryType);
+		provisioningService.applyDefinition(ShadowType.class, query, task, result);
+
+		rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		List<PrismObject<ShadowType>> objListType =
+			provisioningService.searchObjects(ShadowType.class, query, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		for (PrismObject<ShadowType> objType : objListType) {
+			assertNotNull("Null search result", objType);
+			display("found object", objType);
+		}
+
+		assertEquals("Unexpected number of objects found", 1, objListType.size());
+
+		assertConnectorOperationIncrement(1, 3);
+		assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+	}
+	
 
 	@Test
 	public void test230SearchObjectsPagedNoOffset() throws Exception {
