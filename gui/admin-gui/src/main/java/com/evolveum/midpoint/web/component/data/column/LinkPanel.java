@@ -53,7 +53,8 @@ public class LinkPanel extends Panel {
 //                return null;
 //            }
         };
-        link.add(new Label(ID_LABEL, labelModel));
+        Label label = new Label(ID_LABEL, labelModel);
+        link.add(label);
         link.add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;
 

@@ -114,6 +114,7 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
         };
         allAssignmentsButton.add(AttributeAppender.append("class", getButtonStyleModel(ID_ALL_ASSIGNMENTS)));
         allAssignmentsButton.setOutputMarkupId(true);
+        allAssignmentsButton.setOutputMarkupPlaceholderTag(true);
         buttonsContainer.add(allAssignmentsButton);
 
         AjaxButton roleTypeAssignmentsButton = new AjaxButton(ID_ROLE_TYPE_ASSIGNMENTS, createStringResource("ObjectType.RoleType")) {
