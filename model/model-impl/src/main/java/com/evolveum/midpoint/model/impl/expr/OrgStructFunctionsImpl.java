@@ -348,7 +348,8 @@ public class OrgStructFunctionsImpl implements OrgStructFunctions {
             prismObject = repositoryService.getObject(type, oid, null, getCurrentResult());
         } else {
         	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createExecutionPhase());
-			prismObject = modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult());
+            OperationResult result = new OperationResult("getObject");
+            prismObject = modelService.getObject(type, oid, options, getCurrentTask(), result);
         }
         return prismObject.asObjectable();
     }
