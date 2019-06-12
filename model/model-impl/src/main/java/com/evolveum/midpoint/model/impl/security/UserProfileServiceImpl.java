@@ -22,7 +22,9 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +46,6 @@ import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -184,10 +185,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     }
 
     @Override
-    public void updateUser(MidPointPrincipal principal) {
+    public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
-            save(principal, result);
+            save(principal, itemDeltas, result);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getFullName(), principal.getOid(), ex.getMessage(), ex);
         }
@@ -219,21 +220,11 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 		}
 	}
 
-	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        UserType oldUserType = getUserByOid(person.getOid(), result);
-        PrismObject<UserType> oldUser = oldUserType.asPrismObject();
-
-        PrismObject<UserType> newUser = person.getUser().asPrismObject();
-
-        ObjectDelta<UserType> delta = oldUser.diff(newUser);
-        if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Updating user {} with delta:\n{}", newUser, delta.debugDump());
-        }
-        repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
-                new OperationResult(OPERATION_UPDATE_USER));
-
-        return person;
-    }
+	private void save(MidPointPrincipal person, Collection<? extends ItemDelta<?, ?>> itemDeltas,
+			OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		LOGGER.trace("Updating user {} with deltas:\n{}", person.getUser(), DebugUtil.debugDumpLazily(itemDeltas));
+        repositoryService.modifyObject(UserType.class, person.getUser().getOid(), itemDeltas, result);
+	}
 
     private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 	    return repositoryService.getObject(UserType.class, oid, null, result).asObjectable();

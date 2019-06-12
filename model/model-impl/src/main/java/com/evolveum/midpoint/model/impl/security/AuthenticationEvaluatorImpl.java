@@ -20,6 +20,9 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.security.api.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -103,15 +106,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
 		if (checkCredentials(principal, authnCtx, connEnv)) {
-
 			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
-			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal,
-					authnCtx.getEnteredCredential(), principal.getAuthorities());
-			return token;
-
+			return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
-
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
@@ -172,7 +170,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 	private CredentialPolicyType getCredentialsPolicy(MidPointPrincipal principal, T authnCtx){
 		SecurityPolicyType securityPolicy = principal.getApplicableSecurityPolicy();
-		CredentialPolicyType credentialsPolicy = null;
+		CredentialPolicyType credentialsPolicy;
 		try {
 			credentialsPolicy = getEffectiveCredentialPolicy(securityPolicy, authnCtx);
 		} catch (SchemaException e) {
@@ -440,6 +438,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
 			C passwordType, CredentialPolicyType passwordCredentialsPolicy) {
+		UserType userBefore = principal.getUser().clone();
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {
 			passwordType.setFailedLogins(0);
@@ -457,12 +456,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			activation.setLockoutExpirationTimestamp(null);
 		}
 
-		userProfileService.updateUser(principal);
-
+		userProfileService.updateUser(principal, computeModifications(userBefore, principal.getUser()));
 		recordAuthenticationSuccess(principal, connEnv);
 	}
-
-
 
 	private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
 		securityHelper.auditLoginSuccess(principal.getUser(), connEnv);
@@ -470,6 +466,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
 			@NotNull C passwordType, CredentialPolicyType credentialsPolicy, String reason) {
+		UserType userBefore = principal.getUser().clone();
 		Integer failedLogins = passwordType.getFailedLogins();
 		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
 		XMLGregorianCalendar lastFailedLoginTs = null;
@@ -504,24 +501,21 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 
 		ActivationType activationType = principal.getUser().getActivation();
 
-		if (failedLogins != null && isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
+		if (isOverFailedLockoutAttempts(failedLogins, credentialsPolicy)) {
 			if (activationType == null) {
 				activationType = new ActivationType();
 				principal.getUser().setActivation(activationType);
 			}
 			activationType.setLockoutStatus(LockoutStatusType.LOCKED);
 			XMLGregorianCalendar lockoutExpirationTs = null;
-			if (credentialsPolicy != null) {
-				Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
-				if (lockoutDuration != null) {
-					lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
-				}
+			Duration lockoutDuration = credentialsPolicy.getLockoutDuration();
+			if (lockoutDuration != null) {
+				lockoutExpirationTs = XmlTypeConverter.addDuration(event.getTimestamp(), lockoutDuration);
 			}
 			activationType.setLockoutExpirationTimestamp(lockoutExpirationTs);
 		}
 
-		userProfileService.updateUser(principal);
-
+		userProfileService.updateUser(principal, computeModifications(userBefore, principal.getUser()));
 		recordAuthenticationFailure(principal, connEnv, reason);
 	}
 
@@ -533,4 +527,9 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		securityHelper.auditLoginFailure(username, null, connEnv, reason);
 	}
 
+	private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull UserType before, @NotNull UserType after) {
+		ObjectDelta<UserType> delta = before.asPrismObject().diff(after.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+		assert delta.isModify();
+		return delta.getModifications();
+	}
 }
