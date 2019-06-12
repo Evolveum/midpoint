@@ -49,6 +49,8 @@ public abstract class PanelTab extends AbstractTab {
             panel = createPanel(panelId);
         }
 
+        panel.setOutputMarkupId(true);
+        panel.setOutputMarkupPlaceholderTag(true);
         return panel;
     }
 

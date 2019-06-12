@@ -1136,14 +1136,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
         add(feedbackContainer);
 
         FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
         feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
         feedbackContainer.add(feedbackList);
 
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
         mainPopup.setOutputMarkupId(true);
+        mainPopup.setOutputMarkupPlaceholderTag(true);
         add(mainPopup);
     }
 
@@ -1174,7 +1177,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public String getMainPopupBodyId() {
-        return ID_MAIN_POPUP_BODY;
+        return getMainPopup().getContentId();
     }
 
     public void setMainPopupTitle(IModel<String> title) {
@@ -1182,7 +1185,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
-        getMainPopup().setBody(popupable);
+        getMainPopup().setTitle(popupable.getTitle());
+        getMainPopup().setInitialHeight(popupable.getHeight());
+        getMainPopup().setInitialWidth(popupable.getWidth());
+        getMainPopup().setHeightUnit(popupable.getHeightUnit());
+        getMainPopup().setWidthUnit(popupable.getWidthUnit());
+        getMainPopup().setContent(popupable.getComponent());
+        getMainPopup().setResizable(false);
+        getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
         getMainPopup().show(target);
     }
 
