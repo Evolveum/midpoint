@@ -1009,6 +1009,10 @@ public interface MidpointFunctions {
 
 	Task getCurrentTask();
 
+	OperationResult getCurrentResult();
+
+	OperationResult getCurrentResult(String operationName);
+
 	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
