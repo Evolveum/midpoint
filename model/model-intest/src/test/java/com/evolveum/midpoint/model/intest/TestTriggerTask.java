@@ -355,7 +355,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 			XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 			XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 			startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
-			addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI);
+			addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
 			/// WHEN
 			TestUtil.displayWhen(TEST_NAME);

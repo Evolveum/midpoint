@@ -204,6 +204,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				List<TriggerType> compatibleTriggers = new ArrayList<>();
 				compatibleTriggers.add(trigger);
 				int i = 0;
+				// todo consider relaxing "timestamps equal" condition if declared so by the handler
 				while (i < triggers.size() && trigger.getTimestamp().equals(triggers.get(0).getTimestamp())) {
 					TriggerType t = triggers.get(i);
 					if (triggerAlreadySeen(coordinatorTask, handlerUri, object, t)) {   // see comment above
