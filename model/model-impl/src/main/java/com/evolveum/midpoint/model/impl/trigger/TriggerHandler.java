@@ -29,4 +29,8 @@ public interface TriggerHandler {
 
 	<O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result);
 
+	default boolean isIdempotent() {
+		return false;
+	}
+
 }

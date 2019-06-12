@@ -161,13 +161,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			} else {
 				LOGGER.trace("Firing triggers for {} ({} triggers)", object, triggerCVals.size());
 				List<TriggerType> triggers = getSortedTriggers(triggerCVals);
+				Set<String> idempotentHandlersExecuted = new HashSet<>();
 				for (TriggerType trigger: triggers) {
 					XMLGregorianCalendar timestamp = trigger.getTimestamp();
 					if (timestamp == null) {
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
 						if (isHot(handler, timestamp)) {
-							boolean remove = fireTrigger(trigger, object, workerTask, coordinatorTask, result);
+							boolean remove = fireTrigger(trigger, object, idempotentHandlersExecuted, workerTask, coordinatorTask, result);
 							if (remove) {
 								removeTrigger(object, trigger.asPrismContainerValue(), workerTask, triggerContainer.getDefinition());
 							}
@@ -194,7 +195,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 
 	// returns true if the trigger can be removed
 	private boolean fireTrigger(TriggerType trigger, PrismObject<ObjectType> object,
-			RunningTask workerTask, Task coordinatorTask, OperationResult result) {
+			Set<String> idempotentHandlersExecuted, RunningTask workerTask, Task coordinatorTask,
+			OperationResult result) {
 		String handlerUri = trigger.getHandlerUri();
 		if (handlerUri == null) {
 			LOGGER.warn("Trigger without handler URI in {}", object);
@@ -216,7 +218,12 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 			} else {
 				try {
 					InternalMonitor.recordCount(InternalCounters.TRIGGER_FIRED_COUNT);
-					handler.handle(object, trigger, workerTask, result);
+					if (!handler.isIdempotent() || !idempotentHandlersExecuted.contains(handlerUri)) {
+						handler.handle(object, trigger, workerTask, result);
+						if (handler.isIdempotent()) {
+							idempotentHandlersExecuted.add(handlerUri);
+						}
+					}
 					return true;
 					// Properly handle everything that the handler spits out. We do not want this task to die.
 				} catch (Throwable e) {

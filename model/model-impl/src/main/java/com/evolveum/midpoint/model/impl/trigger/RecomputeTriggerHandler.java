@@ -80,4 +80,8 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 
 	}
 
+	@Override
+	public boolean isIdempotent() {
+		return true;
+	}
 }
