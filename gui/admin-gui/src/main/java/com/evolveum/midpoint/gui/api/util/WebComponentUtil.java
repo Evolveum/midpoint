@@ -3812,7 +3812,7 @@ public final class WebComponentUtil {
 			return null;
 		}
 		if ((polyString.getTranslation() == null || StringUtils.isEmpty(polyString.getTranslation().getKey())) &&
-				(polyString.getLang() == null || polyString.getLang() == null || polyString.getLang().isEmpty())){
+				(polyString.getLang() == null || polyString.getLang().isEmpty())){
 			return null;
 		}
 		if (polyString.getLang() != null && !polyString.getLang().isEmpty()){
