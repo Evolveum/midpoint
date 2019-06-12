@@ -3503,7 +3503,7 @@ public final class WebComponentUtil {
 			if (actionButtonIcon == null){
 				return null;
 			}
-			builder.setBasicIcon(actionButtonIcon, IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+			builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
 					.appendColorHtmlValue(actionButtonIcon.getColor());
 			return builder;
 		}
@@ -3532,12 +3532,12 @@ public final class WebComponentUtil {
 			objectTypeDisplay.getIcon().setCssClass(WebComponentUtil.createDefaultBlackIcon(objectType));
 		}
 		if (StringUtils.isNotEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay))) {
-			builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+			builder.setBasicIcon(objectTypeDisplay.getIcon(), IconCssStyle.IN_ROW_STYLE)
 					.appendColorHtmlValue(WebComponentUtil.getIconColor(objectTypeDisplay))
 					.appendLayerIcon(actionButtonIcon, IconCssStyle.BOTTOM_RIGHT_STYLE)
 					.appendLayerIcon(relationIcon, IconCssStyle.TOP_RIGHT_STYLE);
 		} else {
-			builder.setBasicIcon(actionButtonIcon, IconCssStyle.CENTER_STYLE_WITH_RIGHT_SHIFT)
+			builder.setBasicIcon(actionButtonIcon, IconCssStyle.IN_ROW_STYLE)
 					.appendColorHtmlValue(actionButtonIcon.getColor());
 		}
 		return builder;

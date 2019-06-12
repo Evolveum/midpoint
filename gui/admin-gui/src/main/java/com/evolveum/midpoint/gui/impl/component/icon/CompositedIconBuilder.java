@@ -86,15 +86,12 @@ public class CompositedIconBuilder {
 		return this;
 	}
 
-	public CompositedIconBuilder setBasicIcon(IconType icon, LayeredIconCssStyle style) {
+	public <ICS extends IconCssStyle> CompositedIconBuilder setBasicIcon(IconType icon, ICS style) {
 		Validate.notNull(icon, "no icon object");
 		Validate.notNull(icon.getCssClass(), "no icon class");
 		Validate.notNull(style, "no icon style");
 
 		setBasicIcon(icon.getCssClass(), style.getBasicCssClass());
-		StringBuilder sb = new StringBuilder(icon.getCssClass());
-		sb.append(" ").append(style.getBasicLayerCssClass());
-		appendLayerIcon(0, WebComponentUtil.createIconType(sb.toString(), icon.getColor()));
 		return this;
 	}
 
