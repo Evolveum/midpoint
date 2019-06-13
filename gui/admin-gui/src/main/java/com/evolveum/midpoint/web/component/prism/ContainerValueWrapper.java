@@ -27,6 +27,7 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -815,19 +816,18 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public String getDisplayName() {
+		String displayName = null;
 		if (getContainer().isMain()) {
-			return "prismContainer.mainPanelDisplayName";
+			displayName = "prismContainer.mainPanelDisplayName";
+		} else if (getDefinition() == null) {
+			displayName = WebComponentUtil.getDisplayName(containerValue);
+		} else if (getDefinition().isSingleValue()) {
+			displayName = ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
+		} else {
+			displayName = WebComponentUtil.getDisplayName(containerValue);
 		}
-
-		if (getDefinition() == null) {
-			return WebComponentUtil.getDisplayName(containerValue);
-		}
-
-		if (getDefinition().isSingleValue()) {
-
-			return ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
-		}
-		return WebComponentUtil.getDisplayName(containerValue);
+		String escaped = StringEscapeUtils.escapeHtml(displayName);
+		return escaped;
 	}
 
 }
