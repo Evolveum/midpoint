@@ -27,6 +27,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
@@ -144,8 +145,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 	@Override
 	protected IModel<String> createPageTitleModel() {
+		String simpleName = getCompileTimeClass().getSimpleName();
+		String lokalizedSimpleName = new StringResourceModel("ObjectType." + simpleName).setDefaultValue(simpleName).getString();
 		if (isAdd()) {
-			return createStringResource("PageAdminObjectDetails.title.new", getCompileTimeClass().getSimpleName());
+			return createStringResource("PageAdminObjectDetails.title.new", lokalizedSimpleName);
 		}
 		
 		String name = null;
@@ -153,7 +156,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 			name = WebComponentUtil.getName(getObjectWrapper().getObject());
 		}
 		
-		return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), name);
+		return createStringResource("PageAdminObjectDetails.title.edit.readonly.${readOnly}", getObjectModel(), lokalizedSimpleName, name);
 	}
 	
 	private boolean isAdd() {
