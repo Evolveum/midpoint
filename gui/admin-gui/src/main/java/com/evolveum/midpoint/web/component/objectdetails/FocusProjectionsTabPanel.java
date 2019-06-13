@@ -352,16 +352,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 	
 	private CompositedIcon createAccountIcon(IModel<PrismContainerValueWrapper<ShadowType>> prismContainerValue) {
-         IModel<PrismValueWrapper> status = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-        		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)), "value");
-         IModel<PrismValueWrapper> lockoutStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-        		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)), "value");
-         IModel<PrismValueWrapper> lockoutTimeStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
-         		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)), "value");
-         PrismContainerWrapperModel<ShadowType, TriggerType> trigger = PrismContainerWrapperModel.fromContainerValueWrapper(
-          		prismContainerValue, ObjectType.F_TRIGGER);
-         PrismObject obj = ((PrismObjectWrapper)prismContainerValue.getObject().getParent()).getObject();
-         PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
+        PrismObject obj = ((PrismObjectWrapper)prismContainerValue.getObject().getParent()).getObject();
+        PrismContainer<TriggerType> container = obj.findContainer(ObjectType.F_TRIGGER);
         String iconCssClass = WebComponentUtil.createShadowIcon(prismContainerValue.getObject().getNewValue());
         CompositedIconBuilder builder = new CompositedIconBuilder();
         String title = createTriggerTooltip(container);
@@ -371,6 +363,22 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         	builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
         }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        
+        IModel<PrismValueWrapper> deadStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
+         		prismContainerValue, ItemPath.create(ShadowType.F_DEAD)), "value");
+        if(deadStatus != null && Boolean.TRUE.equals(deadStatus.getObject().getRealValue())) {
+        	IconType icon = new IconType();
+        	icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
+        	builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+        	builder.setTitle(getPageBase().createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
+        			+ (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
+        	return builder.build();
+        }
+        
+        IModel<PrismValueWrapper> lockoutStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
+        		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_STATUS)), "value");
+        IModel<PrismValueWrapper> lockoutTimeStatus = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
+         		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP)), "value");
         if((lockoutStatus != null && LockoutStatusType.LOCKED.equals(lockoutStatus.getObject().getRealValue()))
         		|| (lockoutTimeStatus.getObject() != null && lockoutTimeStatus.getObject().getRealValue() != null
         		&& getPageBase().getClock().isPast(((XMLGregorianCalendar)lockoutTimeStatus.getObject().getRealValue())))) {
@@ -381,6 +389,9 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         			+ (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
         	return builder.build();
         }
+        
+        IModel<PrismValueWrapper> status = new PropertyModel(PrismPropertyWrapperModel.fromContainerValueWrapper(
+        		prismContainerValue, ItemPath.create(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)), "value");
         ActivationStatusType value = null;
         if (status != null) {
 				value = (ActivationStatusType) status.getObject().getRealValue();
