@@ -197,10 +197,40 @@ public class XmlTypeConverter {
     }
 
     public static Duration createDuration(Duration duration) {
-	    return getDatatypeFactory().newDuration(duration.getSign() >= 0, duration.getYears(), duration.getMonths(), duration.getDays(), duration.getHours(), duration.getMinutes(), duration.getSeconds());
+	    return getDatatypeFactory().newDuration(duration.getSign() >= 0,
+			    toBigInteger(duration.getField(DatatypeConstants.YEARS)),
+			    toBigInteger(duration.getField(DatatypeConstants.MONTHS)),
+			    toBigInteger(duration.getField(DatatypeConstants.DAYS)),
+			    toBigInteger(duration.getField(DatatypeConstants.HOURS)),
+			    toBigInteger(duration.getField(DatatypeConstants.MINUTES)),
+			    toBigDecimal(duration.getField(DatatypeConstants.SECONDS)));
     }
 
-    public static Duration createDuration(String lexicalRepresentation) {
+    // to be used from within createDuration only (for general use it should be rewritten!!)
+	private static BigDecimal toBigDecimal(Number number) {
+		if (number instanceof BigDecimal) {
+			return (BigDecimal) number;                     // this is the most probable case as seconds are stored as BigDecimal
+		} else if (number instanceof BigInteger) {
+			return BigDecimal.valueOf(number.longValue());
+		} else if (number != null) {
+			return new BigDecimal(number.toString());       // hack ... see https://stackoverflow.com/questions/16216248/convert-java-number-to-bigdecimal-best-way
+		} else {
+			return null;
+		}
+	}
+
+	// to be used from within createDuration only (for general use it should be rewritten!!)
+	private static BigInteger toBigInteger(Number number) {
+		if (number instanceof BigInteger) {
+			return (BigInteger) number;                     // this is the most probable case as fields are stored as BigIntegers
+		} else if (number != null) {
+			return BigInteger.valueOf(number.longValue());
+		} else {
+			return null;
+		}
+	}
+
+	public static Duration createDuration(String lexicalRepresentation) {
     	return lexicalRepresentation != null ? getDatatypeFactory().newDuration(lexicalRepresentation) : null;
     }
 

@@ -116,7 +116,7 @@ public class CloneUtil {
 		 */
 		if (orig instanceof Duration) {
 			//noinspection unchecked
-			return (T) XmlTypeConverter.createDuration((Duration) orig);
+			return (T) XmlTypeConverter.createDuration(((Duration) orig));
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
