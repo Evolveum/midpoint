@@ -140,6 +140,7 @@ public class PasswordPanel extends InputPanel {
         AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
+				model.setObject(null);
 				onLinkClick(target);
 			}
 			@Override
