@@ -678,35 +678,30 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			}
 		});
 
-		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<TaskDto>(createTasksInlineMenu(false, null),
-				PageTasks.this) {
-			
-			@Override
-			protected boolean isInlineMenuVisible(IModel<TaskDto> rowModel, boolean isHeader) {
-				if (rowModel == null) {
-					return isHeader;
-				}
-				TaskDto dto =  rowModel.getObject();
-				if (isHeader) {
-					return false;
-				}
-				
-				if (dto == null) {
-					return false;
-				}
-				
-				TaskWorkManagementType workManagement = dto.getTaskType().getWorkManagement();
-				if (workManagement == null) {
-					return false;
-				}
-				
-				return TaskKindType.COORDINATOR == workManagement.getTaskKind();
-					
-			}
-		};
+		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<>(createTasksInlineMenu(false, null),
+				PageTasks.this);
 		columns.add(menuColumn);
 
 		return columns;
+	}
+
+	private TaskDto getDto(IModel<?> rowModel, boolean isHeader) {
+		if (rowModel != null && !isHeader) {
+			Object object = rowModel.getObject();
+			if (object instanceof TaskDto) {
+				return (TaskDto) object;
+			}
+		}
+		return null;
+	}
+	private boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
+		TaskDto dto = getDto(rowModel, isHeader);
+		return dto != null && dto.isCoordinator();
+	}
+
+	private boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
+		TaskDto dto = getDto(rowModel, isHeader);
+		return dto != null && isManageableTreeRoot(dto);
 	}
 
 	@NotNull
@@ -875,11 +870,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		reconcileWorkers.setCheckVisibility(true);
-		
+		reconcileWorkers.setVisibilityChecker(this::isCoordinator);
 		items.add(reconcileWorkers);
 
-		InlineMenuItem suspendCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendCoordinatorOnly")) {
+		InlineMenuItem suspendRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendRootOnly")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -893,7 +887,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 							throw new UnsupportedOperationException();
 						} else {
 							TaskDto rowDto = getRowModel().getObject();
-							suspendCoordinatorOnly(target, rowDto);
+							suspendRootOnly(target, rowDto);
 						}
 					}
 				};
@@ -905,10 +899,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		suspendCoordinatorOnly.setCheckVisibility(true);
-		items.add(suspendCoordinatorOnly);
+		suspendRootOnly.setVisibilityChecker(this::isManageableTreeRoot);
+		items.add(suspendRootOnly);
 		
-		InlineMenuItem resumeCoordinatorOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeCoordinatorOnly")) {
+		InlineMenuItem resumeRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeRootOnly")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -922,7 +916,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 							throw new UnsupportedOperationException();
 						} else {
 							TaskDto rowDto = getRowModel().getObject();
-							resumeCoordinatorOnly(target, rowDto);
+							resumeRootOnly(target, rowDto);
 						}
 					}
 				};
@@ -934,8 +928,8 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		resumeCoordinatorOnly.setCheckVisibility(true);
-		items.add(resumeCoordinatorOnly);
+		resumeRootOnly.setVisibilityChecker(this::isManageableTreeRoot);
+		items.add(resumeRootOnly);
 
 		InlineMenuItem deleteWorkStateAndWorkers = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState")) {
 			private static final long serialVersionUID = 1L;
@@ -963,7 +957,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		deleteWorkStateAndWorkers.setCheckVisibility(true);
+		deleteWorkStateAndWorkers.setVisibilityChecker(this::isCoordinator);
 		items.add(deleteWorkStateAndWorkers);
 		
 		if (isHeader) {
@@ -1246,13 +1240,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		Task opTask = createSimpleTask(OPERATION_SUSPEND_TASKS);
 		OperationResult result = opTask.getResult();
 		try {
-			List<TaskDto> plainTasks = dtoList.stream().filter(dto -> !dto.isCoordinator()).collect(Collectors.toList());
-			List<TaskDto> coordinators = dtoList.stream().filter(dto -> dto.isCoordinator()).collect(Collectors.toList());
+			List<TaskDto> plainTasks = dtoList.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
+			List<TaskDto> trees = dtoList.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
 			boolean suspendedPlain = suspendPlainTasks(plainTasks, result, opTask);
-			boolean suspendedCoordinators = suspendCoordinators(coordinators, result, opTask);
+			boolean suspendedTrees = suspendTrees(trees, result, opTask);
 			result.computeStatus();
 			if (result.isSuccess()) {
-				if (suspendedPlain && suspendedCoordinators) {
+				if (suspendedPlain && suspendedTrees) {
 					result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.suspendTasksPerformed.success").getString());
 				} else {
 					result.recordWarning( createStringResource("pageTasks.message.suspendTasksPerformed.warning").getString());
@@ -1267,6 +1261,10 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		refreshTables(target);
 	}
 
+	private boolean isManageableTreeRoot(TaskDto dto) {
+		return dto.isCoordinator() || dto.isPartitionedMaster();
+	}
+
 	private boolean suspendPlainTasks(List<TaskDto> plainTasks, OperationResult result, Task opTask)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException {
@@ -1277,13 +1275,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		}
 	}
 
-	private boolean suspendCoordinators(List<TaskDto> coordinators, OperationResult result, Task opTask)
+	private boolean suspendTrees(List<TaskDto> roots, OperationResult result, Task opTask)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException {
 		boolean suspended = true;
-		if (!coordinators.isEmpty()) {
-			for (TaskDto coordinator : coordinators) {
-				boolean s = getTaskService().suspendTaskTree(coordinator.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
+		if (!roots.isEmpty()) {
+			for (TaskDto root : roots) {
+				boolean s = getTaskService().suspendTaskTree(root.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
 				suspended = suspended && s;
 			}
 		}
@@ -1308,11 +1306,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
     	Task opTask = createSimpleTask(OPERATION_RESUME_TASKS);
         OperationResult result = opTask.getResult();
         try {
-	        List<TaskDto> plainTasks = dtoList.stream().filter(dto -> !dto.isCoordinator()).collect(Collectors.toList());
-	        List<TaskDto> coordinators = dtoList.stream().filter(dto -> dto.isCoordinator()).collect(Collectors.toList());
+	        List<TaskDto> plainTasks = dtoList.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
+	        List<TaskDto> trees = dtoList.stream().filter(dto -> isManageableTreeRoot(dto)).collect(Collectors.toList());
 	        getTaskService().resumeTasks(TaskDto.getOids(plainTasks), opTask, result);
-	        for (TaskDto coordinator : coordinators) {
-		        getTaskService().resumeTaskTree(coordinator.getOid(), opTask, result);
+	        for (TaskDto tree : trees) {
+		        getTaskService().resumeTaskTree(tree.getOid(), opTask, result);
 	        }
             result.computeStatus();
             if (result.isSuccess()) {
@@ -1762,11 +1760,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		try {
 			getTaskService().reconcileWorkers(task.getOid(), opTask, result);
 			result.computeStatus();
-			if (result.isSuccess() && result.getSubresults().size() == 1) { // brutal
-																			// hack:
-																			// to
-																			// show
-																			// statistics
+			if (result.isSuccess() && result.getSubresults().size() == 1) { // brutal hack: to show statistics
 				result.setMessage(result.getSubresults().get(0).getMessage());
 			}
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | SecurityViolationException
@@ -1783,7 +1777,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		refreshTables(target);
 	}
 
-	private void suspendCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
+	private void suspendRootOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
 		Task opTask = createSimpleTask(OPERATION_SUSPEND_TASK);
 		OperationResult result = opTask.getResult();
 		try {
@@ -1792,7 +1786,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			result.computeStatus();
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
 				| RuntimeException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError(createStringResource("pageTasks.message.suspendCoordinatorOnly.fatalError").getString(), e);
+			result.recordFatalError(createStringResource("pageTasks.message.suspendRootOnly.fatalError").getString(), e);
 		}
 		showResult(result);
 
@@ -1801,7 +1795,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		refreshTables(target);
 	}
 
-	private void resumeCoordinatorOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
+	private void resumeRootOnly(AjaxRequestTarget target, @NotNull TaskDto task) {
 		Task opTask = createSimpleTask(OPERATION_RESUME_TASK);
 		OperationResult result = opTask.getResult();
 		try {
@@ -1809,7 +1803,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 			result.computeStatus();
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
 				| RuntimeException | CommunicationException | ConfigurationException e) {
-			result.recordFatalError(createStringResource("pageTasks.message.resumeCoordinatorOnly.fatalError").getString(), e);
+			result.recordFatalError(createStringResource("pageTasks.message.resumeRootOnly.fatalError").getString(), e);
 		}
 		showResult(result);
 

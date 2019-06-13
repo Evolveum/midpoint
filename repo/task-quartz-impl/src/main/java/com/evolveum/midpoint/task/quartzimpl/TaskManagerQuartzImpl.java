@@ -487,7 +487,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	    try {
 		    TaskQuartzImpl root = getTask(rootTaskOid, result);
-		    List<Task> subtasks = root.listSubtasks(true, parentResult);
+		    List<Task> subtasks = root.listSubtasksDeeply(true, parentResult);
 		    List<String> oidsToResume = new ArrayList<>(subtasks.size() + 1);
 		    if (root.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
 			    oidsToResume.add(rootTaskOid);
