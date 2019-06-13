@@ -1501,7 +1501,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Work state management strategy that divides the processing space (represented by a set of string
-				values) into a number of work buckets; either based on intervals or prefixes.
+				values) into a number of work buckets; either based on intervals, prefixes or exact value matching.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
@@ -1513,7 +1513,7 @@
 					<xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Characters that make up the prefix (or interval). These characters must be sorted.
+								Characters that make up the boundaries. These characters must be sorted.
 								Reserved characters: '-', '$' (to be implemented later)
 								Escaping character: '\'
 							</xsd:documentation>
@@ -1531,7 +1531,7 @@
 					<xsd:element name="comparisonMethod" type="tns:StringWorkBucketsBoundaryMarkingType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								Whether to use intervals or prefixes. Former is the default.
+								Whether to use intervals, prefixes or exact value match. Interval matching is the default.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1561,7 +1561,7 @@
 	<xsd:simpleType name="StringWorkBucketsBoundaryMarkingType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				How to construct work bucket filters based on defined boundary values.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
@@ -1571,7 +1571,7 @@
 			<xsd:enumeration value="interval">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Use greater-than/less-than comparison.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="INTERVAL"/>
@@ -1581,10 +1581,22 @@
 			<xsd:enumeration value="prefix">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Use prefix matching.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="PREFIX"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="exactMatch">
+				<xsd:annotation>
+					<xsd:documentation>
+						Use exact value matching. This is quite risky and should be used only when you are absolutely sure that
+						boundary values cover all possible values of the discriminator.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXACT_MATCH"/>
+						<a:since>4.0</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1739,6 +1751,32 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Prefix(es) that are part of this bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<!-- Currently the same content as StringPrefixWorkBucketContentType but let's keep these separate fro conceptual
+	     as well as for practical reasons (the latter ones being mainly backwards compatibility). -->
+	<xsd:complexType name="StringValueWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined using string value.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Value(s) that are part of this bucket.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>

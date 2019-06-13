@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,14 +35,14 @@ import java.util.function.Function;
 import static java.util.Collections.emptyList;
 
 /**
- * @author mederly
+ *
  */
 @Component
-public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentHandler {
+public class StringValueWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
 	@PostConstruct
 	public void register() {
-		registry.registerHandler(StringPrefixWorkBucketContentType.class, this);
+		registry.registerHandler(StringValueWorkBucketContentType.class, this);
 	}
 
 	@SuppressWarnings("Duplicates")
@@ -51,9 +51,9 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,
 			Class<? extends ObjectType> type, Function<ItemPath, ItemDefinition<?>> itemDefinitionProvider) {
 
-		StringPrefixWorkBucketContentType content = (StringPrefixWorkBucketContentType) bucket.getContent();
+		StringValueWorkBucketContentType content = (StringValueWorkBucketContentType) bucket.getContent();
 
-		if (content == null || content.getPrefix().isEmpty()) {
+		if (content == null || content.getValue().isEmpty()) {
 			return emptyList();
 		}
 		if (configuration == null) {
@@ -70,9 +70,9 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 				: null;
 
 		List<ObjectFilter> prefixFilters = new ArrayList<>();
-		for (String prefix : content.getPrefix()) {
+		for (String prefix : content.getValue()) {
 			prefixFilters.add(prismContext.queryFor(type)
-					.item(discriminator, discriminatorDefinition).startsWith(prefix).matching(matchingRuleName)
+					.item(discriminator, discriminatorDefinition).eq(prefix).matching(matchingRuleName)
 					.buildFilter());
 		}
 		assert !prefixFilters.isEmpty();

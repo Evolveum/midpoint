@@ -5294,4 +5294,25 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         }
     }
 
+    @Test
+    public void test1435QueryNameNormAsString() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).eq("asdf").matchingNorm().build();
+
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "where\n" +
+                    "  u.nameCopy.norm = :norm";
+
+            String real = getInterpretedQuery2(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 }
