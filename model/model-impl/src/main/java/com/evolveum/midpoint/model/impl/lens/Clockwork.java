@@ -378,10 +378,12 @@ public class Clockwork {
 
 	private void enterAssociationSearchExpressionEvaluatorCache() {
 		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache();
-		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
-		cache.setClientContextInformation(invalidator);
-		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
-		changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+		if (cache.getClientContextInformation() == null) {
+			AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
+			cache.setClientContextInformation(invalidator);
+			changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
+			changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+		}
 	}
 
 	private void exitAssociationSearchExpressionEvaluatorCache() {
@@ -390,13 +392,16 @@ public class Clockwork {
 			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: cache instance was not found for the current thread");
 			return;
 		}
-		Object invalidator = cache.getClientContextInformation();
-		if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
-			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: expected {}, got {} instead", AssociationSearchExpressionCacheInvalidator.class, invalidator);
-			return;
+		if (cache.getEntryCount() <= 0) {
+			Object invalidator = cache.getClientContextInformation();
+			if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
+				LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: expected {}, got {} instead",
+						AssociationSearchExpressionCacheInvalidator.class, invalidator);
+				return;
+			}
+			changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
+			changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
 		}
-		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
-		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
 	}
 
 	private <F extends ObjectType> int getMaxClicks(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
