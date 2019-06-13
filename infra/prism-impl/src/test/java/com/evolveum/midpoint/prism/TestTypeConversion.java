@@ -19,10 +19,12 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -116,6 +118,14 @@ public class TestTypeConversion {
 
 		// THEN
 		PrismAsserts.assertEquals("Wrong java value", 170717400000L, val);
+	}
+
+	@Test
+	public void testDurationConversion() {
+		Duration duration = XmlTypeConverter.createDuration("P3M");
+		Duration clone = CloneUtil.clone(duration);
+		assertEquals("Clone differs from the original", duration, clone);
+		assertEquals("Clone string representation differs from the original", duration.toString(), clone.toString());
 	}
 
 	private Element createElement(String string) {

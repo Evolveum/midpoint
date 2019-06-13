@@ -358,7 +358,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override
             protected String load() {
-                return showFullData ? "col-md-9" : "col-md-12";
+                return showFullData ? "col-lg-9 col-md-9 col-sm-9" : "col-lg-12 col-md-12 col-sm-12";
             }
         });
     }
