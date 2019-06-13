@@ -116,7 +116,7 @@ public class CloneUtil {
 		 */
 		if (orig instanceof Duration) {
 			//noinspection unchecked
-			return (T) XmlTypeConverter.createDuration((Duration) orig);
+			return (T) XmlTypeConverter.createDuration(((Duration) orig).toString()); //without toString(), value has wrong format for example from P3M is P0Y3M0DT0H0M0S
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
