@@ -16,37 +16,10 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
-import java.io.Serializable;
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -60,8 +33,16 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Nullable;
 
-import static com.evolveum.midpoint.web.component.data.column.ColumnUtils.createStringResource;
+import javax.xml.namespace.QName;
+import java.io.Serializable;
+import java.text.Collator;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -758,19 +739,18 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 	}
 
 	public String getDisplayName() {
+		String displayName = null;
 		if (getContainer().isMain()) {
-			return "prismContainer.mainPanelDisplayName";
+			displayName = "prismContainer.mainPanelDisplayName";
+		} else if (getDefinition() == null) {
+			displayName = WebComponentUtil.getDisplayName(containerValue);
+		} else if (getDefinition().isSingleValue()) {
+			displayName = ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
+		} else {
+			displayName = WebComponentUtil.getDisplayName(containerValue);
 		}
-
-		if (getDefinition() == null) {
-			return WebComponentUtil.getDisplayName(containerValue);
-		}
-
-		if (getDefinition().isSingleValue()) {
-
-			return ContainerWrapper.getDisplayNameFromItem(getContainerValue().getContainer());
-		}
-		return WebComponentUtil.getDisplayName(containerValue);
+		String escaped = StringEscapeUtils.escapeHtml(displayName);
+		return escaped;
 	}
 
 
