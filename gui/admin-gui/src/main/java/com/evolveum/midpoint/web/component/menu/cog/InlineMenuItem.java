@@ -20,7 +20,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
-import java.util.function.Supplier;
 
 /**
  * TODO: update to better use with DropdownButtonPanel. Move away from depreated com.evolveum.midpoint.web.component.menu.cog.
@@ -37,7 +36,7 @@ public abstract class InlineMenuItem implements Serializable {
     private InlineMenuItemAction action;
     private int id = -1;
     
-    private boolean checkVisibility;
+    private VisibilityChecker visibilityChecker;
 
     public InlineMenuItem(IModel<String> label) {
         this.label = label;
@@ -89,7 +88,6 @@ public abstract class InlineMenuItem implements Serializable {
 
     /**
      * visible behavior for menu item in the header
-     * @return
      */
     public boolean isHeaderMenuItem(){
         return true;
@@ -119,12 +117,16 @@ public abstract class InlineMenuItem implements Serializable {
         return true;
     }
    
-   public boolean isCheckVisibility() {
-	   return checkVisibility;
-   }
-   
-   public void setCheckVisibility(boolean checkVisibility) {
-	   this.checkVisibility = checkVisibility;
-   }
-   
+    public VisibilityChecker getVisibilityChecker() {
+        return visibilityChecker;
+    }
+
+    public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
+        this.visibilityChecker = visibilityChecker;
+    }
+
+    @FunctionalInterface
+    public interface VisibilityChecker {
+        boolean isVisible(IModel<?> rowModel, boolean isHeader);
+    }
 }
