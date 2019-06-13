@@ -685,7 +685,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		return columns;
 	}
 
-	private TaskDto getDto(IModel<?> rowModel, boolean isHeader) {
+	private static TaskDto getDto(IModel<?> rowModel, boolean isHeader) {
 		if (rowModel != null && !isHeader) {
 			Object object = rowModel.getObject();
 			if (object instanceof TaskDto) {
@@ -694,12 +694,15 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		}
 		return null;
 	}
-	private boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
+
+	// must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
+	private static boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
 		TaskDto dto = getDto(rowModel, isHeader);
 		return dto != null && dto.isCoordinator();
 	}
 
-	private boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
+	// must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
+	private static boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
 		TaskDto dto = getDto(rowModel, isHeader);
 		return dto != null && isManageableTreeRoot(dto);
 	}
@@ -870,7 +873,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		reconcileWorkers.setVisibilityChecker(this::isCoordinator);
+		reconcileWorkers.setVisibilityChecker(PageTasks::isCoordinator);
 		items.add(reconcileWorkers);
 
 		InlineMenuItem suspendRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.suspendRootOnly")) {
@@ -899,7 +902,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		suspendRootOnly.setVisibilityChecker(this::isManageableTreeRoot);
+		suspendRootOnly.setVisibilityChecker(PageTasks::isManageableTreeRoot);
 		items.add(suspendRootOnly);
 		
 		InlineMenuItem resumeRootOnly = new InlineMenuItem(createStringResource("pageTasks.button.resumeRootOnly")) {
@@ -928,7 +931,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		resumeRootOnly.setVisibilityChecker(this::isManageableTreeRoot);
+		resumeRootOnly.setVisibilityChecker(PageTasks::isManageableTreeRoot);
 		items.add(resumeRootOnly);
 
 		InlineMenuItem deleteWorkStateAndWorkers = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkersAndWorkState")) {
@@ -957,7 +960,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				return PageTasks.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		deleteWorkStateAndWorkers.setVisibilityChecker(this::isCoordinator);
+		deleteWorkStateAndWorkers.setVisibilityChecker(PageTasks::isCoordinator);
 		items.add(deleteWorkStateAndWorkers);
 		
 		if (isHeader) {
@@ -1261,7 +1264,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		refreshTables(target);
 	}
 
-	private boolean isManageableTreeRoot(TaskDto dto) {
+	private static boolean isManageableTreeRoot(TaskDto dto) {
 		return dto.isCoordinator() || dto.isPartitionedMaster();
 	}
 

@@ -126,7 +126,7 @@ public abstract class InlineMenuItem implements Serializable {
     }
 
     @FunctionalInterface
-    public interface VisibilityChecker {
+    public interface VisibilityChecker extends Serializable {
         boolean isVisible(IModel<?> rowModel, boolean isHeader);
     }
 }
