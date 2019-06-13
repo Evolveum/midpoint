@@ -250,9 +250,10 @@ public class WorkersManager {
 		}
 		switch (coordinatorTask.getExecutionStatus()) {
 			case WAITING: workerExecutionStatus = TaskExecutionStatusType.RUNNABLE; break;
-			case SUSPENDED: workerExecutionStatus = TaskExecutionStatusType.SUSPENDED; break;
+			case SUSPENDED:
+			case RUNNABLE:
+				workerExecutionStatus = TaskExecutionStatusType.SUSPENDED; break;
 			case CLOSED: workerExecutionStatus = TaskExecutionStatusType.CLOSED; break;             // not very useful
-			case RUNNABLE: workerExecutionStatus = TaskExecutionStatusType.SUSPENDED; break;
 			default: throw new IllegalStateException("Unsupported executionStatus of " + coordinatorTask + ": " + coordinatorTask.getExecutionStatus());
 		}
 
@@ -277,6 +278,7 @@ public class WorkersManager {
 			worker.setObjectRef(CloneUtil.clone(coordinatorTask.getObjectRef()));
 			worker.setRecurrence(TaskRecurrenceType.SINGLE);
 			worker.setParent(coordinatorTask.getTaskIdentifier());
+			worker.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
 			worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
 			PrismContainer<?> coordinatorExtension = coordinatorTask.getExtensionClone();
 			if (coordinatorExtension != null) {

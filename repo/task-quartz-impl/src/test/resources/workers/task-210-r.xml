@@ -40,6 +40,9 @@
 						</workersPerNode>
 					</workers>
 				</workManagement>
+				<executionEnvironment>
+					<cachingProfile>profile2</cachingProfile>
+				</executionEnvironment>
 			</partition>
 			<partition>
 				<index>3</index>
@@ -56,4 +59,7 @@
 	</workManagement>
 	<recurrence>single</recurrence>
 	<binding>loose</binding>
+	<executionEnvironment>
+		<cachingProfile>profile1</cachingProfile>
+	</executionEnvironment>
 </task>

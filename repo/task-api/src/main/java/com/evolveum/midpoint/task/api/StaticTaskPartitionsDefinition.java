@@ -127,6 +127,11 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 	}
 
 	@Override
+	public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+		return data.getExecutionEnvironment();
+	}
+
+	@Override
 	public Boolean isCopyMasterExtension(Task masterTask) {
 		return data.isCopyMasterExtension();
 	}
@@ -167,6 +172,11 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 		@Override
 		public TaskWorkManagementType getWorkManagement(Task masterTask) {
 			return data.getWorkManagement();
+		}
+
+		@Override
+		public TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+			return data.getExecutionEnvironment();
 		}
 
 		@Override

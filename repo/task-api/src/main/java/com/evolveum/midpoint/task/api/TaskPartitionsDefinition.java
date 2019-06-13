@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionEnvironmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -78,6 +79,13 @@ public interface TaskPartitionsDefinition {
 	}
 
 	/**
+	 * Execution environment to be used in subtask.
+	 */
+	default TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+		return null;
+	}
+
+	/**
 	 * Whether to copy extension from master task into subtask.
 	 */
 	default Boolean isCopyMasterExtension(Task masterTask) {
@@ -121,6 +129,13 @@ public interface TaskPartitionsDefinition {
 		 * Work state configuration to be planted into subtask, if copyWorkStateConfiguration is not true.
 		 */
 		default TaskWorkManagementType getWorkManagement(Task masterTask) {
+			return null;
+		}
+
+		/**
+		 * Execution environment to be used in subtask. Overrides strategy.executionEnvironment.
+		 */
+		default TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
 			return null;
 		}
 

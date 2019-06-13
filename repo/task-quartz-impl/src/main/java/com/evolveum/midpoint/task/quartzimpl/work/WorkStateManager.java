@@ -16,27 +16,9 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work;
 
-import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
-import static java.util.Collections.singletonList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -47,7 +29,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -62,7 +43,6 @@ import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationS
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.WorkSegmentationStrategyFactory;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandler;
 import com.evolveum.midpoint.task.quartzimpl.work.segmentation.content.WorkBucketContentHandlerRegistry;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.backoff.BackoffComputer;
 import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -71,15 +51,21 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkSegmentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkAllocationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
+import static com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil.findBucketByNumber;
+import static java.util.Collections.singletonList;
 
 /**
  * Responsible for managing task work state.
@@ -109,7 +95,7 @@ public class WorkStateManager {
 		Task coordinatorTask;           // null for standalone worker tasks
 		final Supplier<Boolean> canRunSupplier;
 
-		public Context(Supplier<Boolean> canRunSupplier) {
+		Context(Supplier<Boolean> canRunSupplier) {
 			this.canRunSupplier = canRunSupplier;
 		}
 
@@ -121,15 +107,15 @@ public class WorkStateManager {
 			return kind == null || kind == TaskKindType.STANDALONE;
 		}
 
-		public void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		void reloadCoordinatorTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
 			coordinatorTask = taskManager.getTask(coordinatorTask.getOid(), null, result);
 		}
 
-		public void reloadWorkerTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		void reloadWorkerTask(OperationResult result) throws SchemaException, ObjectNotFoundException {
 			workerTask = taskManager.getTask(workerTask.getOid(), null, result);
 		}
 
-		public TaskWorkManagementType getWorkStateConfiguration() {
+		TaskWorkManagementType getWorkStateConfiguration() {
 			return isStandalone() ? workerTask.getWorkManagement() : coordinatorTask.getWorkManagement();
 		}
 	}

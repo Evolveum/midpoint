@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -260,6 +259,12 @@ public class PartitioningTaskHandler implements TaskHandler {
 				ps -> ps.getWorkManagement(masterTask),
 				null, partition, partitionsDefinition);
 		// work management is updated and stored into subtask later
+
+		TaskExecutionEnvironmentType executionEnvironment = applyDefaults(
+				p -> p.getExecutionEnvironment(masterTask),
+				ps -> ps.getExecutionEnvironment(masterTask),
+				masterTask.getExecutionEnvironment(), partition, partitionsDefinition);
+		subtask.setExecutionEnvironment(CloneUtil.clone(executionEnvironment));
 
 		String handlerUriTemplate = applyDefaults(
 				p -> p.getHandlerUri(masterTask),

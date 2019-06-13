@@ -30,6 +30,9 @@
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType" />
 	<workManagement>
 		<partitions>
+			<executionEnvironment>
+				<cachingProfile>profile2</cachingProfile>
+			</executionEnvironment>
 			<partition>
 				<index>2</index>
 				<workManagement>
@@ -65,9 +68,15 @@
 						</workersPerNode>
 					</workers>
 				</workManagement>
+				<executionEnvironment>
+					<cachingProfile>profile3</cachingProfile>
+				</executionEnvironment>
 			</partition>
 		</partitions>
 	</workManagement>
 	<recurrence>single</recurrence>
 	<binding>loose</binding>
+	<executionEnvironment>
+		<cachingProfile>profile1</cachingProfile>
+	</executionEnvironment>
 </task>

@@ -43,13 +43,10 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
@@ -77,7 +74,9 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 	protected static final String PARALLEL_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/parallel-task-handler";
 	protected static final String LONG_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/long-task-handler";
 
-	private static final String USER_ADMINISTRATOR_FILE = "src/test/resources/common/user-administrator.xml";
+	public static final String COMMON_DIR = "src/test/resources/common";
+	private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+	static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 
 	// TODO make configurable. Due to a race condition there can be a small number of unoptimized complete buckets
 	// (it should not exceed the number of workers ... at least not by much amount :)
@@ -149,10 +148,10 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 
 	public void initialize() throws Exception {
 		initHandlers();
-		addObjectFromFile(USER_ADMINISTRATOR_FILE);
+		addObjectFromFile(USER_ADMINISTRATOR_FILE.getPath());
 	}
 
-	protected <T extends ObjectType> PrismObject<T> unmarshallJaxbFromFile(String filePath) throws IOException, JAXBException, SchemaException {
+	protected <T extends ObjectType> PrismObject<T> unmarshallJaxbFromFile(String filePath) throws IOException, SchemaException {
 		File file = new File(filePath);
 		return PrismTestUtil.parseObject(file);
 	}
@@ -347,4 +346,13 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 				.build();
 	}
 
+	void assertCachingProfiles(Task task, String... expectedProfiles) {
+		Set<String> realProfiles = getCachingProfiles(task);
+		assertEquals("Wrong caching profiles in " + task, new HashSet<>(Arrays.asList(expectedProfiles)), realProfiles);
+	}
+
+	private Set<String> getCachingProfiles(Task task) {
+		TaskExecutionEnvironmentType env = task.getExecutionEnvironment();
+		return env != null ? new HashSet<>(env.getCachingProfile()) : Collections.emptySet();
+	}
 }

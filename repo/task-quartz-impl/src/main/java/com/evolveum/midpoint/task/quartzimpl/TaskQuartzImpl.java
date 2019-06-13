@@ -2603,7 +2603,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@NotNull
 	@Override
 	public Collection<String> getCachingProfiles() {
-		TaskExecutionEnvironmentType executionEnvironment = getTaskType().getExecutionEnvironment();
+		TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
 		return executionEnvironment != null ? executionEnvironment.getCachingProfile() : emptySet();
+	}
+
+	@Override
+	public TaskExecutionEnvironmentType getExecutionEnvironment() {
+		return getTaskType().getExecutionEnvironment();
 	}
 }

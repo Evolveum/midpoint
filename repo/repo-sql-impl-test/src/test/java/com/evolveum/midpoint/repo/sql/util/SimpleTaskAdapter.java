@@ -853,4 +853,9 @@ public class SimpleTaskAdapter implements Task {
     public Collection<String> getCachingProfiles() {
         return emptySet();
     }
+
+    @Override
+    public TaskExecutionEnvironmentType getExecutionEnvironment() {
+        return null;
+    }
 }

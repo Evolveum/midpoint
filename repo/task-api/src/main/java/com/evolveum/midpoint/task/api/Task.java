@@ -1047,4 +1047,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	@NotNull
 	Collection<String> getCachingProfiles();
+
+	TaskExecutionEnvironmentType getExecutionEnvironment();
 }
