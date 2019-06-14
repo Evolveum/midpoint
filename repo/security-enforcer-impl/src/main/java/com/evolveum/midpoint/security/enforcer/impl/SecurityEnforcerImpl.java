@@ -406,9 +406,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, ItemDecisionFunction itemDecisionFunction, boolean removingContainer, String decisionContextDesc) {
-		List<Item<?,?>> items = cval.getItems();
+		Collection<Item<?,?>> items = cval.getItems();
 		// Note: cval.isEmpty() will also check for id. We do not care about that.
-		if (items == null || items.isEmpty()) {
+		if (items.isEmpty()) {
 			// TODO: problem with empty containers such as
 			//  orderConstraint in assignment. Skip all
 			//  empty items ... for now.

@@ -783,7 +783,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 		Collection<PrismContainerValue<Containerable>> valuesToAdd = transfromDelta.getValuesToAdd();
 		assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
 		PrismContainerValue<Containerable> containerValueToAdd = valuesToAdd.iterator().next();
-		assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.getItems().size());
+		assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.size());
 		PrismProperty<String> patternProp = (PrismProperty) containerValueToAdd.findItem(PIRACY_PATTERN);
 		PrismAsserts.assertPropertyValue(patternProp, "D");
 		PrismProperty<String> replacementProp = (PrismProperty) containerValueToAdd.findItem(PIRACY_REPLACEMENT);

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.FilterContentExpressionType;
@@ -60,9 +61,17 @@ public class FilterContentEvaluator extends BaseExpressionEvaluator {
             } else {
 				PrismContainerValue<?> pcv = (PrismContainerValue) value;
 				if (!keep.isEmpty()) {
-					pcv.keepPaths(keep);
+					try {
+						pcv.keepPaths(keep);
+					} catch (SchemaException e) {
+						throw new ScriptExecutionException(e.getMessage(), e);
+					}
 				} else {
-					pcv.removePaths(remove);
+					try {
+						pcv.removePaths(remove);
+					} catch (SchemaException e) {
+						throw new ScriptExecutionException(e.getMessage(), e);
+					}
 				}
 			}
         }

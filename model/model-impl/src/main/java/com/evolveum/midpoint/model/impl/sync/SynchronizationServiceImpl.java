@@ -918,7 +918,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		if (attributes == null) {
 			return false;   // strictly speaking this is right; but we perhaps should not consider this shadow as fully loaded :)
 		} else {
-			return emptyIfNull(((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems()).stream()
+			return ((PrismContainerValue<?>) (attributes.asPrismContainerValue())).getItems().stream()
 					.anyMatch(Item::isIncomplete);
 		}
 	}

@@ -2345,7 +2345,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 				.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configuration properties container in " + resource + " from " + source,
 				configPropsContainer);
-		List<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
+		Collection<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
 		assertEquals("Wrong number of config properties in " + resource + " from " + source, numConfigProps,
 				configProps.size());
 		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(

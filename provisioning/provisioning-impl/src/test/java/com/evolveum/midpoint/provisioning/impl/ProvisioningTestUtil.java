@@ -20,7 +20,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
@@ -74,7 +74,7 @@ public class ProvisioningTestUtil {
 		assertEquals("Wrong kind in repo shadow "+repoShadow, kind, repoShadowType.getKind());
 		PrismContainer<Containerable> attributesContainer = repoShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No attributes in repo shadow "+repoShadow, attributesContainer);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 		assertFalse("Empty attributes in repo shadow "+repoShadow, attributes.isEmpty());
 		if (expectedNumberOfAttributes != null) {
 			assertEquals("Unexpected number of attributes in repo shadow "+repoShadow, (int)expectedNumberOfAttributes, attributes.size());
