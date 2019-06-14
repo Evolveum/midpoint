@@ -89,6 +89,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Validate.notNull(task, "Task must not be null.");
 
         final String operation = "audit";
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
         while (true) {
@@ -97,6 +99,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 return;
             } catch (RuntimeException ex) {
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
             }
         }
     }
@@ -104,6 +109,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public List<AuditEventRecord> listRecords(String query, Map<String, Object> params) {
         final String operation = "listRecords";
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
         while (true) {
@@ -127,12 +134,17 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 return auditEventRecords;
             } catch (RuntimeException ex) {
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
             }
         }
     }
 
     @Override
     public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler) {
+        // TODO operation recording ... but beware, this method is called from within listRecords
+        //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
         final String operation = "listRecordsIterative";
         int attempt = 1;
 
@@ -149,6 +161,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void reindexEntry(AuditEventRecord record) {
         final String operation = "reindexEntry";
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
         int attempt = 1;
 
         while (true) {
@@ -157,6 +171,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 return;
             } catch (RuntimeException ex) {
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
             }
         }
     }
@@ -367,21 +384,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Validate.notNull(policy, "Cleanup policy must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
+        // TODO review monitoring performance of these cleanup operations
+        //  It looks like the attempts (and wasted time) are not counted correctly
         cleanupAuditMaxRecords(policy, parentResult);
         cleanupAuditMaxAge(policy, parentResult);
     }
 
     private void cleanupAuditMaxAge(CleanupPolicyType policy, OperationResult parentResult) {
 
+        if (policy.getMaxAge() == null) {
+            return;
+        }
+
         final String operation = "deletingMaxAge";
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_AGE, AuditEventRecord.class);
         int attempt = 1;
-
-        if (policy.getMaxAge() == null) {
-            return;
-        }
 
         Duration duration = policy.getMaxAge();
         if (duration.getSign() > 0) {
@@ -430,15 +449,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
 
+        if (policy.getMaxRecords() == null) {
+            return;
+        }
+
         final String operation = "deletingMaxRecords";
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS, AuditEventRecord.class);
         int attempt = 1;
-
-        if (policy.getMaxRecords() == null) {
-            return;
-        }
 
         Integer recordsToKeep = policy.getMaxRecords();
 
