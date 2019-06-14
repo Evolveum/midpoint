@@ -31,6 +31,7 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.TaskDtoTablePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -88,10 +89,10 @@ public class FocusTasksTabPanel<F extends FocusType>
 	private List<IColumn<TaskDto, String>> initTaskColumns() {
 		List<IColumn<TaskDto, String>> columns = new ArrayList<>();
 
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
+		columns.add(TaskDtoTablePanel.createTaskNameColumn(this, "pageAdminFocus.task.name"));
+		columns.add(TaskDtoTablePanel.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
+		columns.add(TaskDtoTablePanel.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
+		columns.add(TaskDtoTablePanel.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
 		return columns;
 	}
 
