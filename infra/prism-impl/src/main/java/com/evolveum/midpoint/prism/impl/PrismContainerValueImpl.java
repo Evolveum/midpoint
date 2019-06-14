@@ -315,7 +315,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     @NotNull
 	public Collection<QName> getItemNames() {
-	    return items.keySet();
+	    return new ArrayList<>(items.keySet());
     }
 
 	public <IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV,ID> item) throws SchemaException {
