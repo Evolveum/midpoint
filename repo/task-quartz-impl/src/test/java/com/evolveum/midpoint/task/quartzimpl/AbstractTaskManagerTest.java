@@ -50,6 +50,7 @@ import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -291,7 +292,23 @@ public class AbstractTaskManagerTest extends AbstractTestNGSpringContextTests {
 		if (state != null) {
 			assertEquals("Wrong bucket state", state, bucket.getState());
 		}
+		assertBucketWorkerRefSanity(bucket);
 		assertEquals("Wrong bucket seq number", seqNumber, bucket.getSequentialNumber());
+	}
+
+	private void assertBucketWorkerRefSanity(WorkBucketType bucket) {
+		switch (defaultIfNull(bucket.getState(), WorkBucketStateType.READY)) {
+			case READY:
+				assertNull("workerRef present in " + bucket, bucket.getWorkerRef());
+				break;
+			case DELEGATED:
+				assertNotNull("workerRef not present in " + bucket, bucket.getWorkerRef());
+				break;
+			case COMPLETE:
+				break;      // either one is OK
+			default:
+				fail("Wrong state: " + bucket.getState());
+		}
 	}
 
 	protected BigInteger toBig(Integer integer) {

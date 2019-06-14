@@ -21,5 +21,5 @@ package com.evolveum.midpoint.task.quartzimpl.statistics;
  */
 public interface WorkBucketStatisticsCollector {
 
-	void register(String situation, long start, Long lastGetOperationStart, Integer getOperationNumber, long lastAttemptStart, int attemptNumber);
+	void register(String situation, long totalTime, int conflictCount, long conflictWastedTime, int bucketWaitCount, long bucketWaitTime, int bucketsReclaimed);
 }

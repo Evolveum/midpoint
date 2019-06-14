@@ -1672,21 +1672,25 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Worker task to which this bucket is delegated.
+						Must be set for buckets in DELEGATED state.
+						May be set for buckets in COMPLETE state.
+						Must not be set for buckets in READY state.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<!--<xsd:element name="progress" type="tns:AbstractWorkBucketProgressType">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
 						<!--Progress of bucket processing.-->
 					<!--</xsd:documentation>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:element>-->
-			<!--<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-						<!--Worker task to which is this bucket allocated.-->
-					<!--</xsd:documentation>-->
-					<!--<xsd:appinfo>-->
-						<!--<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>-->
-					<!--</xsd:appinfo>-->
 				<!--</xsd:annotation>-->
 			<!--</xsd:element>-->
 			<!--<xsd:element name="processedCount" type="xsd:int" minOccurs="0">-->
@@ -3170,17 +3174,72 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" minOccurs="0" />
-			<xsd:element name="count" type="xsd:int" minOccurs="0" />
-			<xsd:element name="getOperationCount" type="xsd:int" minOccurs="0" />
-			<xsd:element name="attemptCount" type="xsd:int" minOccurs="0" />
-			<xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the operation, possibly qualified by the result kind.
+						E.g. completeWorkBucket, getWorkBucket.createdNew, getWorkBucket.noMoreBucketsDefinite,
+						getWorkBucket.InterruptedException.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="count" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times this operation (optionally with the specified result) was invoked.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time spent in these operations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="minTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
-			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="conflictCount" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times a conflict occurred. Only write-write conflicts consisting of two tasks trying
+						to overwrite each other's data (detected by precondition violations) are counted here; DBMS-detected
+						transaction aborts are counted in repository-level statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time wasted by retrying operations because of write-write conflicts.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
-			<xsd:element name="totalWaitTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="bucketWaitCount" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times a wait-state was entered because of no free bucket could be obtained but some buckets
+						are still not done. (This occurs only in scavengers.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="bucketsReclaimed" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of buckets reclaimed from dead (closed or missing) workers. Under normal circumstances
+						this number should be zero.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalWaitTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time spent by waiting for buckets to be processed or reclaimed.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="minWaitTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0" />
 		</xsd:sequence>

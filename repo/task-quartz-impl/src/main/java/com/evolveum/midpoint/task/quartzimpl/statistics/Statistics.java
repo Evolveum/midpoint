@@ -436,8 +436,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
 	@SuppressWarnings("Duplicates")
 	@Override
-	public void register(@NotNull String situation, long start, Long lastGetOperationStart, Integer getOperationNumber, long lastAttemptStart, int attemptNumber) {
-		long now = System.currentTimeMillis();
+	public void register(String situation, long totalTime, int conflictCount, long conflictWastedTime, int bucketWaitCount, long bucketWaitTime, int bucketsReclaimed) {
 		synchronized (BUCKET_INFORMATION_LOCK) {
 			WorkBucketManagementOperationPerformanceInformationType operation = null;
 			for (WorkBucketManagementOperationPerformanceInformationType op : workBucketManagementPerformanceInformation.getOperation()) {
@@ -452,32 +451,26 @@ public class Statistics implements WorkBucketStatisticsCollector {
 				workBucketManagementPerformanceInformation.getOperation().add(operation);
 			}
 			operation.setCount(or0(operation.getCount()) + 1);
-			operation.setAttemptCount(or0(operation.getAttemptCount()) + attemptNumber);
-			Long waitTime;
-			long wastedTime;
-			if (lastGetOperationStart != null && getOperationNumber != null) {
-				operation.setGetOperationCount(or0(operation.getGetOperationCount()) + getOperationNumber);
-				waitTime = lastGetOperationStart - start;
-				wastedTime = lastAttemptStart - lastGetOperationStart;
-			} else {
-				waitTime = null;
-				wastedTime = lastAttemptStart - start;
-			}
-			long totalTime = now - start;
-			addTime(operation, totalTime, WorkBucketManagementOperationPerformanceInformationType::getTotalTime, 
-					WorkBucketManagementOperationPerformanceInformationType::getMinTime, 
-					WorkBucketManagementOperationPerformanceInformationType::getMaxTime, 
-					WorkBucketManagementOperationPerformanceInformationType::setTotalTime, 
-					WorkBucketManagementOperationPerformanceInformationType::setMinTime, 
+			addTime(operation, totalTime, WorkBucketManagementOperationPerformanceInformationType::getTotalTime,
+					WorkBucketManagementOperationPerformanceInformationType::getMinTime,
+					WorkBucketManagementOperationPerformanceInformationType::getMaxTime,
+					WorkBucketManagementOperationPerformanceInformationType::setTotalTime,
+					WorkBucketManagementOperationPerformanceInformationType::setMinTime,
 					WorkBucketManagementOperationPerformanceInformationType::setMaxTime);
-			addTime(operation, wastedTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWastedTime, 
-					WorkBucketManagementOperationPerformanceInformationType::getMinWastedTime, 
-					WorkBucketManagementOperationPerformanceInformationType::getMaxWastedTime, 
-					WorkBucketManagementOperationPerformanceInformationType::setTotalWastedTime, 
-					WorkBucketManagementOperationPerformanceInformationType::setMinWastedTime, 
-					WorkBucketManagementOperationPerformanceInformationType::setMaxWastedTime);
-			if (waitTime != null) {
-				addTime(operation, waitTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWaitTime,
+			if (conflictCount > 0 || conflictWastedTime > 0) {
+				operation.setConflictCount(or0(operation.getConflictCount()) + conflictCount);
+				addTime(operation, conflictWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::getTotalWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::getMinWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::getMaxWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::setTotalWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::setMinWastedTime,
+						WorkBucketManagementOperationPerformanceInformationType::setMaxWastedTime);
+			}
+			if (bucketWaitCount > 0 || bucketsReclaimed > 0 || bucketWaitTime > 0) {
+				operation.setBucketWaitCount(or0(operation.getBucketWaitCount()) + bucketWaitCount);
+				operation.setBucketsReclaimed(or0(operation.getBucketsReclaimed()) + bucketsReclaimed);
+				addTime(operation, bucketWaitTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWaitTime,
 						WorkBucketManagementOperationPerformanceInformationType::getMinWaitTime,
 						WorkBucketManagementOperationPerformanceInformationType::getMaxWaitTime,
 						WorkBucketManagementOperationPerformanceInformationType::setTotalWaitTime,
