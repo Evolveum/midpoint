@@ -362,7 +362,7 @@ public class QNameUtil {
         return name != null ? name.getLocalPart() : null;
     }
 
-	public static boolean contains(Collection<QName> col, QName qname) {
+	public static boolean contains(Collection<? extends QName> col, QName qname) {
 		return col != null && col.stream().anyMatch(e -> match(e, qname));
 	}
 	

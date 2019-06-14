@@ -20,6 +20,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -89,6 +91,20 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
 	}
 
+	@Test
+	public void testSkipItems() throws SchemaException, IOException {
+		PrismContext prismContext = getPrismContext();
+		PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
+		String serialized = prismContext.serializerFor(language)
+				.itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+				.serialize(jack);
+		System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
+		PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
+		assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
+		assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
+		assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
+	}
+
 	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {
 		processParsings(UserType.class, null, UserType.COMPLEX_TYPE, null, serializer, serId);
 	}
@@ -111,8 +127,6 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		assertUserJaxb(user.asObjectable(), true);
 		user.checkConsistence(true, true);
 	}
-
-
 
 	void assertUserPrism(PrismObject<UserType> user, boolean isObject) {
 

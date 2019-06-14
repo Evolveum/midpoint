@@ -442,7 +442,7 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<String> serializerFor(@NotNull String language) {
-		return new PrismSerializerImpl<>(new SerializerStringTarget(this, language), null, null, null, this);
+		return new PrismSerializerImpl<>(new SerializerStringTarget(this, language), null, null, null, this, null);
 	}
 
 	@NotNull
@@ -466,13 +466,13 @@ public class PrismContextImpl implements PrismContext {
 	@NotNull
 	@Override
 	public PrismSerializer<Element> domSerializer() {
-		return new PrismSerializerImpl<>(new SerializerDomTarget(this), null, null, null, this);
+		return new PrismSerializerImpl<>(new SerializerDomTarget(this), null, null, null, this, null);
 	}
 
 	@NotNull
 	@Override
 	public PrismSerializer<RootXNode> xnodeSerializer() {
-		return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null, this);
+		return new PrismSerializerImpl<>(new SerializerXNodeTarget(this), null, null, null, this, null);
 	}
 
     @Override

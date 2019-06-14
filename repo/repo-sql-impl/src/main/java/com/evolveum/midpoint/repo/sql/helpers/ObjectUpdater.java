@@ -26,6 +26,7 @@ import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -252,23 +253,22 @@ public class ObjectUpdater {
         LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        // Deep cloning for object transformation - we don't want to return object "changed" by save.
-        // Its' because we're removing some properties during save operation and if save fails,
-        // overwrite attempt (for example using object importer) might try to delete existing object
-        // and then try to save this object one more time.
-        savedObject = savedObject.clone();
-
-        if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
-        } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(LookupTableType.F_ROW);
-        } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
-        } else if (TaskType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(TaskType.F_RESULT);
+        List<ItemName> itemsToSkip = new ArrayList<>();
+        Class<T> compileTimeClass = savedObject.getCompileTimeClass();
+        assert compileTimeClass != null;
+        if (FocusType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(FocusType.F_JPEG_PHOTO);
+        } else if (LookupTableType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(LookupTableType.F_ROW);
+        } else if (AccessCertificationCampaignType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(AccessCertificationCampaignType.F_CASE);
+        } else if (TaskType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(TaskType.F_RESULT);
         }
 
-        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
+        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                .itemsToSkip(itemsToSkip)
+                .serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
