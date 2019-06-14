@@ -2611,4 +2611,10 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	public TaskExecutionEnvironmentType getExecutionEnvironment() {
 		return getTaskType().getExecutionEnvironment();
 	}
+
+	@Override
+	public boolean isScavenger() {
+		TaskWorkManagementType workManagement = getWorkManagement();
+		return workManagement != null && Boolean.TRUE.equals(workManagement.isScavenger());
+	}
 }

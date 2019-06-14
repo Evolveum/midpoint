@@ -22,11 +22,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -35,6 +34,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -144,6 +144,8 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		    display("coordinator task", coordinatorTask);
 		    display("worker task", workers.get(0));
+		    displayBucketOpStatistics("coordinator", coordinatorTask);
+		    displayBucketOpStatistics("worker", workers.get(0));
 		    assertCachingProfiles(coordinatorTask, "profile1");
 		    assertCachingProfiles(workers.get(0), "profile1");
 
@@ -173,6 +175,13 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		    suspendAndDeleteTasks(coordinatorTaskOid);
 	    }
     }
+
+	private void displayBucketOpStatistics(String label, Task task) throws SchemaException {
+		OperationStatsType stats = task.getStoredOperationStats();
+		WorkBucketManagementPerformanceInformationType bucketStats = stats != null ? stats.getWorkBucketManagementPerformanceInformation() : null;
+		String text = bucketStats != null ? prismContext.yamlSerializer().root(new QName("stats")).serializeRealValue(bucketStats) : "(null)";
+		display("Bucket op stats for " + label, text);
+	}
 
 	@Test
     public void test110CreateWorkersRecurring() throws Exception {
@@ -310,6 +319,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		    display("coordinator task after resume-after-2nd-suspend", coordinatorTask);
 		    display("worker task after resume-after-2nd-suspend", worker);
 
+		    displayBucketOpStatistics("coordinator", coordinatorTask);
+		    displayBucketOpStatistics("worker", worker);
+
 		    waitForTaskClose(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
 		    // brittle - might fail
@@ -353,6 +365,13 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			assertCachingProfiles(subtasks.get(2), "profile1");
 
 			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
+
+			masterTask = taskManager.getTask(masterTaskOid, result);
+			subtasks = masterTask.listSubtasksDeeply(result);
+			displayBucketOpStatistics("master", masterTask);
+			for (Task subtask : subtasks) {
+				displayBucketOpStatistics(subtask.toString(), subtask);
+			}
 
 			//noinspection SimplifiedTestNGAssertion
 			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());

@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 
@@ -45,7 +47,7 @@ import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregoria
  *  1) running background tasks (RunningTask) - both heavyweight and lightweight
  *  2) transient tasks e.g. those invoked from GUI
  */
-public class Statistics {
+public class Statistics implements WorkBucketStatisticsCollector {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Statistics.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -60,6 +62,13 @@ public class Statistics {
 	private SynchronizationInformation synchronizationInformation;                // has to be explicitly enabled
 	private IterativeTaskInformation iterativeTaskInformation;                    // has to be explicitly enabled
 	private ActionsExecutedInformation actionsExecutedInformation;            // has to be explicitly enabled
+
+	/**
+	 * This data structure is synchronized explicitly. Because it is updated infrequently, it should be sufficient.
+	 */
+	private WorkBucketManagementPerformanceInformationType workBucketManagementPerformanceInformation;
+
+	private final Object BUCKET_INFORMATION_LOCK = new Object();
 
 	/**
 	 * Most current version of repository performance information. Original (live) form of this information is accessible only
@@ -166,9 +175,8 @@ public class Statistics {
 		}
 		RepositoryPerformanceInformationType rv = repositoryPerformanceInformation.clone();
 		for (Statistics child : children) {
-			RepositoryPerformanceInformationType info = child.getRepositoryPerformanceInformation();
-			if (info != null) {
-				PerformanceInformationUtil.addTo(rv, info);
+			if (child.repositoryPerformanceInformation != null) {
+				PerformanceInformationUtil.addTo(rv, child.repositoryPerformanceInformation);
 			}
 		}
 		return rv;
@@ -180,13 +188,19 @@ public class Statistics {
 		}
 		CachesPerformanceInformationType rv = cachesPerformanceInformation.clone();
 		for (Statistics child : children) {
-			CachesPerformanceInformationType info = child.getCachesPerformanceInformation();
-			if (info != null) {
-				CachePerformanceInformationUtil.addTo(rv, info);
+			if (child.cachesPerformanceInformation != null) {
+				CachePerformanceInformationUtil.addTo(rv, child.cachesPerformanceInformation);
 			}
 		}
 		return rv;
 	}
+
+	private WorkBucketManagementPerformanceInformationType getWorkBucketManagementPerformanceInformation() {
+		synchronized (BUCKET_INFORMATION_LOCK) {
+			return workBucketManagementPerformanceInformation != null ? workBucketManagementPerformanceInformation.clone() : null;
+		}
+	}
+
 
 	public OperationStatsType getAggregatedLiveOperationStats(Collection<Statistics> children) {
 		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
@@ -195,7 +209,8 @@ public class Statistics {
 		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation(children);
 		RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
 		CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
-		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null) {
+		WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();   // this is not fetched from children (present on coordinator task only)
+		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && buckets == null) {
 			return null;
 		}
 		OperationStatsType rv = new OperationStatsType();
@@ -205,6 +220,7 @@ public class Statistics {
 		rv.setActionsExecutedInformation(aeit);
 		rv.setRepositoryPerformanceInformation(repo);
 		rv.setCachesPerformanceInformation(caches);
+		rv.setWorkBucketManagementPerformanceInformation(buckets);
 		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
 		return rv;
 	}
@@ -347,6 +363,12 @@ public class Statistics {
 		actionsExecutedInformation = new ActionsExecutedInformation(value);
 	}
 
+	private void resetWorkBucketManagementPerformanceInformation(WorkBucketManagementPerformanceInformationType value) {
+		synchronized (BUCKET_INFORMATION_LOCK) {
+			workBucketManagementPerformanceInformation = value != null ? value.clone() : new WorkBucketManagementPerformanceInformationType();
+		}
+	}
+
 	public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics,
 			boolean enableActionsExecutedStatistics) {
 		resetEnvironmentalPerformanceInformation(null);
@@ -359,29 +381,29 @@ public class Statistics {
 		if (enableActionsExecutedStatistics) {
 			resetActionsExecutedInformation(null);
 		}
+		resetWorkBucketManagementPerformanceInformation(null);
 	}
 
 	public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
 			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
-		if (stored == null) {
-			stored = new OperationStatsType();
-		}
-		resetEnvironmentalPerformanceInformation(stored.getEnvironmentalPerformanceInformation());
+		OperationStatsType initial = stored != null ? stored : new OperationStatsType();
+		resetEnvironmentalPerformanceInformation(initial.getEnvironmentalPerformanceInformation());
 		if (enableIterationStatistics) {
-			resetIterativeTaskInformation(stored.getIterativeTaskInformation());
+			resetIterativeTaskInformation(initial.getIterativeTaskInformation());
 		} else {
 			iterativeTaskInformation = null;
 		}
 		if (enableSynchronizationStatistics) {
-			resetSynchronizationInformation(stored.getSynchronizationInformation());
+			resetSynchronizationInformation(initial.getSynchronizationInformation());
 		} else {
 			synchronizationInformation = null;
 		}
 		if (enableActionsExecutedStatistics) {
-			resetActionsExecutedInformation(stored.getActionsExecutedInformation());
+			resetActionsExecutedInformation(initial.getActionsExecutedInformation());
 		} else {
 			actionsExecutedInformation = null;
 		}
+		resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
 	}
 
 	/**
@@ -412,11 +434,82 @@ public class Statistics {
 		}
 	}
 
-	public RepositoryPerformanceInformationType getRepositoryPerformanceInformation() {
-		return repositoryPerformanceInformation;
+	@SuppressWarnings("Duplicates")
+	@Override
+	public void register(@NotNull String situation, long start, Long lastGetOperationStart, Integer getOperationNumber, long lastAttemptStart, int attemptNumber) {
+		long now = System.currentTimeMillis();
+		synchronized (BUCKET_INFORMATION_LOCK) {
+			WorkBucketManagementOperationPerformanceInformationType operation = null;
+			for (WorkBucketManagementOperationPerformanceInformationType op : workBucketManagementPerformanceInformation.getOperation()) {
+				if (op.getName().equals(situation)) {
+					operation = op;
+					break;
+				}
+			}
+			if (operation == null) {
+				operation = new WorkBucketManagementOperationPerformanceInformationType();
+				operation.setName(situation);
+				workBucketManagementPerformanceInformation.getOperation().add(operation);
+			}
+			operation.setCount(or0(operation.getCount()) + 1);
+			operation.setAttemptCount(or0(operation.getAttemptCount()) + attemptNumber);
+			Long waitTime;
+			long wastedTime;
+			if (lastGetOperationStart != null && getOperationNumber != null) {
+				operation.setGetOperationCount(or0(operation.getGetOperationCount()) + getOperationNumber);
+				waitTime = lastGetOperationStart - start;
+				wastedTime = lastAttemptStart - lastGetOperationStart;
+			} else {
+				waitTime = null;
+				wastedTime = lastAttemptStart - start;
+			}
+			long totalTime = now - start;
+			addTime(operation, totalTime, WorkBucketManagementOperationPerformanceInformationType::getTotalTime, 
+					WorkBucketManagementOperationPerformanceInformationType::getMinTime, 
+					WorkBucketManagementOperationPerformanceInformationType::getMaxTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setTotalTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setMinTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setMaxTime);
+			addTime(operation, wastedTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWastedTime, 
+					WorkBucketManagementOperationPerformanceInformationType::getMinWastedTime, 
+					WorkBucketManagementOperationPerformanceInformationType::getMaxWastedTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setTotalWastedTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setMinWastedTime, 
+					WorkBucketManagementOperationPerformanceInformationType::setMaxWastedTime);
+			if (waitTime != null) {
+				addTime(operation, waitTime, WorkBucketManagementOperationPerformanceInformationType::getTotalWaitTime,
+						WorkBucketManagementOperationPerformanceInformationType::getMinWaitTime,
+						WorkBucketManagementOperationPerformanceInformationType::getMaxWaitTime,
+						WorkBucketManagementOperationPerformanceInformationType::setTotalWaitTime,
+						WorkBucketManagementOperationPerformanceInformationType::setMinWaitTime,
+						WorkBucketManagementOperationPerformanceInformationType::setMaxWaitTime);
+			}
+		}
 	}
 
-	public CachesPerformanceInformationType getCachesPerformanceInformation() {
-		return cachesPerformanceInformation;
+	private void addTime(WorkBucketManagementOperationPerformanceInformationType operation,
+			long time, Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterTotal,
+			Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMin,
+			Function<WorkBucketManagementOperationPerformanceInformationType, Long> getterMax,
+			BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterTotal, 
+			BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long> setterMin, 
+			BiConsumer<WorkBucketManagementOperationPerformanceInformationType, Long>  setterMax) {
+		setterTotal.accept(operation, or0(getterTotal.apply(operation)) + time);
+		Long min = getterMin.apply(operation);
+		if (min == null || time < min) {
+			setterMin.accept(operation, time);
+		}
+		Long max = getterMax.apply(operation);
+		if (max == null || time > max) {
+			setterMax.accept(operation, time);
+		}
+	}
+
+	private int or0(Integer n) {
+		return n != null ? n : 0;
+	}
+	
+	private long or0(Long n) {
+		return n != null ? n : 0;
 	}
 }

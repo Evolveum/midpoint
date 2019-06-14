@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.work.workers;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,8 +44,8 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
 import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -104,6 +103,8 @@ public class WorkersManager {
 		int closedExecuting = closeExecutingWorkers(currentWorkers, result);
 		MovedClosed movedClosed = moveWorkers(currentWorkers, shouldBeWorkers, result);
 		int created = createWorkers(coordinatorTask, shouldBeWorkers, perNodeConfigurationMap, result);
+
+		// TODO ensure that enough scavengers are present
 
 		TaskWorkStateType workState = coordinatorTask.getWorkState();
 		Integer closedBecauseDone = null;
@@ -279,7 +280,10 @@ public class WorkersManager {
 			worker.setRecurrence(TaskRecurrenceType.SINGLE);
 			worker.setParent(coordinatorTask.getTaskIdentifier());
 			worker.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
-			worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
+			TaskWorkManagementType workManagement = worker.beginWorkManagement().taskKind(TaskKindType.WORKER);
+			if (keyToCreate.scavenger) {
+				workManagement.setScavenger(true);
+			}
 			PrismContainer<?> coordinatorExtension = coordinatorTask.getExtensionClone();
 			if (coordinatorExtension != null) {
 				worker.asPrismObject().add(coordinatorExtension);
@@ -309,14 +313,16 @@ public class WorkersManager {
 	class WorkerKey {
 		final String group;
 		final String name;
+		final boolean scavenger;
 
-		WorkerKey(String group, String name) {
+		WorkerKey(String group, String name, boolean scavenger) {
 			this.group = group;
 			this.name = name;
+			this.scavenger = scavenger;
 		}
 
 		WorkerKey(Task worker) {    // objects created by this constructor should be used only for matching and comparisons
-			this(worker.getExecutionGroup(), PolyString.getOrig(worker.getName()));
+			this(worker.getExecutionGroup(), PolyString.getOrig(worker.getName()), isScavenger(worker));
 		}
 
 		@Override
@@ -337,8 +343,12 @@ public class WorkersManager {
 
 		@Override
 		public String toString() {
-			return "[" + group + ", " + name + "]";
+			return "[" + group + ", " + name + (scavenger ? " (scavenger)" : "") + "]";
 		}
+	}
+
+	private static boolean isScavenger(Task task) {
+		return Boolean.TRUE.equals(task.getWorkManagement().isScavenger());
 	}
 
 	private MultiValuedMap<String, WorkerKey> createWorkerKeys(Task task,
@@ -354,8 +364,9 @@ public class WorkersManager {
 		for (WorkerTasksPerNodeConfigurationType perNodeConfig : getWorkersPerNode(workersCfg)) {
 			for (String nodeIdentifier : getNodeIdentifiers(perNodeConfig, opResult)) {
 				int count = defaultIfNull(perNodeConfig.getCount(), 1);
+				int scavengers = defaultIfNull(perNodeConfig.getScavengers(), 1);
 				for (int index = 1; index <= count; index++) {
-					WorkerKey key = createWorkerKey(nodeIdentifier, index, perNodeConfig, workersCfg, task);
+					WorkerKey key = createWorkerKey(nodeIdentifier, index, perNodeConfig, workersCfg, index <= scavengers, task);
 					rv.put(key.group, key);
 					perNodeConfigurationMap.put(key, perNodeConfig);
 				}
@@ -365,7 +376,7 @@ public class WorkersManager {
 	}
 
 	private WorkerKey createWorkerKey(String nodeIdentifier, int index, WorkerTasksPerNodeConfigurationType perNodeConfig,
-			WorkersManagementType workersCfg, Task coordinatorTask) {
+			WorkersManagementType workersCfg, boolean scavenger, Task coordinatorTask) {
 		Map<String, String> replacements = new HashMap<>();
 		replacements.put("node", nodeIdentifier);
 		replacements.put("index", String.valueOf(index));
@@ -385,7 +396,7 @@ public class WorkersManager {
 		String executionGroupTemplate = defaultIfNull(perNodeConfig.getExecutionGroup(), "{node}");
 		String executionGroup = MiscUtil.nullIfEmpty(TemplateUtil.replace(executionGroupTemplate, replacements));
 
-		return new WorkerKey(executionGroup, name);
+		return new WorkerKey(executionGroup, name, scavenger);
 	}
 
 	private List<WorkerTasksPerNodeConfigurationType> getWorkersPerNode(WorkersManagementType workersCfg) {

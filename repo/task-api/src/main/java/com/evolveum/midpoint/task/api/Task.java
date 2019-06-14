@@ -1049,4 +1049,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	Collection<String> getCachingProfiles();
 
 	TaskExecutionEnvironmentType getExecutionEnvironment();
+
+	boolean isScavenger();
 }

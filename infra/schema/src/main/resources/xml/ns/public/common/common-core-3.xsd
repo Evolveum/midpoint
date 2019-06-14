@@ -1242,6 +1242,16 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="scavenger" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is this task a scavenger i.e. will it wait until the work is done, looking for buckets that could be reclaimed?
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="partitionSequentialNumber" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3060,7 +3070,14 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-
+			<xsd:element name="workBucketManagementPerformanceInformation" type="tns:WorkBucketManagementPerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3120,6 +3137,52 @@
 			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkBucketManagementPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about work bucket management operations performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operation" type="tns:WorkBucketManagementOperationPerformanceInformationType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkBucketManagementOperationPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about specific kind of work bucket management operation performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0" />
+			<xsd:element name="count" type="xsd:int" minOccurs="0" />
+			<xsd:element name="getOperationCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="attemptCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="totalWaitTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minWaitTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -3666,6 +3729,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         How many workers to create for given node(s). Default is 1 per node.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="scavengers" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many scavengers to appoint for given node(s). Default is 1 per node.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
