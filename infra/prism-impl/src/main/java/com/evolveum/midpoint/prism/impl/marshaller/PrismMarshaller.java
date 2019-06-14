@@ -210,14 +210,14 @@ public class PrismMarshaller {
 			Collection<? extends QName> itemsToSkip) throws SchemaException {
         XNodeImpl xnode;
         if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
-	        LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
-            return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
-	        LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
-            xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
-	        LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
-            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
         } else if (itemValue instanceof PrismContainerValue<?>) {
             xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx, itemsToSkip);
         } else {
@@ -231,6 +231,12 @@ public class PrismMarshaller {
         }
         return xnode;
     }
+
+	private void checkItemsToSkip(@NotNull PrismValue itemValue, Collection<? extends QName> itemsToSkip) {
+		if (CollectionUtils.isNotEmpty(itemsToSkip)) {
+			LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
+		}
+	}
 
 	private boolean shouldPutTypeInExportMode(SerializationContext ctx, ItemDefinition definition) {
 		if (!SerializationContext.isSerializeForExport(ctx) || definition == null || !definition.isRuntimeSchema()) {
