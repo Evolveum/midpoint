@@ -97,7 +97,7 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
     @Override
     public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countContainers");
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "countContainers");
         result.addParam(OperationResult.PARAM_TYPE, type);
         result.addParam(OperationResult.PARAM_QUERY, query);
         result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);

@@ -75,6 +75,14 @@ class TaskTabsVisibility implements Serializable {
         return environmentalPerformanceVisible;
     }
 
+    public boolean computeInternalPerformanceVisible(PageTaskEdit parentPage) {
+        final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
+        environmentalPerformanceVisible = !parentPage.isEdit()
+				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
+				&& operationStats != null;
+        return environmentalPerformanceVisible;
+    }
+
     public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
         approvalsVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)

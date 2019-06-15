@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.task.api;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionEnvironmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementType;
 import org.jetbrains.annotations.NotNull;
@@ -136,6 +137,13 @@ public interface TaskPartitionsDefinition {
 		 * Execution environment to be used in subtask. Overrides strategy.executionEnvironment.
 		 */
 		default TaskExecutionEnvironmentType getExecutionEnvironment(Task masterTask) {
+			return null;
+		}
+
+		/**
+		 * Extension to be added into the extension of subtask.
+		 */
+		default ExtensionType getExtension(Task masterTask) {
 			return null;
 		}
 

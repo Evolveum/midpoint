@@ -304,6 +304,12 @@ public class PartitioningTaskHandler implements TaskHandler {
 				subtask.asPrismObject().add(masterExtension);
 			}
 		}
+		ExtensionType extensionFromPartition = partition.getExtension(masterTask);
+		if (extensionFromPartition != null) {
+			//noinspection unchecked
+			subtask.asPrismContainerValue().findOrCreateContainer(TaskType.F_EXTENSION).getValue()
+					.mergeContent(extensionFromPartition.asPrismContainerValue(), Collections.emptyList());
+		}
 
 		applyDeltas(subtask, partition.getOtherDeltas(masterTask));
 		applyDeltas(subtask, partitionsDefinition.getOtherDeltas(masterTask));

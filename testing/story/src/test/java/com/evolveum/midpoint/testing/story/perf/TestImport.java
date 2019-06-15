@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.testing.story.perf;
 
+import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -77,8 +78,6 @@ public class TestImport extends AbstractStoryTest {
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		MidpointInterceptor.deactivateMethodInvocationLogging();
-
 		super.initSystem(initTask, initResult);
 
 		DummyAuditService.getInstance().setEnabled(false);
@@ -161,9 +160,9 @@ public class TestImport extends AbstractStoryTest {
 	        if (System.currentTimeMillis() - lastProfilingStarted > PROFILING_INTERVAL) {
 	        	lastProfilingStarted = System.currentTimeMillis();
 		        System.out.println("Starting profiling at " + new Date());
-		        MidpointInterceptor.activateMethodInvocationLogging();
+		        MidpointInterceptor.setGlobalMethodInvocationLevelOverride(Level.TRACE);
 		        Thread.sleep(PROFILING_DURATION);
-		        MidpointInterceptor.deactivateMethodInvocationLogging();
+		        MidpointInterceptor.setGlobalMethodInvocationLevelOverride(null);
 		        System.out.println("Stopping profiling at " + new Date());
 	        } else {
 	        	Thread.sleep(CHECK_INTERVAL);

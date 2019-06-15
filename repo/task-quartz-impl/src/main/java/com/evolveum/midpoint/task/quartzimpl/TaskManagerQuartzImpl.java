@@ -42,6 +42,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.CloneUtil;
@@ -2549,7 +2550,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	 */
 	public RunningTaskQuartzImpl createRunningTask(Task task) {
 		if (task instanceof RunningTask) {
-			LOGGER.warn("Task {} is already a RunningTask: {}", task);
+			LOGGER.warn("Task {} is already a RunningTask", task);
 			return ((RunningTaskQuartzImpl) task);
 		} else {
 			PrismObject<TaskType> taskPrismObject = task.getTaskPrismObject();
@@ -2569,5 +2570,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	public CacheConfigurationManager getCacheConfigurationManager() {
 		return cacheConfigurationManager;
+	}
+
+	@Override
+	public boolean isDynamicProfilingEnabled() {
+		return midpointConfiguration.getProfilingMode() == ProfilingMode.DYNAMIC;
 	}
 }

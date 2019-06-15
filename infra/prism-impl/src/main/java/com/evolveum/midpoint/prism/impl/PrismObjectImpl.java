@@ -245,14 +245,20 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 			prismContext.getMonitor().beforeObjectClone(this);
 		}
 
-		PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
-		copyValues(strategy, clone);
+//		MethodInvocationRecord record = MethodInvocationRecord.create(PrismObjectImpl.class.getName() + ".cloneComplex", new Object[] { strategy });
+//		try {
+			PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
+			copyValues(strategy, clone);
 
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().afterObjectClone(this, clone);
-		}
-
-		return clone;
+			if (prismContext != null && prismContext.getMonitor() != null) {
+				prismContext.getMonitor().afterObjectClone(this, clone);
+			}
+			return clone;
+//		} catch (RuntimeException t) {
+//			throw record.processException(t);
+//		} finally {
+//			record.afterCall();
+//		}
 	}
 
 	protected void copyValues(CloneStrategy strategy, PrismObjectImpl<O> clone) {

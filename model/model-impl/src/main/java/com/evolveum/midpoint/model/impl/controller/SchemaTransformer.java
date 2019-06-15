@@ -145,7 +145,7 @@ public class SchemaTransformer {
 
 	private <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
 			Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException {
-		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
+		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObject");
 		try {
             applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
         } catch (IllegalArgumentException | IllegalStateException | SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
@@ -336,8 +336,9 @@ public class SchemaTransformer {
 		}
 	}
 
-	public void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
+	private void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
+			AuthorizationDecisionType defaultModifyDecision,
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
 				pcv.getItems(), phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);

@@ -49,7 +49,7 @@ import java.util.Set;
  */
 public interface ConnectorFactory {
 
-	String OPERATION_LIST_CONNECTOR = ConnectorFactory.class+".listConnectors";
+	String OPERATION_LIST_CONNECTOR = ConnectorFactory.class.getName()+".listConnectors";
 
 	PrismSchema generateConnectorConfigurationSchema(ConnectorType connectorType) throws ObjectNotFoundException;
 

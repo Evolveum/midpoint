@@ -5032,7 +5032,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
     }
 
     private SqlRepositoryConfiguration getConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return sqlRepositoryService.getConfiguration();
     }
 
     //    @Test

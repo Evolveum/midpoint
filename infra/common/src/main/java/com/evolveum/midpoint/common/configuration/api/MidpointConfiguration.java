@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.common.configuration.api;
 
 import org.apache.commons.configuration.Configuration;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mamut
@@ -78,5 +79,11 @@ public interface MidpointConfiguration {
 
 	boolean isSafeMode();
 
+	/**
+	 * @return true if the profiling interceptor should be loaded
+	 */
 	boolean isProfilingEnabled();
+
+	@NotNull
+	ProfilingMode getProfilingMode();
 }

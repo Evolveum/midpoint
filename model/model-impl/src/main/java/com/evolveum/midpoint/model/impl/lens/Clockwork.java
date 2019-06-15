@@ -176,68 +176,78 @@ public class Clockwork {
     
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
-	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) 
+	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
-		LOGGER.trace("Running clockwork for context {}", context);
-		if (InternalsConfig.consistencyChecks) {
-			context.checkConsistence();
-		}
-		
-		int clicked = 0;
-		boolean focusConflictPresent = false;
-		HookOperationMode finalMode;
 
+		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
 		try {
-			context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
-			if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
-				context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
+			LOGGER.trace("Running clockwork for context {}", context);
+			if (InternalsConfig.consistencyChecks) {
+				context.checkConsistence();
 			}
-			FocusConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
-			enterAssociationSearchExpressionEvaluatorCache();
-			//enterDefaultSearchExpressionEvaluatorCache();
-			provisioningService.enterConstraintsCheckerCache();
 
-			while (context.getState() != ModelState.FINAL) {
+			int clicked = 0;
+			boolean focusConflictPresent = false;
+			HookOperationMode finalMode;
 
-				// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
-				int maxClicks = getMaxClicks(context, result);
-				if (clicked >= maxClicks) {
-					throw new IllegalStateException("Model operation took too many clicks (limit is " + maxClicks + "). Is there a cycle?");
+			try {
+				context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
+				if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
+					context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 				}
-				clicked++;
+				FocusConstraintsChecker
+						.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
+				enterAssociationSearchExpressionEvaluatorCache();
+				//enterDefaultSearchExpressionEvaluatorCache();
+				provisioningService.enterConstraintsCheckerCache();
 
-				HookOperationMode mode = click(context, task, result);
+				while (context.getState() != ModelState.FINAL) {
 
-				if (mode == HookOperationMode.BACKGROUND) {
-					result.recordInProgress();
-					return mode;
-				} else if (mode == HookOperationMode.ERROR) {
-					return mode;
+					// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
+					int maxClicks = getMaxClicks(context, result);
+					if (clicked >= maxClicks) {
+						throw new IllegalStateException(
+								"Model operation took too many clicks (limit is " + maxClicks + "). Is there a cycle?");
+					}
+					clicked++;
+
+					HookOperationMode mode = click(context, task, result);
+
+					if (mode == HookOperationMode.BACKGROUND) {
+						result.recordInProgress();
+						return mode;
+					} else if (mode == HookOperationMode.ERROR) {
+						return mode;
+					}
 				}
+				// One last click in FINAL state
+				finalMode = click(context, task, result);
+				if (finalMode == HookOperationMode.FOREGROUND) {
+					focusConflictPresent = checkFocusConflicts(context, task, result);
+				}
+			} finally {
+				context.unregisterConflictWatchers(repositoryService);
+				FocusConstraintsChecker.exitCache();
+				//exitDefaultSearchExpressionEvaluatorCache();
+				exitAssociationSearchExpressionEvaluatorCache();
+				provisioningService.exitConstraintsCheckerCache();
+				context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
 			}
-			// One last click in FINAL state
-			finalMode = click(context, task, result);
-			if (finalMode == HookOperationMode.FOREGROUND) {
-				focusConflictPresent = checkFocusConflicts(context, task, result);
-			}
-		} finally {
-			context.unregisterConflictWatchers(repositoryService);
-			FocusConstraintsChecker.exitCache();
-			//exitDefaultSearchExpressionEvaluatorCache();
-			exitAssociationSearchExpressionEvaluatorCache();
-			provisioningService.exitConstraintsCheckerCache();
-			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
-		}
 
-		// intentionally outside the "try-finally" block to start with clean caches
-		if (focusConflictPresent) {
-			assert finalMode == HookOperationMode.FOREGROUND;
-			finalMode = resolveFocusConflict(context, task, result);
-		} else if (context.getConflictResolutionAttemptNumber() > 0) {
-			LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
+			// intentionally outside the "try-finally" block to start with clean caches
+			if (focusConflictPresent) {
+				assert finalMode == HookOperationMode.FOREGROUND;
+				finalMode = resolveFocusConflict(context, task, result);
+			} else if (context.getConflictResolutionAttemptNumber() > 0) {
+				LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
+			}
+			result.computeStatusIfUnknown();
+			return finalMode;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
 		}
-		return finalMode;
 	}
 	
 	public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result) 
@@ -463,7 +473,7 @@ public class Clockwork {
 		}
 	}
 
-	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) 
+	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
@@ -473,6 +483,8 @@ public class Clockwork {
 		if (context.getInspector() == null) {
 			context.setInspector(medic.getClockworkInspector());
 		}
+
+		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + ".click");
 
 		try {
 
@@ -550,8 +562,6 @@ public class Clockwork {
 					medic.clockworkFinish(context);
 					return mode;
 			}
-			result.recomputeStatus();
-			result.cleanupResult();
 			return invokeHooks(context, task, result);
 
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
@@ -559,6 +569,9 @@ public class Clockwork {
 				ObjectAlreadyExistsException | PreconditionViolationException e) {
 			processClockworkException(context, e, task, result);
 			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+			result.cleanupResult();
 		}
 	}
 
@@ -720,7 +733,8 @@ public class Clockwork {
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
 					restartRequestedHolder.setValue(restartRequested);
 				},
-				context.getPartialProcessingOptions()::getExecution);
+				context.getPartialProcessingOptions()::getExecution,
+				Clockwork.class, context, result);
 
 		audit(context, AuditEventStage.EXECUTION, task, result);
 

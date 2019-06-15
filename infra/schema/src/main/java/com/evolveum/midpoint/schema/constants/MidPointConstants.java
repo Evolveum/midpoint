@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -63,4 +65,5 @@ public class MidPointConstants {
 	
 	public static final String NS_FUNC_CUSTOM = NS_MIDPOINT_PUBLIC_PREFIX+"/function/custom-3";
 
+	public static final String PROFILING_LOGGER_NAME = MidpointInterceptor.PROFILING_LOGGER_NAME;
 }
