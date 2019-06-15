@@ -135,10 +135,12 @@ public class MethodInvocationRecord {
 				StringBuilder sb = new StringBuilder();
 				sb.append("###### args: ");
 				sb.append("(");
-				for (int i = 0; i < arguments.length; i++) {
-					sb.append(formatVal(arguments[i]));
-					if (arguments.length != i + 1) {
-						sb.append(", ");
+				if (arguments != null) {
+					for (int i = 0; i < arguments.length; i++) {
+						sb.append(formatVal(arguments[i]));
+						if (arguments.length != i + 1) {
+							sb.append(", ");
+						}
 					}
 				}
 				sb.append(")");
