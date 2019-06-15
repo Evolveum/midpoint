@@ -71,13 +71,7 @@ public class PasswordPanel extends InputPanel {
     private boolean passwordInputVisble;
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model) {
-        this(id, model, false);
-    }
-
-    public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly) {
-        super(id);
-        this.passwordInputVisble = model.getObject() == null;
-        initLayout(model, isReadOnly);
+        this(id, model, false, model == null || model.getObject() == null);
     }
 
     public PasswordPanel(String id, IModel<ProtectedStringType> model, boolean isReadOnly, boolean isInputVisible) {
@@ -140,6 +134,7 @@ public class PasswordPanel extends InputPanel {
         AjaxLink<Void> link = new AjaxLink<Void>(ID_CHANGE_PASSWORD_LINK) {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
+				model.setObject(null);
 				onLinkClick(target);
 			}
 			@Override

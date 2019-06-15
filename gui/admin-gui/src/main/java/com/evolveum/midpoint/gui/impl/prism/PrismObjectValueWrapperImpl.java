@@ -18,6 +18,8 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.wicket.model.StringResourceModel;
+
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
@@ -52,7 +54,7 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
 	@Override
 	public String getDisplayName() {
-		return "prismContainer.mainPanelDisplayName";
+		return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
 	}
 	
 }
