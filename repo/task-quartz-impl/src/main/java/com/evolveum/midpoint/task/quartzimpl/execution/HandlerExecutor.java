@@ -98,6 +98,8 @@ public class HandlerExecutor {
 			}
 		}
 
+		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
+
 		TaskWorkBucketProcessingResult runResult = null;
 		for (boolean initialBucket = true; ; initialBucket = false) {
 			WorkBucketType bucket;
@@ -123,7 +125,9 @@ public class HandlerExecutor {
 				return runResult != null ? runResult : createSuccessTaskRunResult(task);
 			}
 			try {
-				task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), initialBucket);
+				if (!initialBucket) {
+					task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), false);
+				}
 				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
 				runResult = handler.run(task, bucket, taskPartition, runResult);
 				LOGGER.trace("runResult is {} for {}", runResult, task);

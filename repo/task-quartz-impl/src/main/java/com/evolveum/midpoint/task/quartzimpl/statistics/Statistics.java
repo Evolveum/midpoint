@@ -194,14 +194,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			return null;
 		}
 		RepositoryPerformanceInformationType rv = repositoryPerformanceInformation.clone();
-		if (initialRepositoryPerformanceInformation != null) {
-			RepositoryPerformanceInformationUtil.addTo(rv, initialRepositoryPerformanceInformation);
-		}
+		RepositoryPerformanceInformationUtil.addTo(rv, initialRepositoryPerformanceInformation);
 		for (Statistics child : children) {
-			RepositoryPerformanceInformationType info = child.getAggregateRepositoryPerformanceInformation(emptySet());
-			if (info != null) {
-				RepositoryPerformanceInformationUtil.addTo(rv, info);
-			}
+			RepositoryPerformanceInformationUtil.addTo(rv, child.getAggregateRepositoryPerformanceInformation(emptySet()));
 		}
 		return rv;
 	}
@@ -211,14 +206,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			return null;
 		}
 		CachesPerformanceInformationType rv = cachesPerformanceInformation.clone();
-		if (initialCachesPerformanceInformation != null) {
-			CachePerformanceInformationUtil.addTo(rv, initialCachesPerformanceInformation);
-		}
+		CachePerformanceInformationUtil.addTo(rv, initialCachesPerformanceInformation);
 		for (Statistics child : children) {
-			CachesPerformanceInformationType info = child.getAggregateCachesPerformanceInformation(emptySet());
-			if (info != null) {
-				CachePerformanceInformationUtil.addTo(rv, info);
-			}
+			CachePerformanceInformationUtil.addTo(rv, child.getAggregateCachesPerformanceInformation(emptySet()));
 		}
 		return rv;
 	}
@@ -228,13 +218,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			return null;
 		}
 		MethodsPerformanceInformationType rv = methodsPerformanceInformation.clone();
-		if (initialMethodsPerformanceInformation != null) {
-			MethodsPerformanceInformationUtil.addTo(rv, initialMethodsPerformanceInformation);
-		}
+		MethodsPerformanceInformationUtil.addTo(rv, initialMethodsPerformanceInformation);
 		for (Statistics child : children) {
-			if (child.methodsPerformanceInformation != null) {
-				MethodsPerformanceInformationUtil.addTo(rv, child.methodsPerformanceInformation);
-			}
+			MethodsPerformanceInformationUtil.addTo(rv, child.getAggregateMethodsPerformanceInformation(emptySet()));
 		}
 		return rv;
 	}
@@ -428,13 +414,14 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			resetActionsExecutedInformation(null);
 		}
 		resetWorkBucketManagementPerformanceInformation(null);
-		repositoryPerformanceInformationStartValue = null;
-		cachesPerformanceInformationStartValue = null;
+		initialRepositoryPerformanceInformation = null;
+		initialCachesPerformanceInformation = null;
+		initialMethodsPerformanceInformation = null;
 		startCollectingRepoAndCacheStats(performanceMonitor);
 	}
 
 	public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
-			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics) {
+			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics, PerformanceMonitor performanceMonitor) {
 		OperationStatsType initial = stored != null ? stored : new OperationStatsType();
 		resetEnvironmentalPerformanceInformation(initial.getEnvironmentalPerformanceInformation());
 		if (enableIterationStatistics) {
@@ -453,8 +440,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			actionsExecutedInformation = null;
 		}
 		resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
-		repositoryPerformanceInformationStartValue = stored.getRepositoryPerformanceInformation();
-		cachesPerformanceInformationStartValue = stored.getCachesPerformanceInformation();
+		initialRepositoryPerformanceInformation = initial.getRepositoryPerformanceInformation();
+		initialCachesPerformanceInformation = initial.getCachesPerformanceInformation();
+		initialMethodsPerformanceInformation = initial.getMethodsPerformanceInformation();
 		startCollectingRepoAndCacheStats(performanceMonitor);
 	}
 
@@ -574,8 +562,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		return n != null ? n : 0;
 	}
 
-	public void startCollectingRepoAndCacheStats(PerformanceMonitor performanceMonitor) {
+	private void startCollectingRepoAndCacheStats(PerformanceMonitor performanceMonitor) {
 		performanceMonitor.startThreadLocalPerformanceInformationCollection();
 		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 }

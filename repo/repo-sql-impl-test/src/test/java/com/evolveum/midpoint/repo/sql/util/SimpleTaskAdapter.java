@@ -864,11 +864,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public TaskExecutionEnvironmentType getExecutionEnvironment() {
-        return null;
-    }
-
-    @Override
     public boolean isScavenger() {
         return false;
     }
