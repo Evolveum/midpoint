@@ -1242,6 +1242,16 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="scavenger" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is this task a scavenger i.e. will it wait until the work is done, looking for buckets that could be reclaimed?
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="partitionSequentialNumber" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -1501,7 +1511,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Work state management strategy that divides the processing space (represented by a set of string
-				values) into a number of work buckets; either based on intervals or prefixes.
+				values) into a number of work buckets; either based on intervals, prefixes or exact value matching.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
@@ -1513,7 +1523,7 @@
 					<xsd:element name="boundaryCharacters" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Characters that make up the prefix (or interval). These characters must be sorted.
+								Characters that make up the boundaries. These characters must be sorted.
 								Reserved characters: '-', '$' (to be implemented later)
 								Escaping character: '\'
 							</xsd:documentation>
@@ -1531,7 +1541,7 @@
 					<xsd:element name="comparisonMethod" type="tns:StringWorkBucketsBoundaryMarkingType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								Whether to use intervals or prefixes. Former is the default.
+								Whether to use intervals, prefixes or exact value match. Interval matching is the default.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1561,7 +1571,7 @@
 	<xsd:simpleType name="StringWorkBucketsBoundaryMarkingType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO
+				How to construct work bucket filters based on defined boundary values.
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:since>3.8</a:since>
@@ -1571,7 +1581,7 @@
 			<xsd:enumeration value="interval">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Use greater-than/less-than comparison.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="INTERVAL"/>
@@ -1581,10 +1591,22 @@
 			<xsd:enumeration value="prefix">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
+						Use prefix matching.
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="PREFIX"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="exactMatch">
+				<xsd:annotation>
+					<xsd:documentation>
+						Use exact value matching. This is quite risky and should be used only when you are absolutely sure that
+						boundary values cover all possible values of the discriminator.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="EXACT_MATCH"/>
+						<a:since>4.0</a:since>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1650,21 +1672,25 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Worker task to which this bucket is delegated.
+						Must be set for buckets in DELEGATED state.
+						May be set for buckets in COMPLETE state.
+						Must not be set for buckets in READY state.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<!--<xsd:element name="progress" type="tns:AbstractWorkBucketProgressType">-->
 				<!--<xsd:annotation>-->
 					<!--<xsd:documentation>-->
 						<!--Progress of bucket processing.-->
 					<!--</xsd:documentation>-->
-				<!--</xsd:annotation>-->
-			<!--</xsd:element>-->
-			<!--<xsd:element name="workerRef" type="tns:ObjectReferenceType" minOccurs="0">-->
-				<!--<xsd:annotation>-->
-					<!--<xsd:documentation>-->
-						<!--Worker task to which is this bucket allocated.-->
-					<!--</xsd:documentation>-->
-					<!--<xsd:appinfo>-->
-						<!--<a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>-->
-					<!--</xsd:appinfo>-->
 				<!--</xsd:annotation>-->
 			<!--</xsd:element>-->
 			<!--<xsd:element name="processedCount" type="xsd:int" minOccurs="0">-->
@@ -1739,6 +1765,32 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Prefix(es) that are part of this bucket.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+
+	<!-- Currently the same content as StringPrefixWorkBucketContentType but let's keep these separate fro conceptual
+	     as well as for practical reasons (the latter ones being mainly backwards compatibility). -->
+	<xsd:complexType name="StringValueWorkBucketContentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Work bucket content defined using string value.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AbstractWorkBucketContentType">
+				<xsd:sequence>
+					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Value(s) that are part of this bucket.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -3013,7 +3065,22 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-
+			<xsd:element name="methodsPerformanceInformation" type="tns:MethodsPerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="workBucketManagementPerformanceInformation" type="tns:WorkBucketManagementPerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3073,6 +3140,144 @@
 			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
 			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="MethodsPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about methods performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="method" type="tns:SingleMethodPerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="SingleMethodPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about single method performance.
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" />
+			<xsd:element name="invocationCount" type="xsd:int" minOccurs="0" />
+			<xsd:element name="totalTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkBucketManagementPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about work bucket management operations performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operation" type="tns:WorkBucketManagementOperationPerformanceInformationType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="WorkBucketManagementOperationPerformanceInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Information about specific kind of work bucket management operation performance.
+
+				EXPERIMENTAL.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the operation, possibly qualified by the result kind.
+						E.g. completeWorkBucket, getWorkBucket.createdNew, getWorkBucket.noMoreBucketsDefinite,
+						getWorkBucket.InterruptedException.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="count" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times this operation (optionally with the specified result) was invoked.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time spent in these operations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="conflictCount" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times a conflict occurred. Only write-write conflicts consisting of two tasks trying
+						to overwrite each other's data (detected by precondition violations) are counted here; DBMS-detected
+						transaction aborts are counted in repository-level statistics.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalWastedTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time wasted by retrying operations because of write-write conflicts.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxWastedTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="bucketWaitCount" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of times a wait-state was entered because of no free bucket could be obtained but some buckets
+						are still not done. (This occurs only in scavengers.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="bucketsReclaimed" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of buckets reclaimed from dead (closed or missing) workers. Under normal circumstances
+						this number should be zero.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="totalWaitTime" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Total time spent by waiting for buckets to be processed or reclaimed.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minWaitTime" type="xsd:long" minOccurs="0" />
+			<xsd:element name="maxWaitTime" type="xsd:long" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -3622,6 +3827,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="scavengers" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How many scavengers to appoint for given node(s). Default is 1 per node.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 			<xsd:element name="taskName" type="xsd:string" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3710,6 +3922,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Execution environment configuration to use for partition task.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3776,12 +3995,32 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="executionEnvironment" type="tns:TaskExecutionEnvironmentType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Execution environment configuration to use for partition task.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="copyMasterExtension" type="xsd:boolean" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Whether to copy task extension from the master task.
 						Overrides the value specified in the parent element.
 					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="extension" type="tns:ExtensionType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Custom items to be added to the given partition task extension.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="otherDeltas" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">

@@ -146,7 +146,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true);
-//		
+//
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_WEAPON, null);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_COLORS, ItemProcessing.AUTO);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_SECRET, ItemProcessing.IGNORE);
@@ -161,7 +161,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
-//		
+//
 //		ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
@@ -223,7 +223,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
-//		
+//
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_WEAPON, null);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_COLORS, ItemProcessing.AUTO);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_SECRET, ItemProcessing.IGNORE);
@@ -238,7 +238,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
-//		
+//
 //		ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-add delta produced from wrapper: "+objectDelta, objectDelta.isAdd());
@@ -266,13 +266,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //
 //		ContainerWrapperImpl<UserType> mainContainerWrapper = objectWrapper.findContainerWrapper(null);
 //		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
-//		
+//
 //		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, UserType.F_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_USERNAME));
 //		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_GIVEN_NAME));
 //		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, UserType.F_FAMILY_NAME, PrismTestUtil.createPolyString(USER_NEWMAN_FAMILY_NAME));
 //		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, UserType.F_EMPLOYEE_NUMBER, USER_NEWMAN_EMPLOYEE_NUMBER);
 //		WrapperTestUtil.fillInPropertyWrapper(mainContainerValueWrapper, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
-//		
+//
 //		// THEN
 //		displayThen(TEST_NAME);
 //
@@ -297,7 +297,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_GIVEN_NAME, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, false); // not visible, because it is empty
-//		
+//
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_WEAPON, null);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_COLORS, ItemProcessing.AUTO);
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_SECRET, ItemProcessing.IGNORE);
@@ -312,7 +312,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
-//		
+//
 //		ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-add delta produced from wrapper: "+objectDelta, objectDelta.isAdd());
@@ -324,7 +324,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		PrismAsserts.assertPropertyValue(objectToAdd, extensionPath(PIRACY_SHIP), USER_NEWMAN_SHIP);
 //		PrismAsserts.assertItems(objectToAdd, 5);
 //	}
-//	
+//
 //	@Test
 //    public void test102CreateWrapperUserEmpty() throws Exception {
 //		final String TEST_NAME = "test102CreateWrapperUserEmpty";
@@ -376,7 +376,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_FULL_NAME, true); // emphasized
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_ADDITIONAL_NAME, true); // empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, UserType.F_LOCALITY, true); // empty
-//		
+//
 //		ObjectDelta<UserType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
@@ -439,13 +439,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //			AssertJUnit.fail("Wrong fullname definition.displayOrder: " + fullNameDefinition.getDisplayOrder());
 //		}
 //		assertEquals("Wrong attribute fullname definition.displayName", "Full Name", fullNameDefinition.getDisplayName());
-//		
+//
 //		ObjectDelta<ShadowType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
 //
 //	}
-//	
+//
 //	@Test
 //    public void test160CreateWrapperOrgScummBar() throws Exception {
 //		final String TEST_NAME = "test160CreateWrapperOrgScummBar";
@@ -489,11 +489,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, false); // not visible, because it is empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
-//		
+//
 //		assertItemWrapperProcessing(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, null);
 //		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 //		assertEquals("Wrong processing in item wrapper for "+PIRACY_TRANSFORM, ItemProcessing.MINIMAL, transformContainerWrapper.getProcessing());
-//		
+//
 ////		ContainerWrapper<Containerable> transformContainerWrapper = objectWrapper.findContainerWrapper(ItemPath.create(PIRACY_TRANSFORM));
 ////		assertEquals("Wrong processing in item wrapper for "+PIRACY_TRANSFORM, ItemProcessing.MINIMAL, transformContainerWrapper.getProcessing());
 //
@@ -505,7 +505,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_IDENTIFIER, true);
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_RISK_LEVEL, true); // empty
 //		assertItemWrapperFullConrol(mainContainerValueWrapper, OrgType.F_LOCALITY, true);
-//		
+//
 //		ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
 //		display("Delta", objectDelta);
 //		assertTrue("non-empty delta produced from wrapper: "+objectDelta, objectDelta.isEmpty());
@@ -593,7 +593,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 ////		PrismProperty<String> groupAssociationUidProp = groupAssociationValueIdentifiers.findProperty(new QName(null,"uid"));
 ////		PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
 //	}
-//	
+//
 //	@Test
 //    public void test240OrgScummBarModifyTransformDescription() throws Exception {
 //		final String TEST_NAME = "test240OrgScummBarModifyTransformDescription";
@@ -612,30 +612,30 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 //
 //		modifyPropertyWrapper(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, "Whatever");
-//		
+//
 //		IntegrationTestTools.display("Wrapper after", objectWrapper);
-//		
+//
 //		// WHEN
 //		displayWhen(TEST_NAME);
 //		ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
-//		
+//
 //		// THEN
 //		displayThen(TEST_NAME);
 //		display("Delta", objectDelta);
 //		ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM_DESCRIPTION);
 //		PrismAsserts.assertPropertyReplace(objectDelta, ahoyPath, "Whatever");
 //		PrismAsserts.assertModifications(objectDelta, 1);
-//		
+//
 //		OperationResult result = task.getResult();
 //		executeChanges(objectDelta, null, task, result);
-//		
+//
 //		assertSuccess(result);
-//		
+//
 //		PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
 //		display("Org after", orgAfter);
 //
 //	}
-//	
+//
 //	@Test
 //    public void test241OrgScummBarModifyTransformProperties() throws Exception {
 //		final String TEST_NAME = "test241OrgScummBarModifyTransformProperties";
@@ -655,35 +655,35 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 //		List<ContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
 //		assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
-//		
+//
 //		ContainerValueWrapper<Containerable> valueWrapperA = findTransformValueWrapper(transformValueWrappers, "A");
 //		assertNotNull("No A value wrapper", valueWrapperA);
 //		display("A value wrapper", valueWrapperA);
 //		modifyTransformProp(valueWrapperA, PIRACY_REPLACEMENT, "Ahoy");
-//		
+//
 //		IntegrationTestTools.display("Wrapper after", objectWrapper);
-//		
+//
 //		// WHEN
 //		displayWhen(TEST_NAME);
 //		ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
-//		
+//
 //		// THEN
 //		displayThen(TEST_NAME);
 //		display("Delta", objectDelta);
 //		ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM, valueWrapperA.getContainerValue().getId(), PIRACY_REPLACEMENT);
 //		PrismAsserts.assertPropertyReplace(objectDelta, ahoyPath, "Ahoy");
 //		PrismAsserts.assertModifications(objectDelta, 1);
-//		
+//
 //		OperationResult result = task.getResult();
 //		executeChanges(objectDelta, null, task, result);
-//		
+//
 //		assertSuccess(result);
-//		
+//
 //		PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
 //		display("Org after", orgAfter);
 //
 //	}
-//	
+//
 //	@Test
 //    public void test242OrgScummBarAddTransform() throws Exception {
 //		final String TEST_NAME = "test242OrgScummBarAddTransform";
@@ -703,7 +703,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		ContainerWrapperImpl<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainerWrapper(extensionPath(PIRACY_TRANSFORM));
 //		List<ContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
 //		assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
-//		
+//
 //		ContainerWrapperFactory cwf = new ContainerWrapperFactory(getServiceLocator(task));
 //		ContainerValueWrapper<Containerable> newContainerValueWrapper = cwf.createContainerValueWrapper(transformContainerWrapper,
 //				transformContainerWrapper.getItem().createNewValue(), transformContainerWrapper.getObjectStatus(), ValueStatus.ADDED,
@@ -712,13 +712,13 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		transformContainerWrapper.addValue(newContainerValueWrapper);
 //		modifyTransformProp(newContainerValueWrapper, PIRACY_PATTERN, "D");
 //		modifyTransformProp(newContainerValueWrapper, PIRACY_REPLACEMENT, "Doubloon");
-//		
+//
 //		IntegrationTestTools.display("Wrapper after", objectWrapper);
-//		
+//
 //		// WHEN
 //		displayWhen(TEST_NAME);
 //		ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
-//		
+//
 //		// THEN
 //		displayThen(TEST_NAME);
 //		display("Delta", objectDelta);
@@ -731,23 +731,23 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		Collection<PrismContainerValue<Containerable>> valuesToAdd = transfromDelta.getValuesToAdd();
 //		assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
 //		PrismContainerValue<Containerable> containerValueToAdd = valuesToAdd.iterator().next();
-//		assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.getItems().size());
+//		assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.size());
 //		PrismProperty<String> patternProp = (PrismProperty) containerValueToAdd.findItem(PIRACY_PATTERN);
 //		PrismAsserts.assertPropertyValue(patternProp, "D");
 //		PrismProperty<String> replacementProp = (PrismProperty) containerValueToAdd.findItem(PIRACY_REPLACEMENT);
 //		PrismAsserts.assertPropertyValue(replacementProp, "Doubloon");
-//		
+//
 //		OperationResult result = task.getResult();
 //		executeChanges(objectDelta, null, task, result);
-//		
+//
 //		assertSuccess(result);
-//		
+//
 //		PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
 //		display("Org after", orgAfter);
 //
-//		
+//
 //	}
-//	
+//
 //	/**
 //	 * Ministry of rum has no extension container.
 //	 */
@@ -769,28 +769,28 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		ContainerValueWrapper<OrgType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
 //
 //		modifyPropertyWrapper(mainContainerValueWrapper, PIRACY_TRANSFORM_DESCRIPTION, "Whatever");
-//		
+//
 //		IntegrationTestTools.display("Wrapper after", objectWrapper);
-//		
+//
 //		// WHEN
 //		displayWhen(TEST_NAME);
 //		ObjectDelta<OrgType> objectDelta = objectWrapper.getObjectDelta();
-//		
+//
 //		// THEN
 //		displayThen(TEST_NAME);
 //		display("Delta", objectDelta);
 //		ItemPath ahoyPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM_DESCRIPTION);
 //		PrismAsserts.assertPropertyReplace(objectDelta, ahoyPath, "Whatever");
 //		PrismAsserts.assertModifications(objectDelta, 1);
-//		
+//
 //		OperationResult result = task.getResult();
 //		executeChanges(objectDelta, null, task, result);
-//		
+//
 //		assertSuccess(result);
-//		
+//
 //		PrismObject<OrgType> orgAfter = getObject(OrgType.class, ORG_MINISTRY_OF_RUM_OID);
 //		display("Org after", orgAfter);
-//		
+//
 //	}
 //
 //	private void modifyPropertyWrapper(ContainerValueWrapper<OrgType> mainContainerValueWrapper, ItemName propQName, String newValue) {
@@ -808,7 +808,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //			throw new IllegalArgumentException("Cannot use on multivalue props");
 //		}
 //	}
-//	
+//
 //	private ContainerValueWrapper<Containerable> findTransformValueWrapper(
 //			List<ContainerValueWrapper<Containerable>> transformValueWrappers, String pattern) {
 //		for (ContainerValueWrapper<Containerable> transformValueWrapper: transformValueWrappers) {
@@ -827,7 +827,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		PrismPropertyValue<String> prismValue = (PrismPropertyValue<String>) values.get(0).getValue();
 //		prismValue.setValue(newReplacement);
 //	}
-//	
+//
 //	/**
 //	 * MID-3126
 //	 */
@@ -861,7 +861,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertEquals("Wrong main container wrapper readOnly", Boolean.FALSE, (Boolean)mainContainerWrapper.isReadonly());
 //
 //		ContainerValueWrapper<UserType> mainContainerValueWrapper = mainContainerWrapper.getValues().iterator().next();
-//		
+//
 //		ItemWrapperOld nameWrapper = mainContainerValueWrapper.findPropertyWrapperByName(UserType.F_NAME);
 //		assertEquals("Wrong name readOnly", Boolean.TRUE, (Boolean)nameWrapper.isReadonly()); // Is this OK?
 //		assertEquals("Wrong name visible", Boolean.TRUE, (Boolean)nameWrapper.isVisible());
@@ -987,7 +987,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		assertEquals("Wrong "+propName+" definition.canAdd", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canAdd());
 //		assertEquals("Wrong "+propName+" definition.canModify", Boolean.TRUE, (Boolean)itemWrapper.getItemDefinition().canModify());
 //	}
-//	
+//
 //	private <F extends FocusType> void assertItemWrapperProcessing(ContainerValueWrapper<F> containerWrapper,
 //			ItemName propName, ItemProcessing expectedProcessing) {
 //		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapperByName(propName);
@@ -1003,7 +1003,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //		login(userAdministrator);
 //        unassignAllRoles(userOid);
 //	}
-//	
+//
 //	private String getString(String key) {
 //		return localizationService.translate(key, null, Locale.US, key);
 //	}

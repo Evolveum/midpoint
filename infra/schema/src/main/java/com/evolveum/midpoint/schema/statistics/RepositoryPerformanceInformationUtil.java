@@ -92,7 +92,7 @@ public class RepositoryPerformanceInformationUtil {
 			long totalWastedTime = defaultIfNull(op.getTotalWastedTime(), 0L);
 			int invocationCount = defaultIfNull(op.getInvocationCount(), 0);
 			int executionCount = defaultIfNull(op.getExecutionCount(), 0);
-			sb.append(String.format("  %-" + (max+2) + "s count:%6d, total time: %s", op.getName()+":", invocationCount,
+			sb.append(String.format("  %-" + (max+2) + "s count:%7d, total time: %s", op.getName()+":", invocationCount,
 					timeInfo(totalTime, op.getMinTime(), op.getMaxTime(), invocationCount)));
 			if (totalTime > 0 && executionCount > invocationCount) {
 				sb.append(String.format(Locale.US, ", wasted time for %4d retry/retries: %s (%s)", executionCount-invocationCount,

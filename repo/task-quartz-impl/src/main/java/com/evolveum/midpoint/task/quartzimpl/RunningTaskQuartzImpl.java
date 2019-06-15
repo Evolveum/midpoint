@@ -22,6 +22,9 @@ import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
+import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
+import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitor;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,6 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +90,16 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	 * Thread in which this task's lightweight handler is executing.
 	 */
 	private volatile Thread lightweightThread;
+
+	/**
+	 * How many objects were processed by this task (it's the responsibility of the task handler to maintain it)
+	 */
+	private AtomicInteger objectsProcessed = new AtomicInteger(0);
+
+	/**
+	 * When last profiling interval started.
+	 */
+	private Integer lastProfilingStartedAt;
 
 	RunningTaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		super(taskManager, taskPrism, repositoryService);
@@ -296,11 +310,28 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	}
 
 	public void startCollectingRepoAndCacheStats() {
-		statistics.startCollectingRepoAndCacheStats(repositoryService.getPerformanceMonitor());
+		statistics.setInitialPerformanceStats(getStoredOperationStats());
+		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
+		repositoryService.getPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
+		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 
 	Statistics getStatistics() {
 		return statistics;
 	}
 
+	public WorkBucketStatisticsCollector getWorkBucketStatisticsCollector() {
+		return statistics;
+	}
+
+
+	@Override
+	public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask) {
+		// todo implement
+	}
+
+	@Override
+	public void stopDynamicProfiling() {
+		// todo implement
+	}
 }

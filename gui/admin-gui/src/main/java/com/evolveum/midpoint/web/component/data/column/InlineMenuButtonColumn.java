@@ -92,8 +92,8 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
                 ((ColumnMenuAction) menuItem.getAction()).setRowModel(rowModel);
             }
             
-            if (menuItem.isCheckVisibility() && !isInlineMenuVisible(rowModel, isHeaderPanel)) {
-            	continue;
+            if (menuItem.getVisibilityChecker() != null && !menuItem.getVisibilityChecker().isVisible(rowModel, isHeaderPanel)) {
+                continue;
             }
             
             filteredMenuItems.add(menuItem);

@@ -45,6 +45,7 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
 		registry.registerHandler(StringPrefixWorkBucketContentType.class, this);
 	}
 
+	@SuppressWarnings("Duplicates")
 	@NotNull
 	@Override
 	public List<ObjectFilter> createSpecificFilters(@NotNull WorkBucketType bucket, AbstractWorkSegmentationType configuration,

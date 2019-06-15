@@ -23,8 +23,6 @@ import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -33,6 +31,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
+import com.evolveum.midpoint.util.aspect.MethodInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -141,51 +139,53 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 */
 	private String asynchronousOperationReference;
 
+	private MethodInvocationRecord invocationRecord;
+
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
 	public OperationResult(String operation) {
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
 	}
 
-	public OperationResult(String operation, String messageCode, String message) {
-		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
-	}
+//	public OperationResult(String operation, String messageCode, String message) {
+//		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
+//	}
 
 	public OperationResult(String operation, OperationResultStatus status, LocalizableMessage userFriendlyMessage) {
 		this(operation, null, status, 0, null, null, userFriendlyMessage, null, null);
 	}
 
-	public OperationResult(String operation, long token, String messageCode, String message) {
-		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
-	}
+//	public OperationResult(String operation, long token, String messageCode, String message) {
+//		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
+//	}
 
 	public OperationResult(String operation, OperationResultStatus status, String message) {
 		this(operation, null, status, 0, null, message, null, null, null);
 	}
 
-	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
-		this(operation, null, status, 0, messageCode, message, null, null, null);
-	}
+//	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
+//		this(operation, null, status, 0, messageCode, message, null, null, null);
+//	}
 
-	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-			String message) {
-		this(operation, null, status, token, messageCode, message, null, null, null);
-	}
+//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
+//			String message) {
+//		this(operation, null, status, token, messageCode, message, null, null, null);
+//	}
 
-	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-			String message, Throwable cause) {
-		this(operation, null, status, token, messageCode, message, null, cause, null);
-	}
+//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
+//			String message, Throwable cause) {
+//		this(operation, null, status, token, messageCode, message, null, cause, null);
+//	}
 
-	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message) {
-		this(operation, params, status, token, messageCode, message, null, null, null);
-	}
+//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
+//			long token, String messageCode, String message) {
+//		this(operation, params, status, token, messageCode, message, null, null, null);
+//	}
 
-	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message, List<OperationResult> subresults) {
-		this(operation, params, status, token, messageCode, message, null, null, subresults);
-	}
+//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
+//			long token, String messageCode, String message, List<OperationResult> subresults) {
+//		this(operation, params, status, token, messageCode, message, null, null, subresults);
+//	}
 
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
@@ -220,20 +220,38 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return result != null ? result.keepRootOnly() : null;
 	}
 
-	public OperationResult keepRootOnly() {
-		return new OperationResult(getOperation(), getStatus(), getMessageCode(), getMessage());
+	private OperationResult keepRootOnly() {
+		return new OperationResult(getOperation(), null, getStatus(), 0, getMessageCode(), getMessage(), null, null, null);
 	}
 
 	public OperationResult createSubresult(String operation) {
-		OperationResult subresult = new OperationResult(operation);
-		addSubresult(subresult);
-		return subresult;
+		return createSubresult(operation, false, true, new Object[0]);
 	}
 
 	public OperationResult createMinorSubresult(String operation) {
-		OperationResult subresult = createSubresult(operation);
-		subresult.minor = true;
+		return createSubresult(operation, true, true, null);        // temporarily profiled todo make this configurable
+	}
+
+	public OperationResult createMinorProfiledSubresult(String operation) {
+		return createSubresult(operation, true, true, new Object[0]);
+	}
+
+	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
+		OperationResult subresult = new OperationResult(operation);
+		addSubresult(subresult);
+		if (profiled) {
+			subresult.invocationRecord = MethodInvocationRecord.create(operation, arguments);
+		}
+		subresult.minor = minor;
 		return subresult;
+	}
+
+	// todo determine appropriate places where finish() should be called
+	public void finish() {
+		if (invocationRecord != null) {
+			invocationRecord.afterCall();
+			invocationRecord = null;
+		}
 	}
 
 	/**
@@ -545,6 +563,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
+		finish();
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.SUCCESS;
@@ -757,12 +776,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
     public void computeStatusIfUnknown() {
+	    finish();
         if (isUnknown()) {
             computeStatus();
         }
     }
 
     public void recomputeStatus() {
+	    finish();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -771,6 +792,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String message) {
+		finish();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -779,6 +801,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String errorMessage, String warningMessage) {
+		finish();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -787,12 +810,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccessIfUnknown() {
+		finish();
 		if (isUnknown()) {
 			recordSuccess();
 		}
 	}
 
 	public void recordNotApplicableIfUnknown() {
+		finish();
 		if (isUnknown()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
@@ -1094,7 +1119,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	/**
-	 * Contains mesage code based on module error catalog.
+	 * Contains message code based on module error catalog.
 	 *
 	 * @return Can return null.
 	 */
@@ -1131,6 +1156,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccess() {
+		finish();
 		// Success, no message or other explanation is needed.
 		status = OperationResultStatus.SUCCESS;
 	}
@@ -1180,6 +1206,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, Throwable cause) {
+		finish();
 		this.status = status;
 		this.cause = cause;
 		// No other message was given, so use message from the exception
@@ -1212,6 +1239,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
+		finish();
 		this.status = status;
 		this.message = message;
 		this.cause = cause;
@@ -1243,6 +1271,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message) {
+		finish();
 		this.status = status;
 		this.message = message;
 	}

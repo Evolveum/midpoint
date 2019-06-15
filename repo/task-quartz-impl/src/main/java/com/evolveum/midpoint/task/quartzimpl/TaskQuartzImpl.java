@@ -2598,4 +2598,15 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
 		setPropertyTransient(TaskType.F_EXECUTION_ENVIRONMENT, value);
 	}
+
+	@Override
+	public TaskExecutionEnvironmentType getExecutionEnvironment() {
+		return getTaskType().getExecutionEnvironment();
+	}
+
+	@Override
+	public boolean isScavenger() {
+		TaskWorkManagementType workManagement = getWorkManagement();
+		return workManagement != null && Boolean.TRUE.equals(workManagement.isScavenger());
+	}
 }

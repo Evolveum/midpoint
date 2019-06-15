@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -46,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProfilingConfigurati
 /**
  * @author skublik
  * @deprecated
- * 
+ *
  * rework to use special wrapper - smth like profiling wrapper which will prepare all the predefined values, profiling level etc.
  */
 
@@ -62,7 +64,6 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 	private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
 	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
 
-	public static final String LOGGER_PROFILING = "PROFILING";
 	private IModel<PrismContainerWrapper<LoggingConfigurationType>> loggingModel;
 
 	public ProfilingConfigurationTabPanel(String id, IModel<PrismContainerWrapper<ProfilingConfigurationType>> profilingModel,
@@ -94,11 +95,11 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
 			@Override
 			public boolean isVisible() {
-				return !getPageBase().getMidpointConfiguration().isProfilingEnabled();
+				return getPageBase().getMidpointConfiguration().getProfilingMode() == ProfilingMode.OFF;
 			}
 		});
 		add(profilingEnabledNote);
-		
+
 		try {
 			getProfilingModel().getObject().setShowOnTopLevel(true);
 			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), null);

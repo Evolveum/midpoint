@@ -437,7 +437,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(attributes);
 		PrismContainerValue<?> attributesValue = attributes.getValue();
 		assertNotNull(attributesValue);
-		assertEquals("Wrong # of attributes", 3, attributesValue.getItems().size());
+		assertEquals("Wrong # of attributes", 3, attributesValue.size());
 		Set<ItemName> names = attributesValue.getItems().stream().map(a -> a.getElementName()).collect(Collectors.toSet());
 		assertEquals("Wrong attribute names", new HashSet<>(Arrays.asList(
 				new ItemName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003", "uid"),

@@ -32,6 +32,7 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +44,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * @author semancik
@@ -73,16 +73,18 @@ public class PrismMarshaller {
 	 * @param itemName Name to give to the item in the marshaled form. Usually null (i.e. taken from the item itself).
 	 * @param itemDefinition Definition to be used when parsing. Usually null (i.e. taken from the item itself).
 	 * @param context Serialization context.
+	 * @param itemsToSkip Top-level items that should not be marshaled.
 	 * @return Marshaled item.
 	 */
 	@NotNull
 	RootXNodeImpl marshalItemAsRoot(@NotNull Item<?, ?> item, QName itemName,
-			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
+			ItemDefinition itemDefinition, SerializationContext context,
+			Collection<? extends QName> itemsToSkip) throws SchemaException {
 
 		@NotNull QName realItemName = itemName != null ? itemName : item.getElementName();
 		ItemDefinition realItemDefinition = itemDefinition != null ? itemDefinition : item.getDefinition();
 
-		XNodeImpl content = marshalItemContent(item, realItemDefinition, context);
+		XNodeImpl content = marshalItemContent(item, realItemDefinition, context, itemsToSkip);
 		if (realItemDefinition != null) {
 			addTypeDefinitionIfNeeded(realItemName, realItemDefinition.getTypeName(), content);
 		}
@@ -96,11 +98,12 @@ public class PrismMarshaller {
 	 * @param itemName Item name to be used. Optional. If omitted, it is derived from value and/or definition.
 	 * @param itemDefinition Item definition to be used. Optional.
 	 * @param context Serialization context.
+	 * @param itemsToSkip Top-level items that should not be marshaled.
 	 * @return Marshaled prism value.
 	 */
 	@NotNull
 	RootXNodeImpl marshalPrismValueAsRoot(@NotNull PrismValue value, QName itemName, ItemDefinition itemDefinition,
-			SerializationContext context) throws SchemaException {
+			SerializationContext context, Collection<? extends QName> itemsToSkip) throws SchemaException {
         ItemInfo itemInfo = ItemInfo.determineFromValue(value, itemName, itemDefinition, getSchemaRegistry());
 		QName realItemName = itemInfo.getItemName();
 		ItemDefinition realItemDefinition = itemInfo.getItemDefinition();
@@ -110,7 +113,7 @@ public class PrismMarshaller {
 			throw new IllegalArgumentException("Couldn't determine item name from the prism value; cannot marshal to RootXNode");
 		}
 
-		XNodeImpl valueNode = marshalItemValue(value, realItemDefinition, realItemTypeName, context);
+		XNodeImpl valueNode = marshalItemValue(value, realItemDefinition, realItemTypeName, context, itemsToSkip);
 		addTypeDefinitionIfNeeded(realItemName, realItemTypeName, valueNode);
 		return new RootXNodeImpl(realItemName, valueNode);
 	}
@@ -122,17 +125,22 @@ public class PrismMarshaller {
 	 * @param itemName Item name to be used. Optional. If omitted, it is derived from value and/or definition.
 	 * @param itemDefinition Item definition to be used. Optional.
 	 * @param context Serialization context.
+	 * @param itemsToSkip Top-level items that should not be marshaled.
 	 * @return Marshaled object.
 	 */
 	@NotNull
-	RootXNodeImpl marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
+	RootXNodeImpl marshalAnyData(@NotNull Object object, QName itemName, ItemDefinition itemDefinition,
+			SerializationContext context, Collection<? extends QName> itemsToSkip) throws SchemaException {
 		if (object instanceof Item) {
-			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context);
+			return marshalItemAsRoot((Item) object, itemName, itemDefinition, context, itemsToSkip);
 		}
 		Validate.notNull(itemName, "itemName must be specified for non-Item objects");
 		if (object instanceof Containerable) {
-			return marshalPrismValueAsRoot(((Containerable) object).asPrismContainerValue(), itemName, null, context);
+			return marshalPrismValueAsRoot(((Containerable) object).asPrismContainerValue(), itemName, null, context, itemsToSkip);
 		} else if (beanMarshaller.canProcess(object.getClass())) {
+			if (CollectionUtils.isNotEmpty(itemsToSkip)) {
+				LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, object.getClass());
+			}
 			XNodeImpl valueNode = beanMarshaller.marshall(object, context);        // TODO item definition!
 			QName typeName = JAXBUtil.getTypeQName(object.getClass());
 			if (valueNode != null) {
@@ -174,13 +182,14 @@ public class PrismMarshaller {
 	 */
 	@NotNull
 	private XNodeImpl marshalItemContent(@NotNull Item<?, ?> item,
-			ItemDefinition itemDefinition, SerializationContext context) throws SchemaException {
+			ItemDefinition itemDefinition, SerializationContext context,
+			Collection<? extends QName> itemsToSkip) throws SchemaException {
 		if (item.size() == 1) {
-			return marshalItemValue(item.getAnyValue(), itemDefinition, null, context);
+			return marshalItemValue(item.getAnyValue(), itemDefinition, null, context, itemsToSkip);
 		} else {
 			ListXNodeImpl xlist = new ListXNodeImpl();
 			for (PrismValue val : item.getValues()) {
-				xlist.add(marshalItemValue(val, itemDefinition, null, context));
+				xlist.add(marshalItemValue(val, itemDefinition, null, context, itemsToSkip));
 			}
 			return xlist;
 		}
@@ -189,7 +198,7 @@ public class PrismMarshaller {
 	@NotNull
 	private <O extends Objectable> MapXNodeImpl marshalObjectContent(@NotNull PrismObject<O> object, @NotNull PrismObjectDefinition<O> objectDefinition, SerializationContext ctx) throws SchemaException {
 		MapXNodeImpl xmap = new MapXNodeImpl();
-		marshalContainerValue(xmap, object.getValue(), objectDefinition, ctx);
+		marshalContainerValue(xmap, object.getValue(), objectDefinition, ctx, null);
 		xmap.setTypeQName(objectDefinition.getTypeName());		// object should have the definition (?)
 		return xmap;
 	}
@@ -197,16 +206,20 @@ public class PrismMarshaller {
 	@SuppressWarnings("unchecked")
 	@NotNull
     private XNodeImpl marshalItemValue(@NotNull PrismValue itemValue, @Nullable ItemDefinition definition,
-			@Nullable QName typeName, SerializationContext ctx) throws SchemaException {
+			@Nullable QName typeName, SerializationContext ctx,
+			Collection<? extends QName> itemsToSkip) throws SchemaException {
         XNodeImpl xnode;
         if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
-            return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
-            xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
         } else if (itemValue instanceof PrismPropertyValue<?>) {
-            xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
+	        checkItemsToSkip(itemValue, itemsToSkip);
+	        xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition) definition, typeName);
         } else if (itemValue instanceof PrismContainerValue<?>) {
-            xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx);
+            xnode = marshalContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition) definition, ctx, itemsToSkip);
         } else {
             throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
         }
@@ -218,6 +231,12 @@ public class PrismMarshaller {
         }
         return xnode;
     }
+
+	private void checkItemsToSkip(@NotNull PrismValue itemValue, Collection<? extends QName> itemsToSkip) {
+		if (CollectionUtils.isNotEmpty(itemsToSkip)) {
+			LOGGER.warn("Trying to skip marshalling items {} where not applicable: {}", itemsToSkip, itemValue);
+		}
+	}
 
 	private boolean shouldPutTypeInExportMode(SerializationContext ctx, ItemDefinition definition) {
 		if (!SerializationContext.isSerializeForExport(ctx) || definition == null || !definition.isRuntimeSchema()) {
@@ -256,13 +275,17 @@ public class PrismMarshaller {
 		}
 	}
 
-	private <C extends Containerable> MapXNodeImpl marshalContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
+	private <C extends Containerable> MapXNodeImpl marshalContainerValue(PrismContainerValue<C> containerVal,
+			PrismContainerDefinition<C> containerDefinition, SerializationContext ctx,
+			Collection<? extends QName> itemsToSkip) throws SchemaException {
 		MapXNodeImpl xmap = new MapXNodeImpl();
-		marshalContainerValue(xmap, containerVal, containerDefinition, ctx);
+		marshalContainerValue(xmap, containerVal, containerDefinition, ctx, itemsToSkip);
 		return xmap;
 	}
 
-	private <C extends Containerable> void marshalContainerValue(MapXNodeImpl xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition, SerializationContext ctx) throws SchemaException {
+	private <C extends Containerable> void marshalContainerValue(MapXNodeImpl xmap, PrismContainerValue<C> containerVal,
+			PrismContainerDefinition<C> containerDefinition, SerializationContext ctx,
+			Collection<? extends QName> itemsToSkip) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
 			xmap.put(XNodeImpl.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
@@ -295,23 +318,23 @@ public class PrismMarshaller {
 				ItemName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
-					XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
-					xmap.put(elementName, xsubnode);
-					marshaledItems.add(elementName);
+					if (!QNameUtil.contains(itemsToSkip, elementName)) {
+						XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
+						xmap.put(elementName, xsubnode);
+						marshaledItems.add(elementName);
+					}
 				}
 			}
 		}
 		// There are some cases when we do not have list of all elements in a container.
 		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
-		if (containerVal.getItems() != null){
-			for (Item<?,?> item : containerVal.getItems()) {
-				QName elementName = item.getElementName();
-				if (marshaledItems.contains(elementName)) {
-					continue;
-				}
-				XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx);
-				xmap.put(elementName, xsubnode);
+		for (Item<?,?> item : containerVal.getItems()) {
+			QName elementName = item.getElementName();
+			if (marshaledItems.contains(elementName) || QNameUtil.contains(itemsToSkip, elementName)) {
+				continue;
 			}
+			XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
+			xmap.put(elementName, xsubnode);
 		}
 	}
 
@@ -442,10 +465,11 @@ public class PrismMarshaller {
             		throw new SchemaException("Cannot marshall property value "+value+": marshaller returned null");
             	}
             }
+            assert xnode != null;
             if (realValue != null && realValue.getClass().getPackage() != null) {
 				TypeDefinition typeDef = getSchemaRegistry()
 						.findTypeDefinitionByCompileTimeClass(realValue.getClass(), TypeDefinition.class);
-				if (xnode != null && typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
+				if (typeDef != null && !QNameUtil.match(typeDef.getTypeName(), typeName)) {
 					xnode.setTypeQName(typeDef.getTypeName());
 					xnode.setExplicitTypeDeclaration(true);
 				}

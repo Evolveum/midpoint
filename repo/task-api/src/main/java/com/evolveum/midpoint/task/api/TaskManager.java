@@ -755,4 +755,6 @@ public interface TaskManager {
 
 	// A little bit of hack as well
 	CacheConfigurationManager getCacheConfigurationManager();
+
+	boolean isDynamicProfilingEnabled();
 }

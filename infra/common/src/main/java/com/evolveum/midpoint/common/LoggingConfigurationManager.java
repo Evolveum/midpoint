@@ -23,8 +23,13 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import ch.qos.logback.classic.Level;
@@ -39,13 +44,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
 
 public class LoggingConfigurationManager {
 
@@ -57,6 +55,7 @@ public class LoggingConfigurationManager {
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
 	private static final String ALT_APPENDER_NAME = "ALT_LOG";
+	private static final LoggingLevelType DEFAULT_PROFILING_LEVEL = LoggingLevelType.INFO;
 
 	private static String currentlyUsedVersion = null;
 
@@ -94,6 +93,7 @@ public class LoggingConfigurationManager {
 
 		//Generate configuration file as string
 		String configXml = prepareConfiguration(config, midpointConfiguration);
+
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("New logging configuration:");
@@ -215,12 +215,27 @@ public class LoggingConfigurationManager {
 			sb.append("\t</root>\n");
 		}
 
+		ProfilingMode profilingMode = midpointConfiguration.getProfilingMode();
+
+		LoggingLevelType profilingLoggingLevelSet = null;
+
 		//Generate class based loggers
 		for (ClassLoggerConfigurationType logger : config.getClassLogger()) {
 			sb.append("\t<logger name=\"");
 			sb.append(logger.getPackage());
 			sb.append("\" level=\"");
-			sb.append(logger.getLevel());
+			LoggingLevelType level;
+			if (MidPointConstants.PROFILING_LOGGER_NAME.equals(logger.getPackage())) {
+				if (profilingMode == ProfilingMode.DYNAMIC) {
+					profilingLoggingLevelSet = logger.getLevel() != null ? logger.getLevel() : DEFAULT_PROFILING_LEVEL;
+					level = LoggingLevelType.TRACE;
+				} else {
+					level = logger.getLevel();
+				}
+			} else {
+				level = logger.getLevel();
+			}
+			sb.append(level);
 			sb.append("\"");
 			//if logger specific appender is defined
 			if (null != logger.getAppender() && !logger.getAppender().isEmpty()) {
@@ -235,7 +250,18 @@ public class LoggingConfigurationManager {
 				sb.append("/>\n");
 			}
 		}
-		
+
+		if (profilingMode == ProfilingMode.DYNAMIC) {
+			if (profilingLoggingLevelSet != null) {
+				MidpointInterceptor.setGlobalMethodInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
+			} else {
+				MidpointInterceptor.setGlobalMethodInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
+				sb.append("\t<logger name=\"");
+				sb.append(MidPointConstants.PROFILING_LOGGER_NAME);
+				sb.append("\" level=\"TRACE\"/>\n");
+			}
+		}
+
 		generateAuditingLogConfig(config.getAuditing(), sb);
 
 		if (null != config.getAdvanced()) {
@@ -256,6 +282,19 @@ public class LoggingConfigurationManager {
 		
 		sb.append("</configuration>");
 		return sb.toString();
+	}
+
+	private static Level toLevel(@NotNull LoggingLevelType level) {
+		switch (level) {
+			case ALL: return Level.ALL;
+			case TRACE: return Level.TRACE;
+			case DEBUG: return Level.DEBUG;
+			case INFO: return Level.INFO;
+			case WARN: return Level.WARN;
+			case ERROR: return Level.ERROR;
+			case OFF: return Level.OFF;
+			default: throw new IllegalArgumentException("level: " + level);
+		}
 	}
 
 	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,

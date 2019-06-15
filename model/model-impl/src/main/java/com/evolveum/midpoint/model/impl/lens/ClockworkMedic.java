@@ -152,16 +152,25 @@ public class ClockworkMedic {
 		}
 	}
 	
-	public void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
+	public void partialExecute(String componentName, ProjectorComponentRunnable runnable,
+			Supplier<PartialProcessingTypeType> optionSupplier,
+			Class<?> executingClass, LensContext<?> context, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		partialExecute(componentName, runnable, optionSupplier, null);
+		partialExecute(componentName, runnable, optionSupplier, executingClass, context, null, parentResult);
 	}
 
-	public void partialExecute(String componentName, ProjectorComponentRunnable runnable,
-			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
+	public void partialExecute(String baseComponentName, ProjectorComponentRunnable runnable,
+			Supplier<PartialProcessingTypeType> optionSupplier,
+			Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+		String componentName;
+		if (projectionContext != null) {
+			componentName = baseComponentName + " " + projectionContext.getHumanReadableName();
+		} else {
+			componentName = baseComponentName;
+		}
 		ClockworkInspector clockworkInspector = getClockworkInspector();
 		PartialProcessingTypeType option = optionSupplier.get();
 		if (option == PartialProcessingTypeType.SKIP) {
@@ -170,6 +179,13 @@ public class ClockworkMedic {
 				clockworkInspector.projectorComponentSkip(componentName);
 			}
 		} else {
+			String operationName = executingClass.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + "." + baseComponentName;
+			if (projectionContext != null) {
+				operationName += "." + projectionContext.getResourceOid() + "." +
+						projectionContext.getResourceShadowDiscriminator().getKind() + "." +
+						projectionContext.getResourceShadowDiscriminator().getIntent();
+			}
+			OperationResult result = parentResult != null ? parentResult.createSubresult(operationName) : null;
 			LOGGER.trace("Projector component started: {}", componentName);
 			if (clockworkInspector != null) {
 				clockworkInspector.projectorComponentStart(componentName);
@@ -177,6 +193,9 @@ public class ClockworkMedic {
 			try {
 				runnable.run();
 				LOGGER.trace("Projector component finished: {}", componentName);
+				if (result != null) {
+					result.computeStatus();
+				}
 			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
 					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
 				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());

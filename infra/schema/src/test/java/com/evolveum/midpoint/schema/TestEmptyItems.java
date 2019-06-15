@@ -52,7 +52,7 @@ public class TestEmptyItems {
 		// GIVEN
 		UserType user = new UserType(getPrismContext());
 		System.out.println("User before:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items before 'get' operations", 0, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items before 'get' operations", 0, user.asPrismContainerValue().size());
 
 		// WHEN
 		user.getAssignment();
@@ -61,7 +61,7 @@ public class TestEmptyItems {
 
 		// THEN
 		System.out.println("User after:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items after 'get' operations", 0, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items after 'get' operations", 0, user.asPrismContainerValue().size());
 	}
 
 	@Test
@@ -72,7 +72,7 @@ public class TestEmptyItems {
 		UserType user = new UserType(getPrismContext());
 		user.setName(PolyStringType.fromOrig("jack"));
 		System.out.println("User before:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items before serialization/reparsing", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items before serialization/reparsing", 1, user.asPrismContainerValue().size());
 
 		// WHEN
 		String xml = getPrismContext().xmlSerializer().serialize(user.asPrismObject());
@@ -80,7 +80,7 @@ public class TestEmptyItems {
 
 		// THEN
 		System.out.println("User after:\n" + user.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items after serialization/reparsing", 1, CollectionUtils.emptyIfNull(user.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items after serialization/reparsing", 1, user.asPrismContainerValue().size());
 	}
 
 	@Test
@@ -114,7 +114,7 @@ public class TestEmptyItems {
 				.organization("O123456");
 		System.out.println("User:\n" + jack.asPrismObject().debugDump());
 
-		assertEquals("Wrong # of user sub-items before 'get' operations", 8, CollectionUtils.emptyIfNull(jack.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items before 'get' operations", 8, jack.asPrismContainerValue().size());
 
 		// WHEN
 		jack.getAssignment();
@@ -123,7 +123,7 @@ public class TestEmptyItems {
 
 		// THEN
 		System.out.println("User after:\n" + jack.asPrismObject().debugDump());
-		assertEquals("Wrong # of user sub-items after 'get' operations", 8, CollectionUtils.emptyIfNull(jack.asPrismContainerValue().getItems()).size());
+		assertEquals("Wrong # of user sub-items after 'get' operations", 8, jack.asPrismContainerValue().size());
 	}
 
 }

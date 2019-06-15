@@ -172,21 +172,19 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             PrismContainer<ReportParameterType> reportParams = (PrismContainer) task.getExtensionItem(ReportConstants.REPORT_PARAMS_PROPERTY_NAME);
             if (reportParams != null) {
                 PrismContainerValue<ReportParameterType> reportParamsValues = reportParams.getValue();
-                List<Item<?, ?>> items = reportParamsValues.getItems();
-                if (items != null) {
-                    for (Item item : items) {
-                        PrismProperty pp = (PrismProperty) item;
-                        String paramName = pp.getPath().lastName().getLocalPart();
-                        Object value;
-                        if (isSingleValue(paramName, jasperReport.getParameters())) {
-                        	value = pp.getRealValues().iterator().next();
-                        } else {
-                        	value = pp.getRealValues();
-                        }
-
-                        parameters.put(paramName, value);
-
+                Collection<Item<?, ?>> items = reportParamsValues.getItems();
+                for (Item item : items) {
+                    PrismProperty pp = (PrismProperty) item;
+                    String paramName = pp.getPath().lastName().getLocalPart();
+                    Object value;
+                    if (isSingleValue(paramName, jasperReport.getParameters())) {
+                        value = pp.getRealValues().iterator().next();
+                    } else {
+                        value = pp.getRealValues();
                     }
+
+                    parameters.put(paramName, value);
+
                 }
             }
 

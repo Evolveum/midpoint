@@ -458,7 +458,7 @@ public class ProvisioningUtil {
 		List<QName> identifiers = attributesDefinition.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toList());
 		List<QName> outstandingInRepo;
 		PrismContainer<?> repoAttributes = repoShadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
-		if (repoAttributes != null && repoAttributes.getValue() != null && repoAttributes.getValue().getItems() != null) {
+		if (repoAttributes != null) {
 			outstandingInRepo = repoAttributes.getValue().getItems().stream()
 					.map(Item::getElementName)
 					.collect(Collectors.toCollection(ArrayList::new));

@@ -82,21 +82,25 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		return test.substring(4, 7);
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String workerTaskFilename(String TEST_NAME) {
 		return taskFilename(TEST_NAME, "w");
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String coordinatorTaskFilename(String TEST_NAME) {
 		return taskFilename(TEST_NAME, "c");
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String workerTaskOid(String TEST_NAME) {
 		return taskOid(TEST_NAME, "w");
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String coordinatorTaskOid(String TEST_NAME) {
 		return taskOid(TEST_NAME, "c");
@@ -124,7 +128,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
         TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
 
         // WHEN
-	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    ObjectQuery narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
@@ -142,8 +146,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 1, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 1, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 	    // THEN
@@ -161,8 +165,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (2)", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 2, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 2, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
 
@@ -180,14 +184,15 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (3)", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 3, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 3, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 
 	    // THEN
 	    display("allocated bucket (4)", String.valueOf(bucket));
 	    taskAfter = taskManager.getTask(task.getOid(), result);
 	    display("task after (4)", taskAfter);
 
+	    //noinspection SimplifiedTestNGAssertion
 	    assertEquals("Expected null bucket", null, bucket);
 
 	    assertOptimizedCompletedBuckets(taskAfter);
@@ -205,7 +210,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 
         // WHEN
 	    WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
-	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    WorkBucketType bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    ObjectQuery narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 	    Integer numberOfBuckets = segmentationStrategy.estimateNumberOfBuckets(null);
@@ -227,8 +232,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 1, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 1, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
@@ -248,8 +253,8 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (2)", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 2, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 2, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 	    narrowedQuery = workStateManager
 			    .narrowQueryForWorkBucket(task, null, ShadowType.class, null, bucket, result);
 
@@ -267,14 +272,15 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 	    PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (3)", expectedQuery, narrowedQuery);
 
 	    // WHEN (complete and allocate next)
-	    workStateManager.completeWorkBucket(task.getOid(), 3, result);
-	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, result);
+	    workStateManager.completeWorkBucket(task.getOid(), 3, null, result);
+	    bucket = workStateManager.getWorkBucket(task.getOid(), 0, null, null, result);
 
 	    // THEN
 	    display("allocated bucket (4)", String.valueOf(bucket));
 	    taskAfter = taskManager.getTask(task.getOid(), result);
 	    display("task after (4)", taskAfter);
 
+	    //noinspection SimplifiedTestNGAssertion
 	    assertEquals("Expected null bucket", null, bucket);
 
 	    assertOptimizedCompletedBuckets(taskAfter);
@@ -333,6 +339,62 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		assumeNextPrefix(segmentationStrategy, workState, "aca", 23);
 		assumeNextPrefix(segmentationStrategy, workState, "acb", 24);
 		assumeNextPrefix(segmentationStrategy, workState, "acc", 25);
+		assumeNoNextBucket(segmentationStrategy, workState);
+
+		suspendAndDeleteTasks(task.getOid());
+	}
+
+	@Test
+	public void test125StringExactValueBuckets() throws Exception {
+		final String TEST_NAME = "test125StringExactValueBuckets";
+		OperationResult result = createResult(TEST_NAME, LOGGER);
+		addObjectFromFile(taskFilename(TEST_NAME));
+
+		TaskQuartzImpl task = taskManager.getTask(taskOid(TEST_NAME), result);
+
+		// WHEN
+		WorkSegmentationStrategy segmentationStrategy = strategyFactory.createStrategy(task.getWorkManagement());
+		TaskWorkStateType workState = new TaskWorkStateType(prismContext);
+
+		// WHEN+THEN
+		// a, 01abc, 01abc
+		StringWorkSegmentationStrategy stringStrategy = (StringWorkSegmentationStrategy) segmentationStrategy;
+		assertEquals("Wrong expanded boundaries", Arrays.asList("a", "01abc", "01abc"), stringStrategy.getBoundaries());
+		assertEquals("Wrong # of estimated buckets", Integer.valueOf(25), segmentationStrategy.estimateNumberOfBuckets(null));
+
+		WorkBucketType bucket = assumeNextValue(segmentationStrategy, workState, "a00", 1);
+		ObjectQuery narrowedQuery = workStateManager
+				.narrowQueryForWorkBucket(task, null, UserType.class, null, bucket, result);
+		display("narrowed query (1)", narrowedQuery);
+		ObjectQuery expectedQuery = prismContext.queryFor(UserType.class)
+				.item(UserType.F_NAME).eq("a00").matchingNorm()
+				.build();
+		PrismAsserts.assertQueriesEquivalent("Wrong narrowed query (1)", expectedQuery, narrowedQuery);
+
+		assumeNextValue(segmentationStrategy, workState, "a01", 2);
+		assumeNextValue(segmentationStrategy, workState, "a0a", 3);
+		assumeNextValue(segmentationStrategy, workState, "a0b", 4);
+		assumeNextValue(segmentationStrategy, workState, "a0c", 5);
+		assumeNextValue(segmentationStrategy, workState, "a10", 6);
+		assumeNextValue(segmentationStrategy, workState, "a11", 7);
+		assumeNextValue(segmentationStrategy, workState, "a1a", 8);
+		assumeNextValue(segmentationStrategy, workState, "a1b", 9);
+		assumeNextValue(segmentationStrategy, workState, "a1c", 10);
+		assumeNextValue(segmentationStrategy, workState, "aa0", 11);
+		assumeNextValue(segmentationStrategy, workState, "aa1", 12);
+		assumeNextValue(segmentationStrategy, workState, "aaa", 13);
+		assumeNextValue(segmentationStrategy, workState, "aab", 14);
+		assumeNextValue(segmentationStrategy, workState, "aac", 15);
+		assumeNextValue(segmentationStrategy, workState, "ab0", 16);
+		assumeNextValue(segmentationStrategy, workState, "ab1", 17);
+		assumeNextValue(segmentationStrategy, workState, "aba", 18);
+		assumeNextValue(segmentationStrategy, workState, "abb", 19);
+		assumeNextValue(segmentationStrategy, workState, "abc", 20);
+		assumeNextValue(segmentationStrategy, workState, "ac0", 21);
+		assumeNextValue(segmentationStrategy, workState, "ac1", 22);
+		assumeNextValue(segmentationStrategy, workState, "aca", 23);
+		assumeNextValue(segmentationStrategy, workState, "acb", 24);
+		assumeNextValue(segmentationStrategy, workState, "acc", 25);
 		assumeNoNextBucket(segmentationStrategy, workState);
 
 		suspendAndDeleteTasks(task.getOid());
@@ -426,6 +488,19 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		suspendAndDeleteTasks(task.getOid());
 	}
 
+	private WorkBucketType assumeNextValue(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
+			String expectedNextValue, int expectedSequentialNumber) throws SchemaException {
+		WorkBucketType newBucket = getNextBucket(segmentationStrategy, workState, expectedSequentialNumber);
+		AbstractWorkBucketContentType content = newBucket.getContent();
+		assertEquals("Wrong content class", StringValueWorkBucketContentType.class, content.getClass());
+		StringValueWorkBucketContentType prefixContent = (StringValueWorkBucketContentType) content;
+		assertEquals("Wrong # of values generated", 1, prefixContent.getValue().size());
+		assertEquals("Wrong next value", expectedNextValue, prefixContent.getValue().get(0));
+
+		workState.getBucket().add(newBucket.clone().state(WorkBucketStateType.COMPLETE));
+		return newBucket;
+	}
+
 	private WorkBucketType assumeNextPrefix(WorkSegmentationStrategy segmentationStrategy, TaskWorkStateType workState,
 			String expectedNextPrefix, int expectedSequentialNumber) throws SchemaException {
 		WorkBucketType newBucket = getNextBucket(segmentationStrategy, workState, expectedSequentialNumber);
@@ -472,6 +547,7 @@ public class TestWorkBucketStrategies extends AbstractTaskManagerTest {
 		display("get bucket result", gbr);
 		assertTrue("Wrong answer", gbr instanceof WorkSegmentationStrategy.GetBucketResult.NothingFound);
 		WorkSegmentationStrategy.GetBucketResult.NothingFound nothingFound = (WorkSegmentationStrategy.GetBucketResult.NothingFound) gbr;
+		//noinspection SimplifiedTestNGAssertion
 		assertEquals("Wrong definite flag", true, nothingFound.definite);
 	}
 }
