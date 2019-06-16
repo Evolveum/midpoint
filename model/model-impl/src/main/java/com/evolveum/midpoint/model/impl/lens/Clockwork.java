@@ -503,7 +503,7 @@ public class Clockwork {
 				context.generateRequestIdentifierIfNeeded();
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
-				audit(context, AuditEventStage.REQUEST, task, result);
+				audit(context, AuditEventStage.REQUEST, task, result, parentResult);        // we need to take the overall ("run" operation result) not the current one
 			}
 
 			boolean recompute = false;
@@ -555,10 +555,10 @@ public class Clockwork {
 					processPrimaryToSecondary(context, task, result);
 					break;
 				case SECONDARY:
-					processSecondary(context, task, result);
+					processSecondary(context, task, result, parentResult);
 					break;
 				case FINAL:
-					HookOperationMode mode = processFinal(context, task, result);
+					HookOperationMode mode = processFinal(context, task, result, parentResult);
 					medic.clockworkFinish(context);
 					return mode;
 			}
@@ -567,7 +567,7 @@ public class Clockwork {
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
 				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
 				ObjectAlreadyExistsException | PreconditionViolationException e) {
-			processClockworkException(context, e, task, result);
+			processClockworkException(context, e, task, result, parentResult);
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
@@ -718,7 +718,7 @@ public class Clockwork {
 		
 	}
 
-	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) 
+	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
@@ -736,7 +736,7 @@ public class Clockwork {
 				context.getPartialProcessingOptions()::getExecution,
 				Clockwork.class, context, result);
 
-		audit(context, AuditEventStage.EXECUTION, task, result);
+		audit(context, AuditEventStage.EXECUTION, task, result, overallResult);
 
 		rotContextIfNeeded(context);
 
@@ -837,10 +837,10 @@ public class Clockwork {
 		return false;
 	}
 
-	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) 
+	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
-		auditFinalExecution(context, task, result);
+		auditFinalExecution(context, task, result, overallResult);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, null, task, result);
 		migrator.executeAfterOperationMigration(context, result);
@@ -1112,7 +1112,9 @@ public class Clockwork {
         return HookOperationMode.BACKGROUND;
     }
 
-    private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+    // "overallResult" covers the whole clockwork run
+    // while "result" is - most of the time - related to the current clockwork click
+    private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result, OperationResult overallResult) throws SchemaException {
 		if (context.isLazyAuditRequest()) {
 			if (stage == AuditEventStage.REQUEST) {
 				// We skip auditing here, we will do it before execution
@@ -1123,12 +1125,12 @@ public class Clockwork {
 					return;
 				}
 				if (!context.isRequestAudited()) {
-					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), false, task, result);
+					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), false, task, result, overallResult);
 				}
-				auditEvent(context, stage, null, false, task, result);
+				auditEvent(context, stage, null, false, task, result, overallResult);
 			}
 		} else {
-			auditEvent(context, stage, null, false, task, result);
+			auditEvent(context, stage, null, false, task, result, overallResult);
 		}
 	}
 
@@ -1136,27 +1138,33 @@ public class Clockwork {
 	 * Make sure that at least one execution is audited if a request was already audited. We don't want
 	 * request without execution in the audit logs.
 	 */
-	private <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result,
+			OperationResult overallResult) throws SchemaException {
 		if (!context.isRequestAudited()) {
 			return;
 		}
 		if (context.isExecutionAudited()) {
 			return;
 		}
-		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 	}
 
-	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result)
+	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
 		result.recordFatalError(e);
-		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 		recordOperationExecution(context, e, task, result);
 		LensUtil.reclaimSequences(context, repositoryService, task, result);
 	}
 
+	// "overallResult" covers the whole clockwork run
+	// while "result" is - most of the time - related to the current clockwork click
+	//
+	// We provide "result" here just for completeness - if any of the called methods would like to record to it.
 	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
-			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
+			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, @SuppressWarnings("unused") OperationResult result,
+			OperationResult overallResult) throws SchemaException {
 
 		PrismObject<? extends ObjectType> primaryObject;
 		ObjectDelta<? extends ObjectType> primaryDelta;
@@ -1206,6 +1214,13 @@ public class Clockwork {
 
 		auditRecord.setChannel(context.getChannel());
 
+		// This is a brutal hack -- FIXME: create some "compute in-depth preview" method on operation result
+		OperationResult clone = overallResult.clone(2, false);
+		for (OperationResult subresult : clone.getSubresults()) {
+			subresult.computeStatusIfUnknown();
+		}
+		clone.computeStatus();
+
 		if (stage == AuditEventStage.REQUEST) {
 			Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
 			checkNamesArePresent(clonedDeltas, primaryObject);
@@ -1214,7 +1229,7 @@ public class Clockwork {
 				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
 			}
 		} else if (stage == AuditEventStage.EXECUTION) {
-			auditRecord.setOutcome(result.getComputeStatus());
+			auditRecord.setOutcome(clone.getStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
 			if (!alwaysAudit && (unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty())) {
 				// No deltas, nothing to audit in this wave
@@ -1231,7 +1246,7 @@ public class Clockwork {
 			auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
 		}
 
-		addRecordMessage(auditRecord, result);
+		addRecordMessage(auditRecord, clone.getMessage());
 
 		auditHelper.audit(auditRecord, task);
 
@@ -1259,12 +1274,11 @@ public class Clockwork {
 	/**
 	 * Adds a message to the record by pulling the messages from individual delta results.
 	 */
-	private void addRecordMessage(AuditEventRecord auditRecord, OperationResult result) {
+	private void addRecordMessage(AuditEventRecord auditRecord, String message) {
 		if (auditRecord.getMessage() != null) {
 			return;
 		}
-		if (!StringUtils.isEmpty(result.getMessage())) {
-			String message = result.getMessage();
+		if (!StringUtils.isEmpty(message)) {
 			auditRecord.setMessage(message);
 			return;
 		}
@@ -1276,12 +1290,12 @@ public class Clockwork {
 		for (ObjectDeltaOperation<? extends ObjectType> delta: deltas) {
 			OperationResult executionResult = delta.getExecutionResult();
 			if (executionResult != null) {
-				String message = executionResult.getMessage();
-				if (!StringUtils.isEmpty(message)) {
+				String deltaMessage = executionResult.getMessage();
+				if (!StringUtils.isEmpty(deltaMessage)) {
 					if (sb.length() != 0) {
 						sb.append("; ");
 					}
-					sb.append(message);
+					sb.append(deltaMessage);
 				}
 			}
 		}

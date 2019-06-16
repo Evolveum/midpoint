@@ -558,7 +558,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
-		finish();
+		computeStatus(false);
+	}
+
+	public void computeStatus(boolean skipFinish) {
+		if (!skipFinish) {
+			finish();
+		}
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.SUCCESS;
@@ -760,14 +766,29 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
 	}
 
-	public OperationResultStatus getComputeStatus() {
+	public static class PreviewResult {
+		public final OperationResultStatus status;
+		public final String message;
+
+		private PreviewResult(OperationResultStatus status, String message) {
+			this.status = status;
+			this.message = message;
+		}
+	}
+
+	// This is quite ugly. We should compute the preview in a way that does not modify existing object.
+	public PreviewResult computePreview() {
 		OperationResultStatus origStatus = status;
 		String origMessage = message;
-		computeStatus();
-		OperationResultStatus computedStatus = status;
+		computeStatus(true);
+		PreviewResult rv = new PreviewResult(status, message);
 		status = origStatus;
 		message = origMessage;
-		return computedStatus;
+		return rv;
+	}
+
+	public OperationResultStatus getComputeStatus() {
+		return computePreview().status;
 	}
 
     public void computeStatusIfUnknown() {
@@ -1821,28 +1842,36 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
     public OperationResult clone() {
+		return clone(null, true);
+    }
+
+    public OperationResult clone(Integer maxDepth, boolean full) {
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
-        clone.params = cloneParams(params);
-        clone.context = cloneParams(context);
-        clone.returns = cloneParams(returns);
+        clone.params = cloneParams(params, full);
+        clone.context = cloneParams(context, full);
+        clone.returns = cloneParams(returns, full);
         clone.token = token;
         clone.messageCode = messageCode;
         clone.message = message;
         clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
-        clone.cause = CloneUtil.clone(cause);
+        try {
+	        clone.cause = full ? CloneUtil.clone(cause) : cause;
+        } catch (Throwable t) {
+        	clone.cause = cause;        // a fallback (it's questionable whether we must clone also the cause)
+        }
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
-        if (subresults != null) {
-            clone.subresults = new ArrayList<>(subresults.size());
-            for (OperationResult subresult : subresults) {
-                if (subresult != null) {
-                    clone.subresults.add(subresult.clone());
-                }
-            }
-        }
-        clone.details = CloneUtil.clone(details);
+		if (subresults != null && (maxDepth == null || maxDepth > 0)) {
+			clone.subresults = new ArrayList<>(subresults.size());
+			for (OperationResult subresult : subresults) {
+				if (subresult != null) {
+					clone.subresults.add(subresult.clone(maxDepth != null ? maxDepth - 1 : null, full));
+				}
+			}
+		}
+        clone.details = full ? CloneUtil.clone(details) : details;
         clone.summarizeErrors = summarizeErrors;
         clone.summarizePartialErrors = summarizePartialErrors;
         clone.summarizeSuccesses = summarizeSuccesses;
@@ -1852,9 +1881,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         return clone;
     }
 
-	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map) {
-		// TODO: implement more efficient clone
-		return CloneUtil.clone(map);
+	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map, boolean full) {
+		if (full) {
+			// TODO: implement more efficient clone
+			return CloneUtil.clone(map);
+		} else {
+			return map;
+		}
 	}
 
 	public static int getSubresultStripThreshold() {

@@ -201,6 +201,12 @@ public class ClockworkMedic {
 				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
 				if (result != null) {
 					result.recordFatalError(e);
+					// Temporary: we should seriously fix this by (re)computing the parent result in the caller(s).
+					// But it could have some other side effects. So let's keep things simple albeit ugly.
+					//noinspection ConstantConditions (currently always true)
+					if (parentResult != null) {
+						parentResult.recordFatalError(e);
+					}
 				}
 				throw e;
 			} finally {
