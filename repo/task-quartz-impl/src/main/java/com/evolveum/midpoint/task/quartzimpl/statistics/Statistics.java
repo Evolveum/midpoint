@@ -24,12 +24,15 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.MethodsPerformanceInformationUtil;
+import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.util.aspect.MethodsPerformanceInformation;
 import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitor;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
@@ -39,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -123,6 +127,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	private ActionsExecutedInformation getActionsExecutedInformation() {
 		return actionsExecutedInformation;
 	}
+
+	private volatile String cachingConfigurationDump;
 
 	@NotNull
 	public List<String> getLastFailures() {
@@ -241,7 +247,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
 		MethodsPerformanceInformationType methods = getAggregateMethodsPerformanceInformation(children);
 		WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();   // this is not fetched from children (present on coordinator task only)
-		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && buckets == null) {
+		String cachingConfiguration = getAggregateCachingConfiguration(children);
+		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && buckets == null && cachingConfiguration == null) {
 			return null;
 		}
 		OperationStatsType rv = new OperationStatsType();
@@ -252,9 +259,18 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		rv.setRepositoryPerformanceInformation(repo);
 		rv.setCachesPerformanceInformation(caches);
 		rv.setMethodsPerformanceInformation(methods);
+		rv.setCachingConfiguration(cachingConfiguration);
 		rv.setWorkBucketManagementPerformanceInformation(buckets);
 		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
 		return rv;
+	}
+
+	private String getAggregateCachingConfiguration(Collection<Statistics> children) {
+		if (children.isEmpty()) {
+			return cachingConfigurationDump;
+		} else {
+			return cachingConfigurationDump + "\n\nFirst child:\n\n" + children.iterator().next().cachingConfigurationDump;
+		}
 	}
 
 	public void recordState(String message) {
@@ -414,10 +430,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			resetActionsExecutedInformation(null);
 		}
 		resetWorkBucketManagementPerformanceInformation(null);
-		initialRepositoryPerformanceInformation = null;
-		initialCachesPerformanceInformation = null;
-		initialMethodsPerformanceInformation = null;
-		startCollectingRepoAndCacheStats(performanceMonitor);
+		setInitialValuesForLowLevelStatistics(null);
+		startCollectingLowLevelStatistics(performanceMonitor);
 	}
 
 	public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
@@ -440,29 +454,46 @@ public class Statistics implements WorkBucketStatisticsCollector {
 			actionsExecutedInformation = null;
 		}
 		resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
-		initialRepositoryPerformanceInformation = initial.getRepositoryPerformanceInformation();
-		initialCachesPerformanceInformation = initial.getCachesPerformanceInformation();
-		initialMethodsPerformanceInformation = initial.getMethodsPerformanceInformation();
-		startCollectingRepoAndCacheStats(performanceMonitor);
+		setInitialValuesForLowLevelStatistics(initial);
+		startCollectingLowLevelStatistics(performanceMonitor);
 	}
 
 	/**
 	 * Cheap operation so we can (and should) invoke it frequently.
 	 * But ALWAYS call it from the thread that executes the task in question; otherwise we get wrong data there.
 	 */
-	public void refreshStoredPerformanceStats(RepositoryService repositoryService) {
-		refreshStoredRepositoryPerformanceInformation(repositoryService);
-		refreshStoredCachePerformanceInformation();
-		refreshStoredMethodsPerformanceInformation();
+	public void refreshLowLevelStatistics(RepositoryService repositoryService, TaskManagerQuartzImpl taskManager) {
+		refreshRepositoryPerformanceInformation(repositoryService);
+		refreshCachePerformanceInformation();
+		refreshMethodsPerformanceInformation();
+		refreshCacheConfigurationInformation(taskManager.getCacheConfigurationManager());
 	}
 
-	public void setInitialPerformanceStats(OperationStatsType operationStats) {
+	private void refreshCacheConfigurationInformation(CacheConfigurationManager cacheConfigurationManager) {
+		XMLGregorianCalendar now = createXMLGregorianCalendar(System.currentTimeMillis());
+		String dump = "Caching configuration for thread " + Thread.currentThread().getName() + " on " + now + ":\n\n";
+		String cfg = cacheConfigurationManager.dumpThreadLocalConfiguration();
+		if (cfg != null) {
+			dump += cfg;
+		} else {
+			dump += "(none defined)";
+		}
+		cachingConfigurationDump = dump;
+	}
+
+	public void startCollectingLowLevelStatistics(PerformanceMonitor performanceMonitor) {
+		performanceMonitor.startThreadLocalPerformanceInformationCollection();
+		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
+	}
+
+	private void setInitialValuesForLowLevelStatistics(OperationStatsType operationStats) {
 		initialRepositoryPerformanceInformation = operationStats != null ? operationStats.getRepositoryPerformanceInformation() : null;
 		initialCachesPerformanceInformation = operationStats != null ? operationStats.getCachesPerformanceInformation() : null;
 		initialMethodsPerformanceInformation = operationStats != null ? operationStats.getMethodsPerformanceInformation() : null;
 	}
 
-	private void refreshStoredRepositoryPerformanceInformation(RepositoryService repositoryService) {
+	private void refreshRepositoryPerformanceInformation(RepositoryService repositoryService) {
 		PerformanceInformation performanceInformation = repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
 		if (performanceInformation != null) {
 			repositoryPerformanceInformation = performanceInformation.toRepositoryPerformanceInformationType();
@@ -471,7 +502,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		}
 	}
 
-	private void refreshStoredMethodsPerformanceInformation() {
+	private void refreshMethodsPerformanceInformation() {
 		MethodsPerformanceInformation performanceInformation = MethodsPerformanceMonitor.INSTANCE.getThreadLocalPerformanceInformation();
 		if (performanceInformation != null) {
 			methodsPerformanceInformation = MethodsPerformanceInformationUtil.toMethodsPerformanceInformationType(performanceInformation);
@@ -480,7 +511,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		}
 	}
 
-	private void refreshStoredCachePerformanceInformation() {
+	private void refreshCachePerformanceInformation() {
 		Map<String, CachePerformanceCollector.CacheData> performanceMap = CachePerformanceCollector.INSTANCE
 				.getThreadLocalPerformanceMap();
 		if (performanceMap != null) {

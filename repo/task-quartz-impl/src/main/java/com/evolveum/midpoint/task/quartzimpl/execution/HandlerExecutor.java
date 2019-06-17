@@ -55,7 +55,6 @@ public class HandlerExecutor {
 
 	@NotNull
 	public TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
-
 		if (handler instanceof WorkBucketAwareTaskHandler) {
 			return executeWorkBucketAwareTaskHandler(task, partition, (WorkBucketAwareTaskHandler) handler, executionResult);
 		} else {

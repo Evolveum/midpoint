@@ -23,8 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
 import com.evolveum.midpoint.task.quartzimpl.statistics.WorkBucketStatisticsCollector;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitor;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -89,7 +87,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	/**
 	 * Thread in which this task's lightweight handler is executing.
 	 */
-	private volatile Thread lightweightThread;
+	private volatile Thread executingThread;
 
 	/**
 	 * How many objects were processed by this task (it's the responsibility of the task handler to maintain it)
@@ -214,29 +212,32 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		return lightweightHandlerExecuting;
 	}
 
-	public Thread getLightweightThread() {
-		return lightweightThread;
+	public Thread getExecutingThread() {
+		return executingThread;
 	}
 
-	public void setLightweightThread(Thread lightweightThread) {
-		this.lightweightThread = lightweightThread;
+	public void setExecutingThread(Thread executingThread) {
+		this.executingThread = executingThread;
 	}
 
 	// Operational data
 
 	@Override
 	public void storeOperationStatsDeferred() {
-		//System.out.println(String.format("[%s] storeOperationStatsDeferred called", Thread.currentThread().getName()));
-		refreshStoredThreadLocalPerformanceStats();
+		refreshLowLevelStatistics();
 		setOperationStats(getAggregatedLiveOperationStats());
 	}
 
-	/**
-	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
-	 */
 	@Override
-	public void refreshStoredThreadLocalPerformanceStats() {
-		statistics.refreshStoredPerformanceStats(getRepositoryService());
+	public void refreshLowLevelStatistics() {
+		Thread taskThread = getExecutingThread();
+		if (taskThread != null) {
+			if (Thread.currentThread().getId() == taskThread.getId()) {
+				statistics.refreshLowLevelStatistics(getRepositoryService(), taskManager);
+			}
+		} else {
+			LOGGER.warn("Task thread is null for {}; current thread = {}", this, Thread.currentThread());
+		}
 	}
 
 	@Override
@@ -258,7 +259,7 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 				System.currentTimeMillis() - lastOperationStatsUpdateTimestamp > operationStatsUpdateInterval) {
 			storeOperationStats();
 		} else {
-			refreshStoredThreadLocalPerformanceStats();
+			refreshLowLevelStatistics();
 		}
 	}
 
@@ -289,10 +290,18 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 				|| isLightweightAsynchronousTask();     // note: if it has lightweight task handler, it must be transient
 	}
 
+	/**
+	 * Beware: this can be called from any thread: the task thread itself, one of the workers, or from an external (unrelated)
+	 * thread. This is important because some of the statistics retrieved are thread-local ones.
+	 *
+	 * So we should NOT fetch thread-local statistics into task structures here!
+	 */
 	@Override
 	public OperationStatsType getAggregatedLiveOperationStats() {
-		List<Statistics> subCollections = getLightweightAsynchronousSubtasks().stream()
-				.map(task -> task.getStatistics()).collect(Collectors.toList());
+		Collection<? extends RunningTaskQuartzImpl> subtasks = getLightweightAsynchronousSubtasks();
+		List<Statistics> subCollections = subtasks.stream()
+				.map(RunningTaskQuartzImpl::getStatistics)
+				.collect(Collectors.toList());
 		return statistics.getAggregatedLiveOperationStats(subCollections);
 	}
 
@@ -309,11 +318,8 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		}
 	}
 
-	public void startCollectingRepoAndCacheStats() {
-		statistics.setInitialPerformanceStats(getStoredOperationStats());
-		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
-		repositoryService.getPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
-		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+	void startCollectingLowLevelStatistics() {
+		statistics.startCollectingLowLevelStatistics(repositoryService.getPerformanceMonitor());
 	}
 
 	Statistics getStatistics() {

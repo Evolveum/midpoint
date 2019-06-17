@@ -101,7 +101,6 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 					.append(MethodsPerformanceInformationUtil.format(statistics.getMethodsPerformanceInformation()))
 					.append("\n");
 		}
-
 		sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
 		sb.append("Other performance-related information that is shown elsewhere (provided here just for completeness):\n\n");
 		if (statistics.getIterativeTaskInformation() != null) {
@@ -123,6 +122,11 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 			sb.append("Environmental performance information:\n")
 					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
 					.append("\n");
+		}
+		if (statistics.getCachingConfiguration() != null) {
+			sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+			sb.append("Caching configuration:\n\n");
+			sb.append(statistics.getCachingConfiguration());
 		}
 		return sb.toString();
 	}

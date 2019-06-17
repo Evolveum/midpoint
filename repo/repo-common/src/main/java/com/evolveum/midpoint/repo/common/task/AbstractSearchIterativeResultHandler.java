@@ -293,7 +293,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
 			while (workerTask.canRun()) {
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				ProcessingRequest request;
 				try {
 					request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
@@ -301,7 +301,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					LOGGER.trace("Interrupted when waiting for next request", e);
 					return;
 				}
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				if (request != null) {
 					processRequest(request, workerTask, workerSpecificResult);
 				} else {
