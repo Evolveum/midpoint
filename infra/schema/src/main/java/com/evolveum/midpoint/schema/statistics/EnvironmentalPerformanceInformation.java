@@ -65,14 +65,12 @@ public class EnvironmentalPerformanceInformation {
     }
 
     public synchronized EnvironmentalPerformanceInformationType getDeltaValue() {
-        EnvironmentalPerformanceInformationType rv = toEnvironmentalPerformanceInformationType();
-        return rv;
+        return toEnvironmentalPerformanceInformationType();
     }
 
     public synchronized EnvironmentalPerformanceInformationType getAggregatedValue() {
         EnvironmentalPerformanceInformationType delta = toEnvironmentalPerformanceInformationType();
-        EnvironmentalPerformanceInformationType rv = aggregate(startValue, delta);
-        return rv;
+        return aggregate(startValue, delta);
     }
 
     private EnvironmentalPerformanceInformationType toEnvironmentalPerformanceInformationType() {

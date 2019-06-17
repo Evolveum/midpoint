@@ -235,6 +235,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return createSubresult(operation, true, true, new Object[0]);
 	}
 
+	public static OperationResult createProfiled(String operation) {
+		return createProfiled(operation, new Object[0]);
+	}
+
+	public static OperationResult createProfiled(String operation, Object[] arguments) {
+		OperationResult result = new OperationResult(operation);
+		result.invocationRecord = MethodInvocationRecord.create(operation, arguments);
+		return result;
+	}
+
 	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
