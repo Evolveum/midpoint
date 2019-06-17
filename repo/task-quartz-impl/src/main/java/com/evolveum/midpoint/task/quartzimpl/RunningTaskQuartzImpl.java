@@ -309,12 +309,16 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	public void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution) {
 		PerformanceMonitor performanceMonitor = repositoryService.getPerformanceMonitor();
 		if (initialExecution && strategy.isStartFromZero()) {
-			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(), performanceMonitor);
+			statistics.startCollectingOperationStatsFromZero(strategy.isMaintainIterationStatistics(),
+					strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
+					performanceMonitor);
 			setProgress(0L);
 			storeOperationStats();
 		} else {
 			OperationStatsType stored = getStoredOperationStats();
-			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(), strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(), performanceMonitor);
+			statistics.startCollectingOperationStatsFromStoredValues(stored, strategy.isMaintainIterationStatistics(),
+					strategy.isMaintainSynchronizationStatistics(), strategy.isMaintainActionsExecutedStatistics(),
+					initialExecution, performanceMonitor);
 		}
 	}
 

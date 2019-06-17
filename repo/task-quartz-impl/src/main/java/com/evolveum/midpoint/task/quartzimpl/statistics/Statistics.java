@@ -233,7 +233,6 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		}
 	}
 
-
 	public OperationStatsType getAggregatedLiveOperationStats(Collection<Statistics> children) {
 		EnvironmentalPerformanceInformationType env = getAggregateEnvironmentalPerformanceInformation(children);
 		IterativeTaskInformationType itit = getAggregateIterativeTaskInformation(children);
@@ -431,7 +430,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	}
 
 	public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
-			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics, PerformanceMonitor performanceMonitor) {
+			boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics, boolean initialExecution,
+			PerformanceMonitor performanceMonitor) {
 		OperationStatsType initial = stored != null ? stored : new OperationStatsType();
 		resetEnvironmentalPerformanceInformation(initial.getEnvironmentalPerformanceInformation());
 		if (enableIterationStatistics) {
@@ -449,7 +449,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		} else {
 			actionsExecutedInformation = null;
 		}
-		resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
+		if (initialExecution) {
+			// We must not reset this information for non-initial execution, because there were work bucket management
+			// operations done since last operationStats update. Records of these operations would be simply lost.
+			resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
+		}
 		setInitialValuesForLowLevelStatistics(initial);
 		startCollectingLowLevelStatistics(performanceMonitor);
 	}
