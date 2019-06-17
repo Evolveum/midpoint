@@ -855,8 +855,24 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public void setExecutionConstraints(TaskExecutionConstraintsType value) {
+    }
+
+    @Override
     public TaskExecutionEnvironmentType getExecutionEnvironment() {
         return null;
+    }
+
+    @Override
+    public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
     }
 
     @Override

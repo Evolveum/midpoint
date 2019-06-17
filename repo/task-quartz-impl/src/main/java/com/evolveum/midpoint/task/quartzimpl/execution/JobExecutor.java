@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -29,32 +28,21 @@ import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
-import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.InterruptableJob;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.springframework.security.core.Authentication;
 
 import javax.xml.datatype.Duration;
 import java.util.*;
-import java.util.Objects;
 
 @DisallowConcurrentExecution
 public class JobExecutor implements InterruptableJob {
@@ -76,7 +64,6 @@ public class JobExecutor implements InterruptableJob {
     private static final int DEFAULT_RESCHEDULE_TIME_FOR_GROUP_LIMIT = 60;
     private static final int RESCHEDULE_TIME_RANDOMIZATION_INTERVAL = 3;
 
-
 	/*
 	 * JobExecutor is instantiated at each execution of the task, so we can store
 	 * the task here.
@@ -86,7 +73,6 @@ public class JobExecutor implements InterruptableJob {
 	 * the class before calling its execute(..) method."
 	 */
 	private volatile RunningTaskQuartzImpl task;
-	private volatile Thread executingThread;				// used for interruptions
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -158,9 +144,9 @@ public class JobExecutor implements InterruptableJob {
 			return;			// rescheduling is done within the checker method
 		}
 
-        executingThread = Thread.currentThread();
+        task.setExecutingThread(Thread.currentThread());
 
-		LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, executingThread, isRecovering);
+		LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", task, task.getExecutingThread(), isRecovering);
 
         TaskHandler handler = null;
 		try {
@@ -211,7 +197,7 @@ public class JobExecutor implements InterruptableJob {
 
 				taskManagerImpl.getCacheConfigurationManager().unsetThreadLocalProfiles();
 				taskManagerImpl.unregisterRunningTask(task);
-				executingThread = null;
+				task.setExecutingThread(null);
 
 				if (!task.canRun()) {
 					processTaskStop(executionResult);
@@ -657,7 +643,6 @@ mainCycle:
 
     private TaskRunResult executeHandler(TaskHandler handler, OperationResult executionResult) {
 
-		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy());
 	    if (task.getResult() == null) {
 		    LOGGER.warn("Task without operation result found, please check the task creation/retrieval/update code: {}", task);
 		    task.setResultTransient(task.createUnnamedTaskResult());
@@ -723,7 +708,7 @@ mainCycle:
                 }
             }
             task.setNode(null);
-            task.storeOperationStatsDeferred();
+            task.storeOperationStatsDeferred();     // maybe redundant, but better twice than never at all
             task.flushPendingModifications(result);
 
 			return true;
@@ -741,7 +726,7 @@ mainCycle:
 
 	@Override
 	public void interrupt() {
-		LOGGER.trace("Trying to shut down the task " + task + ", executing in thread " + executingThread);
+		LOGGER.trace("Trying to shut down the task {}, executing in thread {}", task, task.getExecutingThread());
 
         boolean interruptsAlways = taskManagerImpl.getConfiguration().getUseThreadInterrupt() == UseThreadInterrupt.ALWAYS;
         boolean interruptsMaybe = taskManagerImpl.getConfiguration().getUseThreadInterrupt() != UseThreadInterrupt.NEVER;
@@ -765,10 +750,11 @@ mainCycle:
 
     // beware: Do not touch task prism here, because this method can be called asynchronously
 	private void sendThreadInterrupt(boolean alsoSubtasks) {
-        if (executingThread != null) {			// in case this method would be (mistakenly?) called after the execution is over
-            LOGGER.trace("Calling Thread.interrupt on thread {}.", executingThread);
-            executingThread.interrupt();
-            LOGGER.trace("Thread.interrupt was called on thread {}.", executingThread);
+		Thread thread = task.getExecutingThread();
+		if (thread != null) {			// in case this method would be (mistakenly?) called after the execution is over
+            LOGGER.trace("Calling Thread.interrupt on thread {}.", thread);
+	        thread.interrupt();
+            LOGGER.trace("Thread.interrupt was called on thread {}.", thread);
         }
         if (alsoSubtasks) {
             for (RunningTaskQuartzImpl subtask : task.getRunningLightweightAsynchronousSubtasks()) {
@@ -779,6 +765,6 @@ mainCycle:
     }
 
     public Thread getExecutingThread() {
-        return executingThread;
+        return task.getExecutingThread();
     }
 }

@@ -308,6 +308,8 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
     TaskExecutionConstraintsType getExecutionConstraints();
 
+    void setExecutionConstraints(TaskExecutionConstraintsType value);
+
     String getGroup();
 
     @NotNull
@@ -942,6 +944,14 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void setModelOperationContext(LensContextType modelOperationContext) throws SchemaException;
 
+	TaskExecutionEnvironmentType getExecutionEnvironment();
+
+	void setExecutionEnvironment(TaskExecutionEnvironmentType value);
+
+	void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
+
 	// temporary!
 	void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
@@ -1047,8 +1057,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	@NotNull
 	Collection<String> getCachingProfiles();
-
-	TaskExecutionEnvironmentType getExecutionEnvironment();
 
 	boolean isScavenger();
 }

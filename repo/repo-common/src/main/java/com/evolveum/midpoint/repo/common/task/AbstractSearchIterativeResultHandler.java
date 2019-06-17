@@ -293,7 +293,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
 			while (workerTask.canRun()) {
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				ProcessingRequest request;
 				try {
 					request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
@@ -301,7 +301,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					LOGGER.trace("Interrupted when waiting for next request", e);
 					return;
 				}
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				if (request != null) {
 					processRequest(request, workerTask, workerSpecificResult);
 				} else {
@@ -548,7 +548,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			subtask.setCategory(coordinatorTask.getCategory());
 			subtask.setResult(new OperationResult(taskOperationPrefix + ".executeWorker", OperationResultStatus.IN_PROGRESS, (String) null));
 			subtask.setName("Worker thread " + (i+1) + " of " + threadsCount);
-			subtask.getTaskType().setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getTaskType().getExecutionEnvironment()));
+			subtask.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));
 			subtask.startLightweightHandler();
 			LOGGER.trace("Worker subtask {} created", subtask);
 		}

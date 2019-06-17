@@ -81,14 +81,14 @@ public interface RunningTask extends Task {
 	 */
 	void startLightweightHandler();
 
-	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
+	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
 
 	void storeOperationStatsDeferred();
 
 	/**
 	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
 	 */
-	void refreshStoredThreadLocalPerformanceStats();
+	void refreshLowLevelStatistics();
 
 	void storeOperationStats();
 

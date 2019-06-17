@@ -18,6 +18,8 @@ package com.evolveum.midpoint.schema.cache;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -138,7 +140,7 @@ public class CacheConfigurationManager {
 		}
 	}
 
-	class ThreadLocalConfiguration {
+	class ThreadLocalConfiguration implements DebugDumpable {
 		Map<CacheType, CacheConfiguration> preparedConfigurations;
 		CachingConfigurationType configurationsPreparedFrom;
 		@NotNull final Collection<String> profiles;
@@ -158,6 +160,17 @@ public class CacheConfigurationManager {
 				configurationsPreparedFrom = global;
 			}
 			return preparedConfigurations.get(type);
+		}
+
+		@Override
+		public String debugDump(int indent) {
+			StringBuilder sb = new StringBuilder();
+			DebugUtil.debugDumpWithLabelLn(sb, "profiles", profiles, indent);
+			if (preparedConfigurations != null) {
+				preparedConfigurations.forEach((type, config) ->
+						DebugUtil.debugDumpWithLabelLn(sb, "config for " + type, config, indent));
+			}
+			return sb.toString();
 		}
 	}
 
@@ -364,5 +377,17 @@ public class CacheConfigurationManager {
 			throw new IllegalStateException("Some thread-local caching profile names are unknown: local: " + localProfileNames + ", known: " + profileNamesSeen);
 		}
 		return rv;
+	}
+
+	@Nullable
+	public String dumpThreadLocalConfiguration() {
+		ThreadLocalConfiguration localConfig = threadLocalConfiguration.get();
+		if (localConfig != null) {
+			// just to compile configurations
+			Arrays.stream(CacheType.values()).forEach(localConfig::get);
+			return localConfig.debugDump();
+		} else {
+			return null;
+		}
 	}
 }

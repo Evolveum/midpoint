@@ -22,6 +22,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MethodsPerformanceIn
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleMethodPerformanceInformationType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,7 +52,10 @@ public class MethodsPerformanceInformationUtil {
 		return rv;
 	}
 
-	public static void addTo(@NotNull MethodsPerformanceInformationType aggregate, @NotNull MethodsPerformanceInformationType part) {
+	public static void addTo(@NotNull MethodsPerformanceInformationType aggregate, @Nullable MethodsPerformanceInformationType part) {
+		if (part == null) {
+			return;
+		}
 		for (SingleMethodPerformanceInformationType partMethodInfo : part.getMethod()) {
 			SingleMethodPerformanceInformationType matchingAggregateCacheInfo = null;
 			for (SingleMethodPerformanceInformationType aggregateMethodInfo : aggregate.getMethod()) {

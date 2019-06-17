@@ -154,26 +154,26 @@ public class StatisticsUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-//		if (statistics.getIterativeTaskInformation() != null) {
-//			sb.append("Iterative task information:\n")
-//					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
-//					.append("\n");
-//		}
-//		if (statistics.getActionsExecutedInformation() != null) {
-//			sb.append("Actions executed:\n")
-//					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
-//					.append("\n");
-//		}
+		if (statistics.getIterativeTaskInformation() != null) {
+			sb.append("Iterative task information:\n")
+					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
+					.append("\n");
+		}
+		if (statistics.getActionsExecutedInformation() != null) {
+			sb.append("Actions executed:\n")
+					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
+					.append("\n");
+		}
 //		if (statistics.getSynchronizationInformation() != null) {
 //			sb.append("Synchronization information:\n")
 //					.append(SynchronizationInformation.format(statistics.getSynchronizationInformation()))
 //					.append("\n");
 //		}
-//		if (statistics.getEnvironmentalPerformanceInformation() != null) {
-//			sb.append("Environmental performance information:\n")
-//					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
-//					.append("\n");
-//		}
+		if (statistics.getEnvironmentalPerformanceInformation() != null) {
+			sb.append("Environmental performance information:\n")
+					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
+					.append("\n");
+		}
 		if (statistics.getRepositoryPerformanceInformation() != null) {
 			sb.append("Repository performance information:\n")
 					.append(RepositoryPerformanceInformationUtil.format(statistics.getRepositoryPerformanceInformation()))
