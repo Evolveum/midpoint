@@ -44,6 +44,7 @@ import org.testng.annotations.Test;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.model.api.ModelExecuteOptions.createPartialProcessing;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType.SKIP;
@@ -345,9 +346,10 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
 		approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
-		wfc = approvalCase.getApprovalContext();
-		assertEquals("wrong # of work items", 1, approvalCase.getWorkItem().size());
-		workItem = approvalCase.getWorkItem().get(0);
+		List<CaseWorkItemType> openWorkItems = approvalCase.getWorkItem().stream().filter(i -> i.getCloseTimestamp() == null)
+				.collect(Collectors.toList());
+		assertEquals("wrong # of open work items", 1, openWorkItems.size());
+		workItem = openWorkItems.get(0);
 		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
 
 		CaseType rootCase = getRootCase(cases);
