@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.impl.xnode;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -343,15 +344,15 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             // TODO consider problem with namespaces (if string value is QName/ItemPath its meaning can depend on namespace declarations that are placed outside the element)
 			String thisStringVal = this.getStringValue();
 			String otherStringVal = other.getStringValue();
-			return thisStringVal.equals(otherStringVal);
+			return Objects.equals(thisStringVal, otherStringVal);
 		} else if (other.isParsed() && !isParsed()){
             String thisStringValue = this.getStringValue();
             String otherStringValue = String.valueOf(other.value);
-			return otherStringValue.equals(thisStringValue);
+			return Objects.equals(otherStringValue, thisStringValue);
 		} else if (!other.isParsed() && isParsed()){
             String thisStringValue = String.valueOf(value);
             String otherStringValue = other.getStringValue();
-			return thisStringValue.equals(otherStringValue);
+			return Objects.equals(thisStringValue, otherStringValue);
 		}
 
 		return false;
