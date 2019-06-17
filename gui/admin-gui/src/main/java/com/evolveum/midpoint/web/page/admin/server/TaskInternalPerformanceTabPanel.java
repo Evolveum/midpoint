@@ -17,9 +17,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.MethodsPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
@@ -27,6 +25,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
@@ -86,6 +85,12 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 					.append(RepositoryPerformanceInformationUtil.format(statistics.getRepositoryPerformanceInformation()))
 					.append("\n");
 		}
+		WorkBucketManagementPerformanceInformationType buckets = statistics.getWorkBucketManagementPerformanceInformation();
+		if (buckets != null && !buckets.getOperation().isEmpty()) {
+			sb.append("Work buckets management performance information:\n")
+					.append(TaskWorkBucketManagementPerformanceInformationUtil.format(buckets))
+					.append("\n");
+		}
 		if (statistics.getCachesPerformanceInformation() != null) {
 			sb.append("Cache performance information:\n")
 					.append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
@@ -96,6 +101,29 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 					.append(MethodsPerformanceInformationUtil.format(statistics.getMethodsPerformanceInformation()))
 					.append("\n");
 		}
+//
+//		sb.append("\n-------------------------------------------------------------------------------------------------------------------------\n");
+//		sb.append("Other statistics information that is shown elsewhere (just for completeness):\n\n");
+//		if (statistics.getIterativeTaskInformation() != null) {
+//			sb.append("Iterative task information:\n")
+//					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
+//					.append("\n");
+//		}
+//		if (statistics.getActionsExecutedInformation() != null) {
+//			sb.append("Actions executed:\n")
+//					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
+//					.append("\n");
+//		}
+//		if (statistics.getSynchronizationInformation() != null) {
+//			sb.append("Synchronization information:\n")
+//					.append(SynchronizationInformation.format(statistics.getSynchronizationInformation()))
+//					.append("\n");
+//		}
+//		if (statistics.getEnvironmentalPerformanceInformation() != null) {
+//			sb.append("Environmental performance information:\n")
+//					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
+//					.append("\n");
+//		}
 		return sb.toString();
 	}
 
