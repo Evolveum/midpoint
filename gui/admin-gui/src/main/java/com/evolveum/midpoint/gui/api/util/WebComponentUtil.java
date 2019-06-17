@@ -3554,12 +3554,12 @@ public final class WebComponentUtil {
 		}
 		String sUrl = icon.getImageUrl();
 		if (URI.create(sUrl).isAbsolute()) {
-			Model.of(sUrl);
+			return Model.of(sUrl);
 		}
 
 		List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
 		if (segments == null || segments.size() < 2) {
-			Model.of(sUrl);
+			return Model.of(sUrl);
 		}
 
 		String prefix = StringUtils.repeat("../", segments.size() - 1);
