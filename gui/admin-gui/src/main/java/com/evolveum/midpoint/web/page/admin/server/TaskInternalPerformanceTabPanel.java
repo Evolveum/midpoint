@@ -101,29 +101,29 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 					.append(MethodsPerformanceInformationUtil.format(statistics.getMethodsPerformanceInformation()))
 					.append("\n");
 		}
-//
-//		sb.append("\n-------------------------------------------------------------------------------------------------------------------------\n");
-//		sb.append("Other statistics information that is shown elsewhere (just for completeness):\n\n");
-//		if (statistics.getIterativeTaskInformation() != null) {
-//			sb.append("Iterative task information:\n")
-//					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
-//					.append("\n");
-//		}
-//		if (statistics.getActionsExecutedInformation() != null) {
-//			sb.append("Actions executed:\n")
-//					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
-//					.append("\n");
-//		}
+
+		sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");
+		sb.append("Other performance-related information that is shown elsewhere (provided here just for completeness):\n\n");
+		if (statistics.getIterativeTaskInformation() != null) {
+			sb.append("Iterative task information:\n")
+					.append(IterativeTaskInformation.format(statistics.getIterativeTaskInformation()))
+					.append("\n");
+		}
+		if (statistics.getActionsExecutedInformation() != null) {
+			sb.append("Actions executed:\n")
+					.append(ActionsExecutedInformation.format(statistics.getActionsExecutedInformation()))
+					.append("\n");
+		}
 //		if (statistics.getSynchronizationInformation() != null) {
 //			sb.append("Synchronization information:\n")
 //					.append(SynchronizationInformation.format(statistics.getSynchronizationInformation()))
 //					.append("\n");
 //		}
-//		if (statistics.getEnvironmentalPerformanceInformation() != null) {
-//			sb.append("Environmental performance information:\n")
-//					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
-//					.append("\n");
-//		}
+		if (statistics.getEnvironmentalPerformanceInformation() != null) {
+			sb.append("Environmental performance information:\n")
+					.append(EnvironmentalPerformanceInformation.format(statistics.getEnvironmentalPerformanceInformation()))
+					.append("\n");
+		}
 		return sb.toString();
 	}
 

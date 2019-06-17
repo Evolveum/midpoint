@@ -18,20 +18,17 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EnvironmentalPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationsStatisticsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsEntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningStatisticsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author Pavol Mederly
@@ -488,4 +485,70 @@ public class EnvironmentalPerformanceInformation {
     public synchronized void recordState(String message) {
         lastMessage = new StatusMessage(message);
     }
+
+    public static String format(EnvironmentalPerformanceInformationType information) {
+        StringBuilder sb = new StringBuilder();
+        if (information.getProvisioningStatistics() != null && !information.getProvisioningStatistics().getEntry().isEmpty()) {
+            sb.append("  Provisioning:\n");
+            sb.append(format(information.getProvisioningStatistics()));
+        }
+        if (information.getMappingsStatistics() != null && !information.getMappingsStatistics().getEntry().isEmpty()) {
+            sb.append("  Mappings:\n");
+            sb.append(format(information.getMappingsStatistics()));
+        }
+        if (information.getNotificationsStatistics() != null && !information.getNotificationsStatistics().getEntry().isEmpty()) {
+            sb.append("  Notifications:\n");
+            sb.append(format(information.getNotificationsStatistics()));
+        }
+        if (information.getLastMessage() != null) {
+            sb.append("  Last message: ").append(information.getLastMessage()).append("\n");
+            sb.append("  On:           ").append(information.getLastMessageTimestamp()).append("\n");
+        }
+        return sb.toString();
+    }
+
+    public static String format(ProvisioningStatisticsType information) {
+        StringBuilder sb = new StringBuilder();
+        for (ProvisioningStatisticsEntryType e : information.getEntry()) {
+            int sum = e.getGetSuccess() + e.getGetFailure() + e.getSearchSuccess() + e.getSearchFailure() +
+                    e.getCreateSuccess() + e.getCreateFailure() + e.getUpdateSuccess() + e.getUpdateFailure() +
+                    e.getDeleteSuccess() + e.getDeleteFailure() + e.getSyncSuccess() + e.getSyncFailure() +
+                    e.getScriptSuccess() + e.getScriptFailure() + e.getOtherSuccess() + e.getOtherFailure();
+            sb.append(String.format(Locale.US, "    %-60s count: %8d, total time: %8d ms [min: %6d, max: %6d, avg: %7.1f] GET: %5d:%3d SEARCH: %5d:%3d CREATE: %5d:%3d UPDATE: %5d:%3d DELETE: %5d:%3d SYNC: %5d:%3d SCRIPT: %5d:%3d OTHER: %5d:%3d\n",
+                    e.getResource() + " (" + QNameUtil.getLocalPart(e.getObjectClass()) + ")",
+                    sum, e.getTotalTime(), defaultIfNull(e.getMinTime(), 0L), defaultIfNull(e.getMaxTime(), 0L),
+                    avg(e.getTotalTime(), sum),
+                    e.getGetSuccess(), e.getGetFailure(), e.getSearchSuccess(), e.getSearchFailure(),
+                    e.getCreateSuccess(), e.getCreateFailure(), e.getUpdateSuccess(), e.getUpdateFailure(),
+                    e.getDeleteSuccess(), e.getDeleteFailure(), e.getSyncSuccess(), e.getSyncFailure(),
+                    e.getScriptSuccess(), e.getScriptFailure(), e.getOtherSuccess(), e.getOtherFailure()));
+        }
+        return sb.toString();
+    }
+
+    private static float avg(long totalTime, int count) {
+        return count > 0 ? (float) totalTime / count : 0;
+    }
+
+    private static String format(MappingsStatisticsType information) {
+        StringBuilder sb = new StringBuilder();
+        for (MappingsStatisticsEntryType e : information.getEntry()) {
+            sb.append(String.format(Locale.US, "    %-40s count: %6d, total time: %6d ms [min: %5d, max: %5d, avg: %7.1f]\n", e.getObject(),
+                    e.getCount(), e.getTotalTime(), defaultIfNull(e.getMinTime(), 0L),
+                    defaultIfNull(e.getMaxTime(), 0L), avg(e.getTotalTime(), e.getCount())));
+        }
+        return sb.toString();
+    }
+
+    private static String format(NotificationsStatisticsType information) {
+        StringBuilder sb = new StringBuilder();
+        for (NotificationsStatisticsEntryType e : information.getEntry()) {
+            sb.append(String.format(Locale.US, "    %-30s success: %6d, failure: %5d, total time: %6d ms [min: %5d, max: %5d, avg: %7.1fd]\n", e.getTransport(),
+                    e.getCountSuccess(), e.getCountFailure(), e.getTotalTime(), defaultIfNull(e.getMinTime(), 0L),
+                    defaultIfNull(e.getMaxTime(), 0L), avg(e.getTotalTime(), e.getCountSuccess() + e.getCountFailure())));
+        }
+        return sb.toString();
+    }
+
+
 }
