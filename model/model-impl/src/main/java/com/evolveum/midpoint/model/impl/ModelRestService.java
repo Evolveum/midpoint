@@ -756,7 +756,7 @@ public class ModelRestService {
 		return response;
 	}
 
-	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
+	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) throws SchemaException {
 		object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
 	}
 

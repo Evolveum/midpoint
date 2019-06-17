@@ -25,6 +25,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -209,14 +210,16 @@ public class AssignmentHolderProcessor {
 					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},
-						partialProcessingOptions::getInbound);
+						partialProcessingOptions::getInbound,
+						Projector.class, context, result);
 
 
 		        // ACTIVATION
 
 				medic.partialExecute("focusActivation",
 						() -> focusProcessor.processActivationBeforeAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						partialProcessingOptions::getFocusActivation,
+						Projector.class, context, result);
 
 
 		        // OBJECT TEMPLATE (before assignments)
@@ -224,14 +227,16 @@ public class AssignmentHolderProcessor {
 				medic.partialExecute("objectTemplateBeforeAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
-						partialProcessingOptions::getObjectTemplateBeforeAssignments);
+						partialProcessingOptions::getObjectTemplateBeforeAssignments,
+						Projector.class, context, result);
 
 
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
 						() -> focusProcessor.processActivationAfterAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						partialProcessingOptions::getFocusActivation,
+				        Projector.class, context, result);
 
 		        // ASSIGNMENTS
 
@@ -240,33 +245,39 @@ public class AssignmentHolderProcessor {
 
 				medic.partialExecute("assignments",
 						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
-						partialProcessingOptions::getAssignments);
+						partialProcessingOptions::getAssignments,
+						Projector.class, context, result);
 
 				medic.partialExecute("assignmentsOrg",
 						() -> assignmentProcessor.processOrgAssignments(context, task, result),
-						partialProcessingOptions::getAssignmentsOrg);
+						partialProcessingOptions::getAssignmentsOrg,
+						Projector.class, context, result);
 
 
 				medic.partialExecute("assignmentsMembershipAndDelegate",
 						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
-						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
+						partialProcessingOptions::getAssignmentsMembershipAndDelegate,
+						Projector.class, context, result);
 
 		        context.recompute();
 
 		        medic.partialExecute("assignmentsConflicts",
 						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
-						partialProcessingOptions::getAssignmentsConflicts);
+						partialProcessingOptions::getAssignmentsConflicts,
+				        Projector.class, context, result);
 		        
 		        medic.partialExecute("focusLifecycle",
 						() -> focusLifecycleProcessor.processLifecycle(context, now, task, result),
-						partialProcessingOptions::getFocusLifecycle);
+						partialProcessingOptions::getFocusLifecycle,
+				        Projector.class, context, result);
 
 		        // OBJECT TEMPLATE (after assignments)
 
 		        medic.partialExecute("objectTemplateAfterAssignments",
 						() -> objectTemplateProcessor.processTemplate(context,
 								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
-						partialProcessingOptions::getObjectTemplateBeforeAssignments);
+						partialProcessingOptions::getObjectTemplateBeforeAssignments,
+				        Projector.class, context, result);
 
 		        context.recompute();
 
@@ -275,20 +286,23 @@ public class AssignmentHolderProcessor {
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
 						() -> focusProcessor.processActivationAfterAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						partialProcessingOptions::getFocusActivation,
+				        Projector.class, context, result);
 
 		        // CREDENTIALS (including PASSWORD POLICY)
 
 		        medic.partialExecute("focusCredentials",
 						() -> focusProcessor.processCredentials(context, now, task, result),
-						partialProcessingOptions::getFocusCredentials);
+						partialProcessingOptions::getFocusCredentials,
+				        Projector.class, context, result);
 
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
 
 		        medic.partialExecute("focusPolicyRules",
 						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
-						partialProcessingOptions::getFocusPolicyRules);
+						partialProcessingOptions::getFocusPolicyRules,
+				        Projector.class, context, result);
 
 		        // to mimic operation of the original enforcer hook, we execute the following only in the initial state
 		        if (context.getState() == ModelState.INITIAL) {

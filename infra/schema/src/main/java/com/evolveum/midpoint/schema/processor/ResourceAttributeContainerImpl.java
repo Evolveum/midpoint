@@ -414,10 +414,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl imp
 			throw new IllegalStateException(values.size()+" values in ResourceAttributeContainer, expected just one");
 		}
 		PrismContainerValue value = values.get(0);
-		List<Item<?,?>> items = value.getItems();
-		if (items == null) {
-			return;
-		}
+		Collection<Item<?,?>> items = value.getItems();
 		for (Item item: items) {
 			if (!(item instanceof ResourceAttribute)) {
 				throw new IllegalStateException("Found illegal item in ResourceAttributeContainer: "+item+" ("+item.getClass()+")");

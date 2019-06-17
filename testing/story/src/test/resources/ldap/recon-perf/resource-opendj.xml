@@ -78,7 +78,7 @@
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
-						<path>name</path>
+						<path>c:name</path>
 					</source>
                     <expression>
                     	<script>
@@ -99,7 +99,7 @@
                 <outbound>
                 	<strength>strong</strength>
                 	<source>
-	                    <path>fullName</path>
+	                    <path>c:fullName</path>
                     </source>
                 </outbound>
             </attribute>
@@ -111,7 +111,7 @@
                 </limitations>                
                 <outbound>
                 	<source>
-                		<path>familyName</path>
+                		<path>c:familyName</path>
                 	</source>
                 </outbound>
             </attribute>
@@ -123,7 +123,7 @@
                 </limitations>
                 <outbound>
                 	<source>
-                		<path>givenName</path>
+                		<path>c:givenName</path>
                 	</source>
                 </outbound>
             </attribute>
@@ -135,7 +135,7 @@
                 	     as a side-effect as it is a naming attribute. -->
                 	<strength>weak</strength>
                 	<source>
-                		<path>name</path>
+                		<path>c:name</path>
                 	</source>
                 </outbound>
             </attribute>
@@ -144,7 +144,7 @@
        			<filter>
 	       			<q:equal>
 	       				<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#stringIgnoreCase</q:matching>
-		            	<q:path>attributes/ri:dn</q:path>
+		            	<q:path>c:attributes/ri:dn</q:path>
 		                <q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
 		            </q:equal>
 	            </filter>
@@ -188,7 +188,7 @@
 	                <expression>
 	                	<path>
 	                		declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
-	                		$shadow/attributes/ri:uid
+	                		$shadow/c:attributes/ri:uid
                 		</path>
 	                </expression>
 	            </q:equal>

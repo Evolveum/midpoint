@@ -493,7 +493,7 @@ public class TextFormatter {
                 resolve(item.getDefinition().getDisplayName()) : item.getElementName().getLocalPart();
     }
 
-    private List<Item> filterAndOrderItems(List<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+    private List<Item> filterAndOrderItems(Collection<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (items == null) {
             return new ArrayList<>();
         }

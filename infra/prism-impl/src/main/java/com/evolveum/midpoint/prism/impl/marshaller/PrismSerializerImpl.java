@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,33 +43,36 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	private final QName itemName;
 	private final ItemDefinition itemDefinition;
 	private final SerializationContext context;
+	private final Collection<? extends QName> itemsToSkip;
 
 	//region Setting up =============================================================================================
 	public PrismSerializerImpl(@NotNull SerializerTarget<T> target, QName itemName, ItemDefinition itemDefinition,
-			SerializationContext context, @NotNull PrismContextImpl prismContext) {
+			SerializationContext context, @NotNull PrismContextImpl prismContext,
+			Collection<? extends QName> itemsToSkip) {
 		this.target = target;
 		this.itemName = itemName;
 		this.itemDefinition = itemDefinition;
 		this.context = context;
 		this.prismContext = prismContext;
+		this.itemsToSkip = itemsToSkip;
 	}
 
 	@NotNull
 	@Override
 	public PrismSerializerImpl<T> context(SerializationContext context) {
-		return new PrismSerializerImpl<>(this.target, itemName, itemDefinition, context, prismContext);
+		return new PrismSerializerImpl<>(this.target, itemName, itemDefinition, context, prismContext, itemsToSkip);
 	}
 
 	@NotNull
 	@Override
 	public PrismSerializerImpl<T> root(QName elementName) {
-		return new PrismSerializerImpl<>(this.target, elementName, itemDefinition, this.context, prismContext);
+		return new PrismSerializerImpl<>(this.target, elementName, itemDefinition, this.context, prismContext, itemsToSkip);
 	}
 
 	@NotNull
 	@Override
 	public PrismSerializer<T> definition(ItemDefinition itemDefinition) {
-		return new PrismSerializerImpl<>(this.target, itemName, itemDefinition, this.context, prismContext);
+		return new PrismSerializerImpl<>(this.target, itemName, itemDefinition, this.context, prismContext, itemsToSkip);
 	}
 
 	@NotNull
@@ -81,8 +85,15 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		} else {
 			context = new SerializationContext(options);
 		}
-		return new PrismSerializerImpl<>(target, itemName, itemDefinition, context, prismContext);
+		return new PrismSerializerImpl<>(target, itemName, itemDefinition, context, prismContext, itemsToSkip);
 	}
+
+	@NotNull
+	@Override
+	public PrismSerializer<T> itemsToSkip(Collection<? extends QName> itemsToSkip) {
+		return new PrismSerializerImpl<>(target, itemName, itemDefinition, context, prismContext, itemsToSkip);
+	}
+
 	//endregion
 
 	//region Serialization =============================================================================================
@@ -90,7 +101,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 	@NotNull
 	@Override
 	public T serialize(@NotNull Item<?, ?> item) throws SchemaException {
-		RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context);
+		RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(item, itemName, itemDefinition, context, itemsToSkip);
 		checkPostconditions(xroot);			// TODO find better way
 		return target.write(xroot, context);
 	}
@@ -117,7 +128,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 //			// TODO derive from the value type itself? Not worth the effort.
 //			throw new IllegalArgumentException("Item name nor definition is not known for " + value);
 //		}
-		RootXNodeImpl xroot = getMarshaller().marshalPrismValueAsRoot(value, nameToUse, itemDefinition, context);
+		RootXNodeImpl xroot = getMarshaller().marshalPrismValueAsRoot(value, nameToUse, itemDefinition, context, itemsToSkip);
 		checkPostconditions(xroot);				// TODO find better way
 		return target.write(xroot, context);
 	}
@@ -140,7 +151,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		List<RootXNodeImpl> roots = new ArrayList<>();
 		for (PrismObject<?> object : objects) {
 			// itemName and itemDefinition might be set only if they apply to all the objects
-			RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(object, itemName, itemDefinition, context);
+			RootXNodeImpl xroot = getMarshaller().marshalItemAsRoot(object, itemName, itemDefinition, context, itemsToSkip);
 			checkPostconditions(xroot);			// TODO find better way
 			roots.add(xroot);
 		}
@@ -172,7 +183,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
 	@Override
 	public T serializeAnyData(Object value) throws SchemaException {
-		RootXNodeImpl xnode = getMarshaller().marshalAnyData(value, itemName, itemDefinition, context);
+		RootXNodeImpl xnode = getMarshaller().marshalAnyData(value, itemName, itemDefinition, context, itemsToSkip);
 		checkPostconditions(xnode);				// TODO find better way
 		return target.write(xnode, context);
 	}

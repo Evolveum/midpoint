@@ -130,9 +130,9 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		// ConstructionType construction = oldAssignment.getConstruction();
 		// newAssignment.setConstruction(construction.clone());
 		// }
-		List<Item> itemsList = newValue.getItems();
-		if (itemsList != null && itemsList.size() > 0) {
-			Item item = itemsList.get(0);
+		Collection<Item> items = newValue.getItems();
+		if (!items.isEmpty()) {
+			Item item = items.iterator().next();
 			if (item != null && item.getDefinition() != null) {
 				this.editable = item.getDefinition().canAdd() || item.getDefinition().canModify();
 			}

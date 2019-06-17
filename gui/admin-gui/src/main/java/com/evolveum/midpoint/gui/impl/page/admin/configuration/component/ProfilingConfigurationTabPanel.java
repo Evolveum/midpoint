@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -60,7 +62,6 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
 	private static final String ID_PROFILING_LOGGER_APPENDERS = "profilingLoggerAppenders";
 	private static final String ID_PROFILING_LOGGER_LEVEL = "profilingLoggerLevel";
 
-	public static final String LOGGER_PROFILING = "PROFILING";
 	private IModel<ContainerWrapper<LoggingConfigurationType>> loggingModel;
 	
 	
@@ -92,7 +93,7 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
 
 			@Override
     		public boolean isVisible() {
-    			return !getPageBase().getMidpointConfiguration().isProfilingEnabled();
+    			return getPageBase().getMidpointConfiguration().getProfilingMode() == ProfilingMode.OFF;
     		}
     	});
 		add(profilingEnabledNote);
@@ -107,7 +108,8 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	ContainerValueWrapper<ClassLoggerConfigurationType> profilingLogger = null;
     	
     	for (ContainerValueWrapper<ClassLoggerConfigurationType> logger : loggerModel.getObject().getValues()) {
-			if (LOGGER_PROFILING.equals(new RealContainerValueFromContainerValueWrapperModel<>(logger).getObject().getPackage())) {
+			if (MidPointConstants.PROFILING_LOGGER_NAME
+					.equals(new RealContainerValueFromContainerValueWrapperModel<>(logger).getObject().getPackage())) {
 				profilingLogger = logger;
 				continue;
 			}
@@ -115,7 +117,8 @@ public class ProfilingConfigurationTabPanel extends BasePanel<ContainerWrapper<P
     	
     	if(profilingLogger == null) {
     		profilingLogger = WebModelServiceUtils.createNewItemContainerValueWrapper(getPageBase(), loggerModel);
-		    new RealContainerValueFromContainerValueWrapperModel<>(profilingLogger).getObject().setPackage(LOGGER_PROFILING);
+		    new RealContainerValueFromContainerValueWrapperModel<>(profilingLogger).getObject().setPackage(
+				    MidPointConstants.PROFILING_LOGGER_NAME);
     	}
     	
     	ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<LoggingLevelType, ClassLoggerConfigurationType> level = new ValueWrapperOfSingleValuePropertyFromSingleValueContainerValueWrapperModel<>(profilingLogger, ClassLoggerConfigurationType.F_LEVEL);

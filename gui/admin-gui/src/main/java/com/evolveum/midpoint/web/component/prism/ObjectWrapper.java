@@ -405,23 +405,21 @@ public class ObjectWrapper<O extends ObjectType> extends PrismWrapper implements
 		List<PrismContainerValue> values = container.getValues();
 		List<PrismContainerValue> valuesToBeRemoved = new ArrayList<>();
 		for (PrismContainerValue value : values) {
-			List<? extends Item> items = value.getItems();
-			if (items != null) {
-				Iterator<? extends Item> iterator = items.iterator();
-				while (iterator.hasNext()) {
-					Item item = iterator.next();
+			Collection<? extends Item> items = value.getItems();
+			Iterator<? extends Item> iterator = items.iterator();
+			while (iterator.hasNext()) {
+				Item item = iterator.next();
 
-					if (item instanceof PrismContainer) {
-						cleanupEmptyContainers((PrismContainer) item);
+				if (item instanceof PrismContainer) {
+					cleanupEmptyContainers((PrismContainer) item);
 
-						if (item.isEmpty()) {
-							iterator.remove();
-						}
+					if (item.isEmpty()) {
+						iterator.remove();
 					}
 				}
 			}
 
-			if (items == null || value.isEmpty()) {
+			if (value.isEmpty()) {
 				valuesToBeRemoved.add(value);
 			}
 		}

@@ -911,11 +911,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 //		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
-		if (attributes == null){
-			AssertJUnit.fail("No attributes in repo shadow");
-		}
 		RefinedResourceSchema refinedSchema = null;
 		try {
 			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -931,7 +928,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertRepoShadowAttributes(attributes, secIdentifiers.size()+1);
 	}
 
-	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+	protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		assertEquals("Unexpected number of attributes in repo shadow", expectedNumberOfIdentifiers, attributes.size());
 	}
 
@@ -1340,7 +1337,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 
 		assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
 		if (expectedNumberOfAttributes != null) {

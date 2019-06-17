@@ -23,7 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -134,7 +134,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 					List<ContainerValueWrapper<ClassLoggerConfigurationType>> items) {
 				for (int i = 0; i < items.size(); i++) {
 					ContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
-					if (ProfilingConfigurationTabPanel.LOGGER_PROFILING.equals(((ClassLoggerConfigurationType)logger.getContainerValue().getRealValue()).getPackage())) {
+					if (MidPointConstants.PROFILING_LOGGER_NAME.equals(((ClassLoggerConfigurationType)logger.getContainerValue().getRealValue()).getPackage())) {
 						items.remove(logger);
 						continue;
 					}

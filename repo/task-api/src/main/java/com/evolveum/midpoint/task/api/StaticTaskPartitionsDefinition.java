@@ -180,6 +180,11 @@ public class StaticTaskPartitionsDefinition implements TaskPartitionsDefinition 
 		}
 
 		@Override
+		public ExtensionType getExtension(Task masterTask) {
+			return data.getExtension();
+		}
+
+		@Override
 		public Boolean isCopyMasterExtension(Task masterTask) {
 			return data.isCopyMasterExtension();
 		}

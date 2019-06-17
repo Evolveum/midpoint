@@ -368,8 +368,8 @@ public class ReconciliationProcessor {
 
 		PrismContainer attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
 		Collection<QName> attributeNames = squeezedAttributes != null ?
-				MiscUtil.union(squeezedAttributes.keySet(), attributesContainer.getValue().getPropertyNames()) :
-				attributesContainer.getValue().getPropertyNames();
+				MiscUtil.union(squeezedAttributes.keySet(), attributesContainer.getValue().getItemNames()) :
+				attributesContainer.getValue().getItemNames();
 
 		for (QName attrName : attributeNames) {
 			reconcileProjectionAttribute(attrName, projCtx, squeezedAttributes, rOcDef, shadowNew, attributesContainer);

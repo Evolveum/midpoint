@@ -522,15 +522,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return findItem(containerName, PrismContainer.class);
     }
 
-    public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
-		return this.getValue().getItems(type);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<PrismContainer<?>> getContainers() {
-	    return (List) getItems(PrismContainer.class);
-    }
-
     @Override
     public <T> PrismProperty<T> findProperty(ItemPath path) {
         return findItem(path, PrismProperty.class);
@@ -538,10 +529,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     public PrismReference findReference(ItemPath path) {
         return findItem(path, PrismReference.class);
-    }
-
-    public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
-    	return this.getValue().findReferenceByCompositeObjectElementName(elementName);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(

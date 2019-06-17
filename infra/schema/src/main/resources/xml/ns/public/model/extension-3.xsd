@@ -440,6 +440,56 @@
 		</xsd:annotation>
 	</xsd:element>
 
+    <!-- not yet used -->
+    <xsd:element name="profilingObjectIntervalStart" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Starts profiling after given number of objects is processed.
+                Requires that selective profiling is configured.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Profiling interval start</a:displayName>
+                <a:displayOrder>850</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!-- not yet used -->
+    <xsd:element name="profilingObjectIntervalLength" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Stops profiling after given number of objects is processed.
+                Requires that selective profiling is configured.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Profiling interval length</a:displayName>
+                <a:displayOrder>851</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <!-- not yet used -->
+    <xsd:element name="profilingWorkers" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                How many workers are to be profiled? (Default is 1.)
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Profiling workers</a:displayName>
+                <a:displayOrder>852</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

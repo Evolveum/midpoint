@@ -15,15 +15,12 @@
  */
 package com.evolveum.midpoint.util.aspect;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
+import ch.qos.logback.classic.Level;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-
-import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  *  In this class, we define some Pointcuts in AOP meaning that will provide join points for most common
@@ -38,20 +35,20 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointInterceptor implements MethodInterceptor {
 
-    private static AtomicInteger idcounter = new AtomicInteger(0);
+	public static final String PROFILING_LOGGER_NAME = "PROFILING";
 
-	// This logger provide profiling informations
-    private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
+	// This logger provide profiling information
+	static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger(PROFILING_LOGGER_NAME);
 
-    private static boolean isProfilingActive = false;
+    static boolean isProfilingActive = false;
+
+    static Level globalLevelOverride = null;
+    static final ThreadLocal<Level> threadLocalLevelOverride = new ThreadLocal<>();
 
 	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
-    public static final String INDENT_STRING = " ";
+	static final String MDC_DEPTH_KEY = "depth";
 
-	@Override
-	public Object invoke(MethodInvocation methodInvocation) throws Throwable {
-		return wrapSubsystem(methodInvocation);
-	}
+    public static final String INDENT_STRING = " ";
 
 	// This is made public to use in testing
 	public static String swapSubsystemMark(String subsystemName) {
@@ -64,187 +61,32 @@ public class MidpointInterceptor implements MethodInterceptor {
 		return prev;
 	}
 
-	private Object wrapSubsystem(MethodInvocation invocation) throws Throwable {
-
-		ProfilingDataManager.Subsystem subsystem = getSubsystem(invocation);
-
-	    Object retValue = null;
-		String prev = null;
-        int id = 0;
-        int d = 1;
-        boolean exc = false;
-        String excName = null;
-        long elapsed;
-		// Profiling start
-		long startTime = System.nanoTime();
-
-        final StringBuilder infoLog = new StringBuilder("#### Entry: ");
-
+	@Override
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		MethodInvocationRecord ctx = MethodInvocationRecord.create(invocation);
 		try {
-			// Marking MDC->Subsystem with current one subsystem and mark previous
-			prev = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
-
-            if (LOGGER_PROFILING.isDebugEnabled()) {
-                id = idcounter.incrementAndGet();
-                infoLog.append(id);
-            }
-
-            if (LOGGER_PROFILING.isTraceEnabled()) {
-                String depth = MDC.get("depth");
-                if (depth == null || depth.isEmpty()) {
-                    d = 0;
-                } else {
-                    d = Integer.parseInt(depth);
-                }
-                d++;
-                MDC.put("depth", Integer.toString(d));
-                for (int i = 0; i < d; i++) {
-                    infoLog.append(INDENT_STRING);
-                }
-            }
-
-            // is profiling info is needed
-            if (LOGGER_PROFILING.isDebugEnabled()) {
-                infoLog.append(getClassName(invocation));
-                LOGGER_PROFILING.debug("{}->{}", infoLog, invocation.getMethod().getName());
-
-                // If debug enable get entry parameters and log them
-                if (LOGGER_PROFILING.isTraceEnabled()) {
-                    final Object[] args = invocation.getArguments();
-                    final StringBuilder sb = new StringBuilder();
-                    sb.append("###### args: ");
-                    sb.append("(");
-                    for (int i = 0; i < args.length; i++) {
-                        sb.append(formatVal(args[i]));
-                        if (args.length != i + 1) {
-                            sb.append(", ");
-                        }
-                    }
-                    sb.append(")");
-                    LOGGER_PROFILING.trace(sb.toString());
-                }
-            }
-
-            //We dont need profiling on method start in current version
-			// if profiling info is needed - start
-            //if(isProfilingActive){
-            //    LOGGER.info("Profiling is active: onStart");
-			//    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
-            //}
-
-			// Process original call
-			try {
-				retValue = invocation.proceed();
-			} catch (Exception e) {
-                excName = e.getClass().getName();
-                exc = true;
-				throw e;
-			}
-			return retValue;
+			return ctx.processReturnValue(invocation.proceed());
+		} catch (Throwable e) {
+			throw ctx.processException(e);
 		} finally {
-            if (LOGGER_PROFILING.isTraceEnabled()) {
-                d--;
-                MDC.put("depth", Integer.toString(d));
-            }
-
-            // Restore previously marked subsystem executed before return
-            if (LOGGER_PROFILING.isDebugEnabled()) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("##### Exit: ");
-                if (LOGGER_PROFILING.isDebugEnabled()) {
-                    sb.append(id);
-                    sb.append(" ");
-                }
-                // sb.append("/");
-                if (LOGGER_PROFILING.isTraceEnabled()) {
-                    for (int i = 0; i < d + 1; i++) {
-                        sb.append(INDENT_STRING);
-                    }
-                }
-                sb.append(getClassName(invocation));
-                sb.append("->");
-                sb.append(invocation.getMethod().getName());
-
-                if (LOGGER_PROFILING.isDebugEnabled()) {
-                    sb.append(" etime: ");
-                    // Mark end of processing
-                    elapsed = System.nanoTime() - startTime;
-                    sb.append((long) (elapsed / 1000000));
-                    sb.append('.');
-                    long mikros = (long) (elapsed / 1000) % 1000;
-                    if (mikros < 100) {
-                        sb.append('0');
-                    }
-                    if (mikros < 10) {
-                        sb.append('0');
-                    }
-                    sb.append(mikros);
-                    sb.append(" ms");
-                }
-
-                LOGGER_PROFILING.debug(sb.toString());
-                if (LOGGER_PROFILING.isTraceEnabled()) {
-                    if (exc) {
-                        LOGGER_PROFILING.trace("###### return exception: {}", excName);
-                    } else {
-                        LOGGER_PROFILING.trace("###### retval: {}", formatVal(retValue));
-                    }
-                }
-            }
-
-            if (isProfilingActive) {
-				Long processingStartTime = System.nanoTime();
-				ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(getClassName(invocation), invocation.getMethod().getName(), invocation.getArguments(), subsystem, startTime, processingStartTime);
-            }
-
-			// Restore MDC
-			swapSubsystemMark(prev);
+			ctx.afterCall(invocation);
 		}
 	}
 
-	private ProfilingDataManager.Subsystem getSubsystem(MethodInvocation invocation) {
-		String className = getFullClassName(invocation);
-		if (className.startsWith("com.evolveum.midpoint.repo")) {
-			return ProfilingDataManager.Subsystem.REPOSITORY;
-		} else if (className.startsWith("com.evolveum.midpoint.model.impl.sync")) {
-			return ProfilingDataManager.Subsystem.SYNCHRONIZATION_SERVICE;
-		} else if (className.startsWith("com.evolveum.midpoint.model")) {
-			return ProfilingDataManager.Subsystem.MODEL;
-		} else if (className.startsWith("com.evolveum.midpoint.provisioning")) {
-			return ProfilingDataManager.Subsystem.PROVISIONING;
-		} else if (className.startsWith("com.evolveum.midpoint.task")) {
-			return ProfilingDataManager.Subsystem.TASK_MANAGER;
-		} else if (className.startsWith("com.evolveum.midpoint.wf")) {
-			return ProfilingDataManager.Subsystem.WORKFLOW;
-		} else {
-			return null;
+	static void formatExecutionTime(StringBuilder sb, long elapsed) {
+		sb.append(elapsed / 1000000);
+		sb.append('.');
+		long micros = (elapsed / 1000) % 1000;
+		if (micros < 100) {
+		    sb.append('0');
 		}
-	}
-
-	/**
-     * Get joinPoint class name if available
-     *
-     */
-    private String getClassName(MethodInvocation invocation) {
-		String className = getFullClassName(invocation);
-		return className != null ? className.replaceFirst("com.evolveum.midpoint", "..") : null;
-	}
-
-	private String getFullClassName(MethodInvocation invocation) {
-		String className = null;
-		if (invocation.getThis() != null) {
-			className = invocation.getThis().getClass().getName();
+		if (micros < 10) {
+		    sb.append('0');
 		}
-		return className;
+		sb.append(micros);
 	}
 
-    /*
-    *   Stores current depth value to MDC
-    * */
-	@Deprecated
-	protected static void storeMDC(int d){
-		MDC.put("depth", Integer.toString(d));
-	}
+
 
     /*
     *   Activates aspect based subsystem profiling
@@ -260,16 +102,19 @@ public class MidpointInterceptor implements MethodInterceptor {
         isProfilingActive = false;
     }
 
-    private String formatVal(Object value) {
-		if (value == null) {
-			return ("null");
-		}
-		try {
-			return PrettyPrinter.prettyPrint(value);
-		} catch (Throwable t) {
-            LOGGER_PROFILING.error("Internal error formatting a value: {}", value, t);
-			return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+value;
-		}
+	public static Level getGlobalMethodInvocationLevelOverride() {
+		return globalLevelOverride;
 	}
 
+	public static void setGlobalMethodInvocationLevelOverride(Level value) {
+		globalLevelOverride = value;
+	}
+
+	public static Level getLocalMethodInvocationLevelOverride() {
+		return threadLocalLevelOverride.get();
+	}
+
+	public static void setLocalMethodInvocationLevelOverride(Level value) {
+		threadLocalLevelOverride.set(value);
+	}
 }

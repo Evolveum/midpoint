@@ -95,7 +95,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			String contextDesc, TaskManager taskManager) {
 		this(coordinatorTask, taskOperationPrefix, processShortName, contextDesc, null, taskManager);
 	}
-	
 
 	public AbstractSearchIterativeResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
 			String contextDesc, TaskPartitionDefinitionType taskStageType, TaskManager taskManager) {
@@ -112,7 +111,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		startTime = System.currentTimeMillis();
 	}
 
-	
 	protected String getProcessShortName() {
 		return processShortName;
 	}
@@ -180,9 +178,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		this.enableActionsExecutedStatistics = enableActionsExecutedStatistics;
 	}
 
-	/* (non-Javadoc)
-                 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
-                 */
 	@Override
 	public boolean handle(PrismObject<O> object, OperationResult parentResult) {
 		if (object.getOid() == null) {
@@ -336,7 +331,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		RepositoryCache.enter(taskManager.getCacheConfigurationManager());
 
 		try {
-
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
 			}

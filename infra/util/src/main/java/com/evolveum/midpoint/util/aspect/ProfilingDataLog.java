@@ -142,16 +142,7 @@ public class ProfilingDataLog {
     private static String formatExecutionTime(long est){
         StringBuilder sb = new StringBuilder();
 
-        sb.append((long) (est / 1000000));
-        sb.append('.');
-        long mikros = (long) (est / 1000) % 1000;
-        if (mikros < 100) {
-            sb.append('0');
-        }
-        if (mikros < 10) {
-            sb.append('0');
-        }
-        sb.append(mikros);
+        MidpointInterceptor.formatExecutionTime(sb, est);
         sb.append(" ms.");
 
         return sb.toString();

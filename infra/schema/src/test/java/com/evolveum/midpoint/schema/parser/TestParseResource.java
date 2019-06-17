@@ -49,6 +49,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.createDefaultParsingContext;
@@ -254,7 +255,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?,?>> configItems = configContainerValue.getItems();
+		Collection<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 1, configItems.size());
 
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
@@ -262,7 +263,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
 		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
 		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
-		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
+		Collection<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
 
 		if (checkExpressions) {
@@ -385,7 +386,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		assertFalse("Prop "+prop+" raw (unexpected)", prop.isRaw());
 	}
 
-	private <T> PrismProperty<T> findProp(List<Item<?, ?>> items, String local) {
+	private <T> PrismProperty<T> findProp(Collection<Item<?, ?>> items, String local) {
 		for (Item<?, ?> item: items) {
 			if (local.equals(item.getElementName().getLocalPart())) {
 				return (PrismProperty<T>) item;
@@ -484,7 +485,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
         PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?,?>> configItems = configContainerValue.getItems();
+		Collection<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", isSimple ? 1 : 4, configItems.size());
 
 		PrismContainer<?> ldapConfigPropertiesContainer = configurationContainer.findContainer(ICFC_CONFIGURATION_PROPERTIES);
@@ -492,7 +493,7 @@ public class TestParseResource extends AbstractContainerValueParserTest<Resource
 		PrismContainerDefinition<?> ldapConfigPropertiesContainerDef = ldapConfigPropertiesContainer.getDefinition();
 		assertNotNull("No icfcldap:configurationProperties container definition", ldapConfigPropertiesContainerDef);
 		assertEquals("icfcldap:configurationProperties container definition maxOccurs", 1, ldapConfigPropertiesContainerDef.getMaxOccurs());
-		List<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
+		Collection<Item<?,?>> ldapConfigPropItems = ldapConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of ldapConfigPropItems items", 7, ldapConfigPropItems.size());
 
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
