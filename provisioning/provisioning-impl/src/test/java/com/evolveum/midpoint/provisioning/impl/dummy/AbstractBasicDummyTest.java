@@ -416,7 +416,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
 		PrismContainerDefinition confPropsDef = confingurationPropertiesContainer.getDefinition();
 		assertNotNull("No configuration properties container definition", confPropsDef);
-		List<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
+		Collection<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
 		assertFalse("No configuration properties", configurationProperties.isEmpty());
 		for (PrismProperty<?> confProp : configurationProperties) {
 			PrismPropertyDefinition confPropDef = confProp.getDefinition();

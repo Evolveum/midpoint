@@ -1049,4 +1049,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	// Returns immutable collection of caching profiles
 	@NotNull
 	Collection<String> getCachingProfiles();
+
+	boolean isScavenger();
 }

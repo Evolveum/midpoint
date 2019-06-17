@@ -75,6 +75,14 @@ class TaskTabsVisibility implements Serializable {
         return environmentalPerformanceVisible;
     }
 
+    public boolean computeInternalPerformanceVisible(PageTaskEdit parentPage) {
+        final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
+        environmentalPerformanceVisible = !parentPage.isEdit()
+				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
+				&& operationStats != null;
+        return environmentalPerformanceVisible;
+    }
+
     public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
         approvalsVisible = !parentPage.isEdit()
 				&& false //parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
@@ -88,6 +96,10 @@ class TaskTabsVisibility implements Serializable {
 		operationVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(TaskType.F_MODEL_OPERATION_CONTEXT)
 				&& parentPage.getTaskDto().getTaskType().getModelOperationContext() != null
+				// The following is an ugly hack because ItemWrapperFactoryImpl.createWrapper creates
+				// empty containers for TaskType, including for modelOperationContext! Therefore,
+				// getModelOperationContext() is non-null even if no context was in the task.
+				&& parentPage.getTaskDto().getTaskType().getModelOperationContext().getState() != null
 				&& (!parentPage.getTaskDto().isWorkflow() || parentPage.isShowAdvanced());
 		return operationVisible;
 	}

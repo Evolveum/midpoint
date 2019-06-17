@@ -199,7 +199,7 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			throw new SchemaException("Change does not contain identifiers");
 		}
 		Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toSet());
-		for (Item<?,?> attribute : emptyIfNull(attributesPcv.getItems())) {
+		for (Item<?,?> attribute : attributesPcv.getItems()) {
 			if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {
 				if (attribute instanceof ResourceAttribute) {
 					rv.add(((ResourceAttribute) attribute).clone());

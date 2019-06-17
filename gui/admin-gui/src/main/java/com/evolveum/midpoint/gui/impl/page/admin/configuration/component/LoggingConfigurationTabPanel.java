@@ -23,6 +23,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -122,7 +124,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
 			getSession().error("Cannot create panle for logging");
 		}
-    	
+
     	TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
     	PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
     	
@@ -140,7 +142,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 					List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> items) {
 //				for (int i = 0; i < items.size(); i++) {
 //					PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = items.get(i);
-//					if (ProfilingConfigurationTabPanel.LOGGER_PROFILING.equals(((ClassLoggerConfigurationType)logger.getRealValue()).getPackage())) {
+//					if (MidPointConstants.PROFILING_LOGGER_NAME.equals(((ClassLoggerConfigurationType)logger.getRealValue()).getPackage())) {
 //						items.remove(logger);
 //						continue;
 //					}
@@ -469,14 +471,14 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 		});
 		
 		columns.add(new PrismPropertyWrapperColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_NAME, ColumnType.LINK, getPageBase()) {
-		
+
 			@Override
 			protected void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
 				getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, rowModel);
 			}
-			
+
 		});
-		
+
 		columns.add(new PrismPropertyWrapperColumn<AppenderConfigurationType, String>(appenderModel, AppenderConfigurationType.F_PATTERN, ColumnType.VALUE, getPageBase()) {
 			@Override
 			public String getCssClass() {
@@ -490,7 +492,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
 									 final IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
-				ItemRealValueModel<AppenderConfigurationType> appender = 
+				ItemRealValueModel<AppenderConfigurationType> appender =
             			new ItemRealValueModel<>(rowModel);
             	String type = "";
             	if(appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {

@@ -1270,125 +1270,119 @@ public final class WebComponentUtil {
 			return "ContainerPanel.containerProperties";
 		}
 
-		if(prismContainerValue.canRepresent(LifecycleStateType.class)) {
+		String displayName = null;
+
+		if (prismContainerValue.canRepresent(LifecycleStateType.class)) {
 			LifecycleStateType lifecycleStateType = (LifecycleStateType) prismContainerValue.asContainerable();
 			String name = lifecycleStateType.getDisplayName();
-			if(name == null || name.isEmpty()) {
+			if (name == null || name.isEmpty()) {
 				Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
 				name = lifecycleStateType.getName();
 			}
-			
-			if(name != null && !name.isEmpty()) {
-				return name;
+
+			if (name != null && !name.isEmpty()) {
+				displayName = name;
 			}
-		}
-		
-		if(prismContainerValue.canRepresent(PropertyConstraintType.class)) {
+		} else if (prismContainerValue.canRepresent(PropertyConstraintType.class)) {
 			PropertyConstraintType propertyConstraintType = (PropertyConstraintType) prismContainerValue.asContainerable();
 			String path = "";
-			if(propertyConstraintType.getPath() != null) {
+			if (propertyConstraintType.getPath() != null) {
 				path = propertyConstraintType.getPath().getItemPath().toString();
 			}
-			
-			if(path != null && !path.isEmpty()) {
-				return path;
-			}
-		}
-		
-		if (prismContainerValue.canRepresent(AssignmentType.class)) {
-			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
-			if (assignmentType.getTargetRef() != null){
-				ObjectReferenceType assignmentTargetRef = assignmentType.getTargetRef();
-				return getName(assignmentTargetRef) + " - " + normalizeRelation(assignmentTargetRef.getRelation()).getLocalPart();
-			} else {
-				return "AssignmentTypeDetailsPanel.containerTitle";
-			}
-		}
 
-		if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)){
-			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
-			String displayName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
-					exclusionConstraint.asPrismContainerValue().getParent().getPath().last())  + " - "
-					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
-			return StringUtils.isNotEmpty(displayName) && StringUtils.isNotEmpty(getName(exclusionConstraint.getTargetRef())) ? displayName : "ExclusionPolicyConstraintType.details";
-		}
-		if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)){
-			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
-			String displayName = constraint.getName();
-			if(StringUtils.isNotEmpty(displayName)) {
-				return displayName;
-			} else {
-				return constraint.asPrismContainerValue().getParent().getPath().last().toString() + ".details";
+			if (path != null && !path.isEmpty()) {
+				displayName = path;
 			}
-		}
-		if (prismContainerValue.canRepresent(RichHyperlinkType.class)){
+		} else if (prismContainerValue.canRepresent(AssignmentType.class)) {
+			AssignmentType assignmentType = (AssignmentType) prismContainerValue.asContainerable();
+			if (assignmentType.getTargetRef() != null) {
+				ObjectReferenceType assignmentTargetRef = assignmentType.getTargetRef();
+				displayName = getName(assignmentTargetRef) + " - " + normalizeRelation(assignmentTargetRef.getRelation()).getLocalPart();
+			} else {
+				displayName = "AssignmentTypeDetailsPanel.containerTitle";
+			}
+		} else if (prismContainerValue.canRepresent(ExclusionPolicyConstraintType.class)) {
+			ExclusionPolicyConstraintType exclusionConstraint = (ExclusionPolicyConstraintType) prismContainerValue.asContainerable();
+			String exclusionConstraintName = (exclusionConstraint.getName() != null ? exclusionConstraint.getName() :
+					exclusionConstraint.asPrismContainerValue().getParent().getPath().last()) + " - "
+					+ StringUtils.defaultIfEmpty(getName(exclusionConstraint.getTargetRef()), "");
+			displayName = StringUtils.isNotEmpty(exclusionConstraintName) && StringUtils.isNotEmpty(getName(exclusionConstraint.getTargetRef())) ? exclusionConstraintName : "ExclusionPolicyConstraintType.details";
+		} else if (prismContainerValue.canRepresent(AbstractPolicyConstraintType.class)) {
+			AbstractPolicyConstraintType constraint = (AbstractPolicyConstraintType) prismContainerValue.asContainerable();
+			String constraintName = constraint.getName();
+			if (StringUtils.isNotEmpty(constraintName)) {
+				displayName = constraintName;
+			} else {
+				displayName = constraint.asPrismContainerValue().getParent().getPath().last().toString() + ".details";
+			}
+		} else if (prismContainerValue.canRepresent(RichHyperlinkType.class)) {
 			RichHyperlinkType richHyperlink = (RichHyperlinkType) prismContainerValue.asContainerable();
 			String label = richHyperlink.getLabel();
 			String description = richHyperlink.getDescription();
 			String targetUrl = richHyperlink.getTargetUrl();
-			if(StringUtils.isNotEmpty(label)) {
-				return label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
-			} else if(StringUtils.isNotEmpty(targetUrl)) {
-				return targetUrl;
+			if (StringUtils.isNotEmpty(label)) {
+				displayName = label + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			} else if (StringUtils.isNotEmpty(targetUrl)) {
+				displayName = targetUrl;
 			}
-		}
-		if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)){
+		} else if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)) {
 			UserInterfaceFeatureType userInterfaceFeature = (UserInterfaceFeatureType) prismContainerValue.asContainerable();
 			String identifier = userInterfaceFeature.getIdentifier();
-			if(StringUtils.isNotEmpty(identifier)) {
-				return identifier;
-			} 
-		}
-		if (prismContainerValue.canRepresent(GuiObjectColumnType.class)){
+			if (StringUtils.isNotEmpty(identifier)) {
+				displayName = identifier;
+			}
+		} else if (prismContainerValue.canRepresent(GuiObjectColumnType.class)) {
 			GuiObjectColumnType guiObjectColumn = (GuiObjectColumnType) prismContainerValue.asContainerable();
 			String name = guiObjectColumn.getName();
-			if(StringUtils.isNotEmpty(name)) {
-				return name;
-			} 
-		}
-		if (prismContainerValue.canRepresent(GuiObjectListViewType.class)){
+			if (StringUtils.isNotEmpty(name)) {
+				displayName = name;
+			}
+		} else if (prismContainerValue.canRepresent(GuiObjectListViewType.class)) {
 			GuiObjectListViewType guiObjectListView = (GuiObjectListViewType) prismContainerValue.asContainerable();
 			String name = guiObjectListView.getName();
-			if(StringUtils.isNotEmpty(name)) {
-				return name;
-			} 
-		}
-		if (prismContainerValue.canRepresent(GenericPcpAspectConfigurationType.class)){
+			if (StringUtils.isNotEmpty(name)) {
+				displayName = name;
+			}
+		} else if (prismContainerValue.canRepresent(GenericPcpAspectConfigurationType.class)) {
 			GenericPcpAspectConfigurationType genericPcpAspectConfiguration = (GenericPcpAspectConfigurationType) prismContainerValue.asContainerable();
 			String name = genericPcpAspectConfiguration.getName();
-			if(StringUtils.isNotEmpty(name)) {
-				return name;
-			} 
-		}
-		if (prismContainerValue.canRepresent(RelationDefinitionType.class)){
+			if (StringUtils.isNotEmpty(name)) {
+				displayName = name;
+			}
+		} else if (prismContainerValue.canRepresent(RelationDefinitionType.class)) {
 			RelationDefinitionType relationDefinition = (RelationDefinitionType) prismContainerValue.asContainerable();
-			if(relationDefinition.getRef() != null) {
+			if (relationDefinition.getRef() != null) {
 				String name = (relationDefinition.getRef().getLocalPart());
 				String description = relationDefinition.getDescription();
-				if(StringUtils.isNotEmpty(name)) {
-					return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+				if (StringUtils.isNotEmpty(name)) {
+					displayName = name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
 				}
 			}
-		}
-		if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)){
+		} else if (prismContainerValue.canRepresent(ResourceItemDefinitionType.class)) {
 			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
-			if(resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
-				return resourceItemDefinition.getDisplayName();
+			if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
+				displayName = resourceItemDefinition.getDisplayName();
 			}
-		}
-		if (prismContainerValue.canRepresent(MappingType.class)){
+		} else if (prismContainerValue.canRepresent(MappingType.class)) {
 			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
-			if(mapping.getName() != null && !mapping.getName().isEmpty()) {
+			if (mapping.getName() != null && !mapping.getName().isEmpty()) {
 				String name = mapping.getName();
 				String description = mapping.getDescription();
-				return name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+				displayName = name + (StringUtils.isNotEmpty(description) ? (" - " + description) : "");
+			}
+		} else {
+
+			Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
+			if (cvalClass != null) {
+				displayName = cvalClass.getSimpleName() + ".details";
+			} else {
+				displayName = "ContainerPanel.containerProperties";
 			}
 		}
-		Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
-		if (cvalClass != null){
-			return cvalClass.getSimpleName() + ".details";
-		}
-		return "ContainerPanel.containerProperties";
+
+
+		String escaped = org.apache.commons.lang.StringEscapeUtils.escapeHtml(displayName);
+		return escaped;
 	}
 
 	public static QName normalizeRelation(QName relation) {

@@ -25,7 +25,11 @@ import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +39,6 @@ import org.xml.sax.EntityResolver;
 
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -46,10 +49,12 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 
 	//private static final long serialVersionUID = 5068618465625931984L;
 
-	//private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PrismSchema.class);
 
 	@NotNull protected final Collection<Definition> definitions = new ArrayList<>();
-	@NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();		// key is the item name (qualified or unqualified)
+	@NotNull private final Map<QName, ItemDefinition<?>> itemDefinitionMap = new HashMap<>();		    // key is the item name (qualified or unqualified)
+	@NotNull private final MultiValuedMap<QName, ItemDefinition<?>> itemDefinitionByTypeMap = new ArrayListValuedHashMap<>();		// key is the type name (always qualified)
+	@NotNull private final Map<QName, TypeDefinition> typeDefinitionMap = new HashMap<>();		        // key is the type name (always qualified)
 	protected String namespace;			// may be null if not properly initialized
 	protected PrismContext prismContext;
 
@@ -91,10 +96,13 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 	@NotNull
 	@Override
 	public <T extends Definition> List<T> getDefinitions(@NotNull Class<T> type) {
-		return definitions.stream()
-				.filter(def -> type.isAssignableFrom(def.getClass()))
-				.map(def -> (T) def)
-				.collect(Collectors.toList());
+		List<T> list = new ArrayList<>();
+		for (Definition def : definitions) {
+			if (type.isAssignableFrom(def.getClass())) {
+				list.add((T) def);
+			}
+		}
+		return list;
 	}
 
 	public void addDelayedItemDefinition(DefinitionSupplier supplier) {
@@ -117,6 +125,17 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 		if (def instanceof ItemDefinition) {
 			ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
 			itemDefinitionMap.put(itemDef.getName(), itemDef);
+			QName typeName = def.getTypeName();
+			if (QNameUtil.isUnqualified(typeName)) {
+				throw new IllegalArgumentException("Item definition (" + itemDef + ") of unqualified type " + typeName + " cannot be added to " + this);
+			}
+			itemDefinitionByTypeMap.put(typeName, itemDef);
+		} else if (def instanceof TypeDefinition) {
+			QName typeName = def.getTypeName();
+			if (QNameUtil.isUnqualified(typeName)) {
+				throw new IllegalArgumentException("Unqualified definition of type " + typeName + " cannot be added to " + this);
+			}
+			typeDefinitionMap.put(typeName, (TypeDefinition) def);
 		}
 	}
 
@@ -324,40 +343,6 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 	}
 	//endregion
 
-	//region Implementation of DefinitionsStore methods (commented out)
-//	private final SearchContexts searchContexts = new SearchContexts(this);			// pre-existing object to avoid creating them each time
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<PrismObjectDefinition<? extends Objectable>> findObjectDefinition() {
-//		return searchContexts.pod;
-//	}
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<PrismContainerDefinition<? extends Containerable>> findContainerDefinition() {
-//		return searchContexts.pcd;
-//	}
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<ItemDefinition<?>> findItemDefinition() {
-//		return searchContexts.id;
-//	}
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<ComplexTypeDefinition> findComplexTypeDefinition() {
-//		return searchContexts.ctd;
-//	}
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<PrismPropertyDefinition> findPropertyDefinition() {
-//		return searchContexts.ppd;
-//	}
-//
-//	@Override
-//	public GlobalDefinitionSearchContext<PrismReferenceDefinition> findReferenceDefinition() {
-//		return searchContexts.prd;
-//	}
-	//endregion
-
 	//region Finding definitions
 
 	// items
@@ -391,7 +376,27 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 	@Override
 	public <ID extends ItemDefinition> ID findItemDefinitionByType(@NotNull QName typeName, @NotNull Class<ID> definitionClass) {
 		// TODO: check for multiple definition with the same type
-		for (Definition definition : definitions) {
+		if (QNameUtil.isQualified(typeName)) {
+			Collection<ItemDefinition<?>> definitions = itemDefinitionByTypeMap.get(typeName);
+			if (definitions != null) {
+				for (Definition definition : definitions) {
+					if (definitionClass.isAssignableFrom(definition.getClass())) {
+						//noinspection unchecked
+						return (ID) definition;
+					}
+				}
+			}
+			return null;
+		} else {
+			return findItemDefinitionsByUnqualifiedTypeName(typeName, definitionClass);
+		}
+	}
+
+	@Nullable
+	private <ID extends ItemDefinition> ID findItemDefinitionsByUnqualifiedTypeName(
+			@NotNull QName typeName, @NotNull Class<ID> definitionClass) {
+		LOGGER.warn("Looking for item definition by unqualified type name: {} in {}", typeName, this);
+		for (Definition definition : definitions) {     // take from itemDefinitionsMap.values?
 			if (definitionClass.isAssignableFrom(definition.getClass())) {
 				@SuppressWarnings("unchecked")
 				ID itemDef = (ID) definition;
@@ -415,36 +420,15 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 		} else if (namespace != null) {
 			CollectionUtils.addIgnoreNull(matching, itemDefinitionMap.get(new QName(namespace, elementName.getLocalPart())));
 		}
-		return matching.stream()
-				.filter(d -> definitionClass.isAssignableFrom(d.getClass()))
-				.map(d -> (ID) d)
-				.collect(Collectors.toList());
+		List<ID> list = new ArrayList<>();
+		for (Definition d : matching) {
+			if (definitionClass.isAssignableFrom(d.getClass())) {
+				ID id = (ID) d;
+				list.add(id);
+			}
+		}
+		return list;
 	}
-
-	//	private Map<Class<? extends Objectable>, PrismObjectDefinition> classToDefCache = Collections.synchronizedMap(new HashMap<>());
-//	@Override
-//	public <O extends Objectable> PrismObjectDefinition<O> findObjectDefinitionByCompileTimeClass(@NotNull Class<O> type) {
-//		if (classToDefCache.containsKey(type)) {		// there may be null values
-//			return classToDefCache.get(type);
-//		}
-//		PrismObjectDefinition<O> definition = scanForPrismObjectDefinition(type);
-//		classToDefCache.put(type, definition);
-//		return definition;
-//	}
-//	private <T extends Objectable> PrismObjectDefinition<T> scanForPrismObjectDefinition(Class<T> type) {
-//		for (Definition def: getDefinitions()) {
-//			if (def instanceof PrismObjectDefinition<?>) {
-//				PrismObjectDefinition<?> objDef = (PrismObjectDefinition<?>)def;
-//				if (type.equals(objDef.getCompileTimeClass())) {
-//					classToDefCache.put(type, objDef);
-//					return (PrismObjectDefinition<T>) objDef;
-//				}
-//			}
-//		}
-//		return null;
-//	}
-
-
 
 	@Override
 	public <C extends Containerable> ComplexTypeDefinition findComplexTypeDefinitionByCompileTimeClass(@NotNull Class<C> compileTimeClass) {
@@ -469,11 +453,21 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 
 	@NotNull
 	@Override
-	@SuppressWarnings("unchecked")
 	public <TD extends TypeDefinition> Collection<TD> findTypeDefinitionsByType(@NotNull QName typeName, @NotNull Class<TD> definitionClass) {
-		return (List) definitions.stream()
-				.filter(def -> definitionClass.isAssignableFrom(def.getClass()) && QNameUtil.match(typeName, def.getTypeName()))
-				.collect(Collectors.toList());
+		List<TD> rv = new ArrayList<>();
+		addMatchingTypeDefinitions(rv, typeDefinitionMap.get(typeName), definitionClass);
+		if (QNameUtil.isUnqualified(typeName) && namespace != null) {
+			addMatchingTypeDefinitions(rv, typeDefinitionMap.get(new QName(namespace, typeName.getLocalPart())), definitionClass);
+		}
+		return rv;
+	}
+
+	private <TD extends TypeDefinition> void addMatchingTypeDefinitions(List<TD> matching, TypeDefinition typeDefinition,
+			Class<TD> definitionClass) {
+		if (typeDefinition != null && definitionClass.isAssignableFrom(typeDefinition.getClass())) {
+			//noinspection unchecked
+			matching.add((TD) typeDefinition);
+		}
 	}
 
 	@Nullable

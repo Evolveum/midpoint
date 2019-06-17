@@ -149,7 +149,7 @@ public class PrismAsserts {
 			fail("More than one value in "+object);
 		}
 		PrismContainerValue cval = values.get(0);
-		assertEquals("Wrong number of items in "+object, expectedNumberOfItems, cval.getItems().size());
+		assertEquals("Wrong number of items in "+object, expectedNumberOfItems, cval.size());
 	}
 	
 	public static void assertNoItem(PrismContainer<?> object, ItemPath itemPath) {
@@ -294,11 +294,9 @@ public class PrismAsserts {
 	// MISC asserts
 
 	public static void assertParentConsistency(PrismContainerValue<?> pval) {
-		if (pval.getItems() != null) {
-			for (Item<?,?> item : pval.getItems()) {
-				assert item.getParent() == pval : "Wrong parent in " + item;
-				assertParentConsistency(item);
-			}
+		for (Item<?,?> item : pval.getItems()) {
+			assert item.getParent() == pval : "Wrong parent in " + item;
+			assertParentConsistency(item);
 		}
 	}
 

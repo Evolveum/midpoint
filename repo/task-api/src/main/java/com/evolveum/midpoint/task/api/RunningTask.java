@@ -103,4 +103,14 @@ public interface RunningTask extends Task {
 	void incrementProgressAndStoreStatsIfNeeded();
 
 	void deleteLightweightAsynchronousSubtasks();
+
+	/**
+	 * Must be called from the thread that executes the task.
+	 */
+	void startDynamicProfilingIfNeeded(RunningTask coordinatorTask);
+
+	/**
+	 * Must be called from the thread that executes the task.
+	 */
+	void stopDynamicProfiling();
 }

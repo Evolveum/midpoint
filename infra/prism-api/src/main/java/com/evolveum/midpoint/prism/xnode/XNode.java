@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.util.DebugDumpable;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -35,6 +36,7 @@ public interface XNode extends DebugDumpable, Visitable, Cloneable, Serializable
 
 	boolean isExplicitTypeDeclaration();
 
+	@NotNull
 	XNode clone();
 
 	Integer getMaxOccurs();

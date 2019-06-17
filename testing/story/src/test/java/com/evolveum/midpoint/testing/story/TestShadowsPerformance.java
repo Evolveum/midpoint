@@ -90,7 +90,6 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		MidpointInterceptor.deactivateMethodInvocationLogging();
 		super.initSystem(initTask, initResult);
 
 		DummyAuditService.getInstance().setEnabled(false);

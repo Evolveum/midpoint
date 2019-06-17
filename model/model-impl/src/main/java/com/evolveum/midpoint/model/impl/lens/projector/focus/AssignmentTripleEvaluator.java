@@ -571,7 +571,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
+		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getName()+".evaluateAssignment");
 		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,

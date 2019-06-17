@@ -857,16 +857,13 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
         Set<RAnyValue<?>> values = new HashSet<>();
         try {
-            List<Item<?,?>> items = containerValue.getItems();
             //TODO: is this enough? should we try items without definitions?
-            if (items != null) {
-                for (Item<?,?> item : items) {
-                    Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, ownerType);
-                    if (generatorResult.isGeneratedOid()) {
-                        converted.stream().forEach(v -> v.setTransient(true));
-                    }
-                    values.addAll(converted);
+            for (Item<?,?> item : containerValue.getItems()) {
+                Set<RAnyValue<?>> converted = converter.convertToRValue(item, false, ownerType);
+                if (generatorResult.isGeneratedOid()) {
+                    converted.forEach(v -> v.setTransient(true));
                 }
+                values.addAll(converted);
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

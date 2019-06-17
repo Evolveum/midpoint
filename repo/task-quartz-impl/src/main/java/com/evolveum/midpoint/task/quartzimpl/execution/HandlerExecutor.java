@@ -98,12 +98,15 @@ public class HandlerExecutor {
 			}
 		}
 
+		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
+
 		TaskWorkBucketProcessingResult runResult = null;
 		for (boolean initialBucket = true; ; initialBucket = false) {
 			WorkBucketType bucket;
 			try {
 				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialBucket,
+							task.getWorkBucketStatisticsCollector(), executionResult);
 				} catch (InterruptedException e) {
 					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
 					if (task.canRun()) {
@@ -122,7 +125,9 @@ public class HandlerExecutor {
 				return runResult != null ? runResult : createSuccessTaskRunResult(task);
 			}
 			try {
-				task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), initialBucket);
+				if (!initialBucket) {
+					task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), false);
+				}
 				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
 				runResult = handler.run(task, bucket, taskPartition, runResult);
 				LOGGER.trace("runResult is {} for {}", runResult, task);
@@ -142,7 +147,8 @@ public class HandlerExecutor {
 				return runResult;
 			}
 			try {
-				((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+				((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
+						task.getWorkBucketStatisticsCollector(), executionResult);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
 				return createFailureTaskRunResult(task, "Couldn't complete work bucket: " + e.getMessage(), e);

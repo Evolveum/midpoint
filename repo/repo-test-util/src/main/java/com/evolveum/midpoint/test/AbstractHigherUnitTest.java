@@ -461,7 +461,7 @@ public abstract class AbstractHigherUnitTest {
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 
 		assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
 		if (expectedNumberOfAttributes != null) {

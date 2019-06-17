@@ -176,68 +176,78 @@ public class Clockwork {
 
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
-	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) 
+	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
-		LOGGER.trace("Running clockwork for context {}", context);
-		if (InternalsConfig.consistencyChecks) {
-			context.checkConsistence();
-		}
 
-		int clicked = 0;
-		boolean focusConflictPresent = false;
-		HookOperationMode finalMode;
-
+		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
 		try {
-			context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
-			if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
-				context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
+			LOGGER.trace("Running clockwork for context {}", context);
+			if (InternalsConfig.consistencyChecks) {
+				context.checkConsistence();
 			}
-			FocusConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
-			enterAssociationSearchExpressionEvaluatorCache();
-			//enterDefaultSearchExpressionEvaluatorCache();
-			provisioningService.enterConstraintsCheckerCache();
 
-			while (context.getState() != ModelState.FINAL) {
+			int clicked = 0;
+			boolean focusConflictPresent = false;
+			HookOperationMode finalMode;
 
-				// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
-				int maxClicks = getMaxClicks(context, result);
-				if (clicked >= maxClicks) {
-					throw new IllegalStateException("Model operation took too many clicks (limit is " + maxClicks + "). Is there a cycle?");
+			try {
+				context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
+				if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
+					context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 				}
-				clicked++;
+				FocusConstraintsChecker
+						.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
+				enterAssociationSearchExpressionEvaluatorCache();
+				//enterDefaultSearchExpressionEvaluatorCache();
+				provisioningService.enterConstraintsCheckerCache();
 
-				HookOperationMode mode = click(context, task, result);
+				while (context.getState() != ModelState.FINAL) {
 
-				if (mode == HookOperationMode.BACKGROUND) {
-					result.recordInProgress();
-					return mode;
-				} else if (mode == HookOperationMode.ERROR) {
-					return mode;
+					// TODO implement in model context (as transient or even non-transient attribute) to allow for checking in more complex scenarios
+					int maxClicks = getMaxClicks(context, result);
+					if (clicked >= maxClicks) {
+						throw new IllegalStateException(
+								"Model operation took too many clicks (limit is " + maxClicks + "). Is there a cycle?");
+					}
+					clicked++;
+
+					HookOperationMode mode = click(context, task, result);
+
+					if (mode == HookOperationMode.BACKGROUND) {
+						result.recordInProgress();
+						return mode;
+					} else if (mode == HookOperationMode.ERROR) {
+						return mode;
+					}
 				}
+				// One last click in FINAL state
+				finalMode = click(context, task, result);
+				if (finalMode == HookOperationMode.FOREGROUND) {
+					focusConflictPresent = checkFocusConflicts(context, task, result);
+				}
+			} finally {
+				context.unregisterConflictWatchers(repositoryService);
+				FocusConstraintsChecker.exitCache();
+				//exitDefaultSearchExpressionEvaluatorCache();
+				exitAssociationSearchExpressionEvaluatorCache();
+				provisioningService.exitConstraintsCheckerCache();
+				context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
 			}
-			// One last click in FINAL state
-			finalMode = click(context, task, result);
-			if (finalMode == HookOperationMode.FOREGROUND) {
-				focusConflictPresent = checkFocusConflicts(context, task, result);
-			}
-		} finally {
-			context.unregisterConflictWatchers(repositoryService);
-			FocusConstraintsChecker.exitCache();
-			//exitDefaultSearchExpressionEvaluatorCache();
-			exitAssociationSearchExpressionEvaluatorCache();
-			provisioningService.exitConstraintsCheckerCache();
-			context.reportProgress(new ProgressInformation(CLOCKWORK, EXITING));
-		}
 
-		// intentionally outside the "try-finally" block to start with clean caches
-		if (focusConflictPresent) {
-			assert finalMode == HookOperationMode.FOREGROUND;
-			finalMode = resolveFocusConflict(context, task, result);
-		} else if (context.getConflictResolutionAttemptNumber() > 0) {
-			LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
+			// intentionally outside the "try-finally" block to start with clean caches
+			if (focusConflictPresent) {
+				assert finalMode == HookOperationMode.FOREGROUND;
+				finalMode = resolveFocusConflict(context, task, result);
+			} else if (context.getConflictResolutionAttemptNumber() > 0) {
+				LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
+			}
+			result.computeStatusIfUnknown();
+			return finalMode;
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
 		}
-		return finalMode;
 	}
 
 	public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result)
@@ -468,7 +478,7 @@ public class Clockwork {
 		}
 	}
 
-	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) 
+	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
@@ -478,6 +488,8 @@ public class Clockwork {
 		if (context.getInspector() == null) {
 			context.setInspector(medic.getClockworkInspector());
 		}
+
+		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + ".click");
 
 		try {
 
@@ -496,7 +508,7 @@ public class Clockwork {
 				context.generateRequestIdentifierIfNeeded();
 				// We need to do this BEFORE projection. If we would do that after projection
 				// there will be secondary changes that are not part of the request.
-				audit(context, AuditEventStage.REQUEST, task, result);
+				audit(context, AuditEventStage.REQUEST, task, result, parentResult);        // we need to take the overall ("run" operation result) not the current one
 			}
 
 			boolean recompute = false;
@@ -548,22 +560,23 @@ public class Clockwork {
 					processPrimaryToSecondary(context, task, result);
 					break;
 				case SECONDARY:
-					processSecondary(context, task, result);
+					processSecondary(context, task, result, parentResult);
 					break;
 				case FINAL:
-					HookOperationMode mode = processFinal(context, task, result);
+					HookOperationMode mode = processFinal(context, task, result, parentResult);
 					medic.clockworkFinish(context);
 					return mode;
 			}
-			result.recomputeStatus();
-			result.cleanupResult();
 			return invokeHooks(context, task, result);
 
 		} catch (CommunicationException | ConfigurationException | ExpressionEvaluationException | ObjectNotFoundException |
 				PolicyViolationException | SchemaException | SecurityViolationException | RuntimeException | Error |
 				ObjectAlreadyExistsException | PreconditionViolationException e) {
-			processClockworkException(context, e, task, result);
+			processClockworkException(context, e, task, result, parentResult);
 			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
+			result.cleanupResult();
 		}
 	}
 
@@ -710,7 +723,7 @@ public class Clockwork {
 
 	}
 
-	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) 
+	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, 
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
@@ -725,9 +738,10 @@ public class Clockwork {
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
 					restartRequestedHolder.setValue(restartRequested);
 				},
-				context.getPartialProcessingOptions()::getExecution);
+				context.getPartialProcessingOptions()::getExecution,
+				Clockwork.class, context, result);
 
-		audit(context, AuditEventStage.EXECUTION, task, result);
+		audit(context, AuditEventStage.EXECUTION, task, result, overallResult);
 
 		rotContextIfNeeded(context);
 
@@ -828,10 +842,10 @@ public class Clockwork {
 		return false;
 	}
 
-	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result) 
+	private <F extends ObjectType> HookOperationMode processFinal(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
-		auditFinalExecution(context, task, result);
+		auditFinalExecution(context, task, result, overallResult);
 		logFinalReadable(context, task, result);
 		recordOperationExecution(context, null, task, result);
 		migrator.executeAfterOperationMigration(context, result);
@@ -1103,7 +1117,9 @@ public class Clockwork {
         return HookOperationMode.BACKGROUND;
     }
 
-    private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+    // "overallResult" covers the whole clockwork run
+    // while "result" is - most of the time - related to the current clockwork click
+    private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result, OperationResult overallResult) throws SchemaException {
 		if (context.isLazyAuditRequest()) {
 			if (stage == AuditEventStage.REQUEST) {
 				// We skip auditing here, we will do it before execution
@@ -1114,12 +1130,12 @@ public class Clockwork {
 					return;
 				}
 				if (!context.isRequestAudited()) {
-					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), false, task, result);
+					auditEvent(context, AuditEventStage.REQUEST, context.getStats().getRequestTimestamp(), false, task, result, overallResult);
 				}
-				auditEvent(context, stage, null, false, task, result);
+				auditEvent(context, stage, null, false, task, result, overallResult);
 			}
 		} else {
-			auditEvent(context, stage, null, false, task, result);
+			auditEvent(context, stage, null, false, task, result, overallResult);
 		}
 	}
 
@@ -1127,27 +1143,33 @@ public class Clockwork {
 	 * Make sure that at least one execution is audited if a request was already audited. We don't want
 	 * request without execution in the audit logs.
 	 */
-	private <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result,
+			OperationResult overallResult) throws SchemaException {
 		if (!context.isRequestAudited()) {
 			return;
 		}
 		if (context.isExecutionAudited()) {
 			return;
 		}
-		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 	}
 
-	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result)
+	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
 		result.recordFatalError(e);
-		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
+		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 		recordOperationExecution(context, e, task, result);
 		LensUtil.reclaimSequences(context, repositoryService, task, result);
 	}
 
+	// "overallResult" covers the whole clockwork run
+	// while "result" is - most of the time - related to the current clockwork click
+	//
+	// We provide "result" here just for completeness - if any of the called methods would like to record to it.
 	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
-			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
+			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, @SuppressWarnings("unused") OperationResult result,
+			OperationResult overallResult) throws SchemaException {
 
 		PrismObject<? extends ObjectType> primaryObject;
 		ObjectDelta<? extends ObjectType> primaryDelta;
@@ -1197,6 +1219,13 @@ public class Clockwork {
 
 		auditRecord.setChannel(context.getChannel());
 
+		// This is a brutal hack -- FIXME: create some "compute in-depth preview" method on operation result
+		OperationResult clone = overallResult.clone(2, false);
+		for (OperationResult subresult : clone.getSubresults()) {
+			subresult.computeStatusIfUnknown();
+		}
+		clone.computeStatus();
+
 		if (stage == AuditEventStage.REQUEST) {
 			Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
 			checkNamesArePresent(clonedDeltas, primaryObject);
@@ -1205,7 +1234,7 @@ public class Clockwork {
 				auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
 			}
 		} else if (stage == AuditEventStage.EXECUTION) {
-			auditRecord.setOutcome(result.getComputeStatus());
+			auditRecord.setOutcome(clone.getStatus());
 			Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
 			if (!alwaysAudit && (unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty())) {
 				// No deltas, nothing to audit in this wave
@@ -1222,7 +1251,7 @@ public class Clockwork {
 			auditRecord.setTimestamp(XmlTypeConverter.toMillis(timestamp));
 		}
 
-		addRecordMessage(auditRecord, result);
+		addRecordMessage(auditRecord, clone.getMessage());
 
 		auditHelper.audit(auditRecord, task);
 
@@ -1250,12 +1279,11 @@ public class Clockwork {
 	/**
 	 * Adds a message to the record by pulling the messages from individual delta results.
 	 */
-	private void addRecordMessage(AuditEventRecord auditRecord, OperationResult result) {
+	private void addRecordMessage(AuditEventRecord auditRecord, String message) {
 		if (auditRecord.getMessage() != null) {
 			return;
 		}
-		if (!StringUtils.isEmpty(result.getMessage())) {
-			String message = result.getMessage();
+		if (!StringUtils.isEmpty(message)) {
 			auditRecord.setMessage(message);
 			return;
 		}
@@ -1267,12 +1295,12 @@ public class Clockwork {
 		for (ObjectDeltaOperation<? extends ObjectType> delta: deltas) {
 			OperationResult executionResult = delta.getExecutionResult();
 			if (executionResult != null) {
-				String message = executionResult.getMessage();
-				if (!StringUtils.isEmpty(message)) {
+				String deltaMessage = executionResult.getMessage();
+				if (!StringUtils.isEmpty(deltaMessage)) {
 					if (sb.length() != 0) {
 						sb.append("; ");
 					}
-					sb.append(message);
+					sb.append(deltaMessage);
 				}
 			}
 		}

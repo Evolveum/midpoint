@@ -158,16 +158,9 @@ public interface PrismContainer<C extends Containerable>
 
 	<T extends Containerable> PrismContainer<T> findContainer(ItemPath path);
 
-	<I extends Item<?,?>> List<I> getItems(Class<I> type);
-
-	@SuppressWarnings("unchecked")
-	List<PrismContainer<?>> getContainers();
-
 	<T> PrismProperty<T> findProperty(ItemPath path);
 
 	PrismReference findReference(ItemPath path);
-
-	PrismReference findReferenceByCompositeObjectElementName(QName elementName);
 
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
 			Class<I> type) throws SchemaException;

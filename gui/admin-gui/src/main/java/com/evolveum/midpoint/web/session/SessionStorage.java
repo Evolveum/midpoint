@@ -69,6 +69,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
 
     private static final String KEY_TASKS = "tasks";
+    private static final String KEY_SUBTASKS = "subtasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
 
     /**
@@ -258,6 +259,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_TASKS, new TasksStorage());
         }
         return (TasksStorage)pageStorageMap.get(KEY_TASKS);
+    }
+    
+    public TasksStorage getSubtasks() {
+        if (pageStorageMap.get(KEY_SUBTASKS) == null) {
+            pageStorageMap.put(KEY_SUBTASKS, new TasksStorage());
+        }
+        return (TasksStorage)pageStorageMap.get(KEY_SUBTASKS);
     }
 
     public CertCampaignsStorage getCertCampaigns() {

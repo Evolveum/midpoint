@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.INTERVAL;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.StringWorkBucketsBoundaryMarkingType.PREFIX;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -57,12 +56,11 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 
 	@Override
 	protected AbstractWorkBucketContentType createAdditionalBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
-		if (marking == INTERVAL) {
-			return createAdditionalIntervalBucket(lastBucketContent, lastBucketSequentialNumber);
-		} else if (marking == PREFIX) {
-			return createAdditionalPrefixBucket(lastBucketContent, lastBucketSequentialNumber);
-		} else {
-			throw new AssertionError("unsupported marking: " + marking);
+		switch (marking) {
+			case INTERVAL: return createAdditionalIntervalBucket(lastBucketContent, lastBucketSequentialNumber);
+			case PREFIX: return createAdditionalPrefixBucket(lastBucketContent, lastBucketSequentialNumber);
+			case EXACT_MATCH: return createAdditionalExactMatchBucket(lastBucketContent, lastBucketSequentialNumber);
+			default: throw new AssertionError("unsupported marking: " + marking);
 		}
 	}
 
@@ -106,6 +104,32 @@ public class StringWorkSegmentationStrategy extends BaseWorkSegmentationStrategy
 		if (nextBoundary != null) {
 			return new StringPrefixWorkBucketContentType()
 					.prefix(nextBoundary);
+		} else {
+			return null;
+		}
+	}
+
+	private AbstractWorkBucketContentType createAdditionalExactMatchBucket(AbstractWorkBucketContentType lastBucketContent, Integer lastBucketSequentialNumber) {
+		String lastBoundary;
+		if (lastBucketSequentialNumber != null) {
+			if (!(lastBucketContent instanceof StringValueWorkBucketContentType)) {
+				throw new IllegalStateException("Null or unsupported bucket content: " + lastBucketContent);
+			}
+			StringValueWorkBucketContentType lastContent = (StringValueWorkBucketContentType) lastBucketContent;
+			if (lastContent.getValue().size() > 1) {
+				throw new IllegalStateException("Multiple values are not supported now: " + lastContent);
+			} else if (lastContent.getValue().isEmpty()) {
+				return null;
+			} else {
+				lastBoundary = lastContent.getValue().get(0);
+			}
+		} else {
+			lastBoundary = null;
+		}
+		String nextBoundary = computeNextBoundary(lastBoundary);
+		if (nextBoundary != null) {
+			return new StringValueWorkBucketContentType()
+					.value(nextBoundary);
 		} else {
 			return null;
 		}

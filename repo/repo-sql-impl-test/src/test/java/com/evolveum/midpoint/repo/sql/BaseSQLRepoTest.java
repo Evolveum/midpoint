@@ -46,6 +46,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
@@ -70,6 +71,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
+    @Autowired
+    @Qualifier("sqlRepositoryServiceImpl")
+    protected SqlRepositoryServiceImpl sqlRepositoryService;
     @Autowired protected RepositoryService repositoryService;
 	@Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;

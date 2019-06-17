@@ -1506,9 +1506,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		for(V val: values) {
 			if (val instanceof PrismContainerValue<?>) {
 				PrismContainerValue<?> cval = (PrismContainerValue<?>)val;
-				if (cval.getItems() == null){
-					continue;
-				}
 				for (Item<?,?> item: cval.getItems()) {
 					item.assertDefinitions(tolarateRawValues, cval.toString()+" in "+sourceDescription);
 				}

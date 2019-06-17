@@ -233,7 +233,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		List<PrismContainerValue<C>> values = container.getValues();
 		List<PrismContainerValue<C>> valuesToBeRemoved = new ArrayList<>();
 		for (PrismContainerValue<C> value : values) {
-			List<Item<?,?>> items = value.getItems();
+			Collection<Item<?,?>> items = value.getItems();
 			if (items != null) {
 				Iterator<Item<?,?>> iterator = items.iterator();
 				while (iterator.hasNext()) {

@@ -173,6 +173,17 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.internalPerformance")) {
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskInternalPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeInternalPerformanceVisible(parentPage);
+					}
+				});
+		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {

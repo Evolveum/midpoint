@@ -184,6 +184,11 @@ public class StatisticsUtil {
 					.append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
 					.append("\n");
 		}
+		if (statistics.getMethodsPerformanceInformation() != null) {
+			sb.append("Methods performance information:\n")
+					.append(MethodsPerformanceInformationUtil.format(statistics.getMethodsPerformanceInformation()))
+					.append("\n");
+		}
 		return sb.toString();
 	}
 }
