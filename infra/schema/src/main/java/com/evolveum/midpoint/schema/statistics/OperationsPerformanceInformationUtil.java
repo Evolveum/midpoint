@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.schema.statistics;
 
-import com.evolveum.midpoint.util.aspect.MethodPerformanceInformation;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceInformation;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MethodsPerformanceInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleMethodPerformanceInformationType;
+import com.evolveum.midpoint.util.statistics.SingleOperationPerformanceInformation;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationsPerformanceInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleOperationPerformanceInformationType;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,18 +32,18 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 /**
  *
  */
-public class MethodsPerformanceInformationUtil {
-	public static MethodsPerformanceInformationType toMethodsPerformanceInformationType(
-			@NotNull MethodsPerformanceInformation methodsInfo) {
-		MethodsPerformanceInformationType rv = new MethodsPerformanceInformationType();
-		methodsInfo.getAllData().forEach((cache, info) -> rv.getMethod().add(toSingleMethodPerformanceInformationType(cache, info)));
+public class OperationsPerformanceInformationUtil {
+	public static OperationsPerformanceInformationType toOperationsPerformanceInformationType(
+			@NotNull OperationsPerformanceInformation methodsInfo) {
+		OperationsPerformanceInformationType rv = new OperationsPerformanceInformationType();
+		methodsInfo.getAllData().forEach((cache, info) -> rv.getOperation().add(toSingleMethodPerformanceInformationType(cache, info)));
 		return rv;
 
 	}
 
-	private static SingleMethodPerformanceInformationType toSingleMethodPerformanceInformationType(String method,
-			MethodPerformanceInformation info) {
-		SingleMethodPerformanceInformationType rv = new SingleMethodPerformanceInformationType();
+	private static SingleOperationPerformanceInformationType toSingleMethodPerformanceInformationType(String method,
+			SingleOperationPerformanceInformation info) {
+		SingleOperationPerformanceInformationType rv = new SingleOperationPerformanceInformationType();
 		rv.setName(method);
 		rv.setInvocationCount(info.getInvocationCount());
 		rv.setTotalTime(info.getTotalTime());
@@ -52,13 +52,13 @@ public class MethodsPerformanceInformationUtil {
 		return rv;
 	}
 
-	public static void addTo(@NotNull MethodsPerformanceInformationType aggregate, @Nullable MethodsPerformanceInformationType part) {
+	public static void addTo(@NotNull OperationsPerformanceInformationType aggregate, @Nullable OperationsPerformanceInformationType part) {
 		if (part == null) {
 			return;
 		}
-		for (SingleMethodPerformanceInformationType partMethodInfo : part.getMethod()) {
-			SingleMethodPerformanceInformationType matchingAggregateCacheInfo = null;
-			for (SingleMethodPerformanceInformationType aggregateMethodInfo : aggregate.getMethod()) {
+		for (SingleOperationPerformanceInformationType partMethodInfo : part.getOperation()) {
+			SingleOperationPerformanceInformationType matchingAggregateCacheInfo = null;
+			for (SingleOperationPerformanceInformationType aggregateMethodInfo : aggregate.getOperation()) {
 				if (Objects.equals(partMethodInfo.getName(), aggregateMethodInfo.getName())) {
 					matchingAggregateCacheInfo = aggregateMethodInfo;
 					break;
@@ -67,13 +67,13 @@ public class MethodsPerformanceInformationUtil {
 			if (matchingAggregateCacheInfo != null) {
 				addTo(matchingAggregateCacheInfo, partMethodInfo);
 			} else {
-				aggregate.getMethod().add(partMethodInfo.clone());
+				aggregate.getOperation().add(partMethodInfo.clone());
 			}
 		}
 	}
 
-	private static void addTo(@NotNull SingleMethodPerformanceInformationType aggregate,
-			@NotNull SingleMethodPerformanceInformationType part) {
+	private static void addTo(@NotNull SingleOperationPerformanceInformationType aggregate,
+			@NotNull SingleOperationPerformanceInformationType part) {
 		aggregate.setInvocationCount(aggregate.getInvocationCount() + part.getInvocationCount());
 		aggregate.setTotalTime(aggregate.getTotalTime() + part.getTotalTime());
 		aggregate.setMinTime(min(aggregate.getMinTime(), part.getMinTime()));
@@ -96,19 +96,19 @@ public class MethodsPerformanceInformationUtil {
 		} else return Math.max(a, b);
 	}
 
-	public static String format(MethodsPerformanceInformationType i) {
+	public static String format(OperationsPerformanceInformationType i) {
 		StringBuilder sb = new StringBuilder();
-		List<SingleMethodPerformanceInformationType> methods = new ArrayList<>(i.getMethod());
+		List<SingleOperationPerformanceInformationType> methods = new ArrayList<>(i.getOperation());
 
-		List<SingleMethodPerformanceInformationType> viaAspect = methods.stream()
+		List<SingleOperationPerformanceInformationType> viaAspect = methods.stream()
 				.filter(e -> e.getName().endsWith("#"))
 				.collect(Collectors.toList());
-		List<SingleMethodPerformanceInformationType> viaOpResult = methods.stream()
+		List<SingleOperationPerformanceInformationType> viaOpResult = methods.stream()
 				.filter(e -> !e.getName().endsWith("#"))
 				.collect(Collectors.toList());
 
-		viaAspect.sort(Comparator.comparing(SingleMethodPerformanceInformationType::getName));
-		viaOpResult.sort(Comparator.comparing(SingleMethodPerformanceInformationType::getName));
+		viaAspect.sort(Comparator.comparing(SingleOperationPerformanceInformationType::getName));
+		viaOpResult.sort(Comparator.comparing(SingleOperationPerformanceInformationType::getName));
 		int max = methods.stream().mapToInt(op -> op.getName().length()).max().orElse(0);
 
 		if (!viaAspect.isEmpty()) {
@@ -122,8 +122,8 @@ public class MethodsPerformanceInformationUtil {
 		return sb.toString();
 	}
 
-	private static void format(StringBuilder sb, List<SingleMethodPerformanceInformationType> viaOpResult, int max) {
-		for (SingleMethodPerformanceInformationType op : viaOpResult) {
+	private static void format(StringBuilder sb, List<SingleOperationPerformanceInformationType> viaOpResult, int max) {
+		for (SingleOperationPerformanceInformationType op : viaOpResult) {
 			long totalTime = defaultIfNull(op.getTotalTime(), 0L);
 			int invocationCount = defaultIfNull(op.getInvocationCount(), 0);
 			String name = StringUtils.stripEnd(op.getName(), "#");

@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
-import com.evolveum.midpoint.util.aspect.MethodInvocationRecord;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -138,7 +138,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 */
 	private String asynchronousOperationReference;
 
-	private MethodInvocationRecord invocationRecord;
+	private OperationInvocationRecord invocationRecord;
 
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
@@ -241,7 +241,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static OperationResult createProfiled(String operation, Object[] arguments) {
 		OperationResult result = new OperationResult(operation);
-		result.invocationRecord = MethodInvocationRecord.create(operation, arguments);
+		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
 		return result;
 	}
 
@@ -249,7 +249,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
 		if (profiled) {
-			subresult.invocationRecord = MethodInvocationRecord.create(operation, arguments);
+			subresult.invocationRecord = OperationInvocationRecord.create(operation, arguments);
 		}
 		subresult.minor = minor;
 		return subresult;

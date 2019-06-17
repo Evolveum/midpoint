@@ -28,10 +28,10 @@ import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.MethodsPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceInformation;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitor;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -99,14 +99,14 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	private volatile CachesPerformanceInformationType initialCachesPerformanceInformation;
 
 	/**
-	 * Most current version of methods performance information. Original (live) form of this information is accessible only
+	 * Most current version of operations performance information. Original (live) form of this information is accessible only
 	 * from the task thread itself. So we have to refresh this item periodically from the task thread.
 	 *
 	 * DO NOT modify the content of this structure from multiple threads. The task thread should only replace the whole structure,
 	 * while other threads should only read it.
 	 */
-	private volatile MethodsPerformanceInformationType methodsPerformanceInformation;
-	private volatile MethodsPerformanceInformationType initialMethodsPerformanceInformation;
+	private volatile OperationsPerformanceInformationType operationsPerformanceInformation;
+	private volatile OperationsPerformanceInformationType initialOperationsPerformanceInformation;
 
 	private EnvironmentalPerformanceInformation getEnvironmentalPerformanceInformation() {
 		return environmentalPerformanceInformation;
@@ -215,14 +215,14 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		return rv;
 	}
 
-	private MethodsPerformanceInformationType getAggregateMethodsPerformanceInformation(Collection<Statistics> children) {
-		if (methodsPerformanceInformation == null) {
+	private OperationsPerformanceInformationType getAggregateOperationsPerformanceInformation(Collection<Statistics> children) {
+		if (operationsPerformanceInformation == null) {
 			return null;
 		}
-		MethodsPerformanceInformationType rv = methodsPerformanceInformation.clone();
-		MethodsPerformanceInformationUtil.addTo(rv, initialMethodsPerformanceInformation);
+		OperationsPerformanceInformationType rv = operationsPerformanceInformation.clone();
+		OperationsPerformanceInformationUtil.addTo(rv, initialOperationsPerformanceInformation);
 		for (Statistics child : children) {
-			MethodsPerformanceInformationUtil.addTo(rv, child.getAggregateMethodsPerformanceInformation(emptySet()));
+			OperationsPerformanceInformationUtil.addTo(rv, child.getAggregateOperationsPerformanceInformation(emptySet()));
 		}
 		return rv;
 	}
@@ -241,7 +241,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		ActionsExecutedInformationType aeit = getAggregateActionsExecutedInformation(children);
 		RepositoryPerformanceInformationType repo = getAggregateRepositoryPerformanceInformation(children);
 		CachesPerformanceInformationType caches = getAggregateCachesPerformanceInformation(children);
-		MethodsPerformanceInformationType methods = getAggregateMethodsPerformanceInformation(children);
+		OperationsPerformanceInformationType methods = getAggregateOperationsPerformanceInformation(children);
 		WorkBucketManagementPerformanceInformationType buckets = getWorkBucketManagementPerformanceInformation();   // this is not fetched from children (present on coordinator task only)
 		String cachingConfiguration = getAggregateCachingConfiguration(children);
 		if (env == null && itit == null && sit == null && aeit == null && repo == null && caches == null && methods == null && buckets == null && cachingConfiguration == null) {
@@ -254,7 +254,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 		rv.setActionsExecutedInformation(aeit);
 		rv.setRepositoryPerformanceInformation(repo);
 		rv.setCachesPerformanceInformation(caches);
-		rv.setMethodsPerformanceInformation(methods);
+		rv.setOperationsPerformanceInformation(methods);
 		rv.setCachingConfiguration(cachingConfiguration);
 		rv.setWorkBucketManagementPerformanceInformation(buckets);
 		rv.setTimestamp(createXMLGregorianCalendar(new Date()));
@@ -480,13 +480,13 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	public void startCollectingLowLevelStatistics(PerformanceMonitor performanceMonitor) {
 		performanceMonitor.startThreadLocalPerformanceInformationCollection();
 		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
-		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
+		OperationsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 
 	private void setInitialValuesForLowLevelStatistics(OperationStatsType operationStats) {
 		initialRepositoryPerformanceInformation = operationStats != null ? operationStats.getRepositoryPerformanceInformation() : null;
 		initialCachesPerformanceInformation = operationStats != null ? operationStats.getCachesPerformanceInformation() : null;
-		initialMethodsPerformanceInformation = operationStats != null ? operationStats.getMethodsPerformanceInformation() : null;
+		initialOperationsPerformanceInformation = operationStats != null ? operationStats.getOperationsPerformanceInformation() : null;
 	}
 
 	private void refreshRepositoryPerformanceInformation(RepositoryService repositoryService) {
@@ -499,11 +499,11 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	}
 
 	private void refreshMethodsPerformanceInformation() {
-		MethodsPerformanceInformation performanceInformation = MethodsPerformanceMonitor.INSTANCE.getThreadLocalPerformanceInformation();
+		OperationsPerformanceInformation performanceInformation = OperationsPerformanceMonitor.INSTANCE.getThreadLocalPerformanceInformation();
 		if (performanceInformation != null) {
-			methodsPerformanceInformation = MethodsPerformanceInformationUtil.toMethodsPerformanceInformationType(performanceInformation);
+			operationsPerformanceInformation = OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(performanceInformation);
 		} else {
-			methodsPerformanceInformation = null;       // probably we are not collecting these
+			operationsPerformanceInformation = null;       // probably we are not collecting these
 		}
 	}
 

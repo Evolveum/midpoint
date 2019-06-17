@@ -96,9 +96,9 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 					.append(CachePerformanceInformationUtil.format(statistics.getCachesPerformanceInformation()))
 					.append("\n");
 		}
-		if (statistics.getMethodsPerformanceInformation() != null) {
+		if (statistics.getOperationsPerformanceInformation() != null) {
 			sb.append("Methods performance information:\n")
-					.append(MethodsPerformanceInformationUtil.format(statistics.getMethodsPerformanceInformation()))
+					.append(OperationsPerformanceInformationUtil.format(statistics.getOperationsPerformanceInformation()))
 					.append("\n");
 		}
 		sb.append("\n-------------------------------------------------------------------------------------------------------------------------------------------------------------------\n");

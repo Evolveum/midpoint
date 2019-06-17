@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 /**
  *  EXPERIMENTAL.
  */
-public interface MethodsPerformanceMonitor {
+public interface OperationsPerformanceMonitor {
 
-	MethodsPerformanceMonitor INSTANCE = MethodsPerformanceMonitorImpl.INSTANCE;
+	OperationsPerformanceMonitor INSTANCE = OperationsPerformanceMonitorImpl.INSTANCE;
 
 	void clearGlobalPerformanceInformation();
 
-	MethodsPerformanceInformation getGlobalPerformanceInformation();
+	OperationsPerformanceInformation getGlobalPerformanceInformation();
 
 	/**
 	 * Starts gathering thread-local performance information, clearing existing (if any).
@@ -37,5 +37,5 @@ public interface MethodsPerformanceMonitor {
 	 */
 	void stopThreadLocalPerformanceInformationCollection();
 
-	MethodsPerformanceInformation getThreadLocalPerformanceInformation();
+	OperationsPerformanceInformation getThreadLocalPerformanceInformation();
 }

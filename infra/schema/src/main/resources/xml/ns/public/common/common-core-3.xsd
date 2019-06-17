@@ -3074,7 +3074,7 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="methodsPerformanceInformation" type="tns:MethodsPerformanceInformationType" minOccurs="0">
+			<xsd:element name="operationsPerformanceInformation" type="tns:OperationsPerformanceInformationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:since>4.0</a:since>
@@ -3160,7 +3160,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="MethodsPerformanceInformationType">
+	<xsd:complexType name="OperationsPerformanceInformationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Information about methods performance.
@@ -3173,11 +3173,11 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="method" type="tns:SingleMethodPerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="operation" type="tns:SingleOperationPerformanceInformationType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="SingleMethodPerformanceInformationType">
+	<xsd:complexType name="SingleOperationPerformanceInformationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Information about single method performance.

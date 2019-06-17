@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -22,21 +22,21 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  *
  */
-public class MethodsPerformanceMonitorImpl implements MethodsPerformanceMonitor {
+public class OperationsPerformanceMonitorImpl implements OperationsPerformanceMonitor {
 
-    public static final MethodsPerformanceMonitorImpl INSTANCE = new MethodsPerformanceMonitorImpl();
+    public static final OperationsPerformanceMonitorImpl INSTANCE = new OperationsPerformanceMonitorImpl();
 
-    private static final Trace LOGGER = TraceManager.getTrace(MethodsPerformanceMonitorImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OperationsPerformanceMonitorImpl.class);
 
     /**
      * Aggregated performance information local to the thread.
      */
-    private final ThreadLocal<MethodsPerformanceInformationImpl> threadLocalPerformanceInformation = new ThreadLocal<>();
+    private final ThreadLocal<OperationsPerformanceInformationImpl> threadLocalPerformanceInformation = new ThreadLocal<>();
 
     /**
      * Aggregated performance information common to all threads.
      */
-    private final MethodsPerformanceInformationImpl globalPerformanceInformation = new MethodsPerformanceInformationImpl();
+    private final OperationsPerformanceInformationImpl globalPerformanceInformation = new OperationsPerformanceInformationImpl();
 
     @Override
     public void clearGlobalPerformanceInformation() {
@@ -44,17 +44,17 @@ public class MethodsPerformanceMonitorImpl implements MethodsPerformanceMonitor 
     }
 
     @Override
-    public MethodsPerformanceInformationImpl getGlobalPerformanceInformation() {
+    public OperationsPerformanceInformationImpl getGlobalPerformanceInformation() {
         return globalPerformanceInformation;
     }
 
     @Override
     public void startThreadLocalPerformanceInformationCollection() {
-        threadLocalPerformanceInformation.set(new MethodsPerformanceInformationImpl());
+        threadLocalPerformanceInformation.set(new OperationsPerformanceInformationImpl());
     }
 
     @Override
-    public MethodsPerformanceInformationImpl getThreadLocalPerformanceInformation() {
+    public OperationsPerformanceInformationImpl getThreadLocalPerformanceInformation() {
         return threadLocalPerformanceInformation.get();
     }
 
@@ -73,9 +73,9 @@ public class MethodsPerformanceMonitorImpl implements MethodsPerformanceMonitor 
         LOGGER.debug("Global performance information:\n{}", globalPerformanceInformation.debugDump());
     }
 
-    void registerInvocationCompletion(MethodInvocationRecord invocation) {
+    void registerInvocationCompletion(OperationInvocationRecord invocation) {
         globalPerformanceInformation.register(invocation);
-        MethodsPerformanceInformationImpl local = getThreadLocalPerformanceInformation();
+        OperationsPerformanceInformationImpl local = getThreadLocalPerformanceInformation();
         if (local != null) {
             local.register(invocation);
         }

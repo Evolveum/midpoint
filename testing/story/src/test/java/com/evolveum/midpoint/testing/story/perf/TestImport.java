@@ -160,9 +160,9 @@ public class TestImport extends AbstractStoryTest {
 	        if (System.currentTimeMillis() - lastProfilingStarted > PROFILING_INTERVAL) {
 	        	lastProfilingStarted = System.currentTimeMillis();
 		        System.out.println("Starting profiling at " + new Date());
-		        MidpointInterceptor.setGlobalMethodInvocationLevelOverride(Level.TRACE);
+		        MidpointInterceptor.setGlobalOperationInvocationLevelOverride(Level.TRACE);
 		        Thread.sleep(PROFILING_DURATION);
-		        MidpointInterceptor.setGlobalMethodInvocationLevelOverride(null);
+		        MidpointInterceptor.setGlobalOperationInvocationLevelOverride(null);
 		        System.out.println("Stopping profiling at " + new Date());
 	        } else {
 	        	Thread.sleep(CHECK_INTERVAL);
