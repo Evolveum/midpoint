@@ -200,7 +200,7 @@ public class CacheConfigurationManager {
 				addProfile(rv, profile);
 			}
 			if (configuration != null && Boolean.TRUE.equals(configuration.isTraceConfiguration())) {
-				LOGGER.info("Compiled configurations:");
+				LOGGER.info("Compiled configurations (profiles = {}):", profiles);
 				for (Map.Entry<CacheType, CacheConfiguration> entry : rv.entrySet()) {
 					LOGGER.info("  {}:\n{}", entry.getKey(), entry.getValue().debugDump(2));
 				}
