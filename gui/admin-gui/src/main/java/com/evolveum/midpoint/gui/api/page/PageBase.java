@@ -1147,6 +1147,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
         mainPopup.setOutputMarkupId(true);
         mainPopup.setOutputMarkupPlaceholderTag(true);
+        mainPopup.showUnloadConfirmation(false);
         add(mainPopup);
     }
 
