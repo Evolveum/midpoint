@@ -71,6 +71,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private final String processShortName;
 	private String contextDesc;
 	private AtomicInteger objectsProcessed = new AtomicInteger();
+	private long initialProgress;
 	private AtomicLong totalTimeProcessing = new AtomicLong();
 	private AtomicInteger errors = new AtomicInteger();
 	private boolean stopOnError;
@@ -109,6 +110,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		stopOnError = true;
 		startTime = System.currentTimeMillis();
+		initialProgress = coordinatorTask.getProgress();
 	}
 
 	protected String getProcessShortName() {
@@ -387,7 +389,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
-			long progress = objectsProcessed.incrementAndGet();
+			long progress = initialProgress + objectsProcessed.incrementAndGet();
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 

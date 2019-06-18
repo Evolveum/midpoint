@@ -18,10 +18,10 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.MethodsPerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceInformation;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitor;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -88,11 +88,11 @@ public class InternalsPerformancePanel extends BasePanel<Void> {
 			sb.append("Cache performance information is currently not available."
 					+ "Please set up cache monitoring in the system configuration.\n\n");
 		}
-		MethodsPerformanceInformation methods = MethodsPerformanceMonitor.INSTANCE
+		OperationsPerformanceInformation methods = OperationsPerformanceMonitor.INSTANCE
 				.getGlobalPerformanceInformation();
 		if (methods != null) {
 			sb.append("Methods performance information:\n")
-					.append(MethodsPerformanceInformationUtil.format(MethodsPerformanceInformationUtil.toMethodsPerformanceInformationType(methods)))
+					.append(OperationsPerformanceInformationUtil.format(OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(methods)))
 					.append("\n");
 		} else {
 			sb.append("Methods performance information is currently not available."

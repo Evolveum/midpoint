@@ -19,7 +19,7 @@ package com.evolveum.midpoint.repo.sql.perf;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
-import com.evolveum.midpoint.util.aspect.MethodsPerformanceMonitorImpl;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsClassificationType;
@@ -108,7 +108,7 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         this.sqlRepositoryFactory = sqlRepositoryFactory;
         this.level = this.initialLevel = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
 
-        MethodsPerformanceMonitorImpl.INSTANCE.initialize();        // fixme put to better place
+        OperationsPerformanceMonitorImpl.INSTANCE.initialize();        // fixme put to better place
         LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
     }
 
@@ -126,7 +126,7 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         if (level >= LEVEL_GLOBAL_STATISTICS) {
             LOGGER.info("Global performance information:\n{}", globalPerformanceInformation.debugDump());
         }
-        MethodsPerformanceMonitorImpl.INSTANCE.shutdown();
+        OperationsPerformanceMonitorImpl.INSTANCE.shutdown();
     }
 
     public long registerOperationStart(String kind, Class<?> objectType) {

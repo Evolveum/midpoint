@@ -253,9 +253,9 @@ public class LoggingConfigurationManager {
 
 		if (profilingMode == ProfilingMode.DYNAMIC) {
 			if (profilingLoggingLevelSet != null) {
-				MidpointInterceptor.setGlobalMethodInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
+				MidpointInterceptor.setGlobalOperationInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
 			} else {
-				MidpointInterceptor.setGlobalMethodInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
+				MidpointInterceptor.setGlobalOperationInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
 				sb.append("\t<logger name=\"");
 				sb.append(MidPointConstants.PROFILING_LOGGER_NAME);
 				sb.append("\" level=\"TRACE\"/>\n");

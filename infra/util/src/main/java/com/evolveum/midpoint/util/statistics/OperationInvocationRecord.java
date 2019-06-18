@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
 
@@ -29,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * EXPERIMENTAL.
  */
-public class MethodInvocationRecord {
+public class OperationInvocationRecord {
 
 	private static AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -50,7 +52,7 @@ public class MethodInvocationRecord {
 	private boolean debugEnabled;
 	private boolean traceEnabled;
 
-	private MethodInvocationRecord(String fullClassName, String methodName) {
+	private OperationInvocationRecord(String fullClassName, String methodName) {
 		this.fullClassName = fullClassName;
 		shortenedClassName = getClassName(fullClassName);
 		subsystem = getSubsystem(fullClassName);
@@ -65,13 +67,13 @@ public class MethodInvocationRecord {
 		}
 	}
 
-	static MethodInvocationRecord create(MethodInvocation invocation) {
-		MethodInvocationRecord ctx = new MethodInvocationRecord(getFullClassName(invocation), invocation.getMethod().getName() + "#");
+	public static OperationInvocationRecord create(MethodInvocation invocation) {
+		OperationInvocationRecord ctx = new OperationInvocationRecord(getFullClassName(invocation), invocation.getMethod().getName() + "#");
 		ctx.beforeCall(invocation.getArguments());
 		return ctx;
 	}
 
-	public static MethodInvocationRecord create(String operationName, Object[] arguments) {
+	public static OperationInvocationRecord create(String operationName, Object[] arguments) {
 		int i = operationName.lastIndexOf('.');
 		String className, methodName;
 		if (i < 0) {
@@ -81,7 +83,7 @@ public class MethodInvocationRecord {
 			className = operationName.substring(0, i);
 			methodName = operationName.substring(i+1);
 		}
-		MethodInvocationRecord ctx = new MethodInvocationRecord(className, methodName);
+		OperationInvocationRecord ctx = new OperationInvocationRecord(className, methodName);
 		ctx.beforeCall(arguments);
 		return ctx;
 	}
@@ -149,7 +151,7 @@ public class MethodInvocationRecord {
 		}
 	}
 
-	Object processReturnValue(Object returnValue) {
+	public Object processReturnValue(Object returnValue) {
 		this.returnValue = returnValue;
 		return returnValue;
 	}
@@ -164,10 +166,10 @@ public class MethodInvocationRecord {
 		afterCall(null);
 	}
 
-	void afterCall(MethodInvocation invocation) {
+	public void afterCall(MethodInvocation invocation) {
 		elapsedTime = System.nanoTime() - startTime;
 
-		MethodsPerformanceMonitorImpl.INSTANCE.registerInvocationCompletion(this);
+		OperationsPerformanceMonitorImpl.INSTANCE.registerInvocationCompletion(this);
 
 		if (traceEnabled) {
 			MDC.put(MidpointInterceptor.MDC_DEPTH_KEY, Integer.toString(--callDepth));
