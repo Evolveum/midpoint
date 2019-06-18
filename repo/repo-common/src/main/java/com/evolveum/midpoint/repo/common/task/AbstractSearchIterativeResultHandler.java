@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -333,6 +334,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		RepositoryCache.enter(taskManager.getCacheConfigurationManager());
 
 		try {
+			if (!isNonScavengingWorker()) {     // todo configure this somehow
+				workerTask.startDynamicProfilingIfNeeded(coordinatorTask);
+			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
 			}
@@ -386,6 +390,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			}
 		} finally {
 			RepositoryCache.exit();
+			workerTask.stopDynamicProfiling();
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
@@ -427,7 +432,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 //			workerTask.
 		}
 	}
-	
+
+	private boolean isNonScavengingWorker() {
+		return coordinatorTask.getWorkManagement() != null &&
+				coordinatorTask.getWorkManagement().getTaskKind() == TaskKindType.WORKER &&
+				!Boolean.TRUE.equals(coordinatorTask.getWorkManagement().isScavenger());
+	}
+
 	// may be overridden
 	protected String getDisplayName(PrismObject<O> object) {
 		return StatisticsUtil.getDisplayName(object);

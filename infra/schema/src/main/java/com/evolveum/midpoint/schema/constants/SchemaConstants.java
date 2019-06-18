@@ -292,6 +292,7 @@ public abstract class SchemaConstants {
 	public static final ItemName MODEL_EXTENSION_OBJECTCLASS = new ItemName(NS_MODEL_EXTENSION, "objectclass");
 	public static final ItemName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new ItemName(
 			NS_MODEL_EXTENSION, "lastScanTimestamp");
+	public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
 	public static final String MODEL_DISABLE_REASON_EXPLICIT =

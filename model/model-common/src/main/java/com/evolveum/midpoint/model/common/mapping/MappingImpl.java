@@ -427,7 +427,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public void prepare(Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
 			ConfigurationException, CommunicationException {
-			OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".prepare");
+			OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".prepare")
+					.addArbitraryObjectAsContext("mapping", this)
+					.addArbitraryObjectAsContext("task", task)
+					.setMinor(true)
+					.build();
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
 
@@ -459,7 +463,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".evaluate");
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor(true)
+				.build();
 
         traceEvaluationStart();
 

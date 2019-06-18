@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.util.logging;
 
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import org.slf4j.MDC;
 import org.slf4j.Marker;
 
@@ -66,7 +66,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 				if (logger.getName().contains("com.evolveum.midpoint")) {
 					return onMatch;
 				// if PROFILING then skip
-				} else if (MidpointInterceptor.PROFILING_LOGGER_NAME.equals(logger.getName())) {
+				} else if (OperationExecutionLogger.PROFILING_LOGGER_NAME.equals(logger.getName())) {
 					return FilterReply.NEUTRAL;
 				// if external class then move to TRACE 
 				} else {

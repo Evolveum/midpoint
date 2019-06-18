@@ -67,7 +67,7 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * @author Radovan Semancik
  *
  */
-public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
+public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable, OperationResultBuilder {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String VARIOUS_VALUES = "[various values]";
@@ -128,6 +128,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
 	private boolean minor = false;
+
+	private boolean building = true;        // experimental
+	private OperationResult futureParent;   // experimental
 
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
@@ -221,6 +224,33 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	private OperationResult keepRootOnly() {
 		return new OperationResult(getOperation(), null, getStatus(), 0, getMessageCode(), getMessage(), null, null, null);
+	}
+
+	public OperationResultBuilder subresult(String operation) {
+		OperationResult subresult = new OperationResult(operation);
+		subresult.building = true;
+		subresult.futureParent = this;
+		return subresult;
+	}
+
+	@Override
+	public OperationResult build() {
+		if (!building) {
+			throw new IllegalStateException("Not being built");
+		}
+		invocationRecord = OperationInvocationRecord.create(operation, createArguments());
+		building = false;
+		if (futureParent != null) {
+			futureParent.addSubresult(this);
+		}
+		return this;
+	}
+
+	private Object[] createArguments() {
+		List<String> arguments = new ArrayList<>();
+		getParams().forEach((key, value) -> arguments.add(key + " => " + value));       // todo what with large values?
+		getContext().forEach((key, value) -> arguments.add("c:" + key + " => " + value));
+		return arguments.toArray();
 	}
 
 	public OperationResult createSubresult(String operation) {
@@ -857,6 +887,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
 	 * described in module interface for every operation.
 	 */
+	@NotNull
 	public Map<String, Collection<String>> getParams() {
 		if (params == null) {
 			params = new HashMap<>();
@@ -882,66 +913,93 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return values.iterator().next();
 	}
 
-	public void addParam(String name, String value) {
+	@Override
+	public OperationResult addParam(String name, String value) {
 		getParams().put(name, collectionize(value));
+		return this;
 	}
 
-	public void addParam(String name, PrismObject<? extends ObjectType> value) {
+	@Override
+	public OperationResult addParam(String name, PrismObject<? extends ObjectType> value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, ObjectType value) {
+	@Override
+	public OperationResult addParam(String name, ObjectType value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, boolean value) {
+	@Override
+	public OperationResult addParam(String name, boolean value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, long value) {
+	@Override
+	public OperationResult addParam(String name, long value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, int value) {
+	@Override
+	public OperationResult addParam(String name, int value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public void addParam(String name, Class<?> value) {
+	public OperationResult addParam(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
 			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getParams().put(name, collectionize(stringify(value)));
 		}
+		return this;
 	}
 
-	public void addParam(String name, QName value) {
+	@Override
+	public OperationResult addParam(String name, QName value) {
 		getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+		return this;
 	}
 
-	public void addParam(String name, PolyString value) {
+	@Override
+	public OperationResult addParam(String name, PolyString value) {
 		getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+		return this;
 	}
 
-	public void addParam(String name, ObjectQuery value) {
+	@Override
+	public OperationResult addParam(String name, ObjectQuery value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, ObjectDelta<?> value) {
+	@Override
+	public OperationResult addParam(String name, ObjectDelta<?> value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-
-	public void addParam(String name, String... values) {
+	@Override
+	public OperationResult addParam(String name, String... values) {
 		getParams().put(name, collectionize(values));
+		return this;
 	}
 
-	public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
+	@Override
+	public OperationResult addArbitraryObjectAsParam(String paramName, Object paramValue) {
 		getParams().put(paramName, collectionize(stringify(paramValue)));
+		return this;
     }
 
-    public void addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
+    @Override
+    public OperationResult addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
 		getParams().put(name, stringifyCol(value));
+	    return this;
     }
 
     public Map<String, Collection<String>> getContext() {
@@ -951,66 +1009,93 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return context;
 	}
 
-	public void addContext(String name, String value) {
+	@Override
+	public OperationResult addContext(String name, String value) {
 		getContext().put(name, collectionize(value));
+		return this;
 	}
 
-	public void addContext(String name, PrismObject<? extends ObjectType> value) {
+	@Override
+	public OperationResult addContext(String name, PrismObject<? extends ObjectType> value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, ObjectType value) {
+	@Override
+	public OperationResult addContext(String name, ObjectType value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, boolean value) {
+	@Override
+	public OperationResult addContext(String name, boolean value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, long value) {
+	@Override
+	public OperationResult addContext(String name, long value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, int value) {
+	@Override
+	public OperationResult addContext(String name, int value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public void addContext(String name, Class<?> value) {
+	public OperationResult addContext(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
 			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getContext().put(name, collectionize(stringify(value)));
 		}
+		return this;
 	}
 
-	public void addContext(String name, QName value) {
+	@Override
+	public OperationResult addContext(String name, QName value) {
 		getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+		return this;
 	}
 
-	public void addContext(String name, PolyString value) {
+	@Override
+	public OperationResult addContext(String name, PolyString value) {
 		getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+		return this;
 	}
 
-	public void addContext(String name, ObjectQuery value) {
+	@Override
+	public OperationResult addContext(String name, ObjectQuery value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, ObjectDelta<?> value) {
+	@Override
+	public OperationResult addContext(String name, ObjectDelta<?> value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-
-	public void addContext(String name, String... values) {
+	@Override
+	public OperationResult addContext(String name, String... values) {
 		getContext().put(name, collectionize(values));
+		return this;
 	}
 
-	public void addArbitraryObjectAsContext(String name, Object value) {
+	@Override
+	public OperationResult addArbitraryObjectAsContext(String name, Object value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
     }
 
-    public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
+    @Override
+    public OperationResult addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
     	getContext().put(paramName, stringifyCol(paramValue));
+	    return this;
     }
 
 	public Map<String, Collection<String>> getReturns() {
@@ -1791,8 +1876,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
 
-	public void setMinor(boolean value) {
+	@Override
+	public OperationResult setMinor(boolean value) {
 		this.minor = value;
+		return this;
 	}
 
 	public void recordThrowableIfNeeded(Throwable t) {

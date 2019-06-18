@@ -52,6 +52,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 	private static final int MAX_LISTENERS = 1000;          // just to make sure we don't grow indefinitely
 
+	private static final String CLASS_NAME_WITH_DOT = ChangeNotificationDispatcherImpl.class.getName() + ".";
+
 	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
 	private List<ResourceOperationListener> operationListeners = new ArrayList<>();
