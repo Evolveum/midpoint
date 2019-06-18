@@ -2560,7 +2560,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	@Override
 	public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-		return createRunningTask(task);
+		RunningTaskQuartzImpl runningTask = createRunningTask(task);
+		runningTask.setExecutingThread(Thread.currentThread());
+		return runningTask;
 	}
 
 	@Override
