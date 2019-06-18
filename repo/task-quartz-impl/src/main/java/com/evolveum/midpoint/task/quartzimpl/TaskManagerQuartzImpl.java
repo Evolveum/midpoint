@@ -1253,15 +1253,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
                 try {
                     task.setLightweightHandlerExecuting(true);
-                    task.setLightweightThread(Thread.currentThread());
-                    task.startCollectingRepoAndCacheStats();
+                    task.setExecutingThread(Thread.currentThread());
+                    task.startCollectingLowLevelStatistics();
                     cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
                     lightweightTaskHandler.run(task);
                     cacheConfigurationManager.unsetThreadLocalProfiles();
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
                 } finally {
-                	task.setLightweightThread(null);
+                	task.setExecutingThread(null);
                     task.setLightweightHandlerExecuting(false);
                 }
                 LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
@@ -2560,7 +2560,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	@Override
 	public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-		return createRunningTask(task);
+		RunningTaskQuartzImpl runningTask = createRunningTask(task);
+		runningTask.setExecutingThread(Thread.currentThread());
+		return runningTask;
 	}
 
 	@Override

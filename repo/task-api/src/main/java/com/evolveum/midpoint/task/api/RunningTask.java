@@ -87,7 +87,7 @@ public interface RunningTask extends Task {
 	/**
 	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
 	 */
-	void refreshStoredThreadLocalPerformanceStats();
+	void refreshLowLevelStatistics();
 
 	void storeOperationStats();
 

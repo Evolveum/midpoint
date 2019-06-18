@@ -49,12 +49,18 @@ public class AuditHelper {
 		if (record.getDeltas() != null) {
 			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
 				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
-
-				// we use null options here, in order to utilize the local or global repository cache
 				ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
-					PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, null,
-							new OperationResult(AuditHelper.class.getName() + ".resolveName"));
-					return object.getName();
+					OperationResult result = OperationResult.createProfiled(AuditHelper.class.getName() + ".resolveName");
+					try {
+						// we use null options here, in order to utilize the local or global repository cache
+						PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, null, result);
+						return object.getName();
+					} catch (Throwable t) {
+						result.recordFatalError(t.getMessage(), t);
+						throw t;
+					} finally {
+						result.computeStatusIfUnknown();
+					}
 				};
 				resolveNames(delta, nameResolver, prismContext);
 			}

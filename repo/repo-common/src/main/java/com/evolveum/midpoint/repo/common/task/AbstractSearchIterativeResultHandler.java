@@ -71,6 +71,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private final String processShortName;
 	private String contextDesc;
 	private AtomicInteger objectsProcessed = new AtomicInteger();
+	private long initialProgress;
 	private AtomicLong totalTimeProcessing = new AtomicLong();
 	private AtomicInteger errors = new AtomicInteger();
 	private boolean stopOnError;
@@ -109,6 +110,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		stopOnError = true;
 		startTime = System.currentTimeMillis();
+		initialProgress = coordinatorTask.getProgress();
 	}
 
 	protected String getProcessShortName() {
@@ -293,7 +295,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			workerSpecificResult.addArbitraryObjectAsContext("subtaskName", workerTask.getName());
 
 			while (workerTask.canRun()) {
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				ProcessingRequest request;
 				try {
 					request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
@@ -301,7 +303,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					LOGGER.trace("Interrupted when waiting for next request", e);
 					return;
 				}
-				workerTask.refreshStoredThreadLocalPerformanceStats();
+				workerTask.refreshLowLevelStatistics();
 				if (request != null) {
 					processRequest(request, workerTask, workerSpecificResult);
 				} else {
@@ -387,7 +389,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
-			long progress = objectsProcessed.incrementAndGet();
+			long progress = initialProgress + objectsProcessed.incrementAndGet();
 
 			result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 

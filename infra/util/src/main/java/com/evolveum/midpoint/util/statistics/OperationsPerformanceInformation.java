@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 
@@ -23,9 +23,9 @@ import java.util.Map;
 /**
  *
  */
-public interface MethodsPerformanceInformation extends DebugDumpable {
+public interface OperationsPerformanceInformation extends DebugDumpable {
 
 	void clear();
 
-	Map<String, MethodPerformanceInformation> getAllData();
+	Map<String, SingleOperationPerformanceInformation> getAllData();
 }

@@ -258,12 +258,12 @@ public class ActionsExecutedInformation {
     private static void formatActionExecuted(StringBuilder sb, ObjectActionsExecutedEntryType a) {
         sb.append(String.format("    %-10s %-30s %s\n", a.getOperation(), QNameUtil.getLocalPart(a.getObjectType()), a.getChannel()));
         if (a.getTotalSuccessCount() > 0) {
-            sb.append(String.format("      success: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalSuccessCount(),
+            sb.append(String.format(Locale.US, "      success: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalSuccessCount(),
                     a.getLastSuccessObjectName(), a.getLastSuccessObjectDisplayName(), a.getLastSuccessObjectOid(),
                     XmlTypeConverter.toDate(a.getLastSuccessTimestamp())));
         }
         if (a.getTotalFailureCount() > 0) {
-            sb.append(String.format("      failure: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalFailureCount(),
+            sb.append(String.format(Locale.US, "      failure: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalFailureCount(),
                     a.getLastFailureObjectName(), a.getLastFailureObjectDisplayName(), a.getLastFailureObjectOid(),
                     XmlTypeConverter.toDate(a.getLastFailureTimestamp())));
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -25,36 +25,36 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  *
  */
-public class MethodsPerformanceInformationImpl implements MethodsPerformanceInformation {
+public class OperationsPerformanceInformationImpl implements OperationsPerformanceInformation {
 
-	// method -> performance information
-	private final Map<String, MethodPerformanceInformation> methodsMap = new ConcurrentHashMap<>();
+	// operation -> performance information
+	private final Map<String, SingleOperationPerformanceInformation> operationsMap = new ConcurrentHashMap<>();
 
 	public void clear() {
-		methodsMap.clear();
+		operationsMap.clear();
 	}
 
 	@Override
-	public Map<String, MethodPerformanceInformation> getAllData() {
-		return methodsMap;
+	public Map<String, SingleOperationPerformanceInformation> getAllData() {
+		return operationsMap;
 	}
 
-	public void register(MethodInvocationRecord invocation) {
+	public void register(OperationInvocationRecord invocation) {
 		// operationMap.compute is also atomic, but always replaces new value (even if the reference did not change)
 		// so I think this is more efficient, even if it creates empty object each time
 		String key = invocation.getFullClassName() + "." + invocation.getMethodName();
-		methodsMap.putIfAbsent(key, new MethodPerformanceInformation());
-		methodsMap.get(key).register(invocation);
+		operationsMap.putIfAbsent(key, new SingleOperationPerformanceInformation());
+		operationsMap.get(key).register(invocation);
 	}
 
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabelLn(sb, "Methods performance information", indent);
-		ArrayList<String> operations = new ArrayList<>(methodsMap.keySet());
+		DebugUtil.debugDumpLabelLn(sb, "Operations performance information", indent);
+		ArrayList<String> operations = new ArrayList<>(operationsMap.keySet());
 		operations.sort(String::compareTo);
 		for (String operation : operations) {
-			MethodPerformanceInformation info = methodsMap.get(operation);
+			SingleOperationPerformanceInformation info = operationsMap.get(operation);
 			if (info != null) {
 				DebugUtil.debugDumpWithLabelLn(sb, operation, info.shortDump(), indent+1);
 			}

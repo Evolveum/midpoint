@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.util.aspect;
 
 import ch.qos.logback.classic.Level;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
@@ -38,15 +39,15 @@ public class MidpointInterceptor implements MethodInterceptor {
 	public static final String PROFILING_LOGGER_NAME = "PROFILING";
 
 	// This logger provide profiling information
-	static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger(PROFILING_LOGGER_NAME);
+	public static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger(PROFILING_LOGGER_NAME);
 
-    static boolean isProfilingActive = false;
+    public static boolean isProfilingActive = false;
 
-    static Level globalLevelOverride = null;
-    static final ThreadLocal<Level> threadLocalLevelOverride = new ThreadLocal<>();
+    public static Level globalLevelOverride = null;
+    public static final ThreadLocal<Level> threadLocalLevelOverride = new ThreadLocal<>();
 
 	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
-	static final String MDC_DEPTH_KEY = "depth";
+	public static final String MDC_DEPTH_KEY = "depth";
 
     public static final String INDENT_STRING = " ";
 
@@ -63,7 +64,7 @@ public class MidpointInterceptor implements MethodInterceptor {
 
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
-		MethodInvocationRecord ctx = MethodInvocationRecord.create(invocation);
+		OperationInvocationRecord ctx = OperationInvocationRecord.create(invocation);
 		try {
 			return ctx.processReturnValue(invocation.proceed());
 		} catch (Throwable e) {
@@ -73,7 +74,7 @@ public class MidpointInterceptor implements MethodInterceptor {
 		}
 	}
 
-	static void formatExecutionTime(StringBuilder sb, long elapsed) {
+	public static void formatExecutionTime(StringBuilder sb, long elapsed) {
 		sb.append(elapsed / 1000000);
 		sb.append('.');
 		long micros = (elapsed / 1000) % 1000;
@@ -102,19 +103,19 @@ public class MidpointInterceptor implements MethodInterceptor {
         isProfilingActive = false;
     }
 
-	public static Level getGlobalMethodInvocationLevelOverride() {
+	public static Level getGlobalOperationInvocationLevelOverride() {
 		return globalLevelOverride;
 	}
 
-	public static void setGlobalMethodInvocationLevelOverride(Level value) {
+	public static void setGlobalOperationInvocationLevelOverride(Level value) {
 		globalLevelOverride = value;
 	}
 
-	public static Level getLocalMethodInvocationLevelOverride() {
+	public static Level getLocalOperationInvocationLevelOverride() {
 		return threadLocalLevelOverride.get();
 	}
 
-	public static void setLocalMethodInvocationLevelOverride(Level value) {
+	public static void setLocalOperationInvocationLevelOverride(Level value) {
 		threadLocalLevelOverride.set(value);
 	}
 }

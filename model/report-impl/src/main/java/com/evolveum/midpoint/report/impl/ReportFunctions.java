@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -229,12 +230,18 @@ public class ReportFunctions {
         Map<String, Object> resultSet = new HashMap<>();
         Set<Entry<String, Object>> paramSet = params.entrySet();
         for (Entry<String, Object> p : paramSet) {
-            if (p.getValue() instanceof AuditEventTypeType) {
-                resultSet.put(p.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) p.getValue()));
-            } else if (p.getValue() instanceof AuditEventStageType) {
-                resultSet.put(p.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) p.getValue()));
+        	Object value;
+        	if(p.getValue() instanceof TypedValue) {
+        		value = ((TypedValue)p.getValue()).getValue();
+        	} else {
+        		value = p.getValue();
+        	}
+            if (value instanceof AuditEventTypeType) {
+                resultSet.put(p.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) value));
+            } else if (value instanceof AuditEventStageType) {
+                resultSet.put(p.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) value));
             } else {
-                resultSet.put(p.getKey(), p.getValue());
+                resultSet.put(p.getKey(), value);
             }
         }
         return auditService.listRecords(query, resultSet);

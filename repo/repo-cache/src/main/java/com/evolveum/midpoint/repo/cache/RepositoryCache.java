@@ -221,24 +221,24 @@ public class RepositoryCache implements RepositoryService {
 		GlobalCacheObjectValue<T> cacheObject = globalObjectCache.get(oid);
 		if (cacheObject == null) {
 			collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
-			log("Cache (global): MISS getObject {}", global.traceMiss, oid);
+			log("Cache (global): MISS getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 			object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 		} else {
 			if (!shouldCheckVersion(cacheObject)) {
 				collector.registerHit(GlobalObjectCache.class, type, global.statisticsLevel);
-				log("Cache (global): HIT getObject {}", false, oid);
+				log("Cache (global): HIT getObject {} ({})", false, oid, type.getSimpleName());
 				object = cacheObject.getObject();
 				locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 				object = cloneIfNecessary(object, readOnly);
 			} else {
 				if (hasVersionChanged(type, oid, cacheObject, parentResult)) {
 					collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
-					log("Cache (global): MISS because of version changed - getObject {}:{}", global.traceMiss, type, oid);
+					log("Cache (global): MISS because of version changed - getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 					object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 				} else {
 					cacheObject.setTimeToLive(System.currentTimeMillis() + getTimeToVersionCheck(global.typeConfig, global.cacheConfig));    // version matches, renew ttl
 					collector.registerWeakHit(GlobalObjectCache.class, type, global.statisticsLevel);
-					log("Cache (global): HIT with version check - getObject {}: {}", global.traceMiss, type, oid);
+					log("Cache (global): HIT with version check - getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 					object = cacheObject.getObject();
 					locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 					object = cloneIfNecessary(object, readOnly);

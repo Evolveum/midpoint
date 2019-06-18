@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.util.aspect;
+package com.evolveum.midpoint.util.statistics;
 
 import com.evolveum.midpoint.util.ShortDumpable;
 
@@ -23,7 +23,7 @@ import java.util.Locale;
 /**
  *  Experimental.
  */
-public class MethodPerformanceInformation implements ShortDumpable {
+public class SingleOperationPerformanceInformation implements ShortDumpable {
 
 	private int invocationCount;
 	private long totalTime;
@@ -46,7 +46,7 @@ public class MethodPerformanceInformation implements ShortDumpable {
 		return maxTime;
 	}
 
-	public synchronized void register(MethodInvocationRecord operation) {
+	public synchronized void register(OperationInvocationRecord operation) {
 		invocationCount++;
 		addTotalTime(operation.getElapsedTimeMicros());
 	}
