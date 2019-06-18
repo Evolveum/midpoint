@@ -25,6 +25,7 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
@@ -123,36 +125,7 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     @Override
     protected void onInitialize(){
         super.onInitialize();
-        initModels();
         initLayout();
-    }
-
-    //region Data
-    private ContainerListDataProvider createProvider() {
-        ContainerListDataProvider<CaseWorkItemType> workItemProvider = new ContainerListDataProvider<CaseWorkItemType>(this,
-                CaseWorkItemType.class, getQueryOptions()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                getSessionStorage().getWorkItemStorage().setPaging(paging);
-            }
-
-            @Override
-            public ObjectQuery getQuery() {
-                try {
-                    return createQuery();
-                } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
-                        | ConfigurationException | SecurityViolationException e) {
-                    // TODO handle more cleanly
-                    LOGGER.error("Couldn't create case work item query, ", e.getLocalizedMessage());
-                }
-                return null;
-            }
-
-        };
-        workItemProvider.setSort(SearchingUtils.WORK_ITEM_DEADLINE, SortOrder.ASCENDING);// default sorting
-        return workItemProvider;
     }
 
     private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -199,60 +172,26 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         return query;
     }
 
-    private void initModels(){
-        searchModel = new LoadableModel<Search>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Search load() {
-                //todo get search from storage
-                Search search = SearchFactory.createContainerSearch(CaseWorkItemType.class, PageCaseWorkItems.this);
-                return search;
-            }
-
-
-        };
-    }
-    //region Layout
     private void initLayout() {
-        ContainerListDataProvider provider = createProvider();
-        int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL);
-        BoxedTablePanel<PrismContainerValueWrapper<CaseWorkItemType>> table =
-                new BoxedTablePanel<PrismContainerValueWrapper<CaseWorkItemType>>(ID_CASE_WORK_ITEMS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL, itemsPerPage) {
-            private static final long serialVersionUID = 1L;
-
+        ContainerableListPanel workItemsPanel = new ContainerableListPanel(ID_CASE_WORK_ITEMS_TABLE,
+                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
             @Override
-            protected WebMarkupContainer createHeader(String headerId) {
-                SearchFormPanel searchPanel = new SearchFormPanel(headerId, searchModel) {
-
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
-                        PageCaseWorkItems.this.searchPerformed(target);
-                    }
-                };
-                 return searchPanel;
+            protected Class getType() {
+                return CaseWorkItemType.class;
             }
 
-//            @Override
-//            protected WebMarkupContainer createButtonToolbar(String id) {
-//                return new ButtonBar(id, ID_BUTTON_BAR, PageCaseWorkItems.this);
-//            }
+            @Override
+            protected PageStorage getPageStorage() {
+                return PageCaseWorkItems.this.getSessionStorage().getWorkItemStorage();
+            }
+
+            @Override
+            protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns() {
+                return PageCaseWorkItems.this.initColumns();
+            }
         };
-        table.setShowPaging(true);
-        table.setOutputMarkupId(true);
-        add(table);
-//        initSearch();
-    }
-
-    private void searchPerformed(AjaxRequestTarget target){
-        BoxedTablePanel table = (BoxedTablePanel) get(ID_CASE_WORK_ITEMS_TABLE);
-        table.setCurrentPage(null);
-        target.add((Component) table);
-
+        workItemsPanel.setOutputMarkupId(true);
+        add(workItemsPanel);
     }
 
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
