@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,16 +138,35 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
 		}
 	}
 
-	private boolean matches(PrismPropertyValue<?> value1, PrismPropertyValue<?> value2, MatchingRule<?> matchingRule) {
+	private <T1> boolean matches(PrismPropertyValue<?> filterValue, PrismPropertyValue<?> objectValue, MatchingRule<T1> matchingRule) {
+		Object filterRealValue = filterValue.getRealValue();
+		Object objectRealValue = objectValue.getRealValue();
 		try {
-			if (matchingRule.match(value1.getRealValue(), value2.getRealValue())) {
-				return true;
+			if (!(objectRealValue instanceof RawType)) {
+				//noinspection unchecked
+				if (matchingRule.match((T1) filterRealValue, (T1) objectRealValue)) {
+					return true;
+				}
+			} else {
+				PrismPropertyDefinition<?> definition = getDefinition();
+				if (definition != null) {
+					// We clone here to avoid modifying original data structure.
+					Object parsedObjectRealValue = ((RawType) objectRealValue).clone().getParsedRealValue(definition, definition.getName());
+					//noinspection unchecked
+					return matchingRule.match((T1) filterRealValue, (T1) parsedObjectRealValue);
+				} else {
+					throw new IllegalStateException("Couldn't compare raw value with definition-less filter value: " + filterRealValue);
+				}
 			}
 		} catch (SchemaException e) {
 			// At least one of the values is invalid. But we do not want to throw exception from
 			// a comparison operation. That will make the system very fragile. Let's fall back to
 			// ordinary equality mechanism instead.
-			if (Objects.equals(value1.getRealValue(), value2.getRealValue())) {
+			// TODO this can be quite dangerous, however. See MID-5459.
+			//  For example, when comparing objects to determine the need for cache invalidation we should be 100% certain
+			//  that we get the correct result. Otherwise we might keep outdated object in the cache.
+			//  Matching during authorization evaluation is a similar theme.
+			if (Objects.equals(filterRealValue, objectRealValue)) {
 				return true;
 			}
 		}
