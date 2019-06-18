@@ -25,22 +25,15 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.statistics.*;
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -595,11 +588,5 @@ public class Statistics implements WorkBucketStatisticsCollector {
 
 	private long or0(Long n) {
 		return n != null ? n : 0;
-	}
-
-	private void startCollectingRepoAndCacheStats(PerformanceMonitor performanceMonitor) {
-		performanceMonitor.startThreadLocalPerformanceInformationCollection();
-		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
-		MethodsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
 	}
 }
