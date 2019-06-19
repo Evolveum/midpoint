@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.task.quartzimpl;
 
+import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.statistics.Statistics;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
@@ -90,14 +93,11 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	private volatile Thread executingThread;
 
 	/**
-	 * How many objects were processed by this task (it's the responsibility of the task handler to maintain it)
+	 * How many objects were seen by this task. This is to determine whether interval-based profiling is to be started.
 	 */
-	private AtomicInteger objectsProcessed = new AtomicInteger(0);
+	private AtomicInteger objectsSeen = new AtomicInteger(0);
 
-	/**
-	 * When last profiling interval started.
-	 */
-	private Integer lastProfilingStartedAt;
+	private Level originalProfilingLevel;
 
 	RunningTaskQuartzImpl(TaskManagerQuartzImpl taskManager, PrismObject<TaskType> taskPrism, RepositoryService repositoryService) {
 		super(taskManager, taskPrism, repositoryService);
@@ -334,14 +334,19 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		return statistics;
 	}
 
-
 	@Override
 	public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask) {
-		// todo implement
+		int objects = ((RunningTaskQuartzImpl) coordinatorTask).objectsSeen.getAndIncrement();
+		Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_PROFILING_INTERVAL);
+		if (interval != null && interval != 0 && objects%interval == 0) {
+			LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", objects, interval);
+			originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
+			OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
+		}
 	}
 
 	@Override
 	public void stopDynamicProfiling() {
-		// todo implement
+		OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
 	}
 }

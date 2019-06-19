@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 
 import java.util.*;
 
@@ -107,9 +108,9 @@ public class ProfilingDataManager {
         isPerformanceProfiled = performance;
 
         if(subsystemProfilingActive || isPerformanceProfiled || request){
-            MidpointInterceptor.activateSubsystemProfiling();
+            OperationExecutionLogger.activateSubsystemProfiling();
         }else {
-            MidpointInterceptor.deactivateSubsystemProfiling();
+            OperationExecutionLogger.deactivateSubsystemProfiling();
         }
 
         subsystemConfiguration(profiledSubsystems);
@@ -352,11 +353,11 @@ public class ProfilingDataManager {
     }
 
     public void appendProfilingToTest(){
-        MidpointInterceptor.activateSubsystemProfiling();
+        OperationExecutionLogger.activateSubsystemProfiling();
     }
 
     public void stopProfilingAfterTest(){
-        MidpointInterceptor.deactivateSubsystemProfiling();
+        OperationExecutionLogger.deactivateSubsystemProfiling();
     }
 
     public void printMapAfterTest(){

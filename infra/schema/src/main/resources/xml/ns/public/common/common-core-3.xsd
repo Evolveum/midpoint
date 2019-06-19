@@ -10413,17 +10413,12 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    <xsd:complexType name="ScriptExpressionEvaluatorType">
+    <xsd:complexType name="ScriptExpressionEvaluatorConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Generic script expression. The purpose of the expression is to return
-                a value. The expression must produce something that is a piece
-                of XML, which means that it may produce either string value,
-                XML node or a list of XML nodes.
-
-                The expression may use variables or arguments. However, such
-                variables or arguments passed to the expression will be different
-                for each invocation. It should be documented in each case this type is used.
+                Data structure that contains all the configuration details for script execution,
+                except for code itself. It is used at places where there is a need to specify
+                default configuration for a group of scripts (e.g. Jasper reports).
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -10445,6 +10440,38 @@
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		            </xsd:element>
+		            <xsd:element name="objectVariableMode" type="tns:ObjectVariableModeType" minOccurs="0" default="object">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        Type of object variables that appear in the script.
+		                    </xsd:documentation>
+		                    <xsd:appinfo>
+		                    	<a:since>4.0</a:since>
+		                    </xsd:appinfo>
+		                </xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    
+    <xsd:complexType name="ScriptExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic script expression. The purpose of the expression is to return
+                a value. The expression must produce something that is a piece
+                of XML, which means that it may produce either string value,
+                XML node or a list of XML nodes.
+
+                The expression may use variables or arguments. However, such
+                variables or arguments passed to the expression will be different
+                for each invocation. It should be documented in each case this type is used.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ScriptExpressionEvaluatorConfigurationType">
+		        <xsd:sequence>
 		            <xsd:element name="code" type="xsd:string">
 		                <xsd:annotation>
 		                    <xsd:documentation>
@@ -10456,7 +10483,7 @@
         	</xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
+    
     <xsd:simpleType name="ScriptExpressionReturnTypeType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10488,7 +10515,51 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-    </xsd:simpleType>    
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="ObjectVariableModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of object variables that appear in the script.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="object">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variables will be presented as objects, e.g. UserType, ResourceType.
+                        This is very convenient for use in scripts. But it has drawbacks.
+                        E.g. if the object cannot be resolved from a reference then it will be
+                        presented as null. No information about the object could be determined, not
+                        even its OID or name (even though such information was present in the reference).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="prismReference">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The varialble will be presented as a Prism reference value (PrismReferenceValue).
+                        The reference value will contain all the information from the original reference
+                        or object (OID, type, name). If the object is available or if it could be resolved
+                        then the object itself will be also present in the reference value (in "object" property).
+                        This method is less convenient for scripts, but it is more reliable in corner cases.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRISM_REFERENCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <!-- TODO: "prismObject" that will present the variables as PrismObject<O> -->
+            <!-- TODO: maybe "reference" that will present the variables as ObjectReferenceType -->
+        </xsd:restriction>
+    </xsd:simpleType>
 
 	<xsd:complexType name="SearchObjectExpressionEvaluatorType">
         <xsd:annotation>
@@ -23069,6 +23140,17 @@
                         </xsd:annotation>
                     </xsd:element>
                     <!-- End of jasper-specific elements. -->
+                    
+                    <xsd:element name="defaultScriptConfiguration" type="tns:ScriptExpressionEvaluatorConfigurationType" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Default configuration for the scripts executed inside the report.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
                     
                     <xsd:element name="dashboard" type="tns:DashboardReportEngineConfigurationType" minOccurs="0">
                 		<xsd:annotation>

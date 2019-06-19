@@ -58,6 +58,8 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 	private long lastListenersWarning = 0;
 
+	private static final String CLASS_NAME_WITH_DOT = ChangeNotificationDispatcherImpl.class.getName() + ".";
+
 	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<>();     // use synchronized access only!
 	private List<ResourceOperationListener> operationListeners = new ArrayList<>();

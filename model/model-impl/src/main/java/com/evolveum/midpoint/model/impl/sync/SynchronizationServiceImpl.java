@@ -97,6 +97,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceImpl.class);
 
+	private static final String CLASS_NAME_WITH_DOT = SynchronizationServiceImpl.class.getName() + ".";
+	private static final String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
+
 	@Autowired private ActionManager<Action> actionManager;
 	@Autowired private SynchronizationExpressionsEvaluator synchronizationExpressionsEvaluator;
 	@Autowired private ContextFactory contextFactory;
@@ -125,7 +128,10 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			}
 		}
 
-		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
+		OperationResult subResult = parentResult.subresult(NOTIFY_CHANGE)
+				.addArbitraryObjectAsParam("change", change)
+				.addArbitraryObjectAsContext("task", task)
+				.build();
 
 		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 		PrismObject<ShadowType> applicableShadow = currentShadow;
@@ -510,7 +516,12 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		OperationResult result = syncCtx.getResult();
 		Task task = syncCtx.getTask();
-		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
+		OperationResult subResult = result.subresult(CLASS_NAME_WITH_DOT + "setupSituation")
+				.setMinor(true)
+				.addArbitraryObjectAsParam("syncCtx", syncCtx)
+				.addArbitraryObjectAsParam("eventInfo", eventInfo)
+				.addArbitraryObjectAsParam("change", change)
+				.build();
 		LOGGER.trace("Determining situation for resource object shadow.");
 
 		try {

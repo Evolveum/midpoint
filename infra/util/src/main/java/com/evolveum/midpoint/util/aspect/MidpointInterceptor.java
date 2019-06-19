@@ -15,11 +15,9 @@
  */
 package com.evolveum.midpoint.util.aspect;
 
-import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
-import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -36,32 +34,6 @@ import org.springframework.core.annotation.Order;
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class MidpointInterceptor implements MethodInterceptor {
 
-	public static final String PROFILING_LOGGER_NAME = "PROFILING";
-
-	// This logger provide profiling information
-	public static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger(PROFILING_LOGGER_NAME);
-
-    public static boolean isProfilingActive = false;
-
-    public static Level globalLevelOverride = null;
-    public static final ThreadLocal<Level> threadLocalLevelOverride = new ThreadLocal<>();
-
-	private static final String MDC_SUBSYSTEM_KEY = "subsystem";
-	public static final String MDC_DEPTH_KEY = "depth";
-
-    public static final String INDENT_STRING = " ";
-
-	// This is made public to use in testing
-	public static String swapSubsystemMark(String subsystemName) {
-		String prev = MDC.get(MDC_SUBSYSTEM_KEY);
-		if (subsystemName == null) {
-			MDC.remove(MDC_SUBSYSTEM_KEY);
-		} else {
-			MDC.put(MDC_SUBSYSTEM_KEY, subsystemName);
-		}
-		return prev;
-	}
-
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		OperationInvocationRecord ctx = OperationInvocationRecord.create(invocation);
@@ -72,50 +44,5 @@ public class MidpointInterceptor implements MethodInterceptor {
 		} finally {
 			ctx.afterCall(invocation);
 		}
-	}
-
-	public static void formatExecutionTime(StringBuilder sb, long elapsed) {
-		sb.append(elapsed / 1000000);
-		sb.append('.');
-		long micros = (elapsed / 1000) % 1000;
-		if (micros < 100) {
-		    sb.append('0');
-		}
-		if (micros < 10) {
-		    sb.append('0');
-		}
-		sb.append(micros);
-	}
-
-
-
-    /*
-    *   Activates aspect based subsystem profiling
-    * */
-    public static void activateSubsystemProfiling(){
-        isProfilingActive = true;
-    }
-
-    /*
-    *   Deactivates aspect based subsystem profiling
-    * */
-    public static void deactivateSubsystemProfiling(){
-        isProfilingActive = false;
-    }
-
-	public static Level getGlobalOperationInvocationLevelOverride() {
-		return globalLevelOverride;
-	}
-
-	public static void setGlobalOperationInvocationLevelOverride(Level value) {
-		globalLevelOverride = value;
-	}
-
-	public static Level getLocalOperationInvocationLevelOverride() {
-		return threadLocalLevelOverride.get();
-	}
-
-	public static void setLocalOperationInvocationLevelOverride(Level value) {
-		threadLocalLevelOverride.set(value);
 	}
 }

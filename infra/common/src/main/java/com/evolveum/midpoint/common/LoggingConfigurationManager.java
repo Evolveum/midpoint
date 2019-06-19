@@ -25,7 +25,7 @@ import java.io.UnsupportedEncodingException;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
@@ -253,9 +253,9 @@ public class LoggingConfigurationManager {
 
 		if (profilingMode == ProfilingMode.DYNAMIC) {
 			if (profilingLoggingLevelSet != null) {
-				MidpointInterceptor.setGlobalOperationInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
+				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
 			} else {
-				MidpointInterceptor.setGlobalOperationInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
+				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
 				sb.append("\t<logger name=\"");
 				sb.append(MidPointConstants.PROFILING_LOGGER_NAME);
 				sb.append("\" level=\"TRACE\"/>\n");

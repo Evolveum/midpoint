@@ -18,7 +18,6 @@ package com.evolveum.midpoint.util.statistics;
 
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import org.aopalliance.intercept.MethodInvocation;
 import org.slf4j.MDC;
@@ -57,13 +56,13 @@ public class OperationInvocationRecord {
 		shortenedClassName = getClassName(fullClassName);
 		subsystem = getSubsystem(fullClassName);
 		this.methodName = methodName;
-		Level localLevelOverride = MidpointInterceptor.threadLocalLevelOverride.get();
-		if (MidpointInterceptor.globalLevelOverride == null && localLevelOverride == null) {
-			debugEnabled = MidpointInterceptor.LOGGER_PROFILING.isDebugEnabled();
-			traceEnabled = MidpointInterceptor.LOGGER_PROFILING.isTraceEnabled();
+		Level localLevelOverride = OperationExecutionLogger.threadLocalLevelOverride.get();
+		if (OperationExecutionLogger.globalLevelOverride == null && localLevelOverride == null) {
+			debugEnabled = OperationExecutionLogger.LOGGER_PROFILING.isDebugEnabled();
+			traceEnabled = OperationExecutionLogger.LOGGER_PROFILING.isTraceEnabled();
 		} else {
-			debugEnabled = isDebug(MidpointInterceptor.globalLevelOverride) || isDebug(localLevelOverride);
-			traceEnabled = isTrace(MidpointInterceptor.globalLevelOverride) || isTrace(localLevelOverride);
+			debugEnabled = isDebug(OperationExecutionLogger.globalLevelOverride) || isDebug(localLevelOverride);
+			traceEnabled = isTrace(OperationExecutionLogger.globalLevelOverride) || isTrace(localLevelOverride);
 		}
 	}
 
@@ -95,9 +94,33 @@ public class OperationInvocationRecord {
 		try {
 			return PrettyPrinter.prettyPrint(value);
 		} catch (Throwable t) {
-			MidpointInterceptor.LOGGER_PROFILING.error("Internal error formatting a value: {}", value, t);
+			OperationExecutionLogger.LOGGER_PROFILING.error("Internal error formatting a value: {}", value, t);
 			return "###INTERNAL#ERROR### " + t.getClass().getName() + ": " + t.getMessage() + " value=" + value;
 		}
+	}
+
+	// This is made public to use in testing
+	public static String swapSubsystemMark(String subsystemName) {
+		String prev = MDC.get(OperationExecutionLogger.MDC_SUBSYSTEM_KEY);
+		if (subsystemName == null) {
+			MDC.remove(OperationExecutionLogger.MDC_SUBSYSTEM_KEY);
+		} else {
+			MDC.put(OperationExecutionLogger.MDC_SUBSYSTEM_KEY, subsystemName);
+		}
+		return prev;
+	}
+
+	public static void formatExecutionTime(StringBuilder sb, long elapsed) {
+		sb.append(elapsed / 1000000);
+		sb.append('.');
+		long micros = (elapsed / 1000) % 1000;
+		if (micros < 100) {
+		    sb.append('0');
+		}
+		if (micros < 10) {
+		    sb.append('0');
+		}
+		sb.append(micros);
 	}
 
 	private boolean isDebug(Level level) {
@@ -109,7 +132,7 @@ public class OperationInvocationRecord {
 	}
 
 	private void beforeCall(Object[] arguments) {
-		previousSubsystem = MidpointInterceptor.swapSubsystemMark(subsystem != null ? subsystem.name() : null);
+		previousSubsystem = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
 
 		StringBuilder infoLog = new StringBuilder("#### Entry: ");
 
@@ -118,20 +141,20 @@ public class OperationInvocationRecord {
 			infoLog.append(invocationId);
 
 			if (traceEnabled) {
-				String depthStringValue = MDC.get(MidpointInterceptor.MDC_DEPTH_KEY);
+				String depthStringValue = MDC.get(OperationExecutionLogger.MDC_DEPTH_KEY);
 				if (depthStringValue == null || depthStringValue.isEmpty()) {
 					callDepth = 1;
 				} else {
 					callDepth = Integer.parseInt(depthStringValue) + 1;
 				}
-				MDC.put(MidpointInterceptor.MDC_DEPTH_KEY, Integer.toString(callDepth));
+				MDC.put(OperationExecutionLogger.MDC_DEPTH_KEY, Integer.toString(callDepth));
 				for (int i = 0; i < callDepth; i++) {
-					infoLog.append(MidpointInterceptor.INDENT_STRING);
+					infoLog.append(OperationExecutionLogger.INDENT_STRING);
 				}
 			}
 
 			infoLog.append(shortenedClassName);
-			MidpointInterceptor.LOGGER_PROFILING.debug("{}->{}", infoLog, methodName);
+			OperationExecutionLogger.LOGGER_PROFILING.debug("{}->{}", infoLog, methodName);
 
 			if (traceEnabled) {
 				StringBuilder sb = new StringBuilder();
@@ -146,7 +169,7 @@ public class OperationInvocationRecord {
 					}
 				}
 				sb.append(")");
-				MidpointInterceptor.LOGGER_PROFILING.trace(sb.toString());
+				OperationExecutionLogger.LOGGER_PROFILING.trace(sb.toString());
 			}
 		}
 	}
@@ -172,7 +195,7 @@ public class OperationInvocationRecord {
 		OperationsPerformanceMonitorImpl.INSTANCE.registerInvocationCompletion(this);
 
 		if (traceEnabled) {
-			MDC.put(MidpointInterceptor.MDC_DEPTH_KEY, Integer.toString(--callDepth));
+			MDC.put(OperationExecutionLogger.MDC_DEPTH_KEY, Integer.toString(--callDepth));
 		}
 
 		// Restore previously marked subsystem executed before return
@@ -183,7 +206,7 @@ public class OperationInvocationRecord {
 			sb.append(" ");
 			if (traceEnabled) {
 				for (int i = 0; i < callDepth + 1; i++) {
-					sb.append(MidpointInterceptor.INDENT_STRING);
+					sb.append(OperationExecutionLogger.INDENT_STRING);
 				}
 			}
 			sb.append(shortenedClassName);
@@ -191,27 +214,27 @@ public class OperationInvocationRecord {
 			sb.append(methodName);
 
 			sb.append(" etime: ");
-			MidpointInterceptor.formatExecutionTime(sb, elapsedTime);
+			formatExecutionTime(sb, elapsedTime);
 			sb.append(" ms");
 
-			MidpointInterceptor.LOGGER_PROFILING.debug(sb.toString());
+			OperationExecutionLogger.LOGGER_PROFILING.debug(sb.toString());
 			if (traceEnabled) {
 				if (gotException) {
-					MidpointInterceptor.LOGGER_PROFILING.trace("###### return exception: {}", exceptionName);
+					OperationExecutionLogger.LOGGER_PROFILING.trace("###### return exception: {}", exceptionName);
 				} else {
-					MidpointInterceptor.LOGGER_PROFILING.trace("###### retval: {}", formatVal(returnValue));
+					OperationExecutionLogger.LOGGER_PROFILING.trace("###### retval: {}", formatVal(returnValue));
 				}
 			}
 		}
 
-		if (invocation != null && MidpointInterceptor.isProfilingActive) {
+		if (invocation != null && OperationExecutionLogger.isProfilingActive) {
 			long processingStartTime = System.nanoTime();
 			ProfilingDataManager
 					.getInstance().applyGranularityFilterOnEnd(shortenedClassName, invocation.getMethod().getName(),
 					invocation.getArguments(), subsystem, startTime, processingStartTime);
 		}
 
-		MidpointInterceptor.swapSubsystemMark(previousSubsystem);
+		swapSubsystemMark(previousSubsystem);
 	}
 
 	private ProfilingDataManager.Subsystem getSubsystem(String className) {
@@ -247,6 +270,7 @@ public class OperationInvocationRecord {
 		}
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public String getFullClassName() {
 		return fullClassName;
 	}
@@ -255,6 +279,7 @@ public class OperationInvocationRecord {
 		return methodName;
 	}
 
+	@SuppressWarnings("WeakerAccess")
 	public long getElapsedTimeMicros() {
 		return elapsedTime / 1000;
 	}
