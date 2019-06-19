@@ -26,7 +26,7 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.testing.story.TestTrafo;
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.mysql.cj.jdbc.Driver;
 import org.springframework.test.annotation.DirtiesContext;
@@ -160,9 +160,9 @@ public class TestImport extends AbstractStoryTest {
 	        if (System.currentTimeMillis() - lastProfilingStarted > PROFILING_INTERVAL) {
 	        	lastProfilingStarted = System.currentTimeMillis();
 		        System.out.println("Starting profiling at " + new Date());
-		        MidpointInterceptor.setGlobalOperationInvocationLevelOverride(Level.TRACE);
+		        OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(Level.TRACE);
 		        Thread.sleep(PROFILING_DURATION);
-		        MidpointInterceptor.setGlobalOperationInvocationLevelOverride(null);
+		        OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(null);
 		        System.out.println("Stopping profiling at " + new Date());
 	        } else {
 	        	Thread.sleep(CHECK_INTERVAL);

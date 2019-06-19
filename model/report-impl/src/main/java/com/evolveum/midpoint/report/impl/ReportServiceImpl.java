@@ -83,7 +83,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -218,7 +220,7 @@ public class ReportServiceImpl implements ReportService {
 		context.setResult(result);
 		setupExpressionProfiles(context, report);
 		
-		Object o = evaluateReportScript(script, context);
+		Object o = evaluateReportScript(script, context, report);
 
 		if (o != null) {
 
@@ -256,7 +258,7 @@ public class ReportServiceImpl implements ReportService {
 		context.setResult(result);
 		setupExpressionProfiles(context, report);
 
-		Object o = evaluateReportScript(script, context);
+		Object o = evaluateReportScript(script, context, report);
 
 		return o;
 
@@ -292,7 +294,7 @@ public class ReportServiceImpl implements ReportService {
 		context.setResult(result);
 		setupExpressionProfiles(context, report);
 
-		Object o = evaluateReportScript(script, context);
+		Object o = evaluateReportScript(script, context, report);
 
 		if (o != null) {
 
@@ -361,11 +363,13 @@ public class ReportServiceImpl implements ReportService {
 		return prismContext;
 	}
 	
-	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context) throws ExpressionEvaluationException,
+	public <T> Object evaluateReportScript(String codeString, ScriptExpressionEvaluationContext context, PrismObject<ReportType> report) throws ExpressionEvaluationException,
 					ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, SchemaException {
 		
+		ScriptExpressionEvaluatorConfigurationType defaultScriptConfiguration = report.asObjectable().getDefaultScriptConfiguration();
 		ScriptExpressionEvaluatorType expressionType = new ScriptExpressionEvaluatorType();
 		expressionType.setCode(codeString);
+		expressionType.setObjectVariableMode(defaultScriptConfiguration == null ? ObjectVariableModeType.OBJECT : defaultScriptConfiguration.getObjectVariableMode());
 		context.setExpressionType(expressionType);
 		// Be careful about output definition here. We really do NOT want to set it.
 		// Not setting the definition means that we want raw value without any conversion.

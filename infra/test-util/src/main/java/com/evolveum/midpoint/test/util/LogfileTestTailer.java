@@ -29,10 +29,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 
 /**
  * @author semancik
@@ -294,13 +294,13 @@ public class LogfileTestTailer {
 
 	private void logAllLevels(Trace logger, String subsystemName) {
 		String message = MARKER+" "+subsystemName;
-		String previousSubsystem = MidpointInterceptor.swapSubsystemMark(subsystemName);
+		String previousSubsystem = OperationInvocationRecord.swapSubsystemMark(subsystemName);
 		logger.trace(message);
 		logger.debug(message);
 		logger.info(message);
 		logger.warn(message);
 		logger.error(message);
-		MidpointInterceptor.swapSubsystemMark(previousSubsystem);
+		OperationInvocationRecord.swapSubsystemMark(previousSubsystem);
 	}
 
 	public void logAndTail() throws IOException {

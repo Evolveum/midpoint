@@ -25,7 +25,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class OperationsPerformanceMonitorImpl implements OperationsPerformanceMonitor {
 
     public static final OperationsPerformanceMonitorImpl INSTANCE = new OperationsPerformanceMonitorImpl();
-
     private static final Trace LOGGER = TraceManager.getTrace(OperationsPerformanceMonitorImpl.class);
 
     /**

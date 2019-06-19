@@ -489,7 +489,10 @@ public class Clockwork {
 			context.setInspector(medic.getClockworkInspector());
 		}
 
-		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + ".click");
+		OperationResult result = parentResult.subresult(Clockwork.class.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + ".click")
+				.addArbitraryObjectAsContext("context", context)
+				.addArbitraryObjectAsContext("task", task)
+				.build();
 
 		try {
 
