@@ -484,7 +484,7 @@ public class ExpressionUtil {
 			}
 			
 			if(ObjectVariableModeType.PRISM_REFERENCE.equals(objectVariableModeType)){
-				PrismReferenceValue value = reference.asReferenceValue();;
+				PrismReferenceValue value = reference.asReferenceValue();
 				if(valueToConvert instanceof PrismObject) {
 					value.setObject((PrismObject)valueToConvert);
 				}
