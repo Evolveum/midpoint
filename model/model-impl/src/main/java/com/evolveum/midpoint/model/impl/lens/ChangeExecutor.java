@@ -255,13 +255,11 @@ public class ChangeExecutor {
 					continue;
 				}
 
-				OperationResult subResult = result.createSubresult(
-						OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName());
-				subResult.addArbitraryObjectAsContext("discriminator", projCtx.getResourceShadowDiscriminator());
-				if (projCtx.getResource() != null) {
-					subResult.addParam("resource", projCtx.getResource());
-				}
-				
+				OperationResult subResult = result.subresult(OPERATION_EXECUTE_PROJECTION + "." + projCtx.getObjectTypeClass().getSimpleName())
+						.addParam("resource", projCtx.getResource())
+						.addArbitraryObjectAsContext("discriminator", projCtx.getResourceShadowDiscriminator())
+						.build();
+
 				PrismObject<ShadowType> shadowAfterModification = null;
 				try {
 					LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());

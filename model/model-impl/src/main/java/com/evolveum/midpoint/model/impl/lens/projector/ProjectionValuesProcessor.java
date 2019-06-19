@@ -130,10 +130,17 @@ public class ProjectionValuesProcessor {
     		return;
     	}
     	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
-    	processorResult.recordSuccessIfUnknown();
-    	processProjections((LensContext<? extends FocusType>) context, projectionContext,
-    			activityDescription, task, processorResult);
-
+    	try {
+		    //noinspection unchecked
+		    processProjections((LensContext<? extends FocusType>) context, projectionContext,
+				    activityDescription, task, processorResult);
+	    } catch (Throwable t) {
+    		processorResult.recordFatalError(t);
+    		throw t;
+	    } finally {
+		    processorResult.recordSuccessIfUnknown();
+	    }
+		processorResult.cleanupResult();
 	}
 
 	private <F extends FocusType> void processProjections(LensContext<F> context,
@@ -144,7 +151,7 @@ public class ProjectionValuesProcessor {
 		checkSchemaAndPolicies(context, projContext, activityDescription, result);
 
 		SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
-		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
+		if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well
 			if (LOGGER.isTraceEnabled()) {
@@ -431,14 +438,10 @@ public class ProjectionValuesProcessor {
 
 			cleanupContext(projContext, null);
 	        if (consistencyChecks) context.checkConsistence();
-
 		}
 
 		addIterationTokenDeltas(projContext);
-		result.cleanupResult();
 		if (consistencyChecks) context.checkConsistence();
-
-
 	}
 
 	private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {

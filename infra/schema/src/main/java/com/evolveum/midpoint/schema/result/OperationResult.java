@@ -103,6 +103,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
+	public static final String DEFAULT = "";
 
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
@@ -288,6 +289,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	// todo determine appropriate places where finish() should be called
 	public void finish() {
 		if (invocationRecord != null) {
+			String returnValue = getReturns().toString();
+			if (cause != null) {
+				returnValue += "; " + cause.getClass().getName() + ": " + cause.getMessage();
+			}
+			// This is not quite clean. We should report the exception via processException method - but that does not allow
+			// showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
+			invocationRecord.processReturnValue(returnValue);
 			invocationRecord.afterCall();
 			invocationRecord = null;
 		}
@@ -724,6 +732,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * result will be partial error. Handled error is considered a success.
 	 */
 	public void computeStatusComposite() {
+		finish();
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.NOT_APPLICABLE;
@@ -1098,6 +1107,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	    return this;
     }
 
+    @NotNull
 	public Map<String, Collection<String>> getReturns() {
 		if (returns == null) {
 			returns = new HashMap<>();
