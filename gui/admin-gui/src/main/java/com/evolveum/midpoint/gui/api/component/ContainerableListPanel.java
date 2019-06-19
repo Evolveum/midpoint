@@ -21,6 +21,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
 import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
@@ -128,7 +130,13 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
                                 ContainerableListPanel.this.searchPerformed(target);
                             }
                         };
+                        searchPanel.add(new VisibleBehaviour(() -> isSearchVisible()));
                         return searchPanel;
+                    }
+
+                    @Override
+                    protected boolean hideFooterIfSinglePage(){
+                        return ContainerableListPanel.this.hideFooterIfSinglePage();
                     }
                 };
         table.setShowPaging(true);
@@ -178,11 +186,15 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
     private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ObjectQuery query = getPrismContext().queryFor(getType())
                 .build();
-        addCustomFilter(query);
+        ObjectFilter customFilter = getCustomFilter();
+        if (customFilter != null){
+            query.addFilter(customFilter);
+        }
         return query;
     }
 
-    protected void addCustomFilter(ObjectQuery query){
+    protected ObjectFilter getCustomFilter(){
+        return null;
     }
 
     private void searchPerformed(AjaxRequestTarget target){
@@ -200,4 +212,12 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
     }
 
     protected abstract List<IColumn<PrismContainerValueWrapper<C>, String>> initColumns();
+
+    protected boolean hideFooterIfSinglePage(){
+        return false;
+    }
+
+    protected boolean isSearchVisible(){
+        return true;
+    }
 }

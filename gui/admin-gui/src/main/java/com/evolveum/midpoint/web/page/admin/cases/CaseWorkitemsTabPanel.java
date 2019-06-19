@@ -21,7 +21,6 @@ import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -49,7 +48,7 @@ public class CaseWorkitemsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         PrismContainerWrapperModel<CaseType, CaseWorkItemType> workitemsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_WORK_ITEM);
 
-        add(new CaseWorkItemsTablePanel(ID_WORKITEMS_PANEL, workitemsModel){
+        add(new CaseWorkItemsTableWithDetailsPanel(ID_WORKITEMS_PANEL, workitemsModel){
             private static final long serialVersionUID = 1L;
 
             @Override

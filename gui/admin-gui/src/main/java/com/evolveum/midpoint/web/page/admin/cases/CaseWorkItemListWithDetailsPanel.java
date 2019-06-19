@@ -211,7 +211,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             }
         });
 
-        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase()));
+        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), true));
         return columns;
     }
 

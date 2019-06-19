@@ -128,286 +128,168 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         initLayout();
     }
 
-    private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectQuery query;
-        boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        S_FilterEntryOrEmpty queryStart = getPrismContext().queryFor(CaseWorkItemType.class);
-        if (all && authorizedToSeeAll) {
-            query = queryStart.build();
-        } else {
-//             not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
-            query = QueryUtils.filterForAssignees(queryStart, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
-        }
-//        IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
-//        if (includeClosedCases == null || !includeClosedCases.getValue()) {
-            query.addFilter(
-                getPrismContext().queryFor(CaseWorkItemType.class)
-                        .not()
-                        .item(PrismConstants.T_PARENT, CaseType.F_STATE)
-                        .eq(SchemaConstants.CASE_STATE_CLOSED)
-                        .build()
-                        .getFilter()
-            );
-//        }
-
-        // Resource Filter
-//        SingleValueChoosePanel<ObjectReferenceType, ObjectType> resourceChoice = (SingleValueChoosePanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_RESOURCE);
-//        if (resourceChoice != null) {
-//            List<ObjectType> resources = resourceChoice.getModelObject();
-//            if (resources != null && resources.size() > 0) {
-//                ObjectType resource = resources.get(0);
-//                if (resource != null) {
-//                    query.addFilter(
-                            // TODO MID-3581
-//                        getPrismContext().queryFor(CaseWorkItemType.class)
-//                                .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).ref(ObjectTypeUtil.createObjectRef(resource,
-//		                        getPrismContext()).asReferenceValue()).buildFilter()
-//                    );
-//                }
-//            }
-//        }
-
-        return query;
-    }
-
     private void initLayout() {
-        ContainerableListPanel workItemsPanel = new ContainerableListPanel(ID_CASE_WORK_ITEMS_TABLE,
-                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
-            @Override
-            protected Class getType() {
-                return CaseWorkItemType.class;
-            }
-
-            @Override
-            protected PageStorage getPageStorage() {
-                return PageCaseWorkItems.this.getSessionStorage().getWorkItemStorage();
-            }
-
-            @Override
-            protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns() {
-                return PageCaseWorkItems.this.initColumns();
-            }
-        };
+        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST);
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);
-    }
-
-    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
-        List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
-
-        columns.add(new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
-            }
-
-        });
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                return Model.of(ColumnUtils.unwrapRowModel(rowModel).getName());
-            }
-
-            @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                //TODO should we check any authorization?
-                return true;
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                PageParameters pageParameters = new PageParameters();
-                CaseWorkItemType caseWorkItemType = rowModel.getObject().getRealValue();
-                CaseType parentCase = CaseTypeUtil.getCase(caseWorkItemType);
-                WorkItemId workItemId = WorkItemId.create(parentCase != null ? parentCase.getOid() : "", caseWorkItemType.getId());
-                pageParameters.add(OnePageParameterEncoder.PARAMETER, workItemId.asString());
-                navigateToNext(PageCaseWorkItem.class, pageParameters);
-            }
-        });
-
-        columns.addAll(ColumnUtils.getDefaultWorkItemColumns(PageCaseWorkItems.this));
-        return columns;
     }
 
     private Table getCaseWorkItemsTable() {
         return (Table) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
     }
 
-    private Panel getCaseWorkItemsSearchField(String itemPath) {
-        return (Panel) get(createComponentPath(ID_SEARCH_FILTER_FORM, itemPath));
-    }
-
-    private void initSearch() {
-        final Form searchFilterForm = new Form(ID_SEARCH_FILTER_FORM);
-        add(searchFilterForm);
-        searchFilterForm.setOutputMarkupId(true);
-
-        List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
-        allowedClasses.add(ResourceType.class);
-        MultiValueChoosePanel<ObjectType> resource = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-                ID_SEARCH_FILTER_RESOURCE, allowedClasses, objectReferenceTransformer,
-                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
-
-            @Override
-            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
-                super.choosePerformedHook(target, selected);
-                searchFilterPerformed(target);
-            }
-
-            @Override
-            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
-                super.removePerformedHook(target, value);
-                searchFilterPerformed(target);
-            }
-        };
-        searchFilterForm.add(resource);
-
-        allowedClasses = new ArrayList<>();
-        allowedClasses.add(UserType.class);
-        WebMarkupContainer assigneeContainer = new WebMarkupContainer(ID_SEARCH_FILTER_ASSIGNEE_CONTAINER);
-        MultiValueChoosePanel<ObjectType> assignee = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
-                ID_SEARCH_FILTER_ASSIGNEE, allowedClasses, objectReferenceTransformer,
-                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
-
-            @Override
-            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
-                super.choosePerformedHook(target, selected);
-                searchFilterPerformed(target);
-            }
-
-            @Override
-            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
-                super.removePerformedHook(target, value);
-                searchFilterPerformed(target);
-            }
-        };
-        assigneeContainer.add(assignee);
-        assigneeContainer.add(new VisibleEnableBehaviour() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible() {
-                return isAuthorizedToSeeAllCases();
-            }
-        });
-        searchFilterForm.add(assigneeContainer);
-
-        IsolatedCheckBoxPanel includeClosedCases = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
-            private static final long serialVersionUID = 1L;
-
-            public void onUpdate(AjaxRequestTarget target) {
-                searchFilterPerformed(target);
-            }
-        };
-        searchFilterForm.add(includeClosedCases);
-    }
-
-    private boolean isAuthorizedToSeeAllCases() {
-        boolean authorizedToSeeAll;
-		try {
-			authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-			return all && authorizedToSeeAll;
-		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
-				| CommunicationException | ConfigurationException | SecurityViolationException e) {
-			// TODO handle more cleanly
-            throw new SystemException("Couldn't evaluate authoriztion: "+e.getMessage(), e);
-		}
-    }
-    //endregion
-
-    //region Actions
-    private void searchFilterPerformed(AjaxRequestTarget target) {
-        ObjectQuery query;
-        try {
-            query = createQuery();
-        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
-				| ConfigurationException | SecurityViolationException e) {
-            // TODO handle more cleanly
-            throw new SystemException("Couldn't create case work item query", e);
-        }
-
-        Table panel = getCaseWorkItemsTable();
-        DataTable table = panel.getDataTable();
-        CaseWorkItemDtoProvider provider = (CaseWorkItemDtoProvider) table.getDataProvider();
-        provider.setQuery(query);
-        table.setCurrentPage(0);
-
-        target.add(getFeedbackPanel());
-        target.add((Component) getCaseWorkItemsTable());
-    }
-    //endregion
-
-    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
-            (Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
-                    ObjectTypeUtil.createObjectRef(o, getPrismContext());
-
-    private static class ButtonBar extends Fragment {
-
-        private static final long serialVersionUID = 1L;
-
-        public <O extends ObjectType> ButtonBar(String id, String markupId, PageCaseWorkItems page) {
-            super(id, markupId, page);
-
-            initLayout(page);
-        }
-
-        private <O extends ObjectType> void initLayout(final PageCaseWorkItems page) {
-
-            AjaxButton createCase = new AjaxButton(ID_CREATE_CASE_BUTTON, page.createStringResource("PageCaseWorkItems.button.createCase")) {
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    page.navigateToNext(PageCase.class);
-                }
-
-            };
-            createCase.add(new VisibleEnableBehaviour(){
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible(){
-
-                    boolean isVisible = false;
-                    try {
-                        PrismObject<CaseType> objectToCreate = new CaseType().asPrismObject();
-                        if (objectToCreate != null) {
-                            page.getMidpointApplication().getPrismContext().adopt(objectToCreate);
-                        }
-                        isVisible = ((PageBase) getPage()).isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
-                                null, objectToCreate, null, null, null);
-                    } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
-            				| ConfigurationException | SecurityViolationException ex) {
-                        LOGGER.error("Failed to check authorization for ADD action on new object of " + CaseType.class.getSimpleName()
-                                + " type, ", ex);
-                    }
-                    return isVisible;
-                }
-            });
-            createCase.add(new VisibleEnableBehaviour() {
-
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public boolean isVisible() {
-                    return page.isAuthorizedToSeeAllCases();
-                }
-            });
-            add(createCase);
-        }
-    }
-
-    private Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
-        return getOperationOptionsBuilder()
-                .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
-                .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
-                .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
-                .build();
-    }
+    //todo peace of old code. not sure if it should be implemented
+//    private Panel getCaseWorkItemsSearchField(String itemPath) {
+//        return (Panel) get(createComponentPath(ID_SEARCH_FILTER_FORM, itemPath));
+//    }
+//
+//    private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+//        ObjectQuery query;
+//        boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+//        S_FilterEntryOrEmpty queryStart = getPrismContext().queryFor(CaseWorkItemType.class);
+//        if (all && authorizedToSeeAll) {
+//            query = queryStart.build();
+//        } else {
+////             not authorized to see all => sees only allocated to him (not quite what is expected, but sufficient for the time being)
+//            query = QueryUtils.filterForAssignees(queryStart, SecurityUtils.getPrincipalUser(),
+//                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+//                    .and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull().build();
+//        }
+////        IsolatedCheckBoxPanel includeClosedCases = (IsolatedCheckBoxPanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES);
+////        if (includeClosedCases == null || !includeClosedCases.getValue()) {
+//        query.addFilter(
+//                getPrismContext().queryFor(CaseWorkItemType.class)
+//                        .not()
+//                        .item(PrismConstants.T_PARENT, CaseType.F_STATE)
+//                        .eq(SchemaConstants.CASE_STATE_CLOSED)
+//                        .build()
+//                        .getFilter()
+//        );
+////        }
+//
+//        // Resource Filter
+////        SingleValueChoosePanel<ObjectReferenceType, ObjectType> resourceChoice = (SingleValueChoosePanel) getCaseWorkItemsSearchField(ID_SEARCH_FILTER_RESOURCE);
+////        if (resourceChoice != null) {
+////            List<ObjectType> resources = resourceChoice.getModelObject();
+////            if (resources != null && resources.size() > 0) {
+////                ObjectType resource = resources.get(0);
+////                if (resource != null) {
+////                    query.addFilter(
+//        // TODO MID-3581
+////                        getPrismContext().queryFor(CaseWorkItemType.class)
+////                                .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).ref(ObjectTypeUtil.createObjectRef(resource,
+////		                        getPrismContext()).asReferenceValue()).buildFilter()
+////                    );
+////                }
+////            }
+////        }
+//
+//        return query;
+//    }
+//
+//    private void initSearch() {
+//        final Form searchFilterForm = new Form(ID_SEARCH_FILTER_FORM);
+//        add(searchFilterForm);
+//        searchFilterForm.setOutputMarkupId(true);
+//
+//        List<Class<? extends ObjectType>> allowedClasses = new ArrayList<>();
+//        allowedClasses.add(ResourceType.class);
+//        MultiValueChoosePanel<ObjectType> resource = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+//                ID_SEARCH_FILTER_RESOURCE, allowedClasses, objectReferenceTransformer,
+//                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
+//
+//            @Override
+//            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
+//                super.choosePerformedHook(target, selected);
+//                searchFilterPerformed(target);
+//            }
+//
+//            @Override
+//            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
+//                super.removePerformedHook(target, value);
+//                searchFilterPerformed(target);
+//            }
+//        };
+//        searchFilterForm.add(resource);
+//
+//        allowedClasses = new ArrayList<>();
+//        allowedClasses.add(UserType.class);
+//        WebMarkupContainer assigneeContainer = new WebMarkupContainer(ID_SEARCH_FILTER_ASSIGNEE_CONTAINER);
+//        MultiValueChoosePanel<ObjectType> assignee = new SingleValueChoosePanel<ObjectReferenceType, ObjectType>(
+//                ID_SEARCH_FILTER_ASSIGNEE, allowedClasses, objectReferenceTransformer,
+//                new PropertyModel<ObjectReferenceType>(Model.of(new ObjectViewDto()), ObjectViewDto.F_NAME)){
+//
+//            @Override
+//            protected void choosePerformedHook(AjaxRequestTarget target, List<ObjectType> selected) {
+//                super.choosePerformedHook(target, selected);
+//                searchFilterPerformed(target);
+//            }
+//
+//            @Override
+//            protected void removePerformedHook(AjaxRequestTarget target, ObjectType value) {
+//                super.removePerformedHook(target, value);
+//                searchFilterPerformed(target);
+//            }
+//        };
+//        assigneeContainer.add(assignee);
+//        assigneeContainer.add(new VisibleEnableBehaviour() {
+//
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            public boolean isVisible() {
+//                return isAuthorizedToSeeAllCases();
+//            }
+//        });
+//        searchFilterForm.add(assigneeContainer);
+//
+//        IsolatedCheckBoxPanel includeClosedCases = new IsolatedCheckBoxPanel(ID_SEARCH_FILTER_INCLUDE_CLOSED_CASES, new Model<Boolean>(false)) {
+//            private static final long serialVersionUID = 1L;
+//
+//            public void onUpdate(AjaxRequestTarget target) {
+//                searchFilterPerformed(target);
+//            }
+//        };
+//        searchFilterForm.add(includeClosedCases);
+//    }
+//
+//    private boolean isAuthorizedToSeeAllCases() {
+//        boolean authorizedToSeeAll;
+//		try {
+//			authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
+//			return all && authorizedToSeeAll;
+//		} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException
+//				| CommunicationException | ConfigurationException | SecurityViolationException e) {
+//			// TODO handle more cleanly
+//            throw new SystemException("Couldn't evaluate authoriztion: "+e.getMessage(), e);
+//		}
+//    }
+//    //endregion
+//
+//    //region Actions
+//    private void searchFilterPerformed(AjaxRequestTarget target) {
+//        ObjectQuery query;
+//        try {
+//            query = createQuery();
+//        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
+//				| ConfigurationException | SecurityViolationException e) {
+//            // TODO handle more cleanly
+//            throw new SystemException("Couldn't create case work item query", e);
+//        }
+//
+//        Table panel = getCaseWorkItemsTable();
+//        DataTable table = panel.getDataTable();
+//        CaseWorkItemDtoProvider provider = (CaseWorkItemDtoProvider) table.getDataProvider();
+//        provider.setQuery(query);
+//        table.setCurrentPage(0);
+//
+//        target.add(getFeedbackPanel());
+//        target.add((Component) getCaseWorkItemsTable());
+//    }
+//    //endregion
+//
+//    private Function<ObjectType, ObjectReferenceType> objectReferenceTransformer =
+//            (Function<ObjectType, ObjectReferenceType> & Serializable) (ObjectType o) ->
+//                    ObjectTypeUtil.createObjectRef(o, getPrismContext());
+//
 }
