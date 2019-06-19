@@ -79,7 +79,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     @Override
                     protected void initPaging() {
 //                        getWorkitemsTabStorage().setPaging(getPrismContext().queryFactory()
-//                                .createPaging(0, ((int) CaseWorkItemsTablePanel.this.getPageBase().getItemsPerPage(getTableId()))));
+//                                .createPaging(0, ((int) CaseWorkItemsTableWithDetailsPanel.this.getPageBase().getItemsPerPage(getTableId()))));
                     }
 
                     @Override

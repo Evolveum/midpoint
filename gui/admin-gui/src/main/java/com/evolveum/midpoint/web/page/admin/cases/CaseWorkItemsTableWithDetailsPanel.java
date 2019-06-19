@@ -28,12 +28,12 @@ import org.apache.wicket.model.IModel;
 /**
  * Created by honchar.
  */
-public abstract class CaseWorkItemsTablePanel extends BasePanel<PrismContainerWrapper<CaseWorkItemType>> {
+public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<PrismContainerWrapper<CaseWorkItemType>> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_WORKITEMS_TABLE = "workitemsTable";
 
-    public CaseWorkItemsTablePanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> workItemsContainerWrapperModel) {
+    public CaseWorkItemsTableWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> workItemsContainerWrapperModel) {
         super(id, workItemsContainerWrapperModel);
     }
 
@@ -52,12 +52,12 @@ public abstract class CaseWorkItemsTablePanel extends BasePanel<PrismContainerWr
 
                     @Override
                     protected ObjectQuery createQuery() {
-                        return CaseWorkItemsTablePanel.this.createQuery();
+                        return CaseWorkItemsTableWithDetailsPanel.this.createQuery();
                     }
 
                     @Override
                     protected UserProfileStorage.TableId getTableId() {
-                        return CaseWorkItemsTablePanel.this.getTableId();
+                        return CaseWorkItemsTableWithDetailsPanel.this.getTableId();
                     }
 
 //                    @Override
