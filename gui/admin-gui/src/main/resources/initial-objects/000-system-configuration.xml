@@ -81,21 +81,6 @@
             <level>INFO</level>
             <package>com.evolveum.midpoint.model.impl.lens.Clockwork</package>
         </classLogger>
-         <classLogger>
-            <!-- Standard useful logger -->
-            <level>TRACE</level>
-            <package>com.evolveum.midpoint.gui</package>
-        </classLogger>
-        <classLogger>
-            <!-- Standard useful logger -->
-            <level>TRACE</level>
-            <package>com.evolveum.midpoint.web</package>
-        </classLogger>
-         <classLogger>
-            <!-- Standard useful logger -->
-            <level>TRACE</level>
-            <package>org.apache.wicket</package>
-        </classLogger>
 
         <appender xsi:type="c:FileAppenderConfigurationType" name="MIDPOINT_LOG"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
