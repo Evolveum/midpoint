@@ -28,50 +28,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Test for multi-domain AD (chimera-hydra) with native AD schema support and automatic objectCategory management.
+ * 
  * @author semancik
- *
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
+public class TestAdLdapChimeraNativeSchema extends TestAdLdapChimera {
 
 	@Override
 	protected File getResourceFile() {
-		return new File(getBaseDir(), "resource-chimera-runas.xml");
-	}
-
-	protected String getResourceOid() {
-		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-	}
-
-	@Override
-	protected String getLdapServerHost() {
-		return "chimera.ad.evolveum.com";
-	}
-
-	@Override
-	protected int getLdapServerPort() {
-		return 636;
+		return new File(getBaseDir(), "resource-chimera-native-schema.xml");
 	}
 	
-	@Override
-	protected File getReconciliationTaskFile() {
-		return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
-	}
-	
-	@Override
-	protected String getReconciliationTaskOid() {
-		return "6e2689dc-88fa-11e9-a382-0baf927677fd";
-	}
-
-	@Override
-	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
-	}
-
-	@Override
-	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
-		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
-	}
 }
