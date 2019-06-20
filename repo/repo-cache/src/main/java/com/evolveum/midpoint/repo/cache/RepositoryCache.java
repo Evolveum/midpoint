@@ -72,6 +72,8 @@ public class RepositoryCache implements RepositoryService {
 	@Autowired private GlobalObjectCache globalObjectCache;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
+	private static final int QUERY_RESULT_SIZE_LIMIT = 100000;
+
 	private static final Random RND = new Random();
 
 	private Integer modifyRandomDelayRange;
@@ -422,13 +424,13 @@ public class RepositoryCache implements RepositoryService {
 			log("Cache (global): HIT searchObjects {}", false, key);
 			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
 		}
-		return searchResult;
+		return readOnly ? searchResult : searchResult.clone();
 	}
 
 	private <T extends ObjectType> void locallyCacheSearchResult(LocalQueryCache cache, boolean supports, QueryKey key,
 			boolean readOnly, SearchResultList<PrismObject<T>> objects) {
 		// TODO optimize cloning
-		if (cache != null && supports) {
+		if (cache != null && supports && objects.size() <= QUERY_RESULT_SIZE_LIMIT) {
 			cache.put(key, objects.clone());
 		}
 		LocalObjectCache localObjectCache = getLocalObjectCache();
@@ -442,13 +444,16 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
+	@SuppressWarnings("unused") // todo optimize
 	private <T extends ObjectType> void globallyCacheSearchResult(QueryKey key, boolean readOnly,
 			SearchResultList<PrismObject<T>> objects) {
 		SearchResultList<PrismObject<T>> cloned = objects.clone();
 		for (PrismObject<T> object : cloned) {
 			globallyCacheObjectWithoutCloning(object);
 		}
-		globalQueryCache.put(key, cloned);
+		if (objects.size() <= QUERY_RESULT_SIZE_LIMIT) {
+			globalQueryCache.put(key, cloned);
+		}
 	}
 
 	@NotNull
@@ -473,38 +478,168 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.repo.api.RepositoryService#searchObjectsIterative(java.lang.Class, com.evolveum.midpoint.prism.query.ObjectQuery, com.evolveum.midpoint.schema.ResultHandler, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
 	@Override
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type, ObjectQuery query,
-			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
 			boolean strictlySequential, OperationResult parentResult) throws SchemaException {
+
+		CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
+
 		LocalQueryCache localQueryCache = getLocalQueryCache();
-		LocalObjectCache localObjectCache = getLocalObjectCache();
-		Context globalQ = new Context(globalQueryCache.getConfiguration(), type);
-		Context localQ = localQueryCache != null ?
+
+		Context global = new Context(globalQueryCache.getConfiguration(), type);
+		Context local = localQueryCache != null ?
 				new Context(localQueryCache.getConfiguration(), type) :
 				new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_QUERY_CACHE), type);
 
-		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
-		// TODO how exactly to record this?
-		if (localQueryCache != null) {
-			localQueryCache.registerPass();
-			CachePerformanceCollector.INSTANCE.registerPass(LocalQueryCache.class, type, localQ.statisticsLevel);
-		} else {
-			CachePerformanceCollector.INSTANCE.registerPass(GlobalQueryCache.class, type, globalQ.statisticsLevel);
+		/*
+		 * Checks related to both caches
+		 */
+
+		PassReason passReason = getPassReason(options, type);
+		if (passReason != null) {
+			if (localQueryCache != null) {
+				localQueryCache.registerPass();
+			}
+			collector.registerPass(LocalQueryCache.class, type, local.statisticsLevel);
+			collector.registerPass(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (local/global): PASS:{} searchObjectsIterative ({}, {})", local.tracePass || global.tracePass, passReason, type.getSimpleName(), options);
+			return searchObjectsIterativeInternal(type, query, handler, options, strictlySequential, parentResult);
 		}
-		log("Cache: PASS (local/global) searchObjectsIterative ({})", localQ.tracePass || globalQ.tracePass, type.getSimpleName());
-		ResultHandler<T> myHandler = (object, parentResult1) -> {
-			cacheLoadedObject(object, readOnly, localObjectCache);
-			return handler.handle(object, parentResult1);
-		};
+		QueryKey key = new QueryKey(type, query);
+
+		/*
+		 * Let's try local cache
+		 */
+
+		boolean readOnly = GetOperationOptions.isReadOnly(SelectorOptions.findRootOptions(options));
+
+		if (localQueryCache == null) {
+			log("Cache (local): NULL searchObjectsIterative ({})", false, type.getSimpleName());
+			registerNotAvailable(LocalQueryCache.class, type, local.statisticsLevel);
+		} else {
+			//noinspection unchecked
+			SearchResultList<PrismObject<T>> queryResult = local.supports ? localQueryCache.get(key) : null;
+			if (queryResult != null) {
+				localQueryCache.registerHit();
+				collector.registerHit(LocalQueryCache.class, type, local.statisticsLevel);
+				if (readOnly) {
+					log("Cache: HIT searchObjectsIterative {} ({})", false, query, type.getSimpleName());
+					return iterateOverQueryResult(queryResult, handler, parentResult, false);
+				} else {
+					log("Cache: HIT(clone) searchObjectsIterative {} ({})", false, query, type.getSimpleName());
+					return iterateOverQueryResult(queryResult, handler, parentResult, true);
+				}
+			}
+			if (local.supports) {
+				localQueryCache.registerMiss();
+				collector.registerMiss(LocalQueryCache.class, type, local.statisticsLevel);
+				log("Cache: MISS searchObjectsIterative {} ({})", local.traceMiss, query, type.getSimpleName());
+			} else {
+				localQueryCache.registerPass();
+				collector.registerPass(LocalQueryCache.class, type, local.statisticsLevel);
+				log("Cache: PASS:CONFIGURATION searchObjectsIterative {} ({})", local.tracePass, query, type.getSimpleName());
+			}
+		}
+
+		/*
+		 * Then try global cache
+		 */
+		if (!globalQueryCache.isAvailable()) {
+			collector.registerNotAvailable(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): NOT_AVAILABLE {} searchObjectsIterative ({})", false, query, type.getSimpleName());
+			CollectingHandler<T> collectingHandler = new CollectingHandler<>(handler);
+			SearchResultMetadata metadata = searchObjectsIterativeInternal(type, query, collectingHandler, options, strictlySequential, parentResult);
+			if (collectingHandler.isResultAvailable()) {
+				locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, collectingHandler.getObjects());
+			}
+			return metadata;
+		} else if (!global.supports) {
+			// caller is not interested in cached value, or global cache doesn't want to cache value
+			collector.registerPass(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): PASS:CONFIGURATION {} searchObjectsIterative ({})", global.tracePass, query, type.getSimpleName());
+			CollectingHandler<T> collectingHandler = new CollectingHandler<>(handler);
+			SearchResultMetadata metadata = searchObjectsIterativeInternal(type, query, collectingHandler, options, strictlySequential, parentResult);
+			if (collectingHandler.isResultAvailable()) {
+				locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, collectingHandler.getObjects());
+			}
+			return metadata;
+		}
+
+		assert global.cacheConfig != null && global.typeConfig != null;
+
+		SearchResultList<PrismObject<T>> searchResult = globalQueryCache.get(key);
+		SearchResultMetadata metadata;
+
+		if (searchResult == null) {
+			collector.registerMiss(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): MISS searchObjectsIterative {}", global.traceMiss, key);
+			metadata = executeAndCacheSearchIterative(type, key, handler, options, strictlySequential, readOnly, localQueryCache,
+					local.supports, parentResult);
+		} else {
+			collector.registerHit(GlobalQueryCache.class, type, global.statisticsLevel);
+			log("Cache (global): HIT searchObjectsIterative {}", false, key);
+			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
+			iterateOverQueryResult(searchResult, handler, parentResult, !readOnly);
+			metadata = searchResult.getMetadata();
+		}
+		return metadata;
+	}
+
+	private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeInternal(Class<T> type, ObjectQuery query,
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+			boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 		Long startTime = repoOpStart();
 		try {
-			return repositoryService.searchObjectsIterative(type, query, myHandler, options, strictlySequential, parentResult);
+			return repositoryService.searchObjectsIterative(type, query, handler, options, strictlySequential, parentResult);
 		} finally {
 			repoOpEnd(startTime);
+		}
+	}
+
+	// type is there to allow T matching in the method body
+	private <T extends ObjectType> SearchResultMetadata executeAndCacheSearchIterative(Class<T> type, QueryKey key,
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options,
+			boolean strictlySequential, boolean readOnly, LocalQueryCache localCache,
+			boolean localCacheSupports, OperationResult result)
+			throws SchemaException {
+		try {
+			CollectingHandler<T> collectingHandler = new CollectingHandler<>(handler);
+			SearchResultMetadata metadata = searchObjectsIterativeInternal(type, key.getQuery(), collectingHandler, options,
+					strictlySequential, result);
+			if (collectingHandler.isResultAvailable()) {    // todo optimize cloning here
+				locallyCacheSearchResult(localCache, localCacheSupports, key, readOnly, collectingHandler.getObjects());
+				globallyCacheSearchResult(key, readOnly, collectingHandler.getObjects());
+			}
+			return metadata;
+		} catch (SchemaException ex) {
+			globalQueryCache.remove(key);
+			throw ex;
+		}
+	}
+
+	private <T extends ObjectType> SearchResultMetadata iterateOverQueryResult(SearchResultList<PrismObject<T>> queryResult,
+			ResultHandler<T> handler, OperationResult parentResult, boolean clone) {
+		OperationResult result = parentResult.subresult(RepositoryCache.class.getName() + ".iterateOverQueryResult")
+				.setMinor(true)
+				.addParam("objects", queryResult.size())
+				.addArbitraryObjectAsParam("handler", handler)
+				.build();
+		try {
+			for (PrismObject<T> object : queryResult) {
+				PrismObject<T> objectToHandle = clone ? object.clone() : object;
+				if (!handler.handle(objectToHandle, parentResult)) {
+					break;
+				}
+			}
+			// todo Should be metadata influenced by the number of handler executions?
+			//   ...and is it correct to return cached metadata at all?
+			return queryResult.getMetadata() != null ? queryResult.getMetadata().clone() : null;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 
@@ -631,7 +766,7 @@ public class RepositoryCache implements RepositoryService {
 		cacheDispatcher.dispatch(type, oid);
 	}
 
-	public <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,
+	private <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,
 			Object additionalInfo,
 			MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO implement more efficiently
@@ -655,7 +790,7 @@ public class RepositoryCache implements RepositoryService {
 		LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
 	}
 
-	public <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, Object additionalInfo,
+	private <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, Object additionalInfo,
 			MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO implement more efficiently
 
@@ -1125,5 +1260,34 @@ public class RepositoryCache implements RepositoryService {
 
 	enum PassReason {
 		NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT
+	}
+
+	private class CollectingHandler<T extends ObjectType> implements ResultHandler<T> {
+
+		private boolean overflown = false;
+		private final SearchResultList<PrismObject<T>> objects = new SearchResultList<>();
+		private final ResultHandler<T> originalHandler;
+
+		CollectingHandler(ResultHandler<T> handler) {
+			originalHandler = handler;
+		}
+
+		@Override
+		public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+			if (objects.size() < QUERY_RESULT_SIZE_LIMIT) {
+				objects.add(object.clone());        // todo optimize on read only option
+			} else {
+				overflown = true;
+			}
+			return originalHandler.handle(object, parentResult);
+		}
+
+		SearchResultList<PrismObject<T>> getObjects() {
+			return overflown ? null : objects;
+		}
+
+		boolean isResultAvailable() {
+			return !overflown;
+		}
 	}
 }

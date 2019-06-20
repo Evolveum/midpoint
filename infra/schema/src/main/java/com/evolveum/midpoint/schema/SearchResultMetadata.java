@@ -154,4 +154,13 @@ public class SearchResultMetadata implements Serializable, DebugDumpable, ShortD
 		return sb.toString();
 	}
 
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public SearchResultMetadata clone() {
+		SearchResultMetadata clone = new SearchResultMetadata();
+		clone.pagingCookie = pagingCookie;
+		clone.approxNumberOfAllResults = approxNumberOfAllResults;
+		clone.partialResults = partialResults;
+		return clone;
+	}
 }
