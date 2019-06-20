@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -682,6 +683,10 @@ public class ObjectTypeUtil {
     	return prismObject != null ? prismObject.asObjectable() : null;
 	}
 
+	public static <T extends Objectable> List<T> asObjectables(Collection<PrismObject<T>> objects) {
+    	return objects.stream().map(ObjectTypeUtil::asObjectable).collect(Collectors.toList());
+	}
+
 	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
 		return ref1 != null && ref2 != null && ref1.getOid() != null && ref2.getOid() != null
 				&& ref1.getOid().equals(ref2.getOid());
@@ -823,5 +828,42 @@ public class ObjectTypeUtil {
 	    return prismContext.queryFor(objectTypeClass)
 	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
 	            .build();
+	}
+
+	public static <T extends Objectable> List<PrismObject<T>> keepDistinctObjects(Collection<PrismObject<T>> objects) {
+		List<PrismObject<T>> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(objects.size());
+		for (PrismObject<T> object : emptyIfNull(objects)) {
+			if (object.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less object");
+			} else if (!oids.contains(object.getOid())) {
+				rv.add(object);
+				oids.add(object.getOid());
+			}
+		}
+		return rv;
+	}
+
+	public static List<ObjectReferenceType> keepDistinctReferences(Collection<ObjectReferenceType> references) {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(references.size());
+		for (ObjectReferenceType reference : emptyIfNull(references)) {
+			if (reference.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less reference");
+			} else if (!oids.contains(reference.getOid())) {
+				rv.add(reference);
+				oids.add(reference.getOid());
+			}
+		}
+		return rv;
+	}
+
+	public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
+		for (ObjectReferenceType orgRef: object.asObjectable().getArchetypeRef()) {
+			if (oid.equals(orgRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

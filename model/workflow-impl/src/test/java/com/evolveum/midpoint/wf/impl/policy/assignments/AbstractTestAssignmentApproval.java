@@ -36,9 +36,7 @@ import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
 import com.evolveum.midpoint.wf.impl.WorkflowResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -322,8 +320,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			@Override
 			protected ObjectDelta<UserType> getExpectedDelta0() {
 				return prismContext.deltaFactory().object()
-						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class
-						);
+						.createModifyDelta(jack.getOid(), Collections.emptyList(), UserType.class);
 			}
 
 			@Override
@@ -343,24 +340,24 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				if (number == 1) {
 					if (yes) {
-						assertAssignedRole(userJackOid, getRoleOid(1), rootTask, result);
+						assertAssignedRole(userJackOid, getRoleOid(1), opTask, result);
 						checkWorkItemAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
 						checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
 					} else {
-						assertNotAssignedRole(userJackOid, getRoleOid(1), rootTask, result);
+						assertNotAssignedRole(userJackOid, getRoleOid(1), opTask, result);
 					}
 				}
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				assertActiveWorkItems(userLead1Oid, 1);
 				assertActiveWorkItems(userLead1Deputy1Oid, deputy ? 1 : 0);
 				assertActiveWorkItems(userLead1Deputy2Oid, deputy ? 1 : 0);
-				checkTargetOid(executionId, getRoleOid(1));
+				checkTargetOid(caseWorkItem, getRoleOid(1));
 				login(getUser(realApproverOid));
 				return true;
 			}
@@ -370,7 +367,9 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 	protected List<PrismReferenceValue> getPotentialAssignees(PrismObject<UserType> user) {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(user, prismContext).asReferenceValue());
-		rv.addAll(DeputyUtils.getDelegatorReferences(user.asObjectable(), relationRegistry));
+		for (PrismReferenceValue delegatorReference : DeputyUtils.getDelegatorReferences(user.asObjectable(), relationRegistry)) {
+			rv.add(new ObjectReferenceType().oid(delegatorReference.getOid()).asReferenceValue());
+		}
 		return rv;
 	}
 
@@ -379,10 +378,11 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			return;
 		}
 		Task task = createTask("query");
-		ObjectQuery query = prismContext.queryFor(WorkItemType.class)
-				.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
+		ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+				.item(CaseWorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssignees(getUser(approverOid)))
+				.and().item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
 				.build();
-		List<WorkItemType> items = modelService.searchContainers(WorkItemType.class, query, null, task, task.getResult());
+		List<CaseWorkItemType> items = modelService.searchContainers(CaseWorkItemType.class, query, null, task, task.getResult());
 		assertEquals("Wrong active work items for " + approverOid, expectedCount, items.size());
 	}
 
@@ -472,28 +472,28 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				switch (number) {
 					case 0:
 						if (yes) {
 							assertUserProperty(userJackOid, UserType.F_DESCRIPTION, TEST_NAME);
-							assertAssignedRole(userJackOid, getRoleOid(4), rootTask, result);
+							assertAssignedRole(userJackOid, getRoleOid(4), opTask, result);
 						} else {
 							if (originalDescription != null) {
 								assertUserProperty(userJackOid, UserType.F_DESCRIPTION, originalDescription);
 							} else {
 								assertUserNoProperty(userJackOid, UserType.F_DESCRIPTION);
 							}
-							assertNotAssignedRole(userJackOid, getRoleOid(4), rootTask, result);
+							assertNotAssignedRole(userJackOid, getRoleOid(4), opTask, result);
 						}
 						break;
 					case 1:
 					case 2:
 					case 3:
 					if (yes) {
-						assertAssignedRole(userJackOid, getRoleOid(number), rootTask, result);
+						assertAssignedRole(userJackOid, getRoleOid(number), opTask, result);
 					} else {
-						assertNotAssignedRole(userJackOid, getRoleOid(number), rootTask, result);
+						assertNotAssignedRole(userJackOid, getRoleOid(number), opTask, result);
 					}
 					break;
 
@@ -501,8 +501,8 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
-				String targetOid = getTargetOid(executionId);
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
+				String targetOid = getTargetOid(caseWorkItem);
 				if (getRoleOid(1).equals(targetOid)) {
 					login(getUser(userLead1Oid));
 					return approve1;

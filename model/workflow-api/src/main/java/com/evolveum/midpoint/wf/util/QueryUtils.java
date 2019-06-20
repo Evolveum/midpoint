@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -56,14 +56,14 @@ public class QueryUtils {
 		if (principal == null) {
 			return q.none();
 		} else {
-			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
+			return q.item(CaseWorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
 		}
 	}
 
 	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService,
 			RelationRegistry relationRegistry, OperationResult result)
 			throws SchemaException {
-		return q.item(WorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
+		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,

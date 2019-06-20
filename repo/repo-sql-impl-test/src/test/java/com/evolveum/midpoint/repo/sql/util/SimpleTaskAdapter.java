@@ -729,11 +729,7 @@ public class SimpleTaskAdapter implements Task {
         return null;
     }
 
-    @Override
-    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) {
-    }
-
-    @Override public void modify(ItemDelta<?, ?> delta) {
+	@Override public void modify(ItemDelta<?, ?> delta) {
     }
 
     @Override public void modify(Collection<ItemDelta<?, ?>> deltas) {
@@ -741,14 +737,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult parentResult) {
-    }
-
-    @Override
-    public WfContextType getWorkflowContext() {
-        return null;
-    }
-
-    @Override public void setWorkflowContext(WfContextType context) {
     }
 
     @Override

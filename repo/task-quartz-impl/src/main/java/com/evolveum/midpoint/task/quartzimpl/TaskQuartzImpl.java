@@ -60,7 +60,6 @@ import java.util.*;
 
 import static com.evolveum.midpoint.prism.xml.XmlTypeConverter.createXMLGregorianCalendar;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_MODEL_OPERATION_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
 import static java.util.Collections.*;
 import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -1953,61 +1952,6 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	/*
-	 *  Workflow context
-	 */
-	public void setWorkflowContext(WfContextType value) throws SchemaException {
-		addPendingModification(setWorkflowContextAndPrepareDelta(value));
-	}
-
-	//@Override
-	public void setWorkflowContextImmediate(WfContextType value, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		try {
-			modifyRepository(setWorkflowContextAndPrepareDelta(value), parentResult);
-		} catch (ObjectAlreadyExistsException ex) {
-			throw new SystemException(ex);
-		}
-	}
-
-	public void setWorkflowContextTransient(WfContextType value) {
-		synchronized (PRISM_ACCESS) {
-			taskPrism.asObjectable().setWorkflowContext(value);
-		}
-	}
-
-	private ItemDelta<?, ?> setWorkflowContextAndPrepareDelta(WfContextType value) throws SchemaException {
-		setWorkflowContextTransient(value);
-		if (!isPersistent()) {
-			return null;
-		}
-		if (value != null) {
-			return getPrismContext().deltaFor(TaskType.class)
-					.item(F_WORKFLOW_CONTEXT).replace(value.asPrismContainerValue().clone())
-					.asItemDelta();
-		} else {
-			return getPrismContext().deltaFor(TaskType.class)
-					.item(F_WORKFLOW_CONTEXT).replace()
-					.asItemDelta();
-		}
-	}
-
-	// todo thread safety
-	@Override
-	public WfContextType getWorkflowContext() {
-		synchronized (PRISM_ACCESS) {
-			return taskPrism.asObjectable().getWorkflowContext();
-		}
-	}
-
-	@Override
-	public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
-			throws SchemaException, ObjectNotFoundException {
-		WfContextType wfContextType = new WfContextType(getPrismContext());
-		wfContextType.setProcessInstanceId(processInstanceId);
-		setWorkflowContextImmediate(wfContextType, result);
-	}
-
-    /*
     * Node
     */
 

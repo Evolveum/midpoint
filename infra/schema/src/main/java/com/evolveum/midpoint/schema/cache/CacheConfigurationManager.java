@@ -180,6 +180,7 @@ public class CacheConfigurationManager {
 		}
 		validateProfiles(profiles);
 		threadLocalConfiguration.set(new ThreadLocalConfiguration(profiles));
+		LOGGER.trace("Thread local configuration profiles were set to {}", profiles);
 	}
 
 	private void validateProfiles(Collection<String> profiles) {
@@ -201,6 +202,7 @@ public class CacheConfigurationManager {
 
 	public void unsetThreadLocalProfiles() {
 		threadLocalConfiguration.remove();
+		LOGGER.trace("Thread local configuration profiles were removed");
 	}
 
 	@NotNull

@@ -16,14 +16,12 @@
 
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -32,27 +30,29 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 
 /**
  * @author katkav
  */
-public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<ContainerValueWrapper<C>> {
+public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>> {
 
-    private IModel<List<ContainerValueWrapper<C>>> model;
+    private IModel<List<PrismContainerValueWrapper<C>>> model;
 
 	private boolean sortable;			// just to ensure backward compatibility with existing usages
 
-    public MultivalueContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model) {
+    public MultivalueContainerListDataProvider(Component component, IModel<List<PrismContainerValueWrapper<C>>> model) {
 		this(component, model, false);
 	}
 
-    public MultivalueContainerListDataProvider(Component component, IModel<List<ContainerValueWrapper<C>>> model, boolean sortable) {
+    public MultivalueContainerListDataProvider(Component component, IModel<List<PrismContainerValueWrapper<C>>> model, boolean sortable) {
         super(component);
 
         Validate.notNull(model);
@@ -62,10 +62,10 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
 
     @Override
-    public Iterator<? extends ContainerValueWrapper<C>> internalIterator(long first, long count) {
+    public Iterator<? extends PrismContainerValueWrapper<C>> internalIterator(long first, long count) {
         getAvailableData().clear();
 
-        List<ContainerValueWrapper<C>> list = searchThroughList();
+        List<PrismContainerValueWrapper<C>> list = searchThroughList();
 
 		if (sortable && getSort() != null) {
 			sort(list);
@@ -84,16 +84,16 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     }
 
     @SuppressWarnings("unchecked")
-	protected <V extends Comparable<V>> void sort(List<ContainerValueWrapper<C>> list) {
-		Collections.sort(list, new Comparator<ContainerValueWrapper<C>>() {
+	protected <V extends Comparable<V>> void sort(List<PrismContainerValueWrapper<C>> list) {
+		Collections.sort(list, new Comparator<PrismContainerValueWrapper<C>>() {
 			@Override
-			public int compare(ContainerValueWrapper<C> o1, ContainerValueWrapper<C> o2) {
+			public int compare(PrismContainerValueWrapper<C> o1, PrismContainerValueWrapper<C> o2) {
 				SortParam<String> sortParam = getSort();
 				String propertyName = sortParam.getProperty();
 				V prop1, prop2;
 				try {
-					prop1 = (V) PropertyUtils.getProperty(o1.getContainerValue().asContainerable(), propertyName);
-					prop2 = (V) PropertyUtils.getProperty(o2.getContainerValue().asContainerable(), propertyName);
+					prop1 = (V) PropertyUtils.getProperty(o1.getRealValue(), propertyName);
+					prop2 = (V) PropertyUtils.getProperty(o2.getRealValue(), propertyName);
 				} catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
 					throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
 				}
@@ -105,7 +105,7 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
 
     @Override
     protected int internalSize() {
-        List<ContainerValueWrapper<C>> list = searchThroughList();
+        List<PrismContainerValueWrapper<C>> list = searchThroughList();
         if (list == null) {
             return 0;
         }
@@ -113,12 +113,12 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         return list.size();
     }
 
-    public List<ContainerValueWrapper<C>> getSelectedData() {
+    public List<PrismContainerValueWrapper<C>> getSelectedData() {
     	return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
-    protected List<ContainerValueWrapper<C>> searchThroughList() {
-    	List<ContainerValueWrapper<C>> list = model.getObject();
+    protected List<PrismContainerValueWrapper<C>> searchThroughList() {
+    	List<PrismContainerValueWrapper<C>> list = model.getObject();
 
     	if (list == null || list.isEmpty()) {
     		return null;
@@ -128,9 +128,9 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
     		return list;
     	}
 
-    	List<ContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
+    	List<PrismContainerValueWrapper<C>> filtered = list.stream().filter(a -> {
 			try {
-				return ObjectQuery.match(a.getContainerValue().asContainerable(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
+				return ObjectQuery.match(a.getRealValue(), getQuery().getFilter(), getPage().getMatchingRuleRegistry());
 			} catch (SchemaException e) {
 				throw new TunnelException(e.getMessage());
 			}

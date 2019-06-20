@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.jetbrains.annotations.NotNull;
@@ -34,14 +35,14 @@ public class ApproverEngagementDto implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@NotNull private final ObjectReferenceType approverRef;                // with the whole object, if possible
-	@Nullable private final String externalWorkItemId;
+	@Nullable private final WorkItemId externalWorkItemId;
 	@Nullable private AbstractWorkItemOutputType output;
 	@Nullable private XMLGregorianCalendar completedAt;
 	@Nullable private ObjectReferenceType completedBy;                // the user that really completed the work item originally assigned to that approver
 	@Nullable private ObjectReferenceType attorney;                   // the attorney (of completedBy)
 	private boolean last;
 
-	ApproverEngagementDto(@NotNull ObjectReferenceType approverRef, @Nullable String externalWorkItemId) {
+	ApproverEngagementDto(@NotNull ObjectReferenceType approverRef, @Nullable WorkItemId externalWorkItemId) {
 		this.approverRef = approverRef;
 		this.externalWorkItemId = externalWorkItemId;
 	}
@@ -52,7 +53,7 @@ public class ApproverEngagementDto implements Serializable {
 	}
 
 	@Nullable
-	public String getExternalWorkItemId() {
+	public WorkItemId getExternalWorkItemId() {
 		return externalWorkItemId;
 	}
 

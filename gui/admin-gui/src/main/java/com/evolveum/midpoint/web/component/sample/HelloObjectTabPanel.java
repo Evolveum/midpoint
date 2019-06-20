@@ -19,11 +19,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
@@ -37,8 +36,14 @@ public class HelloObjectTabPanel<F extends FocusType> extends AbstractObjectTabP
 
 	private static final String ID_HELLO_LABEL = "helloLabel";
 
-	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel, PageBase pageBase) {
-		super(id, mainForm, focusModel, pageBase);
+	public HelloObjectTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+		super(id, mainForm, focusModel);
+		
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 

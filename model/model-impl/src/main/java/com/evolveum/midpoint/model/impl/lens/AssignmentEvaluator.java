@@ -1272,6 +1272,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			if (extensionContainer.getDefinition() == null) {
 				throw new SchemaException("Extension does not have a definition in assignment "+assignmentType+" in "+segment.sourceDescription);
 			}
+			
+			if (extensionContainer.getValue().getItems() == null) {
+				throw new SchemaException("Extension without items in assignment " + assignmentType + " in " + segment.sourceDescription + ", empty extension tag?");
+			}
+			
 			for (Item<?,?> item: extensionContainer.getValue().getItems()) {
 				if (item == null) {
 					throw new SchemaException("Null item in extension in assignment "+assignmentType+" in "+segment.sourceDescription);

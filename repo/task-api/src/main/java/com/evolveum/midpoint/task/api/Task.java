@@ -952,10 +952,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value);
 
-	// temporary!
-	void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result)
-			throws SchemaException, ObjectNotFoundException;
-
 	// ====================================================================================== Other methods
 
     /**
@@ -1015,11 +1011,6 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     Collection<ItemDelta<?,?>> getPendingModifications();
 
-    // not thread-safe!
-    WfContextType getWorkflowContext();
-
-	void setWorkflowContext(WfContextType context) throws SchemaException;
-
 	// TODO move into RunningTask?
 	void close(OperationResult taskResult, boolean saveState, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
@@ -1055,6 +1046,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 
 	ObjectReferenceType getOwnerRef();
 
+	// Returns immutable collection of caching profiles
 	@NotNull
 	Collection<String> getCachingProfiles();
 

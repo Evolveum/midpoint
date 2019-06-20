@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Radovan Semancik
  *
  */
-public class MockTriggerHandler implements TriggerHandler {
+public class MockTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-trigger-handler";
 

@@ -58,6 +58,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
 	transient private ArchetypePolicyType archetypePolicyType;
+	transient private ArchetypeType archetype;
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
@@ -81,6 +82,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	
 	public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
 		this.archetypePolicyType = objectPolicyConfigurationType;
+	}
+	
+	public ArchetypeType getArchetype() {
+		return archetype;
+	}
+	
+	public void setArchetype(ArchetypeType archetype) {
+		this.archetype = archetype;
 	}
 	
 	public LifecycleStateModelType getLifecycleModel() {

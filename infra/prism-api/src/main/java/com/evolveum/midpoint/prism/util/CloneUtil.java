@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.Contract;
 import org.springframework.util.ClassUtils;
 
 import javax.xml.datatype.Duration;
@@ -63,7 +64,7 @@ public class CloneUtil {
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
-			return orig;
+			return (T) clonePolyString((PolyString) orig);
 		}
         if (orig instanceof String) {
             // ...and so is String
@@ -115,7 +116,7 @@ public class CloneUtil {
 		 */
 		if (orig instanceof Duration) {
 			//noinspection unchecked
-			return (T) XmlTypeConverter.createDuration((Duration) orig);
+			return (T) XmlTypeConverter.createDuration(((Duration) orig));
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
@@ -135,6 +136,7 @@ public class CloneUtil {
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
 
+	@Contract("!null -> !null; null -> null")
 	public static <T> List<T> cloneCollectionMembers(Collection<T> collection) {
 		if (collection == null) {
 			return null;
@@ -152,6 +154,13 @@ public class CloneUtil {
 			clonedCollection.add(clone(element));
 		}
 		return clonedCollection;
+	}
+
+	private static PolyString clonePolyString(PolyString orig){
+		if (orig == null){
+			return null;
+		}
+		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation(), orig.getLang());
 	}
 
 	private static <T> T cloneArray(T orig) {

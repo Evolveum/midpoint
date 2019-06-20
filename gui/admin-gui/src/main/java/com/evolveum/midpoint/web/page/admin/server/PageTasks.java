@@ -126,7 +126,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 	private static final String ID_REFRESH_PANEL = "refreshPanel";
 	private static final String ID_MAIN_FORM = "mainForm";
-	
+
 	private static final String ID_TASK_TABLE_PANEL = "taskTablePanel";
 	private static final String ID_NODE_TABLE = "nodeTable";
 	public static final String ID_SYNCHRONIZE_WORKFLOW_REQUESTS = "synchronizeWorkflowRequests";
@@ -164,7 +164,7 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		refreshPanel.startRefreshing(this, null);
 	}
-	
+
 	private void initLayout() {
 
 		refreshPanel = new AutoRefreshPanel(ID_REFRESH_PANEL, refreshModel, this, false);
@@ -172,11 +172,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 
 		Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
 		add(mainForm);
-		
+
 		TaskDtoTablePanel taskTable = new TaskDtoTablePanel(ID_TASK_TABLE_PANEL, searchText);
 		taskTable.setOutputMarkupId(true);
 		mainForm.add(taskTable);
-		
+
 		List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
 		BoxedTablePanel<NodeDto> nodeTable = new BoxedTablePanel<>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this) {
 
@@ -697,14 +697,13 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 		OperationResult result = opTask.getResult();
 
 		try {
-			getTaskService().synchronizeWorkflowRequests(opTask, result);
+//			getTaskService().synchronizeWorkflowRequests(opTask, result);
 			result.computeStatusIfUnknown();
 			if (result.isSuccess()) { // brutal hack - the subresult's message
 										// contains statistics
 				result.recordStatus(OperationResultStatus.SUCCESS, result.getLastSubresult().getMessage());
 			}
-		} catch (RuntimeException | SchemaException | SecurityViolationException | ExpressionEvaluationException
-				| ObjectNotFoundException | CommunicationException | ConfigurationException e) {
+		} catch (RuntimeException  e) {
 			result.recordFatalError(createStringResource("pageTasks.message.synchronizeTasksPerformed.fatalError").getString(),
 					e);
 		}

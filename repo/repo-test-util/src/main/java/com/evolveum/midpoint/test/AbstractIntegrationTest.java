@@ -2143,9 +2143,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			PrismObject<O> object = objectDefinition.instantiate();
 			O objectType = object.asObjectable();
 			String name = String.format(nameFormat, i);
-			String oid = String.format(oidFormat, i);
 			objectType.setName(createPolyStringType(name));
-			objectType.setOid(oid);
+			if (oidFormat != null) {
+				String oid = String.format(oidFormat, i);
+				objectType.setOid(oid);
+			}
 			if (mutator != null) {
 				mutator.accept(objectType, i);
 			}

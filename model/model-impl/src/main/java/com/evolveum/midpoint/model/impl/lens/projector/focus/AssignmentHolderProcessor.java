@@ -207,6 +207,7 @@ public class AssignmentHolderProcessor {
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
 					        contextLoader.updateArchetypePolicy(context, task, result);
+					        contextLoader.updateArchetype(context, task, result);
 					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},

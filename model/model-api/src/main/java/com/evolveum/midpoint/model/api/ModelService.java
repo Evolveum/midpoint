@@ -456,7 +456,7 @@ public interface ModelService {
 
 	/**
 	 * Search for "sub-object" structures, i.e. containers.
-	 * Supported types are: AccessCertificationCaseType, WorkItemType.
+	 * Supported types are: AccessCertificationCaseType, CaseWorkItemType.
 	 *
 	 * @param type
 	 * @param query

@@ -97,7 +97,7 @@ public class EvaluatedPolicyRuleUtil {
 			MessageKind kind) {
 		List<TreeNode<LocalizableMessage>> messageTreeList = new ArrayList<>();
 		for (TreeNode<EvaluatedPolicyRuleTrigger<?>> tree : triggerTreeList) {
-			messageTreeList.add(tree.tranform(trigger -> getMessage(trigger, kind)));
+			messageTreeList.add(tree.transform(trigger -> getMessage(trigger, kind)));
 		}
 		return messageTreeList;
 	}
@@ -147,7 +147,7 @@ public class EvaluatedPolicyRuleUtil {
 		List<TreeNode<AugmentedTrigger<AdditionalData>>> trees = arrangeForPresentationExt(augmentedTriggers, null);
 		// de-augment
 		return trees.stream()
-				.map(tree -> tree.tranform(at -> at.trigger))
+				.map(tree -> tree.transform(at -> at.trigger))
 				.collect(Collectors.toList());
 	}
 

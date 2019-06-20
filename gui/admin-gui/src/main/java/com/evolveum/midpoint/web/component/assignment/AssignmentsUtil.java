@@ -16,15 +16,29 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -32,24 +46,25 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.model.PropertyWrapperFromContainerValueWrapperModel;
-import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentRelationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by honchar.
@@ -59,16 +74,16 @@ public class AssignmentsUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentsUtil.class);
 
-    public static IModel<String> createActivationTitleModel(ActivationType activation, String defaultTitle, BasePanel basePanel) {
+    public static String createActivationTitleModel(ActivationType activation, String defaultTitle, PageBase basePanel) {
         if (activation == null) {
-            return Model.of("");
+            return"";
         }
         return createActivationTitleModel(activation.getAdministrativeStatus(), activation.getValidFrom(), activation.getValidTo(), basePanel);
     }
 
-    public static IModel<String> createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
-                                                            BasePanel basePanel) {
-        return new IModel<String>() {
+    public static String createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
+                                                            PageBase basePanel) {
+        IModel<String> label = new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -91,6 +106,8 @@ public class AssignmentsUtil {
                 return strEnabled;
             }
         };
+        
+        return label.getObject();
     }
 
     public static IModel<String> createActivationTitleModelExperimental(IModel<AssignmentType> model, BasePanel basePanel) {
@@ -181,18 +198,6 @@ public class AssignmentsUtil {
         };
     }
 
-    public static String createAssignmentStatusClassModel(final ContainerValueWrapper<AssignmentType> assignment) {
-        switch (assignment.getStatus()) {
-            case ADDED:
-                return "success";
-            case DELETED:
-                return "danger";
-            case NOT_CHANGED:
-            default:
-                return null;
-        }
-    }
-
     public static IModel<String> createAssignmentStatusClassModel(final UserDtoStatus model) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -245,20 +250,31 @@ public class AssignmentsUtil {
         };
     }
 
-    public static String getName(ContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
-    	AssignmentType assignment = assignmentValueWrapper.getContainerValue().asContainerable();
+    public static String getName(PrismContainerValueWrapper<AssignmentType> assignmentValueWrapper, PageBase pageBase) {
+    	AssignmentType assignment = assignmentValueWrapper.getRealValue();
     	
 		if (assignment == null) {
 			return null;
 		}
 
 		if (assignment.getPolicyRule() != null){
-			ContainerWrapper<PolicyRuleType> policyRuleWrapper = assignmentValueWrapper.findContainerWrapper(
-					ItemPath.create(assignmentValueWrapper.getPath(), AssignmentType.F_POLICY_RULE));
-			PropertyWrapperFromContainerValueWrapperModel<String, AssignmentType> propertyModel = new PropertyWrapperFromContainerValueWrapperModel(policyRuleWrapper.getValues().get(0), PolicyRuleType.F_NAME);
-	    	String name = propertyModel.getObject().getValues().get(0).getValue().getRealValue();
-			if (StringUtils.isNotEmpty(name)){
-                return name;
+			StringBuilder sbName = new StringBuilder("");
+			PrismPropertyWrapper<String> property;
+			try {
+				property = assignmentValueWrapper.findProperty(ItemPath.create(AssignmentType.F_POLICY_RULE, PolicyRuleType.F_NAME));
+			} catch (SchemaException e) {
+				LOGGER.error("Cannot find name property for policy rules.");
+				pageBase.getSession().error("Cannot find name for the policy rule");
+				return null;
+			}
+			if (property != null && !property.getValues().isEmpty()) {
+				for (PrismPropertyValueWrapper<String> value : property.getValues()) {
+					ItemRealValueModel<String> name = new ItemRealValueModel<String>(Model.of(value));
+					sbName.append(name.getObject()).append("\n");
+				}
+			}
+			if (StringUtils.isNotEmpty(sbName.toString())){
+                return sbName.toString();
             } else {
             	PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
 			    StringBuilder sb = new StringBuilder("");
@@ -286,10 +302,26 @@ public class AssignmentsUtil {
 			}
 			return sb.toString();
 		}
+		
+		//TODO fix this.. what do we want to show in the name columns in the case of assignemtnRelation assignemt??
+		if (assignment.getAssignmentRelation() != null && !assignment.getAssignmentRelation().isEmpty()) {
+			for (AssignmentRelationType assignmentRelation : assignment.getAssignmentRelation()) {
+				sb.append("Assignment relation");
+				List<QName> holders = assignmentRelation.getHolderType();
+				if (!holders.isEmpty()) {
+					sb.append(": ").append(holders.iterator().next());
+				}
+				
+			}
+			String name = sb.toString();
+			if (name.length() > 1) {
+				return name;
+			}
+		}
 
 		if (assignment.getTarget() != null) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
-		} else if (assignment.getTargetRef() != null) {
+		} else if (isNotEmptyRef(assignment.getTargetRef())) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
 		}
 		appendTenantAndOrgName(assignment, sb, pageBase);
@@ -309,15 +341,20 @@ public class AssignmentsUtil {
 		return sb.toString();
 	}
 
+    
+    private static boolean isNotEmptyRef(ObjectReferenceType ref) {
+    	return ref != null && ref.getOid() != null && ref.getType() != null;
+    }
+    
     private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
-		if (tenantRef != null) {
-			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		if (tenantRef != null && !tenantRef.asReferenceValue().isEmpty()) {
+			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
 		}
 
 		ObjectReferenceType orgRef = assignmentType.getOrgRef();
-		if (orgRef != null) {
-			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName");
+		if (orgRef != null && !tenantRef.asReferenceValue().isEmpty()) {
+			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
 		}
 
 	}
@@ -399,6 +436,9 @@ public class AssignmentsUtil {
     }
 
     public static QName getTargetType(AssignmentType assignment) {
+        if (assignment.getConstruction() != null) {
+            return ConstructionType.COMPLEX_TYPE;
+        }
         if (assignment.getTarget() != null) {
             // object assignment
             return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();

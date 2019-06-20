@@ -226,8 +226,9 @@ public class SchemaHandlingStep extends WizardStep {
                 label.setOutputMarkupId(true);
                 link.add(label);
 
-                AjaxLink delete = new AjaxLink(ID_BUTTON_DELETE_OBJECT_TYPE) {
-                    @Override
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_BUTTON_DELETE_OBJECT_TYPE) {
+                	private static final long serialVersionUID = 1L;
+                	@Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteObjectTypePerformed(target, objectType);
                     }

@@ -173,7 +173,7 @@ public class Clockwork {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
 
-    
+
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
@@ -249,8 +249,8 @@ public class Clockwork {
 			throw t;
 		}
 	}
-	
-	public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result) 
+
+	public <F extends ObjectType> LensContext<F> previewChanges(LensContext<F> context, Collection<ProgressListener> listeners, Task task, OperationResult result)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		try {
 			context.setPreview(true);
@@ -269,13 +269,13 @@ public class Clockwork {
 			}
 
 			policyRuleSuspendTaskExecutor.execute(context, task, result);
-			
+
 		} catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
 				CommunicationException | PolicyViolationException | RuntimeException | ObjectAlreadyExistsException |
 				ExpressionEvaluationException e) {
 			ModelImplUtils.recordFatalError(result, e);
 			throw e;
-			
+
 		} catch (PreconditionViolationException e) {
 			ModelImplUtils.recordFatalError(result, e);
 			// TODO: Temporary fix for 3.6.1
@@ -283,9 +283,9 @@ public class Clockwork {
 			// ... and we do not really need that in 3.6.1
 			// TODO: expose PreconditionViolationException in 3.7
 			throw new SystemException(e);
-			
+
 		}
-		
+
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
 		}
@@ -295,8 +295,8 @@ public class Clockwork {
 
 		return context;
 	}
-	
-	
+
+
 	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
 		for (ConflictWatcher watcher : context.getConflictWatchers()) {
 			if (repositoryService.hasConflict(watcher, result)) {
@@ -434,10 +434,12 @@ public class Clockwork {
 	private void enterAssociationSearchExpressionEvaluatorCache() {
 		AssociationSearchExpressionEvaluatorCache cache = AssociationSearchExpressionEvaluatorCache.enterCache(
 				cacheConfigurationManager.getConfiguration(CacheType.LOCAL_ASSOCIATION_TARGET_SEARCH_EVALUATOR_CACHE));
-		AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
-		cache.setClientContextInformation(invalidator);
-		changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
-		changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+		if (cache.getClientContextInformation() == null) {
+			AssociationSearchExpressionCacheInvalidator invalidator = new AssociationSearchExpressionCacheInvalidator(cache);
+			cache.setClientContextInformation(invalidator);
+			changeNotificationDispatcher.registerNotificationListener((ResourceObjectChangeListener) invalidator);
+			changeNotificationDispatcher.registerNotificationListener((ResourceOperationListener) invalidator);
+		}
 	}
 
 	private void exitAssociationSearchExpressionEvaluatorCache() {
@@ -446,13 +448,16 @@ public class Clockwork {
 			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: cache instance was not found for the current thread");
 			return;
 		}
-		Object invalidator = cache.getClientContextInformation();
-		if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
-			LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: expected {}, got {} instead", AssociationSearchExpressionCacheInvalidator.class, invalidator);
-			return;
+		if (cache.getEntryCount() <= 0) {
+			Object invalidator = cache.getClientContextInformation();
+			if (!(invalidator instanceof AssociationSearchExpressionCacheInvalidator)) {
+				LOGGER.error("exitAssociationSearchExpressionEvaluatorCache: expected {}, got {} instead",
+						AssociationSearchExpressionCacheInvalidator.class, invalidator);
+				return;
+			}
+			changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
+			changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
 		}
-		changeNotificationDispatcher.unregisterNotificationListener((ResourceObjectChangeListener) invalidator);
-		changeNotificationDispatcher.unregisterNotificationListener((ResourceOperationListener) invalidator);
 	}
 
 	private void enterDefaultSearchExpressionEvaluatorCache() {
@@ -697,7 +702,7 @@ public class Clockwork {
 			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
 			variables.put(ExpressionConstants.VAR_FOCUS, null, def);
 		}
-		
+
 
 		ModelImplUtils.evaluateScript(scriptExpression, context, variables, false, shortDesc, task, result);
 		LOGGER.trace("Finished evaluation of {}", shortDesc);
@@ -716,9 +721,9 @@ public class Clockwork {
 	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, ObjectNotFoundException, SchemaException {
 		// Nothing to do now. The context is already recomputed.
 		switchState(context, ModelState.SECONDARY);
-		
+
 		policyRuleSuspendTaskExecutor.execute(context, task, result);
-		
+
 	}
 
 	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result, OperationResult overallResult)
@@ -730,7 +735,7 @@ public class Clockwork {
 		}
 
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
-		
+
 		medic.partialExecute("execution",
 				() -> {	
 					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
@@ -761,7 +766,7 @@ public class Clockwork {
 
 	private <F extends ObjectType> void processSecondaryToFinal(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException {
 		switchState(context, ModelState.FINAL);
-		policyRuleScriptExecutor.execute(context, task, result);		
+		policyRuleScriptExecutor.execute(context, task, result);
 	}
 
 	/**

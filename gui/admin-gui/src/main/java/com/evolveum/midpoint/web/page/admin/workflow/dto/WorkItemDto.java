@@ -32,12 +32,14 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -54,8 +55,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
 
 /**
  * @author lazyman
@@ -106,8 +105,8 @@ public class WorkItemDto extends Selectable {
     //
     // Depending on expected use (work item list vs. work item details)
 
-    private final WorkItemType workItem;
-	private TaskType taskType;
+    private final CaseWorkItemType workItem;
+	private CaseType aCase;
 	private List<TaskType> relatedTasks;
 	@Deprecated private SceneDto deltas;
 	private TaskChangesDto changes;
@@ -117,47 +116,44 @@ public class WorkItemDto extends Selectable {
 	private PageBase pageBase;
     private ObjectType focus;
 
-    public WorkItemDto(WorkItemType workItem, PageBase pageBase) {
+    public WorkItemDto(CaseWorkItemType workItem, PageBase pageBase) {
         this(workItem, null, null, pageBase);
     }
 
-	public WorkItemDto(WorkItemType workItem, TaskType taskType, List<TaskType> relatedTasks, PageBase pageBase) {
+	public WorkItemDto(CaseWorkItemType workItem, CaseType aCase, List<TaskType> relatedTasks, PageBase pageBase) {
 		this.workItem = workItem;
-		this.taskType = taskType;
+		this.aCase = aCase;
 		this.relatedTasks = relatedTasks;
 		this.pageBase = pageBase;
 	}
 
 	public void prepareDeltaVisualization(String sceneNameKey, PrismContext prismContext,
 			ModelInteractionService modelInteractionService, Task opTask, OperationResult result) throws SchemaException, ExpressionEvaluationException {
-		TaskType task = getTaskType();
-		if (task == null || task.getWorkflowContext() == null) {
+		CaseType aCase = getCase();
+		if (aCase == null || aCase.getApprovalContext() == null) {
 			return;
 		}
-		if (!(task.getWorkflowContext().getProcessorSpecificState() instanceof WfPrimaryChangeProcessorStateType)) {
-			return;
-		}
-		ObjectReferenceType objectRef = task.getWorkflowContext().getObjectRef();
-		WfPrimaryChangeProcessorStateType state = (WfPrimaryChangeProcessorStateType) task.getWorkflowContext().getProcessorSpecificState();
-		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(state.getDeltasToProcess(), sceneNameKey, prismContext, modelInteractionService,
+		ObjectReferenceType objectRef = aCase.getObjectRef();
+		ApprovalContextType actx = aCase.getApprovalContext();
+		Scene deltasScene = SceneUtil.visualizeObjectTreeDeltas(actx.getDeltasToApprove(), sceneNameKey, prismContext, modelInteractionService,
 				objectRef, opTask, result);
 		deltas = new SceneDto(deltasScene);
 
-		ObjectTreeDeltas deltas = ObjectTreeDeltas.fromObjectTreeDeltasType(state.getDeltasToProcess(), prismContext);
+		ObjectTreeDeltas deltas = ObjectTreeDeltas.fromObjectTreeDeltasType(actx.getDeltasToApprove(), prismContext);
 		changes = TaskDto.createChangesToBeApproved(deltas, modelInteractionService,
 				prismContext, objectRef, opTask, result);
 	}
 
 	@Nullable
-	private TaskType getTaskType() {
-    	if (taskType == null) {
-			taskType = WfContextUtil.getTask(workItem);
+	public CaseType getCase() {
+    	if (aCase == null) {
+			aCase = CaseWorkItemUtil.getCase(workItem);
 		}
-		return taskType;
+		return aCase;
 	}
 
-	public String getWorkItemId() {
-        return workItem.getExternalId();
+	public WorkItemId getWorkItemId() {
+        return WorkItemId.of(workItem);
     }
 
     public String getName() {
@@ -189,15 +185,11 @@ public class WorkItemDto extends Selectable {
     }
 
     public Date getStartedDate() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null ? XmlTypeConverter.toDate(wfc.getStartTimestamp()) : null;
+	    return XmlTypeConverter.toDate(CaseTypeUtil.getStartTimestamp(getCase()));
     }
 
     public String getStartedFormattedFull() {
-		WfContextType wfc = getWorkflowContext();
-		return wfc != null
-				? WebComponentUtil.getLongDateTimeFormattedValue(wfc.getStartTimestamp(), pageBase)
-				: null;
+		return WebComponentUtil.getLongDateTimeFormattedValue(getStartedDate(), pageBase);
     }
 
     // TODO
@@ -231,29 +223,29 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getObjectName() {
-        return WebComponentUtil.getName(WfContextUtil.getObjectRef(workItem));
+        return WebComponentUtil.getName(ApprovalContextUtil.getObjectRef(workItem));
     }
 
 	public ObjectReferenceType getObjectRef() {
-		return WfContextUtil.getObjectRef(workItem);
+		return ApprovalContextUtil.getObjectRef(workItem);
 	}
 
 	public ObjectReferenceType getTargetRef() {
-		return WfContextUtil.getTargetRef(workItem);
+		return ApprovalContextUtil.getTargetRef(workItem);
 	}
 
 	public String getTargetName() {
-        return WebComponentUtil.getName(WfContextUtil.getTargetRef(workItem));
+        return WebComponentUtil.getName(ApprovalContextUtil.getTargetRef(workItem));
     }
 
-    public WfContextType getWorkflowContext() {
-        TaskType task = getTaskType();
-        return task != null ? task.getWorkflowContext() : null;
+    public ApprovalContextType getApprovalContext() {
+        CaseType aCase = getCase();
+        return aCase != null ? aCase.getApprovalContext() : null;
     }
 
     public String getRequesterName() {
-		WfContextType workflowContext = getWorkflowContext();
-		return workflowContext != null ? WebComponentUtil.getName(workflowContext.getRequesterRef()) : null;
+	    CaseType aCase = getCase();
+		return aCase != null ? WebComponentUtil.getName(aCase.getRequestorRef()) : null;
     }
 
 	public String getRequesterFullName() {
@@ -262,11 +254,11 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public UserType getRequester() {
-        WfContextType wfContext = getWorkflowContext();
-        if (wfContext == null) {
+		CaseType aCase = getCase();
+        if (aCase == null) {
             return null;
         }
-        return WebComponentUtil.getObjectFromReference(wfContext.getRequesterRef(), UserType.class);
+        return WebComponentUtil.getObjectFromReference(aCase.getRequestorRef(), UserType.class);
     }
 
     public String getApproverComment() {
@@ -277,7 +269,7 @@ public class WorkItemDto extends Selectable {
         this.approverComment = approverComment;
     }
 
-    public WorkItemType getWorkItem() {
+    public CaseWorkItemType getWorkItem() {
         return workItem;
     }
 
@@ -287,26 +279,27 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public QName getTargetType() {
-		ObjectReferenceType targetRef = WfContextUtil.getTargetRef(workItem);
+		ObjectReferenceType targetRef = ApprovalContextUtil.getTargetRef(workItem);
 		return targetRef != null ? targetRef.getType() : null;
 	}
 
 	public QName getObjectType() {
-		ObjectReferenceType objectRef = WfContextUtil.getObjectRef(workItem);
+		ObjectReferenceType objectRef = ApprovalContextUtil.getObjectRef(workItem);
 		return objectRef != null ? objectRef.getType() : null;
 	}
 
 	// all except the current one
 	public List<WorkItemDto> getOtherWorkItems() {
 		final List<WorkItemDto> rv = new ArrayList<>();
-		final TaskType task = getTaskType();
-		if (task == null || task.getWorkflowContext() == null) {
+		final CaseType aCase = getCase();
+		if (aCase == null || aCase.getApprovalContext() == null) {
 			return rv;
 		}
-		for (WorkItemType workItemType : task.getWorkflowContext().getWorkItem()) {
-			if (workItemType.getExternalId() == null || workItemType.getExternalId().equals(getWorkItemId())) {
-				continue;
-			}
+		for (CaseWorkItemType workItemType : aCase.getWorkItem()) {
+			// todo
+//			if (workItemType.getExternalId() == null || workItemType.getExternalId().equals(getWorkItemId())) {
+//				continue;
+//			}
 			rv.add(new WorkItemDto(workItemType, pageBase));
 		}
 		return rv;
@@ -319,84 +312,71 @@ public class WorkItemDto extends Selectable {
 			return rv;
 		}
 		for (TaskType task : relatedTasks) {
-			if (task.getWorkflowContext() == null || task.getWorkflowContext().getProcessInstanceId() == null) {
-				continue;
-			}
-			if (StringUtils.equals(getProcessInstanceId(), task.getWorkflowContext().getProcessInstanceId())) {
-				continue;
-			}
-			rv.add(new ProcessInstanceDto(task, WebComponentUtil.getShortDateTimeFormat(pageBase)));
+			// todo
+//			if (task.getApprovalContext() == null || task.getApprovalContext().getCaseOid() == null) {
+//				continue;
+//			}
+//			if (StringUtils.equals(getProcessInstanceId(), task.getApprovalContext().getCaseOid())) {
+//				continue;
+//			}
+			rv.add(new ProcessInstanceDto(aCase, WebComponentUtil.getShortDateTimeFormat(pageBase)));
 		}
 		return rv;
 	}
 
 	public String getProcessInstanceId() {
-		final TaskType task = getTaskType();
-		return task != null && task.getWorkflowContext() != null ? task.getWorkflowContext().getProcessInstanceId() : null;
+    	return null; // TODO
+//		final TaskType task = getTaskType();
+//		return task != null && task.getApprovalContext() != null ? task.getApprovalContext().getCaseOid() : null;
 	}
 
-	public String getTaskOid() {
-		final TaskType task = getTaskType();
-		return task != null ? task.getOid() : null;
+	public String getCaseOid() {
+		final CaseType aCase = getCase();
+		return aCase != null ? aCase.getOid() : null;
 	}
 
 	public boolean isInStageBeforeLastOne() {
-		return WfContextUtil.isInStageBeforeLastOne(getWorkflowContext());
+		return ApprovalContextUtil.isInStageBeforeLastOne(getCase());
 	}
 
 	// TODO deduplicate
 	public boolean hasHistory() {
 		List<DecisionDto> rv = new ArrayList<>();
-		WfContextType wfContextType = getWorkflowContext();
-		if (wfContextType == null) {
+		ApprovalContextType approvalContext = getApprovalContext();
+		if (approvalContext == null) {
 			return false;
 		}
-		if (!wfContextType.getEvent().isEmpty()) {
-			wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, null)));
-		} else {
-			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
-			if (instanceState != null) {
-				instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
-			}
-		}
+		// TODO
+//		if (!wfContextType.getEvent().isEmpty()) {
+//			wfContextType.getEvent().forEach(e -> addIgnoreNull(rv, DecisionDto.create(e, null)));
+//		} else {
+//			ItemApprovalProcessStateType instanceState = WfContextUtil.getItemApprovalProcessInfo(wfContextType);
+//			if (instanceState != null) {
+//				instanceState.getDecisions().forEach(d -> addIgnoreNull(rv, DecisionDto.create(d)));
+//			}
+//		}
 		return !rv.isEmpty();
 	}
 
 	public String getStageInfo() {
-    	WfContextType wfc = getWorkflowContext();		// wfc contains also the approval schema
-		return wfc != null ? WfContextUtil.getStageInfo(wfc) : WfContextUtil.getStageInfo(workItem);
+		CaseType aCase = getCase();
+		return aCase != null ? ApprovalContextUtil.getStageInfo(aCase) : ApprovalContextUtil.getStageInfo(workItem);
 	}
 
 	public String getEscalationLevelInfo() {
-    	return WfContextUtil.getEscalationLevelInfo(workItem);
+    	return ApprovalContextUtil.getEscalationLevelInfo(workItem);
 	}
 
 	public Integer getEscalationLevelNumber() {
-		int number = WfContextUtil.getEscalationLevelNumber(workItem);
+		int number = ApprovalContextUtil.getEscalationLevelNumber(workItem);
 		return number > 0 ? number : null;
 	}
 
 	public List<EvaluatedTriggerGroupDto> getTriggers() {
     	if (triggers == null) {
-    		triggers = computeTriggers(getWorkflowContext());
+    		triggers = WebComponentUtil.computeTriggers(getApprovalContext(), 0); //TODO how to take stageNumber for TaskType?
 	    }
 	    return triggers;
-	}
-
-	public static List<EvaluatedTriggerGroupDto> computeTriggers(WfContextType wfc) {
-		List<EvaluatedTriggerGroupDto> triggers = new ArrayList<>();
-		if (wfc == null) {
-			return triggers;
-		}
-		EvaluatedTriggerGroupDto.UniquenessFilter uniquenessFilter = new EvaluatedTriggerGroupDto.UniquenessFilter();
-		List<List<EvaluatedPolicyRuleType>> rulesPerStageList = WfContextUtil.getRulesPerStage(wfc);
-		for (int i = 0; i < rulesPerStageList.size(); i++) {
-			Integer stageNumber = i + 1;
-			boolean highlighted = stageNumber.equals(wfc.getStageNumber());
-			EvaluatedTriggerGroupDto group = EvaluatedTriggerGroupDto.initializeFromRules(rulesPerStageList.get(i), highlighted, uniquenessFilter);
-			triggers.add(group);
-		}
-		return triggers;
 	}
 
 	public List<InformationType> getAdditionalInformation() {
@@ -409,12 +389,11 @@ public class WorkItemDto extends Selectable {
     	if (focus != null) {
     		return focus;
 		}
-		WfContextType wfc = getWorkflowContext();
-		WfPrimaryChangeProcessorStateType state = WfContextUtil.getPrimaryChangeProcessorState(wfc);
-		if (state == null || state.getDeltasToProcess() == null || state.getDeltasToProcess().getFocusPrimaryDelta() == null) {
+		ApprovalContextType wfc = getApprovalContext();
+		if (wfc == null || wfc.getDeltasToApprove() == null || wfc.getDeltasToApprove().getFocusPrimaryDelta() == null) {
 			return null;
 		}
-		ObjectDeltaType delta = state.getDeltasToProcess().getFocusPrimaryDelta();
+		ObjectDeltaType delta = wfc.getDeltasToApprove().getFocusPrimaryDelta();
 		if (delta.getChangeType() == ChangeTypeType.ADD) {
 			focus = CloneUtil.clone((ObjectType) delta.getObjectToAdd());
 		} else if (delta.getChangeType() == ChangeTypeType.MODIFY) {
@@ -447,7 +426,7 @@ public class WorkItemDto extends Selectable {
 	}
 
 	public String getRequesterComment() {
-		OperationBusinessContextType businessContext = WfContextUtil.getBusinessContext(getWorkflowContext());
+		OperationBusinessContextType businessContext = ApprovalContextUtil.getBusinessContext(aCase);
 		return businessContext != null ? businessContext.getComment() : null;
 	}
 }

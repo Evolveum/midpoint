@@ -364,7 +364,7 @@ public class ObjectUpdater {
 
     public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(Class<T> type, String oid,
 			Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
-			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
+			RepoModifyOptions modifyOptions, int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
 		    throws ObjectNotFoundException,
 		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
@@ -373,8 +373,8 @@ public class ObjectUpdater {
         Collection<? extends ItemDelta> modifications = CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
-        LOGGER.debug("Modifying object '{}' with oid '{}'.", type.getSimpleName(), oid);
-        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
+        LOGGER.debug("Modifying object '{}' with oid '{}' (attempt {})", type.getSimpleName(), oid, attempt);
+        LOGGER_PERFORMANCE.debug("> modify object {}, oid={} (attempt {}), modifications={}", type.getSimpleName(), oid, attempt, modifications);
 	    LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         Session session = null;
@@ -489,7 +489,7 @@ public class ObjectUpdater {
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
-            LOGGER.trace("Committed!");
+            LOGGER.trace("Committed! (at attempt {})", attempt);
             return rv;
         } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);

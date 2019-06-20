@@ -70,7 +70,7 @@
 	    	</target>
 	    </authorization>
 	    <authorization>
-	    	<name>assignment-target-read-task</name>
+	    	<name>assignment-target-read-case</name>
 	    	<description>
 	    		Authorization that allows to read workflow status of tasks. This is used to display requests
 	    		to the end users, especially in the "My Requests" box in user dashboard.
@@ -79,9 +79,9 @@
 	    	</description>
 	        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
 	        <object>
-	            <type>TaskType</type>
+	            <type>CaseType</type>
 	        </object>
-	        <item>workflowContext</item>
+	        <item>approvalContext</item>
 	    </authorization>
 	    
 	    <!-- Common end user authorizations -->

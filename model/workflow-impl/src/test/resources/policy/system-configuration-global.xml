@@ -54,7 +54,6 @@
 		</handler>
 	</notificationConfiguration>
 	<workflowConfiguration>
-        <allowCompleteOthersItems>true</allowCompleteOthersItems>
 		<useLegacyApproversSpecification>never</useLegacyApproversSpecification>
 		<useDefaultApprovalPolicyRules>never</useDefaultApprovalPolicyRules>
 		<approverCommentsFormatting>

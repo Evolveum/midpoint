@@ -111,6 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.QueryInterpretationOfNoValueType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
@@ -451,7 +452,7 @@ public class ExpressionUtil {
 
 	// TODO what about collections of values?
 	public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalTypedValue, String variableName, ObjectResolver objectResolver,
-			String contextDescription, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			String contextDescription, ObjectVariableModeType objectVariableModeType, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Object valueToConvert = originalTypedValue.getValue();
 		if (valueToConvert == null) {
 			return originalTypedValue;
@@ -463,13 +464,34 @@ public class ExpressionUtil {
 			((Item) valueToConvert).setPrismContext(prismContext);				// TODO - or revive? Or make sure prismContext is set here?
 		}
 		if (valueToConvert instanceof ObjectReferenceType) {
+			ObjectReferenceType reference = ((ObjectReferenceType)valueToConvert).clone();
+			OperationResult subResult = new OperationResult("Resolve reference");
 			try {
 				convertedTypeValue = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalTypedValue, objectResolver, variableName,
-						contextDescription, task, result);
+						contextDescription, task, subResult);
 				valueToConvert = convertedTypeValue.getValue();
 			} catch (SchemaException e) {
+				result.addSubresult(subResult);
 				throw new ExpressionSyntaxException("Schema error during variable "+variableName+" resolution in "+contextDescription+": "+e.getMessage(), e);
+			} catch (ObjectNotFoundException e) {
+				if(ObjectVariableModeType.OBJECT.equals(objectVariableModeType)) {
+					result.addSubresult(subResult);
+					throw e;
+				}
+			} catch (Exception e) {
+				result.addSubresult(subResult);
+				throw e;
 			}
+			
+			if(ObjectVariableModeType.PRISM_REFERENCE.equals(objectVariableModeType)){
+				PrismReferenceValue value = reference.asReferenceValue();
+				if(valueToConvert instanceof PrismObject) {
+					value.setObject((PrismObject)valueToConvert);
+				}
+				convertedTypeValue = (TypedValue<T>) new TypedValue(value, value.getDefinition());
+				valueToConvert = convertedTypeValue.getValue();
+			}
+			
 		}
 		if (valueToConvert instanceof PrismObject<?>) {
 			convertedTypeValue.setValue(((PrismObject<?>)valueToConvert).asObjectable());

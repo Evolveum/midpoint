@@ -505,7 +505,7 @@ public class PrismMarshaller {
 			}
 			
 			Map<String, String> lang = realValue.getLang();
-			if (lang != null) {
+			if (lang != null && !lang.isEmpty()) {
 				XNodeImpl xTranslation = serializePolyStringLang(lang);
 				xmap.put(PolyString.F_LANG, xTranslation);
 			}

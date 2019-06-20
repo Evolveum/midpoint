@@ -108,6 +108,11 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
+            protected boolean isCreateNewObjectEnabled(){
+                return PageAdminObjectList.this.isCreateNewObjectEnabled();
+            }
+
+            @Override
             protected List<CompiledObjectCollectionView> getNewObjectInfluencesList(){
                 if (isCollectionViewPage()){
                     return new ArrayList<>();
@@ -190,6 +195,10 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     protected abstract List<InlineMenuItem> createRowActions();
 
     protected void objectDetailsPerformed(AjaxRequestTarget target, O object){}
+
+    protected boolean isCreateNewObjectEnabled(){
+        return true;
+    }
 
     protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView){
         if (collectionView == null){

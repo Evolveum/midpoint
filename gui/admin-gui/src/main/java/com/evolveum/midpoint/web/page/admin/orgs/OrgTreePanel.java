@@ -144,7 +144,9 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
         treeHeader.add(treeTitle);
 
 		InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU,
-				new Model<>((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
+				new Model((Serializable) createTreeMenuInternal(serviceLocator.getCompiledUserProfile())));
+		treeMenu.setOutputMarkupId(true);
+		treeMenu.setOutputMarkupPlaceholderTag(true);
 		treeHeader.add(treeMenu);
 
 		ISortableTreeProvider provider = new OrgTreeProvider(this, getModel(), preselecteOrgsList) {
@@ -477,7 +479,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return storage != null ? storage.getSelectedItem() : null;
 	}
 
-	protected OrgTreeStateStorage getOrgTreeStateStorage(){
+	public OrgTreeStateStorage getOrgTreeStateStorage(){
 		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
 		SessionStorage storage = session.getSessionStorage();
 		return storage.getUsers();

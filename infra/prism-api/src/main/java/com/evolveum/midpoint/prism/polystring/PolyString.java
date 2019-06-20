@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -62,39 +63,29 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	private Map<String,String> lang;
 
 	public PolyString(String orig) {
-		super();
-		if (orig == null) {
-			throw new IllegalArgumentException("Cannot create PolyString with null orig");
-		}
-		this.orig = orig;
+		this(orig, null);
 	}
 
 	public PolyString(String orig, String norm) {
-		super();
-		if (orig == null) {
-			throw new IllegalArgumentException("Cannot create PolyString with null orig");
-		}
-		this.orig = orig;
-		this.norm = norm;
+		this(orig, norm, null);
 	}
 	
 	// TODO: we may need a builder for this ... hopefully I do not expect that there will be
 	// any more properties in a near future
 	
 	public PolyString(String orig, String norm, PolyStringTranslationType translation) {
-		this(orig, norm);
-		this.translation = translation;
+		this(orig, norm, translation, null);
 	}
-	
-	public PolyString(String orig, String norm, Map<String,String> lang) {
-		this(orig, norm);
-		this.lang = lang;
-	}
-	
+
 	public PolyString(String orig, String norm, PolyStringTranslationType translation, Map<String,String> lang) {
-		this(orig, norm);
+		super();
+		this.orig = orig;
+		this.norm = norm;
 		this.translation = translation;
 		this.lang = lang;
+		if (isNull()) {
+			throw new IllegalArgumentException("Cannot create PolyString with all null attribute values");
+		}
 	}
 
 	public String getOrig() {
@@ -132,10 +123,23 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	}
 
 	public boolean isEmpty() {
-		if (orig == null) {
-			return true;
-		}
-		return orig.isEmpty();
+		return isOrigEmpty() && isLocalizationKeyEmpty() && isLanguageMapEmpty();
+	}
+
+	public boolean isNull() {
+		return orig == null && norm == null && (translation == null || translation.getKey() == null) && lang == null;
+	}
+
+	private boolean isOrigEmpty(){
+		return StringUtils.isEmpty(orig);
+	}
+
+	private boolean isLocalizationKeyEmpty(){
+		return translation == null || StringUtils.isEmpty(translation.getKey());
+	}
+
+	private boolean isLanguageMapEmpty(){
+		return lang == null || lang.isEmpty();
 	}
 
 	public void recompute(PolyStringNormalizer normalizer) {
@@ -234,17 +238,19 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return this.orig.endsWith(value);
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((lang == null) ? 0 : lang.hashCode());
+		result = prime * result + ((lang == null || lang.isEmpty()) ? 0 : lang.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
 		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -257,8 +263,8 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return false;
 		}
 		PolyString other = (PolyString) obj;
-		if (lang == null) {
-			if (other.lang != null) {
+		if (lang == null || lang.isEmpty()) {
+			if (other.lang != null && !other.lang.isEmpty()) {
 				return false;
 			}
 		} else if (!lang.equals(other.lang)) {

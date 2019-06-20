@@ -173,8 +173,8 @@ public class CapabilityStep extends WizardStep {
             protected void populateItem(final Item<CapabilityDto<CapabilityType>> capabilityRow) {
                 final CapabilityDto<CapabilityType> dto = capabilityRow.getModelObject();
 
-                AjaxLink name = new AjaxLink(ID_CAPABILITY_LINK) {
-                    @Override
+                AjaxLink<Void> name = new AjaxLink<Void>(ID_CAPABILITY_LINK) {
+                	private static final long serialVersionUID = 1L;    @Override
                     public void onClick(AjaxRequestTarget target) {
                         editCapabilityPerformed(target, dto);
                     }
@@ -202,9 +202,9 @@ public class CapabilityStep extends WizardStep {
                 tooltipLabel.setOutputMarkupId(true);
                 tooltipLabel.setOutputMarkupPlaceholderTag(true);
                 name.add(tooltipLabel);
-
-                AjaxLink deleteLink = new AjaxLink(ID_CAPABILITY_DELETE) {
-					@Override
+                
+                AjaxLink<Void> deleteLink = new AjaxLink<Void>(ID_CAPABILITY_DELETE) {
+                	private static final long serialVersionUID = 1L;					@Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteCapabilityPerformed(target, dto);
                     }
@@ -227,9 +227,9 @@ public class CapabilityStep extends WizardStep {
             }
         };
         tableBody.add(capabilityDataView);
-
-        AjaxLink addLink = new AjaxLink(ID_CAPABILITY_ADD) {
-            @Override
+        
+        AjaxLink<Void> addLink = new AjaxLink<Void>(ID_CAPABILITY_ADD) {
+        	private static final long serialVersionUID = 1L;            @Override
             public void onClick(AjaxRequestTarget target) {
                 addCapabilityPerformed(target);
             }

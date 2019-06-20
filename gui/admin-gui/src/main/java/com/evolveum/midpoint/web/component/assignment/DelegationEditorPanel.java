@@ -139,7 +139,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         typeImage.add(AttributeModifier.append("class", createImageTypeModel(getModel())));
         headerRow.add(typeImage);
 
-        AjaxLink name = new AjaxLink(ID_NAME) {
+        AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -176,7 +176,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         }
         headerRow.add(delegatedToTypeImage);
 
-        AjaxLink delegatedToName = new AjaxLink(ID_DELEGATED_TO) {
+        AjaxLink<Void> delegatedToName = new AjaxLink<Void>(ID_DELEGATED_TO) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -195,7 +195,7 @@ public class DelegationEditorPanel extends AssignmentEditorPanel {
         delegatedToNameLabel.setOutputMarkupId(true);
         delegatedToName.add(delegatedToNameLabel);
 
-        ToggleIconButton expandButton = new ToggleIconButton(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
+        ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
             private static final long serialVersionUID = 1L;
 

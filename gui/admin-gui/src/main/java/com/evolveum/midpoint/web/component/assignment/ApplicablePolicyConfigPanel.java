@@ -15,27 +15,31 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
  */
-public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<AssignmentType>>{
+public class ApplicablePolicyConfigPanel extends BasePanel<PrismContainerWrapper<AssignmentType>>{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ApplicablePolicyConfigPanel.class);
@@ -47,7 +51,7 @@ public class ApplicablePolicyConfigPanel extends BasePanel<ContainerWrapper<Assi
 
     private LoadableModel<List<ObjectReferenceType>> policyGroupsListModel;
 
-    public ApplicablePolicyConfigPanel(String id, IModel<ContainerWrapper<AssignmentType>> model){
+    public ApplicablePolicyConfigPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> model){
         super(id, model);
     }
 

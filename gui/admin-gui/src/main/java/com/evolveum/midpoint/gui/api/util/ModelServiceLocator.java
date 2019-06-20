@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.gui.api.util;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -84,4 +86,6 @@ public interface ModelServiceLocator {
 	}
 	
 	public Locale getLocale();
+	
+	GuiComponentRegistry getRegistry();
 }

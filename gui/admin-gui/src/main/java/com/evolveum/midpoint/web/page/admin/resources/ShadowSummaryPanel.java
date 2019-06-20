@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -41,10 +42,20 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
 
 		// todo implement custom layout
 	}
+	
+	@Override
+	protected IModel<String> getTitleModel() {
+		return WebComponentUtil.getResourceLabelModel(getModelObject(), getPageBase());
+    }
+	
+	@Override
+	protected IModel<String> getTitle2Model() {
+		return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
+    }
 
 	@Override
 	protected String getIconCssClass() {
-		return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON;	//todo fix
+		return WebComponentUtil.createShadowIcon(getModelObject().asPrismContainer());	//todo fix
 	}
 
 	@Override

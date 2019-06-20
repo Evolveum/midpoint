@@ -56,7 +56,16 @@
             <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <!-- TODO payload -->
-
+                    <xsd:element name="parentRef" type="tns:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parent case, if any.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:CaseType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -66,12 +75,11 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>3.7</a:since>
-                                <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
                                 <a:displayName>CaseType.objectRef</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="targetRef" type="tns:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Target that the case is associated with. It might be e.g. shadow, if the case
@@ -79,8 +87,21 @@
                                 EXPERIMENTAL. May change in future.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
                                 <a:displayName>CaseType.targetRef</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestorRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User who requested the respective operation was carried out.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                                <xsd:appinfo>
+                                    <a:since>4.0</a:since>
+                                    <a:displayName>CaseType.requestorRef</a:displayName>
+                                </xsd:appinfo>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -149,13 +170,64 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- stage number -->
+                    <xsd:element name="approvalContext" type="tns:ApprovalContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Approval context for approval cases.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the task holding workflow context for wf-related cases.
+                                EXPERIMENTAL. Probably will be removed.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TaskType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stageNumber" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Stage number - if process can be conceptually divided into stages. Starts at 1.
+                                Null if not applicable. (Stored in process variable "stageNumber".)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="prerequisiteRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Cases that must be completed before this one can be. For example, if case A requests
+                                object creation and case B its modification, then A is a prerequisite for B.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:CaseType</a:objectReferenceTargetType>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="modelContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Model context describing the operation that is related to this case.
+                                (E.g. for approvals it is the operation that should continue after approval is made.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- deadline -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="case" type="tns:CaseType"/>
+    <xsd:element name="case" type="tns:CaseType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="AbstractWorkItemType">
         <xsd:annotation>
@@ -314,9 +386,22 @@
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractWorkItemType">
+                <xsd:sequence>
+                    <xsd:element name="additionalInformation" type="tns:InformationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Information to be shown to the approver. Migrated from WorkItemType. EXPERIMENTAL
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.0</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="caseWorkItem" type="tns:CaseWorkItemType" />
 
     <xsd:complexType name="CaseEventType">
         <xsd:annotation>
@@ -325,6 +410,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -435,6 +521,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -450,8 +537,8 @@
                     <xsd:element name="externalWorkItemId" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Activiti ID of the work item (activiti task) this event is related to. Null for
-                                work items that have no external representation (i.e. they are present in midPoint repo only).
+                                ID of the work item (case work item) this event is related to.
+                                Will be removed!
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -494,6 +581,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -512,6 +600,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -532,6 +621,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -556,6 +646,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -615,6 +706,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -633,6 +725,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:since>3.6</a:since>
+                <a:container>true</a:container>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1003,6 +1096,8 @@
 								is not changed (this is meaningful only if the delegation occurs before the original deadline).
 								TODO other time units, like business days?
 								TODO relative to original start time, original deadline, or current time?
+
+                                It will be relative to the original deadline (if specified); or to the current time otherwise.
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:displayName>DelegateWorkItemActionType.duration</a:displayName>

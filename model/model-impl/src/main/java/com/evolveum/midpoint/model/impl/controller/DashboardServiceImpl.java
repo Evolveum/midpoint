@@ -398,6 +398,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
 				.getCompileTimeClassForObjectType(collection.getType());
 		SearchFilterType searchFilter = collection.getFilter();
+		// TODO evaluate filter expressions here (call CollectionProcessor.evaluateExpressionsInFilter)
 		ObjectQuery query = prismContext.queryFactory().createQuery();
 		if (searchFilter != null && usingFilter) {
 			try {

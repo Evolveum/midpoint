@@ -555,7 +555,7 @@ public class SqlRepositoryConfiguration {
 
 	/**
 	 * Prepares a prefix (first part) of JDBC URL for embedded database. Used also by configurator of tasks (quartz)
-	 * and workflow (activiti) modules; they add their own db names and parameters to this string.
+	 * module; it adds its own db names and parameters to this string.
 	 *
 	 * @return prefix of JDBC URL like jdbc:h2:file:d:\midpoint\midpoint
 	 */
@@ -622,7 +622,7 @@ public class SqlRepositoryConfiguration {
         if (isUsingH2()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
-            defaultLockForUpdateViaSql = false;
+            defaultLockForUpdateViaSql = true;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
 	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;

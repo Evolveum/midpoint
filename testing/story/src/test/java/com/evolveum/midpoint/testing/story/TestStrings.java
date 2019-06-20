@@ -29,6 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +42,6 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.test.DummyTransport;
 import com.evolveum.midpoint.notifications.api.transports.Message;
@@ -55,30 +57,13 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemApprovalProcessStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEscalationEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOutcomeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 /**
  *
@@ -256,20 +241,20 @@ public class TestStrings extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		assertNotAssignedRole(getUser(userBobOid), roleATest1Oid);
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("wfTask", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("wfTask", aCase);
 
-		assertTriggers(wfTask, 2);
+		assertTriggers(aCase, 2);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalContextType actx = aCase.getApprovalContext();
+		ApprovalSchemaType schema = actx.getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
-		assertStage(wfTask, 1, 3, "Line managers", null);
+		assertStage(aCase, 1, 3, "Line managers", null);
 		assertAssignee(workItem, userLechuckOid, userLechuckOid);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -316,26 +301,26 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 
 		// WHEN
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
-		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		login(userAdministrator);
 
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("wfTask after 1st approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("wfTask after 1st approval", aCase);
 
-		assertStage(wfTask, 2, 3, "Security", null);
-		assertTriggers(wfTask, 4);
+		assertStage(aCase, 2, 3, "Security", null);
+		assertTriggers(aCase, 4);
 
 		// notifications
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -385,7 +370,7 @@ public class TestStrings extends AbstractStoryTest {
 				"Allocated to: Horridly Scarred Barkeep (barkeeper)", "(in 7 days)", "^Result:");
 
 		// events
-		List<CaseEventType> events = assertEvents(wfTask, 2);
+		List<CaseEventType> events = assertEvents(aCase, 2);
 		assertCompletionEvent(events.get(1), userLechuckOid, userLechuckOid, 1, "Line managers", WorkItemOutcomeType.APPROVE, "OK. LeChuck");
 
 		display("audit", dummyAuditService);
@@ -403,27 +388,27 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
-		WorkItemType elaineWorkItem = workItems.stream()
+		CaseWorkItemType elaineWorkItem = workItems.stream()
 				.filter(wi -> userElaineOid.equals(wi.getOriginalAssigneeRef().getOid()))
 				.findFirst().orElseThrow(() -> new AssertionError("No work item for elaine"));
 
 		// WHEN
 		// Second approval
-		workflowService.completeWorkItem(elaineWorkItem.getExternalId(), true, "OK. Security.", null, result);
+		workflowService.completeWorkItem(WorkItemId.of(elaineWorkItem), true, "OK. Security.", null, task, result);
 
 		// THEN
 		workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 2, workItems.size());
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
-		display("wfTask after 2nd approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("wfTask after 2nd approval", aCase);
 
-		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
-		assertTriggers(wfTask, 4);
+		assertStage(aCase, 3, 3, "Role approvers (all)", null);
+		assertTriggers(aCase, 4);
 
-		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
+		Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
 		assertNotNull("cheese is not an approver", workItemsMap.get(userCheeseOid));
 
@@ -482,12 +467,12 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		List<WorkItemType> workItems = getWorkItems(task, result);
-		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
+		Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
 		// WHEN
 		login(getUser(userCheeseOid));
-		workflowService.completeWorkItem(workItemsMap.get(userCheeseOid).getExternalId(), true, "OK. Cheese.", null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItemsMap.get(userCheeseOid)), true, "OK. Cheese.", null, task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -495,11 +480,11 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 3rd approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 1, workItems.size());
 		workItemsMap = sortByOriginalAssignee(workItems);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
-		display("wfTask after 3rd approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("case after 3rd approval", aCase);
 
-		assertStage(wfTask, 3, 3, "Role approvers (all)", null);
-		assertTriggers(wfTask, 2);
+		assertStage(aCase, 3, 3, "Role approvers (all)", null);
+		assertTriggers(aCase, 2);
 
 		assertNotNull("chef is not an approver", workItemsMap.get(userChefOid));
 
@@ -536,29 +521,28 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		List<WorkItemType> workItems = getWorkItems(task, result);
-		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
-		Map<String, WorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
+		Map<String, CaseWorkItemType> workItemsMap = sortByOriginalAssignee(workItems);
 
 		// WHEN
 		login(getUser(userChefOid));
-		String workItemId = workItemsMap.get(userChefOid).getExternalId();
-		workflowService.completeWorkItem(workItemId, true, "OK. Chef.", null, result);
+		WorkItemId workItemId = WorkItemId.of(workItemsMap.get(userChefOid));
+		workflowService.completeWorkItem(workItemId, true, "OK. Chef.", null, task, result);
 
 		// THEN
 		login(userAdministrator);
 		workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 4th approval", workItems);
 		assertEquals("Wrong # of work items on level 3", 0, workItems.size());
-		PrismObject<TaskType> wfTask = getTask(taskOid);
-		display("wfTask after 4th approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("wfTask after 4th approval", aCase);
 
-		Task parent = getParentTask(wfTask, result);
-		waitForTaskFinish(parent, false, 60000);
+		CaseType parentCase = getCase(aCase.getParentRef().getOid());
+		waitForCaseClose(parentCase);
 
 		assertAssignedRole(getUser(userBobOid), roleATest1Oid);
 
-		assertTriggers(wfTask, 0);
+		assertTriggers(aCase, 0);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -586,17 +570,18 @@ public class TestStrings extends AbstractStoryTest {
 		display("audit", dummyAuditService);
 
 		List<AuditEventRecord> workItemEvents = filter(getParamAuditRecords(
-				WorkflowConstants.AUDIT_WORK_ITEM_ID, workItemId, task, result), AuditEventStage.EXECUTION);
+				WorkflowConstants.AUDIT_WORK_ITEM_ID, workItemId.asString(), task, result), AuditEventStage.EXECUTION);
 		assertAuditReferenceValue(workItemEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
 		assertAuditTarget(workItemEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
 		assertAuditReferenceValue(workItemEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
 		// TODO other items
-		List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
-				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getWorkflowContext().getProcessInstanceId(), task, result),
-				AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
-		assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
-		assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
-		assertAuditReferenceValue(processEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
+		// TODO-WF
+//		List<AuditEventRecord> processEvents = filter(getParamAuditRecords(
+//				WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID, wfTask.asObjectable().getApprovalContext().getCaseOid(), task, result),
+//				AuditEventType.WORKFLOW_PROCESS_INSTANCE, AuditEventStage.EXECUTION);
+//		assertAuditReferenceValue(processEvents, WorkflowConstants.AUDIT_OBJECT, userBobOid, UserType.COMPLEX_TYPE, "bob");
+//		assertAuditTarget(processEvents.get(0), userBobOid, UserType.COMPLEX_TYPE, "bob");
+//		assertAuditReferenceValue(processEvents.get(0), WorkflowConstants.AUDIT_TARGET, roleATest1Oid, RoleType.COMPLEX_TYPE, "a-test-1");
 		// TODO other items
 	}
 
@@ -619,14 +604,14 @@ public class TestStrings extends AbstractStoryTest {
 		// THEN
 		assertNotAssignedRole(getUser(userCarlaOid), roleATest1Oid);
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("wfTask", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("case", aCase);
 
-		assertTriggers(wfTask, 2);
+		assertTriggers(aCase, 2);
 
-		assertStage(wfTask, 1, 3, "Line managers", null);
+		assertStage(aCase, 1, 3, "Line managers", null);
 		assertAssignee(workItem, userGuybrushOid, userGuybrushOid);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -700,12 +685,11 @@ public class TestStrings extends AbstractStoryTest {
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
 		// THEN
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items after timed escalation", workItems);
 		assertEquals("Wrong # of work items after timed escalation", 1, workItems.size());
-		String taskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
-		PrismObject<TaskType> wfTask = getTask(taskOid);
-		display("wfTask after timed escalation", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("aCase after timed escalation", aCase);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -716,15 +700,15 @@ public class TestStrings extends AbstractStoryTest {
 		dummyTransport.clearMessages();
 
 		// asserts - work item
-		WorkItemType workItem = workItems.get(0);
+		CaseWorkItemType workItem = workItems.get(0);
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userGuybrushOid, userCheeseOid);
 		PrismAsserts.assertDuration("Wrong duration between now and deadline", "P9D", System.currentTimeMillis(), workItem.getDeadline(), null);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userGuybrushOid);
 		assertEquals("Wrong stage #", (Integer) 1, workItem.getStageNumber());
-		assertEquals("Wrong escalation level #", 1, WfContextUtil.getEscalationLevelNumber(workItem));
-		assertEquals("Wrong escalation level name", "Line manager escalation", WfContextUtil.getEscalationLevelName(workItem));
+		assertEquals("Wrong escalation level #", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
+		assertEquals("Wrong escalation level name", "Line manager escalation", ApprovalContextUtil.getEscalationLevelName(workItem));
 
-		List<CaseEventType> events = assertEvents(wfTask, 2);
+		List<CaseEventType> events = assertEvents(aCase, 2);
 		assertEscalationEvent(events.get(1), userAdministrator.getOid(), userGuybrushOid, 1, "Line managers",
 				Collections.singletonList(userGuybrushOid), Collections.singletonList(userCheeseOid), WorkItemDelegationMethodType.ADD_ASSIGNEES,
 				1, "Line manager escalation");
@@ -818,24 +802,24 @@ public class TestStrings extends AbstractStoryTest {
 		// GIVEN
 		login(userAdministrator);
 		clock.resetOverride();
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		PrismObject<UserType> cheese = getUserFromRepo(userCheeseOid);
 		login(cheese);
 
 		// WHEN
-		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. Cheese.", null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. Cheese.", null, task, result);
 
 		// THEN
 		login(userAdministrator);
 
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		assertEquals("Wrong # of work items on level 2", 2, workItems.size());
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("wfTask after 1st approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("aCase after 1st approval", aCase);
 
-		assertStage(wfTask, 2, 3, "Security", null);
-		assertTriggers(wfTask, 4);
+		assertStage(aCase, 2, 3, "Security", null);
+		assertTriggers(aCase, 4);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -1017,19 +1001,19 @@ public class TestStrings extends AbstractStoryTest {
 		login(userAdministrator);
 		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
 
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
-		display("wfTask", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("aCase", aCase);
 
-//		assertTargetTriggers(wfTask, 2);
+//		assertTargetTriggers(aCase, 2);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalContextType actx = aCase.getApprovalContext();
+		ApprovalSchemaType schema = actx.getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 2, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Role approvers (first)", "P5D", 2);
-		assertStage(wfTask, 1, 2, "Line managers", null);
+		assertStage(aCase, 1, 2, "Line managers", null);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -1053,23 +1037,23 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 
 		// WHEN
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
 
-		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", null, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", null, task, result);
 
 		// THEN
 		login(userAdministrator);
 		assertNotAssignedRole(getUser(userBobOid), roleATest4Oid);
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after 1st approval", workItems);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
-		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		assertStage(aCase, 2, 2, "Role approvers (first)", null);
 
-		ApprovalStageDefinitionType level = WfContextUtil.getCurrentStageDefinition(wfTask.asObjectable().getWorkflowContext());
+		ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(aCase);
 		assertEquals("Wrong evaluation strategy", LevelEvaluationStrategyType.FIRST_DECIDES, level.getEvaluationStrategy());
 
 		// notifications
@@ -1097,8 +1081,8 @@ public class TestStrings extends AbstractStoryTest {
 
 		// GIVEN
 		login(userAdministrator);
-		SearchResultList<WorkItemType> workItems = getWorkItems(task, result);
-		WorkItemType workItem = sortByOriginalAssignee(workItems).get(userCheeseOid);
+		SearchResultList<CaseWorkItemType> workItems = getWorkItems(task, result);
+		CaseWorkItemType workItem = sortByOriginalAssignee(workItems).get(userCheeseOid);
 		assertNotNull("No work item for cheese", workItem);
 
 		// WHEN
@@ -1107,7 +1091,7 @@ public class TestStrings extends AbstractStoryTest {
 		ObjectDelta formDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("Hello")
 				.asObjectDelta(userBobOid);
-		workflowService.completeWorkItem(workItem.getExternalId(), true, "OK. LeChuck", formDelta, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", formDelta, task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -1116,11 +1100,11 @@ public class TestStrings extends AbstractStoryTest {
 		displayWorkItems("Work item after 2nd approval", workItems);
 		assertEquals("Wrong # of work items after 2nd approval", 0, workItems.size());
 
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("wfTask after 2nd approval", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("aCase after 2nd approval", aCase);
 
-		assertStage(wfTask, 2, 2, "Role approvers (first)", null);
-		// assertTargetTriggers(wfTask, 4);
+		assertStage(aCase, 2, 2, "Role approvers (first)", null);
+		// assertTargetTriggers(aCase, 4);
 
 		// notifications
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
@@ -1148,8 +1132,8 @@ public class TestStrings extends AbstractStoryTest {
 		// record #1, #2: cancellation of work items of other approvers
 		// record #3: finishing process execution
 
-		Task rootTask = taskManager.getTaskByIdentifier(wfTask.asObjectable().getParent(), result);
-		waitForTaskCloseOrSuspend(rootTask.getOid(), TASK_WAIT_TIMEOUT);
+		CaseType rootCase = getCase(aCase.getParentRef().getOid());
+		waitForTaskCloseOrSuspend(rootCase.getOid(), TASK_WAIT_TIMEOUT);
 		assertAssignedRole(getUser(userBobOid), roleATest4Oid);
 	}
 
@@ -1169,18 +1153,17 @@ public class TestStrings extends AbstractStoryTest {
 		// THEN
 		assertNull("bob has assigned role \"a-test-1\" as an approver", getUserAssignment(userBobOid, roleATest1Oid, SchemaConstants.ORG_APPROVER));
 
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work item after start", workItems);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItems.get(0)).getOid());
-		display("wfTask", wfTask);
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItems.get(0));
+		display("aCase", aCase);
 
-		ItemApprovalProcessStateType info = WfContextUtil.getItemApprovalProcessInfo(wfTask.asObjectable().getWorkflowContext());
-		ApprovalSchemaType schema = info.getApprovalSchema();
+		ApprovalSchemaType schema = aCase.getApprovalContext().getApprovalSchema();
 		assertEquals("Wrong # of approval levels", 3, schema.getStage().size());
 		assertApprovalLevel(schema, 1, "Line managers", "P5D", 2);
 		assertApprovalLevel(schema, 2, "Security", "P7D", 1);
 		assertApprovalLevel(schema, 3, "Role approvers (all)", "P5D", 2);
-		assertStage(wfTask, 1, 3, "Line managers", null);
+		assertStage(aCase, 1, 3, "Line managers", null);
 
 		List<Message> lifecycleMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_LIFECYCLE);
 		List<Message> allocationMessages = dummyTransport.getMessages(DUMMY_WORK_ITEM_ALLOCATION);
@@ -1247,22 +1230,22 @@ public class TestStrings extends AbstractStoryTest {
 		return taskManager.getTaskByIdentifier(task.asObjectable().getParent(), result);
 	}
 
-	private void assertTriggers(PrismObject<TaskType> wfTask, int count) {
-		assertEquals("Wrong # of triggers", count, wfTask.asObjectable().getTrigger().size());
+	private void assertTriggers(CaseType aCase, int count) {
+		assertEquals("Wrong # of triggers", count, aCase.getTrigger().size());
 	}
 
-	private void assertAssignee(WorkItemType workItem, String originalAssignee, String... currentAssignee) throws SchemaException {
+	private void assertAssignee(CaseWorkItemType workItem, String originalAssignee, String... currentAssignee) throws SchemaException {
 		assertRefEquals("Wrong original assignee", ObjectTypeUtil.createObjectRef(originalAssignee, ObjectTypes.USER), workItem.getOriginalAssigneeRef());
 		assertReferenceValues(ref(workItem.getAssigneeRef()), currentAssignee);
 	}
 
 
-	private void assertStage(PrismObject<TaskType> wfTask, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
-		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
-		assertEquals("Wrong stage number", stageNumber, wfc.getStageNumber());
-		assertEquals("Wrong stage count", stageCount, WfContextUtil.getStageCount(wfc));
-		assertEquals("Wrong stage name", stageName, WfContextUtil.getStageName(wfc));
-		assertEquals("Wrong stage name", stageDisplayName, WfContextUtil.getStageDisplayName(wfc));
+	private void assertStage(CaseType aCase, Integer stageNumber, Integer stageCount, String stageName, String stageDisplayName) {
+		ApprovalContextType wfc = aCase.getApprovalContext();
+		assertEquals("Wrong stage number", stageNumber, aCase.getStageNumber());
+		assertEquals("Wrong stage count", stageCount, ApprovalContextUtil.getStageCount(wfc));
+		assertEquals("Wrong stage name", stageName, ApprovalContextUtil.getStageName(aCase));
+		assertEquals("Wrong stage name", stageDisplayName, ApprovalContextUtil.getStageDisplayName(aCase));
 	}
 
 	private void assertApprovalLevel(ApprovalSchemaType schema, int number, String name, String duration, int timedActions) {
@@ -1273,10 +1256,9 @@ public class TestStrings extends AbstractStoryTest {
 		assertEquals("Wrong # of timed actions", timedActions, level.getTimedActions().size());
 	}
 
-	private List<CaseEventType> assertEvents(PrismObject<TaskType> wfTask, int expectedCount) {
-		WfContextType wfc = wfTask.asObjectable().getWorkflowContext();
-		assertEquals("Wrong # of wf events", expectedCount, wfc.getEvent().size());
-		return wfc.getEvent();
+	private List<CaseEventType> assertEvents(CaseType aCase, int expectedCount) {
+		assertEquals("Wrong # of wf events", expectedCount, aCase.getEvent().size());
+		return aCase.getEvent();
 	}
 
 	private void assertEscalationEvent(CaseEventType wfProcessEventType, String initiator, String originalAssignee,

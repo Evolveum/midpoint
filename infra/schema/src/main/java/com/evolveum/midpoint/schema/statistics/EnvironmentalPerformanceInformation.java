@@ -60,7 +60,7 @@ public class EnvironmentalPerformanceInformation {
         this(null);
     }
 
-    public EnvironmentalPerformanceInformationType getStartValue() {
+	public EnvironmentalPerformanceInformationType getStartValue() {
         return startValue;
     }
 

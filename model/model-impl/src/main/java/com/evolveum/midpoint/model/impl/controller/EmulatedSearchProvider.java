@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * Probably not of much use. Keeping just in case it would turn out to be useful in the future.
+ *
  * @author mederly
  */
 @Component

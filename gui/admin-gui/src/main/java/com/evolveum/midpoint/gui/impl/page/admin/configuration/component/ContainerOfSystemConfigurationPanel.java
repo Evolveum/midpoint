@@ -18,19 +18,17 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemName;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismContainerPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PcpAspectConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PrimaryChangeProcessorConfigurationType;
@@ -40,18 +38,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.WfConfigurationType;
 /**
  * @author skublik
  */
-public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<ObjectWrapper<SystemConfigurationType>> {
+public class ContainerOfSystemConfigurationPanel<C extends Containerable> extends BasePanel<PrismContainerWrapper<C>> {
 
 	private static final long serialVersionUID = 1L;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ContainerOfSystemConfigurationPanel.class);
 	
     private static final String ID_CONTAINER = "container";
-    private ItemName qNameContainer;
+    private QName typeName = null;
 
-    public ContainerOfSystemConfigurationPanel(String id, IModel<ObjectWrapper<SystemConfigurationType>> model, QName qNameContainer) {
+    public ContainerOfSystemConfigurationPanel(String id, IModel<PrismContainerWrapper<C>> model, QName typeName) {
         super(id, model);
-        this.qNameContainer = ItemName.fromQName(qNameContainer);
+        this.typeName = typeName;
     }
 
     @Override
@@ -62,11 +60,15 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     
     protected void initLayout() {
 
-    	Form form = new Form<>("form");
-    	
-    	ContainerWrapperFromObjectWrapperModel<C, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getModel(), qNameContainer);
-		PrismContainerPanel<C> panel = new PrismContainerPanel<>(ID_CONTAINER, model, true, form, itemWrapper -> getVisibity(itemWrapper.getPath()), getPageBase());
-		add(panel);
+    	try {
+			Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), wrapper -> getVisibity(wrapper.getPath()));
+			getModelObject().setShowOnTopLevel(true);
+			add(panel);
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);
+			getSession().error("Cannot create panel for " + typeName); // TODO opertion result? localization?
+			
+		}
 		
 	}
     

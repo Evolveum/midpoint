@@ -21,7 +21,7 @@ package com.evolveum.midpoint.schema.statistics;
  */
 public class ProvisioningStatisticsData extends GenericStatisticsData {
 
-    //private Deque<ObjectProcessed> lastObjectsProcessed;
+	//private Deque<ObjectProcessed> lastObjectsProcessed;
 
 //    public static class ObjectProcessed {
 //        private Date timestamp;

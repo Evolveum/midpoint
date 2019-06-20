@@ -1009,6 +1009,10 @@ public interface MidpointFunctions {
 
 	Task getCurrentTask();
 
+	OperationResult getCurrentResult();
+
+	OperationResult getCurrentResult(String operationName);
+
 	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
@@ -1071,6 +1075,13 @@ public interface MidpointFunctions {
 	 * Returns principal representing the user whose identity is used to execute the expression.
 	 */
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
+
+	/**
+	 * Returns OID of the current principal. After login is complete, the returned OID is the same as
+	 * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is
+	 * being authenticated/logged-in.
+	 */
+	String getPrincipalOid();
 
 	String getChannel();
 

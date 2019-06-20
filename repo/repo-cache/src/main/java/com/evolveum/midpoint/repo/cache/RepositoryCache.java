@@ -211,7 +211,7 @@ public class RepositoryCache implements RepositoryService {
 		} else if (!global.supports) {
 			// caller is not interested in cached value, or global cache doesn't want to cache value
 			collector.registerPass(GlobalObjectCache.class, type, global.statisticsLevel);
-			log("Cache (local): PASS:CONFIGURATION {} getObject ({})", global.tracePass, oid, type.getSimpleName());
+			log("Cache (global): PASS:CONFIGURATION {} getObject ({})", global.tracePass, oid, type.getSimpleName());
 			PrismObject<T> object = getObjectInternal(type, oid, options, parentResult);
 			locallyCacheObject(localObjectsCache, local.supports, object, readOnly);
 			return object;
@@ -223,24 +223,24 @@ public class RepositoryCache implements RepositoryService {
 		GlobalCacheObjectValue<T> cacheObject = globalObjectCache.get(oid);
 		if (cacheObject == null) {
 			collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
-			log("Cache (global): MISS getObject {}", global.traceMiss, oid);
+			log("Cache (global): MISS getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 			object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 		} else {
 			if (!shouldCheckVersion(cacheObject)) {
 				collector.registerHit(GlobalObjectCache.class, type, global.statisticsLevel);
-				log("Cache (global): HIT getObject {}", false, oid);
+				log("Cache (global): HIT getObject {} ({})", false, oid, type.getSimpleName());
 				object = cacheObject.getObject();
 				locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 				object = cloneIfNecessary(object, readOnly);
 			} else {
 				if (hasVersionChanged(type, oid, cacheObject, parentResult)) {
 					collector.registerMiss(GlobalObjectCache.class, type, global.statisticsLevel);
-					log("Cache (global): MISS because of version changed - getObject {}:{}", global.traceMiss, type, oid);
+					log("Cache (global): MISS because of version changed - getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 					object = loadAndCacheObject(type, oid, options, readOnly, localObjectsCache, local.supports, parentResult);
 				} else {
 					cacheObject.setTimeToLive(System.currentTimeMillis() + getTimeToVersionCheck(global.typeConfig, global.cacheConfig));    // version matches, renew ttl
 					collector.registerWeakHit(GlobalObjectCache.class, type, global.statisticsLevel);
-					log("Cache (global): HIT with version check - getObject {}: {}", global.traceMiss, type, oid);
+					log("Cache (global): HIT with version check - getObject {} ({})", global.traceMiss, oid, type.getSimpleName());
 					object = cacheObject.getObject();
 					locallyCacheObjectWithoutCloning(localObjectsCache, local.supports, object);
 					object = cloneIfNecessary(object, readOnly);
@@ -300,9 +300,15 @@ public class RepositoryCache implements RepositoryService {
 			monitor.recordRepoOperation(System.currentTimeMillis() - startTime);
 		}
 	}
-	
+
+	/*
+	 * Tasks are usually rapidly changing.
+	 *
+	 * Cases are perhaps not changing that rapidly but these are objects that are used for communication of various parties;
+	 * so - to avoid having stale data - we skip caching them altogether.
+	 */
 	private boolean alwaysNotCacheable(Class<?> type) {
-		return type.equals(TaskType.class);
+		return type.equals(TaskType.class) || type.equals(CaseType.class);
 	}
 
 	@Override
@@ -423,6 +429,7 @@ public class RepositoryCache implements RepositoryService {
 			collector.registerHit(GlobalQueryCache.class, type, global.statisticsLevel);
 			log("Cache (global): HIT searchObjects {}", false, key);
 			locallyCacheSearchResult(localQueryCache, local.supports, key, readOnly, searchResult);
+			searchResult = searchResult.clone();        // never return the value from the cache
 		}
 		return readOnly ? searchResult : searchResult.clone();
 	}

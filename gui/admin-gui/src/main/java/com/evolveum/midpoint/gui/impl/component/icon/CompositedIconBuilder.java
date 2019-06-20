@@ -36,17 +36,15 @@ public class CompositedIconBuilder {
 	private String basicIcon = "";
 	private List<IconType> layerIcons = new ArrayList<IconType>();
 	private String colorHtmlValue = "";
+	private String title = "";
 	
 	public CompositedIcon build() {
-		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue);
+		return new CompositedIcon(basicIcon, layerIcons, colorHtmlValue, title);
 	}
 	
 	private void setBasicIcon(String icon, String style) {
 		StringBuilder sb = new StringBuilder(icon);
-		if (StringUtils.isNotEmpty(basicIcon)) {
-			sb.append(" ");
-		}
-		sb.append(style);
+		sb.append(" ").append(style);
 		basicIcon = sb.toString();
 	}
 	
@@ -88,15 +86,12 @@ public class CompositedIconBuilder {
 		return this;
 	}
 
-	public CompositedIconBuilder setBasicIcon(IconType icon, LayeredIconCssStyle style) {
+	public <ICS extends IconCssStyle> CompositedIconBuilder setBasicIcon(IconType icon, ICS style) {
 		Validate.notNull(icon, "no icon object");
 		Validate.notNull(icon.getCssClass(), "no icon class");
 		Validate.notNull(style, "no icon style");
 
 		setBasicIcon(icon.getCssClass(), style.getBasicCssClass());
-		StringBuilder sb = new StringBuilder(icon.getCssClass());
-		sb.append(" ").append(style.getBasicLayerCssClass());
-		appendLayerIcon(0, WebComponentUtil.createIconType(sb.toString(), icon.getColor()));
 		return this;
 	}
 
@@ -164,5 +159,9 @@ public class CompositedIconBuilder {
 			return "font-size-130-per";
 		}
 		return "";
+	}
+	
+	public void setTitle(String title) {
+		this.title = title;
 	}
 }

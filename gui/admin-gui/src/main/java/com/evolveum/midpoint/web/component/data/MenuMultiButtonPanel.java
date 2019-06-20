@@ -16,17 +16,17 @@
 
 package com.evolveum.midpoint.web.component.data;
 
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonDto;
 import com.evolveum.midpoint.gui.api.component.button.DropdownButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import org.apache.wicket.model.IModel;
-
-import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author honchar

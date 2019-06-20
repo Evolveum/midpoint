@@ -28,9 +28,6 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
-
 /**
  * @author Vilo Repan
  * @author Radovan Semancik
@@ -486,9 +483,27 @@ public abstract class SchemaConstants {
 	public static final String LIFECYCLE_FAILED = "failed";
 
 	// Case: generic reusable case states
+	// Not all cases use all these states; most common are OPEN and CLOSED.
 
+	// Case was created but it is not yet open. E.g. there should be no work items.
+	public static final String CASE_STATE_CREATED = "created";
+	public static final QName CASE_STATE_CREATED_QNAME = new QName(NS_CASE, CASE_STATE_CREATED);
+
+	// Case is open - work items are created, completed, delegated, etc. Associated work is carried out.
 	public static final String CASE_STATE_OPEN = "open";
 	public static final QName CASE_STATE_OPEN_QNAME = new QName(NS_CASE, CASE_STATE_OPEN);
+
+	// All human interaction regarding the case is over. But there might be some actions pending, e.g.
+	// submitting change execution task, waiting for subtasks to be closed, and so on.
+	public static final String CASE_STATE_CLOSING = "closing";
+	public static final QName CASE_STATE_CLOSING_QNAME = new QName(NS_CASE, CASE_STATE_CLOSING);
+
+	// The case now proceeds by means of automated execution of defined actions (e.g. approved changes);
+	// or waiting for the execution to start.
+	public static final String CASE_STATE_EXECUTING = "executing";
+	public static final QName CASE_STATE_EXECUTING_QNAME = new QName(NS_CASE, CASE_STATE_EXECUTING);
+
+	// The case is closed. No further actions nor changes are expected.
 	public static final String CASE_STATE_CLOSED = "closed";
 	public static final QName CASE_STATE_CLOSED_QNAME = new QName(NS_CASE, CASE_STATE_CLOSED);
 
@@ -530,7 +545,6 @@ public abstract class SchemaConstants {
 
 	public static final QName SAMPLES_SSN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "ssn");
 	public static final QName SAMPLES_DOMAIN = new QName(SchemaConstants.NS_SAMPLES_EXTENSION, "domain");
-	public static final ItemPath PATH_WORKFLOW_CONTEXT_WORK_ITEM = ItemPath.create(F_WORKFLOW_CONTEXT, F_WORK_ITEM);
 
 	// Misc
 
@@ -607,5 +621,8 @@ public abstract class SchemaConstants {
 	public static final String DRY_RUN_URI = RECON_HANDLER + "#dryRun";
 	public static final String SIMULATE_URI = RECON_HANDLER + "#simulate";
 	public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
+	
+	//enum defs
+	public final static QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
 }

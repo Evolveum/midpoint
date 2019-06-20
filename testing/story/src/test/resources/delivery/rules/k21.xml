@@ -70,7 +70,7 @@ Matches if the role 'roleRef' is assigned to the user.
 								<script>
 									<code>
 										rulesLib.execute('computeApprovers', [
-											workflowContext : workflowContext,
+											approvalContext : approvalContext,
 											stageDefinition : stageDefinition
 										])
 									</code>

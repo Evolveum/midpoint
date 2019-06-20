@@ -24,9 +24,7 @@
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
          xmlns:p="http://example.com/p"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-core-3.xsd
-         http://prism.evolveum.com/xml/ns/public/query-3 ../../../../../../infra/prism-impl/src/main/resources/xml/ns/public/query-3.xsd">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <c:name>atestuserX00002</c:name>
@@ -1718,4 +1716,15 @@
 		<name>archetype1</name>
 	</archetype>
 
+	<case oid="8e8c9a40-33b7-4ecf-940c-24c6fcfe80d3">
+		<name>case-2</name>
+		<state>open</state>
+		<workItem id="1">
+			<assigneeRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>
+		</workItem>
+		<workItem id="2">
+			<assigneeRef oid="bd1bd88f-b200-4029-a860-85e694eef51b" type="UserType"/>
+			<assigneeRef oid="71a9f7fc-b93e-4f3e-8815-515b61260a49" type="UserType"/>
+		</workItem>
+	</case>
 </objects>

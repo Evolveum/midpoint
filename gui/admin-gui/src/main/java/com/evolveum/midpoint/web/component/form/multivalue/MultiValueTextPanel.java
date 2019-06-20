@@ -80,7 +80,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
         });
         add(placeholderContainer);
 
-        AjaxLink placeholderAdd = new AjaxLink(ID_PLACEHOLDER_ADD) {
+        AjaxLink<Void> placeholderAdd = new AjaxLink<Void>(ID_PLACEHOLDER_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -140,7 +140,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item, NonEmptyModel<Boolean> readOnlyModel) {
-        AjaxLink plus = new AjaxLink(ID_PLUS) {
+        AjaxLink<Void> plus = new AjaxLink<Void>(ID_PLUS) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -151,7 +151,7 @@ public class MultiValueTextPanel<T extends Serializable> extends BasePanel<List<
 		plus.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         buttonGroup.add(plus);
 
-        AjaxLink minus = new AjaxLink(ID_MINUS) {
+        AjaxLink<Void> minus = new AjaxLink<Void>(ID_MINUS) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

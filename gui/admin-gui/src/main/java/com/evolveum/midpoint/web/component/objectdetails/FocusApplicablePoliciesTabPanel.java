@@ -16,27 +16,26 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.assignment.*;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.web.component.assignment.ApplicablePolicyConfigPanel;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * Created by honchar.
  */
-public class FocusApplicablePoliciesTabPanel <F extends FocusType> extends AbstractObjectTabPanel{
+public class FocusApplicablePoliciesTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_APPLICABLE_POLICIES_CONTAINER = "applicablePoliciesContainer";
     private static final String ID_APPLICABLE_POLICIES_PANEL = "applicablePolicyPanel";
 
-    public FocusApplicablePoliciesTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusWrapperModel,
-                                    PageBase page) {
-        super(id, mainForm, focusWrapperModel, page);
+    public FocusApplicablePoliciesTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusWrapperModel) {
+        super(id, mainForm, focusWrapperModel);
         initLayout();
     }
 
@@ -46,7 +45,7 @@ public class FocusApplicablePoliciesTabPanel <F extends FocusType> extends Abstr
         add(applicablePoliciesContainer);
 
         ApplicablePolicyConfigPanel applicablePolicyPanel = new ApplicablePolicyConfigPanel(ID_APPLICABLE_POLICIES_PANEL,
-                new ContainerWrapperFromObjectWrapperModel<>(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ASSIGNMENT));
 
         applicablePoliciesContainer.add(applicablePolicyPanel);
     }

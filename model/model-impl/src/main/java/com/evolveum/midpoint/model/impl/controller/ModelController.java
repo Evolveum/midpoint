@@ -60,6 +60,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -817,9 +818,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     	break;
                     case TASK_MANAGER:
 						list = taskManager.searchObjects(type, processedQuery, options, result);
-						if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-							workflowManager.augmentTaskObjectList(list, options, task, result);
-						}
 						break;
                     default:
                     	throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -890,7 +888,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private class ContainerOperationContext<T extends Containerable> {
 		final boolean isCertCase;
 		final boolean isCaseMgmtWorkItem;
-		final boolean isWorkItem;
 		final ObjectTypes.ObjectManager manager;
 		final ObjectQuery refinedQuery;
 
@@ -898,18 +895,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 			isCertCase = AccessCertificationCaseType.class.equals(type);
 			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
-			isWorkItem = WorkItemType.class.equals(type);
 
-		if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
-			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
+		if (!isCertCase && !isCaseMgmtWorkItem) {
+			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
 		}
 
 		if (isCertCase) {
 			refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
 			manager = ObjectTypes.ObjectManager.REPOSITORY;
-		} else if (isWorkItem) {
-			refinedQuery = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
 		} else //noinspection ConstantConditions
 			if (isCaseMgmtWorkItem) {
 				refinedQuery = query;           // TODO
@@ -958,7 +951,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				switch (ctx.manager) {
 					case EMULATED: list = emulatedSearchProvider.searchContainers(type, query, options, result); break;
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
-					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
@@ -988,8 +980,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (ctx.isCertCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
 					AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-		} else if (ctx.isWorkItem || ctx.isCaseMgmtWorkItem) {
-			// TODO implement security post processing for WorkItems and CaseWorkItems
+		} else if (ctx.isCaseMgmtWorkItem) {
+			// TODO implement security post processing for CaseWorkItems
 		} else {
 			throw new IllegalStateException();
 		}
@@ -1005,7 +997,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+		final OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
@@ -1027,14 +1019,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			logQuery(query);
 
 			try {
+				//noinspection SwitchStatementWithTooFewBranches
 				switch (ctx.manager) {
 					case REPOSITORY: count = cacheRepositoryService.countContainers(type, query, options, result); break;
-					case WORKFLOW: count = workflowManager.countContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
 				result.cleanupResult();
-			} catch (SchemaException|RuntimeException e) {
+			} catch (RuntimeException e) {
 				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
@@ -1072,9 +1064,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //		ObjectFilter filter = query != null ? query.getFilter() : null;
 //		UserType currentUser = securityEnforcer.getPrincipal().getUser();
 //
-//		ObjectFilter secFilter = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-//				.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser))
-//				.or().item(WorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(currentUser).asReferenceValue())
+//		ObjectFilter secFilter = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+//				.item(CaseWorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser))
+//				.or().item(CaseWorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(currentUser).asReferenceValue())
 //				.buildFilter();
 //
 //		return updateObjectQuery(query,
@@ -1145,9 +1137,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					for (ReadHook hook : hookRegistry.getAllReadHooks()) {
 						hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
 					}
-				}
-				if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-					workflowManager.augmentTaskObject(object, options, task, result);
 				}
 				executeResolveOptions(object.asObjectable(), options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
@@ -1974,12 +1963,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
 	@Override
-	public void synchronizeWorkflowRequests(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		workflowManager.synchronizeWorkflowRequests(parentResult);
-	}
-
-	@Override
 	public void reconcileWorkers(String oid, Task opTask, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
@@ -2041,51 +2024,38 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult)
+    public void completeWorkItem(WorkItemId workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+		    Task task, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
+        getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, task, parentResult);
     }
 
     @Override
-    public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-			ObjectQuery query = prismContext.queryFor(TaskType.class)
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
-					.build();
-			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);
-			if (tasks.size() > 1) {
-				throw new IllegalStateException("More than one task for process instance ID " + instanceId);
-			} else if (tasks.size() == 0) {
-				throw new ObjectNotFoundException("No task for process instance ID " + instanceId, instanceId);
-			}
-			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, AuthorizationParameters.Builder.buildObject(tasks.get(0)), null, task, parentResult);
-		}
-        getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
+		    ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
+		    ConfigurationException, ObjectAlreadyExistsException {
+        getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
-        getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
+    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
-        getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
+    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
     }
 
     @Override
-    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
+    public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, task, parentResult);
     }
-
-	@Override
-	public void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
-		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
-	}
 
 	//endregion
 
@@ -2267,11 +2237,11 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE).replace(output.getEvidence())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_CONTENT_TYPE).replace(output.getEvidenceContentType())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_FILENAME).replace(output.getEvidenceFilename())
+					.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
+					.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
+					.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE).replace(output.getEvidence())
+					.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_CONTENT_TYPE).replace(output.getEvidenceContentType())
+					.item(CaseType.F_WORK_ITEM, workItemId, CaseWorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_FILENAME).replace(output.getEvidenceFilename())
 					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
 					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
 					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)
@@ -2279,7 +2249,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			for (CaseWorkItemType workItem : aCase.asObjectable().getWorkItem()) {
 				delta.swallow(
 						prismContext.deltaFor(CaseType.class)
-								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
+								.item(CaseType.F_WORK_ITEM, workItem.getId(), CaseWorkItemType.F_CLOSE_TIMESTAMP).replace(now)
 								.asItemDelta());
 			}
 			executeChanges(singleton(delta), null, task, result);

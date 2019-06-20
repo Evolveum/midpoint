@@ -31,6 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.wf.impl.policy.ApprovalInstruction;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedTask;
 import com.evolveum.midpoint.wf.impl.policy.ExpectedWorkItem;
@@ -107,22 +108,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				assertFalse("There is model context in the root task (it should not be there)",
-						wfTaskUtil.hasModelContext(rootTask));
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
 				assertNoObject(judge);
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) throws Exception {
 				assertObject(judge);
 			}
 
@@ -204,22 +206,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				assertFalse("There is model context in the root task (it should not be there)",
-						wfTaskUtil.hasModelContext(rootTask));
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) {
 				// nothing here
 			}
 
@@ -300,22 +303,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				assertFalse("There is model context in the root task (it should not be there)",
-						wfTaskUtil.hasModelContext(rootTask));
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
 				assertObjectExists(RoleType.class, roleJudgeOid);
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) {
 				assertObjectDoesntExist(RoleType.class, roleJudgeOid);
 			}
 
@@ -369,22 +373,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				assertFalse("There is model context in the root task (it should not be there)",
-						wfTaskUtil.hasModelContext(rootTask));
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
 				assertNoObject(captain);
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) throws Exception {
 				assertObject(captain);
 			}
 
@@ -473,22 +478,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				assertFalse("There is model context in the root task (it should not be there)",
-						wfTaskUtil.hasModelContext(rootTask));
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) {
 				// nothing here
 			}
 
@@ -563,20 +569,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
 				assertNoObject(thief);
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) throws Exception {
 				assertObject(thief);
 			}
 
@@ -664,20 +673,23 @@ public class TestLifecycleGlobal extends AbstractTestLifecycle {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) {
-				display("subtasks", subtasks);
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) {
+				display("subtasks", subcases);
 				display("work items", workItems);
 				// todo some asserts here
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) {
 				// nothing here
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) {
 				// nothing here
 			}
 

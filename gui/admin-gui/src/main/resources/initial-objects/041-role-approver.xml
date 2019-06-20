@@ -55,18 +55,18 @@
         </object>
     </authorization> -->
     <authorization>
-        <name>tasks-read</name>
+        <name>cases-read</name>
         <description>
             Allow to see the requester of the operation that is being approved and the current delta.
             In order for the approver to see other properties (e.g. history of the approvals) please allow read access
-            to other items as well, e.g. to the whole workflowContext.
+            to other items as well.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>TaskType</type>
+            <type>CaseType</type>
         </object>
-        <item>workflowContext/requesterRef</item>
-        <item>workflowContext/processorSpecificState</item>
+        <item>requesterRef</item>
+        <item>approvalContext</item>
     </authorization>
     <authorization>
     	<name>users-read</name>

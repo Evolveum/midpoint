@@ -16,22 +16,23 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 
 /**
  * @author lazyman
  */
-public class MyAccountsPanel extends SimplePanel<List<SimpleAccountDto>> {
+public class MyAccountsPanel extends BasePanel<List<SimpleAccountDto>> {
 
     private static final String ID_ACCOUNTS_TABLE = "accountsTable";
 
@@ -40,6 +41,11 @@ public class MyAccountsPanel extends SimplePanel<List<SimpleAccountDto>> {
     }
 
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+    
     protected void initLayout() {
         List<IColumn<SimpleAccountDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn(createStringResource("MyAccountsPanel.account.name"), "accountName"));

@@ -799,7 +799,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return rv;
 	}
 
-	private OperationResult getCurrentResult() {
+	@Override
+	public OperationResult getCurrentResult() {
 		OperationResult rv = ModelExpressionThreadLocalHolder.getCurrentResult();
 		if (rv == null) {
 			// fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
@@ -811,7 +812,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		return rv;
 	}
 
-	private OperationResult getCurrentResult(String operationName) {
+	@Override
+	public OperationResult getCurrentResult(String operationName) {
 		OperationResult currentResult = getCurrentResult();
 		if (currentResult == null) {
 			return new OperationResult(operationName);
@@ -1454,6 +1456,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
 	@Override
+	public String getPrincipalOid() {
+		return securityContextManager.getPrincipalOid();
+	}
+
+	@Override
 	public String getChannel() {
 		Task task = getCurrentTask();
 		return task != null ? task.getChannel() : null;
@@ -1838,6 +1845,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		if (!(object instanceof AssignmentHolderType)) {
 			return archetypeOid == null;
 		}
+		
+		LensContext<O> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+		if (lensContext != null) {
+			LensFocusContext<O> focusContext = lensContext.getFocusContext();
+			ArchetypeType archetypeType = focusContext.getArchetype();
+			if (archetypeType != null) {
+				return archetypeType.getOid().equals(archetypeOid);
+			}
+		}
+		
 		List<ObjectReferenceType> archetypeRefs = ((AssignmentHolderType)object).getArchetypeRef();
 		if (archetypeOid == null) {
 			return archetypeRefs.isEmpty();

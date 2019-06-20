@@ -17,6 +17,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.export.CSVDa
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.ExportToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.resource.IResourceStream;
 
@@ -69,6 +70,20 @@ public abstract class CsvDownloadButtonPanel extends BasePanel {
 					}
 				}
 			}
+    		
+    		@Override
+    		protected <T> IModel<T> wrapModel(IModel<T> model) {
+    			if(model.getObject() == null) {
+    				return new IModel<T>() {
+
+						@Override
+						public T getObject() {
+							return (T)"";
+						}
+					};
+    			}
+    			return super.wrapModel(model);
+    		}
     	};
         final AbstractAjaxDownloadBehavior ajaxDownloadBehavior = new AbstractAjaxDownloadBehavior() {
         	private static final long serialVersionUID = 1L;

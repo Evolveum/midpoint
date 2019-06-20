@@ -16,13 +16,15 @@
 package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -168,7 +170,7 @@ public class PageSelfDashboard extends PageSelf {
 		application = getApplication();
 		final Session session = Session.get();
 
-		AsyncDashboardPanel<Object, List<WorkItemDto>> workItemsPanel = new AsyncDashboardPanel<Object, List<WorkItemDto>>(
+		AsyncDashboardPanel<Object, List<CaseWorkItemType>> workItemsPanel = new AsyncDashboardPanel<Object, List<CaseWorkItemType>>(
                 ID_WORK_ITEMS_PANEL,
                 createStringResource("PageSelfDashboard.workItems"),
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON,
@@ -178,16 +180,16 @@ public class PageSelfDashboard extends PageSelf {
 					private static final long serialVersionUID = 1L;
 
 					@Override
-                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
+                    protected SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
+                        return new SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>>(
                         		getSecurityContextManager(), auth) {
 
                         	private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
+                            public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() throws Exception {
 								setupContext(application, session);	// TODO is this correct? [med]
                                 return loadWorkItems();
                             }
@@ -196,16 +198,20 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this,
-                                new PropertyModel<List<WorkItemDto>>(getModel(), CallableResult.F_VALUE));
-						return new WorkItemsPanel(markupId, provider, null, 10, WorkItemsPanel.View.DASHBOARD){
+						CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD){
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean hideFooterIfSinglePage(){
-                                return true;
+                            protected ObjectFilter getCaseWorkItemsFilter(){
+                                return QueryUtils.filterForAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+                                        SecurityUtils.getPrincipalUser(),
+                                        OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                                        .desc(F_CREATE_TIMESTAMP)
+                                        .buildFilter();
                             }
                         };
+                        workItemsPanel.setOutputMarkupId(true);
+                        return workItemsPanel;
                     }
                 };
 
@@ -273,12 +279,12 @@ public class PageSelfDashboard extends PageSelf {
         initAssignments();
     }
 
-    private CallableResult<List<WorkItemDto>> loadWorkItems() {
+    private CallableResult<List<CaseWorkItemType>> loadWorkItems() {
 
         LOGGER.debug("Loading work items.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
-        List<WorkItemDto> list = new ArrayList<>();
+        List<CaseWorkItemType> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
@@ -298,19 +304,17 @@ public class PageSelfDashboard extends PageSelf {
             // TODO try to use current state (user) instead of potentially obsolete principal
             // but this requires some computation (of deputy relation)
             // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+            S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
             ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
                     OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                     .desc(F_CREATE_TIMESTAMP)
                     .build();
             Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
-                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
+                    .item(T_PARENT, CaseType.F_OBJECT_REF).resolve()
+                    .item(T_PARENT, CaseType.F_TARGET_REF).resolve()
                     .build();
-            List<WorkItemType> workItems = getModelService().searchContainers(WorkItemType.class, query, options, task, result);
-            for (WorkItemType workItem : workItems) {
-                list.add(new WorkItemDto(workItem, PageSelfDashboard.this));
-            }
+            List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
+            callableResult.setValue(workItems);
         } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);
         }

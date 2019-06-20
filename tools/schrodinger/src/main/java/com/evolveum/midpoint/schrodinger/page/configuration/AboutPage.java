@@ -47,7 +47,7 @@ public class AboutPage extends BasicPage {
     }
 
     public AboutPage cleanupActivitiProcesses() {
-        $(Schrodinger.byDataResourceKey("PageAbout.button.cleanupActivitiProcesses")).click();
+        $(Schrodinger.byDataResourceKey("PageAbout.button.checkWorkflowProcesses")).click();
         return this;
     }
 

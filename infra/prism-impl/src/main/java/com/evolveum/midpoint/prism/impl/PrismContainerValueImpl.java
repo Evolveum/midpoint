@@ -350,6 +350,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
 	private <IV extends PrismValue, ID extends ItemDefinition> void simpleAdd(Item<IV, ID> item) {
 		@NotNull ItemName itemName = item.getElementName();
+//		if (itemName.getLocalPart().equals("modelOperationContext")) {
+//			System.out.println("Hello!");
+//		}
 		items.put(itemName, item);
 		if (QNameUtil.isUnqualified(itemName)) {
 			unqualifiedItemNames.add(itemName.getLocalPart());

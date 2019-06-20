@@ -192,5 +192,4 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILE, UserType.class, initResult).asObjectable();
 
 	}
-
 }

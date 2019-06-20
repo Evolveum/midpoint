@@ -123,7 +123,7 @@ public class ExpressionConstants {
 	public static final String VAR_REVIEWER_SPECIFICATION = "reviewerSpecification";
 
 	public static final String VAR_CHANNEL = "channel";
-	public static final String VAR_WORKFLOW_CONTEXT = "workflowContext";
+	public static final String VAR_APPROVAL_CONTEXT = "approvalContext";
 	public static final String VAR_TASK = "task";
 	public static final String VAR_RULE_EVALUATION_CONTEXT = "ruleEvaluationContext";
 	public static final String VAR_STAGE_DEFINITION = "stageDefinition";

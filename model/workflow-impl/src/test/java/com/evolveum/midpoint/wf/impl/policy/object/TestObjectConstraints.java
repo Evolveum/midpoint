@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.wf.impl.policy.object;
 
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.util.RecordingProgressListener;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -24,12 +23,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -46,14 +42,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static com.evolveum.midpoint.schema.GetOperationOptions.createRetrieve;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.F_WORK_ITEM;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -119,45 +111,44 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 					}
 
 					@Override
-					protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-							OperationResult result) throws Exception {
-						ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-						ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-						assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
+					protected void afterFirstClockworkRun(CaseType rootCase,
+							CaseType case0, List<CaseType> subcases,
+							List<CaseWorkItemType> workItems,
+							Task opTask, OperationResult result) throws Exception {
+//						ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//						ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+//						assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 						assertNoObject(employee);
 						ExpectedTask expectedTask = new ExpectedTask(null, "Adding role \"" + employee.asObjectable().getName().getOrig() + "\"");
 						ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-						assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
+						assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
 								null,
 								Collections.singletonList(expectedTask),
 								Collections.singletonList(expectedWorkItem));
 
-						Collection<SelectorOptions<GetOperationOptions>> options =
-								SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
-						Task opTask = taskManager.createTaskInstance();
-						TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
-
-						WfContextType wfc = subtask.getWorkflowContext();
-						ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
-						assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
-						SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
+						CaseType subcase = subcases.get(0);
+						ApprovalContextType wfc = subcase.getApprovalContext();
+						assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+						SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
 						assertEquals(1, attachedRule.getStageMin().intValue());
 						assertEquals(1, attachedRule.getStageMax().intValue());
 						assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
 						EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
 						assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.OBJECT_MODIFICATION, trigger.getConstraintKind());
 
-						WorkItemType workItem = wfc.getWorkItem().get(0);
+						CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
 						assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
 					}
 
 					@Override
-					protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+					protected void afterCase0Finishes(CaseType rootCase, Task opTask,
+							OperationResult result) throws Exception {
 						assertNoObject(employee);
 					}
 
 					@Override
-					protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+					protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+							Task opTask, OperationResult result) throws Exception {
 						assertObjectSanity(employee);
 					}
 
@@ -167,7 +158,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 					}
 
 					@Override
-					protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+					protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 						login(getUser(userEmployeeOwnerOid));
 						return true;
 					}
@@ -292,45 +283,41 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
-					OperationResult result) throws Exception {
-				ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-				ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
-				assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
+			protected void afterFirstClockworkRun(CaseType rootCase,
+					CaseType case0, List<CaseType> subcases,
+					List<CaseWorkItemType> workItems,
+					Task opTask, OperationResult result) throws Exception {
+//				ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//				ObjectDelta realDelta0 = taskModelContext.getFocusContext().getPrimaryDelta();
+//				assertTrue("Non-empty primary focus delta: " + realDelta0.debugDump(), realDelta0.isEmpty());
 				ExpectedTask expectedTask = new ExpectedTask(null, "Modifying role \"employee\"");
 				ExpectedWorkItem expectedWorkItem = new ExpectedWorkItem(userEmployeeOwnerOid, null, expectedTask);
-//				assertWfContextAfterClockworkRun(rootTask, subtasks, workItems, result,
-//						null,
-//						Collections.singletonList(expectedTask),
-//						Collections.singletonList(expectedWorkItem));
+				assertWfContextAfterClockworkRun(rootCase, subcases, workItems, result,
+						null,
+						Collections.singletonList(expectedTask),
+						Collections.singletonList(expectedWorkItem));
 
-				Collection<SelectorOptions<GetOperationOptions>> options =
-						SelectorOptions.createCollection(prismContext.path(F_WORKFLOW_CONTEXT, F_WORK_ITEM), createRetrieve());
-				Task opTask = taskManager.createTaskInstance();
-				TaskType subtask = modelService.getObject(TaskType.class, subtasks.get(0).getOid(), options, opTask, result).asObjectable();
-				display("subtask", subtask);
-
-				WfContextType wfc = subtask.getWorkflowContext();
-				ItemApprovalProcessStateType processState = WfContextUtil.getItemApprovalProcessInfo(wfc);
-				assertEquals("Wrong # of attached policy rules entries", 1, processState.getPolicyRules().getEntry().size());
-				SchemaAttachedPolicyRuleType attachedRule = processState.getPolicyRules().getEntry().get(0);
+				ApprovalContextType wfc = subcases.get(0).getApprovalContext();
+				assertEquals("Wrong # of attached policy rules entries", 1, wfc.getPolicyRules().getEntry().size());
+				SchemaAttachedPolicyRuleType attachedRule = wfc.getPolicyRules().getEntry().get(0);
 				assertEquals(1, attachedRule.getStageMin().intValue());
 				assertEquals(1, attachedRule.getStageMax().intValue());
 				assertEquals("Wrong # of attached triggers", 1, attachedRule.getRule().getTrigger().size());
 				EvaluatedPolicyRuleTriggerType trigger = attachedRule.getRule().getTrigger().get(0);
 				assertEquals("Wrong constraintKind in trigger", PolicyConstraintKindType.TRANSITION, trigger.getConstraintKind());
 
-				WorkItemType workItem = wfc.getWorkItem().get(0);
+				CaseWorkItemType workItem = subcases.get(0).getWorkItem().get(0);
 				assertEquals("Wrong # of additional information", 0, workItem.getAdditionalInformation().size());
 			}
 
 			@Override
-			protected void afterTask0Finishes(Task task, OperationResult result) throws Exception {
+			protected void afterCase0Finishes(CaseType rootCase, Task opTask, OperationResult result) throws Exception {
 				//assertNoObject(employee);
 			}
 
 			@Override
-			protected void afterRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
+			protected void afterRootCaseFinishes(CaseType rootCase, List<CaseType> subcases,
+					Task opTask, OperationResult result) throws Exception {
 				//assertObject(employee);
 			}
 
@@ -340,7 +327,7 @@ public class TestObjectConstraints extends AbstractWfTestPolicy {
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				login(getUser(userEmployeeOwnerOid));
 				return true;
 			}

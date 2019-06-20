@@ -36,20 +36,6 @@
 						<q:path>executionStatus</q:path>
 						<q:value>suspended</q:value>
 					</q:equal>
-					<!-- Beware: this condition is applicable only when the model operation carrying task is the same
-					     as the task wrapping the approvals. This is the case only when "execute after all approvals" is turned
-					     off, i.e. if all changes are executed immediately after being approved. If "execute after all approvals"
-					     is turned on then the filtering has to be done in a more elaborate way. -->
-					<q:greaterOrEqual>
-						<q:path>workflowContext/endTimestamp</q:path>
-						<c:expression>
-							<c:script>
-								<c:code>
-									basic.fromNow("-P14D")
-								</c:code>
-							</c:script>
-						</c:expression>
-					</q:greaterOrEqual>
 				</q:and>
 			</q:filter>
 		</s:query>

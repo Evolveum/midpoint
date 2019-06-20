@@ -70,7 +70,6 @@
 		</handler>
 	</notificationConfiguration>
 	<workflowConfiguration>
-        <allowCompleteOthersItems>true</allowCompleteOthersItems>
 		<approverCommentsFormatting>
 			<value>
 				<script>

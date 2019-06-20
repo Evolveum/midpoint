@@ -23,12 +23,11 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.TaskDtoTablePanel;
@@ -51,14 +50,19 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	private TaskDtoProvider taskDtoProvider;
 
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
-			TaskDtoProvider taskDtoProvider, PageBase page) {
-		super(id, mainForm, focusModel, page);
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
+			TaskDtoProvider taskDtoProvider) {
+		super(id, mainForm, focusModel);
 		this.taskDtoProvider = taskDtoProvider;
-		initLayout(page);
 	}
 
-	private void initLayout(final PageBase page) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
+	
+	private void initLayout() {
 
 		Label label = new Label(ID_LABEL, new IModel<String>() {
 			private static final long serialVersionUID = 1L;

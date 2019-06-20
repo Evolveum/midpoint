@@ -154,9 +154,6 @@ public class ModelObjectResolver implements ObjectResolver {
                         throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
                     }
-					if (workflowManager != null && TaskType.class.isAssignableFrom(clazz) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-						workflowManager.augmentTaskObject(object, options, task, result);
-					}
                     break;
                 default:
                     object = cacheRepositoryService.getObject(clazz, oid, options, result);

@@ -111,11 +111,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
         add(kindIntent);
         
-        if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
-        	add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
-        } else {
-        	add(new Label(ID_DESCRIPTION, Model.of("")));
-        }
+        add(new Label(ID_DESCRIPTION, getDescriptionLabelModel()));
 	}
 	
 	private boolean isObjectPolicyConfigurationType() {
@@ -125,7 +121,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		return false;
 	}
 	
-	private String createImageModel() {
+	protected String createImageModel() {
 		if (getModelObject() == null){
 			return "";
 		}
@@ -148,7 +144,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		if (isObjectPolicyConfigurationType()) {
 			QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
 			ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
-			if(objectTemplate == null){
+			if(objectTemplate == null || objectTemplate.getTargetName() == null){
 				return Model.of("");
 			}
 			String objectTemplateNameValue = objectTemplate.getTargetName().toString();
@@ -207,6 +203,13 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 
 	protected IModel<String> getKindIntentLabelModel() {
 		// To be overriden in subclasses
+		return Model.of("");
+	}
+	
+	protected IModel<String> getDescriptionLabelModel() {
+		if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+        	return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
+        } 
 		return Model.of("");
 	}
 

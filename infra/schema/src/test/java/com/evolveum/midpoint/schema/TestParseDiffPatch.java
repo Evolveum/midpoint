@@ -92,7 +92,7 @@ public class TestParseDiffPatch {
         PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_FILE);
         userAfter.checkConsistence();
 
-        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter, EquivalenceStrategy.LITERAL);      // failedLogins is now operational property
         System.out.println("DELTA:");
         System.out.println(userDelta.debugDump());
 
@@ -913,7 +913,7 @@ public class TestParseDiffPatch {
 		assertEquals("Wrong # of triggers", 2, campaign.asObjectable().getTrigger().size());
 	}
 
-	@Test
+	@Test(enabled = false)
     public void testReplaceModelOperationContext() throws Exception {
         PrismObject prismObject = PrismTestUtil.parseObject(new File(TEST_DIR, "task-modelOperationContext-before.xml"));
 

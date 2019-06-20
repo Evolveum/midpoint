@@ -275,7 +275,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
 					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
 				} else {
-
 					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
 				}
 				resultHandler.completeProcessing(localCoordinatorTask, opResult);

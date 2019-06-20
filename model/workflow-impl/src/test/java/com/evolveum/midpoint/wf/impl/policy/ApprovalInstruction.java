@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.impl.policy;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * @author mederly
@@ -43,7 +43,7 @@ public class ApprovalInstruction {
 		this(expectedWorkItem, approval, approverOid, comment, null, null);
 	}
 
-	public boolean matches(WorkItemType actualWorkItem) {
+	public boolean matches(CaseWorkItemType actualWorkItem) {
 		return expectedWorkItem == null || expectedWorkItem.matches(actualWorkItem);
 	}
 

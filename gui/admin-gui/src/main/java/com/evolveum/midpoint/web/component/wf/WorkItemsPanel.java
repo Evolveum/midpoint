@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
@@ -195,8 +197,10 @@ public class WorkItemsPanel extends BasePanel {
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
-					parameters.add(OnePageParameterEncoder.PARAMETER,
-							ProtectedWorkItemId.createExternalForm(rowModel.getObject().getWorkItem()));
+					//todo mid-5291 fix is commented for a while
+//					parameters.add(OnePageParameterEncoder.PARAMETER,
+//							ProtectedWorkItemId.createExternalForm(rowModel.getObject().getWorkItem()));
+					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
 					PageWorkItem page = Session.get().getPageFactory().newPage(PageWorkItem.class, parameters);
 					page.setPowerDonor(determinePowerDonor());
 					getPageBase().navigateToNext(page);
@@ -217,7 +221,7 @@ public class WorkItemsPanel extends BasePanel {
 		return new ReadOnlyModel<>(() -> {
 			WorkItemDto workItemDto = workItemDtoModel.getObject();
 			return defaultIfNull(
-					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemsPanel.this),
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getApprovalContext(), WorkItemsPanel.this),
 					workItemDto.getName());
 		});
 	}

@@ -32,20 +32,25 @@ import org.jetbrains.annotations.NotNull;
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    @NotNull protected final WfContextType workflowContext;
+    @NotNull protected final ApprovalContextType approvalContext;
     @NotNull private final ChangeType changeType;
-    @NotNull protected final TaskType workflowTask;
+    @NotNull protected final CaseType aCase;
 
     public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @NotNull WfContextType workflowContext, @NotNull TaskType workflowTask, EventHandlerType handler) {
+            @NotNull ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
         super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
-		this.workflowContext = workflowContext;
-		this.workflowTask = workflowTask;
+		this.approvalContext = approvalContext;
+		this.aCase = aCase;
+    }
+
+    @NotNull
+    public CaseType getCase() {
+        return aCase;
     }
 
     public String getProcessInstanceName() {
-        return workflowContext.getProcessInstanceName();
+        return aCase.getName().getOrig();
     }
 
     public OperationStatus getOperationStatus() {
@@ -101,41 +106,14 @@ abstract public class WorkflowEvent extends BaseEvent {
         return false;
     }
 
-    public WfProcessorSpecificStateType getProcessorSpecificState() {
-        return workflowContext.getProcessorSpecificState();
-    }
-
-    public WfProcessSpecificStateType getProcessSpecificState() {
-		return workflowContext.getProcessSpecificState();
-    }
-
 	@NotNull
-	public WfContextType getWorkflowContext() {
-		return workflowContext;
+	public ApprovalContextType getApprovalContext() {
+		return approvalContext;
 	}
 
     @NotNull
-    public TaskType getWorkflowTask() {
-        return workflowTask;
-    }
-
-    public WfPrimaryChangeProcessorStateType getPrimaryChangeProcessorState() {
-        WfProcessorSpecificStateType state = getProcessorSpecificState();
-        if (state instanceof WfPrimaryChangeProcessorStateType) {
-            return (WfPrimaryChangeProcessorStateType) state;
-        } else {
-            return null;
-        }
-    }
-
-    // the following three methods are specific to ItemApproval process
-    public ItemApprovalProcessStateType getItemApprovalProcessState() {
-        WfProcessSpecificStateType state = getProcessSpecificState();
-        if (state instanceof ItemApprovalProcessStateType) {
-            return (ItemApprovalProcessStateType) state;
-        } else {
-            return null;
-        }
+    public CaseType getWorkflowTask() {
+        return aCase;
     }
 
     @Override

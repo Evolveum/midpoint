@@ -40,17 +40,6 @@
                </t:cipherData>
             </t:encryptedData>
          </c:value>
-<!-- 			<value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"> -->
-<!-- 				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"> -->
-<!-- 					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" /> -->
-<!-- 					<ds:KeyInfo> -->
-<!-- 						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName> -->
-<!-- 					</ds:KeyInfo> -->
-<!-- 					<enc:CipherData> -->
-<!-- 						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue> -->
-<!-- 					</enc:CipherData> -->
-<!-- 				</enc:EncryptedData> -->
-<!-- 			</value> -->
 		</password>
 	</credentials>
 </user>

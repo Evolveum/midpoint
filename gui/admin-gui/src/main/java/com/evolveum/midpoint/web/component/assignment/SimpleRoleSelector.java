@@ -18,10 +18,6 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -32,10 +28,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -44,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * @author semancik
  */
-public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<ContainerWrapper<AssignmentType>> {
+public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
@@ -55,7 +53,7 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
     List<PrismObject<R>> availableRoles;
 
-    public SimpleRoleSelector(String id, IModel<ContainerWrapper<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
+    public SimpleRoleSelector(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
         super(id, assignmentModel);
         this.availableRoles = availableRoles;
         initLayout();
@@ -128,8 +126,8 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
 
     private boolean isSelected(PrismObject<R> role) {
-        for (ContainerValueWrapper<AssignmentType> assignmentContainer: getModel().getObject().getValues()) {
-            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+        for (PrismContainerValueWrapper<AssignmentType> assignmentContainer: getModel().getObject().getValues()) {
+            AssignmentType assignment = assignmentContainer.getRealValue();
             if (willProcessAssignment(assignment)) {
             	ObjectReferenceType targetRef = assignment.getTargetRef();
                 if (targetRef != null && role.getOid().equals(targetRef.getOid())) {
@@ -143,10 +141,10 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
     }
 
     private void toggleRole(PrismObject<R> role) {
-        Iterator<ContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
+        Iterator<PrismContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            ContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
-            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+        	PrismContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            AssignmentType assignment = assignmentContainer.getRealValue();
             if (willProcessAssignment(assignment)) {
             	ObjectReferenceType targetRef = assignment.getTargetRef();
                 if (targetRef != null && role.getOid().equals(targetRef.getOid())) {
@@ -167,10 +165,10 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
     }
 
     private void reset() {
-        Iterator<ContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
+        Iterator<PrismContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            ContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
-            AssignmentType assignment = assignmentContainer.getContainerValue().getValue();
+        	PrismContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            AssignmentType assignment = assignmentContainer.getRealValue();
             if (isManagedRole(assignment) && willProcessAssignment(assignment)) {
                 if (assignmentContainer.getStatus() == ValueStatus.ADDED) {
                     iterator.remove();

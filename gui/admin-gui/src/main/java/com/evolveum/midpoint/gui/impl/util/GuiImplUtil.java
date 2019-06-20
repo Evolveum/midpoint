@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.gui.impl.util;
 
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
 
 /**
@@ -36,7 +38,17 @@ public class GuiImplUtil {
 		}
 	}
 	
-	public static String getObjectStatus(final ContainerValueWrapper<Containerable> object) {
+	public static <C extends Containerable> String getObjectStatus(PrismContainerValueWrapper<C> object) {
+		
+		if(object.getParent()  instanceof ShadowWrapper) {
+				if(((ShadowWrapper)object.getParent()).getProjectionStatus().equals(UserDtoStatus.DELETE)) {
+					return "danger";
+				}
+				if(((ShadowWrapper)object.getParent()).getProjectionStatus().equals(UserDtoStatus.UNLINK)) {
+					return "warning";
+				}
+		}
+		
 		switch (object.getStatus()) {
         case ADDED:
             return "success";

@@ -51,6 +51,17 @@ public class PolyStringTranslationArgumentType implements Serializable, Cloneabl
     protected String value;
     protected PolyStringTranslationType translation;
 
+	public PolyStringTranslationArgumentType() {
+	}
+
+	public PolyStringTranslationArgumentType(PolyStringTranslationType translation) {
+		this.translation = translation;
+	}
+
+	public PolyStringTranslationArgumentType(String value) {
+		this.value = value;
+	}
+
 	public String getValue() {
 		return value;
 	}

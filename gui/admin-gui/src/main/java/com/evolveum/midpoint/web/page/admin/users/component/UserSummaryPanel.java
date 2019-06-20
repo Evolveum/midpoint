@@ -15,25 +15,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.apache.wicket.model.Model;
 
 /**
  * @author semancik

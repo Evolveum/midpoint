@@ -98,7 +98,7 @@ public class NavigatorPanel extends Panel {
             }
         }));
         add(previous);
-        AjaxLink previousLink = new AjaxLink(ID_PREVIOUS_LINK) {
+        AjaxLink<Void> previousLink = new AjaxLink<Void>(ID_PREVIOUS_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -130,7 +130,7 @@ public class NavigatorPanel extends Panel {
             }
         }));
         add(first);
-        AjaxLink firstLink = new AjaxLink(ID_FIRST_LINK) {
+        AjaxLink<Void> firstLink = new AjaxLink<Void>(ID_FIRST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -233,7 +233,7 @@ public class NavigatorPanel extends Panel {
         }));
         add(next);
 
-        AjaxLink nextLink = new AjaxLink(ID_NEXT_LINK) {
+        AjaxLink<Void> nextLink = new AjaxLink<Void>(ID_NEXT_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
@@ -266,7 +266,7 @@ public class NavigatorPanel extends Panel {
         }));
         add(last);
 
-        AjaxLink lastLink = new AjaxLink(ID_LAST_LINK) {
+        AjaxLink<Void> lastLink = new AjaxLink<Void>(ID_LAST_LINK) {
 
             @Override
             protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {

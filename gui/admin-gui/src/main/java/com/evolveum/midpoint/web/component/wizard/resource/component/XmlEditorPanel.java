@@ -16,22 +16,29 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.AceEditor;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AceEditor;
 
 /**
  * @author lazyman
  */
-public class XmlEditorPanel extends SimplePanel {
+public class XmlEditorPanel extends BasePanel<String> {
 
     private static final String ID_ACE_EDITOR = "aceEditor";
 
     public XmlEditorPanel(String id, IModel<String> model) {
         super(id, model);
     }
-
+    
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+
+    
     protected void initLayout() {
         AceEditor editor = new AceEditor(ID_ACE_EDITOR, getModel());
         add(editor);

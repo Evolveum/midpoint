@@ -36,10 +36,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemsPageType;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
@@ -52,8 +49,8 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.isAuthorized;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.prism.query.OrderDirection.DESCENDING;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_ASSIGNEE_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType.F_CREATE_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_ASSIGNEE_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -131,12 +128,12 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
             ObjectQuery query = createQuery(first, count, result);
             Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
                     .item(F_ASSIGNEE_REF).resolve()
-                    .item(T_PARENT, WfContextType.F_OBJECT_REF).resolve()
-                    .item(T_PARENT, WfContextType.F_TARGET_REF).resolve()
+                    .item(T_PARENT, CaseType.F_OBJECT_REF).resolve()
+                    .item(T_PARENT, CaseType.F_TARGET_REF).resolve()
                     .build();
-            List<WorkItemType> items = getModel().searchContainers(WorkItemType.class, query, options, task, result);
+            List<CaseWorkItemType> items = getModel().searchContainers(CaseWorkItemType.class, query, options, task, result);
 
-            for (WorkItemType item : items) {
+            for (CaseWorkItemType item : items) {
                 try {
                     getAvailableData().add(new WorkItemDto(item, getPage()));
                 } catch (Exception e) {
@@ -174,7 +171,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
 
     private ObjectQuery createQuery(OperationResult result) throws SchemaException {
         boolean authorizedToSeeAll = isAuthorized(ModelAuthorizationAction.READ_ALL_WORK_ITEMS.getUrl());
-        S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+        S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
         if (WorkItemsPageType.ALL.equals(workItemsPageType) && authorizedToSeeAll) {
             return q.build();
         } else if (WorkItemsPageType.CLAIMABLE.equals(workItemsPageType)) {
@@ -193,7 +190,7 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         try {
             ObjectQuery query = createQuery(result);
-            count = getModel().countContainers(WorkItemType.class, query, null, task, result);
+            count = getModel().countContainers(CaseWorkItemType.class, query, null, task, result);
         } catch (SchemaException | SecurityViolationException | ObjectNotFoundException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
             throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
         }

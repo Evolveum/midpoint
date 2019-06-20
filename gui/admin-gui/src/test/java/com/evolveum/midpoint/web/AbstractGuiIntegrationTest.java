@@ -16,11 +16,39 @@
 
 package com.evolveum.midpoint.web;
 
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FAMILY_NAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_FULL_NAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_GIVEN_NAME;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_OID;
+import static com.evolveum.midpoint.web.AdminGuiTestConstants.USER_JACK_USERNAME;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
-import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Locale;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.ServletException;
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Application;
+import org.apache.wicket.ThreadContext;
+import org.apache.wicket.protocol.http.WicketFilter;
+import org.apache.wicket.util.tester.WicketTester;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockFilterConfig;
+import org.springframework.mock.web.MockServletContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 
 import com.evolveum.midpoint.common.LocalizationService;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -30,8 +58,8 @@ import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -51,31 +79,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
-import org.apache.wicket.Application;
-import org.apache.wicket.ThreadContext;
-import org.apache.wicket.protocol.http.WicketFilter;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.mock.web.MockFilterConfig;
-import org.springframework.mock.web.MockServletContext;
-import org.springframework.web.context.WebApplicationContext;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Locale;
-
-import javax.annotation.PostConstruct;
-import javax.servlet.ServletException;
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -112,54 +119,98 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	protected static final String ORG_KIDNAP_AND_MARRY_ELAINE_OID = "00000000-8888-6666-0000-200000000002";
+	
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+	
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
+	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
+	
+	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
+	
+	public static final File ROLE_ENDUSER_FILE = new File(COMMON_DIR, "role-enduser.xml");
+	protected static final String ROLE_ENDUSER_OID = "00000000-0000-0000-0000-000000000008";
+	
+	public static final File VALUE_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
+	protected static final String VALUE_POLICY_OID = "00000000-0000-0000-0000-000000000003";
+	
+	public static final File SECURITY_POLICY_FILE = new File(COMMON_DIR, "value-policy.xml");
+	protected static final String SECURITY_POLICY_OID = "00000000-0000-0000-0000-000000000120";
 
     @Autowired private MidPointApplication application;
     
-    @Autowired private ApplicationContext appContext;
+//    @Autowired private ApplicationContext appContext;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected RelationRegistry relationRegistry;
+    @Autowired protected GuiComponentRegistry registry;
+    
+    protected WicketTester tester;
+    
+    private PrismObject<UserType> userAdministrator = null;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+    	LOGGER.info("before super init");
 		super.initSystem(initTask, initResult);
+		
+		LOGGER.info("after super init");
 	    WebComponentUtil.setStaticallyProvidedRelationRegistry(relationRegistry);
+	    
+	    PrismObject<SystemConfigurationType> configuration = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+	    relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
+	    
+//	    repoAddObjectFromFile(VALUE_POLICY_FILE, initResult);
+	    repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+	    repoAddObjectFromFile(ROLE_ENDUSER_FILE, initResult);
+	    repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
+	    repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+	    
+//	    repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
+	    
+	  	login(USER_ADMINISTRATOR_USERNAME);
+	  	LOGGER.info("user logged in");
+	  	
+	  	tester = new WicketTester(application);
 	}
     
-    @PostConstruct
-    public void setupApplication() throws ServletException {
-    	
-    	display("PostContruct");
-    	for (String key: Application.getApplicationKeys()) {
-    		display("App "+key, Application.get(key));
-    	}
-    	initializeMidPointApplication();
-    }
+//    @PostConstruct
+//    public void setupApplication() throws ServletException {
+//    	
+//    	display("PostContruct");
+//    	for (String key: Application.getApplicationKeys()) {
+//    		display("App "+key, Application.get(key));
+//    	}
+//    	initializeMidPointApplication();
+//    	tester = new WicketTester(application);
+//    }
     
     private void initializeMidPointApplication() throws ServletException {
-    	WicketFilter wicketFilter = new WicketFilter(application);
-    	MockServletContext servletContext = new MockServletContext();
-    	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);
-    	servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-    	MockFilterConfig filterConfig = new MockFilterConfig(servletContext, "midpoint");
-		wicketFilter.init(filterConfig);
-		application.setWicketFilter(wicketFilter);
-		application.setServletContext(servletContext);
-    	new DescriptorLoader().loadData(application);
-    	ThreadContext.setApplication(application);
-    	application.initApplication();
-    	ThreadContext.setApplication(null);
+//    	WicketFilter wicketFilter = new WicketFilter(application);
+//    	MockServletContext servletContext = new MockServletContext();
+//    	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);
+//    	servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
+//    	MockFilterConfig filterConfig = new MockFilterConfig(servletContext, "midpoint");
+//		wicketFilter.init(filterConfig);
+//		application.setWicketFilter(wicketFilter);
+//		application.setServletContext(servletContext);
+//    	new DescriptorLoader().loadData(application);
+//    	ThreadContext.setApplication(application);
+//    	application.initApplication();
+//    	ThreadContext.setApplication(null);
 	}
     
     @BeforeMethod
     public void beforeMethodApplication() {
-    	ThreadContext.setApplication(application);
+//    	ThreadContext.setApplication(application);
+    	
     }
     
     @AfterMethod
     public void afterMethodApplication() {
-    	ThreadContext.setApplication(null);
-    	application.internalDestroy();
+//    	ThreadContext.setApplication(null);
+//    	application.internalDestroy();
     }
 
 	@BeforeClass
@@ -253,6 +304,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 			@Override
 			public Locale getLocale() {
 				return Locale.US;
+			}
+
+			@Override
+			public GuiComponentRegistry getRegistry() {
+				return registry;
 			}
 
 		};

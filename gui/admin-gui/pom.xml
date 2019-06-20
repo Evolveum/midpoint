@@ -587,6 +587,12 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.apache.ant</groupId>
+            		<artifactId>ant</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -732,7 +738,39 @@
         </dependency>
 
         <!-- TEST -->
+        
+        <dependency>  
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <exclusions>
+    	<exclusion>
+    	 <artifactId>asm</artifactId>
+    	 <groupId>org.ow2.asm</groupId>
+    	</exclusion>
+    </exclusions>
+<!--     <version>{version}</version> -->
+    <scope>test</scope>
+</dependency>  
 
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>7.0</version>
+            <scope>test</scope>
+<!--             <exclusions> -->
+<!--             	<exclusion> -->
+<!--             		<groupId>org.ow2.asm</groupId> -->
+<!--             		<artifactId>asm</artifactId> -->
+<!--             	</exclusion> -->
+<!--             </exclusions> -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>7.0</version>
+<!--             <scope>test</scope> -->
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
@@ -773,6 +811,17 @@
             <artifactId>javax.annotation-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
@@ -894,6 +943,13 @@
             <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+		    <groupId>cglib</groupId>
+		    <artifactId>cglib-nodep</artifactId>
+		    <version>3.2.10</version>
+		    <scope>test</scope>
+		</dependency>
+
     </dependencies>
 
     <profiles>
@@ -929,7 +985,7 @@
                             <dependency>
                                 <groupId>com.evolveum.midpoint</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
-                                <version>${project.version}</version>
+                                <version>4.0-M2</version>
                             </dependency>
                         </dependencies>
                     </plugin>

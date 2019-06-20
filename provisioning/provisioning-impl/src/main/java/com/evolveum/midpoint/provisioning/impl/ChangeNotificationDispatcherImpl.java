@@ -50,7 +50,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 
-	private static final int MAX_LISTENERS = 1000;          // just to make sure we don't grow indefinitely
+	// just to make sure we don't grow indefinitely
+	private static final int LISTENERS_SOFT_LIMIT = 200;
+	private static final int LISTENERS_HARD_LIMIT = 2000;
+
+	private static final long LISTENERS_WARNING_INTERVAL = 2000;
+
+	private long lastListenersWarning = 0;
 
 	private static final String CLASS_NAME_WITH_DOT = ChangeNotificationDispatcherImpl.class.getName() + ".";
 
@@ -87,14 +93,20 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	}
 
 	private void checkSize(List<?> listeners, String name) {
-		if (listeners.size() > MAX_LISTENERS) {
-			throw new IllegalStateException("Possible listeners leak: number of " + name + " exceeded the threshold of " + MAX_LISTENERS);
+		int size = listeners.size();
+		LOGGER.trace("Listeners of type '{}': {}", name, size);
+		if (size > LISTENERS_HARD_LIMIT) {
+			throw new IllegalStateException("Possible listeners leak: number of " + name + " exceeded the threshold of " + LISTENERS_SOFT_LIMIT);
+		} else if (size > LISTENERS_SOFT_LIMIT && System.currentTimeMillis() - lastListenersWarning >= LISTENERS_WARNING_INTERVAL) {
+			LOGGER.warn("Too many listeners of type '{}': {} (soft limit: {}, hard limit: {})", name, size,
+					LISTENERS_SOFT_LIMIT, LISTENERS_HARD_LIMIT);
+			lastListenersWarning = System.currentTimeMillis();
 		}
 	}
 
-	private synchronized List<ResourceObjectChangeListener> getChangeListenersSnapshot() {
-		if (changeListeners != null) {
-			return new ArrayList<>(changeListeners);
+	private synchronized <T> List<T> getListenersSnapshot(List<T> listeners) {
+		if (listeners != null) {
+			return new ArrayList<>(listeners);
 		} else {
 			return new ArrayList<>();
 		}
@@ -133,7 +145,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	}
 
 	@Override
-	public void unregisterNotificationListener(ResourceEventListener listener) {
+	public synchronized void unregisterNotificationListener(ResourceEventListener listener) {
 		eventListeners.remove(listener);
 
 	}
@@ -157,7 +169,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		if (InternalsConfig.consistencyChecks) change.checkConsistence();
 
 		// sometimes there is registration/deregistration from within
-		List<ResourceObjectChangeListener> changeListenersSnapshot = getChangeListenersSnapshot();
+		List<ResourceObjectChangeListener> changeListenersSnapshot = getListenersSnapshot(changeListeners);
 		if (!changeListenersSnapshot.isEmpty()) {
 			for (ResourceObjectChangeListener listener : changeListenersSnapshot) {
 				try {
@@ -186,8 +198,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 		failureDescription.checkConsistence();
 
-		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
-			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
+		List<ResourceOperationListener> operationListenersSnapshot = getListenersSnapshot(operationListeners);
+		if (!operationListenersSnapshot.isEmpty()) {
+			for (ResourceOperationListener listener : operationListenersSnapshot) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyFailure(failureDescription, task, parentResult);
@@ -210,8 +223,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 		successDescription.checkConsistence();
 
-		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
-			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
+		List<ResourceOperationListener> operationListenersSnapshot = getListenersSnapshot(operationListeners);
+		if (!operationListenersSnapshot.isEmpty()) {
+			for (ResourceOperationListener listener : operationListenersSnapshot) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifySuccess(successDescription, task, parentResult);
@@ -235,8 +249,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 		inProgressDescription.checkConsistence();
 
-		if ((null != operationListeners) && (!operationListeners.isEmpty())) {
-			for (ResourceOperationListener listener : new ArrayList<>(operationListeners)) {		// sometimes there is registration/deregistration from within
+		List<ResourceOperationListener> operationListenersSnapshot = getListenersSnapshot(operationListeners);
+		if (!operationListenersSnapshot.isEmpty()) {
+			for (ResourceOperationListener listener : operationListenersSnapshot) {
 				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
 				try {
 					listener.notifyInProgress(inProgressDescription, task, parentResult);
@@ -274,8 +289,9 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 
 //		if (InternalsConfig.consistencyChecks) eventDescription.checkConsistence();
 
-		if ((null != eventListeners) && (!eventListeners.isEmpty())) {
-			for (ResourceEventListener listener : new ArrayList<>(eventListeners)) {			// sometimes there is registration/deregistration from within
+		List<ResourceEventListener> eventListenersSnapshot = getListenersSnapshot(eventListeners);
+		if (!eventListenersSnapshot.isEmpty()) {
+			for (ResourceEventListener listener : eventListenersSnapshot) {
 				try {
 					listener.notifyEvent(eventDescription, task, parentResult);
 				} catch (RuntimeException e) {

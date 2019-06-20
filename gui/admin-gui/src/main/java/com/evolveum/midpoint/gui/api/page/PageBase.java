@@ -28,9 +28,21 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
+import com.evolveum.midpoint.gui.impl.factory.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.ItemVisibilityHandler;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValuePanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
@@ -90,17 +102,16 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.*;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItemsAllocatedToMe;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAll;
-import com.evolveum.midpoint.web.page.admin.cases.PageCasesAllocatedToMe;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
+import com.evolveum.midpoint.web.page.admin.cases.*;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertCampaigns;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDecisions;
 import com.evolveum.midpoint.web.page.admin.certification.PageCertDefinition;
@@ -164,6 +175,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -173,6 +185,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -181,6 +194,8 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -323,8 +338,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean
     private MidpointFunctions midpointFunctions;
     
-    @SpringBean
-    private CounterManager counterManager;
+    @SpringBean private GuiComponentRegistry registry;
+    
+    @SpringBean private CounterManager counterManager;
 
     private List<Breadcrumb> breadcrumbs;
 
@@ -383,10 +399,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             protected Integer load() {
                 try {
                     Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEM_COUNT);
-                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(WorkItemType.class);
+                    S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
-                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry()).build();
-                    return getModelService().countContainers(WorkItemType.class, query, null, task, task.getResult());
+                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                            .and()
+                            .not()
+                            .item(PrismConstants.T_PARENT, CaseType.F_STATE)
+                            .eq(SchemaConstants.CASE_STATE_CLOSED)
+                            .build();
+                    return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
                     LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't load work item count", e);
                     return null;
@@ -598,6 +619,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     protected ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
     }
+    
+    public GuiComponentRegistry getRegistry() {
+		return registry;
+	}
 
     public CacheDispatcher getCacheDispatcher() {
         return cacheDispatcher;
@@ -1013,7 +1038,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         };
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC,
-                WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : null));
+                WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : null).getObject());
         customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
@@ -1111,14 +1136,18 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
+        feedbackContainer.setOutputMarkupPlaceholderTag(true);
         add(feedbackContainer);
 
         FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK);
         feedbackList.setOutputMarkupId(true);
+        feedbackList.setOutputMarkupPlaceholderTag(true);
         feedbackContainer.add(feedbackList);
 
         MainPopupDialog mainPopup = new MainPopupDialog(ID_MAIN_POPUP);
         mainPopup.setOutputMarkupId(true);
+        mainPopup.setOutputMarkupPlaceholderTag(true);
+        mainPopup.showUnloadConfirmation(false);
         add(mainPopup);
     }
 
@@ -1149,7 +1178,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public String getMainPopupBodyId() {
-        return ID_MAIN_POPUP_BODY;
+        return getMainPopup().getContentId();
     }
 
     public void setMainPopupTitle(IModel<String> title) {
@@ -1157,7 +1186,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public void showMainPopup(Popupable popupable, AjaxRequestTarget target) {
-        getMainPopup().setBody(popupable);
+        getMainPopup().setTitle(popupable.getTitle());
+        getMainPopup().setInitialHeight(popupable.getHeight());
+        getMainPopup().setInitialWidth(popupable.getWidth());
+        getMainPopup().setHeightUnit(popupable.getHeightUnit());
+        getMainPopup().setWidthUnit(popupable.getWidthUnit());
+        getMainPopup().setContent(popupable.getComponent());
+        getMainPopup().setResizable(false);
+        getMainPopup().setMaskType(ModalWindow.MaskType.TRANSPARENT);
         getMainPopup().show(target);
     }
 
@@ -1259,6 +1295,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 .setParameters(objects);
     }
     
+    public StringResourceModel createStringResource(String resourceKey, IModel model, Object... objects) {
+        return new StringResourceModel(resourceKey, model).setDefaultValue(resourceKey)
+                .setParameters(objects);
+    }
+    
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
     	String resourceKey = null;
     	if (polystringKey != null) {
@@ -1303,6 +1344,26 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return showResult(result, null, true);
     }
 
+    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prefix)) {
+            sb.append(prefix).append('.');
+        }
+
+        if (e == null) {
+            if (StringUtils.isNotEmpty(nullKey)) {
+                sb.append(nullKey);
+            } else {
+                sb = new StringBuilder();
+            }
+        } else {
+            sb.append(e.getDeclaringClass().getSimpleName()).append('.');
+            sb.append(e.name());
+        }
+
+        return createStringResource(sb.toString());
+    }
+    
     public OpResult showResult(OperationResult result, String errorMessageKey, boolean showSuccess) {
         Validate.notNull(result, "Operation result must not be null.");
         Validate.notNull(result.getStatus(), "Operation result status must not be null.");
@@ -1407,7 +1468,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     // common result processing
-    protected void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
+    public void processResult(AjaxRequestTarget target, OperationResult result, boolean showSuccess) {
         result.computeStatusIfUnknown();
         if (!result.isSuccess()) {
             showResult(result, showSuccess);
@@ -1637,6 +1698,11 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 AuthorizationConstants.AUTZ_GUI_ALL_DEPRECATED_URL)) {
             items.add(createServicesItems());
         }
+        
+        if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            items.add(createArchetypesItems());
+        }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
@@ -1766,13 +1832,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void addMenuItem(MainMenuItem item, String key, Class<? extends PageBase> page) {
-        MenuItem menu = new MenuItem(createStringResource(key), page);
+        addMenuItem(item, key, "", page);
+    }
+
+    private void addMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> page) {
+        MenuItem menu = new MenuItem(createStringResource(key), iconClass, page);
         item.getItems().add(menu);
     }
 
     private MainMenuItem createWorkItemsItems() {
-        MainMenuItem item = new MainMenuItem(GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON_COLORED,
-                createStringResource("PageAdmin.menu.top.workItems"), null) {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_CASE_OBJECT_ICON,
+                createStringResource("PageAdmin.menu.top.cases"), null) {
 
             private static final long serialVersionUID = 1L;
 
@@ -1787,23 +1857,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        addMenuItem(item, "PageAdmin.menu.top.workItems.list", PageWorkItemsAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listClaimable", PageWorkItemsClaimable.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listAll", PageWorkItemsAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy", PageProcessInstancesRequestedBy.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor", PageProcessInstancesRequestedFor.class);
-        addMenuItem(item, "PageAdmin.menu.top.workItems.listProcessInstancesAll", PageProcessInstancesAll.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.list", PageCasesAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", PageCasesAll.class);
+        addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
+        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
-        addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", PageCaseWorkItemsAll.class);
+
+        addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
+
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
-
-        MenuItem newCaseMenu = new MenuItem(createStringResource("PageAdmin.menu.top.case.new"), GuiStyleConstants.CLASS_PLUS_CIRCLE, PageCase.class, null,
-                new VisibleEnableBehaviour());
-        item.getItems().add(newCaseMenu);
 
         return item;
     }
@@ -2195,6 +2256,33 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         return item;
     }
+    
+    private MainMenuItem createArchetypesItems() {
+        MainMenuItem item = new MainMenuItem(GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON,
+                createStringResource("PageAdmin.menu.top.archetypes"), null);
+
+        MenuItem menu = new MenuItem(createStringResource("PageAdmin.menu.top.archetypes.list"),
+                GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON, PageArchetypes.class){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isMenuActive(WebPage page) {
+                if (getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
+                        && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString() != null){
+                    return false;
+                } else {
+                    return super.isMenuActive(page);
+                }
+            }
+        };
+        item.getItems().add(menu);
+        addCollectionsMenuItems(item.getItems(), ArchetypeType.COMPLEX_TYPE, PageArchetypes.class);
+
+        createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.archetypes.new", "PageAdmin.menu.top.archetypes.edit",
+                PageArchetype.class, true);
+
+        return item;
+    }
 
     private void addCollectionsMenuItems(List<MenuItem> menu, QName type, Class<? extends PageAdminObjectList> redirectToPage) {
         List<CompiledObjectCollectionView> objectViews = getCompiledUserProfile().findAllApplicableObjectCollectionViews(type);
@@ -2560,7 +2648,71 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return getSession().getLocale();
     }
     
+    //REGISTRY
+    
+    public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
+    	
+    	ItemWrapperFactory<IW, VW, PV> factory = (ItemWrapperFactory<IW, VW, PV>) registry.findWrapperFactory(parentWrapper);
+    	
+    	return factory.createValueWrapper(parentWrapper, newValue, status, context);
+    	
+    }
+    
+    public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
+    	
+    	ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(def);
+    	
+    	ctx.setCreateIfEmpty(true);
+    	return factory.createWrapper(parent, def, ctx);
+    	
+    }
+    
+    public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
+    	
+    	ItemWrapperFactory<IW, ?,?> factory = (ItemWrapperFactory<IW, ?,?>) registry.findWrapperFactory(item.getDefinition());
+    	
+    	ctx.setCreateIfEmpty(true);
+    	return factory.createWrapper(item, status, ctx);
+    	
+    }
+    
+    private Class<?> getWrapperPanel(QName typeName) {
+    	return registry.getPanelClass(typeName);
+    }
+    
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler) throws SchemaException{
+    	Class<?> panelClass = getWrapperPanel(typeName);
+    	if (panelClass == null) {
+    		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);
+    		errorPanel.add(new VisibleBehaviour(() -> getApplication().usesDevelopmentConfig()));
+    		return errorPanel;
+    	}
+    	
+    	Constructor<?> constructor;
+		try {
+			constructor = panelClass.getConstructor(String.class, IModel.class, ItemVisibilityHandler.class);
+			Panel panel = (Panel) constructor.newInstance(panelId, wrapperModel, visibilityHandler);
+			return panel;
+		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new SystemException("Cannot instantiate " + panelClass, e);
+		}
+    }
+    
+    public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
+    	return registry.getObjectWrapperFactory(objectDef);
+    }
+    
+    public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
+    	return registry.findWrapperFactory(def);
+    }
+    
+    public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
+    	//TODO find from registry first
+    	return new PrismContainerValuePanel<>(id, model, visibilityHandler);
+    }
+
     public Clock getClock() {
 		return clock;
 	}
+
 }

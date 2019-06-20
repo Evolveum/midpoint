@@ -16,7 +16,26 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -29,15 +48,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.refresh.Refreshable;
@@ -49,16 +71,6 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * @author mederly
@@ -92,7 +104,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 
 	private String taskOid;
 	private IModel<TaskDto> taskDtoModel;
-	private LoadableModel<ObjectWrapper<TaskType>> objectWrapperModel;
+	private LoadableModel<PrismObjectWrapper<TaskType>> objectWrapperModel;
 	private boolean edit = false;
 
 	private TaskDto currentTaskDto, previousTaskDto;
@@ -147,9 +159,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					.item(TaskType.F_NEXT_RUN_START_TIMESTAMP).retrieve()
 					.item(TaskType.F_NEXT_RETRY_TIMESTAMP).retrieve()
 					.item(TaskType.F_RESULT).retrieve()         // todo maybe only when it is to be displayed
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve()
+					//.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_WORK_ITEM).retrieve() // todo do this in case
 					// resolve
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTER_REF).resolve()
+					//.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_REQUESTOR_REF).resolve()   // todo do this in case
 					.build();
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 		} catch (Exception ex) {
@@ -187,9 +199,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				}
 			}
 		};
-		objectWrapperModel = new LoadableModel<ObjectWrapper<TaskType>>() {
+		objectWrapperModel = new LoadableModel<PrismObjectWrapper<TaskType>>() {
 			@Override
-			protected ObjectWrapper<TaskType> load() {
+			protected PrismObjectWrapper<TaskType> load() {
 				final Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 				return loadObjectWrapper(taskDtoModel.getObject().getTaskType().asPrismObject(), operationTask, new OperationResult("loadObjectWrapper"));
 			}
@@ -311,7 +323,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			LOGGER.debug("Refreshing task {}", oldTaskDto);
 			TaskType taskType = loadTaskType(oldTaskDto.getOid(), operationTask, result);
 			TaskDto newTaskDto = prepareTaskDto(taskType, true, operationTask, result);
-			final ObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
+			final PrismObjectWrapper<TaskType> newWrapper = loadObjectWrapper(taskType.asPrismObject(), operationTask, result);
 			previousTaskDto = currentTaskDto;
 			currentTaskDto = newTaskDto;
 			taskDtoModel.setObject(newTaskDto);
@@ -326,22 +338,27 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		}
 	}
 
-	protected ObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, Task task, OperationResult result) {
-		ObjectWrapper<TaskType> wrapper;
-		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+	protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> object, Task task, OperationResult result) {
+		PrismObjectWrapper<TaskType> wrapper;
+//		ObjectWrapperFactory owf = new ObjectWrapperFactory(this);
+		PrismObjectWrapperFactory<TaskType> owf = getRegistry().getObjectWrapperFactory(object.getDefinition());
 		try {
 			object.revive(getPrismContext());		// just to be sure (after deserialization the context is missing in this object)
-			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING, task);
+//			wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, ContainerStatus.MODIFYING, task);
+			WrapperContext context = new WrapperContext(task, result);
+			wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
 		} catch (Exception ex) {
 			result.recordFatalError("Couldn't get user.", ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
-				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, ContainerStatus.MODIFYING, task);
+				WrapperContext context = new WrapperContext(task, result);
+				wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
+//				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, ContainerStatus.MODIFYING, task);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
 		}
-		showResult(wrapper.getResult(), false);
+		showResult(result, false);
 
 		return wrapper;
 	}
@@ -358,7 +375,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 		return taskDtoModel;
 	}
 
-	public LoadableModel<ObjectWrapper<TaskType>> getObjectWrapperModel() {
+	public LoadableModel<PrismObjectWrapper<TaskType>> getObjectWrapperModel() {
 		return objectWrapperModel;
 	}
 
@@ -423,7 +440,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isEditable() {
-		return isEditable(objectWrapperModel.getObject().getDefinition());
+		return isEditable(objectWrapperModel.getObject());
 	}
 
 	private boolean isEditable(ItemDefinition<?> definition) {
@@ -448,7 +465,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isEditable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead() && itemDefinition.canModify();
 		} else {
@@ -457,7 +474,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	}
 
 	protected boolean isReadable(ItemPath itemPath) {
-		ItemDefinition<?> itemDefinition = objectWrapperModel.getObject().getDefinition().findItemDefinition(itemPath);
+		ItemDefinition<?> itemDefinition =  objectWrapperModel.getObject().findItemDefinition(itemPath);
 		if (itemDefinition != null) {
 			return itemDefinition.canRead();
 		} else {

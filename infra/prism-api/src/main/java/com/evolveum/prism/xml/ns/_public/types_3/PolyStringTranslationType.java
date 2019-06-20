@@ -24,6 +24,10 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.util.LocalizableMessage;
+import com.evolveum.midpoint.util.SingleLocalizableMessage;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,4 +150,33 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
         }
         return cloned;
     }
+
+    // TODO move to appropriate place
+    @NotNull
+	public static PolyStringTranslationType fromLocalizableMessage(@NotNull SingleLocalizableMessage message) {
+		PolyStringTranslationType rv = new PolyStringTranslationType();
+		rv.setKey(message.getKey());
+		rv.setFallback(message.getFallbackMessage());
+	    LocalizableMessage fallbackLocalizableMessage = message.getFallbackLocalizableMessage();
+	    if (fallbackLocalizableMessage != null) {
+	    	if (fallbackLocalizableMessage instanceof SingleLocalizableMessage) {
+			    rv.setFallbackTranslation(fromLocalizableMessage((SingleLocalizableMessage) fallbackLocalizableMessage));
+		    } else {
+	    		throw new UnsupportedOperationException("Fallback messages other than SingleLocalizableMessage are not supported in PolyString: " + fallbackLocalizableMessage);
+		    }
+	    }
+	    if (message.getArgs() != null) {
+		    for (Object arg : message.getArgs()) {
+			    if (arg instanceof SingleLocalizableMessage) {
+			    	rv.getArgument().add(new PolyStringTranslationArgumentType(fromLocalizableMessage((SingleLocalizableMessage) arg)));
+			    } else if (arg instanceof LocalizableMessage) {
+			    	throw new UnsupportedOperationException("LocalizableMessages arguments other than SingleLocalizableMessage are not supported in PolyString: " + arg);
+			    } else {
+			    	// even null values go here; as arguments in this class cannot be null
+			    	rv.getArgument().add(new PolyStringTranslationArgumentType(String.valueOf(arg)));
+			    }
+		    }
+	    }
+		return rv;
+	}
 }

@@ -79,7 +79,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
 
         add(input);
 
-        AjaxLink addLink = new AjaxLink(ID_ADD) {
+        AjaxLink<Void> addLink = new AjaxLink<Void>(ID_ADD) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

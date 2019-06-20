@@ -60,7 +60,7 @@ public class ActionsExecutedInformation {
         this(null);
     }
 
-    public ActionsExecutedInformationType getStartValue() {
+	public ActionsExecutedInformationType getStartValue() {
         return (ActionsExecutedInformationType) startValue;
     }
 

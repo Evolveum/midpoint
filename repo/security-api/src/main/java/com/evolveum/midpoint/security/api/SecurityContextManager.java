@@ -34,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * security context and so on.
  */
 public interface SecurityContextManager {
-		
+
 	boolean isAuthenticated();
 
 	Authentication getAuthentication();
@@ -45,7 +45,24 @@ public interface SecurityContextManager {
 	 */
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
-    void setupPreAuthenticatedSecurityContext(Authentication authentication);
+	/**
+	 * Returns OID of the current principal. After login is complete, the returned OID is the same as
+	 * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is
+	 * being authenticated/logged-in (a.k.a. temporary principal OID).
+	 */
+	String getPrincipalOid();
+
+	/**
+	 * Internal method to set temporary principal OID used during login process as a return value of getPrincipalOid() method.
+	 */
+	void setTemporaryPrincipalOid(String value);
+
+	/**
+	 * Internal method to reset temporary principal OID.
+	 */
+	void clearTemporaryPrincipalOid();
+
+	void setupPreAuthenticatedSecurityContext(Authentication authentication);
     
     void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal);
 

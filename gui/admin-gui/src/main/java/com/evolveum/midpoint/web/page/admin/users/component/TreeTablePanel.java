@@ -15,11 +15,30 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.repeater.RepeatingView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -33,7 +52,15 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,9 +68,6 @@ import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
@@ -51,19 +75,13 @@ import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
  * Used as a main component of the Org tree page.
@@ -178,9 +196,16 @@ public class TreeTablePanel extends BasePanel<String> {
 					managersQuery, options, searchManagersResult, getPageBase());
 			Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
 			for (PrismObject<FocusType> manager : managers) {
-				ObjectWrapper<FocusType> managerWrapper = ObjectWrapperUtil.createObjectWrapper(
-						WebComponentUtil.getEffectiveName(manager, RoleType.F_DISPLAY_NAME), "", manager,
-						ContainerStatus.MODIFYING, task, getPageBase());
+				WrapperContext context = new WrapperContext(task, searchManagersResult);
+				PrismObjectWrapper<FocusType> managerWrapper;
+				try {
+					managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
+				} catch (SchemaException e) {
+					LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
+					searchManagersResult.recordFatalError("Cannot create wrapper for: " + manager, e);
+					getPageBase().showResult(searchManagersResult);
+					continue;
+				}
 				WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
 
 				FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, getPageBase());
@@ -471,7 +496,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		final SelectableBean<OrgType> orgToMove = root;
 
 		OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
-				parentPage.getMainPopupBodyId(), false, parentPage) {
+				parentPage.getMainPopupBodyId(), false) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -485,6 +510,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			}
 		};
 
+		orgAssignablePanel.setOutputMarkupId(true);
 		parentPage.showMainPopup(orgAssignablePanel, target);
 
 	}
@@ -677,6 +703,14 @@ public class TreeTablePanel extends BasePanel<String> {
 		}
 		if (orgToDelete.getValue() == null) {
 			return;
+		}
+
+		if (CollectionUtils.isEmpty(orgToDelete.getValue().getParentOrgRef())) {
+			OrgTreeStateStorage storage = getTreePanel().getOrgTreeStateStorage();
+			if (storage != null) {
+				storage.setSelectedTabId(-1);
+			}
+			getTreePanel().setSelectedItem(null, storage);
 		}
 		String oidToDelete = orgToDelete.getValue().getOid();
 		WebModelServiceUtils.deleteObject(OrgType.class, oidToDelete, result, page);

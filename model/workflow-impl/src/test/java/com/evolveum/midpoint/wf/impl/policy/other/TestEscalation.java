@@ -25,12 +25,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -60,9 +61,6 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	}
 
 	@Autowired
-	private ActivitiEngine activitiEngine;
-
-	@Autowired
 	private WorkflowService workflowService;
 
 	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR, "task-trigger-scanner.xml");
@@ -77,8 +75,8 @@ public class TestEscalation extends AbstractWfTestPolicy {
 	protected String roleE1Oid;
 	protected String roleE2Oid;
 	private PrismObject<UserType> userLead1, userLead2;
-	private String workItemId;
-	private String approvalTaskOid;
+	private WorkItemId workItemId;
+	private String approvalCaseOid;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -110,19 +108,19 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		assignRole(userJackOid, roleE1Oid, task, result);				// should start approval process
 		assertNotAssignedRole(userJackOid, roleE1Oid, task, result);
 
-		WorkItemType workItem = getWorkItem(task, result);
-		workItemId = workItem.getExternalId();
+		CaseWorkItemType workItem = getWorkItem(task, result);
+		workItemId = WorkItemId.of(workItem);
 
-		approvalTaskOid = WfContextUtil.getTask(workItem).getOid();
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		approvalCaseOid = CaseWorkItemUtil.getCaseRequired(workItem).getOid();
+		CaseType aCase = getCase(approvalCaseOid);
 
 		display("work item", workItem);
-		display("workflow task", wfTask);
+		display("workflow task", aCase);
 
 		// 5 days: notification
 		// D-2 days: escalate
 		// D-0 days: approve
-		assertEquals("Wrong # of triggers", 3, wfTask.asObjectable().getTrigger().size());
+		assertEquals("Wrong # of triggers", 3, aCase.getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
@@ -142,12 +140,11 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		// TODO assert notifications
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		String wfTaskOid = WfContextUtil.getTask(workItem).getOid();
-		PrismObject<TaskType> wfTask = getTask(wfTaskOid);
-		display("task", wfTask);
-		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("case", aCase);
+		assertEquals("Wrong # of triggers", 2, aCase.getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
@@ -166,15 +163,15 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		clock.overrideDuration("P13D");		// at -P2D (i.e. P12D) there is a delegate action
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-		WorkItemType workItem = getWorkItem(task, result);
+		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("work item", workItem);
-		PrismObject<TaskType> wfTask = getTask(WfContextUtil.getTask(workItem).getOid());
-		display("task", wfTask);
-		assertEquals("Wrong # of triggers", 1, wfTask.asObjectable().getTrigger().size());
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		display("case", aCase);
+		assertEquals("Wrong # of triggers", 1, aCase.getTrigger().size());
 
 		PrismAsserts.assertReferenceValues(ref(workItem.getAssigneeRef()), userLead1Oid, userLead2Oid);
 		PrismAsserts.assertReferenceValue(ref(workItem.getOriginalAssigneeRef()), userLead1Oid);
-		assertEquals("Wrong escalation level number", 1, WfContextUtil.getEscalationLevelNumber(workItem));
+		assertEquals("Wrong escalation level number", 1, ApprovalContextUtil.getEscalationLevelNumber(workItem));
 
 	}
 
@@ -191,13 +188,13 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		clock.overrideDuration("P15D");		// at 0 (i.e. P14D) there is a delegate action
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
-		display("task", wfTask);
-		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
+		CaseType aCase = getCase(approvalCaseOid);
+		display("task", aCase);
+		assertEquals("Wrong # of triggers", 0, aCase.getTrigger().size());
 
-		Task rootTask = taskManager.getTaskByIdentifier(wfTask.asObjectable().getParent(), result);
-		display("rootTask", rootTask);
-		waitForTaskClose(rootTask, 60000);
+		CaseType rootCase = getCase(aCase.getParentRef().getOid());
+		display("rootTask", rootCase);
+		waitForCaseClose(rootCase, 60000);
 
 		assertAssignedRole(userJackOid, roleE1Oid, task, result);
 	}
@@ -221,16 +218,16 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		// THEN
 		assertNotAssignedRole(userJackOid, roleE2Oid, task, result);
 
-		List<WorkItemType> workItems = getWorkItems(task, result);
+		List<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items", workItems);
 
-		approvalTaskOid = WfContextUtil.getTask(workItems.get(0)).getOid();
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
+		approvalCaseOid = CaseWorkItemUtil.getCaseRequired(workItems.get(0)).getOid();
+		CaseType aCase = getCase(approvalCaseOid);
 
-		display("workflow task", wfTask);
+		display("workflow case", aCase);
 
 		// D-0 days: escalate (twice)
-		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+		assertEquals("Wrong # of triggers", 2, aCase.getTrigger().size());
 	}
 
 	@Test
@@ -252,14 +249,14 @@ public class TestEscalation extends AbstractWfTestPolicy {
 
 		// THEN
 
-		SearchResultList<WorkItemType> workItems = getWorkItems(task, result);
+		SearchResultList<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items after deadline", workItems);
 
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
-		display("workflow task", wfTask);
+		CaseType aCase = getCase(approvalCaseOid);
+		display("workflow case", aCase);
 
 		// D-0 days: reject (twice)
-		assertEquals("Wrong # of triggers", 2, wfTask.asObjectable().getTrigger().size());
+		assertEquals("Wrong # of triggers", 2, aCase.getTrigger().size());
 
 		displayCollection("audit records", dummyAuditService.getRecords());
 		display("dummy transport", dummyTransport);
@@ -280,20 +277,20 @@ public class TestEscalation extends AbstractWfTestPolicy {
 		// WHEN
 
 		clock.resetOverride();
-		clock.overrideDuration("P5DT20M");		// at 5D there's a deadline with auto-rejection
+		clock.overrideDuration("P8DT20M");		// at 5D there's a deadline with auto-rejection
 		waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true, 20000, true);
 
 		// THEN
 
-		SearchResultList<WorkItemType> workItems = getWorkItems(task, result);
+		SearchResultList<CaseWorkItemType> workItems = getWorkItems(task, result);
 		displayWorkItems("Work items after deadline", workItems);
 		assertEquals("Wrong # of work items", 0, workItems.size());
 
-		PrismObject<TaskType> wfTask = getTask(approvalTaskOid);
-		display("workflow task", wfTask);
-		assertEquals("Wrong # of triggers", 0, wfTask.asObjectable().getTrigger().size());
+		CaseType aCase = getCase(approvalCaseOid);
+		display("workflow case", aCase);
+		assertEquals("Wrong # of triggers", 0, aCase.getTrigger().size());
 		Map<String, WorkItemCompletionEventType> eventMap = new HashMap<>();
-		for (CaseEventType event : wfTask.asObjectable().getWorkflowContext().getEvent()) {
+		for (CaseEventType event : aCase.getEvent()) {
 			if (event instanceof WorkItemCompletionEventType) {
 				WorkItemCompletionEventType c = (WorkItemCompletionEventType) event;
 				eventMap.put(c.getExternalWorkItemId(), c);
@@ -305,6 +302,7 @@ public class TestEscalation extends AbstractWfTestPolicy {
 				assertEquals("Wrong cause display name in "+c, "Automatic rejection at deadline", c.getCause().getDisplayName());
 			}
 		}
+		display("completion event map", eventMap);
 		assertEquals("Wrong # of completion events", 2, eventMap.size());
 
 		displayCollection("audit records", dummyAuditService.getRecords());

@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.apache.wicket.Component;
 
@@ -38,13 +38,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.getPageBase;
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
 import static com.evolveum.midpoint.schema.GetOperationOptions.*;
 import static com.evolveum.midpoint.schema.SelectorOptions.createCollection;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_WORKFLOW_CONTEXT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.WfContextType.*;
 
 /**
  * @author lazyman
@@ -98,16 +94,17 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             ObjectQuery query = getObjectQuery();
-			query.getPaging().setOffset(safeLongToInteger(first));	// we know the paging object is not null
-			query.getPaging().setMaxSize(safeLongToInteger(count));
-
+            if (query != null && query.getPaging() != null) {
+                query.getPaging().setOffset(safeLongToInteger(first));    // we know the paging object is not null
+                query.getPaging().setMaxSize(safeLongToInteger(count));
+            }
             Collection<SelectorOptions<GetOperationOptions>> options = createCollection(createResolveNames());
-            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, options, opTask, result);
-            for (PrismObject<TaskType> task : tasks) {
+            List<PrismObject<CaseType>> cases = getModel().searchObjects(CaseType.class, query, options, opTask, result);
+            for (PrismObject<CaseType> aCase : cases) {
                 try {
-                    getAvailableData().add(new ProcessInstanceDto(task.asObjectable(), WebComponentUtil.getShortDateTimeFormat(getPage())));
+                    getAvailableData().add(new ProcessInstanceDto(aCase.asObjectable(), WebComponentUtil.getShortDateTimeFormat(getPage())));
                 } catch (Exception e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing workflow task {}", e, task);
+                    LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing workflow task {}", e, aCase);
                     result.recordPartialError("Couldn't list process instance.", e);
                 }
             }
@@ -129,18 +126,20 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
     }
 
     private ObjectQuery getObjectQuery() throws SchemaException {
-        String currentUserOid = currentUser();
-        S_FilterEntry q = getPrismContext().queryFor(TaskType.class);
-        if (requestedBy) {
-            q = q.item(F_WORKFLOW_CONTEXT, F_REQUESTER_REF).ref(currentUserOid).and();
-        }
-        if (requestedFor) {
-            q = q.item(F_OBJECT_REF).ref(currentUserOid).and();
-        }
-        return q
-                .not().item(F_WORKFLOW_CONTEXT, F_PROCESS_INSTANCE_ID).isNull()
-                .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
-                .build();
+        // TODO-WF
+        return null;
+//        String currentUserOid = currentUser();
+//        S_FilterEntry q = getPrismContext().queryFor(TaskType.class);
+//        if (requestedBy) {
+//            q = q.item(F_WORKFLOW_CONTEXT, F_REQUESTOR_REF).ref(currentUserOid).and();
+//        }
+//        if (requestedFor) {
+//            q = q.item(F_OBJECT_REF).ref(currentUserOid).and();
+//        }
+//        return q
+//                .not().item(F_WORKFLOW_CONTEXT, F_CASE_OID).isNull()
+//                .desc(F_WORKFLOW_CONTEXT, F_START_TIMESTAMP)
+//                .build();
     }
 
     @Override

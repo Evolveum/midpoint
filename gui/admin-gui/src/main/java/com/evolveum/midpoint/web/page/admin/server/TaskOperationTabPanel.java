@@ -15,24 +15,25 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author semancik
@@ -44,15 +45,24 @@ public class TaskOperationTabPanel extends AbstractObjectTabPanel<TaskType> impl
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskOperationTabPanel.class);
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	public TaskOperationTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(taskDtoModel, pageBase);
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+		
+	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout() {
 
 		final PropertyModel<ModelOperationStatusDto> operationStatusModel = new PropertyModel<>(taskDtoModel, TaskDto.F_MODEL_OPERATION_STATUS);
 		VisibleEnableBehaviour modelOpBehaviour = new VisibleEnableBehaviour() {

@@ -20,12 +20,14 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Locale;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.LocalizationMessageSource;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -129,8 +131,8 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 			}
 
 			@Override
-			public void updateUser(MidPointPrincipal principal) {
-				userProfileService.updateUser(principal);
+			public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
+				userProfileService.updateUser(principal, itemDeltas);
 			}
 
 			@Override

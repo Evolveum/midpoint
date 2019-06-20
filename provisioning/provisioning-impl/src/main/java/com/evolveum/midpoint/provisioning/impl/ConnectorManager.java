@@ -296,7 +296,6 @@ public class ConnectorManager implements Cacheable {
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
 
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
-
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
@@ -38,6 +39,9 @@ public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenu
 
     @Override
     public Component getHeader(String componentId) {
-        return new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId, menuItems);
+        InlineMenu inlineMenu = new com.evolveum.midpoint.web.component.menu.cog.InlineMenu(componentId, menuItems);
+        inlineMenu.setOutputMarkupPlaceholderTag(true);
+        inlineMenu.setOutputMarkupId(true);
+        return inlineMenu;
     }
 }
