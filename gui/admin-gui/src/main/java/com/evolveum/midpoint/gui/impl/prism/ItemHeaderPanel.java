@@ -136,6 +136,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         	
         	
         });
+		experimental.add(AttributeModifier.replace("title", createStringResource("ItemHeaderPanel.experimentalFeature")));
         experimental.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExperimental()));
         labelContainer.add(experimental);
 
