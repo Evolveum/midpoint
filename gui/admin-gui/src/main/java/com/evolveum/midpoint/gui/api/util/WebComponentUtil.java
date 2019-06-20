@@ -3557,7 +3557,7 @@ public final class WebComponentUtil {
 			return Model.of(sUrl);
 		}
 
-		List<String> segments = RequestCycle.get().getRequest().getUrl().getSegments();
+		List<String> segments = RequestCycle.get().getUrlRenderer().getBaseUrl().getSegments();
 		if (segments == null || segments.size() < 2) {
 			return Model.of(sUrl);
 		}
