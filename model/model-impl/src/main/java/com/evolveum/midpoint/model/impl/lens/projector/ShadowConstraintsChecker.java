@@ -138,9 +138,9 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 				return violation;
 			};
 
-		constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew,
+		constraintsCheckingResult = provisioningService.checkConstraints(projOcDef, projectionNew, projectionContext.getObjectOld(),
 				projectionContext.getResource(), projectionContext.getOid(), projectionContext.getResourceShadowDiscriminator(),
-				confirmer, task, result);
+				confirmer, context.getProjectionConstraintsCheckingStrategy(), task, result);
 
 		if (constraintsCheckingResult.isSatisfiesConstraints()) {
 			satisfiesConstraints = true;

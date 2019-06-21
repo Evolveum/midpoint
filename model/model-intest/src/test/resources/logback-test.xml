@@ -41,6 +41,7 @@
 		
 	<logger name="PROFILING" level="OFF" />
 	<logger name="com.evolveum.midpoint.audit.log" level="TRACE" />
+	<logger name="com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl" level="DEBUG" />	<!-- to show final statistics -->
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->

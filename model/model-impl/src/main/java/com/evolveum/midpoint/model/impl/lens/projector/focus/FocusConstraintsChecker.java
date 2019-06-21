@@ -105,24 +105,34 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	public PrismObject<AH> getConflictingObject() {
 		return conflictingObject;
 	}
-	public void check(PrismObject<AH> objectNew, OperationResult result) throws SchemaException {
+	public boolean check(PrismObject<AH> objectNew, OperationResult parentResult) throws SchemaException {
 
-		if (objectNew == null) {
-			// This must be delete
-			LOGGER.trace("No new object. Therefore it satisfies constraints");
-			satisfiesConstraints = true;
-			return;
-		}
-
-		// Hardcode to name ... for now
-		PolyStringType name = objectNew.asObjectable().getName();
-		if (Cache.isOk(name, cacheConfigurationManager)) {
-			satisfiesConstraints = true;
-		} else {
-			satisfiesConstraints = checkPropertyUniqueness(objectNew, ObjectType.F_NAME, context, result);
-			if (satisfiesConstraints) {
-				Cache.setOk(name);
+		OperationResult result = parentResult.subresult(FocusConstraintsChecker.class.getName() + ".check")
+				.setMinor(true)
+				.build();
+		try {
+			if (objectNew == null) {
+				// This must be delete
+				LOGGER.trace("No new object. Therefore it satisfies constraints");
+				satisfiesConstraints = true;
+			} else {
+				// Hardcode to name ... for now
+				PolyStringType name = objectNew.asObjectable().getName();
+				if (Cache.isOk(name, cacheConfigurationManager)) {
+					satisfiesConstraints = true;
+				} else {
+					satisfiesConstraints = checkPropertyUniqueness(objectNew, ObjectType.F_NAME, context, result);
+					if (satisfiesConstraints) {
+						Cache.setOk(name);
+					}
+				}
 			}
+			return satisfiesConstraints;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 
