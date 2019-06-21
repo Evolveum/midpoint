@@ -767,4 +767,26 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+    <xsd:complexType name="TraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Root type for tracing information that is embedded in OperationResult objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unstructured text information to be used when existing structure is not sufficient.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 </xsd:schema>

@@ -165,6 +165,7 @@ public class Clockwork {
 	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+	@Autowired private Tracer tracer;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -182,6 +183,14 @@ public class Clockwork {
 
 		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
 		try {
+			if (ModelExecuteOptions.isTrace(context.getOptions())) {
+				// todo check authorization
+				result.setTraced(true);
+			}
+			if (result.isTraced()) {
+				result.addGenericTrace(context.debugDump());        // temporary
+			}
+
 			LOGGER.trace("Running clockwork for context {}", context);
 			if (InternalsConfig.consistencyChecks) {
 				context.checkConsistence();
@@ -247,6 +256,10 @@ public class Clockwork {
 		} catch (Throwable t) {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
+		} finally {
+			if (result.isTraced()) {
+				tracer.storeTrace(result);
+			}
 		}
 	}
 

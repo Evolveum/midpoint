@@ -158,6 +158,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 */
 	private Boolean evaluateAllAssignmentRelationsOnRecompute;
 
+	/**
+	 * Traces the model operation execution.
+	 * EXPERIMENTAL. (So not put into XML version of the options yet.)
+	 */
+	private Boolean trace;
+
     public Boolean getForce() {
 		return force;
 	}
@@ -587,7 +593,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setEvaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
 		this.evaluateAllAssignmentRelationsOnRecompute = evaluateAllAssignmentRelationsOnRecompute;
 	}
-
+	
 	public static boolean isEvaluateAllAssignmentRelationsOnRecompute(ModelExecuteOptions options) {
 		return options != null && isTrue(options.evaluateAllAssignmentRelationsOnRecompute);
 	}
@@ -596,6 +602,35 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setEvaluateAllAssignmentRelationsOnRecompute(true);
 		return opts;
+	}
+
+	public Boolean getTrace() {
+		return trace;
+	}
+
+	public void setTrace(Boolean trace) {
+		this.trace = trace;
+	}
+
+	public static boolean isTrace(ModelExecuteOptions options) {
+		if (options == null) {
+			return false;
+		}
+		if (options.trace == null) {
+			return false;
+		}
+		return options.trace;
+	}
+
+	public static ModelExecuteOptions createTrace() {
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setTrace(true);
+		return opts;
+	}
+
+	public ModelExecuteOptions setTrace() {
+		setTrace(true);
+		return this;
 	}
 
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
@@ -698,6 +733,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendVal(sb, "partialProcessing", format(partialProcessing));
     	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
     	appendVal(sb, "focusConflictResolution", focusConflictResolution);
+    	appendVal(sb, "trace", trace);
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();

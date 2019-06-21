@@ -15583,6 +15583,69 @@
             <xsd:element name="operation" type="xsd:string"/>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false"/>
+			<xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the operation started.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the operation finished.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="microseconds" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How long the operation took (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="invocationId" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						ID of the operation invocation (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- tracing is temporarily at the top -->
+			<xsd:element name="traced" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is the operation traced?
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="trace" type="tns:TraceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Tracing details (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="count" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="hiddenRecordsCount" type="xsd:int" minOccurs="0" default="0"/>
             <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
