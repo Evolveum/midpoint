@@ -15,11 +15,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-import java.util.Collection;
 import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -36,31 +34,21 @@ import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -84,9 +72,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 public class AssignmentHolderProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderProcessor.class);
-
-	private PrismContainerDefinition<ActivationType> activationDefinition;
-	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
 
 	@Autowired private ContextLoader contextLoader;
 	@Autowired private InboundProcessor inboundProcessor;
@@ -145,11 +130,14 @@ public class AssignmentHolderProcessor {
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
 		boolean resetOnRename = true; // This is fixed now. TODO: make it configurable
-		int maxIterations = 0;
-		IterationSpecificationType iterationSpecificationType = null;
+		int maxIterations;
+		IterationSpecificationType iterationSpecificationType;
 		if (objectTemplate != null) {
 			iterationSpecificationType = objectTemplate.getIterationSpecification();
 			maxIterations = LensUtil.determineMaxIterations(iterationSpecificationType);
+		} else {
+			iterationSpecificationType = null;
+			maxIterations = 0;
 		}
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
@@ -328,6 +316,21 @@ public class AssignmentHolderProcessor {
 		        	}
 		        }
 
+				ConstraintsCheckingStrategyType strategy = context.getFocusConstraintsCheckingStrategy();
+				boolean skipWhenNoChange = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoChange());
+				boolean skipWhenNoIteration = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoIteration());
+
+				boolean checkConstraints;
+				if (skipWhenNoChange && !hasNameDelta(focusContext)) {
+					LOGGER.trace("Skipping constraints check because 'skipWhenNoChange' is true and there's no name delta");
+					checkConstraints = false;
+				} else if (skipWhenNoIteration && maxIterations == 0) {
+					LOGGER.trace("Skipping constraints check because 'skipWhenNoIteration' is true and there is no iteration defined");
+					checkConstraints = false;
+				} else {
+					checkConstraints = true;
+				}
+
 				PrismObject<AH> previewObjectNew = focusContext.getObjectNew();
 				if (previewObjectNew == null) {
 					// this must be delete
@@ -347,8 +350,8 @@ public class AssignmentHolderProcessor {
 		        checker.setContext(context);
 		        checker.setRepositoryService(cacheRepositoryService);
 		        checker.setCacheConfigurationManager(cacheConfigurationManager);
-		        checker.check(previewObjectNew, result);
-		        if (checker.isSatisfiesConstraints()) {
+		        boolean satisfies = !checkConstraints || checker.check(previewObjectNew, result);
+				if (satisfies) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 		        	ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 		        			null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
@@ -457,6 +460,15 @@ public class AssignmentHolderProcessor {
 			return false;
 		}
 		// Check for rename
+		return hasNameDelta(focusDelta);
+	}
+
+	private <AH extends AssignmentHolderType> boolean hasNameDelta(LensFocusContext<AH> focusContext) throws SchemaException {
+		ObjectDelta<AH> focusDelta = focusContext.getDelta();
+		return focusDelta != null && hasNameDelta(focusDelta);
+	}
+
+	private <AH extends AssignmentHolderType> boolean hasNameDelta(ObjectDelta<AH> focusDelta) {
 		PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
 		return nameDelta != null;
 	}

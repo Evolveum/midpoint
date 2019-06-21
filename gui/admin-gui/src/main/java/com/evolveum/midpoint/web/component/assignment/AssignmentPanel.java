@@ -970,9 +970,9 @@ protected ItemVisibility getSpecificContainersItemsVisibility(ItemWrapper itemWr
 
 						if (targetRef != null && targetRef.getValues() != null && targetRef.getValues().size() > 0) {
 							PrismReferenceValueWrapperImpl<ObjectReferenceType> refWrapper = (PrismReferenceValueWrapperImpl<ObjectReferenceType>)targetRef.getValues().get(0);
-							ObjectReferenceType ort = refWrapper.getRealValue();
-							if (!StringUtils.isEmpty(ort.getOid())) {
-								WebComponentUtil.dispatchToObjectDetailsPage(ort, AssignmentPanel.this, false);
+							if (!StringUtils.isEmpty(refWrapper.getNewValue().getOid())) {
+								Class<? extends ObjectType> targetClass = ObjectTypes.getObjectTypeFromTypeQName(refWrapper.getRealValue().getType()).getClassDefinition();
+								WebComponentUtil.dispatchToObjectDetailsPage(targetClass, refWrapper.getNewValue().getOid(), AssignmentPanel.this, false);
 							}
 						}
 					}

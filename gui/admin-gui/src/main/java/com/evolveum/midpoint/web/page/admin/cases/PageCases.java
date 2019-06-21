@@ -15,6 +15,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -84,132 +85,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
     protected List<IColumn<SelectableBean<CaseType>, String>> initColumns() {
         LOGGER.trace("initColumns()");
 
-        List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
-
-        IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
-        columns.add(column);
-
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "objectRef"){
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return getObjectRef(rowModel);
-                    }
-                }));
-            }
-        };
-        columns.add(column);
-
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
-                item.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        String actors = null;
-                        SelectableBean<CaseType> caseModel = rowModel.getObject();
-                        if (caseModel != null) {
-                            CaseType caseIntance = caseModel.getValue();
-                            if (caseIntance != null) {
-                                List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
-                                List<String> actorsList = new ArrayList<String>();
-                                for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
-                                    List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
-                                    for (ObjectReferenceType actor : assignees) {
-                                        actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, PageCases.this,
-                                                OPERATION_LOAD_REFERENCE_DISPLAY_NAME));
-                                    }
-                                }
-                                actors = String.join(", ", actorsList);
-                            }
-                        }
-                        return actors;
-                    }
-                }));
-            }
-        };
-        columns.add(column);
-
-        column = new AbstractColumn<SelectableBean<CaseType>, String>(
-                createStringResource("pageCases.table.openTimestamp"),
-                MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType object = rowModel.getObject().getValue();
-                MetadataType metadata = object != null ? object.getMetadata() : null;
-                XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
-                final Date created;
-                if (createdCal != null) {
-                    created = createdCal.toGregorianCalendar().getTime();
-//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
-//                    cellItem.add(new TooltipBehavior());
-                } else {
-                    created = null;
-                }
-                cellItem.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormattedValue(created, PageCases.this);
-                    }
-                }));
-            }
-        };
-        columns.add(column);
-
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                     String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
-                CaseType object = rowModel.getObject().getValue();
-                XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
-                final Date closed;
-                if (closedCal != null) {
-                    closed = closedCal.toGregorianCalendar().getTime();
-//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
-//                    cellItem.add(new TooltipBehavior());
-                } else {
-                    closed = null;
-                }
-                cellItem.add(new Label(componentId, new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return WebComponentUtil.getShortDateTimeFormattedValue(closed, PageCases.this);
-                    }
-                }));
-            }
-        };
-        columns.add(column);
-
-        column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
-        columns.add(column);
-
-        column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
-                createStringResource("pageCases.table.workitems")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
-                                     String componentId, IModel<SelectableBean<CaseType>> model) {
-                cellItem.add(new Label(componentId,
-                        model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
-                                model.getObject().getValue().getWorkItem().size() : null));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
-                return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getWorkItem() != null ?
-                        Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
-            }
-
-
-        };
-        columns.add(column);
-        return columns;
+        return ColumnUtils.getDefaultCaseColumns(PageCases.this);
     }
 
     @Override
