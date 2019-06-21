@@ -753,7 +753,9 @@ public class ExpressionUtil {
 		if (filter instanceof InOidFilter) {
 			ExpressionWrapper expressionWrapper = ((InOidFilter) filter).getExpression();
 			if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
-				LOGGER.warn("No valueExpression in filter in {}. Returning original filter", shortDesc);
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No valueExpression in filter in {}. Returning original filter", shortDesc);
+				}
 				InOidFilter inOidFilter = (InOidFilter) filter;
 				if (inOidFilter.getOids() != null && !inOidFilter.getOids().isEmpty()){
 					return filter.clone();
