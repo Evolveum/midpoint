@@ -23,8 +23,10 @@ import java.util.*;
 import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
+import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -64,19 +66,13 @@ import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
-import com.evolveum.midpoint.web.page.admin.workflow.ProcessInstancesPanel;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -224,8 +220,8 @@ public class PageSelfDashboard extends PageSelf {
         });
         add(workItemsPanel);
 
-        AsyncDashboardPanel<Object, List<ProcessInstanceDto>> myRequestsPanel =
-                new AsyncDashboardPanel<Object, List<ProcessInstanceDto>>(ID_REQUESTS_PANEL,
+        AsyncDashboardPanel<Object, List<CaseType>> myRequestsPanel =
+                new AsyncDashboardPanel<Object, List<CaseType>>(ID_REQUESTS_PANEL,
                         createStringResource("PageSelfDashboard.myRequests"),
                 		 GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
                         GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES, true) {
@@ -233,15 +229,15 @@ public class PageSelfDashboard extends PageSelf {
         			private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>> createCallable(
+                    protected SecurityContextAwareCallable<CallableResult<List<CaseType>>> createCallable(
                             Authentication auth, IModel callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<ProcessInstanceDto>>>(
+                        return new SecurityContextAwareCallable<CallableResult<List<CaseType>>>(
                         		getSecurityContextManager(), auth) {
                         	private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<ProcessInstanceDto>> callWithContextPrepared() throws Exception {
+                            public CallableResult<List<CaseType>> callWithContextPrepared() throws Exception {
 								setupContext(application, session);
                                 return loadMyRequests();
                             }
@@ -250,16 +246,22 @@ public class PageSelfDashboard extends PageSelf {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-						ISortableDataProvider provider = new ListDataProvider(this,
-                                new PropertyModel<List<ProcessInstanceDto>>(getModel(), CallableResult.F_VALUE));
-                        return new ProcessInstancesPanel(markupId, provider, null, 10, ProcessInstancesPanel.View.DASHBOARD, null){
+                        CasesListPanel casesPanel = new CasesListPanel(markupId) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected boolean hideFooterIfSinglePage(){
+                            protected ObjectFilter getCasesFilter() {
+                                return QueryUtils.filterForMyRequests(getPrismContext().queryFor(CaseType.class),
+                                        SecurityUtils.getPrincipalUser().getOid())
+                                        .buildFilter();
+                            }
+
+                            @Override
+                            protected boolean isDashboard(){
                                 return true;
                             }
                         };
+                        return casesPanel;
                     }
                 };
 
@@ -327,21 +329,44 @@ public class PageSelfDashboard extends PageSelf {
         return callableResult;
     }
 
-    private CallableResult<List<ProcessInstanceDto>> loadMyRequests() {
+    private CallableResult<List<CaseType>> loadMyRequests() {
 
         LOGGER.debug("Loading requests.");
 
-        AccountCallableResult<List<ProcessInstanceDto>> callableResult = new AccountCallableResult<>();
-        List<ProcessInstanceDto> list = new ArrayList<>();
+        AccountCallableResult<List<CaseType>> callableResult = new AccountCallableResult<>();
+        List<CaseType> list = new ArrayList<>();
         callableResult.setValue(list);
 
         if (!getWorkflowManager().isEnabled()) {
             return callableResult;
         }
 
-		ProcessInstanceDtoProvider provider = new ProcessInstanceDtoProvider(this, true, false);
-		provider.iterator(0, Integer.MAX_VALUE);
-		callableResult.setValue(provider.getAvailableData());
+        PrismObject<UserType> user = principalModel.getObject();
+        if (user == null) {
+            return callableResult;
+        }
+
+        Task task = createSimpleTask(OPERATION_LOAD_REQUESTS);
+        OperationResult result = task.getResult();
+        callableResult.setResult(result);
+
+        try {
+            S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseType.class);
+            ObjectQuery query = QueryUtils.filterForMyRequests(q, user.getOid())
+                    .build();
+            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
+                    .item(CaseType.F_OBJECT_REF).resolve()
+                    .item(CaseType.F_TARGET_REF).resolve()
+                    .build();
+            List<PrismObject<CaseType>> cases = getModelService().searchObjects(CaseType.class, query, options, task, result);
+            cases.forEach(caseObj -> list.add(caseObj.asObjectable()));
+            callableResult.setValue(list);
+        } catch (Exception e) {
+            result.recordFatalError("Couldn't get list of work items.", e);
+        }
+
+        result.recordSuccessIfUnknown();
+        result.recomputeStatus();
 
         LOGGER.debug("Finished requests loading.");
 

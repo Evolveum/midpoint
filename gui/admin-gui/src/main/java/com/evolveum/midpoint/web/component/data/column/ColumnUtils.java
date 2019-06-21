@@ -32,8 +32,11 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.cases.PageCases;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -50,6 +53,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 
@@ -618,6 +622,141 @@ public class ColumnUtils {
 				return Model.of(ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
 			}
 		});
+		return columns;
+	}
+
+	public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase) {
+
+		List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
+
+		IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
+		columns.add(column);
+
+		column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "objectRef"){
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+				item.add(new Label(componentId, new IModel<String>() {
+					@Override
+					public String getObject() {
+						CaseType caseModelObject = rowModel.getObject().getValue();
+						if (caseModelObject == null || caseModelObject.getObjectRef() == null) {
+							return "";
+						}
+						return WebComponentUtil.getEffectiveName(caseModelObject.getObjectRef(), AbstractRoleType.F_DISPLAY_NAME, pageBase,
+								pageBase.getClass().getSimpleName() + "." + "loadCaseObjectRefName");
+					}
+				}));
+			}
+		};
+		columns.add(column);
+
+		column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.actors")){
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
+				item.add(new Label(componentId, new IModel<String>() {
+					@Override
+					public String getObject() {
+						String actors = null;
+						SelectableBean<CaseType> caseModel = rowModel.getObject();
+						if (caseModel != null) {
+							CaseType caseIntance = caseModel.getValue();
+							if (caseIntance != null) {
+								List<CaseWorkItemType> caseWorkItemTypes = caseIntance.getWorkItem();
+								List<String> actorsList = new ArrayList<String>();
+								for (CaseWorkItemType caseWorkItem : caseWorkItemTypes) {
+									List<ObjectReferenceType> assignees = caseWorkItem.getAssigneeRef();
+									for (ObjectReferenceType actor : assignees) {
+										actorsList.add(WebComponentUtil.getEffectiveName(actor, AbstractRoleType.F_DISPLAY_NAME, pageBase,
+												pageBase.getClass().getSimpleName() + "." + "loadCaseActorsNames"));
+									}
+								}
+								actors = String.join(", ", actorsList);
+							}
+						}
+						return actors;
+					}
+				}));
+			}
+		};
+		columns.add(column);
+
+		column = new AbstractColumn<SelectableBean<CaseType>, String>(
+				createStringResource("pageCases.table.openTimestamp"),
+				MetadataType.F_CREATE_TIMESTAMP.getLocalPart()) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+									 String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+				CaseType object = rowModel.getObject().getValue();
+				MetadataType metadata = object != null ? object.getMetadata() : null;
+				XMLGregorianCalendar createdCal = metadata != null ? metadata.getCreateTimestamp() : null;
+				final Date created;
+				if (createdCal != null) {
+					created = createdCal.toGregorianCalendar().getTime();
+//                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
+//                    cellItem.add(new TooltipBehavior());
+				} else {
+					created = null;
+				}
+				cellItem.add(new Label(componentId, new IModel<String>() {
+					@Override
+					public String getObject() {
+						return WebComponentUtil.getShortDateTimeFormattedValue(created, pageBase);
+					}
+				}));
+			}
+		};
+		columns.add(column);
+
+		column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.closeTimestamp"), CaseType.F_CLOSE_TIMESTAMP.getLocalPart(), "value.closeTimestamp") {
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+									 String componentId, final IModel<SelectableBean<CaseType>> rowModel) {
+				CaseType object = rowModel.getObject().getValue();
+				XMLGregorianCalendar closedCal = object != null ? object.getCloseTimestamp() : null;
+				final Date closed;
+				if (closedCal != null) {
+					closed = closedCal.toGregorianCalendar().getTime();
+                    cellItem.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    cellItem.add(new TooltipBehavior());
+				} else {
+					closed = null;
+				}
+				cellItem.add(new Label(componentId, new IModel<String>() {
+					@Override
+					public String getObject() {
+						return WebComponentUtil.getShortDateTimeFormattedValue(closed, pageBase);
+					}
+				}));
+			}
+		};
+		columns.add(column);
+
+		column = new PropertyColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.state"), CaseType.F_STATE.getLocalPart(), "value.state");
+		columns.add(column);
+
+		column = new AbstractExportableColumn<SelectableBean<CaseType>, String>(
+				createStringResource("pageCases.table.workitems")) {
+
+			@Override
+			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> cellItem,
+									 String componentId, IModel<SelectableBean<CaseType>> model) {
+				cellItem.add(new Label(componentId,
+						model.getObject().getValue() != null && model.getObject().getValue().getWorkItem() != null ?
+								model.getObject().getValue().getWorkItem().size() : null));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+				return Model.of(rowModel.getObject().getValue() != null && rowModel.getObject().getValue().getWorkItem() != null ?
+						Integer.toString(rowModel.getObject().getValue().getWorkItem().size()) : "");
+			}
+
+
+		};
+		columns.add(column);
 		return columns;
 	}
 
