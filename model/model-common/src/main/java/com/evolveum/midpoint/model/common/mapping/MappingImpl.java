@@ -1761,6 +1761,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 					new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
 			return addVariableDefinition(name, (Object)value, def);
 		}
+		
+		public Builder<V, D> addVariableDefinition(String name, boolean value) {
+			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+					new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
+			return addVariableDefinition(name, (Object)value, def);
+		}
 
 		public Builder<V, D> addVariableDefinition(String name, int value) {
 			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
