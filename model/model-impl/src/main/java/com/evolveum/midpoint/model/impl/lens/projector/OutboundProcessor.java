@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -203,7 +204,7 @@ public class OutboundProcessor {
 //			LOGGER.trace("Skipping outbound mapping for {} because it is weak", mappingQName);
 //			return null;
 //		}
-
+		
 		mappingBuilder.defaultTargetDefinition(targetDefinition);
 		mappingBuilder.sourceContext(focusOdo);
 		mappingBuilder.mappingQName(mappingQName);
@@ -219,6 +220,10 @@ public class OutboundProcessor {
 				LensUtil.getIterationTokenVariableValue(projCtx), String.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), ResourceType.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
+		
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_LEGAL, projCtx.isLegal());
+        mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNED, projCtx.isAssigned());
+        
 		if (assocTargetObjectClassDefinition != null) {
 			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
 					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
