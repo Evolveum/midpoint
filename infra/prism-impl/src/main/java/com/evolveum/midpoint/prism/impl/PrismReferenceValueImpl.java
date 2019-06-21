@@ -543,6 +543,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 				}
 			}
 			referencable.setupReferenceValue(this);
+			return referencable;
 		}
 
 		// A hack, just to avoid crashes. TODO think about this!
