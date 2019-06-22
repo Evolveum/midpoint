@@ -335,7 +335,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		try {
 			if (!isNonScavengingWorker()) {     // todo configure this somehow
-				workerTask.startDynamicProfilingIfNeeded(coordinatorTask);
+				int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
+				workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
+				coordinatorTask.requestTracingIfNeeded(result, objectsSeen);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());

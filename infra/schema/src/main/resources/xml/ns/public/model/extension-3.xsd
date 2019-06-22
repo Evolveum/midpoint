@@ -440,7 +440,6 @@
 		</xsd:annotation>
 	</xsd:element>
 
-    <!-- not yet used -->
     <xsd:element name="profilingInterval" type="xsd:int">
         <xsd:annotation>
             <xsd:documentation>
@@ -451,6 +450,36 @@
             <xsd:appinfo>
                 <a:displayName>Profiling interval</a:displayName>
                 <a:displayOrder>850</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracingInterval" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Traces processing of each N-th object.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Tracing interval</a:displayName>
+                <a:displayOrder>851</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="tracingProfile" type="c:TracingProfileType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Tracing profile to be used.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Tracing profile</a:displayName>
+                <a:displayOrder>852</a:displayOrder>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>1</a:maxOccurs>
             </xsd:appinfo>

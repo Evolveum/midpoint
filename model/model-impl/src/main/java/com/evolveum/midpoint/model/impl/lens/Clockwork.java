@@ -28,17 +28,16 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +48,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -109,23 +107,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HookListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HookType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelHooksType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -174,7 +155,6 @@ public class Clockwork {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
 
-
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
@@ -183,12 +163,15 @@ public class Clockwork {
 
 		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
 		try {
-			if (ModelExecuteOptions.isTrace(context.getOptions())) {
+			TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
+			if (tracingProfile != null) {
 				// todo check authorization
-				result.setTraced(true);
+				result.startTracing(tracer.resolve(tracingProfile, result));
 			}
 			if (result.isTraced()) {
-				result.addGenericTrace(context.debugDump());        // temporary
+				ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+				trace.getText().add(context.debugDump());
+				result.addTrace(trace);
 			}
 
 			LOGGER.trace("Running clockwork for context {}", context);

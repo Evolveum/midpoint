@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,12 +38,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author semancik
@@ -778,5 +783,27 @@ public class MiscUtil {
 			map.put((K)params[i], (V)params[i+1]);
 		}
 		return map;
+	}
+
+	public static void writeZipFile(File file, String entryName, String content, Charset charset) throws IOException {
+		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(file))) {
+			ZipEntry zipEntry = new ZipEntry(entryName);
+			zipOut.putNextEntry(zipEntry);
+			zipOut.write(content.getBytes(charset));
+		}
+	}
+
+	// More serious would be to read XML directly from the input stream -- fixme some day
+	// We should probably implement reading from ZIP file directly in PrismContext
+	@SuppressWarnings("unused")     // used externally
+	public static String readZipFile(File file, Charset charset) throws IOException {
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
+			ZipEntry zipEntry = zis.getNextEntry();
+			if (zipEntry != null) {
+				return String.join("\n", IOUtils.readLines(zis, charset));
+			} else {
+				return null;
+			}
+		}
 	}
 }

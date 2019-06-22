@@ -17199,6 +17199,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="tracing" type="tns:TracingConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Tracing configuration, including profiles to be selected from.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>InternalsConfigurationType.tracing</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="repository" type="tns:RepositoryConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -17413,6 +17425,29 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<xsd:complexType name="TracingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Tracing configuration, including profiles to be selected from.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="profile" type="tns:TracingProfileType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of tracing profiles.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="tracingConfiguration" type="tns:TracingConfigurationType" />
 
 	<xsd:complexType name="CachingConfigurationType">
 		<xsd:annotation>
@@ -21897,6 +21932,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000343">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_TRACE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

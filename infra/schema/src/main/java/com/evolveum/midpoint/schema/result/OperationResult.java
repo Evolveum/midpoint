@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.result;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -33,7 +34,7 @@ import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -44,9 +45,6 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TraceType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -141,7 +139,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private long microseconds;
 	private long invocationId;
 
-	private boolean traced;
+	private boolean tracingRoot;                    // whether we are the tracing root (the tracing profile is stored in the root)
+	private TracingProfileType tracingProfile;
 	private final List<TraceType> traces = new ArrayList<>();
 
 	/**
@@ -474,9 +473,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
-		if (traced) {
-			subresult.traced = true;
-		}
+		subresult.tracingProfile = tracingProfile;
 	}
 
 	public OperationResult findSubresult(String operation) {
@@ -841,8 +838,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
 	}
 
-	public void addGenericTrace(String text) {
-		traces.add(new TraceType().text(text));
+	public void addTrace(TraceType trace) {
+		traces.add(trace);
+	}
+
+	public void startTracing(@NotNull TracingProfileType profile) {
+		this.tracingRoot = true;
+		this.tracingProfile = profile;
 	}
 
 	public static class PreviewResult {
@@ -1564,9 +1566,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			resultType.setMicroseconds(opResult.microseconds);
 		}
 		resultType.setInvocationId(opResult.invocationId);
-		if (opResult.traced) {
-			resultType.setTraced(true);
-		}
 		resultType.getTrace().addAll(opResult.traces);           // consider cloning here
 		return resultType;
 	}
@@ -1741,6 +1740,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * to the IAE that this method produces for easier debugging.
 	 */
 	public void cleanupResult(Throwable e) {
+
+		if (isTraced()) {
+			return;         // TEMPORARY fixme
+		}
+
 		if (status == OperationResultStatus.UNKNOWN) {
 			LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
 			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
@@ -2033,7 +2037,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.end = end;
         clone.microseconds = microseconds;
         clone.invocationId = invocationId;
-        clone.traced = traced;
         clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
 
         clone.building = building;
@@ -2081,7 +2084,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				end == result.end &&
 				microseconds == result.microseconds &&
 				invocationId == result.invocationId &&
-				traced == result.traced &&
+				tracingRoot == result.tracingRoot &&
+				Objects.equals(tracingProfile, result.tracingProfile) &&
 				Objects.equals(operation, result.operation) &&
 				status == result.status &&
 				Objects.equals(params, result.params) &&
@@ -2104,7 +2108,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				.hash(operation, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
 						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
 						minor,
-						building, futureParent, start, end, microseconds, invocationId, traced, traces,
+						building, futureParent, start, end, microseconds, invocationId, traces,
 						asynchronousOperationReference);
 	}
 
@@ -2125,11 +2129,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public boolean isTraced() {
-		return traced;
+		return tracingProfile != null;
 	}
 
-	public void setTraced(boolean traced) {
-		this.traced = traced;
+	public TracingProfileType getTracingProfile() {
+		return tracingProfile;
 	}
 
 	public List<TraceType> getTraces() {
