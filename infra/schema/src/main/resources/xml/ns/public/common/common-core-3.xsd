@@ -17253,7 +17253,18 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<a:since>4.0</a:since>
-						<a:displayName>InternalsConfigurationType.synchronizationSituationUpdate</a:displayName>
+						<a:displayName>InternalsConfigurationType.synchronizationSituationUpdating</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="operationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How operationExecution records should be updated.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>InternalsConfigurationType.operationExecutionRecording</a:displayName>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -17286,6 +17297,39 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="synchronizationSituationUpdatingStrategy" type="tns:SynchronizationSituationUpdatingStrategyType" />
+
+	<xsd:complexType name="OperationExecutionRecordingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How operationExecution records should be updated.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="skipWhenSuccess" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation execution records are not updated if the operation result is success. (The default is false.)
+						This setting can be used to improve performance.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="skip" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation execution records are not updated at all. (The default is false.)
+						This is to be used only in exceptional cases.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="operationExecutionRecordingStrategy" type="tns:OperationExecutionRecordingStrategyType" />
 
 	<xsd:complexType name="ConstraintsCheckingStrategyType">
 		<xsd:annotation>
