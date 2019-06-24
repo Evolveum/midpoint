@@ -368,6 +368,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return systemConfiguration;
 	}
 
+	public InternalsConfigurationType getInternalsConfiguration() {
+		return systemConfiguration != null ? systemConfiguration.asObjectable().getInternals() : null;
+	}
+
 	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
 	}

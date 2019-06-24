@@ -17246,9 +17246,46 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="synchronizationSituationUpdating" type="tns:SynchronizationSituationUpdatingStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How synchronization situation in shadows should be updated.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>InternalsConfigurationType.synchronizationSituationUpdate</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+	<xsd:complexType name="SynchronizationSituationUpdatingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How synchronization situation in shadows should be updated.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO we could perhaps skip also object read operation in updateSituationInShadow method -->
+			<xsd:element name="skipWhenNoChange" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation update is skipped if there's no change. The default is false.
+						(This will be probably replaced by more sophisticated condition.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="synchronizationSituationUpdatingStrategy" type="tns:SynchronizationSituationUpdatingStrategyType" />
 
 	<xsd:complexType name="ConstraintsCheckingStrategyType">
 		<xsd:annotation>
