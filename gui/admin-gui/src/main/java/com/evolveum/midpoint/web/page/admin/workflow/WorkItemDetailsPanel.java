@@ -26,9 +26,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * Created by honchar
@@ -88,6 +92,8 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         target.setOutputMarkupId(true);
         add(target);
 
+        add(new Label(ID_COMMENT, CaseTypeUtil.getRequesterComment(CaseTypeUtil.getCase(getModelObject()))));
+
         CaseType parentCase = CaseTypeUtil.getCase(getModelObject());
         EvaluatedTriggerGroupListPanel reasonPanel = new EvaluatedTriggerGroupListPanel(ID_REASON,
                 Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getApprovalContext() : null,
@@ -96,7 +102,6 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         add(reasonPanel);
 
         add(new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel));
-
 
     }
 }

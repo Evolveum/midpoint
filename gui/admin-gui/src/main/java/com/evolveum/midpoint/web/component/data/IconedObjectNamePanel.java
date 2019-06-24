@@ -23,6 +23,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -84,9 +85,16 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
         setOutputMarkupId(true);
 
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(referencedObjectModel.getObject(), getPageBase());
+        if (displayType == null){
+            displayType = new DisplayType();
+        }
+        if (displayType.getIcon() == null){
+            displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(
+                    WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObjectModel.getObject().getClass()))));
+        }
         ImagePanel imagePanel = new ImagePanel(ID_ICON, displayType);
         imagePanel.setOutputMarkupId(true);
-        imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
+//        imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
         add(imagePanel);
 
         Label nameLabel = new Label(ID_NAME, Model.of(WebComponentUtil.getEffectiveName(referencedObjectModel.getObject(), AbstractRoleType.F_DISPLAY_NAME)));

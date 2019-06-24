@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -62,5 +63,10 @@ public class CaseTypeUtil {
 
     public static XMLGregorianCalendar getStartTimestamp(CaseType aCase) {
         return aCase != null && aCase.getMetadata() != null ? aCase.getMetadata().getCreateTimestamp() : null;
+    }
+
+    public static String getRequesterComment(CaseType aCase) {
+        OperationBusinessContextType businessContext = ApprovalContextUtil.getBusinessContext(aCase);
+        return businessContext != null ? businessContext.getComment() : null;
     }
 }
