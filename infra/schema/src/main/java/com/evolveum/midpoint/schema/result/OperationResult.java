@@ -131,16 +131,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizeSuccesses;
 	private boolean minor = false;
 
-	private boolean building = true;        // experimental
-	private OperationResult futureParent;   // experimental
+	private boolean building = true;        // experimental (NOT SERIALIZED)
+	private OperationResult futureParent;   // experimental (NOT SERIALIZED)
 
-	private long start;
-	private long end;
-	private long microseconds;
-	private long invocationId;
+	private Long start;
+	private Long end;
+	private Long microseconds;
+	private Long invocationId;
 
-	private boolean tracingRoot;                    // whether we are the tracing root (the tracing profile is stored in the root)
-	private TracingProfileType tracingProfile;
+	private TracingProfileType tracingProfile;      // NOT SERIALIZED
+
 	private final List<TraceType> traces = new ArrayList<>();
 
 	/**
@@ -843,7 +843,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void startTracing(@NotNull TracingProfileType profile) {
-		this.tracingRoot = true;
 		this.tracingProfile = profile;
 	}
 
@@ -1491,6 +1490,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (result.getHiddenRecordsCount() != null) {
 			opResult.setHiddenRecordsCount(result.getHiddenRecordsCount());
 		}
+		if (result.getStart() != null) {
+			opResult.setStart(XmlTypeConverter.toMillis(result.getStart()));
+		}
+		if (result.getEnd() != null) {
+			opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
+		}
+		opResult.setMicroseconds(result.getMicroseconds());
+		opResult.setInvocationId(result.getInvocationId());
 		return opResult;
 	}
 
@@ -1562,9 +1569,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 		resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
 		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
-		if (opResult.microseconds != 0) {
-			resultType.setMicroseconds(opResult.microseconds);
-		}
+		resultType.setMicroseconds(opResult.microseconds);
 		resultType.setInvocationId(opResult.invocationId);
 		resultType.getTrace().addAll(opResult.traces);           // consider cloning here
 		return resultType;
@@ -2080,11 +2085,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				summarizeSuccesses == result.summarizeSuccesses &&
 				minor == result.minor &&
 				building == result.building &&
-				start == result.start &&
-				end == result.end &&
-				microseconds == result.microseconds &&
-				invocationId == result.invocationId &&
-				tracingRoot == result.tracingRoot &&
+				Objects.equals(start, result.start) &&
+				Objects.equals(end, result.end) &&
+				Objects.equals(microseconds, result.microseconds) &&
+				Objects.equals(invocationId, result.invocationId) &&
 				Objects.equals(tracingProfile, result.tracingProfile) &&
 				Objects.equals(operation, result.operation) &&
 				status == result.status &&
@@ -2097,7 +2101,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				Objects.equals(cause, result.cause) &&
 				Objects.equals(subresults, result.subresults) &&
 				Objects.equals(details, result.details) &&
-				Objects.equals(futureParent, result.futureParent) &&
 				Objects.equals(traces, result.traces) &&
 				Objects.equals(asynchronousOperationReference, result.asynchronousOperationReference);
 	}
@@ -2107,25 +2110,40 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return Objects
 				.hash(operation, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
 						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
-						minor,
-						building, futureParent, start, end, microseconds, invocationId, traces,
+						minor, building, start, end, microseconds, invocationId, traces,
 						asynchronousOperationReference);
 	}
 
-	public long getStart() {
+	public Long getStart() {
 		return start;
 	}
 
-	public long getEnd() {
+	public void setStart(Long start) {
+		this.start = start;
+	}
+
+	public Long getEnd() {
 		return end;
 	}
 
-	public long getMicroseconds() {
+	public void setEnd(Long end) {
+		this.end = end;
+	}
+
+	public Long getMicroseconds() {
 		return microseconds;
 	}
 
-	public long getInvocationId() {
+	public void setMicroseconds(Long microseconds) {
+		this.microseconds = microseconds;
+	}
+
+	public Long getInvocationId() {
 		return invocationId;
+	}
+
+	public void setInvocationId(Long invocationId) {
+		this.invocationId = invocationId;
 	}
 
 	public boolean isTraced() {
