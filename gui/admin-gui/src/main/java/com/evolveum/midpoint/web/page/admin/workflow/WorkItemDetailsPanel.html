@@ -57,5 +57,20 @@
     </div>
 
     <div wicket:id="deltasToBeApproved"/>
+
+    <div class="box box-info" wicket:id="additionalAttributes">
+        <div class="box-header">
+            <h3 class="box-title"><wicket:message key="workItemPanel.additionalAttributes"/></h3>
+        </div>
+        <div class="box-body">
+            <div wicket:id="customForm" />
+        </div>
+    </div>
+
+
+    <h3><wicket:message key="workItemPanel.approverComment"/></h3>
+    <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
+    <p/>
+
 </wicket:panel>
 </html>
