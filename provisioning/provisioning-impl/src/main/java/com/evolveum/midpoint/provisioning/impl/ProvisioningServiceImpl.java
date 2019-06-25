@@ -698,14 +698,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// getting object to modify
 		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
-		}
+		LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
 		try {
 
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
+				//noinspection unchecked
 				oid = shadowCache.modifyShadow((PrismObject<ShadowType>)repoShadow, modifications, scripts, options, task,
 					result);
 			} else {
@@ -1293,34 +1292,40 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
-													  PrismObject<ShadowType> shadowObject,
-													  ResourceType resourceType,
-													  String shadowOid,
-													  ResourceShadowDiscriminator resourceShadowDiscriminator,
-													  ConstraintViolationConfirmer constraintViolationConfirmer,
-													  Task task, OperationResult parentResult)
-					  throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+			PrismObject<ShadowType> shadowObject,
+			PrismObject<ShadowType> shadowObjectOld,
+			ResourceType resourceType, String shadowOid,
+			ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer,
+			ConstraintsCheckingStrategyType strategy,
+			Task task, OperationResult parentResult) throws CommunicationException, SchemaException,
+			SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
-		ConstraintsChecker checker = new ConstraintsChecker();
-		checker.setRepositoryService(cacheRepositoryService);
-		checker.setCacheConfigurationManager(cacheConfigurationManager);
-		checker.setShadowCache(shadowCache);
-		checker.setPrismContext(prismContext);
-		ProvisioningContext ctx = ctxFactory.create(shadowObject, task, parentResult);
-		ctx.setObjectClassDefinition(shadowDefinition);
-		ctx.setResource(resourceType);
-		ctx.setShadowCoordinates(resourceShadowDiscriminator);
-		checker.setProvisioningContext(ctx);
-		checker.setShadowObject(shadowObject);
-		checker.setShadowOid(shadowOid);
-		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
 		try {
-			ConstraintsCheckingResult retval = checker.check(task, result);
-			result.computeStatus();
-			return retval;
-		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-			result.recordFatalError(e.getMessage(), e);
-			throw e;
+			ConstraintsChecker checker = new ConstraintsChecker();
+			checker.setRepositoryService(cacheRepositoryService);
+			checker.setCacheConfigurationManager(cacheConfigurationManager);
+			checker.setShadowCache(shadowCache);
+			checker.setShadowObjectOld(shadowObjectOld);
+			checker.setPrismContext(prismContext);
+			ProvisioningContext ctx = ctxFactory.create(shadowObject, task, result);
+			ctx.setObjectClassDefinition(shadowDefinition);
+			ctx.setResource(resourceType);
+			ctx.setShadowCoordinates(resourceShadowDiscriminator);
+			checker.setProvisioningContext(ctx);
+			checker.setShadowObject(shadowObject);
+			checker.setShadowOid(shadowOid);
+			checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
+			checker.setStrategy(strategy);
+			if (checker.canSkipChecking()) {
+				return ConstraintsCheckingResult.createOk();
+			} else {
+				return checker.check(task, result);
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

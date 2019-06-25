@@ -33,6 +33,12 @@ public class ConstraintsCheckingResult {
     private Set<QName> checkedAttributes = new HashSet<>();
     private Set<QName> conflictingAttributes = new HashSet<>();
 
+    public static ConstraintsCheckingResult createOk() {
+        ConstraintsCheckingResult rv = new ConstraintsCheckingResult();
+        rv.setSatisfiesConstraints(true);
+        return rv;
+    }
+
     public boolean isSatisfiesConstraints() {
         return satisfiesConstraints;
     }

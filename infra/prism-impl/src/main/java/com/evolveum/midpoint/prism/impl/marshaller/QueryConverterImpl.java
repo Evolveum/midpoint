@@ -1074,6 +1074,9 @@ public class QueryConverterImpl implements QueryConverter {
 	}
 
 	public QueryType createQueryType(ObjectQuery query) throws SchemaException {
+    	if (query == null) {
+    		return null;
+	    }
 		ObjectFilter filter = query.getFilter();
 		QueryType queryType = new QueryType();
 		if (filter != null) {

@@ -27,7 +27,7 @@ The most important features of midPoint are:
    - Provisioning consistency and error handling
    - Support for security auditing and reporting
    - Data protection (experimental)
-   - Workflow
+   - Request approval
    - Reporting
    - Notifications
    - Local Java APIs, Remote web service interface (SOAP), REST API

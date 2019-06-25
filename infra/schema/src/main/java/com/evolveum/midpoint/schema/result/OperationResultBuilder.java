@@ -35,6 +35,8 @@ import java.util.Collection;
 public interface OperationResultBuilder {
 	OperationResult build();
 
+	OperationResult addQualifier(String value);
+
 	OperationResultBuilder addParam(String name, String value);
 
 	OperationResult addParam(String name, PrismObject<? extends ObjectType> value);

@@ -15,13 +15,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -45,15 +43,16 @@ import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstraintsCheckingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -73,9 +72,11 @@ public class ConstraintsChecker {
 	private ShadowCache shadowCache;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject<ShadowType> shadowObject;
+	private PrismObject<ShadowType> shadowObjectOld;
 	private String shadowOid;
 	private ConstraintViolationConfirmer constraintViolationConfirmer;
 	private boolean useCache = true;
+	private ConstraintsCheckingStrategyType strategy;
 
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -109,6 +110,11 @@ public class ConstraintsChecker {
 		this.shadowObject = shadowObject;
 	}
 
+	public void setShadowObjectOld(
+			PrismObject<ShadowType> shadowObjectOld) {
+		this.shadowObjectOld = shadowObjectOld;
+	}
+
 	public void setShadowOid(String shadowOid) {
 		this.shadowOid = shadowOid;
 	}
@@ -125,40 +131,66 @@ public class ConstraintsChecker {
 		this.useCache = useCache;
 	}
 
+	public void setStrategy(ConstraintsCheckingStrategyType strategy) {
+		this.strategy = strategy;
+	}
+
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
-	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public ConstraintsCheckingResult check(Task task, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException {
+		OperationResult result = parentResult.subresult(ConstraintsChecker.class.getName() + ".check")
+				.setMinor(true)
+				.build();
+		try {
+			constraintsCheckingResult = new ConstraintsCheckingResult();
+			constraintsCheckingResult.setSatisfiesConstraints(true);
 
-		constraintsCheckingResult = new ConstraintsCheckingResult();
-		constraintsCheckingResult.setSatisfiesConstraints(true);
+			PrismContainer<?> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
+			if (attributesContainer == null) {
+				// No attributes no constraint violations
+				LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
+				return constraintsCheckingResult;
+			}
 
-		PrismContainer<?> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// No attributes no constraint violations
-			LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
+			RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
+			Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = getUniqueAttributesDefinitions();
+			LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
+			for (ResourceAttributeDefinition attrDef : uniqueAttributeDefs) {
+				PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
+				LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
+				if (attr == null) {
+					continue;
+				}
+				constraintsCheckingResult.getCheckedAttributes().add(attr.getElementName());
+				boolean unique = checkAttributeUniqueness(attr, objectClassDefinition, provisioningContext.getResource(),
+						shadowOid, task, result);
+				if (!unique) {
+					LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,
+							provisioningContext.getShadowCoordinates());
+					constraintsCheckingResult.getConflictingAttributes().add(attr.getElementName());
+					constraintsCheckingResult.setSatisfiesConstraints(false);
+				}
+			}
+			constraintsCheckingResult.setMessages(messageBuilder.toString());
 			return constraintsCheckingResult;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
+	}
 
+	@NotNull
+	public Collection<? extends RefinedAttributeDefinition<? extends Object>> getUniqueAttributesDefinitions()
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
-		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(objectClassDefinition.getPrimaryIdentifiers(),
+		//noinspection unchecked
+		return MiscUtil.unionExtends(objectClassDefinition.getPrimaryIdentifiers(),
 				objectClassDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
-		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
-			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
-			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
-			if (attr == null) {
-				continue;
-			}
-			constraintsCheckingResult.getCheckedAttributes().add(attr.getElementName());
-			boolean unique = checkAttributeUniqueness(attr, objectClassDefinition, provisioningContext.getResource(), shadowOid, task, result);
-			if (!unique) {
-				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr, provisioningContext.getShadowCoordinates());
-				constraintsCheckingResult.getConflictingAttributes().add(attr.getElementName());
-				constraintsCheckingResult.setSatisfiesConstraints(false);
-			}
-		}
-		constraintsCheckingResult.setMessages(messageBuilder.toString());
-		return constraintsCheckingResult;
 	}
 
 	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
@@ -276,6 +308,32 @@ public class ConstraintsChecker {
 				cache.conflictFreeSituations.clear();
 				return;
 			}
+		}
+	}
+
+	public boolean canSkipChecking()
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		if (shadowObjectOld == null) {
+			return false;
+		} else if (shadowObject == null) {
+			LOGGER.trace("Skipping uniqueness checking because objectNew is null");
+			return true;
+		} else if (strategy == null || !Boolean.TRUE.equals(strategy.isSkipWhenNoChange())) {
+			LOGGER.trace("Uniqueness checking will not be skipped because 'skipWhenNoChange' is not set");
+			return false;
+		} else {
+			for (RefinedAttributeDefinition<?> definition : getUniqueAttributesDefinitions()) {
+				Object oldItem = shadowObjectOld.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
+				Object newItem = shadowObject.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
+				if (!Objects.equals(oldItem, newItem)) {
+					LOGGER.trace("Uniqueness check will not be skipped because identifier {} values do not match: old={}, new={}",
+							definition.getName(), oldItem, newItem);
+					return false;
+				}
+			}
+			LOGGER.trace("Skipping uniqueness checking because old and new values for identifiers match");
+			return true;
 		}
 	}
 

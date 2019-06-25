@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.result;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -28,11 +29,12 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -43,9 +45,8 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -116,6 +117,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private Map<String, Collection<String>> params;
 	private Map<String, Collection<String>> context;
 	private Map<String, Collection<String>> returns;
+	private final List<String> qualifiers = new ArrayList<>();
 
 	private long token;
 	private String messageCode;
@@ -131,8 +133,17 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizeSuccesses;
 	private boolean minor = false;
 
-	private boolean building = true;        // experimental
-	private OperationResult futureParent;   // experimental
+	private boolean building = true;        // experimental (NOT SERIALIZED)
+	private OperationResult futureParent;   // experimental (NOT SERIALIZED)
+
+	private Long start;
+	private Long end;
+	private Long microseconds;
+	private Long invocationId;
+
+	private TracingProfileType tracingProfile;      // NOT SERIALIZED
+
+	private final List<TraceType> traces = new ArrayList<>();
 
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
@@ -151,45 +162,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
 	}
 
-//	public OperationResult(String operation, String messageCode, String message) {
-//		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
-//	}
-
 	public OperationResult(String operation, OperationResultStatus status, LocalizableMessage userFriendlyMessage) {
 		this(operation, null, status, 0, null, null, userFriendlyMessage, null, null);
 	}
 
-//	public OperationResult(String operation, long token, String messageCode, String message) {
-//		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
-//	}
-
 	public OperationResult(String operation, OperationResultStatus status, String message) {
 		this(operation, null, status, 0, null, message, null, null, null);
 	}
-
-//	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
-//		this(operation, null, status, 0, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-//			String message) {
-//		this(operation, null, status, token, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-//			String message, Throwable cause) {
-//		this(operation, null, status, token, messageCode, message, null, cause, null);
-//	}
-
-//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-//			long token, String messageCode, String message) {
-//		this(operation, params, status, token, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-//			long token, String messageCode, String message, List<OperationResult> subresults) {
-//		this(operation, params, status, token, messageCode, message, null, null, subresults);
-//	}
 
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
@@ -240,12 +219,18 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (!building) {
 			throw new IllegalStateException("Not being built");
 		}
-		invocationRecord = OperationInvocationRecord.create(operation, createArguments());
+		recordStart(this, operation, createArguments());
 		building = false;
 		if (futureParent != null) {
 			futureParent.addSubresult(this);
 		}
 		return this;
+	}
+
+	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
+		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
+		result.invocationId = result.invocationRecord.getInvocationId();
+		result.start = System.currentTimeMillis();
 	}
 
 	private Object[] createArguments() {
@@ -273,7 +258,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static OperationResult createProfiled(String operation, Object[] arguments) {
 		OperationResult result = new OperationResult(operation);
-		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
+		recordStart(result, operation, arguments);
 		return result;
 	}
 
@@ -281,14 +266,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
 		if (profiled) {
-			subresult.invocationRecord = OperationInvocationRecord.create(operation, arguments);
+			recordStart(subresult, operation, arguments);
 		}
 		subresult.minor = minor;
 		return subresult;
 	}
 
-	// todo determine appropriate places where finish() should be called
-	public void finish() {
+	// todo determine appropriate places where recordEnd() should be called
+	public void recordEnd() {
 		if (invocationRecord != null) {
 			String returnValue = getReturns().toString();
 			if (cause != null) {
@@ -298,8 +283,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			// showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
 			invocationRecord.processReturnValue(returnValue);
 			invocationRecord.afterCall();
+			microseconds = invocationRecord.getElapsedTimeMicros();
 			invocationRecord = null;
 		}
+		end = System.currentTimeMillis();
 	}
 
 	/**
@@ -456,6 +443,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
+		subresult.tracingProfile = tracingProfile;
 	}
 
 	public OperationResult findSubresult(String operation) {
@@ -616,7 +604,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void computeStatus(boolean skipFinish) {
 		if (!skipFinish) {
-			finish();
+			recordEnd();
 		}
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
@@ -737,7 +725,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * result will be partial error. Handled error is considered a success.
 	 */
 	public void computeStatusComposite() {
-		finish();
+		recordEnd();
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.NOT_APPLICABLE;
@@ -820,6 +808,30 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
 	}
 
+	public void addTrace(TraceType trace) {
+		traces.add(trace);
+	}
+
+	public void startTracing(@NotNull TracingProfileType profile) {
+		this.tracingProfile = profile;
+	}
+
+	public <T> T getFirstTrace(Class<T> traceClass) {
+		Optional<TraceType> first = traces.stream().filter(t -> traceClass.isAssignableFrom(t.getClass())).findFirst();
+		if (first.isPresent()) {
+			//noinspection unchecked
+			return (T) first.get();
+		} else {
+			for (OperationResult subresult : getSubresults()) {
+				T firstInSubresult = subresult.getFirstTrace(traceClass);
+				if (firstInSubresult != null) {
+					return firstInSubresult;
+				}
+			}
+			return null;
+		}
+	}
+
 	public static class PreviewResult {
 		public final OperationResultStatus status;
 		public final String message;
@@ -846,14 +858,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
     public void computeStatusIfUnknown() {
-	    finish();
+	    recordEnd();
         if (isUnknown()) {
             computeStatus();
         }
     }
 
     public void recomputeStatus() {
-	    finish();
+	    recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -862,7 +874,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String message) {
-		finish();
+		recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -871,7 +883,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String errorMessage, String warningMessage) {
-		finish();
+		recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -880,14 +892,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccessIfUnknown() {
-		finish();
+		recordEnd();
 		if (isUnknown()) {
 			recordSuccess();
 		}
 	}
 
 	public void recordNotApplicableIfUnknown() {
-		finish();
+		recordEnd();
 		if (isUnknown()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
@@ -925,6 +937,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			throw new IllegalStateException("More than one parameter "+name+" in "+this);
 		}
 		return values.iterator().next();
+	}
+
+	@Override
+	public OperationResult addQualifier(String value) {
+		qualifiers.add(value);
+		return this;
 	}
 
 	@Override
@@ -1282,7 +1300,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccess() {
-		finish();
+		recordEnd();
 		// Success, no message or other explanation is needed.
 		status = OperationResultStatus.SUCCESS;
 	}
@@ -1297,6 +1315,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+	}
+
+	public void recordFatalErrorNotFinish(Throwable cause) {
+		recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 
 	/**
@@ -1332,7 +1354,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, Throwable cause) {
-		finish();
+		recordEnd();
 		this.status = status;
 		this.cause = cause;
 		// No other message was given, so use message from the exception
@@ -1365,7 +1387,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
-		finish();
+		recordEnd();
+		recordStatusNotFinish(status, message, cause);
+	}
+
+	public void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;
 		this.message = message;
 		this.cause = cause;
@@ -1397,7 +1423,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message) {
-		finish();
+		recordEnd();
 		this.status = status;
 		this.message = message;
 	}
@@ -1430,7 +1456,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return details;
 	}
 
-	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
+	@Contract("null -> null; !null -> !null")
+	public static OperationResult createOperationResult(OperationResultType result) {
 		if (result == null) {
             return null;
         }
@@ -1457,6 +1484,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizableMessage,  null,
 				subresults);
+		opResult.getQualifiers().addAll(result.getQualifier());
 		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
@@ -1464,6 +1492,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (result.getHiddenRecordsCount() != null) {
 			opResult.setHiddenRecordsCount(result.getHiddenRecordsCount());
 		}
+		if (result.getStart() != null) {
+			opResult.setStart(XmlTypeConverter.toMillis(result.getStart()));
+		}
+		if (result.getEnd() != null) {
+			opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
+		}
+		opResult.setMicroseconds(result.getMicroseconds());
+		opResult.setInvocationId(result.getInvocationId());
 		return opResult;
 	}
 
@@ -1475,7 +1511,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return createOperationResultType(this, resolveKeys);
 	}
 
-	private OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
+	private static OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
 		OperationResultType resultType = new OperationResultType();
 		resultType.setToken(opResult.getToken());
 		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
@@ -1489,6 +1525,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
 		resultType.setOperation(opResult.getOperation());
+		resultType.getQualifier().addAll(opResult.getQualifiers());
 		resultType.setMessage(opResult.getMessage());
 		resultType.setMessageCode(opResult.getMessageCode());
 
@@ -1530,9 +1567,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
-			resultType.getPartialResults().add(opResult.createOperationResultType(subResult, resolveKeys));
+			resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
 		}
 
+		resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
+		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
+		resultType.setMicroseconds(opResult.microseconds);
+		resultType.setInvocationId(opResult.invocationId);
+		resultType.getTrace().addAll(opResult.traces);           // consider cloning here
 		return resultType;
 	}
 
@@ -1706,6 +1748,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * to the IAE that this method produces for easier debugging.
 	 */
 	public void cleanupResult(Throwable e) {
+
+		if (isTraced()) {
+			return;         // TEMPORARY fixme
+		}
+
 		if (status == OperationResultStatus.UNKNOWN) {
 			LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
 			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
@@ -1965,6 +2012,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
+        clone.qualifiers.addAll(qualifiers);
         clone.params = cloneParams(params, full);
         clone.context = cloneParams(context, full);
         clone.returns = cloneParams(returns, full);
@@ -1994,7 +2042,18 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.minor = minor;
         clone.asynchronousOperationReference = asynchronousOperationReference;
 
-        return clone;
+        clone.start = start;
+        clone.end = end;
+        clone.microseconds = microseconds;
+        clone.invocationId = invocationId;
+        clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
+
+        clone.building = building;
+        clone.futureParent = futureParent;
+
+        // todo invocationRecord?
+
+	    return clone;
     }
 
 	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map, boolean full) {
@@ -2016,146 +2075,95 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((asynchronousOperationReference == null) ? 0 : asynchronousOperationReference.hashCode());
-		result = prime * result + ((cause == null) ? 0 : cause.hashCode());
-		result = prime * result + ((context == null) ? 0 : context.hashCode());
-		result = prime * result + count;
-		result = prime * result + ((details == null) ? 0 : details.hashCode());
-		result = prime * result + hiddenRecordsCount;
-		result = prime * result + ((userFriendlyMessage == null) ? 0 : userFriendlyMessage.hashCode());
-		result = prime * result + ((message == null) ? 0 : message.hashCode());
-		result = prime * result + ((messageCode == null) ? 0 : messageCode.hashCode());
-		result = prime * result + (minor ? 1231 : 1237);
-		result = prime * result + ((operation == null) ? 0 : operation.hashCode());
-		result = prime * result + ((params == null) ? 0 : params.hashCode());
-		result = prime * result + ((returns == null) ? 0 : returns.hashCode());
-		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((subresults == null) ? 0 : subresults.hashCode());
-		result = prime * result + (summarizeErrors ? 1231 : 1237);
-		result = prime * result + (summarizePartialErrors ? 1231 : 1237);
-		result = prime * result + (summarizeSuccesses ? 1231 : 1237);
-		result = prime * result + (int) (token ^ (token >>> 32));
-		return result;
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof OperationResult))
+			return false;
+		OperationResult result = (OperationResult) o;
+		return token == result.token &&
+				count == result.count &&
+				hiddenRecordsCount == result.hiddenRecordsCount &&
+				summarizeErrors == result.summarizeErrors &&
+				summarizePartialErrors == result.summarizePartialErrors &&
+				summarizeSuccesses == result.summarizeSuccesses &&
+				minor == result.minor &&
+				building == result.building &&
+				Objects.equals(start, result.start) &&
+				Objects.equals(end, result.end) &&
+				Objects.equals(microseconds, result.microseconds) &&
+				Objects.equals(invocationId, result.invocationId) &&
+				Objects.equals(tracingProfile, result.tracingProfile) &&
+				Objects.equals(operation, result.operation) &&
+				Objects.equals(qualifiers, result.qualifiers) &&
+				status == result.status &&
+				Objects.equals(params, result.params) &&
+				Objects.equals(context, result.context) &&
+				Objects.equals(returns, result.returns) &&
+				Objects.equals(messageCode, result.messageCode) &&
+				Objects.equals(message, result.message) &&
+				Objects.equals(userFriendlyMessage, result.userFriendlyMessage) &&
+				Objects.equals(cause, result.cause) &&
+				Objects.equals(subresults, result.subresults) &&
+				Objects.equals(details, result.details) &&
+				Objects.equals(traces, result.traces) &&
+				Objects.equals(asynchronousOperationReference, result.asynchronousOperationReference);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		OperationResult other = (OperationResult) obj;
-		if (asynchronousOperationReference == null) {
-			if (other.asynchronousOperationReference != null) {
-				return false;
-			}
-		} else if (!asynchronousOperationReference.equals(other.asynchronousOperationReference)) {
-			return false;
-		}
-		if (cause == null) {
-			if (other.cause != null) {
-				return false;
-			}
-		} else if (!cause.equals(other.cause)) {
-			return false;
-		}
-		if (context == null) {
-			if (other.context != null) {
-				return false;
-			}
-		} else if (!context.equals(other.context)) {
-			return false;
-		}
-		if (count != other.count) {
-			return false;
-		}
-		if (details == null) {
-			if (other.details != null) {
-				return false;
-			}
-		} else if (!details.equals(other.details)) {
-			return false;
-		}
-		if (hiddenRecordsCount != other.hiddenRecordsCount) {
-			return false;
-		}
-		if (userFriendlyMessage == null) {
-			if (other.userFriendlyMessage != null) {
-				return false;
-			}
-		} else if (!userFriendlyMessage.equals(other.userFriendlyMessage)) {
-			return false;
-		}
-		if (message == null) {
-			if (other.message != null) {
-				return false;
-			}
-		} else if (!message.equals(other.message)) {
-			return false;
-		}
-		if (messageCode == null) {
-			if (other.messageCode != null) {
-				return false;
-			}
-		} else if (!messageCode.equals(other.messageCode)) {
-			return false;
-		}
-		if (minor != other.minor) {
-			return false;
-		}
-		if (operation == null) {
-			if (other.operation != null) {
-				return false;
-			}
-		} else if (!operation.equals(other.operation)) {
-			return false;
-		}
-		if (params == null) {
-			if (other.params != null) {
-				return false;
-			}
-		} else if (!params.equals(other.params)) {
-			return false;
-		}
-		if (returns == null) {
-			if (other.returns != null) {
-				return false;
-			}
-		} else if (!returns.equals(other.returns)) {
-			return false;
-		}
-		if (status != other.status) {
-			return false;
-		}
-		if (subresults == null) {
-			if (other.subresults != null) {
-				return false;
-			}
-		} else if (!subresults.equals(other.subresults)) {
-			return false;
-		}
-		if (summarizeErrors != other.summarizeErrors) {
-			return false;
-		}
-		if (summarizePartialErrors != other.summarizePartialErrors) {
-			return false;
-		}
-		if (summarizeSuccesses != other.summarizeSuccesses) {
-			return false;
-		}
-		if (token != other.token) {
-			return false;
-		}
-		return true;
+	public int hashCode() {
+		return Objects
+				.hash(operation, qualifiers, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
+						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
+						minor, building, start, end, microseconds, invocationId, traces,
+						asynchronousOperationReference);
 	}
 
+	public Long getStart() {
+		return start;
+	}
+
+	public void setStart(Long start) {
+		this.start = start;
+	}
+
+	public Long getEnd() {
+		return end;
+	}
+
+	public void setEnd(Long end) {
+		this.end = end;
+	}
+
+	public Long getMicroseconds() {
+		return microseconds;
+	}
+
+	public void setMicroseconds(Long microseconds) {
+		this.microseconds = microseconds;
+	}
+
+	public Long getInvocationId() {
+		return invocationId;
+	}
+
+	public void setInvocationId(Long invocationId) {
+		this.invocationId = invocationId;
+	}
+
+	public boolean isTraced() {
+		return tracingProfile != null;
+	}
+
+	public TracingProfileType getTracingProfile() {
+		return tracingProfile;
+	}
+
+	public List<TraceType> getTraces() {
+		return traces;
+	}
+
+	public List<String> getQualifiers() {
+		return qualifiers;
+	}
 }

@@ -1879,9 +1879,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
-				if (!cont) {
-					result.recordWarning("Stopped on request from the handler");
-				}
+				/*
+				 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
+				 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
+				 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
+				 * This would also help when displaying operation result structure.
+				 */
 				recordResume();
 				return cont;
 			}

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -104,13 +105,22 @@ public interface RunningTask extends Task {
 
 	void deleteLightweightAsynchronousSubtasks();
 
+	// EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+	int getAndIncrementObjectsSeen();
+
 	/**
 	 * Must be called from the thread that executes the task.
+	 * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
 	 */
-	void startDynamicProfilingIfNeeded(RunningTask coordinatorTask);
+	void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
 
 	/**
 	 * Must be called from the thread that executes the task.
 	 */
 	void stopDynamicProfiling();
+
+	/**
+	 * EXPERIMENTAL
+	 */
+	void requestTracingIfNeeded(OperationResult result, int objectsSeen);
 }

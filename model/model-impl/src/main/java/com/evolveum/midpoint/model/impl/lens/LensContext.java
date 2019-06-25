@@ -368,6 +368,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return systemConfiguration;
 	}
 
+	public InternalsConfigurationType getInternalsConfiguration() {
+		return systemConfiguration != null ? systemConfiguration.asObjectable().getInternals() : null;
+	}
+
 	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
 	}
@@ -1532,4 +1536,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return MiscSchemaUtil.getExpressionProfile();
 	}
 
+	public ConstraintsCheckingStrategyType getFocusConstraintsCheckingStrategy() {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration();
+		if (systemConfiguration != null) {
+			InternalsConfigurationType internals = systemConfiguration.asObjectable().getInternals();
+			return internals != null ? internals.getFocusConstraintsChecking() : null;
+		} else {
+			return null;
+		}
+	}
+
+	public ConstraintsCheckingStrategyType getProjectionConstraintsCheckingStrategy() {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration();
+		if (systemConfiguration != null) {
+			InternalsConfigurationType internals = systemConfiguration.asObjectable().getInternals();
+			return internals != null ? internals.getProjectionConstraintsChecking() : null;
+		} else {
+			return null;
+		}
+	}
+
+	public String getOperationQualifier() {
+		return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
+	}
 }

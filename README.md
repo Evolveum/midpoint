@@ -14,7 +14,7 @@ The most important features of midPoint are:
 - Security auditing and reporting
 - Organizational structure management
 - Credential Management
-- Workflow
+- Request approval
 - Entitlement Management 
 
 Read more about these features at https://evolveum.com/midpoint/about-midpoint/
