@@ -446,6 +446,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	@Override
+	public CapabilitiesType getCapabilities() {
+		return refinedObjectClassDefinition.getCapabilities();
+	}
+
+	@Override
 	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
 		return (T) refinedObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}

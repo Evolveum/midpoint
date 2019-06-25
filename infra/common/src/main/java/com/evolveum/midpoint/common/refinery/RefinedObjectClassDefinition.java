@@ -177,6 +177,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 
 	//region Capabilities ========================================================
 
+	CapabilitiesType getCapabilities();
+
 	<T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType);
 
 	PagedSearchCapabilityType getPagedSearches(ResourceType resourceType);

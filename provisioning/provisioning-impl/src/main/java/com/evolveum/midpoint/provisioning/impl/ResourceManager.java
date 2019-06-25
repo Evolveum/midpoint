@@ -26,6 +26,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchemaImpl;
@@ -483,7 +484,6 @@ public class ResourceManager {
 				InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 				
 				ConnectorInstance connector = connectorManager.getConfiguredConnectorInstance(connectorSpec, false, result);
-				List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource());
 				retrievedCapabilities = connector.fetchCapabilities(result);
 	
 			} catch (GenericFrameworkException e) {
@@ -961,7 +961,6 @@ public class ResourceManager {
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CAPABILITIES.getOperation());
 		try {
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
-			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource());
 			Collection<Object> retrievedCapabilities = connector.fetchCapabilities(capabilitiesResult);
 			
 			capabilityMap.put(connectorSpec.getConnectorName(), retrievedCapabilities);
@@ -1306,13 +1305,64 @@ public class ResourceManager {
 	}
 	
 	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(PrismObject<ResourceType> resource,
-			Class<T> operationCapabilityClass) {
+																				RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
+		CapabilitiesType connectorCapabilities = null;
 		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
 			if (supportsCapability(additionalConnectorType, operationCapabilityClass)) {
-				return additionalConnectorType.getCapabilities();
+				connectorCapabilities = additionalConnectorType.getCapabilities();
 			}
 		}
-		return resource.asObjectable().getCapabilities();
+
+		if (connectorCapabilities == null) {
+			connectorCapabilities = resource.asObjectable().getCapabilities();
+		}
+
+		return applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
+
+	}
+
+	private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities, RefinedObjectClassDefinition objectClassDefinition) {
+		if (connectorCapabilities == null) {
+			return null;
+		}
+
+		CapabilitiesType finalCapabilities = new CapabilitiesType();
+		finalCapabilities.setNative(connectorCapabilities.getNative());
+
+		CapabilitiesType objectClassCapabilities = objectClassDefinition.getCapabilities();
+
+		if (objectClassCapabilities == null) {
+			finalCapabilities.setConfigured(connectorCapabilities.getConfigured());
+			return finalCapabilities;
+		}
+
+		CapabilityCollectionType configured = objectClassCapabilities.getConfigured();
+		if (!hasConfiguredCapabilities(connectorCapabilities)) {
+			finalCapabilities.setConfigured(configured);
+			return finalCapabilities;
+		}
+
+		for (Object capability : connectorCapabilities.getConfigured().getAny()) {
+
+			if (!CapabilityUtil.containsCapabilityWithSameElementName(configured.getAny(), capability)) {
+				configured.getAny().add(capability);
+			}
+		}
+
+		finalCapabilities.setConfigured(configured);
+		return finalCapabilities;
+	}
+
+	private boolean hasConfiguredCapabilities(CapabilitiesType supportedCapabilities) {
+		if (supportedCapabilities.getConfigured() == null) {
+			return false;
+		}
+
+		if (supportedCapabilities.getConfigured().getAny().isEmpty()) {
+			return false;
+
+		}
+		return true;
 	}
 	
 	private <T extends CapabilityType> ConnectorSpec selectConnectorSpec(PrismObject<ResourceType> resource, Map<String,Collection<Object>> capabilityMap, Class<T> capabilityClass) throws SchemaException {
