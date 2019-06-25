@@ -133,13 +133,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 			return;
 		}
 		
-		OperationResult returnResult;
-		try {
-			returnResult = OperationResult.createOperationResult(operationResultType);
-		} catch (SchemaException e) {
-			return;
-		}
-	
+		OperationResult returnResult = OperationResult.createOperationResult(operationResultType);
 		if (!returnResult.isSuccess()) {
 			ValidationError error = new ValidationError();
 			if (returnResult.getUserFriendlyMessage() != null) {

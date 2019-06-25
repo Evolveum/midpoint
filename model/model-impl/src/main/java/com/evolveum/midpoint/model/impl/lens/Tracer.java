@@ -91,8 +91,6 @@ public class Tracer {
 						.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
 				repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
 			}
-			OperationResultType reparsed = prismContext.parserFor(xml).xml().parseRealValue(OperationResultType.class);
-			System.out.println("Reparsed OK: " + reparsed);
 		} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
 			throw new SystemException(e);

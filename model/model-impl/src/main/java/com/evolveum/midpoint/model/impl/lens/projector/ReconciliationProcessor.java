@@ -125,74 +125,64 @@ public class ReconciliationProcessor {
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ExpressionEvaluationException {
 
-		OperationResult subResult = result.createMinorSubresult(PROCESS_RECONCILIATION);
-
-		try {
-			// Reconcile even if it was not explicitly requested and if we have full shadow
-			// reconciliation is cheap if the shadow is already fetched therefore just do it
-			if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
-				}
-				return;
-			}
-
-			SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
-			if (policyDecision != null
-					&& (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
-				}
-				return;
-			}
-
-			if (projCtx.getObjectCurrent() == null) {
-				LOGGER.warn("Can't do reconciliation. Account context doesn't contain current version of account.");
-				return;
-			}
-
-			if (!projCtx.isFullShadow()) {
-				// We need to load the object
-				GetOperationOptions rootOps = GetOperationOptions.createDoNotDiscovery();
-				rootOps.setPointInTimeType(PointInTimeType.FUTURE);
-				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						projCtx.getOid(), SelectorOptions.createCollection(rootOps),
-						task, result);
-				projCtx.determineFullShadowFlag(objectOld);
-				projCtx.setLoadedObject(objectOld);
-				projCtx.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
-				projCtx.recompute();
-			}
-
+		// Reconcile even if it was not explicitly requested and if we have full shadow
+		// reconciliation is cheap if the shadow is already fetched therefore just do it
+		if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
+				LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
 			}
-
-			reconcileAuxiliaryObjectClasses(projCtx);
-
-            RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
-
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
-					.getSqueezedAttributes();
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
-			}
-			reconcileProjectionAttributes(projCtx, squeezedAttributes, rOcDef);
-
-            Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
-			}
-			reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef, task, result);
-
-            reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
-
-		} catch (RuntimeException | SchemaException e) {
-			subResult.recordFatalError(e);
-			throw e;
-		} finally {
-			subResult.computeStatus();
+			return;
 		}
+
+		SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
+		if (policyDecision != null
+				&& (policyDecision == SynchronizationPolicyDecision.DELETE || policyDecision == SynchronizationPolicyDecision.UNLINK)) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
+			}
+			return;
+		}
+
+		if (projCtx.getObjectCurrent() == null) {
+			LOGGER.warn("Can't do reconciliation. Account context doesn't contain current version of account.");
+			return;
+		}
+
+		if (!projCtx.isFullShadow()) {
+			// We need to load the object
+			GetOperationOptions rootOps = GetOperationOptions.createDoNotDiscovery();
+			rootOps.setPointInTimeType(PointInTimeType.FUTURE);
+			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+					projCtx.getOid(), SelectorOptions.createCollection(rootOps),
+					task, result);
+			projCtx.determineFullShadowFlag(objectOld);
+			projCtx.setLoadedObject(objectOld);
+			projCtx.setExists(ShadowUtil.isExists(objectOld.asObjectable()));
+			projCtx.recompute();
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
+		}
+
+		reconcileAuxiliaryObjectClasses(projCtx);
+
+		RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
+
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
+				.getSqueezedAttributes();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
+		}
+		reconcileProjectionAttributes(projCtx, squeezedAttributes, rOcDef);
+
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
+		}
+		reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef, task, result);
+
+		reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
 	}
 
 	private void reconcileAuxiliaryObjectClasses(LensProjectionContext projCtx) throws SchemaException {

@@ -167,6 +167,7 @@ public class RepositoryCache implements RepositoryService {
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
 		OperationResult result = parentResult.subresult(GET_OBJECT)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("oid", oid)
 				.addArbitraryObjectCollectionAsParam("options", options)
@@ -397,6 +398,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		OperationResult result = parentResult.subresult(ADD_OBJECT)
+				.addQualifier(object.asObjectable().getClass().getSimpleName())
 				.addParam("type", object.getCompileTimeClass())
 				.addArbitraryObjectAsParam("options", options)
 				.build();
@@ -445,6 +447,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.subresult(SEARCH_OBJECTS)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.addArbitraryObjectCollectionAsParam("options", options)
@@ -621,6 +624,7 @@ public class RepositoryCache implements RepositoryService {
 	@Override
 	public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.subresult(SEARCH_CONTAINERS)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.addArbitraryObjectAsParam("options", options)
@@ -643,6 +647,7 @@ public class RepositoryCache implements RepositoryService {
 			boolean strictlySequential, OperationResult parentResult) throws SchemaException {
 
 		OperationResult result = parentResult.subresult(SEARCH_OBJECTS_ITERATIVE)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.addArbitraryObjectCollectionAsParam("options", options)
@@ -871,6 +876,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		// TODO use cached query result if applicable
 		OperationResult result = parentResult.subresult(COUNT_OBJECTS)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.build();
@@ -891,6 +897,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends Containerable> int countContainers(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
 		OperationResult result = parentResult.subresult(COUNT_CONTAINERS)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.addArbitraryObjectCollectionAsParam("options", options)
@@ -914,6 +921,7 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		// TODO use cached query result if applicable
 		OperationResult result = parentResult.subresult(COUNT_OBJECTS)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("query", query)
 				.addArbitraryObjectCollectionAsParam("options", options)
@@ -967,6 +975,7 @@ public class RepositoryCache implements RepositoryService {
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
 		OperationResult result = parentResult.subresult(MODIFY_OBJECT)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("oid", oid)
 				.addArbitraryObjectAsParam("options", options)
@@ -1080,6 +1089,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		OperationResult result = parentResult.subresult(DELETE_OBJECT)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("oid", oid)
 				.build();
@@ -1186,7 +1196,7 @@ public class RepositoryCache implements RepositoryService {
 				.build();
 		Long startTime = repoOpStart();
 		try {
-			return repositoryService.listAccountShadowOwner(accountOid, parentResult);
+			return repositoryService.listAccountShadowOwner(accountOid, result);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;
@@ -1220,6 +1230,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.subresult(GET_VERSION)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("oid", oid)
 				.build();
@@ -1569,6 +1580,7 @@ public class RepositoryCache implements RepositoryService {
 	public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
+				.addQualifier(type.getSimpleName())
 				.addParam("type", type)
 				.addParam("oid", oid)
 				.build();

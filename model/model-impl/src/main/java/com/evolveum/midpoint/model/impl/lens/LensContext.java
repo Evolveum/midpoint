@@ -1555,4 +1555,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			return null;
 		}
 	}
+
+	public String getOperationQualifier() {
+		return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
+	}
 }

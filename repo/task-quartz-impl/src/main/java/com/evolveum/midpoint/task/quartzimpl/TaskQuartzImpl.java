@@ -213,11 +213,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 				taskPrism.asObjectable().setResult(resultInPrism);
 			}
 			if (resultInPrism != null) {
-				try {
-					taskResult = OperationResult.createOperationResult(resultInPrism);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
+				taskResult = OperationResult.createOperationResult(resultInPrism);
 			}
 		}
 	}

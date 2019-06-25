@@ -15581,6 +15581,19 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="operation" type="xsd:string"/>
+			<xsd:element name="qualifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Something that more precisely defines (i.e. qualifies) the operation. For example, object type for
+						repository operations or clockwork state and wave for clockwork operations. It is used to be shown
+						e.g. in operation performance statistics.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false"/>
 			<xsd:element name="start" type="xsd:dateTime" minOccurs="0">

@@ -115,7 +115,6 @@ import static org.apache.commons.lang3.BooleanUtils.isTrue;
 @Component
 public class InboundProcessor {
 	
-    private static final String PROCESS_INBOUND_HANDLING = InboundProcessor.class.getName() + ".processInbound";
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
 
     @Autowired private PrismContext prismContext;
@@ -142,7 +141,8 @@ public class InboundProcessor {
             LOGGER.trace("Skipping inbound because {} is not focal type", focusContext.getObjectTypeClass());
     		return;
     	}
-    	processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
+	    //noinspection unchecked
+	    processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
     }
 
     private <F extends FocusType> void processInboundFocal(LensContext<F> context, Task task, XMLGregorianCalendar now,
@@ -165,56 +165,49 @@ public class InboundProcessor {
             return;
         }
 
-		OperationResult subResult = result.createMinorSubresult(PROCESS_INBOUND_HANDLING);
-		
 		// Used to collect all the mappings from all the projects, sorted by target property.
 		// Motivation: we need to evaluate them together, e.g. in case that there are several mappings
 		// from several projections targeting the same property.
 		// key: target item path, value: InboundMappingStruct(mapping,projectionCtx)
         Map<ItemPath, List<InboundMappingStruct<?,?>>> mappingsToTarget = new HashMap<>();
 
-		try {
-            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-            	if (projectionContext.isTombstone()) {
-            		if (LOGGER.isTraceEnabled()) {
-            			LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is thombstone", projectionContext.getHumanReadableName());
-            		}
-            		continue;
-            	}
-            	if (!projectionContext.isCanProject()){
-            		if (LOGGER.isTraceEnabled()) {
-            			LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
-            				projectionContext.getHumanReadableName(), context.getTriggeredResourceOid());
-            		}
-            		continue;
-            	}
-            	ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, projectionContext);
+	    for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+		    if (projectionContext.isTombstone()) {
+			    if (LOGGER.isTraceEnabled()) {
+				    LOGGER.trace("Skipping processing of inbound expressions for projection {} because is is tombstone", projectionContext.getHumanReadableName());
+			    }
+			    continue;
+		    }
+		    if (!projectionContext.isCanProject()) {
+			    if (LOGGER.isTraceEnabled()) {
+				    LOGGER.trace("Skipping processing of inbound expressions for projection {}: there is a limit to propagate changes only from resource {}",
+						    projectionContext.getHumanReadableName(), context.getTriggeredResourceOid());
+			    }
+			    continue;
+		    }
+		    ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, projectionContext);
 
-            	if (!projectionContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow() && !projectionContext.isDelete()) {
-            		if (LOGGER.isTraceEnabled()) {
-            			LOGGER.trace("Projection dump\n {}", projectionContext.debugDump());
-            			LOGGER.trace("Skipping processing of inbound expressions for projection {}: no full shadow, no reconciliation, no a priori delta and no dependent context and it's not delete operation",
-            					projectionContext.getHumanReadableName());
-            		}
-            		continue;
-            	}
+		    if (!projectionContext.isDoReconciliation() && aPrioriDelta == null && !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow() && !projectionContext.isDelete()) {
+			    if (LOGGER.isTraceEnabled()) {
+				    LOGGER.trace("Projection dump\n {}", projectionContext.debugDump());
+				    LOGGER.trace("Skipping processing of inbound expressions for projection {}: no full shadow, no reconciliation, no a priori delta and no dependent context and it's not delete operation",
+						    projectionContext.getHumanReadableName());
+			    }
+			    continue;
+		    }
 
-                RefinedObjectClassDefinition rOcDef = projectionContext.getCompositeObjectClassDefinition();
-                if (rOcDef == null) {
-                    LOGGER.error("Definition for projection {} not found in the context, but it " +
-                            "should be there, dumping context:\n{}", projectionContext.getHumanReadableName(), context.debugDump());
-                    throw new IllegalStateException("Definition for projection " + projectionContext.getHumanReadableName()
-                            + " not found in the context, but it should be there");
-                }
+		    RefinedObjectClassDefinition rOcDef = projectionContext.getCompositeObjectClassDefinition();
+		    if (rOcDef == null) {
+			    LOGGER.error("Definition for projection {} not found in the context, but it " +
+					    "should be there, dumping context:\n{}", projectionContext.getHumanReadableName(), context.debugDump());
+			    throw new IllegalStateException("Definition for projection " + projectionContext.getHumanReadableName()
+					    + " not found in the context, but it should be there");
+		    }
 
-                processInboundMappingsForProjection(context, projectionContext, rOcDef, mappingsToTarget, aPrioriDelta, task, now, subResult);
-            }
-            
-            evaluateInboundMapping(mappingsToTarget, context, task, result);
+		    processInboundMappingsForProjection(context, projectionContext, rOcDef, mappingsToTarget, aPrioriDelta, task, now, result);
+	    }
 
-        } finally {
-            subResult.computeStatus();
-        }
+	    evaluateInboundMapping(mappingsToTarget, context, task, result);
     }
 
     private boolean isDeleteAccountDelta(LensProjectionContext accountContext) throws SchemaException {

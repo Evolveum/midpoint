@@ -363,34 +363,46 @@ public class PolicyRuleProcessor {
 	/**
 	 * Evaluates given policy rule in a given context.
 	 */
-	private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
-		}
-		PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
-		JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
-		EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
-		LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
-		if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
-			List<EvaluatedPolicyRuleTrigger<?>> triggers;
-			// TODO reconsider this
-			if (constraints.getName() == null && constraints.getPresentation() == null) {
-				triggers = new ArrayList<>(trigger.getInnerTriggers());
-			} else {
-				triggers = Collections.singletonList(trigger);
+		OperationResult result = parentResult.subresult(PolicyRuleProcessor.class.getName() + ".evaluateRule")
+				.addParam("policyRule", ctx.policyRule.toShortString())
+				.addContext("context", ctx.getShortDescription())
+				.build();
+		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
 			}
-			ctx.triggerRule(triggers);
-		}
-		LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
-		if (ctx.policyRule.isTriggered()) {
-			LOGGER.trace("Start to compute actions");
-			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
-			if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
-				ctx.record();
+			PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
+			JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
+			EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
+			LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
+			if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
+				List<EvaluatedPolicyRuleTrigger<?>> triggers;
+				// TODO reconsider this
+				if (constraints.getName() == null && constraints.getPresentation() == null) {
+					triggers = new ArrayList<>(trigger.getInnerTriggers());
+				} else {
+					triggers = Collections.singletonList(trigger);
+				}
+				ctx.triggerRule(triggers);
 			}
+			LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
+			if (ctx.policyRule.isTriggered()) {
+				LOGGER.trace("Start to compute actions");
+				((EvaluatedPolicyRuleImpl) ctx.policyRule)
+						.computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
+				if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
+					ctx.record();
+				}
+			}
+			traceRuleEvaluationResult(ctx.policyRule, ctx);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
 
 	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
@@ -530,11 +542,13 @@ public class PolicyRuleProcessor {
 						);
 						enforceOverride = true;
 					} else {
+						//noinspection unchecked
 						PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
 								.asPrismContainerValue().clone();
 						PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
 						ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
 								.createDelta(FocusType.F_ASSIGNMENT, focusDef);
+						//noinspection unchecked
 						assignmentDelta.addValuesToDelete(assignmentValueToRemove);
 						context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
 					}

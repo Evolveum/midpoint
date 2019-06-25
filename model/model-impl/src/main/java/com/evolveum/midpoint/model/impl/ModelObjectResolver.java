@@ -56,6 +56,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * @author semancik
  *
@@ -119,9 +121,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			OperationResult result) throws ObjectNotFoundException {
 		try {
 			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
+		} catch (SystemException | ObjectNotFoundException ex) {
 			throw ex;
 		} catch (CommonException ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
@@ -135,12 +135,11 @@ public class ModelObjectResolver implements ObjectResolver {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		T objectType = null;
+		T objectType;
 		try {
-			PrismObject<T> object = null;
+			PrismObject<T> object;
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
-			final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            switch (manager) {
+            switch (defaultIfNull(manager, ObjectTypes.ObjectManager.REPOSITORY)) {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
@@ -164,9 +163,9 @@ public class ModelObjectResolver implements ObjectResolver {
             }
 			objectType = object.asObjectable();
 			if (!clazz.isInstance(objectType)) {
-				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
-						+ "'. Expected '" + clazz + "', but was '"
-						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
+				throw new ObjectNotFoundException(
+						"Bad object type returned for referenced oid '" + oid + "'. Expected '" + clazz + "', but was '"
+								+ objectType.getClass() + "'.");
 			}
 
             if (hookRegistry != null) {
@@ -174,17 +173,10 @@ public class ModelObjectResolver implements ObjectResolver {
                     hook.invoke(object, options, task, result);
                 }
             }
-		} catch (SystemException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
 		} catch (RuntimeException | Error ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
-					oid, clazz);
+			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex, oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-		} finally {
-			result.computeStatus();
 		}
-
 		return objectType;
 	}
 

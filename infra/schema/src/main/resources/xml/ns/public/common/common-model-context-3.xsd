@@ -841,6 +841,9 @@
         <xsd:complexContent>
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
+                    <xsd:element name="state" type="tns:ModelStateType" minOccurs="0"/>
+                    <xsd:element name="projectionWave" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="executionWave" type="xsd:int" minOccurs="0"/>
                     <xsd:element name="outputLensContext" type="tns:LensContextType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
