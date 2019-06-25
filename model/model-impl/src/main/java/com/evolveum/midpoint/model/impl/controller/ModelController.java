@@ -412,7 +412,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-				auditHelper.audit(auditRecord, task);
+				auditHelper.audit(auditRecord, task, result);
 				try {
 					for (ObjectDelta<? extends ObjectType> delta : deltas) {
 						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
@@ -540,7 +540,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					auditRecord.setEventStage(AuditEventStage.EXECUTION);
 					auditRecord.getDeltas().clear();
 					auditRecord.getDeltas().addAll(executedDeltas);
-					auditHelper.audit(auditRecord, task);
+					auditHelper.audit(auditRecord, task, result);
 
 					task.markObjectActionExecutedBoundary();
 				}

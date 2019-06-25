@@ -1274,18 +1274,34 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
-    	if (watcher.hasConflict()) {
-    		return true;
-	    }
-	    try {
-		    getVersion(ObjectType.class, watcher.getOid(), result);
-	    } catch (ObjectNotFoundException e) {
-		    // just ignore this
-	    } catch (SchemaException e) {
-		    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
-	    }
-	    return watcher.hasConflict();
+    public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(HAS_CONFLICT)
+                .setMinor(true)
+                .addParam("oid", watcher.getOid())
+                .addParam("watcherClass", watcher.getClass().getName())
+                .build();
+        try {
+            boolean rv;
+            if (watcher.hasConflict()) {
+                rv = true;
+            } else {
+                try {
+                    getVersion(ObjectType.class, watcher.getOid(), result);
+                } catch (ObjectNotFoundException e) {
+                    // just ignore this
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
+                }
+                rv = watcher.hasConflict();
+            }
+            result.addReturn("hasConflict", rv);
+            return rv;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     /**

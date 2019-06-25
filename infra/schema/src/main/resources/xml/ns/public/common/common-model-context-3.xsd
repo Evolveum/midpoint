@@ -960,7 +960,22 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="cacheUse" type="tns:CacheUseTraceType" minOccurs="0">
+                    <xsd:element name="cacheUse" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How was the cache used?
+                                DEPRECATED - remove!
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="globalCacheUse" type="tns:CacheUseTraceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How was the cache used?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="localCacheUse" type="tns:CacheUseTraceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 How was the cache used?
@@ -1096,10 +1111,10 @@
     </xsd:complexType>
     <xsd:element name="repositoryDeleteTrace" type="tns:RepositoryDeleteTraceType" />
 
-    <xsd:complexType name="RepositoryGetTraceType">
+    <xsd:complexType name="RepositoryGetObjectTraceType">
         <xsd:annotation>
             <xsd:documentation>
-                Trace for repository GET (getObject) operation.
+                Trace for repository getObject operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -1142,12 +1157,96 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="repositoryGetObjectTrace" type="tns:RepositoryGetObjectTraceType" />
+
+    <xsd:complexType name="RepositoryGetTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TEMPORARY - REMOVE
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryGetObjectTraceType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
     <xsd:element name="repositoryGetTrace" type="tns:RepositoryGetTraceType" />
 
     <xsd:complexType name="RepositorySearchTraceType">
         <xsd:annotation>
             <xsd:documentation>
-                Trace for repository SEARCH (searchObjects/searchObjectsIterative) operation.
+                TEMPORARY - REMOVE
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositorySearchObjectsTraceType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositorySearchTrace" type="tns:RepositorySearchTraceType" />
+
+    <xsd:complexType name="RepositoryGetVersionTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository getVersion operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options (stringified).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="version" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object version that was retrieved.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryGetVersionTrace" type="tns:RepositoryGetVersionTraceType" />
+
+    <xsd:complexType name="RepositorySearchObjectsTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository searchObjects/searchObjectsIterative operation.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:experimental>true</a:experimental>
@@ -1198,7 +1297,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="repositorySearchTrace" type="tns:RepositorySearchTraceType" />
+    <xsd:element name="repositorySearchObjectsTrace" type="tns:RepositorySearchObjectsTraceType" />
 
     <xsd:complexType name="MappingEvaluationTraceType">
         <xsd:annotation>
@@ -1240,9 +1339,27 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="scriptgEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
+    <xsd:element name="scriptEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
 
-    <xsd:simpleType name="CacheUseTraceType">
+    <xsd:complexType name="CacheUseTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="category" type="tns:CacheUseCategoryTraceType" minOccurs="0" />
+            <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="cacheUseTrace" type="tns:CacheUseTraceType" />
+
+    <xsd:simpleType name="CacheUseCategoryTraceType">
         <xsd:annotation>
             <xsd:documentation>
                 How was the cache used?

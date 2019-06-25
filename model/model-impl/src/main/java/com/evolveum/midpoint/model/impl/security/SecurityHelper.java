@@ -117,7 +117,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         record.setMessage(message);
 		storeConnectionEnvironment(record, connEnv);
 
-	    auditHelper.audit(record, task);
+	    auditHelper.audit(record, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogin"));
     }
 
 	@Override
@@ -127,7 +127,7 @@ public class SecurityHelper implements ModelAuditRecorder {
 		record.setTimestamp(System.currentTimeMillis());
 		record.setOutcome(OperationResultStatus.SUCCESS);
 		storeConnectionEnvironment(record, connEnv);
-		auditHelper.audit(record, task);
+		auditHelper.audit(record, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
     }
 
 	private void storeConnectionEnvironment(AuditEventRecord record, ConnectionEnvironment connEnv) {

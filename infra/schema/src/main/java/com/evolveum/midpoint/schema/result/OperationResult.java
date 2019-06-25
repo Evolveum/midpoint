@@ -92,6 +92,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	public static final String CONTEXT_ITEM = "item";
 	public static final String CONTEXT_TASK = "task";
 	public static final String CONTEXT_RESOURCE = "resource";
+	public static final String CONTEXT_REASON = "reason";
 
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_NAME = "name";
@@ -144,6 +145,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private TracingProfileType tracingProfile;      // NOT SERIALIZED
 
 	private final List<TraceType> traces = new ArrayList<>();
+
+	// Caller can specify the reason of the operation invocation.
+	// (Normally, the reason is known from the parent opResult; but it might be an overkill to create operation result
+	// only to specify the reason.)
+	//
+	// Use of this attribute assumes that the callee will ALWAYS create OperationResult as its first step.
+	// TODO reconsider ... it looks like a really ugly hack
+	private transient String callerReason;
 
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
@@ -223,8 +232,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		building = false;
 		if (futureParent != null) {
 			futureParent.addSubresult(this);
+			recordCallerReason(futureParent);
 		}
 		return this;
+	}
+
+	private void recordCallerReason(OperationResult parent) {
+		if (parent.getCallerReason() != null) {
+			addContext(CONTEXT_REASON, parent.getCallerReason());
+			parent.setCallerReason(null);
+		}
 	}
 
 	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
@@ -264,6 +281,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
 		OperationResult subresult = new OperationResult(operation);
+		subresult.recordCallerReason(this);
 		addSubresult(subresult);
 		if (profiled) {
 			recordStart(subresult, operation, arguments);
@@ -2165,5 +2183,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public List<String> getQualifiers() {
 		return qualifiers;
+	}
+
+	public String getCallerReason() {
+		return callerReason;
+	}
+
+	public void setCallerReason(String callerReason) {
+		this.callerReason = callerReason;
 	}
 }

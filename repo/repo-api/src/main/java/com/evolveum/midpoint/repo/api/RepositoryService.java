@@ -160,6 +160,7 @@ public interface RepositoryService {
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 	String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
 	String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
+	String HAS_CONFLICT = CLASS_NAME_WITH_DOT + "hasConflict";
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
 	String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";

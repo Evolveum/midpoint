@@ -273,7 +273,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource, prismContext);
 		requestRecord.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
-		auditHelper.audit(requestRecord, localCoordinatorTask);
+		auditHelper.audit(requestRecord, localCoordinatorTask, opResult);
 
 		try {
 			if (isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
@@ -343,6 +343,12 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			return runResult;
         }
 
+		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
+		executionRecord.setTarget(resource, prismContext);
+		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
+		executionRecord.setMessage(requestRecord.getMessage());
+		auditHelper.audit(executionRecord, localCoordinatorTask, opResult);
+
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
@@ -351,12 +357,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 		}
-
-		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-		executionRecord.setTarget(resource, prismContext);
-		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
-		executionRecord.setMessage(requestRecord.getMessage());
-		auditHelper.audit(executionRecord, localCoordinatorTask);
 
 		long reconEndTimestamp = clock.currentTimeMillis();
 
@@ -479,17 +479,17 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
 			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, RunningTask task, OperationResult opResult) {
+	    AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
+	    executionRecord.setTarget(resource, prismContext);
+	    executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
+	    executionRecord.setMessage(ex.getMessage());
+	    auditHelper.audit(executionRecord, task, opResult);
+
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		TaskHandlerUtil.appendLastFailuresInformation(OperationConstants.RECONCILIATION, task, opResult); // TODO implement more seriously
 		runResult.setRunResultStatus(runResultStatus);
-
-		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
-		executionRecord.setTarget(resource, prismContext);
-		executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
-		executionRecord.setMessage(ex.getMessage());
-	    auditHelper.audit(executionRecord , task);
 	}
 
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
