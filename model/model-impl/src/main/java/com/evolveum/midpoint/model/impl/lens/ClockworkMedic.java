@@ -162,9 +162,18 @@ public class ClockworkMedic {
 
 	public void partialExecute(String baseComponentName, ProjectorComponentRunnable runnable,
 			Supplier<PartialProcessingTypeType> optionSupplier,
-			Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult parentResult)
+			Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+
+		OperationResult parentResult;
+		if (initialParentResult == null) {
+			LOGGER.warn("No parentResult in ClockworkMedic.partialExecute! Creating dummy one");
+			parentResult = new OperationResult(ClockworkMedic.class.getName() + ".partialExecute");
+		} else {
+			parentResult = initialParentResult;
+		}
+
 		String componentName;
 		if (projectionContext != null) {
 			componentName = baseComponentName + " " + projectionContext.getHumanReadableName();
@@ -179,42 +188,34 @@ public class ClockworkMedic {
 				clockworkInspector.projectorComponentSkip(componentName);
 			}
 		} else {
-			String operationName = executingClass.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + "." + baseComponentName;
+			String operationName = executingClass.getName() + "." + baseComponentName;
+			String qualifier = context.getOperationQualifier();
 			if (projectionContext != null) {
-				operationName += "." + projectionContext.getResourceOid() + "." +
+				qualifier += "." + projectionContext.getResourceOid() + "." +
 						projectionContext.getResourceShadowDiscriminator().getKind() + "." +
 						projectionContext.getResourceShadowDiscriminator().getIntent();
 			}
-			OperationResult result = parentResult != null ? parentResult.createSubresult(operationName) : null;
-			LOGGER.trace("Projector component started: {}", componentName);
-			if (clockworkInspector != null) {
-				clockworkInspector.projectorComponentStart(componentName);
-			}
+			OperationResult result = parentResult.subresult(operationName)
+					.addQualifier(qualifier)
+					.build();
 			try {
-				runnable.run();
-				LOGGER.trace("Projector component finished: {}", componentName);
-				if (result != null) {
-					result.computeStatus();
+				LOGGER.trace("Projector component started: {}", componentName);
+				if (clockworkInspector != null) {
+					clockworkInspector.projectorComponentStart(componentName);
 				}
+				runnable.run(result);
+				LOGGER.trace("Projector component finished: {}", componentName);
 			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
 					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
 				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-				if (result != null) {
-					result.recordFatalError(e);
-					// Temporary: we should seriously fix this by (re)computing the parent result in the caller(s).
-					// But it could have some other side effects. So let's keep things simple albeit ugly.
-					//noinspection ConstantConditions (currently always true)
-					if (parentResult != null) {
-						parentResult.recordFatalError(e);
-					}
-				}
+				result.recordFatalError(e);
 				throw e;
 			} finally {
+				result.computeStatusIfUnknown();
 				if (clockworkInspector != null) {
 					clockworkInspector.projectorComponentFinish(componentName);
 				}
 			}
-
 		}
 	}
 	

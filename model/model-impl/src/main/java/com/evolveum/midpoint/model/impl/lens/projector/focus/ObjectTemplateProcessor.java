@@ -236,11 +236,7 @@ public class ObjectTemplateProcessor {
 		}
 
 		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-		
-		if (template != null) {
-			context.setFocusTemplate(template.asObjectable());
-		}
-		
+		context.setFocusTemplate(template.asObjectable());
 	    return template.asObjectable();
 	}
 

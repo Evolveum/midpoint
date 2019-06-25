@@ -327,7 +327,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 	public void evaluate(Task task, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		// Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
-		// AssignmentProcessor.processAssignmentsProjections. Otherwise partial error won't be propagated properly.
+		// AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
 		OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
 		try {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());

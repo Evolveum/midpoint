@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -334,12 +335,18 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		return statistics;
 	}
 
+	// TODO consider what to do with this
+
 	@Override
-	public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask) {
-		int objects = ((RunningTaskQuartzImpl) coordinatorTask).objectsSeen.getAndIncrement();
+	public int getAndIncrementObjectsSeen() {
+		return objectsSeen.getAndIncrement();
+	}
+
+	@Override
+	public void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen) {
 		Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_PROFILING_INTERVAL);
-		if (interval != null && interval != 0 && objects%interval == 0) {
-			LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", objects, interval);
+		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
+			LOGGER.info("Starting dynamic profiling for object number {} (interval is {})", objectsSeen, interval);
 			originalProfilingLevel = OperationExecutionLogger.getLocalOperationInvocationLevelOverride();
 			OperationExecutionLogger.setLocalOperationInvocationLevelOverride(Level.TRACE);
 		}
@@ -348,5 +355,15 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	@Override
 	public void stopDynamicProfiling() {
 		OperationExecutionLogger.setLocalOperationInvocationLevelOverride(originalProfilingLevel);
+	}
+
+	@Override
+	public void requestTracingIfNeeded(OperationResult result, int objectsSeen) {
+		Integer interval = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
+		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
+			LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
+			TracingProfileType tracingProfile = getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
+			result.startTracing(tracingProfile != null ? tracingProfile : new TracingProfileType());
+		}
 	}
 }

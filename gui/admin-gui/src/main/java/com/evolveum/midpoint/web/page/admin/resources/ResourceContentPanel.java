@@ -650,12 +650,7 @@ public abstract class ResourceContentPanel extends Panel {
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ShadowType>> rowModel) {
 				OperationResultType resultType = getResult(rowModel);
-				OperationResult result;
-				try {
-					result = OperationResult.createOperationResult(resultType);
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
-				}
+				OperationResult result = OperationResult.createOperationResult(resultType);
 
 				OperationResultPanel body = new OperationResultPanel(
 						ResourceContentPanel.this.getPageBase().getMainPopupBodyId(),

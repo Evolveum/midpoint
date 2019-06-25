@@ -135,9 +135,9 @@ public class OperationInvocationRecord {
 		previousSubsystem = swapSubsystemMark(subsystem != null ? subsystem.name() : null);
 
 		StringBuilder infoLog = new StringBuilder("#### Entry: ");
+		invocationId = idCounter.incrementAndGet();
 
 		if (debugEnabled) {
-			invocationId = idCounter.incrementAndGet();
 			infoLog.append(invocationId);
 
 			if (traceEnabled) {
@@ -279,8 +279,11 @@ public class OperationInvocationRecord {
 		return methodName;
 	}
 
-	@SuppressWarnings("WeakerAccess")
 	public long getElapsedTimeMicros() {
 		return elapsedTime / 1000;
+	}
+
+	public long getInvocationId() {
+		return invocationId;
 	}
 }

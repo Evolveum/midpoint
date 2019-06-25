@@ -290,6 +290,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+	    <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="auditEventRecord" type="tns:AuditEventRecordType" />

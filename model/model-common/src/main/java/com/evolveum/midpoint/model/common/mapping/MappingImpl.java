@@ -407,16 +407,29 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	// TODO: rename to evaluateAll
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		prepare(task, parentResult);
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("context", getContextDescription())
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor(true)
+				.build();
+		try {
+			prepare(task, result);
 
-//		if (!isActivated()) {
-//			outputTriple = null;
-//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
-//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
-//			return;
-//		}
+			//		if (!isActivated()) {
+			//			outputTriple = null;
+			//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
+			//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
+			//			return;
+			//		}
 
-		evaluateBody(task, parentResult);
+			evaluateBody(task, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	/**
@@ -458,12 +471,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sourcesChanged();
 	}
 
-	// TODO: rename to evaluate
+	// TODO: rename to evaluate -- or evaluatePrepared?
 	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluatePrepared")
 				.addArbitraryObjectAsContext("mapping", this)
 				.addArbitraryObjectAsContext("task", task)
 				.setMinor(true)

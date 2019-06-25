@@ -19,6 +19,7 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.C
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
+import static com.evolveum.midpoint.model.api.context.ModelState.toModelStateType;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -28,17 +29,17 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.expression.evaluator.caching.DefaultSearchExpressionEvaluatorCache;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +50,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -109,23 +109,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HookListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.HookType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelHooksType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -165,6 +148,7 @@ public class Clockwork {
 	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+	@Autowired private Tracer tracer;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -173,7 +157,6 @@ public class Clockwork {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService repositoryService;
 
-
 	private static final int DEFAULT_MAX_CLICKS = 200;
 
 	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult parentResult)
@@ -181,7 +164,17 @@ public class Clockwork {
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
 		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
+		ClockworkRunTraceType trace = null;
 		try {
+			TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
+			if (tracingProfile != null) {
+				// todo check authorization
+				result.startTracing(tracer.resolve(tracingProfile, result));
+			}
+			if (result.isTraced()) {
+				trace = recordTraceAtStart(context, task, result);
+			}
+
 			LOGGER.trace("Running clockwork for context {}", context);
 			if (InternalsConfig.consistencyChecks) {
 				context.checkConsistence();
@@ -247,6 +240,35 @@ public class Clockwork {
 		} catch (Throwable t) {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
+		} finally {
+			if (result.isTraced()) {
+				recordTraceAtEnd(context, trace);
+				tracer.storeTrace(task, result);
+			}
+		}
+	}
+
+	private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context, Task task,
+			OperationResult result) throws SchemaException {
+		ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+		trace.getText().add(context.debugDump());
+		trace.getText().add(task.debugDump());
+		trace.getText().add(task.getResult().getOperation());
+		trace.setInputLensContext(context.toLensContextType());     // todo if configured
+		result.addTrace(trace);
+		return trace;
+	}
+
+	private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace)
+			throws SchemaException {
+		if (trace != null) {
+			trace.setOutputLensContext(context.toLensContextType());        // todo if configured
+			if (context.getFocusContext() != null) {
+				PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
+				if (objectAny != null) {
+					trace.setFocusName(PolyString.getOrig(objectAny.getName()));
+				}
+			}
 		}
 	}
 
@@ -489,11 +511,22 @@ public class Clockwork {
 			context.setInspector(medic.getClockworkInspector());
 		}
 
-		OperationResult result = parentResult.subresult(Clockwork.class.getName() + "." + context.getState() + ".e" + context.getExecutionWave() + "p" + context.getProjectionWave() + ".click")
+		OperationResult result = parentResult.subresult(Clockwork.class.getName() + ".click")
+				.addQualifier(context.getOperationQualifier())
 				.addArbitraryObjectAsContext("context", context)
 				.addArbitraryObjectAsContext("task", task)
 				.build();
 
+		ClockworkClickTraceType trace;
+		if (result.isTraced()) {
+			trace = new ClockworkClickTraceType(prismContext)
+					.state(toModelStateType(context.getState()))
+					.executionWave(context.getExecutionWave())
+					.projectionWave(context.getProjectionWave());
+			result.getTraces().add(trace);
+		} else {
+			trace = null;
+		}
 		try {
 
 			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
@@ -501,7 +534,7 @@ public class Clockwork {
 			// We need to determine focus before auditing. Otherwise we will not know user
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
-			contextLoader.determineFocusContext((LensContext<? extends FocusType>) context, task, result);
+			contextLoader.determineFocusContext(context, task, result);
 
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
@@ -737,8 +770,8 @@ public class Clockwork {
 		Holder<Boolean> restartRequestedHolder = new Holder<>();
 
 		medic.partialExecute("execution",
-				() -> {	
-					boolean restartRequested = changeExecutor.executeChanges(context, task, result);
+				(result1) -> {
+					boolean restartRequested = changeExecutor.executeChanges(context, task, result1);
 					restartRequestedHolder.setValue(restartRequested);
 				},
 				context.getPartialProcessingOptions()::getExecution,
@@ -862,19 +895,26 @@ public class Clockwork {
 	}
 
 	private <F extends ObjectType> void recordOperationExecution(LensContext<F> context, Throwable clockworkException,
-			Task task, OperationResult result)
-			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-		try {
-			LOGGER.trace("recordOperationExecution starting; task = {}, clockworkException = {}", task, clockworkException);
-			recordFocusOperationExecution(context, now, clockworkException, task, result);
-			for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-				recordProjectionOperationExecution(context, projectionContext, now, task, result);
+			Task task, OperationResult result) {
+		boolean skip = context.getInternalsConfiguration() != null &&
+				context.getInternalsConfiguration().getOperationExecutionRecording() != null &&
+				Boolean.TRUE.equals(context.getInternalsConfiguration().getOperationExecutionRecording().isSkip());
+		if (!skip) {
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			try {
+				LOGGER.trace("recordOperationExecution starting; task = {}, clockworkException = {}", task, clockworkException);
+				recordFocusOperationExecution(context, now, clockworkException, task, result);
+				for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+					recordProjectionOperationExecution(context, projectionContext, now, task, result);
+				}
+			} catch (Throwable t) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record operation execution. Model context:\n{}", t,
+						context.debugDump());
+				// Let us ignore this for the moment. It should not have happened, sure. But it's not that crucial.
+				// Administrator will be able to learn about the problem from the log.
 			}
-		} catch (Throwable t) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record operation execution. Model context:\n{}", t, context.debugDump());
-			// Let us ignore this for the moment. It should not have happened, sure. But it's not that crucial.
-			// Administrator will be able to learn about the problem from the log.
+		} else {
+			LOGGER.trace("Skipping operation execution recording (as set in system configuration)");
 		}
 	}
 
@@ -907,7 +947,14 @@ public class Clockwork {
 			executedDeltas.add(odo);
 		}
 		LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
-		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(), task, result);
+		recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
+				getSkipWhenSuccess(context), task, result);
+	}
+
+	private <F extends ObjectType> boolean getSkipWhenSuccess(LensContext<F> context) {
+		return context.getInternalsConfiguration() != null &&
+				context.getInternalsConfiguration().getOperationExecutionRecording() != null &&
+				Boolean.TRUE.equals(context.getInternalsConfiguration().getOperationExecutionRecording().isSkipWhenSuccess());
 	}
 
 	private <F extends ObjectType> void recordProjectionOperationExecution(LensContext<F> context,
@@ -918,12 +965,12 @@ public class Clockwork {
 			return;			// this can happen
 		}
 		recordOperationExecution(object, true, projectionContext.getExecutedDeltas(), now,
-				context.getChannel(), task, result);
+				context.getChannel(), getSkipWhenSuccess(context), task, result);
 	}
 
 	private <F extends ObjectType> void recordOperationExecution(PrismObject<F> object, boolean deletedOk,
 			List<LensObjectDeltaOperation<F>> executedDeltas, XMLGregorianCalendar now,
-			String channel, Task task, OperationResult result)
+			String channel, boolean skipWhenSuccess, Task task, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
 		OperationExecutionType operation = new OperationExecutionType(prismContext);
 		OperationResult summaryResult = new OperationResult("recordOperationExecution");
@@ -931,7 +978,7 @@ public class Clockwork {
 		for (LensObjectDeltaOperation<F> deltaOperation : executedDeltas) {
 			operation.getOperation().add(createObjectDeltaOperation(deltaOperation));
 			if (deltaOperation.getExecutionResult() != null) {
-				summaryResult.addSubresult(deltaOperation.getExecutionResult());
+				summaryResult.addSubresult(deltaOperation.getExecutionResult().clone());        // todo eliminate this clone (but beware of modifying the subresult)
 			}
 			if (oid == null && deltaOperation.getObjectDelta() != null) {
 				oid = deltaOperation.getObjectDelta().getOid();
@@ -944,11 +991,11 @@ public class Clockwork {
 		summaryResult.computeStatus();
 		OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
 		setOperationContext(operation, overallStatus, now, channel, task);
-		storeOperationExecution(object, oid, operation, deletedOk, result);
+		storeOperationExecution(object, oid, operation, deletedOk, skipWhenSuccess, result);
 	}
 
 	private <F extends ObjectType> void storeOperationExecution(@NotNull PrismObject<F> object, @NotNull String oid,
-			@NotNull OperationExecutionType executionToAdd, boolean deletedOk, OperationResult result)
+			@NotNull OperationExecutionType executionToAdd, boolean deletedOk, boolean skipWhenSuccess, OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		Integer recordsToKeep;
 		Long deleteBefore;
@@ -973,18 +1020,40 @@ public class Clockwork {
 			recordsToKeep = DEFAULT_NUMBER_OF_RESULTS_TO_KEEP;
 			deleteBefore = null;
 		}
+
+		String taskOid = executionToAdd.getTaskRef() != null ? executionToAdd.getTaskRef().getOid() : null;
+		if (executionToAdd.getStatus() == OperationResultStatusType.SUCCESS && skipWhenSuccess) {
+			// We want to skip writing operationExecution. But let's check if there are some older non-success results
+			// related to the current task
+			if (taskOid != null) {
+				boolean hasNonSuccessFromCurrentTask = object.asObjectable().getOperationExecution().stream()
+						.anyMatch(oe -> oe.getTaskRef() != null && taskOid.equals(oe.getTaskRef().getOid()) &&
+								oe.getStatus() != OperationResultStatusType.SUCCESS);
+				if (hasNonSuccessFromCurrentTask) {
+					LOGGER.trace("Cannot skip OperationExecution recording because there's an older non-success record from the current task");
+				} else {
+					LOGGER.trace("Skipping OperationExecution recording because status is SUCCESS and skipWhenSuccess is true "
+							+ "(and no older non-success records for current task {} exist)", taskOid);
+					return;
+				}
+			} else {
+				LOGGER.trace("Skipping OperationExecution recording because status is SUCCESS and skipWhenSuccess is true");
+				return;
+			}
+		}
 		List<OperationExecutionType> executionsToDelete = new ArrayList<>();
 		List<OperationExecutionType> executions = new ArrayList<>(object.asObjectable().getOperationExecution());
 		// delete all executions related to current task and all old ones
-		String taskOid = executionToAdd.getTaskRef() != null ? executionToAdd.getTaskRef().getOid() : null;
 		for (Iterator<OperationExecutionType> iterator = executions.iterator(); iterator.hasNext(); ) {
 			OperationExecutionType execution = iterator.next();
-			if (taskOid != null && execution.getTaskRef() != null && taskOid.equals(execution.getTaskRef().getOid())
-					|| deleteBefore != null && XmlTypeConverter.toMillis(execution.getTimestamp()) < deleteBefore) {
+			boolean isPreviousTaskResult = taskOid != null && execution.getTaskRef() != null && taskOid.equals(execution.getTaskRef().getOid());
+			boolean isOld = deleteBefore != null && XmlTypeConverter.toMillis(execution.getTimestamp()) < deleteBefore;
+			if (isPreviousTaskResult || isOld) {
 				executionsToDelete.add(execution);
 				iterator.remove();
 			}
 		}
+
 		// delete all surplus executions
 		if (recordsToKeep != null && executions.size() > recordsToKeep - 1) {
 			if (keepNoExecutions) {
@@ -1160,10 +1229,11 @@ public class Clockwork {
 	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 		LOGGER.trace("Processing clockwork exception {}", e.toString());
-		result.recordFatalError(e);
+		result.recordFatalErrorNotFinish(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
 		recordOperationExecution(context, e, task, result);
 		LensUtil.reclaimSequences(context, repositoryService, task, result);
+		result.recordEnd();
 	}
 
 	// "overallResult" covers the whole clockwork run

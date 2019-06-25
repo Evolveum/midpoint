@@ -15581,8 +15581,84 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="operation" type="xsd:string"/>
+			<xsd:element name="qualifier" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Something that more precisely defines (i.e. qualifies) the operation. For example, object type for
+						repository operations or clockwork state and wave for clockwork operations. It is used to be shown
+						e.g. in operation performance statistics.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false"/>
+			<xsd:element name="start" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the operation started.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="end" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When the operation finished.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="microseconds" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How long the operation took (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="invocationId" type="xsd:long" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						ID of the operation invocation (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- tracing is temporarily at the top -->
+			<xsd:element name="traced" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Is the operation traced?
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="trace" type="tns:TraceType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Tracing details (if known).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
             <xsd:element name="count" type="xsd:int" minOccurs="0" default="1"/>
             <xsd:element name="hiddenRecordsCount" type="xsd:int" minOccurs="0" default="0"/>
             <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
@@ -16066,7 +16142,7 @@
 					<xsd:element name="expressions" type="tns:SystemConfigurationExpressionsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Specifies profile for expression evaluations, execution, restrictions, etc.
+                                Specifies profiles for expression evaluations, execution, restrictions, etc.
                             </xsd:documentation>
                             <xsd:appinfo>
 								<a:displayName>SystemConfigurationType.expressions</a:displayName>
@@ -16076,7 +16152,19 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <!-- TODO(maybe): objectCollectionRef -->
+                    <xsd:element name="audit" type="tns:SystemConfigurationAuditType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies details regarding creation and recording of audit events.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+								<a:displayName>SystemConfigurationType.audit</a:displayName>
+                            	<a:since>4.0</a:since>
+                            	<a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -16150,6 +16238,100 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SystemConfigurationAuditType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies details regarding creation and recording of audit events.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="eventRecording" type="tns:SystemConfigurationAuditEventRecordingType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Details about creation and recording of audit events.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationAuditType.eventRecording</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<!-- TODO: recordRetentionPolicy -->
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="SystemConfigurationAuditEventRecordingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Details about creation and recording of audit events.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="recordResourceOids" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            If set to true, the resource OIDs will be recorded in the audit event records.
+			            Recording resource OIDs means additional (storage) overhead. Therefore it is turned off by default.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationAuditEventRecordingType.recordResourceOids</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="property" type="tns:SystemConfigurationAuditEventRecordingPropertyType" minOccurs="0" maxOccurs="unbounded">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Specifies details how an audit event record property is created.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationAuditEventRecordingType.property</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SystemConfigurationAuditEventRecordingPropertyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specifies details how an audit event record property is created.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+            	<a:since>4.0</a:since>
+            	<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Audit event record property name.
+			        </xsd:documentation>
+			        <xsd:appinfo>
+						<a:displayName>SystemConfigurationAuditEventRecordingPropertyType.name</a:displayName>
+					</xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
+			<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+      			<xsd:annotation>
+      				<xsd:documentation>
+      					Expression that produces value of the property.
+      				</xsd:documentation>
+      			</xsd:annotation>
+      		</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	
@@ -17136,6 +17318,18 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="tracing" type="tns:TracingConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Tracing configuration, including profiles to be selected from.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+						<a:displayName>InternalsConfigurationType.tracing</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="repository" type="tns:RepositoryConfigurationType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -17171,9 +17365,90 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="synchronizationSituationUpdating" type="tns:SynchronizationSituationUpdatingStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How synchronization situation in shadows should be updated.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>InternalsConfigurationType.synchronizationSituationUpdating</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="operationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How operationExecution records should be updated.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>InternalsConfigurationType.operationExecutionRecording</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+	<xsd:complexType name="SynchronizationSituationUpdatingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How synchronization situation in shadows should be updated.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO we could perhaps skip also object read operation in updateSituationInShadow method -->
+			<xsd:element name="skipWhenNoChange" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Situation update is skipped if there's no change. The default is false.
+						(This will be probably replaced by more sophisticated condition.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="synchronizationSituationUpdatingStrategy" type="tns:SynchronizationSituationUpdatingStrategyType" />
+
+	<xsd:complexType name="OperationExecutionRecordingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How operationExecution records should be updated.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="skipWhenSuccess" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation execution records are not updated if the operation result is success. (The default is false.)
+						This setting can be used to improve performance.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="skip" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation execution records are not updated at all. (The default is false.)
+						This is to be used only in exceptional cases.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="operationExecutionRecordingStrategy" type="tns:OperationExecutionRecordingStrategyType" />
 
 	<xsd:complexType name="ConstraintsCheckingStrategyType">
 		<xsd:annotation>
@@ -17350,6 +17625,29 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<xsd:complexType name="TracingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Tracing configuration, including profiles to be selected from.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="profile" type="tns:TracingProfileType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						List of tracing profiles.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="tracingConfiguration" type="tns:TracingConfigurationType" />
 
 	<xsd:complexType name="CachingConfigurationType">
 		<xsd:annotation>
@@ -21834,6 +22132,13 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="ARCHETYPE_APPROVAL_CASE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="00000000-0000-0000-0000-000000000343">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ARCHETYPE_TRACE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

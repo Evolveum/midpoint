@@ -66,6 +66,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final long serialVersionUID = 1L;
 
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
+    private WorkItemDetailsPanel workItemDetails = null;
 
     public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId, PageStorage pageStorage){
         super(id, model, tableId, pageStorage);
@@ -75,7 +76,15 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     protected void onInitialize(){
         super.onInitialize();
 
-        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(unwrapPanelModel()));
+        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(unwrapPanelModel())){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected String getApproverComment(){
+                return workItemDetails != null ? workItemDetails.getApproverComment() : null;
+            }
+
+        };
         actionsPanel.setOutputMarkupId(true);
         getDetailsPanelContainer().add(actionsPanel);
     }
@@ -159,7 +168,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             @Override
             protected void addBasicContainerValuePanel(String idPanel) {
                 //todo fix  implement with WorkItemDetailsPanelFactory
-                WorkItemDetailsPanel workItemDetails = new WorkItemDetailsPanel(idPanel, Model.of(item.getModel().getObject().getRealValue()));
+                workItemDetails = new WorkItemDetailsPanel(idPanel, Model.of(item.getModel().getObject().getRealValue()));
                 workItemDetails.setOutputMarkupId(true);
                 add(workItemDetails);
             }

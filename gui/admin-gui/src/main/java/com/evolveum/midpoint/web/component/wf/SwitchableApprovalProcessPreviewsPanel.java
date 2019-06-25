@@ -137,11 +137,11 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 	private void initLayout(IModel<Boolean> showNextStagesModel) {
 		setOutputMarkupId(true);
 
-//		WebMarkupContainer nextStagesContainer = new WebMarkupContainer(ID_NEXT_STAGES_CONTAINER);
-//		nextStagesContainer.add(new ApprovalProcessExecutionInformationPanel(ID_NEXT_STAGES, nextStagesModel));
-//		nextStagesContainer.add(WebComponentUtil.createHelp(ID_NEXT_STAGES_HELP));
-////		nextStagesContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.NEXT_STAGES));
-//		add(nextStagesContainer);
+		WebMarkupContainer nextStagesContainer = new WebMarkupContainer(ID_NEXT_STAGES_CONTAINER);
+		nextStagesContainer.add(new ApprovalProcessExecutionInformationPanel(ID_NEXT_STAGES, nextStagesModel));
+		nextStagesContainer.add(WebComponentUtil.createHelp(ID_NEXT_STAGES_HELP));
+//		nextStagesContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.NEXT_STAGES));
+		add(nextStagesContainer);
 
 		WebMarkupContainer wholeProcessContainer = new WebMarkupContainer(ID_WHOLE_PROCESS_CONTAINER);
 		wholeProcessContainer.add(new ApprovalProcessExecutionInformationPanel(ID_WHOLE_PROCESS, wholeProcessModel));

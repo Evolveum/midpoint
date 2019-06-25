@@ -22,6 +22,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -30,13 +31,14 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            TODO
+            Schema for model context serialization as well as for the tracing feature.
         </xsd:documentation>
     </xsd:annotation>
 
     <!-- Don't provide schemaLocation here, as it causes xjc to really contact the URIs (!) -->
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
@@ -766,5 +768,659 @@
 			<!-- TODO maybe also evaluation order -->
 		</xsd:sequence>
 	</xsd:complexType>
+
+    <xsd:complexType name="TraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Root type for tracing information that is embedded in OperationResult objects.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Unstructured text information to be used when existing structure is not sufficient.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="trace" type="tns:TraceType" />
+
+    <xsd:complexType name="ClockworkRunTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for Clockwork.run operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="inputLensContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at input.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="outputLensContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at output.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="focusName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Focus name (at output).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="clockworkRunTrace" type="tns:ClockworkRunTraceType" />
+
+    <xsd:complexType name="ClockworkClickTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for Clockwork.click operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="state" type="tns:ModelStateType" minOccurs="0"/>
+                    <xsd:element name="projectionWave" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="executionWave" type="xsd:int" minOccurs="0"/>
+                    <xsd:element name="outputLensContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at output.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="clockworkClickTrace" type="tns:ClockworkClickTraceType" />
+
+    <xsd:complexType name="ProjectorRunTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for Projector.project operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="outputLensContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at output.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="projectorRunTrace" type="tns:ProjectorRunTraceType" />
+
+    <xsd:complexType name="ProjectorComponentTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for Projector component operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="outputLensContext" type="tns:LensContextType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Lens (model) context at output.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="projectorComponentTrace" type="tns:ProjectorComponentTraceType" />
+
+    <xsd:complexType name="ProvisioningOperationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for provisioning operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="provisioningOperationTrace" type="tns:ProvisioningOperationTraceType" />
+
+    <xsd:complexType name="RepositoryOperationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="cache" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is this at the RepositoryCache level?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="cacheUse" type="tns:CacheUseTraceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                How was the cache used?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryOperationTrace" type="tns:RepositoryOperationTraceType" />
+
+    <xsd:complexType name="RepositoryAddTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository ADD operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectToAdd" type="tns:ObjectType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object to be added.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options (stringified).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID resulting from the operation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryAddTrace" type="tns:RepositoryAddTraceType" />
+
+    <xsd:complexType name="RepositoryModifyTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository MODIFY operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object to be modified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object to be modified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="modification" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta(s) to be applied.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options (stringified).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryModifyTrace" type="tns:RepositoryModifyTraceType" />
+
+    <xsd:complexType name="RepositoryDeleteTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository DELETE operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryDeleteTrace" type="tns:RepositoryDeleteTraceType" />
+
+    <xsd:complexType name="RepositoryGetTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository GET (getObject) operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="oid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the object to be deleted.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options (stringified).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="object" type="tns:ObjectType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object that was retrieved.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositoryGetTrace" type="tns:RepositoryGetTraceType" />
+
+    <xsd:complexType name="RepositorySearchTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for repository SEARCH (searchObjects/searchObjectsIterative) operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:RepositoryOperationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of the objects to be searched for.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="query" type="q:QueryType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object query.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Options (stringified).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+					<!-- Here should be tns:ObjectType but that's not compilable because of a bug in our code generator -->
+                    <xsd:element name="resultSize" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Number of objects found.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="object" type="t:ObjectType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object(s) that was retrieved.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="repositorySearchTrace" type="tns:RepositorySearchTraceType" />
+
+    <xsd:complexType name="MappingEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for mapping evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="mappingEvaluationTrace" type="tns:MappingEvaluationTraceType" />
+
+    <xsd:complexType name="ScriptEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for script evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <!-- TODO -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="scriptgEvaluationTrace" type="tns:ScriptEvaluationTraceType" />
+
+    <xsd:simpleType name="CacheUseTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                How was the cache used?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>3.8</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="hit">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache hit was encountered.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="weakHit">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache "weak hit" was encountered. (E.g. the version had to be checked but was found OK.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="WEAK_HIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="miss">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache miss was encountered.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MISS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="pass">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache was passed through.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PASS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notAvailable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache was not available.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_AVAILABLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="notApplicable">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Cache was not applicable for given kind of operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NOT_APPLICABLE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="TracingProfileType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes how the tracing is to be done.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Name of the tracing profile.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ref" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        References to tracing profile(s) this one is derived from.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="fileNamePattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern of the file name. Can use macros like %{timestamp}, %{testName}, %{testNameShort},
+                        %{focusName}, %{milliseconds}, etc.
+
+                        The default is trace-%{timestamp} e.g. trace-2019-06-24-19-14-49-503.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectNamePattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern for the repo object. The default is the same as the file name.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="createRepoObject" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the repository object pointing to the stored trace is to be created. (Default is true.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="compressOutput" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether the output is to be compressed when saving. (Default is true.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to profile individual operations.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="tracingProfile" type="tns:TracingProfileType" />
+
+    <xsd:complexType name="TracingTypeProfileType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Describes how the tracing of specific type is to be done.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="operationType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation(s) to which this tracing type profile is applied.
+                        (Represented as QNames of corresponding TraceType subtypes.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to include these record(s) at all. Default is true.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="includeDetails" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to include details of the operation.
+                        TODO specify the level of details.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" />
 
 </xsd:schema>

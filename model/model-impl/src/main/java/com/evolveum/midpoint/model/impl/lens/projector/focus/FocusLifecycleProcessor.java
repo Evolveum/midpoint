@@ -68,9 +68,8 @@ public class FocusLifecycleProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusLifecycleProcessor.class);
 
-
 	public <O extends ObjectType> void processLifecycle(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult parentResult) throws SchemaException,
+            Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -80,23 +79,14 @@ public class FocusLifecycleProcessor {
     		// We can do this only for FocusType.
     		return;
     	}
-    	
-    	OperationResult result = parentResult.createSubresult(FocusLifecycleProcessor.class.getName() + ".processLifecycle");
 
-    	try {
-    		processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
-    	} catch (Throwable e) {
-    		result.recordFatalError(e);
-    		throw e;
-    	}
-    	
-    	result.computeStatus();
-    	result.recordSuccessIfUnknown();
+		//noinspection unchecked
+		processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
     }
 
 	private <F extends AssignmentHolderType> void processLifecycleWithFocus(LensContext<F> context, XMLGregorianCalendar now,
     		Task task, OperationResult result) throws SchemaException,
-    		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    		ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectDelta<F> focusDelta = focusContext.getDelta();
