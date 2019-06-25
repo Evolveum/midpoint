@@ -1432,8 +1432,8 @@ public class ResourceObjectConverter {
 		ResourceType resource = ctx.getResource();
 		Collection<Operation> operations = new ArrayList<>();
 		
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(UpdateCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
+//		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(UpdateCapabilityType.class);
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
 
 		// administrativeStatus
 		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
@@ -1447,7 +1447,7 @@ public class ResourceObjectConverter {
 			ActivationStatusType status = enabledPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
 	
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				// Native activation, need to check if there is not also change to simulated activation which may be in conflict
 				checkSimulatedActivationAdministrativeStatus(ctx, objectChange, status, activationCapability, shadow, result);
 				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
@@ -1500,7 +1500,7 @@ public class ResourceObjectConverter {
 			LockoutStatusType status = lockoutPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
 
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				// Native lockout, need to check if there is not also change to simulated activation which may be in conflict
 				checkSimulatedActivationLockoutStatus(ctx, objectChange, status, activationCapability, shadow, result);
 				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
@@ -1611,12 +1611,11 @@ public class ResourceObjectConverter {
 			return;
 		}
 		PrismContainer attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(CreateCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);		
+
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
 
 		if (activation.getAdministrativeStatus() != null) {
-			if (!CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (!ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
@@ -1654,7 +1653,7 @@ public class ResourceObjectConverter {
 
 		// TODO enable non-string lockout values (MID-3374)
 		if (activation.getLockoutStatus() != null) {
-			if (!CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (!ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
@@ -1987,13 +1986,13 @@ public class ResourceObjectConverter {
 	private void completeActivation(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resourceType = ctx.getResource();
 		ShadowType resourceObjectType = resourceObject.asObjectable();
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(ReadCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
-		
+
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+
 		if (resourceObjectType.getActivation() != null || CapabilityUtil.isCapabilityEnabled(activationCapability)) {
 			ActivationType activationType = null;
 		
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
 				activationType = resourceObjectType.getActivation();
 				
 			} else if (CapabilityUtil.isCapabilityEnabled(activationCapability)) {
@@ -2564,7 +2563,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		C capability = ctx.getObjectClassDefinition().getEffectiveCapability(capabilityClass, ctx.getResource());
+		C capability = ctx.getEffectiveCapability(capabilityClass);
 		if (capability == null) {
 			UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
 			if (result != null) {

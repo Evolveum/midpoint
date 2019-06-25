@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -314,12 +316,23 @@ public class ProvisioningContext extends StateReporter {
 		}
 	}
 	
-	public <T extends CapabilityType> T getResourceEffectiveCapability(Class<T> capabilityClass) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		return ResourceTypeUtil.getEffectiveCapability(getResource(), capabilityClass);
+
+	//check connector capabilities in this order :
+	// 1. take additional connector capabilieis if exist, if not, take resource capabilities
+	// 2. apply object class specific capabilities to the one selected in step 1.
+	// 3. in the returned capabilieties, check first configured capabilities and then native capabilities
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+		CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
+		return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
 	}
-	
-	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
-		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
+
+	public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
+	}
+
+	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
+		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), objectClassDefinition, operationCapabilityClass);
 	}
 
 	@Override
