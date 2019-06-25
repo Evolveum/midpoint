@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
@@ -163,6 +164,7 @@ public class Clockwork {
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
 		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
+		ClockworkRunTraceType trace = null;
 		try {
 			TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
 			if (tracingProfile != null) {
@@ -170,11 +172,7 @@ public class Clockwork {
 				result.startTracing(tracer.resolve(tracingProfile, result));
 			}
 			if (result.isTraced()) {
-				ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
-				trace.getText().add(context.debugDump());
-				trace.getText().add(task.debugDump());
-				trace.getText().add(task.getResult().getOperation());
-				result.addTrace(trace);
+				trace = recordTraceAtStart(context, task, result);
 			}
 
 			LOGGER.trace("Running clockwork for context {}", context);
@@ -244,7 +242,32 @@ public class Clockwork {
 			throw t;
 		} finally {
 			if (result.isTraced()) {
-				tracer.storeTrace(result);
+				recordTraceAtEnd(context, trace);
+				tracer.storeTrace(task, result);
+			}
+		}
+	}
+
+	private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context, Task task,
+			OperationResult result) throws SchemaException {
+		ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
+		trace.getText().add(context.debugDump());
+		trace.getText().add(task.debugDump());
+		trace.getText().add(task.getResult().getOperation());
+		trace.setInputLensContext(context.toLensContextType());     // todo if configured
+		result.addTrace(trace);
+		return trace;
+	}
+
+	private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace)
+			throws SchemaException {
+		if (trace != null) {
+			trace.setOutputLensContext(context.toLensContextType());        // todo if configured
+			if (context.getFocusContext() != null) {
+				PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
+				if (objectAny != null) {
+					trace.setFocusName(PolyString.getOrig(objectAny.getName()));
+				}
 			}
 		}
 	}

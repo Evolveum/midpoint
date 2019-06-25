@@ -816,6 +816,22 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		this.tracingProfile = profile;
 	}
 
+	public <T> T getFirstTrace(Class<T> traceClass) {
+		Optional<TraceType> first = traces.stream().filter(t -> traceClass.isAssignableFrom(t.getClass())).findFirst();
+		if (first.isPresent()) {
+			//noinspection unchecked
+			return (T) first.get();
+		} else {
+			for (OperationResult subresult : getSubresults()) {
+				T firstInSubresult = subresult.getFirstTrace(traceClass);
+				if (firstInSubresult != null) {
+					return firstInSubresult;
+				}
+			}
+			return null;
+		}
+	}
+
 	public static class PreviewResult {
 		public final OperationResultStatus status;
 		public final String message;

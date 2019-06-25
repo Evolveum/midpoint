@@ -821,6 +821,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="focusName" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Focus name (at output).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1332,6 +1339,23 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         References to tracing profile(s) this one is derived from.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="fileNamePattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern of the file name. Can use macros like %{timestamp}, %{testName}, %{testNameShort},
+                        %{focusName}, %{milliseconds}, etc.
+
+                        The default is trace-%{timestamp} e.g. trace-2019-06-24-19-14-49-503.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectNamePattern" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Pattern for the repo object. The default is the same as the file name.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
