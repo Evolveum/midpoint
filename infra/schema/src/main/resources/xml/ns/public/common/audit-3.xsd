@@ -290,7 +290,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="resourceOID" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+	    <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
@@ -298,13 +298,6 @@
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-	    <xsd:element name="classifier" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Custom attribute for identification of audit record.
-                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
