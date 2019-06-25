@@ -113,6 +113,7 @@ public class RAuditEventRecord implements Serializable {
     private Set<RAuditItem> changedItems;
     private Set<RAuditPropertyValue> propertyValues;
     private Set<RAuditReferenceValue> referenceValues;
+    private Set<RResourceOid> resourceOids;
 
     private String result;
 
@@ -171,6 +172,16 @@ public class RAuditEventRecord implements Serializable {
             referenceValues = new HashSet<>();
         }
         return referenceValues;
+    }
+    
+    @ForeignKey(name = "fk_audit_resource")
+    @OneToMany(mappedBy = "record", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RResourceOid> getResourceOids() {
+        if (resourceOids == null) {
+        	resourceOids = new HashSet<>();
+        }
+        return resourceOids;
     }
 
     public String getEventIdentifier() {
@@ -271,7 +282,7 @@ public class RAuditEventRecord implements Serializable {
     public String getTaskOID() {
         return taskOID;
     }
-
+    
     @Column(name = COLUMN_TIMESTAMP)
     public Timestamp getTimestamp() {
         return timestamp;
@@ -304,6 +315,10 @@ public class RAuditEventRecord implements Serializable {
 
     public void setChangedItems(Set<RAuditItem> changedItems) {
         this.changedItems = changedItems;
+    }
+    
+    public void setResourceOids(Set<RResourceOid> resourceOids) {
+        this.resourceOids = resourceOids;
     }
 
     public void setPropertyValues(Set<RAuditPropertyValue> propertyValues) {
@@ -401,7 +416,7 @@ public class RAuditEventRecord implements Serializable {
     public void setTaskOID(String taskOID) {
         this.taskOID = taskOID;
     }
-
+    
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = timestamp;
     }
@@ -446,6 +461,7 @@ public class RAuditEventRecord implements Serializable {
             Objects.equals(parameter, that.parameter) &&
             Objects.equals(message, that.message) &&
             Objects.equals(changedItems, that.changedItems) &&
+            Objects.equals(resourceOids, that.resourceOids) &&
             Objects.equals(propertyValues, that.propertyValues) &&
             Objects.equals(referenceValues, that.referenceValues) &&
             Objects.equals(result, that.result);
@@ -458,7 +474,7 @@ public class RAuditEventRecord implements Serializable {
                 remoteHostAddress, nodeIdentifier, initiatorOid, initiatorName, initiatorType,
                 attorneyOid, attorneyName, targetOid, targetName, targetType, targetOwnerOid,
                 targetOwnerName, targetOwnerType, eventType, eventStage, deltas, channel, outcome, parameter, message,
-                changedItems, propertyValues, referenceValues, result);
+                changedItems, resourceOids, propertyValues, referenceValues, result);
     }
 
     public static RAuditEventRecord toRepo(AuditEventRecord record, PrismContext prismContext, Boolean isTransient)
@@ -494,6 +510,10 @@ public class RAuditEventRecord implements Serializable {
         repo.setTaskIdentifier(record.getTaskIdentifier());
         repo.setTaskOID(record.getTaskOID());
         repo.setResult(record.getResult());
+        
+        for(String resourceOid : record.getResourceOids()) {
+        	repo.getResourceOids().add(RResourceOid.toRepo(repo, resourceOid));
+        }
 
         try {
             if (record.getTarget() != null) {
@@ -594,6 +614,10 @@ public class RAuditEventRecord implements Serializable {
         audit.setTaskOID(repo.getTaskOID());
         if (repo.getTimestamp() != null) {
             audit.setTimestamp(repo.getTimestamp().getTime());
+        }
+        
+        for(RResourceOid resourceOID : repo.getResourceOids()) {
+        	audit.getResourceOids().add(resourceOID.getResourceOid());
         }
 
         List<ObjectDeltaOperation> odos = new ArrayList<>();

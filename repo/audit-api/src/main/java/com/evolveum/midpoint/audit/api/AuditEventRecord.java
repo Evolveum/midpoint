@@ -176,7 +176,12 @@ public class AuditEventRecord implements DebugDumpable {
     private String parameter;
 
     private String message;
-
+    
+    /**
+	 *  Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+	 */
+    private Set<String> resourceOids = new HashSet<>();
+    
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private final Map<String, Set<String>> properties = new HashMap<>();
@@ -421,7 +426,19 @@ public class AuditEventRecord implements DebugDumpable {
 	public Set<AuditReferenceValue> getReferenceValues(String name) {
 		return references.get(name);
 	}
-
+	
+	public Set<String> getResourceOids() {
+		return resourceOids;
+	}
+	
+	public void setResourceOids(Set<String> resourceOids) {
+		this.resourceOids = resourceOids;
+	}
+	
+	public void addResourceOid(String resourceOid) {
+		this.resourceOids.add(resourceOid);
+	}
+	
 	public void addPropertyValue(String key, String value) {
 		properties.computeIfAbsent(key, k -> new HashSet<>()).add(value);
 	}
@@ -496,6 +513,7 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setRequestIdentifier(requestIdentifier);
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
+    	auditRecordType.getResourceOID().addAll(resourceOids);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas) {
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
@@ -558,6 +576,7 @@ public class AuditEventRecord implements DebugDumpable {
         clone.message = this.message;
         clone.properties.putAll(properties);		// TODO deep clone?
         clone.references.putAll(references);		// TODO deep clone?
+        clone.resourceOids.addAll(resourceOids);
 		return clone;
 	}
 
@@ -571,6 +590,7 @@ public class AuditEventRecord implements DebugDumpable {
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
                 + ", prop=" + properties
+                + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
 	}
 
@@ -647,6 +667,7 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Properties", properties, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Resource OIDs", resourceOids, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
 		if (deltas.isEmpty()) {
