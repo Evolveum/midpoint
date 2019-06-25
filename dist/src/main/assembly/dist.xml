@@ -44,20 +44,6 @@
       </includes>
     </fileSet>
     <fileSet>
-      <directory>../samples</directory>
-      <outputDirectory>/doc/samples</outputDirectory>
-      <excludes>
-      	<exclude>.project</exclude>
-      	<exclude>.classpath</exclude>
-      	<exclude>.settings/</exclude>
-      	<exclude>pom.xml</exclude>
-      	<exclude>*~</exclude>
-      	<exclude>**/*~</exclude>
-      	<exclude>model-client-sample/</exclude>
-      	<exclude>samples-test/</exclude>
-      </excludes>
-    </fileSet>
-    <fileSet>
       <directory>../config</directory>
       <outputDirectory>/doc/config</outputDirectory>
       <excludes>
@@ -118,6 +104,18 @@
         <include>*:*:*:bin:*</include>
       </includes>
       <unpack>true</unpack>
+    </dependencySet>
+    <dependencySet>
+      <outputDirectory>/doc/samples</outputDirectory>
+      <includes>
+        <include>com.evolveum.midpoint:midpoint-samples</include>
+      </includes>
+      <unpack>true</unpack>
+      <unpackOptions>
+	      <excludes>
+	      	<exclude>META-INF/</exclude>
+	      </excludes>      	
+      </unpackOptions>
     </dependencySet>
   </dependencySets>
 </assembly>
