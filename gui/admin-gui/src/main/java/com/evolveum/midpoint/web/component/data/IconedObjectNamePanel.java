@@ -88,7 +88,7 @@ public class IconedObjectNamePanel<AHT extends AssignmentHolderType> extends Bas
         if (displayType == null){
             displayType = new DisplayType();
         }
-        if (displayType.getIcon() == null){
+        if (displayType.getIcon() == null && referencedObjectModel.getObject() != null){
             displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(
                     WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObjectModel.getObject().getClass()))));
         }

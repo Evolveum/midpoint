@@ -121,7 +121,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
         EvaluatedTriggerGroupListPanel reasonPanel = new EvaluatedTriggerGroupListPanel(ID_REASON,
                 Model.ofList(WebComponentUtil.computeTriggers(parentCase != null ? parentCase.getApprovalContext() : null,
-                        parentCase != null ? parentCase.getStageNumber() : 0)));
+                        parentCase != null && parentCase.getStageNumber() != null ? parentCase.getStageNumber() : 0)));
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
 
