@@ -543,11 +543,15 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	//region Capabilities ========================================================
 	@Override
 	public CapabilitiesType getCapabilities() {
+    	if (schemaHandlingObjectTypeDefinitionType == null) {
+    		return null;
+		}
+
     	CapabilityCollectionType configuredCapabilities = schemaHandlingObjectTypeDefinitionType.getConfiguredCapabilities();
 		if (configuredCapabilities == null) {
 			return null;
 		}
-		CapabilitiesType capabilitiesType = new CapabilitiesType();
+		CapabilitiesType capabilitiesType = new CapabilitiesType(getPrismContext());
 		capabilitiesType.setConfigured(configuredCapabilities);
 		return  capabilitiesType;
 	}
