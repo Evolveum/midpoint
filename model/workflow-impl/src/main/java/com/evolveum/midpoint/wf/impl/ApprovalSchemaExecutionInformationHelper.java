@@ -58,7 +58,6 @@ public class ApprovalSchemaExecutionInformationHelper {
 
 	@Autowired private ModelService modelService;
 	@Autowired private PrismContext prismContext;
-	@Autowired private SchemaHelper schemaHelper;
 	@Autowired private StageComputeHelper computeHelper;
 	@Autowired private PrimaryChangeProcessor primaryChangeProcessor;
 	@Autowired private ConfigurationHelper configurationHelper;
@@ -70,9 +69,7 @@ public class ApprovalSchemaExecutionInformationHelper {
 			OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException {
-		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				.build();
-		CaseType aCase = modelService.getObject(CaseType.class, caseOid, options, opTask, result).asObjectable();
+		CaseType aCase = modelService.getObject(CaseType.class, caseOid, null, opTask, result).asObjectable();
 		return getApprovalSchemaExecutionInformation(aCase, false, opTask, result);
 	}
 
