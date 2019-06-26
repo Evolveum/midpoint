@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefin
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyScope;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -308,6 +309,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	@Override
 	public ResourceObjectReferenceType getBaseContext() {
 		return structuralObjectClassDefinition.getBaseContext();
+	}
+	
+	@Override
+	public SearchHierarchyScope getSearchHierarchyScope() {
+		return structuralObjectClassDefinition.getSearchHierarchyScope();
 	}
 
 	@Override

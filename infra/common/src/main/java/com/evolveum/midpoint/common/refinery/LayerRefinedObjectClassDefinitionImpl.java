@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -628,6 +628,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @Override
     public ResourceObjectReferenceType getBaseContext() {
 		return refinedObjectClassDefinition.getBaseContext();
+	}
+    
+	@Override
+	public SearchHierarchyScope getSearchHierarchyScope() {
+		return refinedObjectClassDefinition.getSearchHierarchyScope();
 	}
 
 	@Override

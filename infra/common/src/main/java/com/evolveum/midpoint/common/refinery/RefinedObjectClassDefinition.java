@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.SearchHierarchyScope;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
@@ -123,6 +124,8 @@ public interface RefinedObjectClassDefinition extends ObjectClassComplexTypeDefi
 	boolean isDefault();
 
 	ResourceObjectReferenceType getBaseContext();
+	
+	SearchHierarchyScope getSearchHierarchyScope();
 
 	String getHumanReadableName();
 

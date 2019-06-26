@@ -1938,18 +1938,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	        }
 	        if (searchHierarchyConstraints != null) {
 	        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-	        	// Only LDAP connector really supports base context. And this one will work better with
-	        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-	        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-	        	if (secondaryIdentifier == null) {
-	        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-	        		result.recordFatalError(e);
-	        		throw e;
+	        	if (baseContextIdentification != null) {
+		        	// Only LDAP connector really supports base context. And this one will work better with
+		        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+		        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+		        	if (secondaryIdentifier == null) {
+		        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+		        		result.recordFatalError(e);
+		        		throw e;
+		        	}
+		        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+		        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+		        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+					optionsBuilder.setContainer(containerQualifiedUid);
 	        	}
-	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-				optionsBuilder.setContainer(containerQualifiedUid);
+	        	SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
+	        	if (scope != null) {
+	        		optionsBuilder.setScope(scope.getScopeString());
+	        	}
 	        }
 
 		} catch (SchemaException e) {

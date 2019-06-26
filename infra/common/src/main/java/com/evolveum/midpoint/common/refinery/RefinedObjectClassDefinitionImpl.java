@@ -78,6 +78,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	@NotNull private final List<RefinedAttributeDefinition<?>> secondaryIdentifiers = new ArrayList<>();
 	@NotNull private final List<ResourceObjectPattern> protectedObjectPatterns = new ArrayList<>();
 	private ResourceObjectReferenceType baseContext;
+	private SearchHierarchyScope searchHierarchyScope;
 	private RefinedAttributeDefinition<?> displayNameAttributeDefinition;
 	private RefinedAttributeDefinition<?> namingAttributeDefinition;
 	private RefinedAttributeDefinition<?> descriptionAttributeDefinition;
@@ -287,6 +288,15 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	private void setBaseContext(ResourceObjectReferenceType baseContext) {
 		this.baseContext = baseContext;
+	}
+	
+	@Override
+	public SearchHierarchyScope getSearchHierarchyScope() {
+		return searchHierarchyScope;
+	}
+
+	public void setSearchHierarchyScope(SearchHierarchyScope searchHierarchyScope) {
+		this.searchHierarchyScope = searchHierarchyScope;
 	}
 
 	@Override
@@ -551,11 +561,15 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	//region Capabilities ========================================================
 	@Override
 	public CapabilitiesType getCapabilities() {
+    	if (schemaHandlingObjectTypeDefinitionType == null) {
+    		return null;
+		}
+
     	CapabilityCollectionType configuredCapabilities = schemaHandlingObjectTypeDefinitionType.getConfiguredCapabilities();
 		if (configuredCapabilities == null) {
 			return null;
 		}
-		CapabilitiesType capabilitiesType = new CapabilitiesType();
+		CapabilitiesType capabilitiesType = new CapabilitiesType(getPrismContext());
 		capabilitiesType.setConfigured(configuredCapabilities);
 		return  capabilitiesType;
 	}
@@ -1015,6 +1029,19 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
         if (rOcDef.schemaHandlingObjectTypeDefinitionType.getBaseContext() != null) {
         	rOcDef.setBaseContext(rOcDef.schemaHandlingObjectTypeDefinitionType.getBaseContext());
         }
+        
+        if (rOcDef.schemaHandlingObjectTypeDefinitionType.getSearchHierarchyScope() != null) {
+        	switch (rOcDef.schemaHandlingObjectTypeDefinitionType.getSearchHierarchyScope()) {
+        		case ONE:
+        			rOcDef.setSearchHierarchyScope(SearchHierarchyScope.ONE);
+        			break;
+        		case SUB:
+        			rOcDef.setSearchHierarchyScope(SearchHierarchyScope.SUB);
+        			break;
+        		default:
+        			throw new SchemaException("Unknown search hierarchy scope: "+rOcDef.schemaHandlingObjectTypeDefinitionType.getSearchHierarchyScope());
+        	}
+        }
        
         return rOcDef;
 	}
@@ -1224,6 +1251,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		result = prime * result + attributeDefinitions.hashCode();
 		result = prime * result + auxiliaryObjectClassDefinitions.hashCode();
 		result = prime * result + ((baseContext == null) ? 0 : baseContext.hashCode());
+		result = prime * result + ((searchHierarchyScope == null) ? 0 : searchHierarchyScope.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((displayName == null) ? 0 : displayName.hashCode());
 		result = prime * result
@@ -1268,6 +1296,13 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 				return false;
 			}
 		} else if (!baseContext.equals(other.baseContext)) {
+			return false;
+		}
+		if (searchHierarchyScope == null) {
+			if (other.searchHierarchyScope != null) {
+				return false;
+			}
+		} else if (!searchHierarchyScope.equals(other.searchHierarchyScope)) {
 			return false;
 		}
 		if (description == null) {
