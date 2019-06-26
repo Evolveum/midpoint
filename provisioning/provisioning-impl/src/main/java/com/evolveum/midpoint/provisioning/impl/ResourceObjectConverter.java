@@ -2481,7 +2481,7 @@ public class ResourceObjectConverter {
 	
 	private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		C capability = ctx.getEffectiveCapability(capabilityClass);
-		if (capability == null) {
+		if (capability == null || BooleanUtils.isFalse(capability.isEnabled())) {
 			UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
 			if (result != null) {
 				result.recordFatalError(e);
