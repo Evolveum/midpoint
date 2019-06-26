@@ -1241,7 +1241,7 @@ public class Clockwork {
 	//
 	// We provide "result" here just for completeness - if any of the called methods would like to record to it.
 	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage,
-			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, @SuppressWarnings("unused") OperationResult result,
+			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result,
 			OperationResult overallResult) throws SchemaException {
 
 		PrismObject<? extends ObjectType> primaryObject;
@@ -1326,7 +1326,7 @@ public class Clockwork {
 
 		addRecordMessage(auditRecord, clone.getMessage());
 
-		auditHelper.audit(auditRecord, task);
+		auditHelper.audit(auditRecord, task, result);
 
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave

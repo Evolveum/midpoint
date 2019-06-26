@@ -22,14 +22,20 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
 
 import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
 
@@ -41,20 +47,27 @@ public class AuditHelper {
 
 	@Autowired private AuditService auditService;
 	@Autowired private PrismContext prismContext;
+	@Autowired private SchemaHelper schemaHelper;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	public void audit(AuditEventRecord record, Task task) {
+	public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
 		if (record.getDeltas() != null) {
 			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
 				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
 				ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
-					OperationResult result = OperationResult.createProfiled(AuditHelper.class.getName() + ".resolveName");
+					OperationResult result = parentResult.subresult(AuditHelper.class.getName() + ".resolveName")
+							.setMinor(true)
+							.build();
 					try {
 						// we use null options here, in order to utilize the local or global repository cache
-						PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, null, result);
+						Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+								.allowNotFound().build();
+						PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);
 						return object.getName();
+					} catch (ObjectNotFoundException e) {
+						return null;        // we will NOT record an error here
 					} catch (Throwable t) {
 						result.recordFatalError(t.getMessage(), t);
 						throw t;
