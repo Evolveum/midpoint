@@ -550,6 +550,17 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 
 	//region Capabilities ========================================================
 	@Override
+	public CapabilitiesType getCapabilities() {
+    	CapabilityCollectionType configuredCapabilities = schemaHandlingObjectTypeDefinitionType.getConfiguredCapabilities();
+		if (configuredCapabilities == null) {
+			return null;
+		}
+		CapabilitiesType capabilitiesType = new CapabilitiesType();
+		capabilitiesType.setConfigured(configuredCapabilities);
+		return  capabilitiesType;
+	}
+
+	@Override
 	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
 		return ResourceTypeUtil.getEffectiveCapability(resourceType, schemaHandlingObjectTypeDefinitionType, capabilityClass);
 	}

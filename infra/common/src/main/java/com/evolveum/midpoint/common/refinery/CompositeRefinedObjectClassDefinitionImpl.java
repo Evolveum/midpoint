@@ -365,6 +365,11 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.matches(shadowType);
 	}
 
+	@Override
+	public CapabilitiesType getCapabilities() {
+		return structuralObjectClassDefinition.getCapabilities();
+	}
+
 	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass, ResourceType resourceType) {
 		return structuralObjectClassDefinition.getEffectiveCapability(capabilityClass, resourceType);
 	}

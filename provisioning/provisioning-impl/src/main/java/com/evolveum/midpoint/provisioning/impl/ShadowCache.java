@@ -3397,7 +3397,7 @@ public class ShadowCache {
 		if (runAsAccountOid == null) {
 			return null;
 		}
-		RunAsCapabilityType capRunAs = ctx.getResourceEffectiveCapability(RunAsCapabilityType.class);
+		RunAsCapabilityType capRunAs = ctx.getEffectiveCapability(RunAsCapabilityType.class);
 		if (capRunAs == null) {
 			LOGGER.trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
 			return null;

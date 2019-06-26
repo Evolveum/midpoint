@@ -135,7 +135,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             try {
                 assumePowerOfAttorneyIfRequested(result);
                 //todo fix comment and delta
-                getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, "",
+                getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, getApproverComment(),
                         null, task, result);
             } finally {
                 dropPowerOfAttorneyIfRequested(result);
@@ -146,6 +146,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
+    }
+
+    protected String getApproverComment(){
+        return "";
     }
 
     private boolean isParentCaseClosed(){
