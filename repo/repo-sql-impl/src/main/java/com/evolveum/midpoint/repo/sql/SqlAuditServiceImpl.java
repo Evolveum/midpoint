@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -24,9 +26,12 @@ import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
+import com.evolveum.midpoint.repo.sql.util.PreparedStatementBuilder;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -36,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -47,6 +53,7 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
+import org.hibernate.jdbc.Work;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,7 +85,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
-
+    
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
     }
@@ -212,69 +219,206 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
                                              AuditResultHandler handler) {
         Session session = null;
-        int count = 0;
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
                     DebugUtil.debugDump(params, 2));
         }
 
-        try {
+//        try {
             session = baseHelper.beginReadOnlyTransaction();
+//
+//            Query q;
+//
+//            if (StringUtils.isBlank(query)) {
+//                query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
+//                q = session.createQuery(query);
+//                setParametersToQuery(q, params);
+//            } else {
+//                q = session.createQuery(query);
+//                setParametersToQuery(q, params);
+//            }
+//            // q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
+//
+//            if (LOGGER.isTraceEnabled()) {
+//                LOGGER.trace("List records attempt\n  processed query: {}", q);
+//            }
+//
+//            ScrollableResults resultList = q.scroll();
+//
+//            while (resultList.next()) {
+//                Object o = resultList.get(0);
+//                if (!(o instanceof RAuditEventRecord)) {
+//                    throw new DtoTranslationException(
+//                            "Unexpected object in result set. Expected audit record, but got "
+//                                    + o.getClass().getSimpleName());
+//                }
+//                RAuditEventRecord raudit = (RAuditEventRecord) o;
+//
+//                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext(), getConfiguration().isUsingSQLServer());
+//
+//                // TODO what if original name (in audit log) differs from the current one (in repo) ?
+//                audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
+//                audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
+//                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()),
+//		                getPrismContext());
+//                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
+//                count++;
+//                if (!handler.handle(audit)) {
+//                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
+//                    break;
+//                }
+//            }
+            try {
+            	Session localSession = session;
+            session.doWork(new Work() {
+                
+                @Override
+                public void execute(Connection con) throws SQLException {
+                	
+                	Database database = baseHelper.getConfiguration().getDatabase();
+                	
+                	int count = 0;
+                		String basicQuery = query;
+                        if (StringUtils.isBlank(basicQuery)) {
+                        	basicQuery = "select * from m_audit_event as aer where 1=1 order by aer.timestampValue desc";
+                        }
+                        String deltaQuery = "select * from m_audit_delta as delta where delta.record_id=?";
+                        String propertyQuery = "select * from m_audit_prop_value as prop where prop.record_id=?";
+                        String refQuery = "select * from m_audit_ref_value as ref where ref.record_id=?";
+                        String resourceQuery = "select * from m_audit_resource as res where res.record_id=?";
+                        PreparedStatementBuilder stmtBuilder = new PreparedStatementBuilder(database, basicQuery);
+                        setParametersToQuery(stmtBuilder, params);
 
-            Query q;
-
-            if (StringUtils.isBlank(query)) {
-                query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
-                q = session.createQuery(query);
-                setParametersToQuery(q, params);
-            } else {
-                q = session.createQuery(query);
-                setParametersToQuery(q, params);
-            }
-            // q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("List records attempt\n  processed query: {}", q);
-            }
-
-            ScrollableResults resultList = q.scroll();
-
-            while (resultList.next()) {
-                Object o = resultList.get(0);
-                if (!(o instanceof RAuditEventRecord)) {
-                    throw new DtoTranslationException(
-                            "Unexpected object in result set. Expected audit record, but got "
-                                    + o.getClass().getSimpleName());
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("List records attempt\n  processed query: {}", stmtBuilder);
+                        }
+                        
+                        PreparedStatement stmt = stmtBuilder.build(con);
+                        
+//                        ScrollableResults resultList = q.scroll();
+                        
+                        ResultSet resultList = stmt.executeQuery();
+                        try {
+                        	while (resultList.next()) {
+                            	
+                                AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
+                                
+                                //query for deltas
+                                PreparedStatement subStmt = con.prepareStatement(deltaQuery);
+                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                ResultSet subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	try {
+                                    	while (subResultList.next()) {
+                                    		ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
+                                    		if(odo != null) {
+                                    			audit.addDelta(odo);
+                                    		}
+                                    	}
+                                    } finally {
+                                    	subResultList.close();
+                                    	subStmt.close();
+    								}
+                                } catch (DtoTranslationException ex) {
+    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
+    					        }
+                                
+                                //query for properties
+                                subStmt = con.prepareStatement(propertyQuery);
+                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
+                                							   subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                //query for references
+                                subStmt = con.prepareStatement(refQuery);
+                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
+                                				RAuditReferenceValue.fromRepo(subResultList));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                //query for target resource oids
+                                subStmt = con.prepareStatement(resourceQuery);
+                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                try {
+                                	// TODO what if original name (in audit log) differs from the current one (in repo) ?
+                                	audit.setInitiator(resolve(localSession, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
+                                			resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                                    		defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.USER)));
+                                    audit.setAttorney(resolve(localSession, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
+                                    		resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.USER));
+                                    audit.setTarget(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
+                                    		resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
+                                    		RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
+        							audit.setTargetOwner(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
+        									resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
+        									RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
+    							} catch (SchemaException ex) {
+    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
+    					        }
+                                count++;
+                                if (!handler.handle(audit)) {
+                                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
+                                    break;
+                                }
+                            }
+                        }finally {
+                        	stmt.close();
+						}
+                        
+//                	
+                	LOGGER.trace("List records iterative attempt processed {} records", count);
                 }
-                RAuditEventRecord raudit = (RAuditEventRecord) o;
-
-                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext(), getConfiguration().isUsingSQLServer());
-
-                // TODO what if original name (in audit log) differs from the current one (in repo) ?
-                audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
-                audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
-                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()),
-		                getPrismContext());
-                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
-                count++;
-                if (!handler.handle(audit)) {
-                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
-                    break;
-                }
-            }
-
+            });
             session.getTransaction().commit();
 
-        } catch (DtoTranslationException | SchemaException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
 
-        LOGGER.trace("List records iterative attempt processed {} records", count);
+    }
+    
+    private boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columns = rsmd.getColumnCount();
+        for (int x = 1; x <= columns; x++) {
+        	System.out.println("XXXXXXXXXXXX column " + rsmd.getColumnName(x));
+            if (columnName.equals(rsmd.getColumnName(x))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setParametersToQuery(Query q, Map<String, Object> params) {
@@ -312,6 +456,17 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 //				q.setParameter(p.getKey(), p.getValue());
 //			}
         }
+    }
+    
+    private void setParametersToQuery(PreparedStatementBuilder queryBuilder, Map<String, Object> params) {
+        if (params == null) {
+            return;
+        }
+
+        if (params.containsKey(QUERY_FIRST_RESULT) && params.containsKey(QUERY_MAX_RESULT)) {
+        	queryBuilder.addPaging(QUERY_FIRST_RESULT, QUERY_MAX_RESULT);
+        }
+        queryBuilder.addParameters(params);
     }
 
     private List<?> convertValues(List<?> originValues) {

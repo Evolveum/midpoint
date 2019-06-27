@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
@@ -40,6 +41,8 @@ import javax.persistence.*;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
 
+import java.sql.ResultSet;
+
 /**
  * @author lazyman
  */
@@ -54,6 +57,18 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
+    
+    private static final String CHECKSUM_COLUMN_NAME = "checksum";
+    private static final String DELTA_COLUMN_NAME = "delta";
+    private static final String DELTA_OID_COLUMN_NAME = "deltaOid";
+    private static final String DELTA_TYPE_COLUMN_NAME = "deltaType";
+    private static final String FULL_RESULT_COLUMN_NAME = "fullResult";
+    private static final String OBJECT_NAME_NORM_COLUMN_NAME = "objectName_norm";
+    private static final String OBJECT_NAME_ORIG_COLUMN_NAME = "objectName_orig";
+    private static final String RESOURCE_NAME_NORM_COLUMN_NAME = "resourceName_norm";
+    private static final String RESOURCE_NAME_ORIG_COLUMN_NAME = "resourceName_orig";
+    private static final String RESOURCE_OID_COLUMN_NAME = "resourceOid";
+    private static final String STATUS_COLUMN_NAME = "status";
 
     private Boolean trans;
 
@@ -309,6 +324,39 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
             odo.setObjectName(RPolyString.fromRepo(operation.getObjectName()));
             odo.setResourceOid(operation.getResourceOid());
             odo.setResourceName(RPolyString.fromRepo(operation.getResourceName()));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return odo;
+    }
+    
+    public static ObjectDeltaOperation fromRepo(ResultSet resultSet, PrismContext prismContext, boolean useUtf16)
+            throws DtoTranslationException {
+
+        ObjectDeltaOperation odo = new ObjectDeltaOperation();
+        try {
+            if (resultSet.getBytes(DELTA_COLUMN_NAME) != null) {
+                byte[] data = resultSet.getBytes(DELTA_COLUMN_NAME);
+                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+
+                ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+            }
+            if (resultSet.getBytes(FULL_RESULT_COLUMN_NAME) != null) {
+                byte[] data = resultSet.getBytes(FULL_RESULT_COLUMN_NAME);
+                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+
+                OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+            }
+            if(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
+            	odo.setObjectName(new PolyString(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME), resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME)));
+            }
+            odo.setResourceOid(resultSet.getString(RESOURCE_OID_COLUMN_NAME));
+            if(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
+            	odo.setResourceName(new PolyString(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME), resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME)));
+            }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

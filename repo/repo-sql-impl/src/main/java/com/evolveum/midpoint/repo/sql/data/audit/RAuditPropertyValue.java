@@ -35,6 +35,9 @@ public class RAuditPropertyValue implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_prop_value";
 	public static final String COLUMN_RECORD_ID = "record_id";
+	
+	public static final String NAME_COLUMN_NAME = "name";
+	public static final String VALUE_COLUMN_NAME = "value";
 
 	private Boolean trans;
 

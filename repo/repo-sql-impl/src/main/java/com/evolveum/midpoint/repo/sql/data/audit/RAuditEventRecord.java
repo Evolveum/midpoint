@@ -19,6 +19,8 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.Validate;
@@ -51,6 +54,8 @@ import javax.persistence.Index;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,6 +78,35 @@ public class RAuditEventRecord implements Serializable {
     public static final String COLUMN_TIMESTAMP = "timestampValue";
 
     private static final long serialVersionUID = 621116861556252436L;
+    
+    public static final String ID_COLUMN_NAME = "id";
+    public static final String ATTORNEY_NAME_COLUMN_NAME = "attorneyName";
+    public static final String ATTORNEY_OID_COLUMN_NAME = "attorneyOid";
+    private static final String CHANNEL_COLUMN_NAME = "channel";
+    private static final String EVENT_IDENTIFIER_COLUMN_NAME = "eventIdentifier";
+    private static final String EVENT_STAGE_COLUMN_NAME = "eventStage";
+    private static final String EVENT_TYPE_COLUMN_NAME = "eventType";
+    private static final String HOST_IDENTIFIER_COLUMN_NAME = "hostIdentifier";
+    public static final String INITIATOR_NAME_COLUMN_NAME = "initiatorName";
+    public static final String INITIATOR_OID_COLUMN_NAME = "initiatorOid";
+    public static final String INITIATOR_TYPE_COLUMN_NAME = "initiatorType";
+    private static final String MESSAGE_COLUMN_NAME = "message";
+    private static final String NODE_IDENTIFIER_COLUMN_NAME = "nodeIdentifier";
+    private static final String OUTCOME_COLUMN_NAME = "outcome";
+    private static final String PARAMETER_COLUMN_NAME = "parameter";
+    private static final String REMOTE_HOST_ADDRESS_COLUMN_NAME = "remoteHostAddress";
+    private static final String REQUEST_IDENTIFIER_COLUMN_NAME = "requestIdentifier";
+    private static final String RESULT_COLUMN_NAME = "result";
+    private static final String SESSION_IDENTIFIER_COLUMN_NAME = "sessionIdentifier";
+    public static final String TARGET_NAME_COLUMN_NAME = "targetName";
+    public static final String TARGET_OID_COLUMN_NAME = "targetOid";
+    public static final String TARGET_OWNER_NAME_COLUMN_NAME = "targetOwnerName";
+    public static final String TARGET_OWNER_OID_COLUMN_NAME = "targetOwnerOid";
+    public static final String TARGET_OWNER_TYPE_COLUMN_NAME = "targetOwnerType";
+    public static final String TARGET_TYPE_COLUMN_NAME = "targetType";
+    private static final String TASK_IDENTIFIER_COLUMN_NAME = "taskIdentifier";
+    private static final String TASK_OID_COLUMN_NAME = "taskOID";
+    private static final String TIMESTAMP_VALUE_COLUMN_NAME = "timestampValue";
 
     private long id;
     private Timestamp timestamp;
@@ -113,7 +147,7 @@ public class RAuditEventRecord implements Serializable {
     private Set<RAuditItem> changedItems;
     private Set<RAuditPropertyValue> propertyValues;
     private Set<RAuditReferenceValue> referenceValues;
-    private Set<RResourceOid> resourceOids;
+    private Set<RTargetResourceOid> resourceOids;
 
     private String result;
 
@@ -177,7 +211,7 @@ public class RAuditEventRecord implements Serializable {
     @ForeignKey(name = "fk_audit_resource")
     @OneToMany(mappedBy = "record", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RResourceOid> getResourceOids() {
+    public Set<RTargetResourceOid> getResourceOids() {
         if (resourceOids == null) {
         	resourceOids = new HashSet<>();
         }
@@ -317,7 +351,7 @@ public class RAuditEventRecord implements Serializable {
         this.changedItems = changedItems;
     }
     
-    public void setResourceOids(Set<RResourceOid> resourceOids) {
+    public void setResourceOids(Set<RTargetResourceOid> resourceOids) {
         this.resourceOids = resourceOids;
     }
 
@@ -512,7 +546,7 @@ public class RAuditEventRecord implements Serializable {
         repo.setResult(record.getResult());
         
         for(String resourceOid : record.getResourceOids()) {
-        	repo.getResourceOids().add(RResourceOid.toRepo(repo, resourceOid));
+        	repo.getResourceOids().add(RTargetResourceOid.toRepo(repo, resourceOid));
         }
 
         try {
@@ -616,7 +650,7 @@ public class RAuditEventRecord implements Serializable {
             audit.setTimestamp(repo.getTimestamp().getTime());
         }
         
-        for(RResourceOid resourceOID : repo.getResourceOids()) {
+        for(RTargetResourceOid resourceOID : repo.getResourceOids()) {
         	audit.getResourceOids().add(resourceOID.getResourceOid());
         }
 
@@ -648,6 +682,40 @@ public class RAuditEventRecord implements Serializable {
         return audit;
         // initiator, attorney, target, targetOwner
 
+    }
+    
+    public static AuditEventRecord fromRepo(ResultSet resultSet) throws SQLException {
+
+    	AuditEventRecord audit = new AuditEventRecord();
+        audit.setChannel(resultSet.getString(CHANNEL_COLUMN_NAME));
+        audit.setEventIdentifier(resultSet.getString(EVENT_IDENTIFIER_COLUMN_NAME));
+        if (resultSet.getObject(EVENT_STAGE_COLUMN_NAME) != null) {
+            audit.setEventStage(AuditEventStage.values()[resultSet.getInt(EVENT_STAGE_COLUMN_NAME)]);
+        }
+        if (resultSet.getObject(EVENT_TYPE_COLUMN_NAME) != null) {
+            audit.setEventType(AuditEventType.values()[resultSet.getInt(EVENT_TYPE_COLUMN_NAME)]);
+        }
+        audit.setHostIdentifier(resultSet.getString(HOST_IDENTIFIER_COLUMN_NAME));
+        audit.setRemoteHostAddress(resultSet.getString(REMOTE_HOST_ADDRESS_COLUMN_NAME));
+        audit.setNodeIdentifier(resultSet.getString(NODE_IDENTIFIER_COLUMN_NAME));
+        audit.setMessage(resultSet.getString(MESSAGE_COLUMN_NAME));
+
+        if (resultSet.getObject(OUTCOME_COLUMN_NAME) != null) {
+            audit.setOutcome(OperationResultStatus.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)]);
+        }
+        audit.setParameter(resultSet.getString(PARAMETER_COLUMN_NAME));
+        audit.setResult(resultSet.getString(RESULT_COLUMN_NAME));
+        audit.setSessionIdentifier(resultSet.getString(SESSION_IDENTIFIER_COLUMN_NAME));
+        audit.setRequestIdentifier(resultSet.getString(REQUEST_IDENTIFIER_COLUMN_NAME));
+        audit.setTaskIdentifier(resultSet.getString(TASK_IDENTIFIER_COLUMN_NAME));
+        audit.setTaskOID(resultSet.getString(TASK_OID_COLUMN_NAME));
+        if (resultSet.getTimestamp(TIMESTAMP_VALUE_COLUMN_NAME) != null) {
+        	audit.setTimestamp(resultSet.getTimestamp(TIMESTAMP_VALUE_COLUMN_NAME).getTime());
+        }
+        
+        audit.setRepoId(Long.valueOf(resultSet.getString(ID_COLUMN_NAME)));
+
+        return audit;
     }
 
     private static String getOrigName(PrismObject object) {

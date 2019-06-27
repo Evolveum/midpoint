@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import java.io.Serializable;
 
-public class RResourceOidId implements Serializable{
+public class RTargetResourceOidId implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	private Long recordId;
@@ -46,7 +46,7 @@ public class RResourceOidId implements Serializable{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RResourceOidId that = (RResourceOidId) o;
+        RTargetResourceOidId that = (RTargetResourceOidId) o;
 
         if (recordId != null ? !recordId.equals(that.recordId) : that.recordId != null) return false;
         if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) return false;
