@@ -1325,32 +1325,43 @@ public class ResourceManager {
 		return connectorManager.getConfiguredConnectorInstanceFromCache(connectorSpec, forceFresh, parentResult);
 	}
 	
-	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(PrismObject<ResourceType> resource,
+	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(ResourceType resource,
 																				RefinedObjectClassDefinition objectClassDefinition, Class<T> operationCapabilityClass) {
+		if (resource == null) {
+			return null;
+		}
+
 		CapabilitiesType connectorCapabilities = null;
-		for (ConnectorInstanceSpecificationType additionalConnectorType: resource.asObjectable().getAdditionalConnector()) {
+		for (ConnectorInstanceSpecificationType additionalConnectorType : resource.getAdditionalConnector()) {
 			if (supportsCapability(additionalConnectorType, operationCapabilityClass)) {
 				connectorCapabilities = additionalConnectorType.getCapabilities();
 			}
 		}
 
 		if (connectorCapabilities == null) {
-			connectorCapabilities = resource.asObjectable().getCapabilities();
+			connectorCapabilities = resource.getCapabilities();
 		}
+
 
 		return applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
 
 	}
 
 	private CapabilitiesType applyObjectClassCapabilities(CapabilitiesType connectorCapabilities, RefinedObjectClassDefinition objectClassDefinition) {
-		if (connectorCapabilities == null) {
-			return null;
+
+		if (objectClassDefinition == null) {
+			return connectorCapabilities;
+		}
+
+		CapabilitiesType objectClassCapabilities = objectClassDefinition.getCapabilities();
+		if (objectClassCapabilities == null) {
+			if (connectorCapabilities == null) {
+				return null;
+			}
 		}
 
 		CapabilitiesType finalCapabilities = new CapabilitiesType();
 		finalCapabilities.setNative(connectorCapabilities.getNative());
-
-		CapabilitiesType objectClassCapabilities = objectClassDefinition.getCapabilities();
 
 		if (objectClassCapabilities == null) {
 			finalCapabilities.setConfigured(connectorCapabilities.getConfigured());
