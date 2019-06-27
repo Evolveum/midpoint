@@ -91,7 +91,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         context.recompute();
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("outbound processor result", result);
@@ -122,7 +122,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -184,7 +184,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -227,7 +227,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -297,7 +297,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -396,7 +396,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -486,7 +486,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        assertFocusModificationSanity(context);
 
 	        // WHEN
-	        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+	        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
 	        context.recompute();
 	        // THEN
@@ -525,7 +525,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -595,7 +595,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -680,7 +680,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
 
         // THEN
 	    //DebugUtil.setDetailedDebugDump(true);
@@ -735,7 +735,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assertFocusModificationSanity(context);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
+		assignmentProcessor.processAssignments(context, getNow(), task, result);
 
 		// THEN
 		//DebugUtil.setDetailedDebugDump(true);

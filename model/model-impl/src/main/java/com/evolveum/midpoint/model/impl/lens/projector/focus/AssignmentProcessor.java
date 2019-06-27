@@ -141,11 +141,10 @@ public class AssignmentProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
     /**
-     * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
-     * Generic method for all projection types (theoretically).
+     * Processing all the assignments.
      */
     @SuppressWarnings("unchecked")
-	public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
+	public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignments(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -153,7 +152,7 @@ public class AssignmentProcessor {
     		return;
     	}
     	if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		// We can do this only for AssignmentHolerType.
+    		// We can do this only for AssignmentHolderType.
     		return;
     	}
 //    	if (ModelExecuteOptions.isLimitPropagation(context.getOptions()) && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
@@ -161,33 +160,38 @@ public class AssignmentProcessor {
 //    		return;
 //    	}
 
-    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
+    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignments");
+		try {
+			try {
+				processAssignmentsProjectionsWithFocus((LensContext<AH>) context, now, task, result);
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
+					CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
+				result.recordFatalError(e);
+				throw e;
+			}
 
-    	try {
-    		processAssignmentsProjectionsWithFocus((LensContext<AH>)context, now, task, result);
-    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
-    			CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-    		result.recordFatalError(e);
-    		throw e;
-    	}
-
-    	OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
-    	String message = null;
-    	int errors = 0;
-    	for (OperationResult subresult: result.getSubresults()) {
-    		if (subresult.isError()) {
-    			errors++;
-    			if (message == null) {
-    				message = subresult.getMessage();
-    			} else {
-    				message = errors + " errors";
-    			}
-    			finalStatus = OperationResultStatus.PARTIAL_ERROR;
-    		}
-    	}
-		result.setStatus(finalStatus);
-		result.setMessage(message);
-		result.cleanupResult();
+			OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
+			String message = null;
+			int errors = 0;
+			for (OperationResult subresult : result.getSubresults()) {
+				if (subresult.isError()) {
+					errors++;
+					if (message == null) {
+						message = subresult.getMessage();
+					} else {
+						message = errors + " errors";
+					}
+					finalStatus = OperationResultStatus.PARTIAL_ERROR;
+				}
+			}
+			result.recordEnd();
+			result.setStatus(finalStatus);
+			result.setMessage(message);
+			result.cleanupResult();
+		} catch (Throwable t) {      // shouldn't occur -- just in case
+			result.recordFatalError(t);
+			throw t;
+		}
     }
 
     /**

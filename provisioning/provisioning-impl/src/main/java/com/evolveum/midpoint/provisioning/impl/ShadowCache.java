@@ -592,7 +592,7 @@ public class ShadowCache {
 					// Try again, this time without explicit uniqueness check
 					try {
 						
-						LOGGER.trace("ADD {}: retrying resource operation without uniquness check (previous dead shadow found), execution starting", shadowToAdd);
+						LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), execution starting", shadowToAdd);
 						AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
 								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
@@ -3397,7 +3397,7 @@ public class ShadowCache {
 		if (runAsAccountOid == null) {
 			return null;
 		}
-		RunAsCapabilityType capRunAs = ctx.getResourceEffectiveCapability(RunAsCapabilityType.class);
+		RunAsCapabilityType capRunAs = ctx.getEffectiveCapability(RunAsCapabilityType.class);
 		if (capRunAs == null) {
 			LOGGER.trace("Operation runAs requested, but resource does not have the capability. Ignoring runAs");
 			return null;

@@ -1355,7 +1355,7 @@ public class ContextLoader {
 			// loading is futile
 			return;
 		}
-		OperationResult result = parentResult.subresult(CLASS_DOT + "loadFulLShadow")
+		OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
 				.setMinor(true)
 				.build();
 		try {

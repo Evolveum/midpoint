@@ -123,18 +123,8 @@ public class ProjectionValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
-    	try {
-		    //noinspection unchecked
-		    processProjections((LensContext<? extends FocusType>) context, projectionContext,
-				    activityDescription, task, processorResult);
-	    } catch (Throwable t) {
-    		processorResult.recordFatalError(t);
-    		throw t;
-	    } finally {
-		    processorResult.recordSuccessIfUnknown();
-	    }
-		processorResult.cleanupResult();
+		processProjections((LensContext<? extends FocusType>) context, projectionContext,
+				activityDescription, task, result);
 	}
 
 	private <F extends FocusType> void processProjections(LensContext<F> context,
@@ -674,11 +664,8 @@ public class ProjectionValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValuesPostRecon");
-    	processorResult.recordSuccessIfUnknown();
     	processProjectionsPostRecon((LensContext<? extends FocusType>) context, projectionContext,
-    			activityDescription, task, processorResult);
-
+    			activityDescription, task, result);
 	}
 	
 	private <F extends FocusType> void processProjectionsPostRecon(LensContext<F> context,

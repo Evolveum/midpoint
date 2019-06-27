@@ -837,6 +837,8 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

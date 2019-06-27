@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -27,11 +29,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -50,6 +51,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String DOT_CLASS = CaseWorkItemActionsPanel.class.getName() + ".";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
+    private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
 
 
     private static final String ID_WORK_ITEM_APPROVE_BUTTON = "workItemApproveButton";
@@ -115,37 +117,56 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void savePerformed(AjaxRequestTarget target, CaseWorkItemType workItem, boolean approved) {
-        Task task = getPageBase().createSimpleTask(OPERATION_SAVE_WORK_ITEM);
-        OperationResult result = task.getResult();
-        try {
-            //todo implement custom panels
-//            WorkItemDto dto = workItemDtoModel.getObject();
-//            if (approved) {
-//                boolean requiredFieldsPresent = getWorkItemPanel().checkRequiredFields();
-//                if (!requiredFieldsPresent) {
-//                    target.add(getFeedbackPanel());
-//                    return;
-//                }
-//            }
-//            ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-//            if (delta != null) {
-//                //noinspection unchecked
-//                getPrismContext().adopt(delta);
-//            }
+        CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
+        OperationResult result;
+        if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
+            Task task = getPageBase().createSimpleTask(OPERATION_COMPLETE_WORK_ITEM);
+            result = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
             try {
-                assumePowerOfAttorneyIfRequested(result);
-                //todo fix comment and delta
-                getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, "",
-                        null, task, result);
-            } finally {
-                dropPowerOfAttorneyIfRequested(result);
+                getPageBase().getCaseManagementService().completeWorkItem(parentCase.getOid(),
+                        getCaseWorkItemModelObject().getId(), null, task, result);
+            } catch (Exception ex){
+                LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
+                result.recordFatalError(ex);
             }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't save work item.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
+        } else {
+
+            Task task = getPageBase().createSimpleTask(OPERATION_SAVE_WORK_ITEM);
+            result = task.getResult();
+            try {
+                try {
+                    Component formPanel = getCustomForm();
+                    ObjectDelta additionalDelta = null;
+                    if (formPanel != null && formPanel instanceof DynamicFormPanel) {
+                        if (approved) {
+                            boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(getPageBase());
+                            if (!requiredFieldsPresent) {
+                                target.add(getPageBase().getFeedbackPanel());
+                                return;
+                            }
+                        }
+                        additionalDelta = ((DynamicFormPanel<?>) formPanel).getObjectDelta();
+                        if (additionalDelta != null) {
+                            getPrismContext().adopt(additionalDelta);
+                        }
+                    }
+                    assumePowerOfAttorneyIfRequested(result);
+                    getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, getApproverComment(),
+                            additionalDelta, task, result);
+                } finally {
+                    dropPowerOfAttorneyIfRequested(result);
+                }
+            } catch (Exception ex) {
+                result.recordFatalError("Couldn't save work item.", ex);
+                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
+            }
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
+    }
+
+    protected String getApproverComment(){
+        return "";
     }
 
     private boolean isParentCaseClosed(){
@@ -187,6 +208,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
+    }
+
+    protected Component getCustomForm() {
+        return null;
     }
 
     private void assumePowerOfAttorneyIfRequested(OperationResult result) {

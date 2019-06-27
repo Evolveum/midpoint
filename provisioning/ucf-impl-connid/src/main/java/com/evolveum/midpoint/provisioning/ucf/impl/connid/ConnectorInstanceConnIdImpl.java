@@ -1879,9 +1879,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
-				if (!cont) {
-					result.recordWarning("Stopped on request from the handler");
-				}
+				/*
+				 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
+				 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
+				 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
+				 * This would also help when displaying operation result structure.
+				 */
 				recordResume();
 				return cont;
 			}
@@ -1935,18 +1938,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	        }
 	        if (searchHierarchyConstraints != null) {
 	        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-	        	// Only LDAP connector really supports base context. And this one will work better with
-	        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-	        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-	        	if (secondaryIdentifier == null) {
-	        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-	        		result.recordFatalError(e);
-	        		throw e;
+	        	if (baseContextIdentification != null) {
+		        	// Only LDAP connector really supports base context. And this one will work better with
+		        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+		        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+		        	if (secondaryIdentifier == null) {
+		        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+		        		result.recordFatalError(e);
+		        		throw e;
+		        	}
+		        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+		        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+		        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+					optionsBuilder.setContainer(containerQualifiedUid);
 	        	}
-	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-				optionsBuilder.setContainer(containerQualifiedUid);
+	        	SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
+	        	if (scope != null) {
+	        		optionsBuilder.setScope(scope.getScopeString());
+	        	}
 	        }
 
 		} catch (SchemaException e) {

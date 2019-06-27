@@ -46,6 +46,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
@@ -91,6 +92,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	public static final String CONTEXT_ITEM = "item";
 	public static final String CONTEXT_TASK = "task";
 	public static final String CONTEXT_RESOURCE = "resource";
+	public static final String CONTEXT_REASON = "reason";
 
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_NAME = "name";
@@ -116,6 +118,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private Map<String, Collection<String>> params;
 	private Map<String, Collection<String>> context;
 	private Map<String, Collection<String>> returns;
+	private final List<String> qualifiers = new ArrayList<>();
 
 	private long token;
 	private String messageCode;
@@ -143,6 +146,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	private final List<TraceType> traces = new ArrayList<>();
 
+	// Caller can specify the reason of the operation invocation.
+	// (Normally, the reason is known from the parent opResult; but it might be an overkill to create operation result
+	// only to specify the reason.)
+	//
+	// Use of this attribute assumes that the callee will ALWAYS create OperationResult as its first step.
+	// TODO reconsider ... it looks like a really ugly hack
+	private transient String callerReason;
+
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
 	 * the status of the running operation. This may be a task identifier,
@@ -160,45 +171,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
 	}
 
-//	public OperationResult(String operation, String messageCode, String message) {
-//		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
-//	}
-
 	public OperationResult(String operation, OperationResultStatus status, LocalizableMessage userFriendlyMessage) {
 		this(operation, null, status, 0, null, null, userFriendlyMessage, null, null);
 	}
 
-//	public OperationResult(String operation, long token, String messageCode, String message) {
-//		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
-//	}
-
 	public OperationResult(String operation, OperationResultStatus status, String message) {
 		this(operation, null, status, 0, null, message, null, null, null);
 	}
-
-//	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
-//		this(operation, null, status, 0, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-//			String message) {
-//		this(operation, null, status, token, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-//			String message, Throwable cause) {
-//		this(operation, null, status, token, messageCode, message, null, cause, null);
-//	}
-
-//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-//			long token, String messageCode, String message) {
-//		this(operation, params, status, token, messageCode, message, null, null, null);
-//	}
-
-//	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-//			long token, String messageCode, String message, List<OperationResult> subresults) {
-//		this(operation, params, status, token, messageCode, message, null, null, subresults);
-//	}
 
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
 			long token, String messageCode, String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
@@ -253,8 +232,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		building = false;
 		if (futureParent != null) {
 			futureParent.addSubresult(this);
+			recordCallerReason(futureParent);
 		}
 		return this;
+	}
+
+	private void recordCallerReason(OperationResult parent) {
+		if (parent.getCallerReason() != null) {
+			addContext(CONTEXT_REASON, parent.getCallerReason());
+			parent.setCallerReason(null);
+		}
 	}
 
 	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
@@ -294,6 +281,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
 		OperationResult subresult = new OperationResult(operation);
+		subresult.recordCallerReason(this);
 		addSubresult(subresult);
 		if (profiled) {
 			recordStart(subresult, operation, arguments);
@@ -302,7 +290,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return subresult;
 	}
 
-	// todo determine appropriate places where finish() should be called
+	// todo determine appropriate places where recordEnd() should be called
 	public void recordEnd() {
 		if (invocationRecord != null) {
 			String returnValue = getReturns().toString();
@@ -846,6 +834,22 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		this.tracingProfile = profile;
 	}
 
+	public <T> T getFirstTrace(Class<T> traceClass) {
+		Optional<TraceType> first = traces.stream().filter(t -> traceClass.isAssignableFrom(t.getClass())).findFirst();
+		if (first.isPresent()) {
+			//noinspection unchecked
+			return (T) first.get();
+		} else {
+			for (OperationResult subresult : getSubresults()) {
+				T firstInSubresult = subresult.getFirstTrace(traceClass);
+				if (firstInSubresult != null) {
+					return firstInSubresult;
+				}
+			}
+			return null;
+		}
+	}
+
 	public static class PreviewResult {
 		public final OperationResultStatus status;
 		public final String message;
@@ -951,6 +955,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			throw new IllegalStateException("More than one parameter "+name+" in "+this);
 		}
 		return values.iterator().next();
+	}
+
+	@Override
+	public OperationResult addQualifier(String value) {
+		qualifiers.add(value);
+		return this;
 	}
 
 	@Override
@@ -1325,6 +1335,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 
+	public void recordFatalErrorNotFinish(Throwable cause) {
+		recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+	}
+
 	/**
 	 * If the operation is an error then it will switch the status to EXPECTED_ERROR.
 	 * This is used if the error is expected and properly handled.
@@ -1392,6 +1406,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
 		recordEnd();
+		recordStatusNotFinish(status, message, cause);
+	}
+
+	public void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;
 		this.message = message;
 		this.cause = cause;
@@ -1456,7 +1474,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return details;
 	}
 
-	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
+	@Contract("null -> null; !null -> !null")
+	public static OperationResult createOperationResult(OperationResultType result) {
 		if (result == null) {
             return null;
         }
@@ -1483,6 +1502,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizableMessage,  null,
 				subresults);
+		opResult.getQualifiers().addAll(result.getQualifier());
 		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
@@ -1523,6 +1543,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
 		resultType.setOperation(opResult.getOperation());
+		resultType.getQualifier().addAll(opResult.getQualifiers());
 		resultType.setMessage(opResult.getMessage());
 		resultType.setMessageCode(opResult.getMessageCode());
 
@@ -2009,6 +2030,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
+        clone.qualifiers.addAll(qualifiers);
         clone.params = cloneParams(params, full);
         clone.context = cloneParams(context, full);
         clone.returns = cloneParams(returns, full);
@@ -2091,6 +2113,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				Objects.equals(invocationId, result.invocationId) &&
 				Objects.equals(tracingProfile, result.tracingProfile) &&
 				Objects.equals(operation, result.operation) &&
+				Objects.equals(qualifiers, result.qualifiers) &&
 				status == result.status &&
 				Objects.equals(params, result.params) &&
 				Objects.equals(context, result.context) &&
@@ -2108,7 +2131,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	@Override
 	public int hashCode() {
 		return Objects
-				.hash(operation, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
+				.hash(operation, qualifiers, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
 						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
 						minor, building, start, end, microseconds, invocationId, traces,
 						asynchronousOperationReference);
@@ -2156,5 +2179,17 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public List<TraceType> getTraces() {
 		return traces;
+	}
+
+	public List<String> getQualifiers() {
+		return qualifiers;
+	}
+
+	public String getCallerReason() {
+		return callerReason;
+	}
+
+	public void setCallerReason(String callerReason) {
+		this.callerReason = callerReason;
 	}
 }

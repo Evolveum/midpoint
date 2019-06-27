@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,10 +44,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +54,12 @@ import java.util.stream.Collectors;
 public class Tracer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Tracer.class);
+	private static final String MACRO_TIMESTAMP = "timestamp";
+	private static final String MACRO_TEST_NAME = "testName";
+	private static final String MACRO_TEST_NAME_SHORT = "testNameShort";
+	private static final String MACRO_FOCUS_NAME = "focusName";
+	private static final String MACRO_MILLISECONDS = "milliseconds";
+	private static final String MACRO_RANDOM = "random";
 
 	@Autowired private PrismContext prismContext;
 	@Autowired private SystemObjectCache systemObjectCache;
@@ -68,9 +73,13 @@ public class Tracer {
 	private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
 	private static final String ZIP_ENTRY_NAME = "trace.xml";
 
-	void storeTrace(OperationResult result) {
-		boolean zip = !Boolean.FALSE.equals(result.getTracingProfile().isCompressOutput());
-		File file = createFileName(zip);
+	private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%timestamp";
+
+	void storeTrace(Task task, OperationResult result) {
+		TracingProfileType tracingProfile = result.getTracingProfile();
+		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
+		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
+		File file = createFileName(zip, tracingProfile, templateParameters);
 		try {
 			OperationResultType resultBean = result.createOperationResultType();
 			String xml = prismContext.xmlSerializer().serializeRealValue(resultBean);
@@ -83,33 +92,104 @@ public class Tracer {
 					LOGGER.info("Trace was written to {} ({} chars)", file, xml.length());
 				}
 			}
-			if (!Boolean.FALSE.equals(result.getTracingProfile().isCreateRepoObject())) {
+			if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
 				ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
-						.name(file.getName())
+						.name(createObjectName(tracingProfile, templateParameters))
 						.archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
 						.filePath(file.getAbsolutePath())
 						.nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
 				repositoryService.addObject(reportOutputObject.asPrismObject(), null, result);
 			}
-			OperationResultType reparsed = prismContext.parserFor(xml).xml().parseRealValue(OperationResultType.class);
-			System.out.println("Reparsed OK: " + reparsed);
 		} catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
 			throw new SystemException(e);
 		}
 	}
 
+	private Map<String, String> createTemplateParameters(Task task, OperationResult result) {
+		Map<String, String> rv = new HashMap<>();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
+		rv.put(MACRO_TIMESTAMP, df.format(new Date()));
+		String testName = task.getResult().getOperation();
+		rv.put(MACRO_TEST_NAME, testName);  // e.g. com.evolveum.midpoint.model.intest.TestIteration.test532GuybrushModifyDescription
+		int testNameIndex = StringUtils.lastOrdinalIndexOf(testName, ".", 2);
+		rv.put(MACRO_TEST_NAME_SHORT, testNameIndex >= 0 ? testName.substring(testNameIndex+1) : testName);
+		rv.put(MACRO_FOCUS_NAME, getFocusName(result));
+		rv.put(MACRO_MILLISECONDS, getMilliseconds(result));
+		rv.put(MACRO_RANDOM, String.valueOf((long) (Math.random() * 1000000000000000L)));
+		return rv;
+	}
+
+	private String getFocusName(OperationResult result) {
+		ClockworkRunTraceType trace = result.getFirstTrace(ClockworkRunTraceType.class);
+		if (trace != null && trace.getFocusName() != null) {
+			return trace.getFocusName();
+		} else {
+			return "unknown";
+		}
+	}
+
+	private String getMilliseconds(OperationResult result) {
+		if (result.getMicroseconds() != null) {
+			return String.valueOf(result.getMicroseconds() / 1000);
+		} else if (result.getStart() != null && result.getEnd() != null) {
+			return String.valueOf(result.getEnd() - result.getStart());
+		} else {
+			return "unknown";
+		}
+	}
+
+	private String createObjectName(TracingProfileType profile, Map<String, String> parameters) {
+		String pattern;
+		if (profile.getObjectNamePattern() != null) {
+			pattern = profile.getObjectNamePattern();
+		} else if (profile.getFileNamePattern() != null) {
+			pattern = profile.getFileNamePattern();
+		} else {
+			pattern = DEFAULT_FILE_NAME_PATTERN;
+		}
+		return expandMacros(pattern, parameters);
+	}
+
 	@NotNull
-	private File createFileName(boolean zip) {
+	private File createFileName(boolean zip, TracingProfileType profile, Map<String, String> parameters) {
 		File traceDir = new File(TRACE_DIR);
 		if (!traceDir.exists() || !traceDir.isDirectory()) {
 			if (!traceDir.mkdir()) {
 				LOGGER.warn("Attempted to create trace directory but failed: {}", traceDir);
 			}
 		}
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS");
-		String fileName = String.format("trace-%s.%s", df.format(new Date()), zip ? "zip" : "xml");
-		return new File(traceDir, fileName);
+		String pattern = profile.getFileNamePattern() != null ? profile.getFileNamePattern() : DEFAULT_FILE_NAME_PATTERN;
+		return new File(traceDir, normalizeFileName(expandMacros(pattern, parameters)) + (zip ? ".zip" : ".xml"));
+	}
+
+	private String normalizeFileName(String name) {
+		return name.replaceAll("[^a-zA-Z0-9 .-]", "_");
+	}
+
+	private String expandMacros(String pattern, Map<String, String> parameters) {
+		StringBuilder sb = new StringBuilder();
+		for (int current = 0;;) {
+			int i = pattern.indexOf("%{", current);
+			if (i < 0) {
+				sb.append(pattern.substring(current));
+				return sb.toString();
+			}
+			sb.append(pattern.substring(current, i));
+			int j = pattern.indexOf("}", i);
+			if (j < 0) {
+				LOGGER.warn("Missing '}' in pattern '{}'", pattern);
+				return sb.toString() + " - error - " + parameters.get(MACRO_RANDOM);
+			} else {
+				String macroName = pattern.substring(i+2, j);
+				String value = parameters.get(macroName);
+				if (value == null) {
+					LOGGER.warn("Unknown parameter '{}' in pattern '{}'", macroName, pattern);
+				}
+				sb.append(value);
+			}
+			current = j+1;
+		}
 	}
 
 	public TracingProfileType resolve(TracingProfileType tracingProfile, OperationResult result) throws SchemaException {

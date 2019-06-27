@@ -197,15 +197,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		enterModelMethod();
 
 		PrismObject<T> object;
-		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
-        result.addParam("oid", oid);
-        result.addArbitraryObjectCollectionAsParam("options", rawOptions);
-        result.addParam("class", clazz);
-        
+
         OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
 
         GetOperationOptions rootOptions = null;
 
+		OperationResult result = parentResult.subresult(GET_OBJECT)
+				.setMinor(true)
+				.addParam("oid", oid)
+				.addArbitraryObjectCollectionAsParam("options", rawOptions)
+				.addParam("class", clazz)
+				.build();
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
 	        rootOptions = SelectorOptions.findRootOptions(options);
@@ -244,6 +246,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			throw e;
 		} finally {
+			result.computeStatusIfUnknown();
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
 		}
@@ -409,7 +412,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-				auditHelper.audit(auditRecord, task);
+				auditHelper.audit(auditRecord, task, result);
 				try {
 					for (ObjectDelta<? extends ObjectType> delta : deltas) {
 						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
@@ -537,7 +540,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					auditRecord.setEventStage(AuditEventStage.EXECUTION);
 					auditRecord.getDeltas().clear();
 					auditRecord.getDeltas().addAll(executedDeltas);
-					auditHelper.audit(auditRecord, task);
+					auditHelper.audit(auditRecord, task, result);
 
 					task.markObjectActionExecutedBoundary();
 				}
