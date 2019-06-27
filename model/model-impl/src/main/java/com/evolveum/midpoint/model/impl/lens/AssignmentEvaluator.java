@@ -15,18 +15,16 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -66,7 +64,6 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -113,6 +110,9 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	private final MappingEvaluator mappingEvaluator;
 	private final EvaluatedAssignmentTargetCache evaluatedAssignmentTargetCache;
 	private final LifecycleStateModelType focusStateModel;
+
+	// Evaluation state
+	private final List<MemberOfInvocation> memberOfInvocations = new ArrayList<>();         // experimental
 
 	private AssignmentEvaluator(Builder<AH> builder) {
 		repository = builder.repository;
@@ -194,8 +194,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		return mappingEvaluator;
 	}
 	
-	public void reset() {
+	public void reset(boolean alsoMemberOfInvocations) {
 		evaluatedAssignmentTargetCache.reset();
+		if (alsoMemberOfInvocations) {
+			memberOfInvocations.clear();
+		}
 	}
 
 	// This is to reduce the number of parameters passed between methods in this class.
@@ -1119,7 +1122,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 		collectMembershipRefVal(refVal, targetType.getClass(), relation, targetType, ctx);
 	}
 	
-	private void collectTenantRef(AssignmentHolderType targetType, AssignmentEvaluator<AH>.EvaluationContext ctx) {
+	private void collectTenantRef(AssignmentHolderType targetType, EvaluationContext ctx) {
 		if (targetType instanceof OrgType) {
 			if (BooleanUtils.isTrue(((OrgType)targetType).isTenant()) && ctx.evalAssignment.getTenantOid() == null) {
 				if (ctx.assignmentPath.hasOnlyOrgs()) {
@@ -1318,6 +1321,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this, AssignmentEvaluator.class)
 				.rootNode(focusOdo);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, prismContext);
 
@@ -1332,6 +1336,83 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 	private QName getRelation(AssignmentType assignmentType) {
 		return assignmentType.getTargetRef() != null ?
 				relationRegistry.normalizeRelation(assignmentType.getTargetRef().getRelation()) : null;
+	}
+
+	/*
+	 * This "isMemberOf iteration" section is an experimental implementation of MID-5366.
+	 *
+	 * The main idea: In role/assignment/inducement conditions we test the membership not by querying roleMembershipRef
+	 * on focus object but instead we call assignmentEvaluator.isMemberOf() method. This method - by default - inspects
+	 * roleMembershipRef but also records the check result. Later, when assignment evaluation is complete, AssignmentProcessor
+	 * will ask if all of these check results are still valid. If they are not, it requests re-evaluation of all the assignments,
+	 * using updated check results.
+	 *
+	 * This should work unless there are some cyclic dependencies (like "this sentence is a lie" paradox).
+	 */
+	public boolean isMemberOf(String targetOid) {
+		MemberOfInvocation existingInvocation = findInvocation(targetOid);
+		if (existingInvocation != null) {
+			return existingInvocation.result;
+		} else {
+			boolean result = computeIsMemberOfDuringEvaluation(targetOid);
+			memberOfInvocations.add(new MemberOfInvocation(targetOid, result));
+			return result;
+		}
+	}
+
+	private MemberOfInvocation findInvocation(String targetOid) {
+		List<MemberOfInvocation> matching = memberOfInvocations.stream()
+				.filter(invocation -> targetOid.equals(invocation.targetOid))
+				.collect(Collectors.toList());
+		if (matching.isEmpty()) {
+			return null;
+		} else if (matching.size() == 1) {
+			return matching.get(0);
+		} else {
+			throw new IllegalStateException("More than one matching MemberOfInvocation for targetOid='" + targetOid + "': " + matching);
+		}
+	}
+
+	private boolean computeIsMemberOfDuringEvaluation(String targetOid) {
+		if (targetOid == null) {
+			throw new IllegalArgumentException("Null targetOid");
+		}
+		// TODO Or should we consider evaluateOld?
+		PrismObject<AH> focus = focusOdo.getNewObject();
+		return focus != null && containsMember(focus.asObjectable().getRoleMembershipRef(), targetOid);
+	}
+
+	public boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+		if (!memberOfInvocations.isEmpty()) {
+			// Similar code is in AssignmentProcessor.processMembershipAndDelegatedRefs -- check that if changing the business logic
+			List<ObjectReferenceType> membership = evaluatedAssignmentTriple.getNonNegativeValues().stream()
+					.filter(EvaluatedAssignmentImpl::isValid)
+					.flatMap(evaluatedAssignment -> evaluatedAssignment.getMembershipRefVals().stream())
+					.map(ref -> ObjectTypeUtil.createObjectRef(ref, false))
+					.collect(Collectors.toList());
+			LOGGER.trace("Computed new membership: {}", membership);
+			return updateMemberOfInvocations(membership);
+		} else {
+			return false;
+		}
+	}
+
+	private boolean updateMemberOfInvocations(List<ObjectReferenceType> newMembership) {
+		List<MemberOfInvocation> changed = new ArrayList<>();
+		for (MemberOfInvocation invocation : memberOfInvocations) {
+			boolean newResult = containsMember(newMembership, invocation.targetOid);
+			if (newResult != invocation.result) {
+				LOGGER.trace("Invocation result changed for {} - new one is '{}'", invocation, newResult);
+				invocation.result = newResult;
+				changed.add(invocation);
+			}
+		}
+		return !changed.isEmpty();
+	}
+
+	// todo generalize a bit (e.g. by including relation)
+	private boolean containsMember(List<ObjectReferenceType> membership, String targetOid) {
+		return membership.stream().anyMatch(ref -> targetOid.equals(ref.getOid()));
 	}
 
 	public static final class Builder<AH extends AssignmentHolderType> {
@@ -1425,6 +1506,24 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
 		public AssignmentEvaluator<AH> build() {
 			return new AssignmentEvaluator<>(this);
+		}
+	}
+
+	private static class MemberOfInvocation {
+		private final String targetOid;
+		private boolean result;
+
+		MemberOfInvocation(String targetOid, boolean result) {
+			this.targetOid = targetOid;
+			this.result = result;
+		}
+
+		@Override
+		public String toString() {
+			return "MemberOfInvocation{" +
+					"targetOid='" + targetOid + '\'' +
+					", result=" + result +
+					'}';
 		}
 	}
 }

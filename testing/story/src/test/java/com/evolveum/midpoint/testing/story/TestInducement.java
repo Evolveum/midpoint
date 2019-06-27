@@ -30,19 +30,17 @@ import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
-@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
-@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-
-
 /**
- * testing inducements, no ressources, no accounts in use.
+ * testing inducements, no resources, no accounts in use.
  * role "processor" is assigned to user, it contains inducements for role1, role2, role3 having following conditions
- * 
+ *
  * role1: no condition
  * role2: should not be induced when description of user equals "NO"
- * role3: should not be induced when user is member of role named "lock" (directly or indirectly, therefore condition runs against rolemembershipRef) 
+ * role3: should not be induced when user is member of role named "lock" (directly or indirectly, therefore condition runs against roleMembershipRef)
  */
 
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInducement extends AbstractStoryTest {
 
 	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "inducement");
@@ -213,5 +211,65 @@ public class TestInducement extends AbstractStoryTest {
         assertNotAssignedRole(user, ROLE_ROLE2_OID);
         assertNotAssignedRole(user, ROLE_ROLE3_OID);
         assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_LOCK_OID, ROLE_ROLE1_OID);
+	}
+
+	/**
+	 * Unassign role "lock" from user
+	 */
+	@Test
+	public void test050InducementRole3ConditionTrue() throws Exception {
+		final String TEST_NAME = "test050InducementRole3ConditionTrue";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        // WHEN
+        unassignRole(USER_SIMPLE_OID, ROLE_LOCK_OID, task, result);
+
+        // THEN
+        assertSuccess(result);
+
+        PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
+        display("User simple having role lock unassigned'", user);
+
+        assertAssignedRole(user, ROLE_PROCESSOR_OID);
+        assertNotAssignedRole(user, ROLE_LOCK_OID);
+        assertNotAssignedRole(user, ROLE_ROLE1_OID);
+        assertNotAssignedRole(user, ROLE_ROLE2_OID);
+        assertNotAssignedRole(user, ROLE_ROLE3_OID);
+        assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
+	}
+
+	/**
+	 * same as Test50, just recomputed again
+	 */
+	@Test
+	public void test060Recomputed() throws Exception {
+		final String TEST_NAME = "test060Recomputed";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        // WHEN
+        recomputeUser(USER_SIMPLE_OID);
+
+        // THEN
+        assertSuccess(result);
+
+        PrismObject<UserType> user = getUser(USER_SIMPLE_OID);
+        display("User simple having role lock unassigned'", user);
+
+		assertAssignedRole(user, ROLE_PROCESSOR_OID);
+		assertNotAssignedRole(user, ROLE_LOCK_OID);
+		assertNotAssignedRole(user, ROLE_ROLE1_OID);
+		assertNotAssignedRole(user, ROLE_ROLE2_OID);
+		assertNotAssignedRole(user, ROLE_ROLE3_OID);
+		assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
 	}
 }
