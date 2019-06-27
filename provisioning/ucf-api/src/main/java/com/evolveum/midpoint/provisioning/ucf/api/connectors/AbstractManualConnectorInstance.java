@@ -115,7 +115,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
-		String ticketIdentifier = null;
+		String ticketIdentifier;
 		
 		InternalMonitor.recordConnectorOperation("add");
 		InternalMonitor.recordConnectorModification("add");

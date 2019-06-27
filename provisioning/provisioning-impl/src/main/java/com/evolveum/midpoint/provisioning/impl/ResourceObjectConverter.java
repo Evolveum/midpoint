@@ -238,7 +238,7 @@ public class ResourceObjectConverter {
 		PrismObject<ShadowType> shadowClone = shadow.clone();
 		ShadowType shadowType = shadowClone.asObjectable();
 
-		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
+		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
 				relationRegistry)) {
@@ -1265,17 +1265,7 @@ public class ResourceObjectConverter {
 		
 		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
-		SearchHierarchyConstraints searchHierarchyConstraints = null;
-		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
-		if (baseContextRef != null) {
-			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
-			if (baseContextShadow == null) {
-				throw new ObjectNotFoundException("No base context defined by "+baseContextRef+" in base context specification in "+objectClassDef);
-			}
-			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-			ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-		}
+		SearchHierarchyConstraints searchHierarchyConstraints = entitlementConverter.determineSearchHierarchyConstraints(ctx, parentResult);
 		
 		if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
 			query.getFilter().checkConsistence(true);

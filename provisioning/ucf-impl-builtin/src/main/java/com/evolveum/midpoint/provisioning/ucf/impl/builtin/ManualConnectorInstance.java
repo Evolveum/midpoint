@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -146,8 +146,9 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 			shadowName = getShadowIdentifier(ShadowUtil.getPrimaryIdentifiers(object));
 		}
 		String description = "Please create resource account: "+shadowName;
-		PrismObject<CaseType> acase = addCase(description, ShadowUtil.getResourceOid(object.asObjectable()), shadowName, objectDeltaType, result);
-		return acase.getOid();
+		PrismObject<CaseType> aCase = addCase("create", description, ShadowUtil.getResourceOid(object.asObjectable()),
+				shadowName, null, objectDeltaType, result);
+		return aCase.getOid();
 	}
 
 	@Override
@@ -170,8 +171,9 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		objectDeltaType.setOid(shadow.getOid());
 		String shadowName = shadow.getName().toString();
 		String description = "Please modify resource account: "+shadowName;
-		PrismObject<CaseType> acase = addCase(description, resourceOid, shadow.getOid(), objectDeltaType, result);
-		return acase.getOid();
+		PrismObject<CaseType> aCase = addCase("modify", description, resourceOid, shadowName,
+				shadow.getOid(), objectDeltaType, result);
+		return aCase.getOid();
 	}
 
 	@Override
@@ -190,19 +192,20 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		objectDeltaType.setOid(shadow.getOid());
 
 		objectDeltaType.getItemDelta().add(itemDeltaType);
-		PrismObject<CaseType> acase;
+		PrismObject<CaseType> aCase;
 		try {
-			acase = addCase(description, resourceOid, shadow.getOid(), objectDeltaType, result);
+			aCase = addCase("delete", description, resourceOid, shadowName, shadow.getOid(), objectDeltaType, result);
 		} catch (ObjectAlreadyExistsException e) {
 			// should not happen
 			throw new SystemException(e.getMessage(), e);
 		}
-		return acase.getOid();
+		return aCase.getOid();
 	}
 	
-	private PrismObject<CaseType> addCase(String description, String resourceOid, String shadowOid, ObjectDeltaType objectDelta, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
-		PrismObject<CaseType> acase = getPrismContext().createObject(CaseType.class);
-		CaseType caseType = acase.asObjectable();
+	private PrismObject<CaseType> addCase(String operation, String description, String resourceOid, String shadowName, String shadowOid,
+			ObjectDeltaType objectDelta, OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+		PrismObject<CaseType> aCase = getPrismContext().createObject(CaseType.class);
+		CaseType caseType = aCase.asObjectable();
 
 		if (randomDelayRange != 0) {
 			int waitMillis = RND.nextInt(randomDelayRange);
@@ -235,8 +238,8 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		String caseOid = OidUtil.generateOid();
 
 		caseType.setOid(caseOid);
-		// TODO: human-readable case ID
-		caseType.setName(new PolyStringType(caseOid));
+		String caseName = String.format("Request to %s '%s' on '%s'", operation, shadowName, resource.getName().getOrig());
+		caseType.setName(new PolyStringType(caseName));
 
 		caseType.setDescription(description);
 
@@ -244,7 +247,10 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
 
 		caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
-		caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).type(ShadowType.COMPLEX_TYPE));
+
+		// FIXME this is really ugly hack -- see MID-5489
+		String targetOid = shadowOid != null ? shadowOid : "?";
+		caseType.setTargetRef(new ObjectReferenceType().oid(targetOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
 		if (objectDelta != null) {
 			caseType.setObjectChange(objectDelta);
@@ -272,17 +278,17 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		// TODO: move to case-manager
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("CREATING CASE:\n{}", acase.debugDump(1));
+			LOGGER.trace("CREATING CASE:\n{}", aCase.debugDump(1));
 		}
 
-		repositoryService.addObject(acase, null, result);
+		repositoryService.addObject(aCase, null, result);
 
 		// notifications
 		Task task = taskManager.createTaskInstance();
 		for (CaseWorkItemType workItem : caseType.getWorkItem()) {
 			caseManager.notifyWorkItemCreated(workItem, caseType, task, result);
 		}
-		return acase;
+		return aCase;
 	}
 
 	@Override
@@ -376,6 +382,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		connected = false;
 	}
 
+	@SuppressWarnings("unused")
 	public static int getRandomDelayRange() {
 		return randomDelayRange;
 	}

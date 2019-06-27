@@ -592,7 +592,7 @@ public class ShadowCache {
 					// Try again, this time without explicit uniqueness check
 					try {
 						
-						LOGGER.trace("ADD {}: retrying resource operation without uniquness check (previous dead shadow found), execution starting", shadowToAdd);
+						LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), execution starting", shadowToAdd);
 						AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
 								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
