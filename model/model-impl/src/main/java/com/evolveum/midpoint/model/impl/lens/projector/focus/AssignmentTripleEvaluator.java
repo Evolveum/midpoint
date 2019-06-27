@@ -155,8 +155,8 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		this.result = result;
 	}
 
-	public void reset() {
-		assignmentEvaluator.reset();
+	public void reset(boolean alsoMemberOfInvocations) {
+		assignmentEvaluator.reset(alsoMemberOfInvocations);
 	}
 
 	public DeltaSetTriple<EvaluatedAssignmentImpl<F>> processAllAssignments() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -628,4 +628,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}
 
+	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+		return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+	}
 }
