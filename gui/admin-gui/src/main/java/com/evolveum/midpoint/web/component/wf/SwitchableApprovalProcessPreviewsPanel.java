@@ -19,8 +19,7 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.jetbrains.annotations.Nullable;
@@ -140,7 +139,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 		WebMarkupContainer nextStagesContainer = new WebMarkupContainer(ID_NEXT_STAGES_CONTAINER);
 		nextStagesContainer.add(new ApprovalProcessExecutionInformationPanel(ID_NEXT_STAGES, nextStagesModel));
 		nextStagesContainer.add(WebComponentUtil.createHelp(ID_NEXT_STAGES_HELP));
-//		nextStagesContainer.add(new VisibleBehaviour(() -> displayedProcessInfoBox == ProcessInfoBox.NEXT_STAGES));
+		nextStagesContainer.add(new VisibleBehaviour(() -> nextStagesModel.getObject() != null &&
+				CollectionUtils.isNotEmpty(nextStagesModel.getObject().getStages())));
 		add(nextStagesContainer);
 
 		WebMarkupContainer wholeProcessContainer = new WebMarkupContainer(ID_WHOLE_PROCESS_CONTAINER);

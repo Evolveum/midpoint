@@ -40,8 +40,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -50,6 +53,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -811,6 +815,56 @@ public class TestLdapPolyString extends AbstractLdapTest {
         display("Ruined LDAP entry after", accountEntry);
         OpenDJController.assertAttribute(accountEntry, LDAP_ATTRIBUTE_DESCRIPTION,
         		USER_JACK_FULL_NAME_CAPTAIN, USER_JACK_BLAHBLAH);
+
+	}
+	
+	/**
+	 * Normal search, all accounts in ou=people, nothing special.
+	 * MID-5485
+	 */
+	@Test
+    public void test300SearchLdapAccounts() throws Exception {
+		final String TEST_NAME = "test300SearchLdapAccounts";
+        displayTestTitle(TEST_NAME);
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
+
+	}
+	
+	/**
+	 * Create an account in sub-ou. If scope is still set to "sub" ten this account will be found.
+	 * But the scope is overridden in the resource to "one". Therefore this account should be ignored.
+	 * MID-5485
+	 */
+	@Test
+    public void test302SearchLdapAccountsBelow() throws Exception {
+		final String TEST_NAME = "test302SearchLdapAccountsBelow";
+        displayTestTitle(TEST_NAME);
+        
+        openDJController.addEntry("dn: ou=below,ou=People,dc=example,dc=com\n" + 
+				"ou: below\n" + 
+				"objectclass: top\n" + 
+				"objectclass: organizationalUnit");
+        
+        openDJController.addEntry("dn: uid=richard,ou=below,ou=People,dc=example,dc=com\n" + 
+				"uid: richard\n" + 
+				"cn: Richard Mayhew\n" + 
+				"sn: Mayhew\n" + 
+				"givenname: Richard\n" + 
+				"objectclass: top\n" + 
+				"objectclass: person\n" + 
+				"objectclass: organizationalPerson\n" + 
+				"objectclass: inetOrgPerson");
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+        searchObjectsIterative(ShadowType.class, query, o -> display("Found object", o), 4);
 
 	}
 

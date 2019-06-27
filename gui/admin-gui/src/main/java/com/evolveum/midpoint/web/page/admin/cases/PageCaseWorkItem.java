@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
@@ -215,6 +216,12 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			protected String getApproverComment(){
 				return workItemDetailsPanel.getApproverComment();
 			}
+
+			@Override
+			protected Component getCustomForm(){
+				return workItemDetailsPanel.getCustomForm();
+			}
+
 		};
 		actionsPanel.setOutputMarkupId(true);
 		actionsPanel.add(new VisibleBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(caseModel.getObject().getState())));

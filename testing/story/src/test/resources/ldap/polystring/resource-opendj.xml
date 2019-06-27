@@ -75,6 +75,22 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
+            
+            <!-- We need to explicitly define base context here.
+                 Default base context is dc=example,dc=com. Searching in that
+                 with scope=one will produce nothing. -->
+            <baseContext>
+            	<objectClass>ri:organizationalUnit</objectClass>
+            	<filter>
+            		<q:equal>
+            			<q:path>attributes/dn</q:path>
+            			<q:value>ou=people,dc=example,dc=com</q:value>
+            		</q:equal>
+            	</filter>
+            </baseContext>
+            <!-- MID-5485 -->
+            <searchHierarchyScope>one</searchHierarchyScope>
+            
             <attribute>
                 <ref>ri:dn</ref>
                 <displayName>Distinguished Name</displayName>

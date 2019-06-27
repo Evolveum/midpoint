@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -27,11 +29,13 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -118,25 +122,25 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         Task task = getPageBase().createSimpleTask(OPERATION_SAVE_WORK_ITEM);
         OperationResult result = task.getResult();
         try {
-            //todo implement custom panels
-//            WorkItemDto dto = workItemDtoModel.getObject();
-//            if (approved) {
-//                boolean requiredFieldsPresent = getWorkItemPanel().checkRequiredFields();
-//                if (!requiredFieldsPresent) {
-//                    target.add(getFeedbackPanel());
-//                    return;
-//                }
-//            }
-//            ObjectDelta delta = getWorkItemPanel().getDeltaFromForm();
-//            if (delta != null) {
-//                //noinspection unchecked
-//                getPrismContext().adopt(delta);
-//            }
             try {
+                Component formPanel = getCustomForm();
+                ObjectDelta additionalDelta = null;
+                if (formPanel != null && formPanel instanceof DynamicFormPanel) {
+                    if (approved) {
+                        boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(getPageBase());
+                        if (!requiredFieldsPresent) {
+                            target.add(getPageBase().getFeedbackPanel());
+                            return;
+                        }
+                    }
+                    additionalDelta = ((DynamicFormPanel<?>) formPanel).getObjectDelta();
+                    if (additionalDelta != null) {
+                        getPrismContext().adopt(additionalDelta);
+                    }
+                }
                 assumePowerOfAttorneyIfRequested(result);
-                //todo fix comment and delta
                 getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, getApproverComment(),
-                        null, task, result);
+                        additionalDelta, task, result);
             } finally {
                 dropPowerOfAttorneyIfRequested(result);
             }
@@ -191,6 +195,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
+    }
+
+    protected Component getCustomForm() {
+        return null;
     }
 
     private void assumePowerOfAttorneyIfRequested(OperationResult result) {

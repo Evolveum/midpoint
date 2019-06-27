@@ -6598,6 +6598,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="searchHierarchyScope" type="tns:SearchHierarchyScopeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of search hierarchy scope. It specifies how "deep" the search should go
+                        into the object hierarchy. It is only applicable to resources that support hierarchical
+                        organization of objects (e.g. LDAP resources).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"
                          type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
@@ -6712,6 +6724,41 @@
              </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:simpleType name="SearchHierarchyScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Definition of search hierarchy scope. It specifies how "deep" the search should go
+                into the object hierarchy. It is only applicable to resources that support hierarchical
+                organization of objects (e.g. LDAP resources).
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="sub">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Subtree search. The search go deep down the hierarchy, as deep as possible.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SUB"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="one">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        One-level search. The search is reaching just one level below the base context object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ONE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ResourceConsistencyType">
         <xsd:annotation>
