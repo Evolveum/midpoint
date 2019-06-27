@@ -319,18 +319,24 @@ public class ProvisioningContext extends StateReporter {
 	// 1. take additional connector capabilieis if exist, if not, take resource capabilities
 	// 2. apply object class specific capabilities to the one selected in step 1.
 	// 3. in the returned capabilieties, check first configured capabilities and then native capabilities
-	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) {
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
+		if (capabilitiesType == null) {
+			return null;
+		}
 		return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
 	}
 
-	public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) {
+	public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
 		return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
 	}
 
-	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
-		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), objectClassDefinition, operationCapabilityClass);
+	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
 	}
 
 	@Override
