@@ -39,12 +39,8 @@
         <inducement>
             <targetRef oid="10000000-0000-0000-0000-100000000003" relation="org:default" type="c:RoleType"/>
             <condition>
-            <source>
-            	<path>roleMembershipRef</path>
-            </source>
             <expression>
             	<script>
-            		<relativityMode>absolute</relativityMode>
             		<code>
 						!assignmentEvaluator.isMemberOf('10000000-0000-0000-0000-10000000lock')
             		</code>
