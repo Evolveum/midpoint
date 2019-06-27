@@ -1321,6 +1321,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	 * This should work unless there are some cyclic dependencies (like "this sentence is a lie" paradox).
 	 */
 	public boolean isMemberOf(String targetOid) {
+		if (targetOid == null) {
+			throw new IllegalArgumentException("Null targetOid in isMemberOf call");
+		}
 		MemberOfInvocation existingInvocation = findInvocation(targetOid);
 		if (existingInvocation != null) {
 			return existingInvocation.result;
@@ -1345,9 +1348,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private boolean computeIsMemberOfDuringEvaluation(String targetOid) {
-		if (targetOid == null) {
-			throw new IllegalArgumentException("Null targetOid");
-		}
 		// TODO Or should we consider evaluateOld?
 		PrismObject<AH> focus = focusOdo.getNewObject();
 		return focus != null && containsMember(focus.asObjectable().getRoleMembershipRef(), targetOid);
@@ -1369,16 +1369,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private boolean updateMemberOfInvocations(List<ObjectReferenceType> newMembership) {
-		List<MemberOfInvocation> changed = new ArrayList<>();
+		boolean changed = false;
 		for (MemberOfInvocation invocation : memberOfInvocations) {
 			boolean newResult = containsMember(newMembership, invocation.targetOid);
 			if (newResult != invocation.result) {
 				LOGGER.trace("Invocation result changed for {} - new one is '{}'", invocation, newResult);
 				invocation.result = newResult;
-				changed.add(invocation);
+				changed = true;
 			}
 		}
-		return !changed.isEmpty();
+		return changed;
 	}
 
 	// todo generalize a bit (e.g. by including relation)

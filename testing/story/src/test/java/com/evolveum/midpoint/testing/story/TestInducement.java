@@ -272,4 +272,23 @@ public class TestInducement extends AbstractStoryTest {
 		assertNotAssignedRole(user, ROLE_ROLE3_OID);
 		assertRoleMembershipRef(user, ROLE_PROCESSOR_OID, ROLE_ROLE1_OID, ROLE_ROLE3_OID);
 	}
+
+	@Test
+	public void test070DeleteUser() throws Exception {
+		final String TEST_NAME = "test070DeleteUser";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        // WHEN
+		deleteObject(UserType.class, USER_SIMPLE_OID, task, result);
+
+        // THEN
+        assertSuccess(result);
+
+        assertNoObject(UserType.class, USER_SIMPLE_OID, task, result);
+	}
 }
