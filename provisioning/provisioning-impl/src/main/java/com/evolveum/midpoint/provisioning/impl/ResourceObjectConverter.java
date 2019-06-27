@@ -238,7 +238,7 @@ public class ResourceObjectConverter {
 		PrismObject<ShadowType> shadowClone = shadow.clone();
 		ShadowType shadowType = shadowClone.asObjectable();
 
-		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
+		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
 				relationRegistry)) {
