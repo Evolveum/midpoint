@@ -83,4 +83,19 @@ public class CaseTypeUtil {
         }
         return false;
     }
+
+    public static boolean isApprovalCase(CaseType aCase){
+        if (aCase == null || CollectionUtils.isEmpty(aCase.getArchetypeRef())){
+            return false;
+        }
+        for (ObjectReferenceType ort : aCase.getArchetypeRef()){
+            if (ort == null){
+                continue;
+            }
+            if (SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value().equals(ort.getOid())){
+                return true;
+            }
+        }
+        return false;
+    }
 }

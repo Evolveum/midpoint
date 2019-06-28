@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
@@ -126,7 +128,14 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
 
-        add(new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel));
+        if (CaseTypeUtil.isApprovalCase(parentCase)){
+            ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
+            scenePanel.setOutputMarkupId(true);
+            scenePanel.add(new VisibleBehaviour(() -> CaseTypeUtil.isApprovalCase(parentCase)));
+            add(scenePanel);
+        } else {
+            add(new WebMarkupContainer(ID_DELTAS_TO_APPROVE));
+        }
 
 
         ApprovalStageDefinitionType level = ApprovalContextUtil.getCurrentStageDefinition(parentCase);
