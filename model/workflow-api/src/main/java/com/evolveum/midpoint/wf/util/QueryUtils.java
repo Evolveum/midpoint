@@ -17,13 +17,16 @@
 package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -58,6 +62,20 @@ public class QueryUtils {
 			return q.none();
 		} else {
 			return q.item(CaseWorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
+		}
+	}
+
+	public static S_AtomicFilterExit filterForNotClosedStateAndAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
+			QName limitationItemName, RelationRegistry relationRegistry) {
+		if (principal == null) {
+			return q.none();
+		} else {
+			return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
+					.ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry))
+					.and()
+					.not()
+					.item(PrismConstants.T_PARENT, CaseType.F_STATE)
+					.eq(SchemaConstants.CASE_STATE_CLOSED);
 		}
 	}
 
