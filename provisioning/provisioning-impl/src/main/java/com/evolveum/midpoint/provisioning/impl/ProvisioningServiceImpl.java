@@ -318,8 +318,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (ProvisioningOperationOptions.isOverwrite(options)){
 				addOptions = RepoAddOptions.createOverwrite();
 			}
-			oid = cacheRepositoryService.addObject(object, addOptions, result);
-			result.computeStatus();
+			try {
+				oid = cacheRepositoryService.addObject(object, addOptions, result);
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
+			}
 		}
 
 		result.cleanupResult();

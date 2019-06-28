@@ -922,10 +922,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		} catch (FaultMessage ex) {
 			LOGGER.info("fault {}", ex.getFaultInfo());
 			LOGGER.info("fault {}", ex.getCause());
-			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){
+			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType) {
 			// this is OK, we expect this
 			} else{
-				fail("Expected object already exists exception, but haven't got one.");
+				fail("Expected object already exists exception, but got: " + ex.getFaultInfo());
 			}
 
 		}

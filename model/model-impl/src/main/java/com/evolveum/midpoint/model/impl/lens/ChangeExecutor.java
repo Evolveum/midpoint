@@ -942,7 +942,6 @@ public class ChangeExecutor {
 		PrismObject<T> objectAfterModification = null;
 
 		try {
-
 			if (objectDelta.getChangeType() == ChangeType.ADD) {
 				objectAfterModification = executeAddition(objectDelta, context, objectContext, options, resource, task, result);
 			} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
