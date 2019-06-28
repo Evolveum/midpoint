@@ -1,5 +1,6 @@
-os: windows
-language: shell
+sudo: required
+dist: trusty
+language: java
 
 #skips default install - see script bellow
 install: true
@@ -9,10 +10,14 @@ cache:
     - $HOME/.m2
 
 before_install:
-  - choco install maven
-  - RefreshEnv.cmd
-  - export MAVEN_OPTS='-Xmx6g'  
-  - export JAVA_HOME=`find "/c/Program Files/Java" -name jdk1.8.*`
+  - wget https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.zip
+  - unzip -qq apache-maven-3.6.1-bin.zip
+  - export M2_HOME=$PWD/apache-maven-3.6.1
+  - export PATH=$M2_HOME/bin:$PATH
+  - export MAVEN_OPTS='-Xmx6g'
+
+# custom script is used so build and tests are done in one mvn command, separating it (as Travis does by default) leads to problem with ConnId (notably DummyResource)
+script: mvn clean install
 
 addons:
   hostname: localhost # workaround for short hostname
@@ -20,7 +25,7 @@ addons:
 env:
   global:
     - MALLOC_ARENA_MAX=2
- 
+
 matrix:
   include:
     - name: JDK8 - Run all excluding model-intest
