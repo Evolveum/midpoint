@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -75,8 +76,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         actionButtonsContainer.add(new VisibleBehaviour(() -> !isParentCaseClosed()));
         add(actionButtonsContainer);
 
-        AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON,
-                createStringResource("pageWorkItem.button.approve")) {
+        CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
+
+        AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                createStringResource("pageWorkItem.button.manual.doneSuccessfully") : createStringResource("pageWorkItem.button.approve")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -87,8 +90,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemApproveButton.setOutputMarkupId(true);
         actionButtonsContainer.add(workItemApproveButton);
 
-        AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON,
-                createStringResource("pageWorkItem.button.reject")) {
+        AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON, CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                createStringResource("pageWorkItem.button.manual.operationFailed") : createStringResource("pageWorkItem.button.reject")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -123,8 +126,13 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             Task task = getPageBase().createSimpleTask(OPERATION_COMPLETE_WORK_ITEM);
             result = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
             try {
+                AbstractWorkItemOutputType output = getCaseWorkItemModelObject().getOutput();
+                if (output == null){
+                    output = new AbstractWorkItemOutputType();
+                }
+                output.setOutcome(ApprovalUtils.toUri(approved));
                 getPageBase().getCaseManagementService().completeWorkItem(parentCase.getOid(),
-                        getCaseWorkItemModelObject().getId(), null, task, result);
+                        getCaseWorkItemModelObject().getId(), getCaseWorkItemModelObject().getOutput(), task, result);
             } catch (Exception ex){
                 LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
                 result.recordFatalError(ex);
