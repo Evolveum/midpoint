@@ -632,7 +632,7 @@ public class ColumnUtils {
 		IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
 		columns.add(column);
 
-		column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef"), "objectRef"){
+		column = new AbstractColumn<SelectableBean<CaseType>, String>(createStringResource("pageCases.table.objectRef")){
 			@Override
 			public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
 				item.add(new Label(componentId, new IModel<String>() {

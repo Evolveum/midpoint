@@ -21,9 +21,8 @@ import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -68,5 +67,20 @@ public class CaseTypeUtil {
     public static String getRequesterComment(CaseType aCase) {
         OperationBusinessContextType businessContext = ApprovalContextUtil.getBusinessContext(aCase);
         return businessContext != null ? businessContext.getComment() : null;
+    }
+
+    public static boolean isManualProvisioningCase(CaseType aCase){
+        if (aCase == null || CollectionUtils.isEmpty(aCase.getArchetypeRef())){
+            return false;
+        }
+        for (ObjectReferenceType ort : aCase.getArchetypeRef()){
+            if (ort == null){
+                continue;
+            }
+            if (SystemObjectsType.ARCHETYPE_MANUAL_CASE.value().equals(ort.getOid())){
+                return true;
+            }
+        }
+        return false;
     }
 }

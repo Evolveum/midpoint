@@ -199,7 +199,7 @@ public class PageSelfDashboard extends PageSelf {
 
                             @Override
                             protected ObjectFilter getCaseWorkItemsFilter(){
-                                return QueryUtils.filterForAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+                                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
                                         SecurityUtils.getPrincipalUser(),
                                         OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                                         .desc(F_CREATE_TIMESTAMP)
