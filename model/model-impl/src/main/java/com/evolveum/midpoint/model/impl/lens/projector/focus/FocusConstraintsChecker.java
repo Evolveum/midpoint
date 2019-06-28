@@ -108,7 +108,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	public boolean check(PrismObject<AH> objectNew, OperationResult parentResult) throws SchemaException {
 
 		OperationResult result = parentResult.subresult(FocusConstraintsChecker.class.getName() + ".check")
-				.setMinor(true)
+				.setMinor()
 				.build();
 		try {
 			if (objectNew == null) {

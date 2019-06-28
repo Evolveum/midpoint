@@ -1256,6 +1256,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                     task.setExecutingThread(Thread.currentThread());
                     task.startCollectingLowLevelStatistics();
                     cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
+	                OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
                     lightweightTaskHandler.run(task);
                     cacheConfigurationManager.unsetThreadLocalProfiles();
                 } catch (Throwable t) {

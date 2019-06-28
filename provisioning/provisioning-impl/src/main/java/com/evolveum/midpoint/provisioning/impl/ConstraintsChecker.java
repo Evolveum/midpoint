@@ -141,7 +141,7 @@ public class ConstraintsChecker {
 			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			ExpressionEvaluationException {
 		OperationResult result = parentResult.subresult(ConstraintsChecker.class.getName() + ".check")
-				.setMinor(true)
+				.setMinor()
 				.build();
 		try {
 			constraintsCheckingResult = new ConstraintsCheckingResult();

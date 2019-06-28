@@ -883,7 +883,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	private <T extends ObjectType> SearchResultMetadata iterateOverQueryResult(SearchResultList<PrismObject<T>> queryResult,
 			ResultHandler<T> handler, OperationResult parentResult, boolean clone) {
 		OperationResult result = parentResult.subresult(RepositoryCache.class.getName() + ".iterateOverQueryResult")
-				.setMinor(true)
+				.setMinor()
 				.addParam("objects", queryResult.size())
 				.addArbitraryObjectAsParam("handler", handler)
 				.build();

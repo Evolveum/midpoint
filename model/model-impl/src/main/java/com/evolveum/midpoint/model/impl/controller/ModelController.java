@@ -203,7 +203,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         GetOperationOptions rootOptions = null;
 
 		OperationResult result = parentResult.subresult(GET_OBJECT)
-				.setMinor(true)
+				.setMinor()
 				.addParam("oid", oid)
 				.addArbitraryObjectCollectionAsParam("options", rawOptions)
 				.addParam("class", clazz)

@@ -131,7 +131,7 @@ public class WfHook implements ChangeHook {
             HookOperationMode retval = processModelInvocation(context, wfConfigurationType, task, result);
             result.computeStatus();
             if (retval == HookOperationMode.FOREGROUND) {
-	            result.setMinor(true);
+	            result.setMinor();
             }
             return retval;
         } catch (RuntimeException e) {

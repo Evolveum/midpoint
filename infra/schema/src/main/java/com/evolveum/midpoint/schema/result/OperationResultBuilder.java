@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -94,5 +95,10 @@ public interface OperationResultBuilder {
 	@SuppressWarnings("unused")
 	OperationResultBuilder addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue);
 
+	@Deprecated
 	OperationResultBuilder setMinor(boolean value);
+
+	OperationResultBuilder setMinor();
+
+	OperationResult setImportance(OperationResultImportanceType value);
 }

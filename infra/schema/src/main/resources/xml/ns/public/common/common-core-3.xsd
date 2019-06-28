@@ -2901,6 +2901,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="operationResultHandlingStrategy" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Operation result handling strategy that is to be applied to this task.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -15642,7 +15649,24 @@
 				</xsd:annotation>
 			</xsd:element>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
-            <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false"/>
+            <xsd:element name="importance" type="tns:OperationResultImportanceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Importance of the operation result (major, normal, minor). The default is "normal".
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+            <xsd:element name="minor" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>4.0</a:deprecatedSince>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="start" type="xsd:dateTime" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -15728,7 +15752,52 @@
     </xsd:complexType>
     <xsd:element name="operationResult" type="tns:OperationResultType"/>
 
-    <xsd:complexType name="ParamsType">
+	<xsd:simpleType name="OperationResultImportanceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Level of importance of given OperationResult.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="major">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MAJOR"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						This result should be displayed/preserved in almost all situations.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="normal">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NORMAL"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						This result should be displayed/preserved in normal situations. It can be stripped out e.g.
+						if it's SUCCESS and we want to save space.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="minor">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MINOR"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						This result should usually be removed, if it's SUCCESS.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="ParamsType">
         <xsd:sequence>
             <xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
@@ -17346,10 +17415,26 @@
 
 						TEMPORARY/EXPERIMENTAL. We plan to provide more elaborate operation result aggregation strategies.
 						This is just a quick way how to reduce large operation results for some deployments.
+
+						DEPRECATED. Use operationResultHandlingStrategy instead.
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:experimental>true</a:experimental>
 						<a:displayName>InternalsConfigurationType.subresultStripThreshold</a:displayName>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>4.0</a:deprecatedSince>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operationResultHandlingStrategy" type="tns:OperationResultHandlingStrategyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+						Strategies for operation result aggregation. In the future, midPoint will provide options to select
+						appropriate strategy e.g. for given task execution. But now only one can be selected as the default.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+						<a:displayName>InternalsConfigurationType.operationResultHandlingStrategy</a:displayName>
+						<a:sice>4.0</a:sice>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -17437,6 +17522,66 @@
 		</xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+	<xsd:complexType name="OperationResultHandlingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Strategy for operation result aggregation.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Name of the strategy. Useful when referencing e.g. from tasks.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>OperationResultHandlingStrategyType.name</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="global" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						This is a strategy that is to be used globally. (If there is only one strategy defined, it is used
+						implicitly.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>OperationResultHandlingStrategyType.global</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="subresultStripThreshold" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When aggregation of the same subresults (same operation and status) is to be applied,
+						during operation result "summarize" operation.
+						(Default: 10.)
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>OperationResultHandlingStrategyType.subresultStripThreshold</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="preserveDuringCleanup" type="tns:OperationResultImportanceType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						What (minimal) importance is to be preserved during result cleanup? The default is "normal",
+						i.e. successful results of minor importance are cleaned up.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>OperationResultHandlingStrategyType.preserveDuringCleanup</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="operationResultHandlingStrategy" type="tns:OperationResultHandlingStrategyType" />
 
 	<xsd:complexType name="SynchronizationSituationUpdatingStrategyType">
 		<xsd:annotation>

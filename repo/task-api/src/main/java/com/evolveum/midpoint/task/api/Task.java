@@ -1050,5 +1050,7 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	@NotNull
 	Collection<String> getCachingProfiles();
 
+	String getOperationResultHandlingStrategyName();
+
 	boolean isScavenger();
 }

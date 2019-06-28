@@ -2575,6 +2575,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Override
+	public String getOperationResultHandlingStrategyName() {
+		TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
+		return executionEnvironment != null ? executionEnvironment.getOperationResultHandlingStrategy() : null;
+	}
+
+	@Override
 	public TaskExecutionEnvironmentType getExecutionEnvironment() {
 		return getProperty(TaskType.F_EXECUTION_ENVIRONMENT);
 	}

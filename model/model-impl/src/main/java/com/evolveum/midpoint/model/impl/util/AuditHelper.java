@@ -58,7 +58,7 @@ public class AuditHelper {
 				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
 				ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
 					OperationResult result = parentResult.subresult(AuditHelper.class.getName() + ".resolveName")
-							.setMinor(true)
+							.setMinor()
 							.build();
 					try {
 						// we use null options here, in order to utilize the local or global repository cache

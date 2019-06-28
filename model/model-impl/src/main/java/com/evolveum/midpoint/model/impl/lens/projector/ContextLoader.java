@@ -1356,7 +1356,7 @@ public class ContextLoader {
 			return;
 		}
 		OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
-				.setMinor(true)
+				.setMinor()
 				.build();
 		try {
 			ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();

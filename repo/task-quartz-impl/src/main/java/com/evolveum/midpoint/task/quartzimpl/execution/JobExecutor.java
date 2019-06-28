@@ -154,6 +154,7 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.registerRunningTask(task);
 
 			taskManagerImpl.getCacheConfigurationManager().setThreadLocalProfiles(task.getCachingProfiles());
+			OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
 
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logThreadRunStart(handler);

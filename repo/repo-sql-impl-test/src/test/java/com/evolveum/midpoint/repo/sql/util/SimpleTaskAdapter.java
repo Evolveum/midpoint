@@ -843,6 +843,11 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
+    public String getOperationResultHandlingStrategyName() {
+        return null;
+    }
+
+    @Override
     public void setExecutionConstraints(TaskExecutionConstraintsType value) {
     }
 

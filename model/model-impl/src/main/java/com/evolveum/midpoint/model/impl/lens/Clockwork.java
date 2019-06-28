@@ -612,7 +612,7 @@ public class Clockwork {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
-			result.cleanupResult();
+			result.cleanupResultDeeply();
 		}
 	}
 
