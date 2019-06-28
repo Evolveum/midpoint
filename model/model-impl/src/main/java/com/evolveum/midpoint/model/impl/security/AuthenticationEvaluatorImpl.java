@@ -87,15 +87,10 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 		
 		if (checkCredentials(principal, authnCtx, connEnv)) {
-			
-			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
-			UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(principal, 
-					authnCtx.getEnteredCredential(), principal.getAuthorities());
-			return token;
-			
+			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
+			return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
-			
 			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 	}
@@ -403,8 +398,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		return clock.isPast(lockedUntilTimestamp);
 	}
 
-	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			C passwordType, CredentialPolicyType passwordCredentialsPolicy) {
+	public void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
+			C passwordType) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {
 			passwordType.setFailedLogins(0);
@@ -432,8 +427,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 	private void recordAuthenticationSuccess(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv) {
 		securityHelper.auditLoginSuccess(principal.getUser(), connEnv);
 	}
-	
-	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+
+	public void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
 			@NotNull C passwordType, CredentialPolicyType credentialsPolicy, String reason) {
 		Integer failedLogins = passwordType.getFailedLogins();
 		LoginEventType lastFailedLogin = passwordType.getLastFailedLogin();
