@@ -105,7 +105,7 @@ public class ModelRestService {
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
-	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterCacheInvalidationEvent";
 	public static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
 	public static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopScheduler";
 	public static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startScheduler";

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.impl.security.NodeAuthenticationToken;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
@@ -61,7 +62,7 @@ public class ClusterRestService {
 
 	public static final String CLASS_DOT = ClusterRestService.class.getName() + ".";
 
-	private static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+	private static final String OPERATION_EXECUTE_CLUSTER_CACHE_INVALIDATION_EVENT = CLASS_DOT + "executeClusterCacheInvalidationEvent";
 	private static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
 	private static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopLocalScheduler";
 	private static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startLocalScheduler";
@@ -71,6 +72,8 @@ public class ClusterRestService {
 	private static final String OPERATION_DELETE_REPORT_FILE = CLASS_DOT + "deleteReportFile";
 
 	private static final String EXPORT_DIR = "export/";
+
+	public static final String EVENT_INVALIDATION = "/event/invalidation/";
 
 	@Autowired private SecurityHelper securityHelper;
 	@Autowired private TaskManager taskManager;
@@ -85,20 +88,31 @@ public class ClusterRestService {
 	}
 
 	@POST
-	@Path("/event/{type}")
+	@Path(EVENT_INVALIDATION + "{type}")
 	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
-	public Response executeClusterEvent(@PathParam("type") String type, @Context MessageContext mc) {
+	@SuppressWarnings("RSReferenceInspection")
+	public Response executeClusterCacheInvalidationEvent(@PathParam("type") String type, @Context MessageContext mc) {
+		return executeClusterCacheInvalidationEvent(type, null, mc);
+	}
+
+	@POST
+	@Path(EVENT_INVALIDATION + "{type}/{oid}")
+	@Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+	@SuppressWarnings("RSReferenceInspection")
+	public Response executeClusterCacheInvalidationEvent(@PathParam("type") String type, @PathParam("oid") String oid, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
-		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_EVENT);
+		OperationResult result = new OperationResult(OPERATION_EXECUTE_CLUSTER_CACHE_INVALIDATION_EVENT);
 
 		Response response;
 		try {
 			checkNodeAuthentication();
 
-			String oid = "";
-			Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
-			cacheDispatcher.dispatch(clazz, oid);
+			Class<? extends ObjectType> clazz = type != null ? ObjectTypes.getClassFromRestType(type) : null;
+
+			// clusterwide is false: we got this from another node so we don't need to redistribute it
+			cacheDispatcher.dispatchInvalidation(clazz, oid, false, new CacheInvalidationContext(true, null));
 
 			result.recordSuccess();
 			response = RestServiceUtil.createResponse(Status.OK, result);

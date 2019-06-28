@@ -17911,6 +17911,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="invalidation" type="tns:CacheInvalidationConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How is the cache invalidated?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="objectTypeSettings" type="tns:CacheObjectTypeSettingsType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -17983,9 +17990,82 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="invalidation" type="tns:CacheInvalidationConfigurationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How is the cache invalidated?
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="cacheObjectTypeSettings" type="tns:CacheObjectTypeSettingsType" />
+
+	<xsd:complexType name="CacheInvalidationConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How is the cache invalidated? Currently applicable only to global repo cache objects.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="clusterwide" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Whether to do clusterwide invalidation. Default is true.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="approximation" type="tns:CacheInvalidationApproximationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						When doing clusterwide invalidation, operation details (for add/modify/delete operation) are currently
+						not available. This parameter controls how to deal with this situation.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cacheInvalidationConfiguration" type="tns:CacheInvalidationConfigurationType" />
+
+	<xsd:simpleType name="CacheInvalidationApproximationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How to deal with remote cache invalidation uncertainty.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="safe">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SAFE"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Queries are invalidated safely i.e. when there's a theoretical possibility of matching.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="minimal">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="MINIMAL"/>
+					</xsd:appinfo>
+					<xsd:documentation>
+						Query results are invalidated only when exact OID-match is detected.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 
 	<xsd:complexType name="CacheStatisticsReportingConfigurationType">
 		<xsd:annotation>

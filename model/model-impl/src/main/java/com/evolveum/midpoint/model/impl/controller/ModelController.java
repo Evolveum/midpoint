@@ -48,7 +48,7 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -604,7 +604,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 
-			invalidateCaches(executedDeltas);
+			// Note: caches are invalidated automatically via RepositoryCache.invalidateCacheEntries method
 
 		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
 			ModelImplUtils.recordFatalError(result, e);
@@ -622,26 +622,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (partialProcessing != null) {
 			PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
 			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
-		}
-	}
-
-	private void invalidateCaches(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
-		if (executedDeltas == null) {
-			return;
-		}
-		for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
-			ObjectDelta<? extends ObjectType> objectDelta = executedDelta.getObjectDelta();
-			if (objectDelta != null) {
-				if (objectDelta.getObjectTypeClass() == SystemConfigurationType.class) {
-					systemObjectCache.invalidateCaches();
-				}
-			}
-			
-			//TODO do we still need this?
-			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
-				cacheRegistry.clearAllCaches(FunctionLibraryType.class, "");
-			}
-
 		}
 	}
 

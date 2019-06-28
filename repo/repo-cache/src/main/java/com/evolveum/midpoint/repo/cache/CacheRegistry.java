@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common;
+package com.evolveum.midpoint.repo.cache;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,9 +45,20 @@ public class CacheRegistry implements CacheListener {
 	public void registerListener() {
 		dispatcher.registerCacheListener(this);
 	}
+
+	@PreDestroy
+	public void unregisterListener() {
+		dispatcher.unregisterCacheListener(this);
+	}
 	
-	public void registerCacheableService(Cacheable cacheableService) {
-		cacheableServices.add(cacheableService);
+	public synchronized void registerCacheableService(Cacheable cacheableService) {
+		if (!cacheableServices.contains(cacheableService)) {
+			cacheableServices.add(cacheableService);
+		}
+	}
+
+	public synchronized void unregisterCacheableService(Cacheable cacheableService) {
+		cacheableServices.remove(cacheableService);
 	}
 	
 	public List<Cacheable> getCacheableServices() {
@@ -52,21 +66,12 @@ public class CacheRegistry implements CacheListener {
 	}
 	
 	@Override
-	public <O extends ObjectType> void invalidateCache(Class<O> type, String oid) {
-		if (!isSupportedToBeCleared(type, oid)) {
-			LOGGER.trace("Invalidate cache supported not supported for type {} and oid={}", type, oid);
-			return;
-		}
-		
-		clearAllCaches(type, oid);
-	}
-	
-	public <O extends ObjectType> void clearAllCaches(Class<O> type, String oid) {
+	public <O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide,
+			CacheInvalidationContext context) {
+		// We currently ignore clusterwide parameter, because it's used by ClusterCacheListener only.
+		// So we assume that the invalidation event - from this point on - is propagated only locally.
 		for (Cacheable cacheableService : cacheableServices) {
-			if (!cacheableService.supports(type, oid)) {
-				continue;
-			}
-			cacheableService.clearCache();
+			cacheableService.invalidate(type, oid, context);
 		}
 	}
 }

@@ -20,7 +20,6 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.*;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
@@ -514,8 +512,9 @@ public class PageAbout extends PageAdminConfiguration {
 			initialDataImport.setPrismContext(getPrismContext());
 			initialDataImport.setConfiguration(getMidpointConfiguration());
 			initialDataImport.init();
-			
-			getCacheDispatcher().dispatch(ConnectorType.class, "");
+
+			// TODO consider if we need to go clusterwide here
+			getCacheDispatcher().dispatchInvalidation(null, null, true, null);
 			
 			getModelService().shutdown();
 			

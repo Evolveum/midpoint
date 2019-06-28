@@ -35,6 +35,8 @@ public class CacheConfiguration implements DebugDumpable {
 	private Boolean traceMiss;
 	private Boolean tracePass;
 	private StatisticsLevel statisticsLevel;
+	private Boolean clusterwideInvalidation;
+	private Boolean safeRemoteInvalidation;
 	private final Map<Class<?>, CacheObjectTypeConfiguration> objectTypes = new HashMap<>();
 
 	public enum StatisticsLevel {
@@ -64,6 +66,8 @@ public class CacheConfiguration implements DebugDumpable {
 		private Boolean traceMiss;
 		private Boolean tracePass;
 		private StatisticsLevel statisticsLevel;
+		private Boolean clusterwideInvalidation;
+		private Boolean safeRemoteInvalidation;
 
 		public Integer getEffectiveTimeToLive() {
 			return timeToLive != null ? timeToLive : CacheConfiguration.this.timeToLive;
@@ -105,6 +109,22 @@ public class CacheConfiguration implements DebugDumpable {
 			this.statisticsLevel = statisticsLevel;
 		}
 
+		public Boolean getClusterwideInvalidation() {
+			return clusterwideInvalidation;
+		}
+
+		public void setClusterwideInvalidation(Boolean clusterwideInvalidation) {
+			this.clusterwideInvalidation = clusterwideInvalidation;
+		}
+
+		public Boolean getSafeRemoteInvalidation() {
+			return safeRemoteInvalidation;
+		}
+
+		public void setSafeRemoteInvalidation(Boolean safeRemoteInvalidation) {
+			this.safeRemoteInvalidation = safeRemoteInvalidation;
+		}
+
 		public boolean supportsCaching() {
 			return timeToLive == null || timeToLive > 0;
 		}
@@ -117,6 +137,8 @@ public class CacheConfiguration implements DebugDumpable {
 			append(sb, "traceMiss", traceMiss);
 			append(sb, "tracePass", tracePass);
 			append(sb, "statisticsLevel", statisticsLevel);
+			append(sb, "clusterwideInvalidation", clusterwideInvalidation);
+			append(sb, "safeRemoteInvalidation", safeRemoteInvalidation);
 			if (sb.length() == 0) {
 				sb.append("(default)");
 			}
@@ -173,6 +195,22 @@ public class CacheConfiguration implements DebugDumpable {
 		this.statisticsLevel = statisticsLevel;
 	}
 
+	public Boolean getClusterwideInvalidation() {
+		return clusterwideInvalidation;
+	}
+
+	public void setClusterwideInvalidation(Boolean clusterwideInvalidation) {
+		this.clusterwideInvalidation = clusterwideInvalidation;
+	}
+
+	public Boolean getSafeRemoteInvalidation() {
+		return safeRemoteInvalidation;
+	}
+
+	public void setSafeRemoteInvalidation(Boolean safeRemoteInvalidation) {
+		this.safeRemoteInvalidation = safeRemoteInvalidation;
+	}
+
 	public Map<Class<?>, CacheObjectTypeConfiguration> getObjectTypes() {
 		return objectTypes;
 	}
@@ -194,6 +232,12 @@ public class CacheConfiguration implements DebugDumpable {
 		}
 		if (statisticsLevel != null) {
 			DebugUtil.debugDumpWithLabelLn(sb, "statisticsLevel", String.valueOf(statisticsLevel), indent);
+		}
+		if (clusterwideInvalidation != null) {
+			DebugUtil.debugDumpWithLabelLn(sb, "clusterwideInvalidation", String.valueOf(clusterwideInvalidation), indent);
+		}
+		if (safeRemoteInvalidation != null) {
+			DebugUtil.debugDumpWithLabelLn(sb, "safeRemoteInvalidation", String.valueOf(safeRemoteInvalidation), indent);
 		}
 		DebugUtil.debugDumpLabelLn(sb, "object types", indent);
 		for (Map.Entry<Class<?>, CacheObjectTypeConfiguration> entry : objectTypes.entrySet()) {
@@ -229,6 +273,26 @@ public class CacheConfiguration implements DebugDumpable {
 		}
 	}
 
+	public boolean isClusterwideInvalidation(Class<?> type) {
+		CacheObjectTypeConfiguration config = objectTypes.get(type);
+		if (config != null && config.clusterwideInvalidation != null) {
+			return config.clusterwideInvalidation;
+		} else if (clusterwideInvalidation != null) {
+			return clusterwideInvalidation;
+		} else {
+			return supportsObjectType(type);
+		}
+	}
 
-
+	@SuppressWarnings("SimplifiableIfStatement")
+	public boolean isSafeRemoteInvalidation(Class<?> type) {
+		CacheObjectTypeConfiguration config = objectTypes.get(type);
+		if (config != null && config.safeRemoteInvalidation != null) {
+			return config.safeRemoteInvalidation;
+		} else if (safeRemoteInvalidation != null) {
+			return safeRemoteInvalidation;
+		} else {
+			return true;
+		}
+	}
 }
