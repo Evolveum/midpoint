@@ -16,31 +16,17 @@
 
 package com.evolveum.midpoint.repo.api;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 
 public interface CacheListener {
 
-	
-	
-	<O extends ObjectType> void invalidateCache(Class<O> type, String oid);
-	
-	default <O extends ObjectType> boolean isSupportedToBeCleared(Class<O> type, String oid) {
-		if (FunctionLibraryType.class.equals(type) || SystemConfigurationType.class.equals(type)) {
-			return true;
-		}
-		
-		// this is temporary hack, without checking also oid for blank, the whole caches are cleared
-		// what we probably don't want. in this situation, clear cache only when no/blank oid is provided
-		// it means, clear cache was called explicitly
-		if (ConnectorType.class.equals(type) && StringUtils.isBlank(oid)) {
-			return true;
-		}
-		
-		return false;
-	}
+	/**
+	 * Invalidates given object(s) in all relevant caches.
+	 * @param type Type of object (null means all types).
+	 * @param oid OID of object (null means all object(s) of given type(s)).
+	 * @param clusterwide Whether to distribute this event clusterwide.
+	 * @param context Context of the invalidation request (optional).
+	 */
+	<O extends ObjectType> void invalidate(Class<O> type, String oid, boolean clusterwide, CacheInvalidationContext context);
 }

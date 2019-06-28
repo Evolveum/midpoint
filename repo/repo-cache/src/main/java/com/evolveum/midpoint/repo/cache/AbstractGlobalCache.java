@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.cache2k.expiry.Expiry;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,4 +81,15 @@ public abstract class AbstractGlobalCache {
 
 	protected abstract CacheType getCacheType();
 
+	<T extends ObjectType> boolean isClusterwideInvalidation(Class<T> type) {
+		CacheConfiguration configuration = getConfiguration();
+		return configuration != null && configuration.isClusterwideInvalidation(type);
+	}
+
+	<T extends ObjectType> boolean isSafeRemoteInvalidation(Class<T> type) {
+		CacheConfiguration configuration = getConfiguration();
+		return configuration != null && configuration.isSafeRemoteInvalidation(type);
+	}
+
+	public abstract void clear();
 }

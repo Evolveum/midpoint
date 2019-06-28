@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.common;
+package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.CacheInvalidationContext;
 
 public interface Cacheable {
 
-	void clearCache();
-	
-	default <O extends ObjectType> boolean supports(Class<O> type, String oid) {
-		return true;
-	}
+	void invalidate(Class<?> type, String oid, CacheInvalidationContext context);
 
 }

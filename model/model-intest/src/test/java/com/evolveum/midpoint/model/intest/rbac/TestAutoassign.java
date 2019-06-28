@@ -76,10 +76,16 @@ public class TestAutoassign extends AbstractRbacTest {
 		repoAddObjectFromFile(ROLE_UNIT_WORKER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_UNIT_SLEEPER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_UNIT_WALKER_FILE, RoleType.class, initResult);
-		
-		modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
-				initTask, initResult, Boolean.TRUE);
+
+		// Temporarily using repository service because of MID-5497
+		repositoryService.modifyObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+				prismContext.deltaFor(SystemConfigurationType.class)
+					.item(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED)
+					.replace(true)
+					.asItemDeltas(), initResult);
+//		modifyObjectReplaceProperty(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+//				ItemPath.create(SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.F_AUTOASSIGN_ENABLED),
+//				initTask, initResult, Boolean.TRUE);
 	}
 
 	/**

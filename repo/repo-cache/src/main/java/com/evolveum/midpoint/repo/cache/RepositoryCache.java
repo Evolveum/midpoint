@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 import java.util.Objects;
 import java.util.*;
@@ -60,7 +62,7 @@ import static com.evolveum.midpoint.schema.cache.CacheType.*;
  *
  */
 @Component(value="cacheRepositoryService")
-public class RepositoryCache implements RepositoryService {
+public class RepositoryCache implements RepositoryService, Cacheable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(RepositoryCache.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -91,10 +93,15 @@ public class RepositoryCache implements RepositoryService {
 	@Autowired private PrismContext prismContext;
 	@Autowired private RepositoryService repositoryService;
 	@Autowired private CacheDispatcher cacheDispatcher;
+	@Autowired private CacheRegistry cacheRegistry;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired private GlobalQueryCache globalQueryCache;
 	@Autowired private GlobalObjectCache globalObjectCache;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+
+	private static List<Class<?>> TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE = Arrays.asList(
+			SystemConfigurationType.class,
+			FunctionLibraryType.class);
 
 	private static final int QUERY_RESULT_SIZE_LIMIT = 100000;
 
@@ -404,7 +411,7 @@ public class RepositoryCache implements RepositoryService {
 			return System.currentTimeMillis();
 		}
 	}
-	
+
 	private void repoOpEnd(Long startTime) {
 		RepositoryPerformanceMonitor monitor = DiagnosticContextHolder.get(RepositoryPerformanceMonitor.class);
 		if (monitor != null) {
@@ -1075,18 +1082,34 @@ public class RepositoryCache implements RepositoryService {
 		if (localQueryCache != null) {
 			clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
 		}
+		boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
+				globalObjectCache.isClusterwideInvalidation(type) || globalQueryCache.isClusterwideInvalidation(type);
+		//System.out.println("invalidateCacheEntries: clusterwide = " + clusterwide + " for " + type.getSimpleName() + ":" + oid);
+		cacheDispatcher.dispatchInvalidation(type, oid, clusterwide,
+				new CacheInvalidationContext(false, new RepositoryCacheInvalidationDetails(additionalInfo)));
+	}
 
-		globalObjectCache.remove(oid);
-		clearQueryResultsGlobally(type, oid, additionalInfo, matchingRuleRegistry);
-		cacheDispatcher.dispatch(type, oid);
+	// This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context)
+	@Override
+	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		//System.out.println("invalidate: " + type + ":" + oid + ", " + context);
+		if (type == null) {
+			globalObjectCache.clear();
+			globalQueryCache.clear();
+		} else {
+			globalObjectCache.remove(oid);
+			if (ObjectType.class.isAssignableFrom(type)) {
+				//noinspection unchecked
+				clearQueryResultsGlobally((Class<? extends ObjectType>) type, oid, context);
+			}
+		}
 	}
 
 	private <T extends ObjectType> void clearQueryResultsLocally(LocalQueryCache cache, Class<T> type, String oid,
-			Object additionalInfo,
-			MatchingRuleRegistry matchingRuleRegistry) {
+			Object additionalInfo, MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO implement more efficiently
 
-		ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo);
+		ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo, true);
 
 		long start = System.currentTimeMillis();
 		int all = 0;
@@ -1105,11 +1128,11 @@ public class RepositoryCache implements RepositoryService {
 		LOGGER.trace("Removed (from local cache) {} (of {}) query result entries of type {} in {} ms", removed, all, type, System.currentTimeMillis() - start);
 	}
 
-	private <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, Object additionalInfo,
-			MatchingRuleRegistry matchingRuleRegistry) {
+	private <T extends ObjectType> void clearQueryResultsGlobally(Class<T> type, String oid, CacheInvalidationContext context) {
 		// TODO implement more efficiently
 
-		ChangeDescription change = ChangeDescription.getFrom(type, oid, additionalInfo);
+		boolean safeInvalidation = !context.isFromRemoteNode() || globalQueryCache.isSafeRemoteInvalidation(type);
+		ChangeDescription change = ChangeDescription.getFrom(type, oid, context, safeInvalidation);
 
 		long start = System.currentTimeMillis();
 		AtomicInteger all = new AtomicInteger(0);
@@ -1586,7 +1609,14 @@ public class RepositoryCache implements RepositoryService {
 		repositoryService.postInit(result);     // TODO resolve somehow multiple calls to repositoryService postInit method
 		globalObjectCache.initialize();
 		globalQueryCache.initialize();
+		cacheRegistry.registerCacheableService(this);
 	}
+
+	@PreDestroy
+	public void unregister() {
+		cacheRegistry.unregisterCacheableService(this);
+	}
+
 
 	@Override
 	public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
@@ -1778,6 +1808,18 @@ public class RepositoryCache implements RepositoryService {
 
 		boolean isResultAvailable() {
 			return !overflown;
+		}
+	}
+
+	public static class RepositoryCacheInvalidationDetails implements CacheInvalidationDetails {
+		private final Object details;
+
+		RepositoryCacheInvalidationDetails(Object details) {
+			this.details = details;
+		}
+
+		public Object getObject() {
+			return details;
 		}
 	}
 }

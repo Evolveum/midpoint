@@ -106,7 +106,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		CredentialPolicyType credentialsPolicy = getCredentialsPolicy(principal, authnCtx);
 
 		if (checkCredentials(principal, authnCtx, connEnv)) {
-			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials), credentialsPolicy);
+			recordPasswordAuthenticationSuccess(principal, connEnv, getCredential(credentials));
 			return new UsernamePasswordAuthenticationToken(principal, authnCtx.getEnteredCredential(), principal.getAuthorities());
 		} else {
 			recordPasswordAuthenticationFailure(principal, connEnv, getCredential(credentials), credentialsPolicy, "password mismatch");
@@ -436,8 +436,8 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		return clock.isPast(lockedUntilTimestamp);
 	}
 
-	private void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
-			C passwordType, CredentialPolicyType passwordCredentialsPolicy) {
+	public void recordPasswordAuthenticationSuccess(MidPointPrincipal principal, ConnectionEnvironment connEnv,
+			C passwordType) {
 		UserType userBefore = principal.getUser().clone();
 		Integer failedLogins = passwordType.getFailedLogins();
 		if (failedLogins != null && failedLogins > 0) {
@@ -464,7 +464,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		securityHelper.auditLoginSuccess(principal.getUser(), connEnv);
 	}
 
-	private void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
+	public void recordPasswordAuthenticationFailure(@NotNull MidPointPrincipal principal, @NotNull ConnectionEnvironment connEnv,
 			@NotNull C passwordType, CredentialPolicyType credentialsPolicy, String reason) {
 		UserType userBefore = principal.getUser().clone();
 		Integer failedLogins = passwordType.getFailedLogins();

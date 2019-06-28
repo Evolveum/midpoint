@@ -27,7 +27,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +37,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -45,8 +46,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.repo.common.Cacheable;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
@@ -97,7 +97,12 @@ public class ConnectorManager implements Cacheable {
 	public void register() {
 		cacheRegistry.registerCacheableService(this);
 	}
-	
+
+	@PreDestroy
+	public void unregister() {
+		cacheRegistry.unregisterCacheableService(this);
+	}
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
 	private Collection<ConnectorFactory> connectorFactories;
@@ -639,14 +644,16 @@ public class ConnectorManager implements Cacheable {
 	}
 
 	@Override
-	public void clearCache() {
-		dispose();
-		connectorInstanceCache = new ConcurrentHashMap<>();
-		connectorTypeCache = new ConcurrentHashMap<>();
+	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (type == null || ConnectorType.class.isAssignableFrom(type)) {
+			if (StringUtils.isEmpty(oid)) {
+				dispose();
+				connectorInstanceCache = new ConcurrentHashMap<>();
+				connectorTypeCache = new ConcurrentHashMap<>();
+			} else {
+				LOGGER.trace("Skipping invalidation request for specific OID={}; selective invalidation is not yet supported", oid);
+			}
+		}
 	}
 
-	@Override
-	public <O extends ObjectType> boolean supports(Class<O> type, String oid) {
-		return ConnectorType.class.equals(type) && StringUtils.isBlank(oid);
-	}
 }

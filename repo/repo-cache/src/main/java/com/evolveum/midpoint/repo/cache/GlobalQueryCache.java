@@ -107,4 +107,11 @@ public class GlobalQueryCache extends AbstractGlobalCache {
 	public int size() {
 		return cache.asMap().size();
 	}
+
+	@Override
+	public void clear() {
+		if (cache != null) {
+			cache.clear();
+		}
+	}
 }

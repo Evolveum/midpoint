@@ -354,6 +354,7 @@
 
         <jaxws:properties>
             <entry key="org.apache.cxf.logging.FaultListener" value-ref="wsFaultListener"/>
+            <entry key="ws-security.ut.validator" value-ref="midpointPasswordValidator" />
         </jaxws:properties>
 
         <jaxws:features>
