@@ -486,6 +486,21 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="tracingPoint" type="c:TracingPointType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Point(s) to be traced.
+                TEMPORARY. EXPERIMENTAL. Will be replaced by a more serious configuration mechanism.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>Tracing point</a:displayName>
+                <a:displayOrder>853</a:displayOrder>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>unbounded</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 </xsd:schema>
 
 

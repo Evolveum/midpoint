@@ -236,6 +236,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (!building) {
 			throw new IllegalStateException("Not being built");
 		}
+		// todo only if profiled!
 		recordStart(this, operation, createArguments());
 		building = false;
 		if (futureParent != null) {
@@ -465,7 +466,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
-		subresult.tracingProfile = tracingProfile;
+		if (subresult.tracingProfile == null) {
+			subresult.tracingProfile = tracingProfile;
+		}
 	}
 
 	public OperationResult findSubresult(String operation) {
@@ -836,6 +839,15 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void startTracing(@NotNull TracingProfileType profile) {
 		this.tracingProfile = profile;
+		if (invocationId == null) {
+			recordStart(this, operation, createArguments());
+		}
+	}
+
+	@Override
+	public OperationResultBuilder tracingProfile(TracingProfileType profile) {
+		this.tracingProfile = profile;
+		return this;
 	}
 
 	public <T> T getFirstTrace(Class<T> traceClass) {

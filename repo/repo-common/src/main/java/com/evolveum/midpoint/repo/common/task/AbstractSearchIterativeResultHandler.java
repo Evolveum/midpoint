@@ -22,12 +22,13 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -44,9 +45,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -324,8 +322,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		String objectName = PolyString.getOrig(object.getName());
 		String objectDisplayName = getDisplayName(object);
 
-		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
-		result.addParam("object", object);
+		// just in case an exception occurs between this place and the moment where real result is created
+		OperationResult result = new OperationResult("dummy");
+		boolean tracingRequested = false;
 
 		boolean cont;
 
@@ -337,7 +336,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			if (!isNonScavengingWorker()) {     // todo configure this somehow
 				int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
 				workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
-				coordinatorTask.requestTracingIfNeeded(result, objectsSeen);
+				workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
@@ -348,10 +347,17 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 						null /* TODO */, object.getOid());
 			}
 
+			OperationResultBuilder builder = parentResult.subresult(taskOperationPrefix + ".handle")
+					.addParam("object", object);
+			if (workerTask.getTracingRequestedFor().contains(TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
+				tracingRequested = true;
+				builder.tracingProfile(taskManager.getTracer().resolve(workerTask.getTracingProfile(), result));
+			}
+			result = builder.build();
+
 			// The meat
 			cont = handleObject(object, workerTask, result);
 
-			
 			// We do not want to override the result set by handler. This is just a fallback case
 			if (result.isUnknown() || result.isInProgress()) {
 				result.computeStatus();
@@ -370,11 +376,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.recordIterativeOperationEnd(objectName, objectDisplayName,
 							null /* TODO */, object.getOid(), startTime, null);
 				}
-				if (result.isSuccess()) {
-					// FIXME: hack. Hardcoded ugly summarization of successes. something like
-					// AbstractSummarizingResultHandler [lazyman]
-					result.getSubresults().clear();
-				}
 			}
 
 		} catch (CommonException | PreconditionViolationException | Error | RuntimeException e) {
@@ -387,12 +388,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
 					| SecurityViolationException | PolicyViolationException | ExpressionEvaluationException
 					| ObjectAlreadyExistsException | PreconditionViolationException e1) {
-				// TODO Auto-generated catch block
+				// TODO Is this OK? We should not throw runtime exceptions from the handler. [pm]
 				throw new SystemException(e1);
 			}
 		} finally {
 			RepositoryCache.exit();
 			workerTask.stopDynamicProfiling();
+			workerTask.stopTracing();
 
 			long duration = System.currentTimeMillis()-startTime;
 			long total = totalTimeProcessing.addAndGet(duration);
@@ -422,6 +424,15 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 							(System.currentTimeMillis()-this.startTime)/progress);
 				}
 			}
+
+			if (tracingRequested) {
+				taskManager.getTracer().storeTrace(workerTask, result);
+			}
+			if (result.isSuccess()) {
+				// FIXME: hack. Hardcoded ugly summarization of successes. something like
+				//   AbstractSummarizingResultHandler [lazyman]
+				result.getSubresults().clear();
+			}
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -431,7 +442,6 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 		if (!cont) {
 			stopRequestedByAnyWorker.set(true);
-//			workerTask.
 		}
 	}
 

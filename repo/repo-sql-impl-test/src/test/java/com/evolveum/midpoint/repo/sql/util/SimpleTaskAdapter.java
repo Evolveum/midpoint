@@ -29,10 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
@@ -871,5 +868,30 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public boolean isScavenger() {
         return false;
+    }
+
+    @NotNull
+    @Override
+    public Set<TracingPointType> getTracingRequestedFor() {
+        return emptySet();
+    }
+
+    @Override
+    public void addTracingRequest(TracingPointType point) {
+    }
+
+	@Override
+	public void removeTracingRequests() {
+
+	}
+
+	@Override
+    public TracingProfileType getTracingProfile() {
+        return null;
+    }
+
+    @Override
+    public void setTracingProfile(TracingProfileType tracingProfile) {
+
     }
 }

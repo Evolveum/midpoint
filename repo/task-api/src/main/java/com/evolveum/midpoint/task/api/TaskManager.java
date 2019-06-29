@@ -757,4 +757,6 @@ public interface TaskManager {
 	CacheConfigurationManager getCacheConfigurationManager();
 
 	boolean isDynamicProfilingEnabled();
+
+	Tracer getTracer();
 }
