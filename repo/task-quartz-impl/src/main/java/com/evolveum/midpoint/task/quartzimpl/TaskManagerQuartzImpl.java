@@ -267,7 +267,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @PostConstruct
     public void init() {
 
-        OperationResult result = createOperationResult("init");
+        OperationResult result = createOperationResult(DOT_IMPL_CLASS + "init");
 
         try {
             new Initializer(this).init(result);
@@ -1477,7 +1477,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -1498,7 +1498,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
