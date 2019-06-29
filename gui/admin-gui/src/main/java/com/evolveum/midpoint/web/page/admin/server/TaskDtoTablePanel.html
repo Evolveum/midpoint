@@ -23,6 +23,12 @@
     <wicket:fragment wicket:id="tableHeader">
         <form wicket:id="searchForm" class="form-inline pull-right search-form">
             <div class="checkbox">
+                <label wicket:id="showProgressLabel">
+                    <input type="checkbox" wicket:id="showProgress"/>
+                    <wicket:message key="pageTasks.progress"/>
+                </label>
+            </div>
+            <div class="checkbox">
                 <label wicket:id="showSubtasksLabel">
                     <input type="checkbox" wicket:id="showSubtasks"/>
                     <wicket:message key="pageTasks.subtasks"/>

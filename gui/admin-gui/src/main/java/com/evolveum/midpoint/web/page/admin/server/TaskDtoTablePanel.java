@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
@@ -144,6 +145,8 @@ public class TaskDtoTablePanel extends BasePanel {
 	private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_STATE = "state";
 	private static final String ID_CATEGORY = "category";
+	private static final String ID_SHOW_PROGRESS_LABEL = "showProgressLabel";
+	private static final String ID_SHOW_PROGRESS = "showProgress";
 	private static final String ID_SHOW_SUBTASKS_LABEL = "showSubtasksLabel";
 	private static final String ID_SHOW_SUBTASKS = "showSubtasks";
 	private static final String ID_TASK_TABLE = "taskTable";
@@ -317,7 +320,7 @@ public class TaskDtoTablePanel extends BasePanel {
 		});
 		columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-		columns.add(createProgressColumn(getPageBase(), "pageTasks.task.progress"));
+		columns.add(createProgressColumn(getPageBase(), "pageTasks.task.progress", this::isProgressComputationEnabled));
 		columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
 			@Override
@@ -625,24 +628,21 @@ public class TaskDtoTablePanel extends BasePanel {
 	}
 
 	@NotNull
-	public static AbstractExportableColumn<TaskDto, String> createProgressColumn(PageBase pageBase, final String titleKey) {
+	public static AbstractExportableColumn<TaskDto, String> createProgressColumn(PageBase pageBase, String titleKey,
+			SerializableSupplier<Boolean> progressComputationEnabledSupplier) {
 		return new AbstractExportableColumn<TaskDto, String>(pageBase.createStringResource(titleKey)) {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
-				cellItem.add(new Label(componentId, new IModel<Object>() {
-					@Override
-					public Object getObject() {
-						rowModel.getObject().ensureSubtasksLoaded(pageBase);
-						return rowModel.getObject().getProgressDescription(pageBase);
-					}
-				}));
+				cellItem.add(new Label(componentId,
+						(IModel<Object>) () -> rowModel.getObject().getProgressDescription(pageBase,
+								progressComputationEnabledSupplier.get())));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
-				rowModel.getObject().ensureSubtasksLoaded(pageBase);
-				return Model.of(rowModel.getObject().getProgressDescription(pageBase));
+				return Model.of(rowModel.getObject().getProgressDescription(pageBase,
+						progressComputationEnabledSupplier.get()));
 			}
 		};
 	}
@@ -1389,9 +1389,15 @@ public class TaskDtoTablePanel extends BasePanel {
 				categorySelect.getModel().setObject(ALL_CATEGORIES);
 			}
 			searchForm.add(categorySelect);
+			WebMarkupContainer showProgressLabel = new WebMarkupContainer(ID_SHOW_PROGRESS_LABEL);
+			CheckBox showProgress = new CheckBox(ID_SHOW_PROGRESS,
+					new PropertyModel<>(searchModel, TasksSearchDto.F_SHOW_PROGRESS));
+			showProgress.add(createFilterAjaxBehaviour());
+			showProgressLabel.add(showProgress);
+			searchForm.add(showProgressLabel);
 			WebMarkupContainer showSubtasksLabel = new WebMarkupContainer(ID_SHOW_SUBTASKS_LABEL);
 			CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS,
-					new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
+					new PropertyModel<>(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
 			showSubtasks.add(createFilterAjaxBehaviour());
 			showSubtasksLabel.add(new VisibleEnableBehaviour() {
 				@Override
@@ -1445,5 +1451,9 @@ public class TaskDtoTablePanel extends BasePanel {
 
 	protected boolean isVisibleShowSubtask() {
 		return true;
+	}
+
+	protected boolean isProgressComputationEnabled() {
+		return searchModel.getObject().isShowProgress();
 	}
 }
