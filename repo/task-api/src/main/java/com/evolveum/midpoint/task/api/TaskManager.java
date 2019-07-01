@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.api;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -477,7 +476,7 @@ public interface TaskManager {
 	void reconcileWorkers(String coordinatorOid, WorkersReconciliationOptions options, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException;
 
-	void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, OperationResult parentResult)
+	void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException;
 
 	/**

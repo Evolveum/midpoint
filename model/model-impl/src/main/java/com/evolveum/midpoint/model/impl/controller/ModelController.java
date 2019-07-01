@@ -1954,11 +1954,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
-	public void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+			OperationResult parentResult)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		taskManager.deleteWorkersAndWorkState(coordinatorOid, subtasksWaitTime, parentResult);
+		taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
 	}
 
 	@Override
