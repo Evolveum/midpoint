@@ -2084,11 +2084,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.messageCode = messageCode;
         clone.message = message;
         clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
-        try {
-	        clone.cause = full ? CloneUtil.clone(cause) : cause;
-        } catch (Throwable t) {
-        	clone.cause = cause;        // a fallback (it's questionable whether we must clone also the cause)
-        }
+	    // I think it's not necessary to (deeply) clone the exception. They are usually not cloneable. See also MID-5379.
+        clone.cause = cause;
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
 		if (subresults != null && (maxDepth == null || maxDepth > 0)) {
