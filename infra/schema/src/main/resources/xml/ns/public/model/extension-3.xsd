@@ -99,6 +99,31 @@
         </xsd:annotation>
     </xsd:element>
 
+    <!-- we might consider making this part of resource configuration -->
+    <xsd:element name="liveSyncBatchSize" type="xsd:int">
+        <xsd:annotation>
+            <xsd:documentation>
+                Batch size for live sync operations: if specified as N > 0, live synchronization fetches at most N records during
+                each provisioning.synchronize() method execution - i.e. during any live sync task run. (Currently, it leaves
+                unprocessed changes for the next live sync task run. This may change in the future.)
+
+                USE WITH CARE. This feature assumes that the connector provides LiveSync capability with preciseTokenValue = true,
+                i.e. that it assigns sync tokens to individual changes "incrementally" so it can resume live sync operation on
+                each individual change. This can be the case of SQL connectors, but e.g. not for CSV or LDAP ones.
+
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:displayName>LiveSync batch size</a:displayName>
+                <a:displayOrder>802</a:displayOrder>
+           	 	<a:minOccurs>0</a:minOccurs>
+            	<a:maxOccurs>1</a:maxOccurs>
+                <a:experimental>true</a:experimental>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="finishOperationsOnly" type="xsd:boolean">
         <xsd:annotation>
             <xsd:documentation>

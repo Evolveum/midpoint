@@ -417,7 +417,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -442,7 +442,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		dummyResource.addAccount(newAccount);
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

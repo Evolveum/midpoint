@@ -318,12 +318,10 @@ public interface ConnectorInstance {
 
 	/**
 	 * Token may be null. That means "from the beginning of history".
-	 *
-	 * @param lastToken
-	 * @return
 	 */
-	List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
-															   OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 

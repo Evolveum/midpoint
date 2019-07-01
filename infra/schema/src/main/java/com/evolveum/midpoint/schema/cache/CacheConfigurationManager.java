@@ -400,12 +400,16 @@ public class CacheConfigurationManager {
 	}
 
 	@Nullable
-	public String dumpThreadLocalConfiguration() {
+	public String dumpThreadLocalConfiguration(boolean full) {
 		ThreadLocalConfiguration localConfig = threadLocalConfiguration.get();
 		if (localConfig != null) {
-			// just to compile configurations
-			Arrays.stream(CacheType.values()).forEach(localConfig::get);
-			return localConfig.debugDump();
+			if (full) {
+				// just to compile configurations
+				Arrays.stream(CacheType.values()).forEach(localConfig::get);
+				return localConfig.debugDump();
+			} else {
+				return "Profiles: " + localConfig.profiles;
+			}
 		} else {
 			return null;
 		}

@@ -191,4 +191,8 @@ public class StateReporter {
 	public void setResourceOid(String resourceOid) {
 		this.resourceOid = resourceOid;
 	}
+
+    public boolean canRun() {
+        return !(task instanceof RunningTask) || ((RunningTask) task).canRun();
+    }
 }
