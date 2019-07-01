@@ -53,6 +53,7 @@ public class AuditHelper {
 	private RepositoryService repositoryService;
 
 	public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
+		// TODO we could obtain names for objects that were deleted e.g. from the lens context (MID-5501)
 		if (record.getDeltas() != null) {
 			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
 				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
@@ -61,12 +62,17 @@ public class AuditHelper {
 							.setMinor()
 							.build();
 					try {
+						if (record.getNonExistingReferencedObjects().contains(oid)) {
+							// This information could get from upper layers (not now, but maybe in the future).
+							return null;
+						}
 						// we use null options here, in order to utilize the local or global repository cache
 						Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
 								.allowNotFound().build();
 						PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, options, result);
 						return object.getName();
 					} catch (ObjectNotFoundException e) {
+						record.addNonExistingReferencedObject(oid);
 						return null;        // we will NOT record an error here
 					} catch (Throwable t) {
 						result.recordFatalError(t.getMessage(), t);

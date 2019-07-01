@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import org.jetbrains.annotations.NotNull;
 
@@ -197,8 +196,8 @@ public interface TaskService {
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException;
 
-
-	void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
+	void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+			OperationResult parentResult)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException;
 

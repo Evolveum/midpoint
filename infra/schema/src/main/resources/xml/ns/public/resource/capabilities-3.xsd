@@ -323,6 +323,20 @@
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:CapabilityType">
+				<xsd:sequence>
+					<xsd:element name="preciseTokenValue" type="xsd:boolean" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								If true then the connector ensures that the token value provided in each sync delta
+								is precise enough to guarantee correct restart of live sync after given delta.
+								(Some connectors provide token value of e.g. current timestamp, so they cannot distinguish
+								individual deltas.)
+
+								EXPERIMENTAL
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

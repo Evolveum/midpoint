@@ -2449,9 +2449,10 @@ public class ShadowCache {
 	///////////////////////////////////////////////////////////////////////////
 
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
-			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-					GenericFrameworkException, SchemaException, ConfigurationException,
-					SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException, PolicyViolationException {
+			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
+			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException,
+			PolicyViolationException {
 
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -2463,6 +2464,10 @@ public class ShadowCache {
 		try {
 
 			changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
+			if (!ctx.canRun()) {
+				LOGGER.info("LiveSync interrupted by task suspension: {}", ctx.getTask());
+				return 0;
+			}
 
 			LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
 
@@ -2491,12 +2496,19 @@ public class ShadowCache {
 				} else {
 					// we need to retry the failed change -- so we must not update the token
 				}
+				if (!ctx.canRun()) {
+					break;
+				}
 			}
 
-			// also if no changes was detected, update token
-			if (changes.isEmpty() && lastToken != null) {
-				LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
-				task.setExtensionProperty(lastToken);
+			if (ctx.canRun()) {
+				// also if no changes was detected, update token
+				if (changes.isEmpty() && lastToken != null) {
+					LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
+					task.setExtensionProperty(lastToken);
+				}
+			} else {
+				LOGGER.info("LiveSync interrupted by task suspension: {}; processed changes: {}", ctx.getTask(), processedChanges);
 			}
 			task.flushPendingModifications(parentResult);
 			return processedChanges;

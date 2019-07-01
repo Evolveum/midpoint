@@ -190,6 +190,9 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 						.item(ObjectType.F_NAME).retrieve()
 						.build();
 				ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
+					if (record.getNonExistingReferencedObjects().contains(oid)) {
+						return null;    // save a useless getObject call plus associated warning (MID-5378)
+					}
 					if (repositoryService == null) {
 						LOGGER.warn("No repository, no OID resolution (for {})", oid);
 						return null;

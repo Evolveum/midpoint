@@ -507,13 +507,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	}
 
 	@Override
-	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult parentResult)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime,
+			OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteWorkersAndWorkState");
-		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+		result.addParam("rootTaskOid", rootTaskOid);
+		result.addParam("deleteWorkers", deleteWorkers);
 		result.addParam("subtasksWaitTime", subtasksWaitTime);
 		try {
-			workersManager.deleteWorkersAndWorkState(coordinatorTaskOid, subtasksWaitTime, result);
+			workersManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't delete workers and work state", t);
 			throw t;

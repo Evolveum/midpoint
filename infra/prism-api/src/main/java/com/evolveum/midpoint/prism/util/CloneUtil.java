@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
@@ -76,6 +77,9 @@ public class CloneUtil {
 		}
 		if (origClass.isEnum()) {
 			return orig;
+		}
+		if (orig instanceof LocalizableMessage) {
+			return orig;        // all fields are final
 		}
 //        if (orig.getClass().equals(QName.class)) {
 //            QName origQN = (QName) orig;

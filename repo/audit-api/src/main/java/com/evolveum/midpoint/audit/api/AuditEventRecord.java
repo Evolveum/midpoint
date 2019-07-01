@@ -89,7 +89,7 @@ public class AuditEventRecord implements DebugDumpable {
 	private String requestIdentifier;
 	
 	/**
-	 * Identitification of (interactive) session in which the event occured.
+	 * Identification of (interactive) session in which the event occured.
 	 */
 	private String sessionIdentifier;
 
@@ -182,6 +182,9 @@ public class AuditEventRecord implements DebugDumpable {
 	private final Map<String, Set<String>> properties = new HashMap<>();
 
 	private final Map<String, Set<AuditReferenceValue>> references = new HashMap<>();
+
+	// Just a hint for audit service proxy: these OID need not to be resolved, as they are known to not exist.
+	private final Set<String> nonExistingReferencedObjects = new HashSet<>();
 
 	public AuditEventRecord() {
 	}
@@ -700,5 +703,14 @@ public class AuditEventRecord implements DebugDumpable {
 			}
 		}
 		setParameter(parameter);
+	}
+
+	@NotNull
+	public Set<String> getNonExistingReferencedObjects() {
+		return nonExistingReferencedObjects;
+	}
+
+	public void addNonExistingReferencedObject(String oid) {
+		nonExistingReferencedObjects.add(oid);
 	}
 }

@@ -19,8 +19,9 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * @author semancik
+ * This class is final and must remain so, as it's not cloneable.
  *
+ * @author semancik
  */
 public class SingleLocalizableMessage implements LocalizableMessage {
 	private static final long serialVersionUID = 1L;

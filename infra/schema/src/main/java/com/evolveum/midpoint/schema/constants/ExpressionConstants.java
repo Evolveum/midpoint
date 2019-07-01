@@ -40,6 +40,7 @@ public class ExpressionConstants {
 	public static final String VAR_PROJECTION = "projection";
 	public static final String VAR_SOURCE = "source";
 	public static final String VAR_ASSIGNMENT = "assignment";
+	public static final String VAR_ASSIGNMENT_EVALUATOR = "assignmentEvaluator";
 	public static final String VAR_EVALUATED_ASSIGNMENT = "evaluatedAssignment";
 	public static final String VAR_ASSIGNMENT_PATH = "assignmentPath";
 	public static final String VAR_IMMEDIATE_ASSIGNMENT = "immediateAssignment";

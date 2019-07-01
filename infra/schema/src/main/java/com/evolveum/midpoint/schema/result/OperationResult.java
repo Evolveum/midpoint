@@ -725,23 +725,34 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 	
 	private void updateLocalizableMessage(LocalizableMessage localizableMessage) {
+		if (localizableMessage == null) {
+			return;
+		}
 		if (userFriendlyMessage instanceof SingleLocalizableMessage) {
-			if (localizableMessage != null) {
-				userFriendlyMessage = new LocalizableMessageListBuilder().message(userFriendlyMessage).message(localizableMessage).separator(LocalizableMessageList.SPACE).build();
-				return;
-			}
+			userFriendlyMessage = new LocalizableMessageListBuilder()
+					.message(userFriendlyMessage)
+					.message(localizableMessage)
+					.separator(LocalizableMessageList.SPACE).build();
+		} else if (userFriendlyMessage instanceof LocalizableMessageList) {
+			LocalizableMessageList userFriendlyMessageList = (LocalizableMessageList) this.userFriendlyMessage;
+			userFriendlyMessage = new LocalizableMessageList(
+					mergeMessages(userFriendlyMessageList, localizableMessage),
+					userFriendlyMessageList.getSeparator(),
+					userFriendlyMessageList.getPrefix(),
+					userFriendlyMessageList.getPostfix());
 		}
-		
-		if (userFriendlyMessage instanceof LocalizableMessageList) {
-			if (localizableMessage instanceof SingleLocalizableMessage) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().add(localizableMessage);
-				return;
-			}
-			if (localizableMessage instanceof LocalizableMessageList) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().addAll(((LocalizableMessageList) localizableMessage).getMessages());
-				return;
-			}
+	}
+
+	private List<LocalizableMessage> mergeMessages(LocalizableMessageList sum, LocalizableMessage increment) {
+		List<LocalizableMessage> rv = new ArrayList<>(sum.getMessages());
+		if (increment instanceof SingleLocalizableMessage) {
+			rv.add(increment);
+		} else if (increment instanceof LocalizableMessageList) {
+			rv.addAll(((LocalizableMessageList) increment).getMessages());
+		} else {
+			throw new IllegalArgumentException("increment: " + increment);
 		}
+		return rv;
 	}
 
 	/**
@@ -2084,11 +2095,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.messageCode = messageCode;
         clone.message = message;
         clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
-        try {
-	        clone.cause = full ? CloneUtil.clone(cause) : cause;
-        } catch (Throwable t) {
-        	clone.cause = cause;        // a fallback (it's questionable whether we must clone also the cause)
-        }
+	    // I think it's not necessary to (deeply) clone the exception. They are usually not cloneable. See also MID-5379.
+        clone.cause = cause;
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
 		if (subresults != null && (maxDepth == null || maxDepth > 0)) {

@@ -420,26 +420,43 @@ public class WorkersManager {
 		}
 	}
 
-	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult result)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime,
+			OperationResult result)
 			throws SchemaException, ObjectNotFoundException {
-		Task coordinatorTask = taskManager.getTask(coordinatorTaskOid, result);
-		if (coordinatorTask.getKind() != TaskKindType.COORDINATOR) {
-			throw new IllegalArgumentException("Task is not a coordinator task: " + coordinatorTask);
+		boolean suspended = taskManager.suspendTaskTree(rootTaskOid, subtasksWaitTime, result);
+		if (!suspended) {
+			// TODO less harsh handling
+			throw new IllegalStateException("Not all tasks could be suspended. Please retry to operation.");
 		}
-		if (coordinatorTask.getExecutionStatus() == TaskExecutionStatus.WAITING) {
-			throw new IllegalStateException("Couldn't delete workers and work state while operation is in progress (coordinator state is WAITING): " + coordinatorTask);
+		Task rootTask = taskManager.getTask(rootTaskOid, result);
+		deleteWorkersAndWorkState(rootTask, deleteWorkers, result);
+	}
+
+	private void deleteWorkersAndWorkState(Task rootTask, boolean deleteWorkers, OperationResult result)
+			throws SchemaException, ObjectNotFoundException {
+		TaskKindType kind = rootTask.getKind();
+		List<Task> subtasks = rootTask.listSubtasks(true, result);
+		if (deleteWorkers && kind == TaskKindType.COORDINATOR) {
+			taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), TaskManager.DO_NOT_WAIT, true, result);
+		} else {
+			for (Task subtask : subtasks) {
+				deleteWorkersAndWorkState(subtask, deleteWorkers, result);
+			}
 		}
-		if (coordinatorTask.getExecutionStatus() == TaskExecutionStatus.RUNNABLE && coordinatorTask.getNodeAsObserved() != null) {
-			throw new IllegalStateException("Couldn't delete workers and work state while operation is in progress (coordinator "
-					+ "state is RUNNABLE and it is executing on " + coordinatorTask.getNodeAsObserved() + "): " + coordinatorTask);
-		}
-		List<Task> subtasks = coordinatorTask.listSubtasks(true, result);
-		taskManager.suspendAndDeleteTasks(TaskUtil.tasksToOids(subtasks), subtasksWaitTime, true, result);
+		deleteWorkState(rootTask.getOid(), result);
+	}
+
+	private void deleteWorkState(String taskOid, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(TaskType.class)
 				.item(TaskType.F_WORK_STATE).replace()
+				.item(TaskType.F_PROGRESS).replace()
+				.item(TaskType.F_EXPECTED_TOTAL).replace()
+				.item(TaskType.F_OPERATION_STATS).replace()
+				.item(TaskType.F_RESULT).replace()
+				.item(TaskType.F_RESULT_STATUS).replace()
 				.asItemDeltas();
 		try {
-			taskManager.modifyTask(coordinatorTaskOid, itemDeltas, result);
+			taskManager.modifyTask(taskOid, itemDeltas, result);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
 		}
