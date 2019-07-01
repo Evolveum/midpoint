@@ -1292,7 +1292,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source)
-				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this, AssignmentEvaluator.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this)
 				.rootNode(focusOdo);
         builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
 
@@ -1349,11 +1349,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private boolean computeIsMemberOfDuringEvaluation(String targetOid) {
 		// TODO Or should we consider evaluateOld?
-		PrismObject<AH> focus = focusOdo.getNewObject();
+		PrismObject<F> focus = focusOdo.getNewObject();
 		return focus != null && containsMember(focus.asObjectable().getRoleMembershipRef(), targetOid);
 	}
 
-	public boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+	public boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) {
 		if (!memberOfInvocations.isEmpty()) {
 			// Similar code is in AssignmentProcessor.processMembershipAndDelegatedRefs -- check that if changing the business logic
 			List<ObjectReferenceType> membership = evaluatedAssignmentTriple.getNonNegativeValues().stream()

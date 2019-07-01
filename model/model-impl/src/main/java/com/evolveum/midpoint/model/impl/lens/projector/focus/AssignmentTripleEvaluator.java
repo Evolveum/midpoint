@@ -628,7 +628,7 @@ public class AssignmentTripleEvaluator<F extends FocusType> {
 		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}
 
-	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) {
 		return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
 	}
 }
