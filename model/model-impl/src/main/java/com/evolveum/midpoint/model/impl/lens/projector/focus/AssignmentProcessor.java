@@ -239,6 +239,11 @@ public class AssignmentProcessor {
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        if (assignmentTripleEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple)) {
+	        LOGGER.debug("Re-evaluating assignments because isMemberOf invocation result has changed");
+	        assignmentTripleEvaluator.reset(false);
+	        evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        }
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
@@ -254,7 +259,7 @@ public class AssignmentProcessor {
         if (needToReevaluateAssignments) {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
 
-        	assignmentTripleEvaluator.reset();
+        	assignmentTripleEvaluator.reset(true);
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
@@ -1038,6 +1043,7 @@ public class AssignmentProcessor {
 		if (evaluatedAssignmentTriple == null) {
 			return;	// could be if the "assignments" step is skipped
 		}
+		// Similar code is in AssignmentEvaluator.isMemberOfInvocationResultChanged -- check that if changing the business logic
 		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
 			if (evalAssignment.isValid()) {
 				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());
