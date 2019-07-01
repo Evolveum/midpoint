@@ -19,6 +19,8 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
@@ -300,6 +302,71 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
 
         return auditDelta;
+    }
+    
+    public static SingleSqlQuery toRepo(Long recordId, ObjectDeltaOperation operation,
+            PrismContext prismContext) throws DtoTranslationException {
+    	
+    	InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+    	queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+    	byte[] deltaData = null;
+    	byte[] fullResultData = null;
+    	try {
+    		if (operation.getObjectDelta() != null) {
+    			ObjectDelta delta = operation.getObjectDelta();
+
+    			String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, DeltaConversionOptions.createSerializeReferenceNames());
+    			deltaData = RUtil.getByteArrayFromXml(xmlDelta, true);
+    			queryBuilder.addParameter(DELTA_COLUMN_NAME, deltaData);
+    			queryBuilder.addParameter(DELTA_OID_COLUMN_NAME, delta.getOid());
+    			queryBuilder.addParameter(DELTA_TYPE_COLUMN_NAME, RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
+    		} else {
+    			queryBuilder.addNullParameter(DELTA_COLUMN_NAME);
+    			queryBuilder.addNullParameter(DELTA_OID_COLUMN_NAME);
+    			queryBuilder.addNullParameter(DELTA_TYPE_COLUMN_NAME);
+    		}
+
+    		if (operation.getExecutionResult() != null) {
+    			OperationResultType jaxb = operation.getExecutionResult().createOperationResultType();
+    			if (jaxb == null) {
+    				queryBuilder.addNullParameter(STATUS_COLUMN_NAME);
+    				queryBuilder.addNullParameter(FULL_RESULT_COLUMN_NAME);
+    	        } else {
+    	        	queryBuilder.addParameter(STATUS_COLUMN_NAME, RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+    	        	try {
+    	                String full = prismContext.xmlSerializer().serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
+    	                fullResultData = RUtil.getByteArrayFromXml(full, true);
+    	                queryBuilder.addParameter(FULL_RESULT_COLUMN_NAME, fullResultData);
+    	            } catch (Exception ex) {
+    	                throw new DtoTranslationException(ex.getMessage(), ex);
+    	            }
+    	        }
+    		} else {
+    			queryBuilder.addNullParameter(STATUS_COLUMN_NAME);
+				queryBuilder.addNullParameter(FULL_RESULT_COLUMN_NAME);
+    		}
+    		if(operation.getObjectName() != null) {
+    			queryBuilder.addParameter(OBJECT_NAME_ORIG_COLUMN_NAME, operation.getObjectName().getOrig());
+    			queryBuilder.addParameter(OBJECT_NAME_NORM_COLUMN_NAME, operation.getObjectName().getNorm());
+    		} else {
+    			queryBuilder.addNullParameter(OBJECT_NAME_ORIG_COLUMN_NAME);
+    			queryBuilder.addNullParameter(OBJECT_NAME_NORM_COLUMN_NAME);
+    		}
+    		queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, operation.getResourceOid());
+    		if(operation.getResourceName() != null) {
+    			queryBuilder.addParameter(RESOURCE_NAME_ORIG_COLUMN_NAME, operation.getResourceName().getOrig());
+    			queryBuilder.addParameter(RESOURCE_NAME_NORM_COLUMN_NAME, operation.getResourceName().getNorm());
+    		} else {
+    			queryBuilder.addNullParameter(RESOURCE_NAME_ORIG_COLUMN_NAME);
+    			queryBuilder.addNullParameter(RESOURCE_NAME_NORM_COLUMN_NAME);
+    		}
+    		queryBuilder.addParameter(CHECKSUM_COLUMN_NAME, RUtil.computeChecksum(deltaData, fullResultData), true);
+    	} catch (Exception ex) {
+    		throw new DtoTranslationException(ex.getMessage(), ex);
+    	}
+
+
+    	return queryBuilder.build();
     }
 
     public static ObjectDeltaOperation fromRepo(RObjectDeltaOperation operation, PrismContext prismContext, boolean useUtf16)

@@ -513,7 +513,7 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setRequestIdentifier(requestIdentifier);
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
-    	auditRecordType.getResourceOID().addAll(resourceOids);
+    	auditRecordType.getResourceOid().addAll(resourceOids);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas) {
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();

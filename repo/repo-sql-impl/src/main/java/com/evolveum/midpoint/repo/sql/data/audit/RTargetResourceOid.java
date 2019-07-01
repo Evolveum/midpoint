@@ -18,8 +18,13 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import javax.persistence.*;
 
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import org.hibernate.annotations.ForeignKey;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
@@ -101,6 +106,13 @@ public class RTargetResourceOid implements EntityState {
     	resourceOidObject.setresourceOid(resourceOid);
     	return resourceOidObject;
 
+    }
+    
+    public static SingleSqlQuery toRepo(Long recordId, String resourceOid) {
+		InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+		queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+		queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, resourceOid, true);
+    	return queryBuilder.build();
     }
 
     @Override

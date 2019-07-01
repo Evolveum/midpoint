@@ -30,6 +30,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -39,7 +42,10 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.Validate;
+import org.apache.lucene.queryparser.flexible.core.nodes.ValueQueryNode;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -59,6 +65,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -546,7 +553,9 @@ public class RAuditEventRecord implements Serializable {
         repo.setResult(record.getResult());
         
         for(String resourceOid : record.getResourceOids()) {
-        	repo.getResourceOids().add(RTargetResourceOid.toRepo(repo, resourceOid));
+        	RTargetResourceOid targetResourceOid = RTargetResourceOid.toRepo(repo, resourceOid);
+        	targetResourceOid.setTransient(isTransient);
+        	repo.getResourceOids().add(targetResourceOid);
         }
 
         try {
@@ -620,7 +629,7 @@ public class RAuditEventRecord implements Serializable {
 
         return repo;
     }
-
+    
     public static AuditEventRecord fromRepo(RAuditEventRecord repo, PrismContext prismContext, boolean useUtf16) {
 
         AuditEventRecord audit = new AuditEventRecord();
@@ -684,6 +693,68 @@ public class RAuditEventRecord implements Serializable {
 
     }
     
+    public static SingleSqlQuery toRepo(AuditEventRecord record)
+            throws DtoTranslationException {
+
+    	Validate.notNull(record, "Audit event record must not be null.");
+    	InsertQueryBuilder queryBulder = new InsertQueryBuilder(TABLE_NAME);
+    	Map<Integer, Object> parameters = new HashMap<Integer, Object>();
+        if (record.getRepoId() != null) {
+        	queryBulder.addParameter(ID_COLUMN_NAME, record.getRepoId());
+        }
+        queryBulder.addParameter(CHANNEL_COLUMN_NAME, record.getChannel());
+        queryBulder.addParameter(TIMESTAMP_VALUE_COLUMN_NAME, new Timestamp(record.getTimestamp()));
+        queryBulder.addParameter(EVENT_STAGE_COLUMN_NAME, record.getEventStage());
+    	queryBulder.addParameter(EVENT_TYPE_COLUMN_NAME, record.getEventType());
+    	queryBulder.addParameter(SESSION_IDENTIFIER_COLUMN_NAME, record.getSessionIdentifier());
+    	queryBulder.addParameter(EVENT_IDENTIFIER_COLUMN_NAME, record.getEventIdentifier());
+    	queryBulder.addParameter(HOST_IDENTIFIER_COLUMN_NAME, record.getHostIdentifier());
+    	queryBulder.addParameter(REMOTE_HOST_ADDRESS_COLUMN_NAME, record.getRemoteHostAddress());
+    	queryBulder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
+    	queryBulder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
+    	queryBulder.addParameter(MESSAGE_COLUMN_NAME, record.getMessage());
+        queryBulder.addParameter(OUTCOME_COLUMN_NAME, record.getOutcome());
+        queryBulder.addParameter(REQUEST_IDENTIFIER_COLUMN_NAME, record.getRequestIdentifier());
+    	queryBulder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
+    	queryBulder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOID());
+    	queryBulder.addParameter(RESULT_COLUMN_NAME, record.getResult());
+//        
+//        for(String resourceOid : record.getResourceOids()) {
+//        	repo.getResourceOids().add(RTargetResourceOid.toRepo(repo, resourceOid));
+//        }
+
+        try {
+            if (record.getTarget() != null) {
+                PrismReferenceValue target = record.getTarget();
+                queryBulder.addParameter(TARGET_NAME_COLUMN_NAME, getOrigName(target));
+            	queryBulder.addParameter(TARGET_OID_COLUMN_NAME, target.getOid());
+            	queryBulder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
+            }
+            if (record.getTargetOwner() != null) {
+                PrismObject targetOwner = record.getTargetOwner();
+                queryBulder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
+            	queryBulder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
+            	queryBulder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
+            }
+            if (record.getInitiator() != null) {
+                PrismObject<? extends ObjectType> initiator = record.getInitiator();
+                queryBulder.addParameter(INITIATOR_NAME_COLUMN_NAME, getOrigName(initiator));
+            	queryBulder.addParameter(INITIATOR_OID_COLUMN_NAME, initiator.getOid());
+            	queryBulder.addParameter(INITIATOR_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
+            }
+            if (record.getAttorney() != null) {
+                PrismObject<UserType> attorney = record.getAttorney();
+                queryBulder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
+            	queryBulder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
+            }
+
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+        
+        return queryBulder.build();
+    }
+    
     public static AuditEventRecord fromRepo(ResultSet resultSet) throws SQLException {
 
     	AuditEventRecord audit = new AuditEventRecord();
@@ -713,7 +784,7 @@ public class RAuditEventRecord implements Serializable {
         	audit.setTimestamp(resultSet.getTimestamp(TIMESTAMP_VALUE_COLUMN_NAME).getTime());
         }
         
-        audit.setRepoId(Long.valueOf(resultSet.getString(ID_COLUMN_NAME)));
+        audit.setRepoId(resultSet.getLong(ID_COLUMN_NAME));
 
         return audit;
     }

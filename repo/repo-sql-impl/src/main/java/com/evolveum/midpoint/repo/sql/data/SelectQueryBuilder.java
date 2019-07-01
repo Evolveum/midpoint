@@ -14,39 +14,22 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.util;
+package com.evolveum.midpoint.repo.sql.data;
 
-import java.sql.Array;
-import java.sql.Blob;
-import java.sql.CallableStatement;
-import java.sql.Clob;
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.NClob;
 import java.sql.PreparedStatement;
-import java.sql.SQLClientInfoException;
 import java.sql.SQLException;
-import java.sql.SQLWarning;
-import java.sql.SQLXML;
-import java.sql.Savepoint;
-import java.sql.Statement;
-import java.sql.Struct;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.Executor;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
 
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -55,13 +38,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 /**
  * @author skublik
  */
-public class PreparedStatementBuilder {
+public class SelectQueryBuilder {
 	
 	private Database database;
 	String query;
 	Map<Integer, Object> parameters = new HashMap<Integer, Object>();
 	
-	public PreparedStatementBuilder(Database database, String query) {
+	public SelectQueryBuilder(Database database, String query) {
 		Validate.notNull(database, "Database is null");
 		if(StringUtils.isBlank(query)) {
 			throw new IllegalArgumentException("Query is empty");
@@ -70,7 +53,15 @@ public class PreparedStatementBuilder {
 		this.query = query;
 	}
 	
+	public SelectQueryBuilder(String query) {
+		if(StringUtils.isBlank(query)) {
+			throw new IllegalArgumentException("Query is empty");
+		}
+		this.query = query;
+	}
+	
 	public void addPaging(String firstResultName, String maxResultName) {
+		Validate.notNull(database, "Database is null");
 		if(StringUtils.isBlank(firstResultName)) {
 			throw new IllegalArgumentException("Name of firstResult value is empty");
 		}
@@ -100,21 +91,52 @@ public class PreparedStatementBuilder {
 		query = sb.toString();
 	}
 	
-	public PreparedStatement build(Connection con) throws SQLException {
-		PreparedStatement stmt = con.prepareStatement(query);
-		for(int index : parameters.keySet()) {
-			Object value = parameters.get(index);
-			if(value instanceof String) {
-				stmt.setString(index, (String) value);
-			} else if(value instanceof Integer) {
-				stmt.setInt(index, (int) value);
-			} else if (value instanceof Timestamp) {
-				stmt.setTimestamp(index, (Timestamp) value);
-			} else {
-				stmt.setObject(index, value);
-			}
+	public void addFirstResult(String firstResultName) {
+		Validate.notNull(database, "Database is null");
+		if(StringUtils.isBlank(firstResultName)) {
+			throw new IllegalArgumentException("Name of firstResult value is empty");
 		}
-		return stmt;
+		StringBuilder sb = new StringBuilder(query);
+		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+		if(Database.SQLSERVER.equals(database) || Database.ORACLE.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" offset ")) {
+				throw new IllegalArgumentException("query already contains offset");
+			}
+			sb.append(" OFFSET :").append(firstResultName).append(" ROWS ");
+		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+			if(queryWithoutStringValue.contains(" offset ")) {
+				throw new IllegalArgumentException("query already contains offset");
+			}
+			sb.append(" OFFSET :").append(firstResultName).append(" ");
+		} else {
+			throw new IllegalArgumentException("Unsoported type of database: " + database);
+		}
+		query = sb.toString();
+	}
+	
+	public void addMaxResult(String maxResultName) {
+		Validate.notNull(database, "Database is null");
+		if(StringUtils.isBlank(maxResultName)) {
+			throw new IllegalArgumentException("Name of maxResult value is empty");
+		}
+		StringBuilder sb = new StringBuilder(query);
+		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+		if(Database.SQLSERVER.equals(database) || Database.ORACLE.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
+				throw new IllegalArgumentException("query already contains fetch");
+			}
+			sb.append(" FETCH NEXT :").append(maxResultName).append(" ROWS ONLY ");
+		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" limit ")) {
+				throw new IllegalArgumentException("query already contains limit");
+			}
+			sb.append(" LIMIT :").append(maxResultName).append(" ");
+		} else {
+			throw new IllegalArgumentException("Unsoported type of database: " + database);
+		}
+		query = sb.toString();
 	}
 	
 	public void addParameter(String name, Object value) {
@@ -122,18 +144,22 @@ public class PreparedStatementBuilder {
 		addParameter(workQuery, name, value);
 	}
 	
+	public void addParameter(int index, Object value) {
+		parameters.put(index, value);
+	}
+	
 	private void addParameter(String workQuery, String name, Object value) {
 		name = ":" + name;
 		if(!(workQuery.contains(name))) {
 			throw new IllegalArgumentException("query don't contains value name " + name);
 		}
-		while(workQuery.split(name).length > 1) {
-			String partQuery = workQuery.split(name)[0];
+		while(workQuery.contains(name)) {
+			String partQuery = workQuery.substring(0, workQuery.indexOf(name));
 			int index = StringUtils.countMatches(partQuery, ":") + 1;
-			parameters.put(index, toRepoType(value));
-			workQuery = workQuery.split(name)[1];
+			parameters.put(index, value);
+			workQuery = (workQuery.length() <= (workQuery.indexOf(name) + name.length())) ? "" : workQuery.substring(workQuery.indexOf(name) + name.length());
 		}
-		query = query.replace(name, "?");
+		query = query.replaceFirst(name, "?");
 	}
 	
 	public void addParameters (Map<String, Object> parameters) {
@@ -143,27 +169,16 @@ public class PreparedStatementBuilder {
 		}
 	}
 	
-	private Object toRepoType(Object value) {
-        if (XMLGregorianCalendar.class.isAssignableFrom(value.getClass())) {
-        	Date date = MiscUtil.asDate((XMLGregorianCalendar) value);
-        	return new Timestamp(date.getTime());
-//            return MiscUtil.asDate((XMLGregorianCalendar) value);
-        } else if (value instanceof AuditEventTypeType) {
-        	return ((AuditEventTypeType) value).ordinal();
-//            return RAuditEventType.toRepo((AuditEventType) value);
-        } else if (value instanceof AuditEventStageType) {
-        	return ((AuditEventStageType) value).ordinal();
-//            return RAuditEventStage.toRepo((AuditEventStage) value);
-        } else if (value instanceof OperationResultStatusType) {
-        	return ((OperationResultStatusType) value).ordinal();
-//            return ROperationResultStatus.toRepo((OperationResultStatusType) value);
-        }
-
-        return value;
-    }
-	
 	@Override
 	public String toString() {
-		return query + "\n" + parameters;
+		StringBuilder sb = new StringBuilder();
+		sb.append("Database: ").append(database)
+			.append(", Query: ").append(query)
+			.append(", Parameters: ").append(parameters);
+		return sb.toString();
+	}
+	
+	public SingleSqlQuery build() {
+		return new SingleSqlQuery(query, parameters);
 	}
 }
