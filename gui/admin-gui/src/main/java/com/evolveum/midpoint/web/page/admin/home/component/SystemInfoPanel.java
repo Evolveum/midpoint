@@ -55,7 +55,7 @@ public class SystemInfoPanel extends BasePanel<SystemInfoPanel.SystemInfoDto> {
     private static final String ID_UPTIME = "uptime";
 
     public SystemInfoPanel(String id) {
-        super(id);
+        super(id, (IModel<SystemInfoDto>) null);
     }
 
     @Override
