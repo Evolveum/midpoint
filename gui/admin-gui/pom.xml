@@ -431,10 +431,6 @@
                     <groupId>com.sun.xml.bind</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>jaxb-api</artifactId>
-                    <groupId>javax.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>jaxb-core</artifactId>
                     <groupId>com.sun.xml.bind</groupId>
                 </exclusion>
@@ -736,7 +732,11 @@
             <artifactId>janino</artifactId>
             <scope>runtime</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- TEST -->
         
         <dependency>  
@@ -748,7 +748,6 @@
     	 <groupId>org.ow2.asm</groupId>
     	</exclusion>
     </exclusions>
-<!--     <version>{version}</version> -->
     <scope>test</scope>
 </dependency>  
 
@@ -757,20 +756,9 @@
             <artifactId>asm-util</artifactId>
             <version>7.0</version>
             <scope>test</scope>
-<!--             <exclusions> -->
-<!--             	<exclusion> -->
-<!--             		<groupId>org.ow2.asm</groupId> -->
-<!--             		<artifactId>asm</artifactId> -->
-<!--             	</exclusion> -->
-<!--             </exclusions> -->
         </dependency>
 
-        <dependency>
-            <groupId>org.ow2.asm</groupId>
-            <artifactId>asm</artifactId>
-            <version>7.0</version>
-<!--             <scope>test</scope> -->
-        </dependency>
+
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>
@@ -1007,6 +995,7 @@
                 <dependency>
                     <artifactId>jaxb-api</artifactId>
                     <groupId>javax.xml.bind</groupId>
+                    <scope>runtime</scope>
                 </dependency>
                 <dependency>
                     <artifactId>jaxb-core</artifactId>
