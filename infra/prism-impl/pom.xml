@@ -101,10 +101,6 @@
 		</dependency>
 		<dependency>
 		  <groupId>org.springframework</groupId>
-		  <artifactId>spring-core</artifactId>
-		</dependency>
-		<dependency>
-		  <groupId>org.springframework</groupId>
 		  <artifactId>spring-beans</artifactId>
 		</dependency>
 		<dependency>
@@ -120,22 +116,31 @@
 		  <artifactId>commons-io</artifactId>
 		</dependency>
 		<dependency>
-		  <groupId>com.sun.xml.bind</groupId>
-		  <artifactId>jaxb-impl</artifactId>
-		</dependency>
-		<dependency>
 		  <groupId>org.jvnet.jaxb2_commons</groupId>
 		  <artifactId>jaxb2-basics-runtime</artifactId>
 		</dependency>
+<!--		<dependency>-->
+<!--			&lt;!&ndash; make this dependency explicit to detect conflicts with older versions &ndash;&gt;-->
+<!--		  <groupId>org.codehaus.woodstox</groupId>-->
+<!--		  <artifactId>stax2-api</artifactId>-->
+<!--		</dependency>-->
 		<dependency>
-			<!-- make this dependency explicit to detect conflicts with older versions -->
-		  <groupId>org.codehaus.woodstox</groupId>
-		  <artifactId>stax2-api</artifactId>
+			<groupId>stax</groupId>
+			<artifactId>stax-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.staxmate</groupId>
 			<artifactId>staxmate</artifactId>
 		</dependency>
+
+<!--		<dependency>-->
+<!--			<groupId>org.glassfish.jaxb</groupId>-->
+<!--			<artifactId>jaxb-runtime</artifactId>-->
+<!--		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>jakarta.xml.bind</groupId>-->
+<!--			<artifactId>jakarta.xml.bind-api</artifactId>-->
+<!--		</dependency>-->
 
         <!-- Xtext for schema IDE tooling (experimental) -->
 <!--        <dependency>
@@ -183,12 +188,6 @@
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.tools</groupId>
-            <artifactId>test-ng</artifactId>
-            <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
