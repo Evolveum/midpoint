@@ -41,6 +41,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -782,7 +783,8 @@ public class RAuditEventRecord implements Serializable {
         audit.setMessage(resultSet.getString(MESSAGE_COLUMN_NAME));
 
         if (resultSet.getObject(OUTCOME_COLUMN_NAME) != null) {
-            audit.setOutcome(OperationResultStatus.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)]);
+            audit.setOutcome(OperationResultStatus.parseStatusType(
+            		OperationResultStatusType.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)]));
         }
         audit.setParameter(resultSet.getString(PARAMETER_COLUMN_NAME));
         audit.setResult(resultSet.getString(RESULT_COLUMN_NAME));

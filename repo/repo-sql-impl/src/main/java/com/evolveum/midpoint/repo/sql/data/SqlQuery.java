@@ -48,6 +48,7 @@ public abstract class SqlQuery {
 		if(value == null){
 			return value;
 		}
+		
         if (XMLGregorianCalendar.class.isAssignableFrom(value.getClass())) {
         	Date date = MiscUtil.asDate((XMLGregorianCalendar) value);
         	return new Timestamp(date.getTime());
