@@ -35,12 +35,17 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
+import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -89,11 +94,25 @@ import com.evolveum.midpoint.web.page.admin.reports.component.SingleValueChooseP
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.QueryUtils;
+import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 
 /**
  * @author bpowers
  */
-public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
+@PageDescriptor(
+        urls = {
+                @Url(mountUrl = "/admin/workItems")
+        },
+        encoder = PageParametersEncoder.class,
+        action = {
+                @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+                        label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
+                        description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL,
+                        label = "PageAttorneySelection.auth.workItems.label",
+                        description = "PageAttorneySelection.auth.workItems.description")
+        })
+public class PageCaseWorkItems extends PageAdminCaseWorkItems {
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageCaseWorkItems.class);
@@ -117,9 +136,15 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
 
     private LoadableModel<Search> searchModel = null;
     private boolean all;
+    private PageParameters pageParameters = null;
 
     public PageCaseWorkItems(boolean all) {
         this.all = all;
+    }
+
+    public PageCaseWorkItems(PageParameters pageParameters) {
+//        this.all = all;
+        this.pageParameters = pageParameters;
     }
 
     @Override
@@ -129,7 +154,12 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     }
 
     private void initLayout() {
-        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST);
+        CaseWorkItemsPanel workItemsPanel;
+        if (pageParameters != null) {
+            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST, pageParameters);
+        } else {
+            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST);
+        }
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);
     }

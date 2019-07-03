@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
@@ -76,10 +78,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         actionButtonsContainer.add(new VisibleBehaviour(() -> !isParentCaseClosed()));
         add(actionButtonsContainer);
 
-        CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
-
-        AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                createStringResource("pageWorkItem.button.manual.doneSuccessfully") : createStringResource("pageWorkItem.button.approve")) {
+        AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, getApproveButtonTitleModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -90,8 +89,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         workItemApproveButton.setOutputMarkupId(true);
         actionButtonsContainer.add(workItemApproveButton);
 
-        AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON, CaseTypeUtil.isManualProvisioningCase(parentCase) ?
-                createStringResource("pageWorkItem.button.manual.operationFailed") : createStringResource("pageWorkItem.button.reject")) {
+        AjaxButton workItemRejectButton = new AjaxButton(ID_WORK_ITEM_REJECT_BUTTON, getRejectButtonTitleModel()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -223,15 +221,45 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void assumePowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getModelInteractionService(), getTaskManager(), result);
-//        }
+        PrismObject<UserType> powerDonor = getPowerDonor();
+        if (powerDonor != null) {
+            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
+        }
     }
 
     private void dropPowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), result);
-//        }
+        PrismObject<UserType> powerDonor = getPowerDonor();
+        if (powerDonor != null) {
+            WebModelServiceUtils.dropPowerOfAttorney(getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
+        }
+    }
+
+    public PrismObject<UserType> getPowerDonor() {
+        return null;
+    }
+
+    private IModel<String> getApproveButtonTitleModel(){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
+                return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                        createStringResource("pageWorkItem.button.manual.doneSuccessfully").getString() :
+                        createStringResource("pageWorkItem.button.approve").getString();
+            }
+        };
+    }
+
+    private IModel<String> getRejectButtonTitleModel(){
+        return new IModel<String>() {
+            @Override
+            public String getObject() {
+                CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
+                return CaseTypeUtil.isManualProvisioningCase(parentCase) ?
+                        createStringResource("pageWorkItem.button.manual.operationFailed").getString()
+                        : createStringResource("pageWorkItem.button.reject").getString();
+            }
+        };
     }
 
 }

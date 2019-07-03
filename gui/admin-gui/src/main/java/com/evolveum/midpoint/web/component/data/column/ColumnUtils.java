@@ -468,6 +468,26 @@ public class ColumnUtils {
 
 
 		});
+		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+				createStringResource("pageCases.table.state")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseType parentCase = CaseTypeUtil.getCase(unwrapRowModel(rowModel));
+				cellItem.add(new Label(componentId, parentCase != null ? parentCase.getState() : ""));
+			}
+
+			@Override
+			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+				CaseType parentCase = CaseTypeUtil.getCase(unwrapRowModel(rowModel));
+				return Model.of(parentCase != null ? parentCase.getState() : "");
+			}
+
+
+		});
+
 		columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.object")) {
 			private static final long serialVersionUID = 1L;
 
