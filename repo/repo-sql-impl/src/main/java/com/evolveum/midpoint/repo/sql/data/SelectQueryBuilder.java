@@ -20,8 +20,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -156,10 +158,25 @@ public class SelectQueryBuilder {
 		while(workQuery.contains(name)) {
 			String partQuery = workQuery.substring(0, workQuery.indexOf(name));
 			int index = StringUtils.countMatches(partQuery, ":") + 1;
-			parameters.put(index, value);
+			
+			if(value != null && value.getClass().isArray()) {
+				value = Arrays.asList(value);
+			}
+			if(value instanceof List) {
+				String queryPartForArray = "";
+				for(Object singleValue : (List) value) {
+					queryPartForArray = queryPartForArray + (queryPartForArray.isEmpty() ? "?" : ", ?");
+					parameters.put(index, singleValue);
+					index++;
+				}
+				query = query.replaceFirst(name, queryPartForArray);
+			} else {
+				parameters.put(index, value);
+				query = query.replaceFirst(name, "?");
+			}
 			workQuery = (workQuery.length() <= (workQuery.indexOf(name) + name.length())) ? "" : workQuery.substring(workQuery.indexOf(name) + name.length());
 		}
-		query = query.replaceFirst(name, "?");
+		
 	}
 	
 	public void addParameters (Map<String, Object> parameters) {

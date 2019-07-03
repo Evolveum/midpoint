@@ -187,6 +187,8 @@ public class AuditEventRecord implements DebugDumpable {
 	private final Map<String, Set<String>> properties = new HashMap<>();
 
 	private final Map<String, Set<AuditReferenceValue>> references = new HashMap<>();
+	
+	private final Map<String, String> customColumnProperty = new HashMap<>();
 
 	public AuditEventRecord() {
 	}
@@ -425,6 +427,10 @@ public class AuditEventRecord implements DebugDumpable {
 
 	public Set<AuditReferenceValue> getReferenceValues(String name) {
 		return references.get(name);
+	}
+	
+	public Map<String, String> getCustomColumnProperty() {
+		return customColumnProperty;
 	}
 	
 	public Set<String> getResourceOids() {

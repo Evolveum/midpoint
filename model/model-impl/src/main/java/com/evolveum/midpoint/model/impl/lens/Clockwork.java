@@ -74,6 +74,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -97,6 +99,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SystemConfigurationTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -1284,27 +1287,41 @@ public class Clockwork {
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
 		auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
+		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		
+		PrismContainer<SystemConfigurationAuditEventRecordingType> auditEventRecording = (PrismContainer) systemConfiguration.getValue().findItem(ItemPath.create("audit", "eventRecording"));
+		SystemConfigurationAuditEventRecordingType auditEventRecordingType;
+		
+		if(auditEventRecording != null && auditEventRecording.getRealValue() != null) {
+			auditEventRecordingType = auditEventRecording.getRealValue();
+		} else {
+			auditEventRecordingType = new SystemConfigurationAuditEventRecordingType();
+		}
+		
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone(), prismContext);
-			if(primaryObject.getRealValue() instanceof FocusType) {
-				FocusType focus = (FocusType) primaryObject.getRealValue();
-				for(ObjectReferenceType shadowRef : focus.getLinkRef()) {
-					PrismObject<ShadowType> shadow;
-					try {
-						shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(),
-								null, task.getResult());
-						ObjectReferenceType resource = shadow.getRealValue().getResourceRef();
-						if(resource != null && resource.getOid() != null) {
-							auditRecord.addResourceOid(resource.getOid());
+			
+			if(Boolean.TRUE.equals(auditEventRecordingType.isRecordResourceOids())) {
+				if(primaryObject.getRealValue() instanceof FocusType) {
+					FocusType focus = (FocusType) primaryObject.getRealValue();
+					for(ObjectReferenceType shadowRef : focus.getLinkRef()) {
+						PrismObject<ShadowType> shadow;
+						try {
+							shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(),
+									null, task.getResult());
+							ObjectReferenceType resource = shadow.getRealValue().getResourceRef();
+							if(resource != null && resource.getOid() != null) {
+								auditRecord.addResourceOid(resource.getOid());
+							}
+						} catch (ObjectNotFoundException e) {
+							LOGGER.error("Couldn't load shadow from reference " + shadowRef, e);
 						}
-					} catch (ObjectNotFoundException e) {
-						LOGGER.error("Couldn't load shadow from reference " + shadowRef, e);
 					}
-				}
-			} else if(primaryObject.getRealValue() instanceof ShadowType) {
-				ObjectReferenceType resource = ((ShadowType)primaryObject.getRealValue()).getResourceRef();
-				if(resource != null && resource.getOid() != null) {
-					auditRecord.addResourceOid(resource.getOid());
+				} else if(primaryObject.getRealValue() instanceof ShadowType) {
+					ObjectReferenceType resource = ((ShadowType)primaryObject.getRealValue()).getResourceRef();
+					if(resource != null && resource.getOid() != null) {
+						auditRecord.addResourceOid(resource.getOid());
+					}
 				}
 			}
 //		} else {
@@ -1346,6 +1363,33 @@ public class Clockwork {
 		}
 
 		addRecordMessage(auditRecord, clone.getMessage());
+		
+		
+		for(SystemConfigurationAuditEventRecordingPropertyType property : auditEventRecordingType.getProperty()) {
+			String name = property.getName();
+			if(StringUtils.isBlank(name)) {
+				throw new IllegalArgumentException("Name of SystemConfigurationAuditEventRecordingPropertyType is empty or null in " + auditEventRecordingType);
+			}
+			ExpressionType expression = property.getExpression();
+			if(expression != null) {
+				ExpressionVariables variables = new ExpressionVariables();
+				variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
+				variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+				String shortDesc = "value for custom column of audit table";
+				try {
+					Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression, context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
+					if(!values.isEmpty()) {
+						if(values.size() > 1) {
+							throw new IllegalArgumentException("Collection of expression result contains more as one value");
+						}
+						auditRecord.getCustomColumnProperty().put(name, values.iterator().next());
+						
+					}
+				} catch (CommonException e) {
+					LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);
+				}
+			}
+		}
 
 		auditHelper.audit(auditRecord, task, result);
 

@@ -63,6 +63,7 @@ import org.hibernate.jdbc.Work;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomCollectionEditor;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -91,6 +92,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
+    
+    private Map<String, String> customColumn = new HashMap<String, String>();
     
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
@@ -307,6 +310,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         	while (resultList.next()) {
                             	
                                 AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
+                                if(!customColumn.isEmpty()) {
+                                	for(Entry<String, String> property : customColumn.entrySet()) {
+                                		audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
+                                	}
+                                }
                                 
                                 //query for deltas
                                 PreparedStatement subStmt = con.prepareStatement(deltaQuery);
@@ -516,7 +524,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             session = baseHelper.beginTransaction();
 
-            SingleSqlQuery query = RAuditEventRecord.toRepo(record);
+            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
 //            session.save(newRecord);
             Session localSession = session;
             session.doWork(new Work() {
@@ -1003,5 +1011,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public boolean supportsRetrieval() {
         return true;
     }
+    
+    public Map<String, String> getCustomColumn() {
+		return customColumn;
+	}
 
 }

@@ -71,6 +71,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -693,7 +694,7 @@ public class RAuditEventRecord implements Serializable {
 
     }
     
-    public static SingleSqlQuery toRepo(AuditEventRecord record)
+    public static SingleSqlQuery toRepo(AuditEventRecord record, Map<String, String> customColumn)
             throws DtoTranslationException {
 
     	Validate.notNull(record, "Audit event record must not be null.");
@@ -746,6 +747,15 @@ public class RAuditEventRecord implements Serializable {
                 PrismObject<UserType> attorney = record.getAttorney();
                 queryBulder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
             	queryBulder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
+            }
+            
+            if(!customColumn.isEmpty()) {
+            	for(Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+            		if(!customColumn.containsKey(property.getKey())) {
+            			throw new IllegalArgumentException("Audit event record table don't contains column for property " + property.getKey());
+            		}
+            		queryBulder.addParameter(customColumn.get(property.getKey()), property.getValue());
+            	}
             }
 
         } catch (Exception ex) {

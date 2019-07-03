@@ -159,6 +159,8 @@ public class ExpressionConstants {
 	public static final String VAR_TEXT_FORMATTER = "textFormatter";
 	public static final String VAR_NOTIFICATION_FUNCTIONS = "notificationFunctions";
 	
+	public static final String VAR_AUDIT_RECORD = "auditRecord";
+	
 	// Do we need those?
 	public static final String VAR_OBJECT_DELTA = "objectDelta";
 	

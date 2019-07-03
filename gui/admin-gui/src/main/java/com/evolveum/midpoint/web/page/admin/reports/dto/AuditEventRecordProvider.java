@@ -230,7 +230,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters.remove(PARAMETER_TARGET_OWNER_NAME);
 		}
 		if (parameters.get(PARAMETER_TARGET_NAMES) != null) {
-			conditions.add("aer.targetOid = :targetNames ");
+			conditions.add("aer.targetOid in ( :targetNames )");
 		} else {
 			parameters.remove(PARAMETER_TARGET_NAMES);
 		}
@@ -245,7 +245,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters.remove(PARAMETER_CHANGED_ITEM);
 		}
 		if (filteredOnValueRefTargetNames) {
-			conditions.add("rv.targetName.orig = :valueRefTargetNames ");
+			conditions.add("rv.targetName.orig in ( :valueRefTargetNames )");
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
