@@ -30,7 +30,7 @@ public class BatchSqlQuery extends SqlQuery {
 	
 	private String query;
 	Set<SingleSqlQuery> queriesForBatch = new HashSet<SingleSqlQuery>();
-
+	
 	public void addQueryForBatch(SingleSqlQuery sqlQuery) {
 		if(query == null) {
 			query = sqlQuery.getQuery();
@@ -61,6 +61,9 @@ public class BatchSqlQuery extends SqlQuery {
 	}
 
 	private boolean isUnique(SingleSqlQuery sqlQuery, Set<SingleSqlQuery> usedSqlQueries) {
+		if(getPrimaryKeys().isEmpty()) {
+			return true;
+		}
 		for(SingleSqlQuery usedSqlQuery : usedSqlQueries) {
 			boolean allIsSame = true;
 			for(int primaryKey : getPrimaryKeys()) {

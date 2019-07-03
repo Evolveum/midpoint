@@ -1305,14 +1305,18 @@ public class Clockwork {
 
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		
-		PrismContainer<SystemConfigurationAuditEventRecordingType> auditEventRecording = (PrismContainer) systemConfiguration.getValue().findItem(ItemPath.create("audit", "eventRecording"));
 		SystemConfigurationAuditEventRecordingType auditEventRecordingType;
-		
-		if(auditEventRecording != null && auditEventRecording.getRealValue() != null) {
-			auditEventRecordingType = auditEventRecording.getRealValue();
+		if(systemConfiguration != null) {
+			PrismContainer<SystemConfigurationAuditEventRecordingType> auditEventRecording = (PrismContainer) systemConfiguration.getValue().findItem(ItemPath.create("audit", "eventRecording"));
+			if(auditEventRecording != null && auditEventRecording.getRealValue() != null) {
+				auditEventRecordingType = auditEventRecording.getRealValue();
+			} else {
+				auditEventRecordingType = new SystemConfigurationAuditEventRecordingType();
+			}
 		} else {
 			auditEventRecordingType = new SystemConfigurationAuditEventRecordingType();
 		}
+		
 		
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone(), prismContext);
