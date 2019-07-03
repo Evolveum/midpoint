@@ -48,15 +48,15 @@
 				<transport>dummy:taskNotifier</transport>
 			</simpleTaskNotifier>
 		</handler>
-		<handler>
-			<simpleCaseManagementNotifier>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<showTechnicalInformation>true</showTechnicalInformation>
-				<transport>dummy:caseNotifier</transport>
-			</simpleCaseManagementNotifier>
-		</handler>
+<!--		<handler>-->
+<!--			<simpleCaseManagementNotifier>-->
+<!--				<recipientExpression>-->
+<!--					<value>recipient@evolveum.com</value>-->
+<!--				</recipientExpression>-->
+<!--				<showTechnicalInformation>true</showTechnicalInformation>-->
+<!--				<transport>dummy:caseNotifier</transport>-->
+<!--			</simpleCaseManagementNotifier>-->
+<!--		</handler>-->
 		<handler>
 			<simplePolicyRuleNotifier>
 				<recipientExpression>
