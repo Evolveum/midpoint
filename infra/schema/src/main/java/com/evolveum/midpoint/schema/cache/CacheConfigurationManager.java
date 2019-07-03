@@ -296,6 +296,15 @@ public class CacheConfigurationManager {
 		if (increment.isTracePass() != null) {
 			configuration.setTracePass(increment.isTracePass());
 		}
+		CacheInvalidationConfigurationType invalidation = increment.getInvalidation();
+		if (invalidation != null) {
+			if (invalidation.isClusterwide() != null) {
+				configuration.setClusterwideInvalidation(invalidation.isClusterwide());
+			}
+			if (invalidation.getApproximation() != null) {
+				configuration.setSafeRemoteInvalidation(invalidation.getApproximation() != CacheInvalidationApproximationType.MINIMAL);
+			}
+		}
 		Map<Class<?>, CacheObjectTypeConfiguration> targetMap = configuration.getObjectTypes();
 		for (CacheObjectTypeSettingsType objectTypeSetting : increment.getObjectTypeSettings()) {
 			// empty object type list means "apply to all currently supported types"
@@ -327,6 +336,15 @@ public class CacheConfigurationManager {
 		}
 		if (increment.isTracePass() != null) {
 			rv.setTracePass(increment.isTracePass());
+		}
+		CacheInvalidationConfigurationType invalidation = increment.getInvalidation();
+		if (invalidation != null) {
+			if (invalidation.isClusterwide() != null) {
+				rv.setClusterwideInvalidation(invalidation.isClusterwide());
+			}
+			if (invalidation.getApproximation() != null) {
+				rv.setSafeRemoteInvalidation(invalidation.getApproximation() != CacheInvalidationApproximationType.MINIMAL);
+			}
 		}
 		return rv;
 	}
@@ -382,12 +400,16 @@ public class CacheConfigurationManager {
 	}
 
 	@Nullable
-	public String dumpThreadLocalConfiguration() {
+	public String dumpThreadLocalConfiguration(boolean full) {
 		ThreadLocalConfiguration localConfig = threadLocalConfiguration.get();
 		if (localConfig != null) {
-			// just to compile configurations
-			Arrays.stream(CacheType.values()).forEach(localConfig::get);
-			return localConfig.debugDump();
+			if (full) {
+				// just to compile configurations
+				Arrays.stream(CacheType.values()).forEach(localConfig::get);
+				return localConfig.debugDump();
+			} else {
+				return "Profiles: " + localConfig.profiles;
+			}
 		} else {
 			return null;
 		}

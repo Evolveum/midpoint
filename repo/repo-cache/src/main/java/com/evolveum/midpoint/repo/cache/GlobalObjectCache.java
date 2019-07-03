@@ -95,4 +95,11 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 	protected CacheType getCacheType() {
 		return CacheType.GLOBAL_REPO_OBJECT_CACHE;
 	}
+
+	@Override
+	public void clear() {
+		if (cache != null) {
+			cache.clear();
+		}
+	}
 }

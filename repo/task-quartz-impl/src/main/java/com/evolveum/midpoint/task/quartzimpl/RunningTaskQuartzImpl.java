@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 
 import ch.qos.logback.classic.Level;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingPointType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singleton;
 
 /**
  *
@@ -358,12 +362,26 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	}
 
 	@Override
-	public void requestTracingIfNeeded(OperationResult result, int objectsSeen) {
-		Integer interval = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
+	public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingPointType defaultTracingPoint) {
+		Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
 		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
+			Tracer tracer = taskManager.getTracer();
 			LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
-			TracingProfileType tracingProfile = getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-			result.startTracing(tracingProfile != null ? tracingProfile : new TracingProfileType());
+			TracingProfileType tracingProfile = coordinatorTask.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
+			PrismProperty<TracingPointType> tracingPointProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_TRACING_POINT);
+			Collection<TracingPointType> points = tracingPointProperty != null && !tracingPointProperty.isEmpty() ?
+					tracingPointProperty.getRealValues() : singleton(defaultTracingPoint);
+			points.forEach(this::addTracingRequest);
+			setTracingProfile(tracingProfile != null ? tracingProfile : tracer.getDefaultProfile());
+			return true;
+		} else {
+			return false;
 		}
+	}
+
+	@Override
+	public void stopTracing() {
+		removeTracingRequests();
+		setTracingProfile(null);
 	}
 }

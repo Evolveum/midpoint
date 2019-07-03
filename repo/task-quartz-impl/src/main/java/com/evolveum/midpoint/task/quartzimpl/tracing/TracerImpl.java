@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.impl.lens;
+package com.evolveum.midpoint.task.quartzimpl.tracing;
 
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.Tracer;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -34,10 +35,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -48,12 +52,12 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- *
+ * Manages tracing requests.
  */
 @Component
-public class Tracer {
+public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
-	private static final Trace LOGGER = TraceManager.getTrace(Tracer.class);
+	private static final Trace LOGGER = TraceManager.getTrace(TracerImpl.class);
 	private static final String MACRO_TIMESTAMP = "timestamp";
 	private static final String MACRO_TEST_NAME = "testName";
 	private static final String MACRO_TEST_NAME_SHORT = "testNameShort";
@@ -62,20 +66,33 @@ public class Tracer {
 	private static final String MACRO_RANDOM = "random";
 
 	@Autowired private PrismContext prismContext;
-	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private TaskManager taskManager;
+	@Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService repositoryService;
 
+	private SystemConfigurationType systemConfiguration;
+
 	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 	private static final String TRACE_DIR = MIDPOINT_HOME + "trace/";
 	private static final String ZIP_ENTRY_NAME = "trace.xml";
 
-	private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%timestamp";
+	private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%{timestamp}";
 
-	void storeTrace(Task task, OperationResult result) {
+	@PostConstruct
+	public void init() {
+		systemConfigurationChangeDispatcher.registerListener(this);
+	}
+
+	@PreDestroy
+	public void shutdown() {
+		systemConfigurationChangeDispatcher.unregisterListener(this);
+	}
+
+	@Override
+	public void storeTrace(Task task, OperationResult result) {
 		TracingProfileType tracingProfile = result.getTracingProfile();
 		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
 		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
@@ -175,7 +192,7 @@ public class Tracer {
 				sb.append(pattern.substring(current));
 				return sb.toString();
 			}
-			sb.append(pattern.substring(current, i));
+			sb.append(pattern, current, i);
 			int j = pattern.indexOf("}", i);
 			if (j < 0) {
 				LOGGER.warn("Missing '}' in pattern '{}'", pattern);
@@ -192,15 +209,15 @@ public class Tracer {
 		}
 	}
 
+	@Override
 	public TracingProfileType resolve(TracingProfileType tracingProfile, OperationResult result) throws SchemaException {
 		if (tracingProfile == null) {
 			return null;
 		} else if (tracingProfile.getRef().isEmpty()) {
 			return tracingProfile;
 		} else {
-			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-			TracingConfigurationType tracingConfiguration = systemConfiguration != null && systemConfiguration.asObjectable().getInternals() != null ?
-					systemConfiguration.asObjectable().getInternals().getTracing() : null;
+			TracingConfigurationType tracingConfiguration = systemConfiguration != null && systemConfiguration.getInternals() != null ?
+					systemConfiguration.getInternals().getTracing() : null;
 			List<String> resolutionPath = new ArrayList<>();
 			return resolveProfile(tracingProfile, tracingConfiguration, resolutionPath);
 		}
@@ -252,5 +269,17 @@ public class Tracer {
 	private void merge(TracingProfileType summary, TracingProfileType delta) throws SchemaException {
 		//noinspection unchecked
 		summary.asPrismContainerValue().mergeContent(delta.asPrismContainerValue(), Collections.emptyList());
+	}
+
+	@Override
+	public boolean update(@Nullable SystemConfigurationType value) {
+		systemConfiguration = value;
+		return true;
+	}
+
+	@Override
+	public TracingProfileType getDefaultProfile() {
+		// TODO
+		return new TracingProfileType(prismContext);
 	}
 }

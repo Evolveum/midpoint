@@ -517,7 +517,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		OperationResult result = syncCtx.getResult();
 		Task task = syncCtx.getTask();
 		OperationResult subResult = result.subresult(CLASS_NAME_WITH_DOT + "setupSituation")
-				.setMinor(true)
+				.setMinor()
 				.addArbitraryObjectAsParam("syncCtx", syncCtx)
 				.addArbitraryObjectAsParam("eventInfo", eventInfo)
 				.addArbitraryObjectAsParam("change", change)

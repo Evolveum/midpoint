@@ -192,7 +192,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         OperationResult subResult = result.subresult(GET_OBJECT)
                 .addQualifier(type.getSimpleName())
-                .setMinor(true)
+                .setMinor()
                 .addParam("type", type.getName())
                 .addParam("oid", oid)
                 .build();
@@ -1111,7 +1111,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
 
         OperationResult subResult = result.subresult(EXECUTE_QUERY_DIAGNOSTICS)
-                .setMinor(true)
+                .setMinor()
                 .addParam("request", request.toString())
                 .build();
 
@@ -1276,7 +1276,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
         OperationResult result = parentResult.subresult(HAS_CONFLICT)
-                .setMinor(true)
+                .setMinor()
                 .addParam("oid", watcher.getOid())
                 .addParam("watcherClass", watcher.getClass().getName())
                 .build();

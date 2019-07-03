@@ -469,7 +469,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
 	private void refreshCacheConfigurationInformation(CacheConfigurationManager cacheConfigurationManager) {
 		XMLGregorianCalendar now = createXMLGregorianCalendar(System.currentTimeMillis());
 		String dump = "Caching configuration for thread " + Thread.currentThread().getName() + " on " + now + ":\n\n";
-		String cfg = cacheConfigurationManager.dumpThreadLocalConfiguration();
+		String cfg = cacheConfigurationManager.dumpThreadLocalConfiguration(false);
 		if (cfg != null) {
 			dump += cfg;
 		} else {

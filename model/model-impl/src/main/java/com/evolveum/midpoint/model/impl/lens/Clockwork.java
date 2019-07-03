@@ -143,6 +143,7 @@ public class Clockwork {
 	@Autowired private PersonaProcessor personaProcessor;
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
+	@Autowired private Tracer tracer;
 	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private Migrator migrator;
@@ -151,7 +152,6 @@ public class Clockwork {
 	@Autowired private PolicyRuleSuspendTaskExecutor policyRuleSuspendTaskExecutor;
 	@Autowired private ClockworkAuthorizationHelper clockworkAuthorizationHelper;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
-	@Autowired private Tracer tracer;
 
 	@Autowired(required = false)
 	private HookRegistry hookRegistry;
@@ -168,12 +168,9 @@ public class Clockwork {
 
 		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
 		ClockworkRunTraceType trace = null;
+		boolean tracingRequested = false;
 		try {
-			TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
-			if (tracingProfile != null) {
-				// todo check authorization
-				result.startTracing(tracer.resolve(tracingProfile, result));
-			}
+			tracingRequested = startTracingIfRequested(context, task, result);
 			if (result.isTraced()) {
 				trace = recordTraceAtStart(context, task, result);
 			}
@@ -244,10 +241,29 @@ public class Clockwork {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
 		} finally {
-			if (result.isTraced()) {
-				recordTraceAtEnd(context, trace);
+			recordTraceAtEnd(context, trace);
+			if (tracingRequested) {
 				tracer.storeTrace(task, result);
 			}
+		}
+	}
+
+	// todo check authorization in this method
+	private <F extends ObjectType> boolean startTracingIfRequested(LensContext<F> context, Task task, OperationResult result)
+			throws SchemaException {
+		// If the result is already traced, we could abstain from recording the final trace ourselves.
+		// But I think it's more reasonable to do that, because e.g. if there is clockwork-inside-clockwork processing,
+		// we would like to have two traces, even if the second one is contained also within the first one.
+		TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
+		if (tracingProfile != null) {
+			result.startTracing(tracer.resolve(tracingProfile, result));
+			return true;
+		} else if (task.getTracingRequestedFor().contains(TracingPointType.CLOCKWORK_RUN)) {
+			TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
+			result.startTracing(tracer.resolve(profile, result));
+			return true;
+		} else {
+			return false;
 		}
 	}
 
@@ -615,7 +631,7 @@ public class Clockwork {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
-			result.cleanupResult();
+			result.cleanupResultDeeply();
 		}
 	}
 

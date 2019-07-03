@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -90,7 +91,7 @@ public class DummyResource implements DebugDumpable {
 	private final Map<String,DummyObjectClass> auxiliaryObjectClassMap = new HashMap<>();
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
-	private int latestSyncToken;
+	private final AtomicInteger latestSyncToken = new AtomicInteger(0);
 	private boolean tolerateDuplicateValues = false;
 	private boolean generateDefaultValues = false;
 	private boolean enforceUniqueName = true;
@@ -160,7 +161,6 @@ public class DummyResource implements DebugDumpable {
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas = Collections.synchronizedList(new ArrayList<>());
-		latestSyncToken = 0;
 	}
 
 	/**
@@ -178,7 +178,7 @@ public class DummyResource implements DebugDumpable {
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
-		latestSyncToken = 0;
+		latestSyncToken.set(0);
 		writeOperationCount = 0;
 		operationDelayOffset = 0;
 		operationDelayRange = 0;
@@ -894,11 +894,11 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	private synchronized int nextSyncToken() {
-		return ++latestSyncToken;
+		return latestSyncToken.incrementAndGet();
 	}
 
 	public int getLatestSyncToken() {
-		return latestSyncToken;
+		return latestSyncToken.get();
 	}
 
 	private String normalize(String id) {
@@ -1087,7 +1087,7 @@ public class DummyResource implements DebugDumpable {
 			sb.append("\n  ");
 			sb.append(delta);
 		}
-		sb.append("\nLatest token:").append(latestSyncToken);
+		sb.append("\nLatest token:").append(latestSyncToken.get());
 		return sb.toString();
 	}
 

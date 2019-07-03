@@ -96,7 +96,8 @@ public class SubtasksPanel extends BasePanel<List<TaskDto>> {
     			List<IColumn<TaskDto, String>> columns = new ArrayList<>();
     	        columns.add(createTaskKindColumn());
     	        columns.add(TaskDtoTablePanel.createTaskExecutionStatusColumn(this, "SubtasksPanel.label.executionState"));
-    	        columns.add(TaskDtoTablePanel.createProgressColumn(getPageBase(), "SubtasksPanel.label.progress"));
+    	        columns.add(TaskDtoTablePanel.createProgressColumn(getPageBase(), "SubtasksPanel.label.progress",
+			            this::isProgressComputationEnabled));
     	        columns.add(TaskDtoTablePanel.createTaskResultStatusColumn(this, "SubtasksPanel.label.result"));
     			return columns;
     		}

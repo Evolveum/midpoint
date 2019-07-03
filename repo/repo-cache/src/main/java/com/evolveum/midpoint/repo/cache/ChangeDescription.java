@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -24,7 +25,6 @@ import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
@@ -130,14 +130,17 @@ public abstract class ChangeDescription {
     }
 
     static class Any extends ChangeDescription {
-        private Any(Class<? extends ObjectType> type, String oid) {
+        private final boolean safeInvalidation;
+
+        private Any(Class<? extends ObjectType> type, String oid, boolean safeInvalidation) {
             super(type, oid);
+            this.safeInvalidation = safeInvalidation;
         }
 
         @Override
         public boolean mayMatchAfterChange(@NotNull ObjectFilter filter, SearchResultList list, MatchingRuleRegistry matchingRuleRegistry) {
             // We know nothing about the object state after change, so we must say "yes" here.
-            return true;
+            return safeInvalidation;
         }
 
         @Override
@@ -145,13 +148,26 @@ public abstract class ChangeDescription {
             return "Any{" +
                     "type=" + type +
                     ", oid='" + oid + '\'' +
+                    ", safeInvalidation='" + safeInvalidation + '\'' +
                     '}';
         }
     }
 
 
     @NotNull
-    public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, Object additionalInfo) {
+    public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, CacheInvalidationContext context, boolean safeInvalidation) {
+        Object additionalInfo;
+        if (context != null) {
+            additionalInfo = context.getDetails() instanceof RepositoryCache.RepositoryCacheInvalidationDetails ?
+                    ((RepositoryCache.RepositoryCacheInvalidationDetails) context.getDetails()).getObject() : null;
+        } else {
+            additionalInfo = null;
+        }
+        return getFrom(type, oid, additionalInfo, safeInvalidation);
+
+    }
+    public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, Object additionalInfo,
+            boolean safeInvalidation) {
 
         // Lookup tables and cases are tricky to work with (their changes are not reflected in repo-emitted
         // prism objects) -- so it's safer to evict their queries completely.
@@ -163,7 +179,7 @@ public abstract class ChangeDescription {
 
         boolean isTricky = LookupTableType.class.equals(type) || AccessCertificationCampaignType.class.equals(type);
         if (isTricky || additionalInfo == null) {
-            return new Any(type, oid);
+            return new Any(type, oid, safeInvalidation);
         } else if (additionalInfo instanceof AddObjectResult<?>) {
             return new Add(type, oid, (AddObjectResult<?>) additionalInfo);
         } else if (additionalInfo instanceof ModifyObjectResult<?>) {
@@ -175,7 +191,7 @@ public abstract class ChangeDescription {
         }
     }
 
-    protected boolean queryTypeMatches(QueryKey queryKey) {
+    private boolean queryTypeMatches(QueryKey queryKey) {
         return queryKey.getType().isAssignableFrom(type);
     }
 

@@ -1119,7 +1119,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	
 	        	SyncDelta syncDelta = deltaBuilder.build();
 	        	log.info("sync::handle {0}",syncDelta);
-				handler.handle(syncDelta);
+				if (!handler.handle(syncDelta)) {
+					break;
+				}
 	        }
 
 		} catch (ConnectException e) {

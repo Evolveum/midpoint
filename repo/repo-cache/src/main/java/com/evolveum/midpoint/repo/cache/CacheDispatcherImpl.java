@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CacheListener;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -53,9 +55,10 @@ public class CacheDispatcherImpl implements CacheDispatcher {
     }
 
     @Override
-    public <O extends ObjectType> void dispatch(Class<O> type, String oid) {
+    public <O extends ObjectType> void dispatchInvalidation(Class<O> type, String oid, boolean clusterwide,
+            @Nullable CacheInvalidationContext context) {
         for (CacheListener listener : cacheListeners) {
-            listener.invalidateCache(type, oid);
+            listener.invalidate(type, oid, clusterwide, context);
         }
     }
 }

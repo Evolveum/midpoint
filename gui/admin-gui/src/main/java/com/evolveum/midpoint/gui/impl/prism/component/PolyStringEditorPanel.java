@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -145,10 +146,21 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             @Override
             public void setObject(String object) {
                 if (getModelObject() == null){
-                    getModel().setObject(new PolyString(object));
+                    if (StringUtils.isBlank(object)) {
+                        getModel().setObject(null);
+                    } else {
+                        getModel().setObject(new PolyString(object));
+                    }
                 } else {
                     PolyString oldModelObject = getModelObject();
-                    getModel().setObject(new PolyString(object, oldModelObject.getNorm(), oldModelObject.getTranslation(), oldModelObject.getLang()));
+                    if (StringUtils.isBlank(object)) {
+                        if (oldModelObject.getTranslation() != null || MapUtils.isNotEmpty(oldModelObject.getLang())) {
+                            getModel().setObject(new PolyString(object, oldModelObject.getNorm(), oldModelObject.getTranslation(), oldModelObject.getLang()));
+                        } else {
+                            getModel().setObject(null);
+                        }
+                    }
+
                 }
             }
 

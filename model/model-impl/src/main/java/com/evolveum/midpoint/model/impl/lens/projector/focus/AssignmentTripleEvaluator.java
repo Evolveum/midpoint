@@ -23,7 +23,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -156,8 +154,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		this.result = result;
 	}
 
-	public void reset() {
-		assignmentEvaluator.reset();
+	public void reset(boolean alsoMemberOfInvocations) {
+		assignmentEvaluator.reset(alsoMemberOfInvocations);
 	}
 	
 //	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> preProcessAssignments(PrismObject<TaskType> taskType) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -652,4 +650,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		return focusContext.getObjectDefinition().findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 	}
 
+	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+		return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+	}
 }

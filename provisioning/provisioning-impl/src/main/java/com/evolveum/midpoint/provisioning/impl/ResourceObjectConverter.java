@@ -1780,9 +1780,9 @@ public class ResourceObjectConverter {
 		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
-	public List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken,
-			OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
+	List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, OperationResult parentResult)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("START fetch changes, objectClass: {}", ctx.getObjectClassDefinition());
@@ -1792,12 +1792,27 @@ public class ResourceObjectConverter {
 		}
 		
 		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
-		
+		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.SYNC_BATCH_SIZE);
+		Integer maxChanges;
+		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
+		if (capability != null) {
+			if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
+				maxChanges = batchSizeInTask;
+			} else {
+				warnAboutMaxChanges(batchSizeInTask, ctx, "LiveSync capability has preciseTokenValue not set to 'true'");
+				maxChanges = null;
+			}
+		} else {
+			// Is this possible?
+			warnAboutMaxChanges(batchSizeInTask, ctx, "LiveSync capability is not found or disabled");
+			maxChanges = null;
+		}
+
 		// get changes from the connector
-		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
+		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, maxChanges, ctx, parentResult);
 
 		Iterator<Change> iterator = changes.iterator();
-		while (iterator.hasNext()) {
+		while (iterator.hasNext() && ctx.canRun()) {
 			Change change = iterator.next();
 			LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
 			if (change.isTokenOnly()) {
@@ -1859,13 +1874,21 @@ public class ResourceObjectConverter {
 					change.setCurrentShadow(processedCurrentShadow);
 				}
 			}
-			LOGGER.trace("Processed change\n:{}", change.debugDump());
+			LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
 		}
 
 		computeResultStatus(parentResult);
 		
-		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
+		LOGGER.trace("END fetch changes ({} changes); interrupted = {}", changes.size(), !ctx.canRun());
 		return changes;
+	}
+
+	private void warnAboutMaxChanges(Integer maxChangesFromTask, ProvisioningContext ctx,
+			String reason) {
+		if (maxChangesFromTask != null && maxChangesFromTask > 0) {
+			LOGGER.warn("Ignoring {} parameter in {} because {}", SchemaConstants.SYNC_BATCH_SIZE.getLocalPart(),
+					ctx.getTask(), reason);
+		}
 	}
 
 	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,

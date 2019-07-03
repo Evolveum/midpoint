@@ -649,12 +649,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return taskType.getExpectedTotal();
     }
 
-    public String getProgressDescription(PageBase pageBase) {
+    public String getProgressDescription(PageBase pageBase, boolean alwaysCompute) {
 	    Long stalledSince = getStalledSince();
 	    if (stalledSince != null) {
-		    return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription());
+		    return pageBase.getString("pageTasks.stalledSince", new Date(stalledSince).toLocaleString(), getRealProgressDescription(alwaysCompute));
 	    } else {
-		    return getRealProgressDescription();
+		    return getRealProgressDescription(alwaysCompute);
 	    }
     }
 
@@ -691,9 +691,9 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return (isCoordinator() || hasBuckets()) && !isCoordinatedWorker();
 	}
 
-	private String getRealProgressDescription() {
+	private String getRealProgressDescription(boolean alwaysCompute) {
 		if (isPartitionedMaster()) {
-			return getPartitionedTaskProgressDescription();
+			return getPartitionedTaskProgressDescription(alwaysCompute);
 		} else if (isWorkStateHolder()) {
 			return getBucketedTaskProgressDescription();
 		} else {
@@ -701,7 +701,10 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		}
 	}
 
-	private String getPartitionedTaskProgressDescription() {
+	private String getPartitionedTaskProgressDescription(boolean alwaysCompute) {
+    	if (alwaysCompute) {
+		    ensureSubtasksLoaded(pageBase);
+	    }
 		if (!subtasksLoaded) {
 			return "?";
 		}
@@ -724,7 +727,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		if (firstIncomplete == null) {
 			return coarseProgress;
 		} else {
-			return coarseProgress + " + " + firstIncomplete.getRealProgressDescription();
+			return coarseProgress + " + " + firstIncomplete.getRealProgressDescription(alwaysCompute);
 		}
 	}
 

@@ -54,8 +54,9 @@
         <wss4j.version>2.2.0</wss4j.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb-api.version>2.2.10</jaxb-api.version>
-        <jaxb.version>2.2.10</jaxb.version>
+        <jaxb.version>2.2.10</jaxb.version> <!-- 2.2.10 -->
         <jaxb-xjc.version>2.2.10</jaxb-xjc.version>
+        <jaxb-runtime.version>2.3.2</jaxb-runtime.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.6.2</opendj.version>
         <mockito.version>1.10.8</mockito.version>
@@ -95,6 +96,8 @@
 		<failsafe.version>3.0.0-M2</failsafe.version>
 		<antrun.version>1.8</antrun.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
+        <jakarta.jaxb.version>2.3.2</jakarta.jaxb.version>
+        <asm.version>7.0</asm.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -176,6 +179,11 @@
                         <!--<artifactId>joda-time</artifactId>-->
                     <!--</exclusion>-->
                 <!--</exclusions>-->
+            </dependency>
+            <dependency>
+                <groupId>org.ow2.asm</groupId>
+                <artifactId>asm</artifactId>
+                <version>${asm.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -307,8 +315,6 @@
             <dependency>
                 <groupId>com.sun.xsom</groupId>
                 <artifactId>xsom</artifactId>
-                <!-- <version>20100725</version> -->
-                <!--<version>20110809</version>-->
                 <version>20140925</version>
             </dependency>
             <dependency>
@@ -470,6 +476,13 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-core</artifactId>
                 <version>${cxf.version}</version>
+                <exclusions>
+                    <!-- Conflicting version with sun jaxb-xjc -->
+                        <exclusion>
+                            <groupId>org.glassfish.jaxb</groupId>
+                            <artifactId>jaxb-xjc</artifactId>
+                        </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -566,6 +579,12 @@
 	  			<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-frontend-jaxrs</artifactId>
 				<version>${cxf.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>jakarta.ws.rs</groupId>
+                        <artifactId>jakarta.ws.rs-api</artifactId>
+                    </exclusion>
+                </exclusions>
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
@@ -1314,8 +1333,8 @@
 					<fork>true</fork>
 					<meminitial>1024m</meminitial>
 					<maxmem>2048m</maxmem>
-<!-- 					<showDeprecation>false</showDeprecation> -->
-<!-- 					<showWarnings>true</showWarnings> -->
+ 					<showDeprecation>false</showDeprecation>
+ 					<showWarnings>true</showWarnings>
 <!-- 					<verbose>true</verbose>  -->
 					<!--<showWarnings>false</showWarnings -->
 				</configuration>
@@ -1489,7 +1508,7 @@
 							<goal>analyze-only</goal>
 						</goals>
 						<configuration>
-							<failOnWarning>false</failOnWarning>
+							<failOnWarning>true</failOnWarning>
 							<ignoreNonCompile>true</ignoreNonCompile>
 							<ignoredUnusedDeclaredDependencies>
 
@@ -1522,6 +1541,15 @@
 								<ignoredUsedUndeclaredDependency>xml-apis:xml-apis</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>stax:stax-api</ignoredUsedUndeclaredDependency>
 								<ignoredUsedUndeclaredDependency>org.springframework.ldap:spring-ldap-core</ignoredUsedUndeclaredDependency>
+
+                                <!-- needs to much exclusions, used by apache-cxf (xjc plugin, prism-impl, schema, ..) -->
+                                <ignoredUsedUndeclaredDependency>jakarta.activation:jakarta.activation-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>jakarta.xml.bind:jakarta.xml.bind-api</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:xsom</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUsedUndeclaredDependency>
+
+                                <ignoredUsedUndeclaredDependency>org.danekja:jdk-serializable-functional</ignoredUsedUndeclaredDependency>
+                                <ignoredUsedUndeclaredDependency>org.springframework.boot:spring-boot-test</ignoredUsedUndeclaredDependency>
 							</ignoredUsedUndeclaredDependencies>
 						</configuration>
 					</execution>

@@ -147,6 +147,9 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@NotNull    // beware, we still have to synchronize on pendingModifications while iterating over it
 	private final List<ItemDelta<?, ?>> pendingModifications = Collections.synchronizedList(new ArrayList<>());
 
+	private final Set<TracingPointType> tracingRequestedFor = new HashSet<>();
+	private TracingProfileType tracingProfile;      // the profile to be used for tracing - it is copied into operation result at specified tracing point(s)
+
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
 
 	//region Constructors
@@ -2575,6 +2578,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Override
+	public String getOperationResultHandlingStrategyName() {
+		TaskExecutionEnvironmentType executionEnvironment = getExecutionEnvironment();
+		return executionEnvironment != null ? executionEnvironment.getOperationResultHandlingStrategy() : null;
+	}
+
+	@Override
 	public TaskExecutionEnvironmentType getExecutionEnvironment() {
 		return getProperty(TaskType.F_EXECUTION_ENVIRONMENT);
 	}
@@ -2599,5 +2608,31 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	public boolean isScavenger() {
 		TaskWorkManagementType workManagement = getWorkManagement();
 		return workManagement != null && Boolean.TRUE.equals(workManagement.isScavenger());
+	}
+
+	@NotNull
+	@Override
+	public Set<TracingPointType> getTracingRequestedFor() {
+		return tracingRequestedFor;
+	}
+
+	@Override
+	public void addTracingRequest(TracingPointType point) {
+		tracingRequestedFor.add(point);
+	}
+
+	@Override
+	public void removeTracingRequests() {
+		tracingRequestedFor.clear();
+	}
+
+	@Override
+	public TracingProfileType getTracingProfile() {
+		return tracingProfile;
+	}
+
+	@Override
+	public void setTracingProfile(TracingProfileType tracingProfile) {
+		this.tracingProfile = tracingProfile;
 	}
 }

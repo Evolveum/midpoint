@@ -54,7 +54,6 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
-import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -473,14 +472,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     	assertObjects(ServiceType.class, expectedNumberOfUsers);
     }
 
-    protected <O extends ObjectType> void assertObjects(Class<O> type, int expectedNumberOfUsers) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, getObjectCount(type));
+    protected <O extends ObjectType> void assertObjects(Class<O> type, int expectedNumberOfUsers) throws SchemaException,
+		    ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    	assertObjects(type, null, expectedNumberOfUsers);
+    }
+
+	protected <O extends ObjectType> void assertObjects(Class<O> type, ObjectQuery query, int expectedNumberOfUsers)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException {
+        assertEquals("Unexpected number of "+type.getSimpleName()+"s", expectedNumberOfUsers, getObjectCount(type, query));
     }
 
     protected <O extends ObjectType> int getObjectCount(Class<O> type) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	    return getObjectCount(type, null);
+    }
+
+    protected <O extends ObjectType> int getObjectCount(Class<O> type, ObjectQuery query) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
     	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".assertObjects");
         OperationResult result = task.getResult();
-    	List<PrismObject<O>> users = modelService.searchObjects(type, null, null, task, result);
+    	List<PrismObject<O>> users = modelService.searchObjects(type, query, null, task, result);
         if (verbose) display(type.getSimpleName()+"s", users);
         return users.size();
     }
@@ -3144,7 +3154,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		waitForTaskStart(taskOid, checkSubresult, DEFAULT_TASK_WAIT_TIMEOUT);
 	}
 	
-	protected void waitForTaskStart(final String taskOid, final boolean checkSubresult,final int timeout) throws Exception {
+	protected void waitForTaskStart(final String taskOid, final boolean checkSubresult, final int timeout) throws Exception {
 		final OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskStart");
 		Checker checker = new Checker() {
 			@Override
@@ -3171,6 +3181,38 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		};
 		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
+	}
+
+	protected void waitForTaskNextStart(String taskOid, boolean checkSubresult, int timeout, boolean kickTheTask) throws Exception {
+		OperationResult waitResult = new OperationResult(AbstractIntegrationTest.class+".waitForTaskNextStart");
+		Task origTask = taskManager.getTaskWithResult(taskOid, waitResult);
+		Long origLastRunStartTimestamp = origTask.getLastRunStartTimestamp();
+		if (kickTheTask) {
+			taskManager.scheduleTaskNow(origTask, waitResult);
+		}
+		Checker checker = new Checker() {
+			@Override
+			public boolean check() throws CommonException {
+				Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+				OperationResult result = freshTask.getResult();
+				if (verbose) display("Check result", result);
+				assert !isError(result, checkSubresult) : "Error in "+freshTask+": "+TestUtil.getErrorMessage(result);
+				return !isUnknown(result, checkSubresult) &&
+						!java.util.Objects.equals(freshTask.getLastRunStartTimestamp(), origLastRunStartTimestamp);
+			}
+			@Override
+			public void timeout() {
+				try {
+					Task freshTask = taskManager.getTaskWithResult(taskOid, waitResult);
+					OperationResult result = freshTask.getResult();
+					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
+					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to start. Last result "+result;
+				} catch (ObjectNotFoundException | SchemaException e) {
+					LOGGER.error("Exception during task refresh: {}", e, e);
+				}
+			}
+		};
+		IntegrationTestTools.waitFor("Waiting for task " + taskOid + " next start", checker, timeout, DEFAULT_TASK_SLEEP_TIME);
 	}
 
 	protected OperationResult waitForTaskNextRunAssertSuccess(String taskOid, boolean checkSubresult) throws Exception {
@@ -3525,11 +3567,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	protected void suspendTask(String taskOid) throws CommonException {
+	protected boolean suspendTask(String taskOid) throws CommonException {
+		return suspendTask(taskOid, 3000);
+	}
+
+	protected boolean suspendTask(String taskOid, int waitTime) throws CommonException {
 		final OperationResult result = new OperationResult(AbstractIntegrationTest.class+".suspendTask");
 		Task task = taskManager.getTaskWithResult(taskOid, result);
 		LOGGER.info("Suspending task {}", taskOid);
-		taskManager.suspendTaskQuietly(task, 3000, result);
+		return taskManager.suspendTaskQuietly(task, waitTime, result);
 	}
 	
 	/**

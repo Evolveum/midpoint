@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingPointType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -122,5 +122,10 @@ public interface RunningTask extends Task {
 	/**
 	 * EXPERIMENTAL
 	 */
-	void requestTracingIfNeeded(OperationResult result, int objectsSeen);
+	boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingPointType defaultTracingPoint);
+
+	/**
+	 * EXPERIMENTAL
+	 */
+	void stopTracing();
 }

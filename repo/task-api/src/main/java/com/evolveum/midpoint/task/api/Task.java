@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.api;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -1050,5 +1051,18 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	@NotNull
 	Collection<String> getCachingProfiles();
 
+	String getOperationResultHandlingStrategyName();
+
 	boolean isScavenger();
+
+	@NotNull
+	Set<TracingPointType> getTracingRequestedFor();
+
+	void addTracingRequest(TracingPointType point);
+
+	void removeTracingRequests();
+
+	TracingProfileType getTracingProfile();
+
+	void setTracingProfile(TracingProfileType tracingProfile);
 }

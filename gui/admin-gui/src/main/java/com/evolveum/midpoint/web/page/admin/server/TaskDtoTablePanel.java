@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.AttributeModifier;
@@ -102,7 +103,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
@@ -135,6 +135,7 @@ public class TaskDtoTablePanel extends BasePanel {
 	private static final String OPERATION_DELETE_TASKS = DOT_CLASS + "deleteTasks";
 	private static final String OPERATION_RECONCILE_WORKERS = DOT_CLASS + "reconcileWorkers";
 	private static final String OPERATION_DELETE_WORKERS_AND_WORK_STATE = DOT_CLASS + "deleteWorkersAndWorkState";
+	private static final String OPERATION_DELETE_WORK_STATE = DOT_CLASS + "deleteWorkState";
 	private static final String OPERATION_DELETE_ALL_CLOSED_TASKS = DOT_CLASS + "deleteAllClosedTasks";
 	private static final String OPERATION_SCHEDULE_TASKS = DOT_CLASS + "scheduleTasks";
 	private static final String ALL_CATEGORIES = "";
@@ -144,6 +145,8 @@ public class TaskDtoTablePanel extends BasePanel {
 	private static final String ID_SEARCH_FORM = "searchForm";
 	private static final String ID_STATE = "state";
 	private static final String ID_CATEGORY = "category";
+	private static final String ID_SHOW_PROGRESS_LABEL = "showProgressLabel";
+	private static final String ID_SHOW_PROGRESS = "showProgress";
 	private static final String ID_SHOW_SUBTASKS_LABEL = "showSubtasksLabel";
 	private static final String ID_SHOW_SUBTASKS = "showSubtasks";
 	private static final String ID_TASK_TABLE = "taskTable";
@@ -317,7 +320,7 @@ public class TaskDtoTablePanel extends BasePanel {
 		});
 		columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-		columns.add(createProgressColumn(getPageBase(), "pageTasks.task.progress"));
+		columns.add(createProgressColumn(getPageBase(), "pageTasks.task.progress", this::isProgressComputationEnabled));
 		columns.add(new AbstractExportableColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
 			@Override
@@ -625,24 +628,21 @@ public class TaskDtoTablePanel extends BasePanel {
 	}
 
 	@NotNull
-	public static AbstractExportableColumn<TaskDto, String> createProgressColumn(PageBase pageBase, final String titleKey) {
+	public static AbstractExportableColumn<TaskDto, String> createProgressColumn(PageBase pageBase, String titleKey,
+			SerializableSupplier<Boolean> progressComputationEnabledSupplier) {
 		return new AbstractExportableColumn<TaskDto, String>(pageBase.createStringResource(titleKey)) {
 
 			@Override
 			public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
-				cellItem.add(new Label(componentId, new IModel<Object>() {
-					@Override
-					public Object getObject() {
-						rowModel.getObject().ensureSubtasksLoaded(pageBase);
-						return rowModel.getObject().getProgressDescription(pageBase);
-					}
-				}));
+				cellItem.add(new Label(componentId,
+						(IModel<Object>) () -> rowModel.getObject().getProgressDescription(pageBase,
+								progressComputationEnabledSupplier.get())));
 			}
 
 			@Override
 			public IModel<String> getDataModel(IModel<TaskDto> rowModel) {
-				rowModel.getObject().ensureSubtasksLoaded(pageBase);
-				return Model.of(rowModel.getObject().getProgressDescription(pageBase));
+				return Model.of(rowModel.getObject().getProgressDescription(pageBase,
+						progressComputationEnabledSupplier.get()));
 			}
 		};
 	}
@@ -888,9 +888,37 @@ public class TaskDtoTablePanel extends BasePanel {
 				return TaskDtoTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
 			}
 		};
-		deleteWorkStateAndWorkers.setVisibilityChecker(TaskDtoTablePanel::isCoordinator);
+		deleteWorkStateAndWorkers.setVisibilityChecker(TaskDtoTablePanel::isManageableTreeRoot);
 		items.add(deleteWorkStateAndWorkers);
-		
+
+		InlineMenuItem deleteWorkState = new InlineMenuItem(createStringResource("pageTasks.button.deleteWorkState")) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public InlineMenuItemAction initAction() {
+				return new ColumnMenuAction<TaskDto>() {
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						if (getRowModel() == null) {
+							throw new UnsupportedOperationException();
+						} else {
+							TaskDto rowDto = getRowModel().getObject();
+							deleteWorkState(target, rowDto);
+						}
+					}
+				};
+			}
+
+			@Override
+			public IModel<String> getConfirmationMessageModel() {
+				String actionName = createStringResource("pageTasks.message.deleteWorkState").getString();
+				return TaskDtoTablePanel.this.getTaskConfirmationMessageModel((ColumnMenuAction) getAction(), actionName);
+			}
+		};
+		items.add(deleteWorkState);
+
 		if (isHeader) {
 			items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteAllClosedTasks")) {
 				private static final long serialVersionUID = 1L;
@@ -1017,7 +1045,7 @@ public class TaskDtoTablePanel extends BasePanel {
 		Task opTask = getPageBase().createSimpleTask(OPERATION_DELETE_WORKERS_AND_WORK_STATE);
 		OperationResult result = opTask.getResult();
 		try {
-			getPageBase().getTaskService().deleteWorkersAndWorkState(task.getOid(), WAIT_FOR_TASK_STOP, opTask, result);
+			getPageBase().getTaskService().deleteWorkersAndWorkState(task.getOid(), true, WAIT_FOR_TASK_STOP, opTask, result);
 			result.computeStatus();
 		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
 				| RuntimeException | CommunicationException | ConfigurationException e) {
@@ -1031,7 +1059,23 @@ public class TaskDtoTablePanel extends BasePanel {
 		refreshTable(target);
 	}
 
-	
+	private void deleteWorkState(AjaxRequestTarget target, @NotNull TaskDto task) {
+		Task opTask = getPageBase().createSimpleTask(OPERATION_DELETE_WORK_STATE);
+		OperationResult result = opTask.getResult();
+		try {
+			getPageBase().getTaskService().deleteWorkersAndWorkState(task.getOid(), false, WAIT_FOR_TASK_STOP, opTask, result);
+			result.computeStatus();
+		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException
+				| RuntimeException | CommunicationException | ConfigurationException e) {
+			result.recordFatalError(createStringResource("pageTasks.message.deleteWorkState.fatalError").getString(),
+					e);
+		}
+		getPageBase().showResult(result);
+
+		TaskDtoProvider provider = (TaskDtoProvider) getTaskTable().getDataTable().getDataProvider();
+		provider.clearCache();
+		refreshTable(target);
+	}
 
 	private void deleteAllClosedTasksConfirmedPerformed(AjaxRequestTarget target) {
 		OperationResult launchResult = new OperationResult(OPERATION_DELETE_ALL_CLOSED_TASKS);
@@ -1389,9 +1433,15 @@ public class TaskDtoTablePanel extends BasePanel {
 				categorySelect.getModel().setObject(ALL_CATEGORIES);
 			}
 			searchForm.add(categorySelect);
+			WebMarkupContainer showProgressLabel = new WebMarkupContainer(ID_SHOW_PROGRESS_LABEL);
+			CheckBox showProgress = new CheckBox(ID_SHOW_PROGRESS,
+					new PropertyModel<>(searchModel, TasksSearchDto.F_SHOW_PROGRESS));
+			showProgress.add(createFilterAjaxBehaviour());
+			showProgressLabel.add(showProgress);
+			searchForm.add(showProgressLabel);
 			WebMarkupContainer showSubtasksLabel = new WebMarkupContainer(ID_SHOW_SUBTASKS_LABEL);
 			CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS,
-					new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
+					new PropertyModel<>(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
 			showSubtasks.add(createFilterAjaxBehaviour());
 			showSubtasksLabel.add(new VisibleEnableBehaviour() {
 				@Override
@@ -1445,5 +1495,9 @@ public class TaskDtoTablePanel extends BasePanel {
 
 	protected boolean isVisibleShowSubtask() {
 		return true;
+	}
+
+	protected boolean isProgressComputationEnabled() {
+		return searchModel.getObject().isShowProgress();
 	}
 }

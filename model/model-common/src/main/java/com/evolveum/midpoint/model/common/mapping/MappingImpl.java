@@ -411,7 +411,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				.addArbitraryObjectAsContext("mapping", this)
 				.addArbitraryObjectAsContext("context", getContextDescription())
 				.addArbitraryObjectAsContext("task", task)
-				.setMinor(true)
+				.setMinor()
 				.build();
 		try {
 			prepare(task, result);
@@ -443,7 +443,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".prepare")
 					.addArbitraryObjectAsContext("mapping", this)
 					.addArbitraryObjectAsContext("task", task)
-					.setMinor(true)
+					.setMinor()
 					.build();
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
@@ -479,7 +479,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluatePrepared")
 				.addArbitraryObjectAsContext("mapping", this)
 				.addArbitraryObjectAsContext("task", task)
-				.setMinor(true)
+				.setMinor()
 				.build();
 
         traceEvaluationStart();

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -151,7 +152,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 			}
 
 			@Override
-			protected UsersStorage getUsersSessionStorage(){
+			protected OrgStructurePanelStorage getOrgStructurePanelStorage(){
 				return null;
 			}
 

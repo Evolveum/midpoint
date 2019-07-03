@@ -1365,7 +1365,7 @@
                 How was the cache used?
             </xsd:documentation>
             <xsd:appinfo>
-                <a:since>3.8</a:since>
+                <a:since>4.0</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -1539,5 +1539,42 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" />
+
+    <xsd:simpleType name="TracingPointType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Points at which tracing can be requested.
+                Each of them has to implement appropriate logic to start tracing and store the result.
+
+                EXPERIMENTAL
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="clockworkRun">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Clockwork.run execution.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CLOCKWORK_RUN"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="iterativeTaskObjectProcessing">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object processing for iterative task.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ITERATIVE_TASK_OBJECT_PROCESSING"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
 </xsd:schema>

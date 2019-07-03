@@ -233,7 +233,7 @@ public class Projector {
 					// a projection is provisioned or deprovisioned only after the activation is processed.
 					if (fromStart && inFirstWave) {
 						OperationResult activationResult = result.subresult(Projector.class.getName() + ".activation")
-								.setMinor(true)
+								.setMinor()
 								.build();
 						try {
 							LOGGER.trace("Processing activation for all contexts");

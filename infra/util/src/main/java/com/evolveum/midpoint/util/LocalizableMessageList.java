@@ -16,11 +16,12 @@
 
 package com.evolveum.midpoint.util;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @author mederly
+ * This class is final and must remain so, as it's not cloneable.
  */
 public class LocalizableMessageList implements LocalizableMessage {
 
@@ -41,7 +42,7 @@ public class LocalizableMessageList implements LocalizableMessage {
 	}
 
 	public List<LocalizableMessage> getMessages() {
-		return messages;
+		return Collections.unmodifiableList(messages);
 	}
 
 	public LocalizableMessage getSeparator() {

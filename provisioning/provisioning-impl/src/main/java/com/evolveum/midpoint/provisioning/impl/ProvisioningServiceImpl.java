@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -318,8 +319,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (ProvisioningOperationOptions.isOverwrite(options)){
 				addOptions = RepoAddOptions.createOverwrite();
 			}
-			oid = cacheRepositoryService.addObject(object, addOptions, result);
-			result.computeStatus();
+			try {
+				oid = cacheRepositoryService.addObject(object, addOptions, result);
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
+			}
 		}
 
 		result.cleanupResult();
@@ -329,7 +336,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
 		Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
 		String resourceOid = shadowCoordinates.getResourceOid();
@@ -341,7 +348,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-		int processedChanges = 0;
+		int processedChanges;
 
 		try {
 			// Resolve resource
@@ -353,12 +360,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// getting token form task
 			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got token property: {} from the task extension.",
-						SchemaDebugUtil.prettyPrint(tokenProperty));
+				LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
 			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
-			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
+			LOGGER.debug("Synchronization of {} done, token {}, {} changes; interrupted={}", resource, tokenProperty,
+					processedChanges, task instanceof RunningTask && !((RunningTask) task).canRun());
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
@@ -442,33 +449,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private PrismProperty getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
+	private PrismProperty<?> getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<?> taskTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
 
-		if (tokenProperty != null && tokenProperty.getAnyRealValue() == null) {
-			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());
+		if (taskTokenProperty != null) {
+			if (taskTokenProperty.getAnyRealValue() != null) {
+				return taskTokenProperty;
+			} else {
+				LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
+				LOGGER.trace("Empty sync token property:\n{}", taskTokenProperty.debugDumpLazily());
 			}
-			tokenProperty = null;
 		}
 
 		// if the token is not specified in the task, get the latest token
-		if (tokenProperty == null) {
-			tokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
-			if (tokenProperty == null || tokenProperty.getValue() == null
-					|| tokenProperty.getValue().getValue() == null) {
-				LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Empty current sync token property.");
-				}
-				return null;
-			}
-
+		PrismProperty<?> resourceTokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
+		if (resourceTokenProperty != null && resourceTokenProperty.getValue() != null &&
+				resourceTokenProperty.getValue().getValue() != null) {
+			return resourceTokenProperty;
+		} else {
+			LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
+			return null;
 		}
-		return tokenProperty;
 	}
 
 	@NotNull

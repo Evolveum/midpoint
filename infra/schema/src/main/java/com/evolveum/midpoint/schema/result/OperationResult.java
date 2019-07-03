@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
@@ -35,21 +36,24 @@ import com.evolveum.midpoint.util.*;
 
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Nested Operation Result.
@@ -83,7 +87,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
      */
     private static final int DEFAULT_SUBRESULT_STRIP_THRESHOLD = 10;
 
-    private static int subresultStripThreshold = DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+	@NotNull private static final OperationResultHandlingStrategyType DEFAULT_HANDLING_STRATEGY = new OperationResultHandlingStrategyType();
+	@NotNull private volatile static List<OperationResultHandlingStrategyType> handlingStrategies = emptyList();
+	@NotNull private static OperationResultHandlingStrategyType globalHandlingStrategy = DEFAULT_HANDLING_STRATEGY;
+    private static final ThreadLocal<OperationResultHandlingStrategyType> localHandlingStrategy =
+		    new ThreadLocal<>();
 
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
@@ -132,7 +140,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizeErrors;
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
-	private boolean minor = false;
+	private OperationResultImportanceType importance = NORMAL;
 
 	private boolean building = true;        // experimental (NOT SERIALIZED)
 	private OperationResult futureParent;   // experimental (NOT SERIALIZED)
@@ -228,6 +236,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (!building) {
 			throw new IllegalStateException("Not being built");
 		}
+		// todo only if profiled!
 		recordStart(this, operation, createArguments());
 		building = false;
 		if (futureParent != null) {
@@ -265,10 +274,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return createSubresult(operation, true, true, null);        // temporarily profiled todo make this configurable
 	}
 
-	public OperationResult createMinorProfiledSubresult(String operation) {
-		return createSubresult(operation, true, true, new Object[0]);
-	}
-
 	public static OperationResult createProfiled(String operation) {
 		return createProfiled(operation, new Object[0]);
 	}
@@ -286,7 +291,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		if (profiled) {
 			recordStart(subresult, operation, arguments);
 		}
-		subresult.minor = minor;
+		subresult.importance = minor ? MINOR : NORMAL;
 		return subresult;
 	}
 
@@ -461,7 +466,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
-		subresult.tracingProfile = tracingProfile;
+		if (subresult.tracingProfile == null) {
+			subresult.tracingProfile = tracingProfile;
+		}
 	}
 
 	public OperationResult findSubresult(String operation) {
@@ -718,23 +725,34 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 	
 	private void updateLocalizableMessage(LocalizableMessage localizableMessage) {
+		if (localizableMessage == null) {
+			return;
+		}
 		if (userFriendlyMessage instanceof SingleLocalizableMessage) {
-			if (localizableMessage != null) {
-				userFriendlyMessage = new LocalizableMessageListBuilder().message(userFriendlyMessage).message(localizableMessage).separator(LocalizableMessageList.SPACE).build();
-				return;
-			}
+			userFriendlyMessage = new LocalizableMessageListBuilder()
+					.message(userFriendlyMessage)
+					.message(localizableMessage)
+					.separator(LocalizableMessageList.SPACE).build();
+		} else if (userFriendlyMessage instanceof LocalizableMessageList) {
+			LocalizableMessageList userFriendlyMessageList = (LocalizableMessageList) this.userFriendlyMessage;
+			userFriendlyMessage = new LocalizableMessageList(
+					mergeMessages(userFriendlyMessageList, localizableMessage),
+					userFriendlyMessageList.getSeparator(),
+					userFriendlyMessageList.getPrefix(),
+					userFriendlyMessageList.getPostfix());
 		}
-		
-		if (userFriendlyMessage instanceof LocalizableMessageList) {
-			if (localizableMessage instanceof SingleLocalizableMessage) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().add(localizableMessage);
-				return;
-			}
-			if (localizableMessage instanceof LocalizableMessageList) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().addAll(((LocalizableMessageList) localizableMessage).getMessages());
-				return;
-			}
+	}
+
+	private List<LocalizableMessage> mergeMessages(LocalizableMessageList sum, LocalizableMessage increment) {
+		List<LocalizableMessage> rv = new ArrayList<>(sum.getMessages());
+		if (increment instanceof SingleLocalizableMessage) {
+			rv.add(increment);
+		} else if (increment instanceof LocalizableMessageList) {
+			rv.addAll(((LocalizableMessageList) increment).getMessages());
+		} else {
+			throw new IllegalArgumentException("increment: " + increment);
 		}
+		return rv;
 	}
 
 	/**
@@ -832,6 +850,15 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void startTracing(@NotNull TracingProfileType profile) {
 		this.tracingProfile = profile;
+		if (invocationId == null) {
+			recordStart(this, operation, createArguments());
+		}
+	}
+
+	@Override
+	public OperationResultBuilder tracingProfile(TracingProfileType profile) {
+		this.tracingProfile = profile;
+		return this;
 	}
 
 	public <T> T getFirstTrace(Class<T> traceClass) {
@@ -924,7 +951,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public boolean isMinor() {
-		return minor;
+		return importance == MINOR;
 	}
 
 	/**
@@ -1503,7 +1530,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				result.getMessageCode(), result.getMessage(), localizableMessage,  null,
 				subresults);
 		opResult.getQualifiers().addAll(result.getQualifier());
-		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
+		opResult.setImportance(result.getImportance());
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
@@ -1533,9 +1560,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		OperationResultType resultType = new OperationResultType();
 		resultType.setToken(opResult.getToken());
 		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
-		if (opResult.isMinor()) {
-			resultType.setMinor(true);
-		}
+		resultType.setImportance(opResult.getImportance());
 		if (opResult.getCount() != 1) {
 			resultType.setCount(opResult.getCount());
 		}
@@ -1601,6 +1626,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void summarize(boolean alsoSubresults) {
+
+		int subresultStripThreshold = getSubresultStripThreshold();
 
 		// first phase: summarizing records if explicitly requested
 		Iterator<OperationResult> iterator = getSubresults().iterator();
@@ -1771,6 +1798,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			return;         // TEMPORARY fixme
 		}
 
+		OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
+
 		if (status == OperationResultStatus.UNKNOWN) {
 			LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
 			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
@@ -1790,17 +1819,27 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 					throw new IllegalStateException(message+"; during handling of exception "+e, e);
 				}
 			}
-			if (subresult.canCleanup()) {
+			if (subresult.canCleanup(preserveDuringCleanup)) {
 				iterator.remove();
 			}
 		}
 	}
 
-	private boolean canCleanup() {
-		if (!minor) {
-			return false;
+	private boolean canCleanup(OperationResultImportanceType preserveDuringCleanup) {
+		return isLesserThan(importance, preserveDuringCleanup) && (status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE);
+	}
+
+	/**
+	 * @return true if x < y
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static boolean isLesserThan(OperationResultImportanceType x, @NotNull OperationResultImportanceType y) {
+		switch (y) {
+			case MAJOR: return x != MAJOR;
+			case NORMAL: return x == MINOR;
+			case MINOR: return false;
+			default: throw new IllegalArgumentException("importance: " + y);
 		}
-		return status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE;
 	}
 
 	@Override
@@ -1822,8 +1861,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		sb.append(operation);
 		sb.append(", st: ");
 		sb.append(status);
-		if (minor) {
+		if (importance == MINOR) {
 			sb.append(", MINOR");
+		} else if (importance == MAJOR) {
+			sb.append(", MAJOR");
 		}
 		sb.append(", msg: ");
 		sb.append(message);
@@ -1960,9 +2001,25 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
 
+	@Deprecated
 	@Override
 	public OperationResult setMinor(boolean value) {
-		this.minor = value;
+		this.importance = value ? MINOR : NORMAL;
+		return this;
+	}
+
+	@Override
+	public OperationResultBuilder setMinor() {
+		return setImportance(MINOR);
+	}
+
+	public OperationResultImportanceType getImportance() {
+		return importance;
+	}
+
+	@Override
+	public OperationResult setImportance(OperationResultImportanceType value) {
+		this.importance = value;
 		return this;
 	}
 
@@ -2038,11 +2095,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.messageCode = messageCode;
         clone.message = message;
         clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
-        try {
-	        clone.cause = full ? CloneUtil.clone(cause) : cause;
-        } catch (Throwable t) {
-        	clone.cause = cause;        // a fallback (it's questionable whether we must clone also the cause)
-        }
+	    // I think it's not necessary to (deeply) clone the exception. They are usually not cloneable. See also MID-5379.
+        clone.cause = cause;
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
 		if (subresults != null && (maxDepth == null || maxDepth > 0)) {
@@ -2057,7 +2111,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         clone.summarizeErrors = summarizeErrors;
         clone.summarizePartialErrors = summarizePartialErrors;
         clone.summarizeSuccesses = summarizeSuccesses;
-        clone.minor = minor;
+        clone.importance = importance;
         clone.asynchronousOperationReference = asynchronousOperationReference;
 
         clone.start = start;
@@ -2083,13 +2137,76 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		}
 	}
 
-	public static int getSubresultStripThreshold() {
-		return subresultStripThreshold;
+	@NotNull
+	private static OperationResultHandlingStrategyType getCurrentHandlingStrategy() {
+		OperationResultHandlingStrategyType local = localHandlingStrategy.get();
+		if (local != null) {
+			return local;
+		} else {
+			return globalHandlingStrategy;
+		}
 	}
 
-	// null means default value
-	public static void setSubresultStripThreshold(Integer value) {
-		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+	private static int getSubresultStripThreshold() {
+		return defaultIfNull(getCurrentHandlingStrategy().getSubresultStripThreshold(), DEFAULT_SUBRESULT_STRIP_THRESHOLD);
+	}
+
+	@NotNull
+	private static OperationResultImportanceType getPreserveDuringCleanup() {
+		return defaultIfNull(getCurrentHandlingStrategy().getPreserveDuringCleanup(), NORMAL);
+	}
+
+	public static void applyOperationResultHandlingStrategy(
+			@NotNull List<OperationResultHandlingStrategyType> configuredStrategies, Integer stripThresholdDeprecated) {
+		if (!configuredStrategies.isEmpty()) {
+			handlingStrategies = CloneUtil.cloneCollectionMembers(configuredStrategies);
+		} else if (stripThresholdDeprecated != null) {
+			handlingStrategies = singletonList(new OperationResultHandlingStrategyType().subresultStripThreshold(stripThresholdDeprecated));
+		} else {
+			handlingStrategies = singletonList(DEFAULT_HANDLING_STRATEGY);
+		}
+		selectGlobalHandlingStrategy();
+	}
+
+	private static void selectGlobalHandlingStrategy() {
+		if (handlingStrategies.isEmpty()) {
+			globalHandlingStrategy = DEFAULT_HANDLING_STRATEGY;
+		} else if (handlingStrategies.size() == 1) {
+			globalHandlingStrategy = handlingStrategies.get(0);
+		} else {
+			List<OperationResultHandlingStrategyType> globalOnes = handlingStrategies.stream()
+					.filter(s -> Boolean.TRUE.equals(s.isGlobal())).collect(Collectors.toList());
+			if (globalOnes.isEmpty()) {
+				globalHandlingStrategy = handlingStrategies.get(0);
+				LOGGER.warn("Found no handling strategy marked as global, selecting the first one among all strategies: {}",
+						globalHandlingStrategy);
+			} else if (globalOnes.size() == 1) {
+				globalHandlingStrategy = globalOnes.get(0);
+			} else {
+				globalHandlingStrategy = globalOnes.get(0);
+				LOGGER.warn("Found {} handling strategies marked as global, selecting the first one among them: {}",
+						globalOnes.size(), globalHandlingStrategy);
+			}
+		}
+	}
+
+	public static void setThreadLocalHandlingStrategy(@Nullable String strategyName) {
+		OperationResultHandlingStrategyType selected;
+		if (strategyName == null) {
+			selected = globalHandlingStrategy;
+		} else {
+			Optional<OperationResultHandlingStrategyType> found = handlingStrategies.stream()
+					.filter(s -> strategyName.equals(s.getName()))
+					.findFirst();
+			if (found.isPresent()) {
+				selected = found.get();
+			} else {
+				LOGGER.error("Couldn't find operation result handling strategy '{}' - using the global one", strategyName);
+				selected = globalHandlingStrategy;
+			}
+		}
+		LOGGER.trace("Selected handling strategy: {}", selected);
+		localHandlingStrategy.set(selected);
 	}
 
 	@Override
@@ -2105,7 +2222,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				summarizeErrors == result.summarizeErrors &&
 				summarizePartialErrors == result.summarizePartialErrors &&
 				summarizeSuccesses == result.summarizeSuccesses &&
-				minor == result.minor &&
+				importance == result.importance &&
 				building == result.building &&
 				Objects.equals(start, result.start) &&
 				Objects.equals(end, result.end) &&
@@ -2133,7 +2250,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return Objects
 				.hash(operation, qualifiers, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
 						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
-						minor, building, start, end, microseconds, invocationId, traces,
+						building, start, end, microseconds, invocationId, traces,
 						asynchronousOperationReference);
 	}
 

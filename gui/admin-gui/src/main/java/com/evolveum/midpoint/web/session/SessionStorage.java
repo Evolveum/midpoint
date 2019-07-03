@@ -67,6 +67,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_OBJECT_LIST = "objectListPage";
     public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
     public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
+    public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
 
     private static final String KEY_TASKS = "tasks";
     private static final String KEY_SUBTASKS = "subtasks";
@@ -108,6 +109,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_USERS, new UsersStorage());
         }
         return (UsersStorage)pageStorageMap.get(KEY_USERS);
+    }
+
+    public OrgStructurePanelStorage getOrgStructurePanelStorage() {
+        if (pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE) == null) {
+            pageStorageMap.put(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
+        }
+        return (OrgStructurePanelStorage) pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE);
     }
 
     public ObjectListStorage getObjectListStorage(String key) {

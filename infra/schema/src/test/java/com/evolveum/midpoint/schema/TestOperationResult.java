@@ -23,14 +23,18 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultHandlingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.MAJOR;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**
@@ -38,6 +42,8 @@ import static org.testng.AssertJUnit.assertEquals;
  *
  */
 public class TestOperationResult {
+
+	private static final String LOCAL_1 = "local1";
 
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -71,18 +77,38 @@ public class TestOperationResult {
 		checkResultConversion(root, true);
 
 		// WHEN
+		System.out.println("Before cleanup:\n" + root.debugDump());
 		sub1.computeStatus();
 		sub1.cleanupResult();
 		root.computeStatus();
 		root.cleanupResult();
 
 		// THEN
-		System.out.println(root.debugDump());
+		System.out.println("After cleanup (normal):\n" + root.debugDump());
 		assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus());		// because of sub2
 		assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());			// because of sub12
 		assertEquals("Wrong # of sub1 subresults", 2, sub1.getSubresults().size());
 
 		checkResultConversion(root, true);
+
+		// WHEN
+		PrismContext prismContext = getPrismContext();
+		OperationResult.applyOperationResultHandlingStrategy(
+				Arrays.asList(
+						new OperationResultHandlingStrategyType(prismContext)
+								.global(true),
+						new OperationResultHandlingStrategyType(prismContext)
+								.name(LOCAL_1)
+								.preserveDuringCleanup(MAJOR)
+				), null);
+		OperationResult.setThreadLocalHandlingStrategy(LOCAL_1);
+
+		root.cleanupResultDeeply();
+		System.out.println("After deep cleanup (major):\n" + root.debugDump());
+
+		assertEquals("Wrong overall status", OperationResultStatus.FATAL_ERROR, root.getStatus());		// because of sub2
+		assertEquals("Wrong status of sub1", OperationResultStatus.WARNING, sub1.getStatus());			// because of sub12
+		assertEquals("Wrong # of sub1 subresults", 1, sub1.getSubresults().size());           // SUCCESS should be gone now
 	}
 
 	@Test
@@ -209,7 +235,7 @@ public class TestOperationResult {
 	private void checkResultConversion(OperationResult result, boolean assertEquals) throws SchemaException {
 		// WHEN
 		OperationResultType resultType = result.createOperationResultType();
-		String serialized = PrismTestUtil.getPrismContext().serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
+		String serialized = getPrismContext().serializerFor(PrismContext.LANG_XML).serializeAnyData(resultType, SchemaConstants.C_RESULT);
 		System.out.println("Converted OperationResultType\n" + serialized);
 		OperationResult resultRoundTrip = OperationResult.createOperationResult(resultType);
 		OperationResultType resultTypeRoundTrip = resultRoundTrip.createOperationResultType();

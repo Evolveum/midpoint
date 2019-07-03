@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -92,25 +93,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskDeletionListener;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskListener;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
-import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
@@ -182,6 +164,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private Protector protector;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private Tracer tracer;
 
 	private InfrastructureConfigurationType infrastructureConfiguration;
 	private String webContextPath;
@@ -284,7 +267,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @PostConstruct
     public void init() {
 
-        OperationResult result = createOperationResult("init");
+        OperationResult result = createOperationResult(DOT_IMPL_CLASS + "init");
 
         try {
             new Initializer(this).init(result);
@@ -524,13 +507,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	}
 
 	@Override
-	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult parentResult)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime,
+			OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteWorkersAndWorkState");
-		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+		result.addParam("rootTaskOid", rootTaskOid);
+		result.addParam("deleteWorkers", deleteWorkers);
 		result.addParam("subtasksWaitTime", subtasksWaitTime);
 		try {
-			workersManager.deleteWorkersAndWorkState(coordinatorTaskOid, subtasksWaitTime, result);
+			workersManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't delete workers and work state", t);
 			throw t;
@@ -1256,6 +1241,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                     task.setExecutingThread(Thread.currentThread());
                     task.startCollectingLowLevelStatistics();
                     cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
+	                OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
                     lightweightTaskHandler.run(task);
                     cacheConfigurationManager.unsetThreadLocalProfiles();
                 } catch (Throwable t) {
@@ -1493,7 +1479,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -1514,7 +1500,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -2577,5 +2563,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	@Override
 	public boolean isDynamicProfilingEnabled() {
 		return midpointConfiguration.getProfilingMode() == ProfilingMode.DYNAMIC;
+	}
+
+	@Override
+	public Tracer getTracer() {
+		return tracer;
 	}
 }
