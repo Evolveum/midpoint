@@ -34,6 +34,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -214,7 +216,10 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             for (WorkItemDto workItemDto : workItemDtoList) {
                 OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
                 try {
-                    workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, task, result);
+                    workflowService.completeWorkItem(workItemDto.getWorkItemId(),
+                            new AbstractWorkItemOutputType(getPrismContext())
+                                    .outcome(ApprovalUtils.toUri(approve)),
+                            task, result);
                     result.computeStatus();
                 } catch (Exception e) {
                     result.recordPartialError(createStringResource("pageWorkItems.message.partialError.approved").getString(), e);

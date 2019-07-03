@@ -307,7 +307,9 @@ public class TestStrings extends AbstractStoryTest {
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+				task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -396,7 +398,9 @@ public class TestStrings extends AbstractStoryTest {
 
 		// WHEN
 		// Second approval
-		workflowService.completeWorkItem(WorkItemId.of(elaineWorkItem), true, "OK. Security.", null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(elaineWorkItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. Security."),
+				task, result);
 
 		// THEN
 		workItems = getWorkItems(task, result);
@@ -472,7 +476,9 @@ public class TestStrings extends AbstractStoryTest {
 
 		// WHEN
 		login(getUser(userCheeseOid));
-		workflowService.completeWorkItem(WorkItemId.of(workItemsMap.get(userCheeseOid)), true, "OK. Cheese.", null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItemsMap.get(userCheeseOid)),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
+				task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -527,7 +533,9 @@ public class TestStrings extends AbstractStoryTest {
 		// WHEN
 		login(getUser(userChefOid));
 		WorkItemId workItemId = WorkItemId.of(workItemsMap.get(userChefOid));
-		workflowService.completeWorkItem(workItemId, true, "OK. Chef.", null, task, result);
+		workflowService.completeWorkItem(workItemId,
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. Chef."),
+				task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -807,7 +815,9 @@ public class TestStrings extends AbstractStoryTest {
 		login(cheese);
 
 		// WHEN
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. Cheese.", null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. Cheese."),
+				task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -1043,7 +1053,9 @@ public class TestStrings extends AbstractStoryTest {
 		PrismObject<UserType> lechuck = getUserFromRepo(userLechuckOid);
 		login(lechuck);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+				task, result);
 
 		// THEN
 		login(userAdministrator);
@@ -1091,7 +1103,10 @@ public class TestStrings extends AbstractStoryTest {
 		ObjectDelta formDelta = prismContext.deltaFor(UserType.class)
 				.item(UserType.F_DESCRIPTION).replace("Hello")
 				.asObjectDelta(userBobOid);
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, "OK. LeChuck", formDelta, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK. LeChuck"),
+				formDelta,
+				task, result);
 
 		// THEN
 		login(userAdministrator);

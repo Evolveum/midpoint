@@ -27,7 +27,7 @@
 		<t:modificationType>add</t:modificationType>
         <t:path>c:assignment</t:path>
 		<t:value xsi:type="c:AssignmentType">
-            <c:targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="c:RoleType" />
+            <c:targetRef oid="00000001-d34d-b33f-f00d-000000000001" type="c:RoleType" />  <!-- Role1 -->
             <c:activation>
                 <c:validTo>2015-02-28T00:00:00+01:00</c:validTo>
             </c:activation>

@@ -20,8 +20,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -31,16 +33,23 @@ import java.util.List;
 public interface WorkflowService {
 
 	//region Work items
-    /**
-     * Approves or rejects a work item (without supplying any further information).
-     * @param taskId identifier of work item
-     * @param decision true = approve, false = reject
-     */
-    void completeWorkItem(WorkItemId workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-		    Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException,
-		    ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	/**
+	 * Approves or rejects a work item
+	 */
+	void completeWorkItem(@NotNull WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-    void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+	/**
+	 * Approves or rejects a work item.
+	 * Additional delta is here present in "prism" form (not as ObjectDeltaType), to simplify the life for clients.
+	 * It is applied only if the output signals that work item is approved.
+	 */
+	void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, ObjectDelta additionalDelta,
+			Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+
+	void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
 		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
 		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 

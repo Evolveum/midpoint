@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -83,7 +84,11 @@ public class MiscHelper {
 	}
 
 	public String getAnswerNice(CaseType aCase) {
-		return ApprovalUtils.makeNiceFromUri(getOutcome(aCase));
+		if (CaseTypeUtil.isApprovalCase(aCase)) {
+			return ApprovalUtils.makeNiceFromUri(getOutcome(aCase));
+		} else {
+			return getOutcome(aCase);
+		}
 	}
 
 	private String getOutcome(CaseType aCase) {

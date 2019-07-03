@@ -272,6 +272,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-impl-builtin</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-api</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-test</artifactId>
             <version>4.0-SNAPSHOT</version>

@@ -1021,7 +1021,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
 	@NotNull
 	@Override
-	public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	public <T extends ObjectType> ModifyObjectResult<T> modifyObject(@NotNull Class<T> type, @NotNull String oid,
+			@NotNull Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.repo.api.VersionPrecondition;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
@@ -138,6 +139,8 @@ public class EngineInvocationContext implements DebugDumpable {
 	public void commit(OperationResult result)
 			throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
 
+		boolean approvalCase = isApprovalCase();
+
 		if (currentCase.getOid() == null) {
 			String newOid = engine.repositoryService.addObject(currentCase.asPrismObject(), null, result);
 			originalCase.setOid(newOid);
@@ -155,7 +158,11 @@ public class EngineInvocationContext implements DebugDumpable {
 
 		if (wasClosed) {
 			try {
-				engine.primaryChangeProcessor.onProcessEnd(this, result);
+				if (approvalCase) {
+					engine.primaryChangeProcessor.onProcessEnd(this, result);
+				} else {
+					engine.executionHelper.closeCaseInRepository(currentCase, result);
+				}
 
 				engine.auditHelper.prepareProcessEndRecord(this, result);
 				prepareNotification(new DelayedNotification.ProcessEnd(currentCase));
@@ -287,5 +294,9 @@ public class EngineInvocationContext implements DebugDumpable {
 	@NotNull
 	public CaseType getCurrentCase() {
 		return currentCase;
+	}
+
+	public boolean isApprovalCase() {
+		return ObjectTypeUtil.hasArchetype(currentCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
 	}
 }

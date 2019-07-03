@@ -52,6 +52,7 @@ public class CloneUtil {
 
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
+	@Contract("null -> null; !null -> !null")
 	public static <T> T clone(T orig) {
 		if (orig == null) {
 			return null;

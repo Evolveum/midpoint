@@ -20,24 +20,26 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author mederly
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    @NotNull protected final ApprovalContextType approvalContext;
+    @Nullable protected final ApprovalContextType approvalContext;
     @NotNull private final ChangeType changeType;
     @NotNull protected final CaseType aCase;
 
-    public WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-            @NotNull ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
+    WorkflowEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
+		    @Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase, EventHandlerType handler) {
         super(lightweightIdentifierGenerator, handler);
         this.changeType = changeType;
 		this.approvalContext = approvalContext;
@@ -71,6 +73,14 @@ abstract public class WorkflowEvent extends BaseEvent {
     @Override
     public boolean isOperationType(EventOperationType eventOperationType) {
         return changeTypeMatchesOperationType(changeType, eventOperationType);
+    }
+
+    public boolean isApprovalCase() {
+		return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+    }
+
+    public boolean isManualResourceCase() {
+		return ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_MANUAL_CASE.value());
     }
 
     public boolean isResultKnown() {

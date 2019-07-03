@@ -371,11 +371,13 @@ public class PrismMarshaller {
 
 	private XNodeImpl serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition, SerializationContext ctx) throws SchemaException {
         MapXNodeImpl xmap = new MapXNodeImpl();
-        boolean containsOid = false;
+        boolean containsOid;
         String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
-        if (StringUtils.isNotBlank(value.getOid())){
+        if (StringUtils.isNotBlank(value.getOid())) {
             containsOid = true;
         	xmap.put(XNodeImpl.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
+        } else {
+        	containsOid = false;
         }
         QName relation = value.getRelation();
         if (relation != null) {
@@ -402,7 +404,8 @@ public class PrismMarshaller {
         			createPrimitiveXNode(resolutionTime.value(), DOMUtil.XSD_STRING));
         }
         if (value.getTargetName() != null) {
-            if (SerializationContext.isSerializeReferenceNames(ctx)) {
+            if (SerializationContext.isSerializeReferenceNames(ctx) ||
+                    !containsOid && SerializationContext.isSerializeReferenceNamesForNullOids(ctx)) {
                 XNodeImpl xsubnode = createPrimitiveXNode(value.getTargetName(), PolyStringType.COMPLEX_TYPE);
                 xmap.put(createReferenceQName(XNodeImpl.KEY_REFERENCE_TARGET_NAME, namespace), xsubnode);
             } else {

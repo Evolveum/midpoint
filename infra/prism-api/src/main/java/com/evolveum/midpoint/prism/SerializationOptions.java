@@ -23,6 +23,7 @@ public class SerializationOptions implements Cloneable {
 
 	private boolean serializeCompositeObjects;
     private boolean serializeReferenceNames;
+    private boolean serializeReferenceNamesForNullOids;
 	private ItemNameQualificationStrategy itemNameQualificationStrategy;
 
 	/**
@@ -51,6 +52,24 @@ public class SerializationOptions implements Cloneable {
 
     public static boolean isSerializeReferenceNames(SerializationOptions options) {
         return options != null && options.isSerializeReferenceNames();
+    }
+
+    public boolean isSerializeReferenceNamesForNullOids() {
+        return serializeReferenceNamesForNullOids;
+    }
+
+    public void setSerializeReferenceNamesForNullOids(boolean serializeReferenceNames) {
+        this.serializeReferenceNamesForNullOids = serializeReferenceNames;
+    }
+
+    public static SerializationOptions createSerializeReferenceNamesForNullOids() {
+    	SerializationOptions serializationOptions = new SerializationOptions();
+    	serializationOptions.setSerializeReferenceNamesForNullOids(true);
+    	return serializationOptions;
+    }
+
+    public static boolean isSerializeReferenceNamesForNullOids(SerializationOptions options) {
+        return options != null && options.isSerializeReferenceNamesForNullOids();
     }
 
 	public boolean isSerializeCompositeObjects() {

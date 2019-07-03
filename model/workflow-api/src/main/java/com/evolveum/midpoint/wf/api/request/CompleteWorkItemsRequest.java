@@ -16,8 +16,7 @@
 
 package com.evolveum.midpoint.wf.api.request;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventCauseInformationType;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,16 +30,11 @@ public class CompleteWorkItemsRequest extends Request {
 
 	public static class SingleCompletion {
 		private final long workItemId;
-		@NotNull private final String outcome;
-		private final String comment;
-		private final ObjectDelta<? extends ObjectType> additionalDelta;
+		@NotNull private final AbstractWorkItemOutputType output;
 
-		public SingleCompletion(long workItemId, @NotNull String outcome, String comment,
-				ObjectDelta<? extends ObjectType> additionalDelta) {
+		public SingleCompletion(long workItemId, @NotNull AbstractWorkItemOutputType output) {
 			this.workItemId = workItemId;
-			this.outcome = outcome;
-			this.comment = comment;
-			this.additionalDelta = additionalDelta;
+			this.output = output;
 		}
 
 		public long getWorkItemId() {
@@ -48,25 +42,15 @@ public class CompleteWorkItemsRequest extends Request {
 		}
 
 		@NotNull
-		public String getOutcome() {
-			return outcome;
-		}
-
-		public String getComment() {
-			return comment;
-		}
-
-		public ObjectDelta<? extends ObjectType> getAdditionalDelta() {
-			return additionalDelta;
+		public AbstractWorkItemOutputType getOutput() {
+			return output;
 		}
 
 		@Override
 		public String toString() {
 			return "SingleCompletion{" +
 					"workItemId=" + workItemId +
-					", outcome='" + outcome + '\'' +
-					", comment='" + comment + '\'' +
-					", additionalDelta=" + additionalDelta +
+					", output='" + output + '\'' +
 					'}';
 		}
 	}

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -220,7 +221,9 @@ public class AuditHelper {
 		}
 		AbstractWorkItemOutputType output = workItem.getOutput();
 		if (output != null) {
-			String answer = ApprovalUtils.makeNiceFromUri(output.getOutcome());
+			String answer =
+					CaseTypeUtil.isApprovalCase(aCase) ?
+							ApprovalUtils.makeNiceFromUri(output.getOutcome()) : output.getOutcome();
 			record.setResult(answer);
 			message.append(answer);
 			if (output.getComment() != null) {

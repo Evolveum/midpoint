@@ -139,7 +139,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask, OperationResult result) throws Exception {
                 assertAssignedRole(USER_JACK_OID, ROLE_R1_OID, opTask, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, singletonList(R1BOSS_OID), result);
                 assertWfContextAfterRootTaskFinishes(aCase, subcases, result, "Assigning role \"Role1\" to user \"jack\"");
             }
@@ -269,7 +269,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertEquals("Wrong given name after change", "JACK", jack.asObjectable().getGivenName().getOrig());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED));
                 checkUserApprovers(USER_JACK_OID, new ArrayList<>(), result);
             }
 
@@ -320,7 +320,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertAssignedRole(jack, ROLE_R3_OID);
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R3BOSS_OID), result);         // given name is changed before role is added, so the approver should be recorded
             }
 
@@ -385,7 +385,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertEquals("activation has not been changed", ActivationStatusType.DISABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R3BOSS_OID), result);
             }
 
@@ -445,7 +445,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 assertEquals("activation has not been changed", ActivationStatusType.ENABLED, jack.asObjectable().getActivation().getAdministrativeStatus());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R2_OID, WorkflowResult.REJECTED, ROLE_R3_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(R3BOSS_OID), result);
             }
 
@@ -500,7 +500,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
                 checkUserApproversForCreate(bill.getOid(), Arrays.asList(R1BOSS_OID), result);
             }
 
@@ -567,7 +567,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 //assertEquals("Wrong number of assignments for bill", 4, bill.asObjectable().getAssignmentNew().size());
 
                 checkDummyTransportMessages("simpleUserNotifier", 2);
-                checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED, ROLE_R2_OID, WorkflowResult.REJECTED));
                 checkUserApprovers(bill.getOid(), Arrays.asList(R1BOSS_OID), result);
             }
 
@@ -1117,7 +1117,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                     OperationResult result) throws Exception {
                 assertAssignedResource(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_OID, opTask, result);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
             }
 
@@ -1173,7 +1173,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentValidity(jack, validFrom, validTo);
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
             }
 
@@ -1235,7 +1235,7 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
                 UserType jack = getUser(USER_JACK_OID).asObjectable();
                 checkAssignmentConstruction(jack, "drink", "water");
                 checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_JACK_OID, Arrays.asList(DUMMYBOSS_OID), result);
             }
 

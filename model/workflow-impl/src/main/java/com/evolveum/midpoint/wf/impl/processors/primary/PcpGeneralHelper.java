@@ -72,6 +72,7 @@ public class PcpGeneralHelper {
         if (aCase.getApprovalContext() == null) {
             throw new IllegalStateException("No approval context in " + aCase);
         }
+        aCase.getApprovalContext().setResultingDeltas(deltasType);
         ItemDefinition<?> def = prismContext.getSchemaRegistry()
                 .findContainerDefinitionByCompileTimeClass(ApprovalContextType.class)
                 .findPropertyDefinition(F_RESULTING_DELTAS);

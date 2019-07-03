@@ -311,9 +311,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean(name = "modelController")
     private AccessCertificationService certficationService;
 
-    @SpringBean(name = "modelController")
-    private CaseManagementService caseManagementService;
-
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
     
@@ -572,10 +569,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public AccessCertificationService getCertificationService() {
         return certficationService;
-    }
-
-    public CaseManagementService getCaseManagementService() {
-        return caseManagementService;
     }
 
     @Override

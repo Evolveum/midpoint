@@ -247,7 +247,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	private PrismObject<UserType> createUserWill() throws SchemaException {
-		PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
+		PrismObject<UserType> user = prismContext.createObject(UserType.class);
 		user.asObjectable()
 			.name(USER_WILL_NAME)
 			.givenName(USER_WILL_GIVEN_NAME)

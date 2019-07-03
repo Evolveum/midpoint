@@ -365,7 +365,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	// EXPERIMENTAL. TODO write some tests
 	// BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
 	@SuppressWarnings("unchecked")
-	void mergeContent(PrismContainerValue<?> other, List<QName> overwrite) throws SchemaException;
+	void mergeContent(@NotNull PrismContainerValue<?> other, @NotNull List<QName> overwrite) throws SchemaException;
 
 	@Override
 	PrismContainerValue<?> getRootValue();
