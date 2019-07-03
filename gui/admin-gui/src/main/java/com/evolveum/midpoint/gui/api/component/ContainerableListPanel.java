@@ -184,10 +184,14 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
     protected abstract <PS extends PageStorage> PS getPageStorage();
 
     private ObjectQuery createQuery() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ObjectQuery query = getPrismContext().queryFor(getType())
-                .build();
+        Search search = searchModel.getObject();
+        ObjectQuery query = search != null ? search.createObjectQuery(getPageBase().getPrismContext()) :
+                getPrismContext().queryFor(getType()).build();
         ObjectFilter customFilter = getCustomFilter();
         if (customFilter != null){
+            if (query == null){
+                query = getPrismContext().queryFor(getType()).build();
+            }
             query.addFilter(customFilter);
         }
         return query;
