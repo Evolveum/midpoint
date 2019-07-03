@@ -19,6 +19,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
@@ -220,15 +221,21 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void assumePowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getModelInteractionService(), getTaskManager(), result);
-//        }
+        PrismObject<UserType> powerDonor = getPowerDonor();
+        if (powerDonor != null) {
+            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
+        }
     }
 
     private void dropPowerOfAttorneyIfRequested(OperationResult result) {
-//        if (powerDonor != null) {
-//            WebModelServiceUtils.dropPowerOfAttorney(getModelInteractionService(), getTaskManager(), result);
-//        }
+        PrismObject<UserType> powerDonor = getPowerDonor();
+        if (powerDonor != null) {
+            WebModelServiceUtils.dropPowerOfAttorney(getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
+        }
+    }
+
+    public PrismObject<UserType> getPowerDonor() {
+        return null;
     }
 
     private IModel<String> getApproveButtonTitleModel(){

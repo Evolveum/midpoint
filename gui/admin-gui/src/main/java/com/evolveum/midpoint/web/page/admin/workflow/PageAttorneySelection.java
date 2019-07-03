@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -73,6 +74,7 @@ public class PageAttorneySelection extends PageBase {
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
 
     private static final String OPERATION_GET_DONOR_FILTER = DOT_CLASS + "getDonorFilter";
+    public static final String PARAMETER_DONOR_OID = "donorOid";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -132,7 +134,7 @@ public class PageAttorneySelection extends PageBase {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
+                    query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
                 }
 
                 ModelInteractionService service = getModelInteractionService();
@@ -186,7 +188,8 @@ public class PageAttorneySelection extends PageBase {
 
     private void selectUserPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageWorkItemsAttorney.class, parameters);
+        parameters.add(PARAMETER_DONOR_OID, oid);
+        PageCaseWorkItems workItemsPage = new PageCaseWorkItems(parameters);
+        navigateToNext(workItemsPage);
     }
 }

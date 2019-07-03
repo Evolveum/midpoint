@@ -1860,6 +1860,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.cases.listAll", GuiStyleConstants.EVO_CASE_OBJECT_ICON, PageCases.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
+        addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
 
         addCollectionsMenuItems(item.getItems(), CaseType.COMPLEX_TYPE, PageCases.class);
 
