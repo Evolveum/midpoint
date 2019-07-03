@@ -33,6 +33,8 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.CaseWorkItemSummaryPanel;
+import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -43,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OBJECT_REF;
@@ -62,6 +65,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
 	private static final String DOT_CLASS = PageCaseWorkItem.class.getName() + ".";
 	private static final String OPERATION_LOAD_CASE = DOT_CLASS + "loadCase";
+	private static final String OPERATION_LOAD_DONOR = DOT_CLASS + "loadPowerDonor";
     private static final String OPERATION_SAVE_CASE_WORK_ITEM = DOT_CLASS + "closeCaseWorkItem";
 	private static final String PARAMETER_CASE_ID = "caseId";
 	private static final String PARAMETER_CASE_WORK_ITEM_ID = "caseWorkItemId";
@@ -98,8 +102,10 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 	private LoadableModel<CaseType> caseModel;
 	private LoadableModel<CaseWorkItemType> caseWorkItemModel;
 	private WorkItemId workItemId;
+	private PageParameters pageParameters;
 
     public PageCaseWorkItem(PageParameters parameters) {
+		this.pageParameters = parameters;
 
 		String caseId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
 		if (StringUtils.isEmpty(caseId)) {
@@ -222,6 +228,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 				return workItemDetailsPanel.getCustomForm();
 			}
 
+			@Override
+			public PrismObject<UserType> getPowerDonor() {
+				return PageCaseWorkItem.this.getPowerDonor();
+			}
+
 		};
 		actionsPanel.setOutputMarkupId(true);
 		actionsPanel.add(new VisibleBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(caseModel.getObject().getState())));
@@ -233,150 +244,22 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 		redirectBack();
 	}
 
-//    private void initLayout() {
-//    	LOGGER.trace("BEGIN PageCaseWorkItem::initLayout");
-//
-//        Form mainForm = new Form(ID_MAIN_FORM);
-//        add(mainForm);
-//
-//		// Case Details
-////		mainForm.add(new Label(ID_CASE_NAME, new PropertyModel<>(caseModel, CaseDto.F_NAME)));
-//		mainForm.add(new Label(ID_CASE_DESCRIPTION, new PropertyModel<>(caseModel, CaseDto.F_DESCRIPTION)));
-//		mainForm.add(new Label(ID_CASE_RESOURCE, new PropertyModel<>(caseModel, CaseDto.F_OBJECT_NAME)));
-//		mainForm.add(new Label(ID_CASE_TARGET, new PropertyModel<>(caseModel, CaseDto.F_TARGET_NAME)));
-////		mainForm.add(new Label(ID_CASE_EVENT, new PropertyModel<>(caseModel, CaseDto.F_EVENT)));
-//		mainForm.add(new Label(ID_CASE_OUTCOME, new PropertyModel<>(caseModel, CaseDto.F_OUTCOME)));
-//		mainForm.add(new Label(ID_CASE_OPEN_TIMESTAMP, new PropertyModel<>(caseModel, CaseDto.F_OPEN_TIMESTAMP)));
-//		mainForm.add(new Label(ID_CASE_CLOSE_TIMESTAMP, new PropertyModel<>(caseModel, CaseDto.F_CLOSE_TIMESTAMP)));
-//		mainForm.add(new Label(ID_CASE_STATE, new PropertyModel<>(caseModel, CaseDto.F_STATE)));
-//
-//		// Case Work Item Details
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_ASSIGNEES, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_ASSIGNEES)));
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_ORIGINAL_ASSIGNEE, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_ORIGINAL_ASSIGNEE)));
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_CLOSE_TIMESTAMP, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_CLOSE_TIMESTAMP)));
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_DEADLINE, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_DEADLINE)));
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_OUTCOME, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_OUTCOME)));
-//		mainForm.add(new Label(ID_CASE_WORK_ITEM_COMMENT, new PropertyModel<>(caseWorkItemModel, CaseWorkItemDto.F_COMMENT)));
-//		UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE, true){
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public InputStream getStream() {
-//				return new ByteArrayInputStream(caseWorkItemModel.getObject().getEvidence());
-//			}
-//
-//			@Override
-//			public String getDownloadFileName() {
-//				return caseWorkItemModel.getObject().getEvidenceFilename();
-//			}
-//
-//			@Override
-//			public String getDownloadContentType() {
-//				return caseWorkItemModel.getObject().getEvidenceContentType();
-//			}
-//		};
-//		evidencePanel.add(new VisibleEnableBehaviour() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public boolean isVisible() {
-//				return caseWorkItemModel.getObject().getEvidence() != null;
-//			}
-//		});
-//		mainForm.add(evidencePanel);
-//
-//		// Case Work Item Form
-//		WebMarkupContainer caseWorkItemForm = new WebMarkupContainer(ID_CASE_WORK_ITEM_FORM);
-//		TextArea commentField = new TextArea<>(ID_CASE_WORK_ITEM_FORM_COMMENT, new PropertyModel<String>(caseWorkItemModel, CaseWorkItemDto.F_COMMENT));
-//		caseWorkItemForm.add(commentField);
-//		FileUploadField evidenceUpload = new FileUploadField(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
-//		caseWorkItemForm.add(evidenceUpload);
-//		caseWorkItemForm.add(new VisibleEnableBehaviour() {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public boolean isVisible() {
-//				return caseModel.getObject().getState() == null || !caseModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
-//			}
-//		});
-//		mainForm.add(caseWorkItemForm);
-//
-//		initDeltaPanel(mainForm);
-//        initButtons(mainForm);
-//		LOGGER.trace("END PageCaseWorkItem::initLayout");
-//    }
-//
-//	private void initDeltaPanel(Form mainForm){
-//		CaseDto caseDto = caseModel.getObject();
-//		String shadowName = caseDto.getTargetName();
-//		ObjectDeltaType deltaType = caseDto.getObjectChange();
-//		RepeatingView deltaScene = new RepeatingView(ID_DELTA_PANEL);
-//
-//		if (deltaType != null) {
-//			ObjectDeltaOperationType delta = new ObjectDeltaOperationType().objectDelta(deltaType).resourceOid(caseModel.getObject().getObjectOid());
-//			delta.setResourceName(new PolyStringType(caseModel.getObject().getObjectName()));
-//			delta.setObjectName(new PolyStringType(shadowName));
-//			OperationResultType result = new OperationResultType();
-//			result.setStatus(OperationResultStatusType.IN_PROGRESS);
-//			delta.setExecutionResult(result);
-//
-//			ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(delta), this);
-//			deltaPanel.setOutputMarkupId(true);
-//			deltaScene.add(deltaPanel);
-//		}
-//		mainForm.add(deltaScene);
-//	}
-//
-//    private void initButtons(Form mainForm) {
-//		AjaxButton back = new AjaxButton(ID_BACK_BUTTON, createStringResource("pageCase.button.back")) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public void onClick(AjaxRequestTarget target) {
-//				cancelPerformed();
-//			}
-//		};
-//		mainForm.add(back);
-//
-//		AjaxSubmitButton closeCase = new DefaultAjaxSubmitButton(ID_CLOSE_CASE_BUTTON, createStringResource("PageCaseWorkItem.button.closeCase"),
-//				this, (target, form) -> closeCaseWorkItemPerformed(target));
-//		closeCase.add(new VisibleEnableBehaviour() {
-//			@Override
-//			public boolean isVisible() {
-//				return caseModel.getObject().getState() == null || !caseModel.getObject().getState().equals(SchemaConstants.CASE_STATE_CLOSED);
-//			}
-//		});
-//		mainForm.add(closeCase);
-//    }
-//
-//    private void cancelPerformed() {
-//        redirectBack();
-//    }
-//
-//    private void closeCaseWorkItemPerformed(AjaxRequestTarget target) {
-//        OperationResult result = new OperationResult(OPERATION_SAVE_CASE_WORK_ITEM);
-//        Task task = createSimpleTask(OPERATION_SAVE_CASE_WORK_ITEM);
-//        try {
-//
-//			CaseWorkItemDto dto = caseWorkItemModel.getObject();
-//			CaseManagementService cms = getCaseManagementService();
-//			AbstractWorkItemOutputType output = new AbstractWorkItemOutputType()
-//					.comment(dto.getComment())
-//					.outcome(OperationResultStatusType.SUCCESS.value());
-//			FileUploadField evidenceUploadField = (FileUploadField) get(ID_MAIN_FORM).get(ID_CASE_WORK_ITEM_FORM).get(ID_CASE_WORK_ITEM_FORM_EVIDENCE);
-//			if (evidenceUploadField != null) {
-//				FileUpload evidence = evidenceUploadField.getFileUpload();
-//				if (evidence != null) {
-//					String filename = evidence.getClientFileName();
-//					String contentType = evidence.getContentType();
-//					output = output.evidence(evidence.getBytes()).evidenceContentType(contentType).evidenceFilename(filename);
-//				}
-//			}
-//			cms.completeWorkItem(caseId, caseWorkItemId, output, task, result);
-//        } catch (Exception ex) {
-//            result.recordFatalError("Couldn't close case work item.", ex);
-//            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't close case work item", ex);
-//        }
-//		processResult(target, result, false);
-//	}
+	protected PrismObject<UserType> getPowerDonor(){
+		if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null &&
+				StringUtils.isNotEmpty(pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString())){
+			String powerDonorOid = pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
+			if (StringUtils.isEmpty(powerDonorOid)){
+				return null;
+			}
+			Task task = createSimpleTask(OPERATION_LOAD_DONOR);
+			OperationResult result = task.getResult();
+
+			PrismObject<UserType> donor = WebModelServiceUtils.loadObject(UserType.class, powerDonorOid,
+					new ArrayList<>(), PageCaseWorkItem.this, task, result);
+
+			return donor;
+
+		}
+		return null;
+	}
 }

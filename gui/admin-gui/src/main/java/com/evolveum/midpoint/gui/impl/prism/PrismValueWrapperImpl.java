@@ -63,14 +63,23 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 				if (!isChanged()) {
 					break;
 				}
-			case MODIFIED:				
+			case MODIFIED:
+
 				if (parent.isSingleValue()) {
-					delta.addValueToReplace((V) newValue.clone());
+					if (newValue.isEmpty())  {
+						delta.addValueToDelete((V) oldValue.clone());
+					} else {
+						delta.addValueToReplace((V) newValue.clone());
+					}
 					break;
 				}
-				
-				delta.addValueToAdd((V) newValue.clone());
-				delta.addValueToDelete((V) oldValue.clone());
+
+				if (!newValue.isEmpty()) {
+					delta.addValueToAdd((V) newValue.clone());
+				}
+				if (!oldValue.isEmpty()) {
+					delta.addValueToDelete((V) oldValue.clone());
+				}
 				break;
 			case DELETED:
 				delta.addValueToDelete((V) oldValue.clone());
