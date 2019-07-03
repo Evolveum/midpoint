@@ -65,12 +65,18 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 				}
 			case MODIFIED:				
 				if (parent.isSingleValue()) {
-					delta.addValueToReplace((V) newValue.clone());
+					if (newValue.isEmpty())  {
+						delta.addValueToReplace(null);
+					} else {
+						delta.addValueToReplace((V) newValue.clone());
+					}
 					break;
 				}
 				
 				delta.addValueToAdd((V) newValue.clone());
-				delta.addValueToDelete((V) oldValue.clone());
+				if (!oldValue.isEmpty()) {
+					delta.addValueToDelete((V) oldValue.clone());
+				}
 				break;
 			case DELETED:
 				delta.addValueToDelete((V) oldValue.clone());
