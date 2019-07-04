@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkItemAllocationChangeOperationInfo;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.engine.helpers.DelayedNotification;
 import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
 import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
@@ -95,7 +96,7 @@ class OpenStageAction extends InternalAction {
 				AtomicLong idCounter = new AtomicLong(defaultIfNull(ctx.getCurrentCase().asPrismObject().getHighestId(), 0L) + 1);
 				for (ObjectReferenceType approverRef : approverRefs) {
 					CaseWorkItemType workItem = createWorkItem(stageDef, createTimestamp, deadline, idCounter, approverRef, result);
-					prepareAuditAndNotifications(workItem, result);
+					prepareAuditAndNotifications(workItem, result, ctx, engine);
 					createTriggers(workItem, stageDef, result);
 					ctx.getCurrentCase().getWorkItem().add(workItem);
 				}
@@ -114,7 +115,8 @@ class OpenStageAction extends InternalAction {
 				result);
 	}
 
-	private void prepareAuditAndNotifications(CaseWorkItemType workItem, OperationResult result) {
+	static void prepareAuditAndNotifications(CaseWorkItemType workItem, OperationResult result,
+			EngineInvocationContext ctx, WorkflowEngine engine) {
 		AuditEventRecord auditEventRecord = engine.primaryChangeProcessor.prepareWorkItemCreatedAuditRecord(workItem,
 				ctx.getCurrentCase(), result);
 		ctx.addAuditRecord(auditEventRecord);
@@ -128,7 +130,7 @@ class OpenStageAction extends InternalAction {
 					new WorkItemAllocationChangeOperationInfo(null, Collections.emptyList(), assigneesAndDeputies);
 			ctx.prepareNotification(new DelayedNotification.AllocationChangeNew(ctx.getCurrentCase(), workItem, operationInfo, null));
 		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't send notification about work item create event", e);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare notification about work item create event", e);
 		}
 	}
 

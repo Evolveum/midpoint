@@ -19,6 +19,7 @@ package com.evolveum.midpoint.testing.story;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -221,7 +223,9 @@ public class TestDelivery extends AbstractStoryTest {
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBobOid, roleIt1Oid, task, result);
@@ -248,14 +252,18 @@ public class TestDelivery extends AbstractStoryTest {
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		CaseWorkItemType workItem2 = getWorkItem(task, result);
 		display("work item2", workItem2);
 		ApprovalContextType actx2 = ApprovalContextUtil.getApprovalContext(workItem2);
 		display("workflow context2", actx2);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem2), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem2),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userCarlaOid, roleIt3Oid, task, result);
@@ -282,7 +290,9 @@ public class TestDelivery extends AbstractStoryTest {
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBarkeeperOid, roleIt4Oid, task, result);
@@ -309,7 +319,9 @@ public class TestDelivery extends AbstractStoryTest {
 		CaseType rootCase = getRootCase(result);
 		display("root case", rootCase);
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		waitForCaseClose(rootCase, 60000);
 		assertAssignedRole(userBarkeeperOid, roleIt5Oid, task, result);

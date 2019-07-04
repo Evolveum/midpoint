@@ -53,7 +53,7 @@ public class WorkItemEvent extends WorkflowEvent {
 			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull ApprovalContextType approvalContext,
+			@Nullable ApprovalContextType approvalContext,
 		    @NotNull CaseType aCase,
 		    @Nullable EventHandlerType handler, @Nullable Duration timeBefore) {
         super(lightweightIdentifierGenerator, changeType, approvalContext, aCase, handler);

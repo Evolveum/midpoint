@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.api;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
@@ -43,7 +42,7 @@ public interface WorkflowManager {
 	 * Approves or rejects a work item
 	 * @param decision     true = approve, false = reject
 	 */
-	void completeWorkItem(WorkItemId workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
+	void completeWorkItem(WorkItemId workItemId, AbstractWorkItemOutputType output,
 			WorkItemEventCauseInformationType causeInformation, Task task,
 			OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException;

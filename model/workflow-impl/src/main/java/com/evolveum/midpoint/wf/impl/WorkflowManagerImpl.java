@@ -19,11 +19,9 @@ package com.evolveum.midpoint.wf.impl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,9 +36,9 @@ import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
 import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -66,7 +64,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
 	@Autowired private ChangesSorter changesSorter;
 	@Autowired private AuthorizationHelper authorizationHelper;
 	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
-	@Autowired private TaskManager taskManager;
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -81,12 +78,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
 	//region Work items
 	@Override
-    public void completeWorkItem(WorkItemId workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-		    WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
+    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
+			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 	    try {
-		    workItemManager.completeWorkItem(workItemId, ApprovalUtils.toUri(decision), comment, additionalDelta,
-				    causeInformation, task, parentResult);
+		    workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
 	    } catch (ObjectAlreadyExistsException e) {
 		    throw new IllegalStateException(e);
 	    }
@@ -159,7 +155,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
 	@Override
 	public ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			Task task, OperationResult result) throws SchemaException {
 
 		// TODO op subresult
 		return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
@@ -167,7 +163,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
 	@Override
 	public ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+			OperationResult result) throws SchemaException {
 
 		// TODO op subresult
 		return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);

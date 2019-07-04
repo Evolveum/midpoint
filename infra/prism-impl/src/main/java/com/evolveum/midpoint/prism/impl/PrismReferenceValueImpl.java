@@ -47,7 +47,7 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 	private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
     private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
     private static final QName F_RELATION = new QName(PrismConstants.NS_TYPES, "relation");
-	private String oid = null;
+	private String oid;
     private PrismObject<?> object = null;
     private QName targetType = null;
     private QName relation = null;
@@ -342,7 +342,8 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 
 		ItemPath myPath = getPath();
 
-		if (StringUtils.isBlank(oid) && object == null && filter == null) {
+        // We allow empty references that contain only the target name (see MID-5489)
+		if (StringUtils.isBlank(oid) && object == null && filter == null && targetName == null) {
             boolean mayBeEmpty = false;
             if (getParent() != null && getParent().getDefinition() != null) {
                 ItemDefinition itemDefinition = getParent().getDefinition();

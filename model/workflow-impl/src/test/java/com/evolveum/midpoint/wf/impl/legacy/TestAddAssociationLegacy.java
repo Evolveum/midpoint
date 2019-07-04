@@ -149,7 +149,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
                 IntegrationTestTools.display("jack dummy account", account);
                 assertHasAssociation(account, new QName("group"), GROUP_TESTERS_OID);
 
-                checkWorkItemAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.APPROVED));
+                checkAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.APPROVED));
             }
 
             @Override
@@ -229,7 +229,7 @@ public class TestAddAssociationLegacy extends AbstractWfTestLegacy {
                 IntegrationTestTools.display("elisabeth dummy account", account);
                 assertEquals("Unexpected associations present", 0, account.getAssociation().size());
 
-                checkWorkItemAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.REJECTED));
+                checkAuditRecords(createResultMap(GROUP_TESTERS_OID, WorkflowResult.REJECTED));
             }
 
             @Override

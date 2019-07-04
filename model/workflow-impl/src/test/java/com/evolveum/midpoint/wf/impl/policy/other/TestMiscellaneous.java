@@ -22,12 +22,14 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.wf.impl.policy.AbstractWfTestPolicy;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -79,7 +81,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("Work item", workItem);
 
 		// WHEN
-		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, "OK", null, null, task, result);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
+				null, task, result);
 
 		// THEN
 		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
@@ -146,7 +150,9 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		display("Work item", workItem);
 
 		// WHEN
-		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, "OK", null, null, task, result);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext).comment("OK"),
+				null, task, result);
 
 		// THEN
 		CaseType aCase = getCase(CaseWorkItemUtil.getCaseRequired(workItem).getOid());
@@ -216,7 +222,10 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
 		// complete the work item related to assigning role-2a
 		CaseWorkItemType workItem = getWorkItem(task, result);
 		display("Work item", workItem);
-		workflowManager.completeWorkItem(WorkItemId.of(workItem), true, null, null, null, task, result);
+		workflowManager.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				null, task, result);
+
 		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
 		CaseType rootCase = getCase(aCase.getParentRef().getOid());
 		waitForCaseClose(rootCase);

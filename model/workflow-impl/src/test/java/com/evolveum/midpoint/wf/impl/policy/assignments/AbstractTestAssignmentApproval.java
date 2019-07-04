@@ -344,7 +344,7 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
 				if (number == 1) {
 					if (yes) {
 						assertAssignedRole(userJackOid, getRoleOid(1), opTask, result);
-						checkWorkItemAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
+						checkAuditRecords(createResultMap(getRoleOid(1), WorkflowResult.APPROVED));
 						checkUserApprovers(userJackOid, Collections.singletonList(realApproverOid), result);
 					} else {
 						assertNotAssignedRole(userJackOid, getRoleOid(1), opTask, result);

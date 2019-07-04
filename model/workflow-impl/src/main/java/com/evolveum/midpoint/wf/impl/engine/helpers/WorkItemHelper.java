@@ -92,6 +92,22 @@ public class WorkItemHelper {
 
 		ObjectReferenceType userRef = user != null ? user.toObjectReference() : workItem.getPerformerRef();	// partial fallback
 
+		WorkItemId workItemId = WorkItemId.create(ctx.getCaseOid(), workItem.getId());
+
+		AbstractWorkItemOutputType output = workItem.getOutput();
+		if (realClosure || output != null) {
+			WorkItemCompletionEventType event = new WorkItemCompletionEventType(prismContext);
+			fillInWorkItemEvent(event, user, workItemId, workItem, prismContext);
+			event.setCause(causeInformation);
+			event.setOutput(output);
+			ctx.addEvent(event);
+			ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
+					((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
+			if (additionalDelta != null) {
+				ctx.updateDelta(additionalDelta);
+			}
+		}
+
 		// We don't pass userRef (initiator) to the audit method. It does need the whole object (not only the reference),
 		// so it fetches it directly from the security enforcer (logged-in user). This could change in the future.
 		AuditEventRecord auditEventRecord = primaryChangeProcessor.prepareWorkItemDeletedAuditRecord(workItem, causeInformation,
@@ -111,26 +127,11 @@ public class WorkItemHelper {
 			}
 			ctx.prepareNotification(new DelayedNotification.AllocationChangeCurrent(ctx.getCurrentCase(), workItem, operationInfo, sourceInfo, null));
 		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't audit work item complete event", e);
-		}
-
-		WorkItemId workItemId = WorkItemId.create(ctx.getCaseOid(), workItem.getId());
-
-		AbstractWorkItemOutputType output = workItem.getOutput();
-		if (realClosure || output != null) {
-			WorkItemCompletionEventType event = new WorkItemCompletionEventType(prismContext);
-			fillInWorkItemEvent(event, user, workItemId, workItem, prismContext);
-			event.setCause(causeInformation);
-			event.setOutput(output);
-			ctx.addEvent(event);
-			ObjectDeltaType additionalDelta = output instanceof WorkItemResultType && ((WorkItemResultType) output).getAdditionalDeltas() != null ?
-					((WorkItemResultType) output).getAdditionalDeltas().getFocusPrimaryDelta() : null;
-			ctx.updateDelta(additionalDelta);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare notifications for work item complete event", e);
 		}
 
 		triggerHelper.removeTriggersForWorkItem(ctx.getCurrentCase(), workItem.getId(), result);
 
 		LOGGER.trace("--- recordWorkItemClosure EXIT: workItem={}, ctx={}, realClosure={}", workItem, ctx, realClosure);
 	}
-
 }

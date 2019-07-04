@@ -34,6 +34,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,7 +270,9 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 
 		// TODO check trigger
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 		waitForCaseClose(rootCase, 60000);
 
 		PrismObject<RoleType> roleAfterApproval = getRole(roleCorrectOid);
@@ -343,14 +346,18 @@ public class TestPolicyDrivenRoleLifecycle extends AbstractUninitializedCertific
 		assertEquals("wrong # of approval stages", 2, wfc.getApprovalSchema().getStage().size());
 		assertEquals("wrong # of attached policy rules", 2, wfc.getPolicyRules().getEntry().size());
 
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		approvalCase = modelService.getObject(CaseType.class, approvalCase.getOid(), options, task, result).asObjectable();
 		List<CaseWorkItemType> openWorkItems = approvalCase.getWorkItem().stream().filter(i -> i.getCloseTimestamp() == null)
 				.collect(Collectors.toList());
 		assertEquals("wrong # of open work items", 1, openWorkItems.size());
 		workItem = openWorkItems.get(0);
-		workflowService.completeWorkItem(WorkItemId.of(workItem), true, null, null, task, result);
+		workflowService.completeWorkItem(WorkItemId.of(workItem),
+				ApprovalUtils.createApproveOutput(prismContext),
+				task, result);
 
 		CaseType rootCase = getRootCase(cases);
 		waitForCaseClose(rootCase, 60000);

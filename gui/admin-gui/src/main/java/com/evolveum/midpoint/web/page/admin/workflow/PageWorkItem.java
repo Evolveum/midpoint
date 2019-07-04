@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.component.DefaultAjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -325,7 +326,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 			}
 			try {
 				assumePowerOfAttorneyIfRequested(result);
-				getWorkflowService().completeWorkItem(dto.getWorkItemId(), approved, dto.getApproverComment(), delta, task, result);
+				getWorkflowService().completeWorkItem(
+						dto.getWorkItemId(),
+						new AbstractWorkItemOutputType(getPrismContext())
+								.outcome(ApprovalUtils.toUri(approved))
+								.comment(dto.getApproverComment()),
+						delta, task, result);
 			} finally {
 				dropPowerOfAttorneyIfRequested(result);
 			}

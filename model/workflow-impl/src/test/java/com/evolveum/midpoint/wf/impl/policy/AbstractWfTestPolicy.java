@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -511,7 +512,9 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 				Boolean approve = testDetails.decideOnApproval(caseWorkItem);
 				if (approve != null) {
 					workflowManager.completeWorkItem(WorkItemId.create(caseOid, caseWorkItem.getId()),
-							approve, null, null, null, opTask, result);
+							new AbstractWorkItemOutputType(prismContext)
+									.outcome(ApprovalUtils.toUri(approve)),
+							null, opTask, result);
 					login(userAdministrator);
 					break;
 				}
@@ -539,8 +542,11 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 							}
 							login(getUserFromRepo(approvalInstruction.approverOid));
 							System.out.println("Completing work item " + WorkItemId.of(workItem) + " using " + approvalInstruction);
-							workflowManager.completeWorkItem(WorkItemId.of(workItem), approvalInstruction.approval, approvalInstruction.comment,
-									null, null, opTask, result);
+							workflowManager.completeWorkItem(WorkItemId.of(workItem),
+									new AbstractWorkItemOutputType(prismContext)
+											.outcome(ApprovalUtils.toUri(approvalInstruction.approval))
+											.comment(approvalInstruction.comment),
+									null, opTask, result);
 							if (approvalInstruction.afterApproval != null) {
 								approvalInstruction.afterApproval.run();
 							}

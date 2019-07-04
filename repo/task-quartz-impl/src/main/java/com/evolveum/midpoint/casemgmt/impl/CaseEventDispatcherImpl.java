@@ -16,15 +16,13 @@
 
 package com.evolveum.midpoint.casemgmt.impl;
 
-import com.evolveum.midpoint.casemgmt.api.CaseManager;
-import com.evolveum.midpoint.casemgmt.api.CaseWorkItemListener;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
+import com.evolveum.midpoint.casemgmt.api.CaseEventListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -33,30 +31,30 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * @author mederly
  */
-@Service(value = "caseManager")
-public class CaseManagerImpl implements CaseManager {
+@Service
+public class CaseEventDispatcherImpl implements CaseEventDispatcher {
 
-	private static final Trace LOGGER = TraceManager.getTrace(CaseManagerImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(CaseEventDispatcherImpl.class);
 
-	private final Set<CaseWorkItemListener> workItemListeners = ConcurrentHashMap.newKeySet();
+	private final Set<CaseEventListener> listeners = ConcurrentHashMap.newKeySet();
 
 	@Override
-	public void registerWorkItemListener(CaseWorkItemListener workItemListener) {
-		workItemListeners.add(workItemListener);
+	public void registerCaseCreationEventListener(CaseEventListener listener) {
+		listeners.add(listener);
 	}
 
 	@Override
-	public void unregisterWorkItemListener(CaseWorkItemListener workItemListener) {
-		workItemListeners.remove(workItemListener);
+	public void unregisterCaseCreationEventListener(CaseEventListener listener) {
+		listeners.remove(listener);
 	}
 
 	@Override
-	public void notifyWorkItemCreated(CaseWorkItemType workItem, CaseType aCase, Task task, OperationResult result) {
-		for (CaseWorkItemListener listener : workItemListeners) {
+	public void dispatchCaseEvent(CaseType aCase, OperationResult result) {
+		for (CaseEventListener listener : listeners) {
 			try {
-				listener.onWorkItemCreation(workItem, aCase, task, result);
+				listener.onCaseCreation(aCase, result);
 			} catch (Throwable t) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking work item listener; work item = {}", t, workItem);
+				LoggingUtils.logUnexpectedException(LOGGER, "Exception when invoking case listener; case = {}", t, aCase);
 			}
 		}
 	}

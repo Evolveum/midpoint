@@ -79,6 +79,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 
 	protected static final File ROLE_APPROVER_FILE = new File(COMMON_DIR, "041-role-approver.xml");
+	protected static final File ARCHETYPE_MANUAL_PROVISIONING_CASE_FILE = new File(COMMON_DIR, "023-archetype-manual-provisioning-case.xml");
 	protected static final File ARCHETYPE_OPERATION_REQUEST_FILE = new File(COMMON_DIR, "024-archetype-operation-request.xml");
 	protected static final File ARCHETYPE_APPROVAL_CASE_FILE = new File(COMMON_DIR, "025-archetype-approval-case.xml");
 
@@ -114,6 +115,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
 		login(userAdministrator);
 
 		repoAddObjectFromFile(ROLE_APPROVER_FILE, initResult).getOid();
+		repoAddObjectFromFile(ARCHETYPE_MANUAL_PROVISIONING_CASE_FILE, initResult).getOid();
 		repoAddObjectFromFile(ARCHETYPE_OPERATION_REQUEST_FILE, initResult).getOid();
 		repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult).getOid();
 

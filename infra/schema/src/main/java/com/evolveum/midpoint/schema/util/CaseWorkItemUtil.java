@@ -41,6 +41,9 @@ public class CaseWorkItemUtil {
     }
 
     public static CaseType getCase(CaseWorkItemType workItem) {
+        if (workItem == null) {
+            return null;
+        }
         @SuppressWarnings({"unchecked", "raw"})
         PrismContainerable<CaseWorkItemType> parent = workItem.asPrismContainerValue().getParent();
         if (!(parent instanceof PrismContainer)) {

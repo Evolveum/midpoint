@@ -16,13 +16,19 @@
 
 package com.evolveum.midpoint.casemgmt.api;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+
 /**
- * @author mederly
+ * An interface through which external observers can be notified about case-related events.
+ * Used e.g. for implementing case-related notifications.
+ *
+ * EXPERIMENTAL. This interface may change in near future.
  */
-public interface CaseManagerAware {
+public interface CaseEventListener {
 
-	void setCaseManager(CaseManager caseManager);
-
-	CaseManager getCaseManager();
-
+    /**
+     * This method is called when a case is created.
+	 */
+    void onCaseCreation(CaseType aCase, OperationResult result);
 }

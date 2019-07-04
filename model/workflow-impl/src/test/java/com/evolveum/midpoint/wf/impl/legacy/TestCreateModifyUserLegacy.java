@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
@@ -38,8 +39,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertEquals;
-
 /**
  * @author mederly
  */
@@ -50,7 +49,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
     protected static final Trace LOGGER = TraceManager.getTrace(TestCreateModifyUserLegacy.class);
 
     private static final File REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR,
-            "user-elisabeth-modify-add-assignment-role3.xml");
+            "user-elisabeth-modify-add-assignment-role1.xml");
 
     public TestCreateModifyUserLegacy() throws JAXBException {
 		super();
@@ -88,8 +87,8 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
                 assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, opTask, result);
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApproversForCreate(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);
             }
 
@@ -104,10 +103,10 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
     /**
      * Add another assignment to user elisabeth (with sensitive role)
      */
-    @Test(enabled = true)
-    public void test020ModifyElisabethAssignRole3() throws Exception {
-        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole3");
-        executeTest("test020ModifyElisabethAssignRole3", USER_ELISABETH_OID, new TestDetails() {
+    @Test
+    public void test020ModifyElisabethAssignRole1() throws Exception {
+        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole1");
+        executeTest("test020ModifyElisabethAssignRole1", USER_ELISABETH_OID, new TestDetails() {
             @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
@@ -133,9 +132,9 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             @Override
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
-                //assertAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
+                assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, opTask, result);
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);
                 checkUserApproversForCreate(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);   // this one should remain from test010
             }

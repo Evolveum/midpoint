@@ -19,18 +19,22 @@ package com.evolveum.midpoint.wf.impl;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.test.DummyAuditService;
+import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
@@ -38,31 +42,31 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class WfTestUtil {
 
 	public static void checkWorkItemAuditRecords(Map<String, WorkflowResult> expectedResults, DummyAuditService dummyAuditService) {
-		// TODO
-//		List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
-//		assertEquals("Unexpected number of work item audit records", expectedResults.size() * 2, workItemRecords.size());
-//		for (AuditEventRecord record : workItemRecords) {
-//			if (record.getEventStage() != AuditEventStage.EXECUTION) {
-//				continue;
-//			}
-//			if (record.getDeltas().size() != 1) {
-//				fail("Wrong # of deltas in work item audit record: " + record.getDeltas().size());
-//			}
-//			ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-//			Containerable valueToAdd = ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd()
-//					.iterator().next()).asContainerable();
-//			String oid;
-//			if (valueToAdd instanceof AssignmentType) {
-//				oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
-//			} else if (valueToAdd instanceof ShadowAssociationType) {
-//				oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
-//			} else {
-//				continue;
-//			}
-//			assertNotNull("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
-//			assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
-//					WorkflowResult.fromNiceWfAnswer(record.getResult()));
-//		}
+		List<AuditEventRecord> workItemRecords = dummyAuditService.getRecordsOfType(AuditEventType.WORK_ITEM);
+		assertEquals("Unexpected number of work item audit records", expectedResults.size() * 2, workItemRecords.size());
+		for (AuditEventRecord record : workItemRecords) {
+			if (record.getEventStage() != AuditEventStage.EXECUTION) {
+				continue;
+			}
+			if (record.getDeltas().size() != 1) {
+				System.out.println("Record:\n" + record.debugDump());
+				fail("Wrong # of deltas in work item audit record: " + record.getDeltas().size());
+			}
+			ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
+			Containerable valueToAdd = ((PrismContainerValue) delta.getModifications().iterator().next().getValuesToAdd()
+					.iterator().next()).asContainerable();
+			String oid;
+			if (valueToAdd instanceof AssignmentType) {
+				oid = ((AssignmentType) valueToAdd).getTargetRef().getOid();
+			} else if (valueToAdd instanceof ShadowAssociationType) {
+				oid = ((ShadowAssociationType) valueToAdd).getShadowRef().getOid();
+			} else {
+				continue;
+			}
+			assertTrue("Unexpected target to approve: " + oid, expectedResults.containsKey(oid));
+			assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
+					WorkflowResult.fromNiceWfAnswer(record.getResult()));
+		}
 	}
 
 	public static void checkWfProcessAuditRecords(Map<String, WorkflowResult> expectedResults, DummyAuditService dummyAuditService) {
@@ -72,14 +76,14 @@ public class WfTestUtil {
 			if (record.getEventStage() != AuditEventStage.EXECUTION) {
 				continue;
 			}
-			ObjectDelta<? extends ObjectType> delta = record.getDeltas().iterator().next().getObjectDelta();
-			if (!delta.getModifications().isEmpty()) {
-				AssignmentType assignmentType = (AssignmentType) ((PrismContainerValue) delta.getModifications().iterator().next()
-						.getValuesToAdd().iterator().next()).asContainerable();
-				String oid = assignmentType.getTargetRef().getOid();
-				assertNotNull("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
-				assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
-						WorkflowResult.fromNiceWfAnswer(record.getResult()));
+			Set<AuditReferenceValue> targetRef = record.getReferenceValues(WorkflowConstants.AUDIT_TARGET);
+			assertEquals("Wrong # of targetRef values in " + record.debugDump(), 1, targetRef.size());
+			String oid = targetRef.iterator().next().getOid();
+			assertTrue("Unexpected role to approve: " + oid, expectedResults.containsKey(oid));
+			assertEquals("Unexpected result for " + oid + ": " + record.getResult(), expectedResults.get(oid),
+					WorkflowResult.fromNiceWfAnswer(record.getResult()));
+			if (expectedResults.get(oid) == WorkflowResult.APPROVED) {
+				assertEquals("Wrong # of deltas in " + record.debugDump(), 1, record.getDeltas().size());
 			}
 		}
 	}

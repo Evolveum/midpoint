@@ -494,6 +494,14 @@ public class ObjectTypeUtil {
         return rv;
     }
 
+    public static <O extends ObjectType> List<ObjectReferenceType> objectListToReferences(Collection<PrismObject<O>> objects) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+	    for (PrismObject<? extends ObjectType> object : objects) {
+		    rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
+	    }
+        return rv;
+    }
+
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
@@ -859,7 +867,11 @@ public class ObjectTypeUtil {
 	}
 
 	public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
-		for (ObjectReferenceType orgRef: object.asObjectable().getArchetypeRef()) {
+    	return hasArchetype(object.asObjectable(), oid);
+	}
+
+	public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
+		for (ObjectReferenceType orgRef: objectable.getArchetypeRef()) {
 			if (oid.equals(orgRef.getOid())) {
 				return true;
 			}

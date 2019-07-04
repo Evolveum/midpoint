@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.impl.access;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -73,22 +74,21 @@ public class WorkItemManager {
     private static final String OPERATION_RELEASE_WORK_ITEM = DOT_INTERFACE + "releaseWorkItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_INTERFACE + "delegateWorkItem";
 
-    public void completeWorkItem(WorkItemId workItemId, String outcome, String comment, ObjectDelta<? extends ObjectType> additionalDelta,
+    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
 		    WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
 		    throws SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
 		    ConfigurationException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addArbitraryObjectAsParam("workItemId", workItemId);
-        result.addParam("decision", outcome);
-        result.addParam("comment", comment);
-        result.addParam("additionalDelta", additionalDelta);
+        result.addParam("decision", output.getOutcome());
+        result.addParam("comment", output.getComment());
 
 		try {
 			LOGGER.trace("Completing work item {} with decision of {} ['{}']; cause: {}",
-					workItemId, outcome, comment, causeInformation);
+					workItemId, output.getOutcome(), output.getComment(), causeInformation);
 			CompleteWorkItemsRequest request = new CompleteWorkItemsRequest(workItemId.caseOid, causeInformation);
-			request.getCompletions().add(new CompleteWorkItemsRequest.SingleCompletion(workItemId.id, outcome, comment, additionalDelta));
+			request.getCompletions().add(new CompleteWorkItemsRequest.SingleCompletion(workItemId.id, output));
 			workflowEngine.executeRequest(request, task, result);
 		} catch (SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException e) {
 			result.recordFatalError("Couldn't complete the work item " + workItemId + ": " + e.getMessage(), e);
