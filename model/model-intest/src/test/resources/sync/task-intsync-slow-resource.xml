@@ -18,11 +18,9 @@
 <task oid="ca51f209-1ef5-42b3-84e7-5f639ee8e300"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-	<name>Live Sync: Slow Sync Dummy</name>
+	<name>Live Sync Interrupted: Slow Resource</name>
 
 	<extension>
 		<ext:objectclass>ri:AccountObjectClass</ext:objectclass>
