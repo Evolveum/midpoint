@@ -115,7 +115,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // WHEN
-        List<AuditEventRecord> allRecords = modelAuditService.listRecords("from RAuditEventRecord as aer where 1=1 ",
+        List<AuditEventRecord> allRecords = modelAuditService.listRecords("select * from m_audit_event as aer where 1=1 ",
 				new HashMap<>(), task, result);
 
         // THEN
@@ -548,7 +548,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
 
 	    HashMap<String, Object> params = new HashMap<>();
 	    params.put("outcome", OperationResultStatusType.UNKNOWN);
-	    List<AuditEventRecord> records = modelAuditService.listRecords("from RAuditEventRecord as aer where aer.outcome = :outcome", params, task, result);
+	    List<AuditEventRecord> records = modelAuditService.listRecords("select * from m_audit_event as aer where aer.outcome = :outcome", params, task, result);
 
 	    // THEN
 	    displayThen(TEST_NAME);
