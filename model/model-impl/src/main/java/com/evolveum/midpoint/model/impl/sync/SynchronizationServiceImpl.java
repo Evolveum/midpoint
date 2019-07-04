@@ -888,8 +888,13 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			projectionContext.setSyncAbsoluteTrigger(true);
 		}
 
-		// we insert account if available in change
-		projectionContext.setLoadedObject(shadow);
+		if (tombstone && delta.isDelete()) {
+			projectionContext.setObjectOld(shadow);
+		} else {
+
+			// we insert account if available in change
+			projectionContext.setLoadedObject(shadow);
+		}
 		if (!tombstone && !containsIncompleteItems(shadow)) {
 			projectionContext.setFullShadow(true);
 		}
