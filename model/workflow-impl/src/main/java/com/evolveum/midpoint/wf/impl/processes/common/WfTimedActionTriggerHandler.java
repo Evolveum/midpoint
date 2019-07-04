@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processes.common;
 
 import com.evolveum.midpoint.model.impl.trigger.MultipleTriggersHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
 import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
@@ -74,6 +76,7 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 	@Autowired private ExpressionEvaluationHelper evaluationHelper;
 	@Autowired private StageComputeHelper stageComputeHelper;
 	@Autowired private MiscHelper miscHelper;
+	@Autowired private PrismContext prismContext;
 
 	@PostConstruct
 	private void initialize() {
@@ -207,7 +210,8 @@ public class WfTimedActionTriggerHandler implements MultipleTriggersHandler {
 		CompleteWorkItemActionType complete = actions.getComplete();
 		if (complete != null) {
 			completeActions.add(new CompleteWorkItemsRequest.SingleCompletion(workItem.getId(),
-					defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT), null, null));
+					new AbstractWorkItemOutputType(prismContext)
+							.outcome(defaultIfNull(complete.getOutcome(), SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT))));
 			causeHolder.setValue(ApprovalContextUtil.createCause(complete));
 		}
 	}

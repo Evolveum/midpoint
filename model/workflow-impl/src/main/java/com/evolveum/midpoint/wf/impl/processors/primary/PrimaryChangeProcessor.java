@@ -503,35 +503,36 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
-
-        ObjectTreeDeltas<?> deltas;
-        try {
-            if (stage == REQUEST) {
-                deltas = generalHelper.retrieveDeltasToApprove(aCase);
-            } else {
-                deltas = generalHelper.retrieveResultingDeltas(aCase);
-            }
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't retrieve delta(s) from case " + aCase, e);
-        }
-        if (deltas != null) {
-            List<ObjectDelta<? extends ObjectType>> deltaList = deltas.getDeltaList();
-            for (ObjectDelta<? extends ObjectType> delta : deltaList) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
-            }
-        }
-        return auditEventRecord;
+	    addDeltaIfNeeded(auditEventRecord, stage == REQUEST, aCase);
+	    return auditEventRecord;
     }
 
-    @Override
+	private void addDeltaIfNeeded(AuditEventRecord auditEventRecord, boolean toApprove, CaseType aCase) {
+		if (CaseTypeUtil.isApprovalCase(aCase)) {
+			ObjectTreeDeltas<?> deltas;
+			try {
+				if (toApprove) {
+					deltas = generalHelper.retrieveDeltasToApprove(aCase);
+				} else {
+					deltas = generalHelper.retrieveResultingDeltas(aCase);
+				}
+			} catch (SchemaException e) {
+				throw new SystemException("Couldn't retrieve delta(s) from case " + aCase, e);
+			}
+			if (deltas != null) {
+				List<ObjectDelta<? extends ObjectType>> deltaList = deltas.getDeltaList();
+				for (ObjectDelta<? extends ObjectType> delta : deltaList) {
+					auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
+				}
+			}
+		}
+	}
+
+	@Override
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
 		    OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
-        try {
-            addDeltasToEventRecord(auditEventRecord, generalHelper.retrieveDeltasToApprove(aCase));
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
-        }
+        addDeltaIfNeeded(auditEventRecord, true, aCase);
 		return auditEventRecord;
     }
 
@@ -539,29 +540,9 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
 		    CaseType aCase, OperationResult result) {
         AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
-        try {
-			AbstractWorkItemOutputType output = workItem.getOutput();
-        	// TODO - or merge with original deltas?
-        	if (output != null && ApprovalUtils.fromUri(output.getOutcome()) == WorkItemOutcomeType.APPROVE
-                    && output instanceof WorkItemResultType
-					&& ((WorkItemResultType) output).getAdditionalDeltas() != null) {
-				addDeltasToEventRecord(auditEventRecord,
-						ObjectTreeDeltas.fromObjectTreeDeltasType(((WorkItemResultType) output).getAdditionalDeltas(), getPrismContext()));
-			}
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
-        }
+	    addDeltaIfNeeded(auditEventRecord, true, aCase);
 		return auditEventRecord;
     }
-
-    private void addDeltasToEventRecord(AuditEventRecord auditEventRecord, ObjectTreeDeltas<?> deltas) {
-        if (deltas != null) {
-			for (ObjectDelta<? extends ObjectType> delta : deltas.getDeltaList()) {
-				auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
-			}
-		}
-    }
-
     //endregion
 
     //region Getters and setters

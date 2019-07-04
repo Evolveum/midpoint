@@ -25,6 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.WorkflowResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
@@ -37,8 +38,6 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author mederly
@@ -102,8 +101,8 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             @Override
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 assertNoObject(OrgType.class, ORG_TEST1_OID, opTask, result);
             }
 
@@ -146,8 +145,8 @@ public class TestCreateOrgLegacy extends AbstractWfTestLegacy {
             @Override
             void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
                     OperationResult result) throws Exception {
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkApproversForCreate(OrgType.class, ORG_TEST1_OID, Arrays.asList(USER_ADMINISTRATOR_OID), result);
             }
 

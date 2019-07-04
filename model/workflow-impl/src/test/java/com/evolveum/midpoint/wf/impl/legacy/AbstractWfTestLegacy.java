@@ -47,6 +47,7 @@ import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.impl.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.impl.processors.primary.PcpGeneralHelper;
 import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -313,7 +314,10 @@ public class AbstractWfTestLegacy extends AbstractInternalModelIntegrationTest {
                 LOGGER.trace("wfContext = {}", wfContext);
 
                 boolean approve = testDetails.decideOnApproval(subcase, wfContext);
-                workflowManager.completeWorkItem(WorkItemId.of(workItem), approve, null, null, null, task, result);
+                workflowManager.completeWorkItem(WorkItemId.of(workItem),
+                        new AbstractWorkItemOutputType(prismContext)
+                                .outcome(ApprovalUtils.toUri(approve)),
+                        null, task, result);
                 login(userAdministrator);
             }
         }

@@ -218,8 +218,8 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
 
 	@Override
 	protected void checkDefinition(PrismReferenceDefinition def) {
-		if (!(def instanceof PrismReferenceDefinition)) {
-			throw new IllegalArgumentException("Cannot apply definition "+def+" to reference "+this);
+		if (def == null) {
+			throw new IllegalArgumentException("Cannot apply null definition to reference "+this);
 		}
 	}
 

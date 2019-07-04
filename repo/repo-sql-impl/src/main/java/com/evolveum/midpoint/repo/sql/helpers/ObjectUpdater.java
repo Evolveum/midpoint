@@ -26,6 +26,7 @@ import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
@@ -37,10 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -265,6 +262,7 @@ public class ObjectUpdater {
 
         String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
                 .itemsToSkip(itemsToSkip)
+                .options(SerializationOptions.createSerializeReferenceNamesForNullOids())
                 .serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 

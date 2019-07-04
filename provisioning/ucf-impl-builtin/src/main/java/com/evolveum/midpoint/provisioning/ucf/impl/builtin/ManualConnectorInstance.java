@@ -22,13 +22,15 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.casemgmt.api.CaseManager;
-import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.api.connectors.AbstractManualConnectorInstance;
 import com.evolveum.midpoint.repo.api.RepositoryAware;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerAware;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -62,30 +63,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * @author Radovan Semancik
  *
  */
 @ManagedConnector(type="ManualConnector", version="1.0.0")
-public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware, CaseManagerAware, TaskManagerAware {
+public class ManualConnectorInstance extends AbstractManualConnectorInstance implements RepositoryAware,
+		CaseEventDispatcherAware, TaskManagerAware {
 	
-	public static final String OPERATION_QUERY_CASE = ".queryCase";
+	private static final String OPERATION_QUERY_CASE = ManualConnectorInstance.class.getName() + ".queryCase";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ManualConnectorInstance.class);
 
 	private ManualConnectorConfiguration configuration;
 
 	private RepositoryService repositoryService;
-	private CaseManager caseManager;
+	private CaseEventDispatcher caseEventDispatcher;
 	private TaskManager taskManager;
 	
 	private boolean connected = false;
 	
 	private static int randomDelayRange = 0;
 
-	private static final String DEFAULT_OPERATOR_OID = "00000000-0000-0000-0000-000000000002";  // administrator
+	private static final String DEFAULT_OPERATOR_OID = SystemObjectsType.USER_ADMINISTRATOR.value();
 	
-	protected static final Random RND = new Random();
+	private static final Random RND = new Random();
 
 	private Clock clock = new Clock();
 	
@@ -113,13 +117,13 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 	}
 
 	@Override
-	public void setCaseManager(CaseManager caseManager) {
-		this.caseManager = caseManager;
+	public void setDispatcher(CaseEventDispatcher dispatcher) {
+		this.caseEventDispatcher = dispatcher;
 	}
 
 	@Override
-	public CaseManager getCaseManager() {
-		return caseManager;
+	public CaseEventDispatcher getDispatcher() {
+		return caseEventDispatcher;
 	}
 
 	@Override
@@ -231,6 +235,20 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		if (businessConfiguration != null) {
 			operators.addAll(businessConfiguration.getOperatorRef());
 		}
+		if (operators.isEmpty() && configuration.getDefaultAssignee() != null) {
+			ObjectQuery query = getPrismContext().queryFor(UserType.class)
+					.item(UserType.F_NAME).eq(configuration.getDefaultAssignee()).matchingOrig()
+					.build();
+			List<PrismObject<UserType>> defaultAssignees = repositoryService
+					.searchObjects(UserType.class, query, null, result);
+			if (defaultAssignees.isEmpty()) {
+				LOGGER.warn("Default assignee named '{}' was not found; using system-wide default instead.",
+						configuration.getDefaultAssignee());
+			} else {
+				assert defaultAssignees.size() == 1;
+				operators.addAll(ObjectTypeUtil.objectListToReferences(defaultAssignees));
+			}
+		}
 		if (operators.isEmpty()) {
 			operators.add(new ObjectReferenceType().oid(DEFAULT_OPERATOR_OID).type(UserType.COMPLEX_TYPE));
 		}
@@ -243,14 +261,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 		caseType.setDescription(description);
 
-		// subtype
-		caseType.setState(SchemaConstants.CASE_STATE_OPEN);
+		caseType.setState(SchemaConstants.CASE_STATE_CREATED);  // Case opening process will be completed by WorkflowEngine
 
 		caseType.setObjectRef(new ObjectReferenceType().oid(resourceOid).type(ResourceType.COMPLEX_TYPE));
 
-		// FIXME this is really ugly hack -- see MID-5489
-		String targetOid = shadowOid != null ? shadowOid : "?";
-		caseType.setTargetRef(new ObjectReferenceType().oid(targetOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
+		caseType.setTargetRef(new ObjectReferenceType().oid(shadowOid).targetName(shadowName).type(ShadowType.COMPLEX_TYPE));
 
 		if (objectDelta != null) {
 			caseType.setObjectChange(objectDelta);
@@ -261,16 +276,26 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		caseType.getArchetypeRef().add(archetypeRef.clone());
 		caseType.beginAssignment().targetRef(archetypeRef).end();
 
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		caseType.beginMetadata().setCreateTimestamp(now);
+
+		XMLGregorianCalendar deadline;
+		if (businessConfiguration != null && businessConfiguration.getOperatorActionMaxDuration() != null) {
+			deadline = CloneUtil.clone(now);
+			deadline.add(businessConfiguration.getOperatorActionMaxDuration());
+		} else {
+			deadline = null;
+		}
+
 		for (ObjectReferenceType operator : operators) {
 			CaseWorkItemType workItem = new CaseWorkItemType(getPrismContext())
 					.originalAssigneeRef(operator.clone())
 					.assigneeRef(operator.clone())
 					.name(caseType.getName().getOrig())
-					.deadline(clock.currentTimeXMLGregorianCalendar());
+					.createTimestamp(now)
+					.deadline(deadline);
 			caseType.getWorkItem().add(workItem);
 		}
-
-		caseType.beginMetadata().setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
 
 		// TODO: case payload
 		// TODO: a lot of other things
@@ -284,10 +309,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		repositoryService.addObject(aCase, null, result);
 
 		// notifications
-		Task task = taskManager.createTaskInstance();
-		for (CaseWorkItemType workItem : caseType.getWorkItem()) {
-			caseManager.notifyWorkItemCreated(workItem, caseType, task, result);
-		}
+		caseEventDispatcher.dispatchCaseEvent(caseType, result);
 		return aCase;
 	}
 
@@ -308,17 +330,18 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 		CaseType caseType = acase.asObjectable();
 		String state = caseType.getState();
 
-		if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)) {
+		// States "open" and "created" are the same from the factual point of view
+		// They differ only in level of processing carried out by workflow manager (audit, notifications, etc).
+		if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_OPEN_QNAME, state)
+				|| QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CREATED_QNAME, state)) {
 			result.recordSuccess();
 			return OperationResultStatus.IN_PROGRESS;
-
-		} else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)) {
-
+		} else if (QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSED_QNAME, state)
+				|| QNameUtil.matchWithUri(SchemaConstants.CASE_STATE_CLOSING_QNAME, state)) {
 			String outcome = caseType.getOutcome();
 			OperationResultStatus status = translateOutcome(outcome);
 			result.recordSuccess();
 			return status;
-
 		} else {
 			SchemaException e = new SchemaException("Unknown case state "+state);
 			result.recordFatalError(e);
@@ -327,6 +350,7 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
 
 	}
 
+	// see CompleteWorkItemsAction.getOutcome(..) method
 	private OperationResultStatus translateOutcome(String outcome) {
 
 		// TODO: better algorithm

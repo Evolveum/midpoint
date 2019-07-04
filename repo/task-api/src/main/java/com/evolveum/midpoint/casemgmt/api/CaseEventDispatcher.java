@@ -17,24 +17,19 @@
 package com.evolveum.midpoint.casemgmt.api;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
- * Analogous to WorkflowManager, this component will be responsible for managing cases and their work items.
- * Currently its only responsibility is to distribute case-related events.
+ * Dispatcher for case creation events. It is put on quite low level to be accessible from built-in manual connector.
  *
- * Eventually it will be placed in its own module distinct from task-api/task-quartz-impl.
- *
- * @author mederly
+ * We might consider moving this to another module, e.g. to schema, if needed.
  */
-public interface CaseManager {
+public interface CaseEventDispatcher {
 
-	void registerWorkItemListener(CaseWorkItemListener workItemListener);
+	void registerCaseCreationEventListener(CaseEventListener listener);
 
-	void unregisterWorkItemListener(CaseWorkItemListener workItemListener);
+	void unregisterCaseCreationEventListener(CaseEventListener listener);
 
-	void notifyWorkItemCreated(CaseWorkItemType workItem, CaseType aCase, Task task, OperationResult result);
+	void dispatchCaseEvent(CaseType aCase, OperationResult result);
 
 }

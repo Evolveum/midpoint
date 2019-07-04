@@ -7283,6 +7283,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="operatorActionMaxDuration" type="xsd:duration" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Maximal duration of the operator action. It is used to derive deadline for the corresponding work item(s).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                    	<a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

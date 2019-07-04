@@ -125,13 +125,13 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             result = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
             try {
                 AbstractWorkItemOutputType output = getCaseWorkItemModelObject().getOutput();
-                if (output == null){
-                    output = new AbstractWorkItemOutputType();
+                if (output == null) {
+                    output = new AbstractWorkItemOutputType(getPrismContext());
                 }
                 output.setOutcome(ApprovalUtils.toUri(approved));
-                getPageBase().getCaseManagementService().completeWorkItem(parentCase.getOid(),
-                        getCaseWorkItemModelObject().getId(), getCaseWorkItemModelObject().getOutput(), task, result);
-            } catch (Exception ex){
+                WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), getCaseWorkItemModelObject().getId());
+                getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
+            } catch (Exception ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
                 result.recordFatalError(ex);
             }
@@ -157,7 +157,10 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                         }
                     }
                     assumePowerOfAttorneyIfRequested(result);
-                    getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem), approved, getApproverComment(),
+                    getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
+                            new AbstractWorkItemOutputType(getPrismContext())
+                                    .outcome(ApprovalUtils.toUri(approved))
+                                    .comment(getApproverComment()),
                             additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result);

@@ -1926,7 +1926,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
 		display("Case", acase);
 		CaseType caseType = acase.asObjectable();
-		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
+		String realState = caseType.getState();
+		if (SchemaConstants.CASE_STATE_OPEN.equals(expectedState)) {
+			assertTrue("Wrong state of " + acase + "; expected was open/created, real is " + realState,
+					SchemaConstants.CASE_STATE_OPEN.equals(realState) || SchemaConstants.CASE_STATE_CREATED.equals(realState));
+		} else {
+			assertEquals("Wrong state of " + acase, expectedState, realState);
+		}
 	}
 
 	protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

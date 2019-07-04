@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -149,4 +150,8 @@ public class ApprovalUtils {
 		return isApproved(fromUri(uri));
 	}
 
+	public static AbstractWorkItemOutputType createApproveOutput(PrismContext prismContext) {
+		return new AbstractWorkItemOutputType(prismContext)
+				.outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+	}
 }
