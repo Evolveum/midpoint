@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
@@ -3403,6 +3404,47 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSteadyResources();
     }
+
+	@Test   // MID-5516
+	public void test400RemoveExtensionProtectedStringValue() throws Exception {
+		final String TEST_NAME = "test400RemoveExtensionProtectedStringValue";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		ProtectedStringType protectedValue = protector.encryptString("hi");
+		UserType joe = new UserType(prismContext)
+				.name("joe");
+		PrismPropertyDefinition<ProtectedStringType> definition = joe.asPrismObject().getDefinition()
+				.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, "locker"));
+		PrismProperty<ProtectedStringType> protectedProperty = definition.instantiate();
+		protectedProperty.setRealValue(protectedValue.clone());
+		joe.asPrismObject().addExtensionItem(protectedProperty);
+
+		addObject(joe.asPrismObject());
+
+		display("joe before", joe.asPrismObject());
+
+		// WHEN
+
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+				.item(UserType.F_EXTENSION, "locker")
+				.delete(protectedValue.clone())
+				.asObjectDelta(joe.getOid());
+
+		executeChanges(delta, null, task, result);
+
+		// THEN
+
+		PrismObject<UserType> joeAfter = getObject(UserType.class, joe.getOid());
+
+		display("joe after", joeAfter);
+
+		joeAfter.checkConsistence();
+	}
 
 	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +
