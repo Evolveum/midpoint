@@ -73,6 +73,7 @@ public class DummyConfiguration extends AbstractConfiguration {
 	private String pagingStrategy = PAGING_STRATEGY_OFFSET;
 	private String connectorInstanceNumberAttribute = null;
 	private String connectorInstanceNameAttribute = null;
+	private boolean impreciseTokenValues = false;
 
 	/**
      * Defines name of the dummy resource instance. There may be several dummy resource running in
@@ -425,6 +426,15 @@ public class DummyConfiguration extends AbstractConfiguration {
 
 	public void setConnectorInstanceNameAttribute(String connectorInstanceNameAttribute) {
 		this.connectorInstanceNameAttribute = connectorInstanceNameAttribute;
+	}
+
+	@ConfigurationProperty
+	public boolean isImpreciseTokenValues() {
+		return impreciseTokenValues;
+	}
+
+	public void setImpreciseTokenValues(boolean impreciseTokenValues) {
+		this.impreciseTokenValues = impreciseTokenValues;
 	}
 
 	/**

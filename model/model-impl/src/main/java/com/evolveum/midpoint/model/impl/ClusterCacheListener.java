@@ -57,7 +57,12 @@ public class ClusterCacheListener implements CacheListener {
 			LOGGER.trace("Ignoring invalidate() call for type {} (oid={}) because clusterwide=false", type, oid);
 			return;
 		}
-		
+
+		if (!taskManager.isClustered()) {
+			LOGGER.trace("Node is not part of a cluster, skipping remote cache entry invalidation");
+			return;
+		}
+
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication instanceof NodeAuthenticationToken || context != null && context.isFromRemoteNode()) {
 			// This is actually a safety check only. The invalidation call coming from the other node

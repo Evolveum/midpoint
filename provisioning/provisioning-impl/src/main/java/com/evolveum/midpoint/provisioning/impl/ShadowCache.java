@@ -61,13 +61,11 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -2455,11 +2453,17 @@ public class ShadowCache {
 	// TODO: maybe split this to a separate class
 	///////////////////////////////////////////////////////////////////////////
 
-	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
+	/**
+	 * @param lastToken This is the value obtained either from the task (if exists) or current token fetched from the resource.
+	 *                  Note that these two cases are radically different.
+	 */
+	@NotNull
+	public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
 			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
-			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException,
-			PolicyViolationException {
+			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
+
+		SynchronizationOperationResult rv = new SynchronizationOperationResult();
 
 		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
 
@@ -2467,64 +2471,109 @@ public class ShadowCache {
 		boolean isSimulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
 		boolean retryUnhandledError = !Boolean.FALSE.equals(task.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED));
 
-		List<Change> changes;
-		try {
+		PrismProperty<?> lastTokenSeen = lastToken;
+		boolean haltingErrorEncountered = false;
+		boolean suspendEncountered = false;
 
-			changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
-			if (!ctx.canRun()) {
-				LOGGER.info("LiveSync interrupted by task suspension: {}", ctx.getTask());
-				return 0;
-			}
+		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
+		boolean preciseTokenValue = capability != null && Boolean.TRUE.equals(capability.isPreciseTokenValue());
 
-			LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
-
-			int processedChanges = 0;
-
-			for (Change change : changes) {
-
-				if (change.isTokenOnly()) {
-					LOGGER.trace("Found token-only change: {}", change);
-					if (!isSimulate) {
-						task.setExtensionProperty(change.getToken());
-					}
-					continue;
-				}
-
-				boolean isSuccess = processSynchronization(ctx, isSimulate, change, task, partition, parentResult);
-
-				if (isSuccess || !retryUnhandledError) {
-					if (!isSimulate) {
-						task.setExtensionProperty(change.getToken());
-					}
-					processedChanges++;
-					if (task instanceof RunningTask) {
-						((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
-					}
-				} else {
-					// we need to retry the failed change -- so we must not update the token
-				}
-				if (!ctx.canRun()) {
-					break;
-				}
-			}
-
-			if (ctx.canRun()) {
-				// also if no changes was detected, update token
-				if (changes.isEmpty() && lastToken != null) {
-					LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
-					task.setExtensionProperty(lastToken);
-				}
-			} else {
-				LOGGER.info("LiveSync interrupted by task suspension: {}; processed changes: {}", ctx.getTask(), processedChanges);
-			}
-			task.flushPendingModifications(parentResult);
-			return processedChanges;
-
-		} catch (SchemaException | CommunicationException | GenericFrameworkException | ConfigurationException | 
-				ObjectNotFoundException | ObjectAlreadyExistsException | ExpressionEvaluationException | EncryptionException | RuntimeException | Error ex) {
-			parentResult.recordFatalError(ex);
-			throw ex;
+		List<Change> changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
+		if (!ctx.canRun()) {
+			LOGGER.info("LiveSync interrupted by task suspension during change collection. Token in the task is not updated. "
+					+ "Task: {}", ctx.getTask());
+			rv.setChangesDetected(changes.size());
+			rv.setSuspendEncountered(true);
+			return rv;
 		}
+
+		LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
+
+		int processedChanges = 0;
+		int errors = 0;
+
+		if (changes.isEmpty() && lastToken != null) {
+			// Should we consider isSimulate here?
+			LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
+			task.setExtensionProperty(lastToken);
+		} else {
+			for (Change change : changes) {
+				if (!ctx.canRun()) {
+					suspendEncountered = true;
+					break;
+				} else if (change.isTokenOnly()) {
+					LOGGER.trace("Found token-only change: {}", change);
+					lastTokenSeen = change.getToken();
+				} else {
+					boolean isSuccess;
+					try {
+						isSuccess = processSynchronization(ctx, isSimulate, change, task, partition, parentResult);
+					} catch (Throwable t) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Exception during processing object as part of live synchronization in {}", t, task);
+						isSuccess = false;
+					}
+
+					if (!isSuccess) {
+						errors++;
+					}
+					if (isSuccess || !retryUnhandledError) {
+						lastTokenSeen = change.getToken();
+						processedChanges++;
+						if (task instanceof RunningTask) {
+							((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+						}
+					} else {
+						// We need to retry the failed change -- so we must not update the token.
+						// Moreover, we have to stop here, so that the changes will be applied in correct order.
+						haltingErrorEncountered = true;
+						break;
+					}
+				}
+			}
+
+			if (haltingErrorEncountered) {
+				LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
+								+ "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
+						ctx.getTask(), processedChanges);
+			} else if (suspendEncountered) {
+				LOGGER.info("LiveSync was suspended during processing obtained deltas. Task: {}; processed changes: {}",
+						ctx.getTask(), processedChanges);
+			}
+
+			boolean updateToken;
+			if (isSimulate) {
+				// Token should not be updated.
+				updateToken = false;
+			} else if (!haltingErrorEncountered && !suspendEncountered) {
+				// Everything went OK.
+				updateToken = true;
+			} else if (preciseTokenValue) {
+				// Something was wrong but we can continue on latest change.
+				LOGGER.info("Capability of providing precise token values is present. Token is updated so the processing will "
+						+ "continue where it was stopped. New token value is '{}'", lastTokenSeen);
+				updateToken = true;
+			} else {
+				// Something was wrong and we must restart from the beginning.
+				LOGGER.info("Capability of providing precise token values is NOT present. Token will not be updated so the "
+								+ "processing will restart from the beginning at next task run. So token value stays as it was: '{}'",
+						lastToken);
+				// So we will not update the token.
+				updateToken = false;
+			}
+
+			if (updateToken) {
+				task.setExtensionProperty(lastTokenSeen);
+				rv.setTaskTokenUpdatedTo(lastTokenSeen);
+			}
+		}
+		task.flushPendingModifications(parentResult);
+		rv.setChangesDetected(changes.size());
+		rv.setChangesProcessed(processedChanges);
+		rv.setSuspendEncountered(suspendEncountered);
+		rv.setHaltingErrorEncountered(haltingErrorEncountered);
+		rv.setErrors(errors);
+		rv.setLastTokenSeen(lastTokenSeen);
+		return rv;
 	}
 
 	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)

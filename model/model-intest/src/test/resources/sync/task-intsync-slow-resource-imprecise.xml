@@ -15,24 +15,22 @@
   ~ limitations under the License.
   -->
 
-<task oid="c37dda96-e547-41c2-b343-b890bc7fade9"
+<task oid="82407cd3-7b1f-4054-b45a-fc4d9aed8ae3"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-	<name>Live Sync: Slow Sync Dummy 2</name>
+	<name>Live Sync Interrupted: Slow Resource Imprecise</name>
 
 	<extension>
 		<ext:objectclass>ri:AccountObjectClass</ext:objectclass>
 	</extension>
 
-	<taskIdentifier>c37dda96-e547-41c2-b343-b890bc7fade9</taskIdentifier>
+	<taskIdentifier>82407cd3-7b1f-4054-b45a-fc4d9aed8ae3</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
-	<objectRef oid="7a58233a-1cfb-46d1-a404-08cdf4626ebb" type="ResourceType"/>
+	<objectRef oid="e396b76e-e010-46ed-bbf5-a3da78d358ea" type="ResourceType"/>
 	<recurrence>single</recurrence>
 </task>

@@ -758,4 +758,6 @@ public interface TaskManager {
 	boolean isDynamicProfilingEnabled();
 
 	Tracer getTracer();
+
+	boolean isClustered();
 }

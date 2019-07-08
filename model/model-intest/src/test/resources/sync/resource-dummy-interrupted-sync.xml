@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<!-- Slow sync resource. Used to test LiveSync task interruption. -->
+<!-- Used to test LiveSync task interruption. -->
 
 <resource oid="7a58233a-1cfb-46d1-a404-08cdf4626ebb"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -27,7 +27,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Slow Sync</name>
+	<name>Dummy Resource Interrupted Sync</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -45,7 +45,7 @@
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 		<icfc:configurationProperties>
-			<icfi:instanceId>slowSync</icfi:instanceId>
+			<icfi:instanceId>interruptedSync</icfi:instanceId>
 		</icfc:configurationProperties>
 	</connectorConfiguration>
 	
@@ -60,8 +60,14 @@
 					<expression>
 						<script>
 							<code>
-								Thread.sleep(com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskInterruption.delay)
-								input
+								import com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskInterruption
+
+								if (input == TestLiveSyncTaskInterruption.errorOn) {
+									throw new IllegalStateException("Got error!")
+								} else {
+									Thread.sleep(TestLiveSyncTaskInterruption.delay)
+									input
+								}
 							</code>
 						</script>
 					</expression>

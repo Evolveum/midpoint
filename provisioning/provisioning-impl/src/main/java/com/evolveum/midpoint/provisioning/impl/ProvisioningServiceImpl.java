@@ -348,7 +348,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-		int processedChanges;
+		SynchronizationOperationResult liveSyncResult;
 
 		try {
 			// Resolve resource
@@ -363,15 +363,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
-			LOGGER.debug("Synchronization of {} done, token {}, {} changes; interrupted={}", resource, tokenProperty,
-					processedChanges, task instanceof RunningTask && !((RunningTask) task).canRun());
+			liveSyncResult = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
+			LOGGER.debug("Synchronization of {} done, token at start {}, result: {}", resource, tokenProperty, liveSyncResult);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;
-		} catch (ObjectAlreadyExistsException | EncryptionException e) {
+		} catch (ObjectAlreadyExistsException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw new SystemException(e);
@@ -382,10 +381,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new GenericConnectorException(e.getMessage(), e);
 		} 
 
-		result.recordSuccess();
+		if (liveSyncResult.isHaltingErrorEncountered()) {
+			// TODO MID-5514
+			result.recordPartialError("Object could not be processed and 'retryLiveSyncErrors' is true");
+		} else if (liveSyncResult.getErrors() > 0) {
+			result.recordPartialError("Errors while processing: " + liveSyncResult.getErrors() + " out of " + liveSyncResult.getChangesProcessed());
+		} else {
+			result.recordSuccess();
+		}
 		result.cleanupResult();
-		return processedChanges;
-
+		return liveSyncResult.getChangesProcessed();
 	}
 
 	@Override

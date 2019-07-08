@@ -163,6 +163,11 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
             protected boolean getOptionsPanelVisibility() {
                 return false;
             }
+
+            @Override
+            protected boolean isReadonly(){
+                return true;
+            }
         };
     }
 
