@@ -47,7 +47,7 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
 
 
     public PersonalInfoPanel(String id) {
-        super(id);
+        super(id, (IModel<PersonalInfoDto>) null);
     }
     
     @Override

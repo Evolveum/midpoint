@@ -17,25 +17,15 @@
 
 <user oid="b5541d3c-b2fd-11e5-88c0-4f82a8602266"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
-      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
-      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
-      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
       xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>jack</name>
     <extension>
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
-        <piracy:weapon>pistol</piracy:weapon>
-        <piracy:weapon>mouth</piracy:weapon>
-        <piracy:badLuck>0</piracy:badLuck>
+        <piracy:weapon xsi:type="xsd:string">pistol</piracy:weapon>
+        <piracy:weapon xsi:type="xsd:string">mouth</piracy:weapon>
+        <piracy:badLuck xsi:type="xsd:string">0</piracy:badLuck>
     </extension>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>

@@ -105,6 +105,11 @@ public class ModelObjectResolver implements ObjectResolver {
 	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task,
 			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
+		if (oid == null) {
+			// e.g. for targetName-only references
+			//noinspection unchecked
+			return refVal.getObject();
+		}
 		Class<?> typeClass = ObjectType.class;
 		QName typeQName = refVal.getTargetType();
 		if (typeQName == null && refVal.getParent() != null && refVal.getParent().getDefinition() != null) {

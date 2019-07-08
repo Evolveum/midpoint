@@ -32,6 +32,8 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import org.apache.wicket.Application;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.protocol.http.WicketFilter;
@@ -161,56 +163,23 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	    PrismObject<SystemConfigurationType> configuration = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
 	    relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
 	    
-//	    repoAddObjectFromFile(VALUE_POLICY_FILE, initResult);
 	    repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 	    repoAddObjectFromFile(ROLE_ENDUSER_FILE, initResult);
 	    repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 	    repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
-	    
-//	    repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-	    
+
 	  	login(USER_ADMINISTRATOR_USERNAME);
 	  	LOGGER.info("user logged in");
 	  	
 	  	tester = new WicketTester(application);
 	}
-    
-//    @PostConstruct
-//    public void setupApplication() throws ServletException {
-//    	
-//    	display("PostContruct");
-//    	for (String key: Application.getApplicationKeys()) {
-//    		display("App "+key, Application.get(key));
-//    	}
-//    	initializeMidPointApplication();
-//    	tester = new WicketTester(application);
-//    }
-    
-    private void initializeMidPointApplication() throws ServletException {
-//    	WicketFilter wicketFilter = new WicketFilter(application);
-//    	MockServletContext servletContext = new MockServletContext();
-//    	WebApplicationContext wac = new MockWebApplicationContext(appContext, servletContext);
-//    	servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, wac);
-//    	MockFilterConfig filterConfig = new MockFilterConfig(servletContext, "midpoint");
-//		wicketFilter.init(filterConfig);
-//		application.setWicketFilter(wicketFilter);
-//		application.setServletContext(servletContext);
-//    	new DescriptorLoader().loadData(application);
-//    	ThreadContext.setApplication(application);
-//    	application.initApplication();
-//    	ThreadContext.setApplication(null);
-	}
-    
+
     @BeforeMethod
     public void beforeMethodApplication() {
-//    	ThreadContext.setApplication(application);
-    	
     }
     
     @AfterMethod
     public void afterMethodApplication() {
-//    	ThreadContext.setApplication(null);
-//    	application.internalDestroy();
     }
 
 	@BeforeClass
@@ -311,6 +280,10 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 				return registry;
 			}
 
+			@Override
+			public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
+				return registry.getObjectWrapperFactory(objectDef);
+			}
 		};
 	}
 

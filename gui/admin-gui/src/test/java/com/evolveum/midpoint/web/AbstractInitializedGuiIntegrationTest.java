@@ -49,9 +49,6 @@ public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiI
 	protected PrismObject<UserType> userAdministrator;
 	protected String accountJackOid;
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-	 */
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");

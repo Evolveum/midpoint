@@ -1100,9 +1100,13 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	        		throw new IllegalStateException("Unknown delta type "+delta.getType());
 	        	}
 	        	deltaBuilder.setDeltaType(deltaType);
-	
-	        	deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
-	
+
+	        	if (configuration.isImpreciseTokenValues()) {
+			        deltaBuilder.setToken(new SyncToken(resource.getLatestSyncToken()));
+		        } else {
+			        deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
+		        }
+
 	        	Uid uid;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	uid = new Uid(delta.getObjectName());

@@ -64,8 +64,19 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
 	}
 	
 	protected SwitchAssignmentTypePanel createPanel(String panelId, PrismContainerWrapperModel<AHT, AssignmentType> model) {
-		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model);
+		SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId, model){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected boolean isReadonly(){
+				return AssignmentHolderTypeAssignmentsTabPanel.this.isReadonly();
+			}
+		};
 		return panel;
+	}
+
+	protected boolean isReadonly(){
+		return false;
 	}
 
 }
