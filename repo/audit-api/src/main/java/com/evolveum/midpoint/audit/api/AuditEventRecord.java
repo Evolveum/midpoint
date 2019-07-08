@@ -586,6 +586,7 @@ public class AuditEventRecord implements DebugDumpable {
         clone.properties.putAll(properties);		// TODO deep clone?
         clone.references.putAll(references);		// TODO deep clone?
         clone.resourceOids.addAll(resourceOids);
+        clone.customColumnProperty.putAll(customColumnProperty);
 		return clone;
 	}
 
@@ -598,6 +599,7 @@ public class AuditEventRecord implements DebugDumpable {
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
+                + ", cuscolprop=" + customColumnProperty
                 + ", prop=" + properties
                 + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
@@ -678,6 +680,7 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Properties", properties, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Resource OIDs", resourceOids, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Custom column properties", customColumnProperty, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
 		if (deltas.isEmpty()) {
 			sb.append(" none");

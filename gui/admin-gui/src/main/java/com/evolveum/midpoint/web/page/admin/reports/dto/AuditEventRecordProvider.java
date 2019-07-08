@@ -281,7 +281,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private String generateFullQuery(String origQuery, boolean ordered, boolean isCount) {
 		String query = origQuery;
 		if (isCount) {
-			query = AUDIT_RECORDS_QUERY_COUNT + query;
+			int index = query.toLowerCase().indexOf("from");
+			query = AUDIT_RECORDS_QUERY_COUNT + query.substring(index);
 		}
 		if (ordered) {
 			query += AUDIT_RECORDS_ORDER_BY;

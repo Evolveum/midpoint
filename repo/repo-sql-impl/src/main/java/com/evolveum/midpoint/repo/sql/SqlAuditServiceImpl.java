@@ -236,60 +236,17 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
                     DebugUtil.debugDump(params, 2));
         }
+        
+        session = baseHelper.beginReadOnlyTransaction();
 
-//        try {
-            session = baseHelper.beginReadOnlyTransaction();
-//
-//            Query q;
-//
-//            if (StringUtils.isBlank(query)) {
-//                query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
-//                q = session.createQuery(query);
-//                setParametersToQuery(q, params);
-//            } else {
-//                q = session.createQuery(query);
-//                setParametersToQuery(q, params);
-//            }
-//            // q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
-//
-//            if (LOGGER.isTraceEnabled()) {
-//                LOGGER.trace("List records attempt\n  processed query: {}", q);
-//            }
-//
-//            ScrollableResults resultList = q.scroll();
-//
-//            while (resultList.next()) {
-//                Object o = resultList.get(0);
-//                if (!(o instanceof RAuditEventRecord)) {
-//                    throw new DtoTranslationException(
-//                            "Unexpected object in result set. Expected audit record, but got "
-//                                    + o.getClass().getSimpleName());
-//                }
-//                RAuditEventRecord raudit = (RAuditEventRecord) o;
-//
-//                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext(), getConfiguration().isUsingSQLServer());
-//
-//                // TODO what if original name (in audit log) differs from the current one (in repo) ?
-//                audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
-//                audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
-//                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()),
-//		                getPrismContext());
-//                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
-//                count++;
-//                if (!handler.handle(audit)) {
-//                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
-//                    break;
-//                }
-//            }
-            try {
-            	Session localSession = session;
+        try {
+        	Session localSession = session;
             session.doWork(new Work() {
                 
                 @Override
                 public void execute(Connection con) throws SQLException {
                 	
                 	Database database = baseHelper.getConfiguration().getDatabase();
-                	
                 	int count = 0;
                 		String basicQuery = query;
                         if (StringUtils.isBlank(query)) {

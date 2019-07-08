@@ -720,10 +720,6 @@ public class RAuditEventRecord implements Serializable {
     	queryBulder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
     	queryBulder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOID());
     	queryBulder.addParameter(RESULT_COLUMN_NAME, record.getResult());
-//        
-//        for(String resourceOid : record.getResourceOids()) {
-//        	repo.getResourceOids().add(RTargetResourceOid.toRepo(repo, resourceOid));
-//        }
 
         try {
             if (record.getTarget() != null) {

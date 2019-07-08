@@ -1303,7 +1303,7 @@ public class Clockwork {
 		AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
 		auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
-		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		
 		SystemConfigurationAuditEventRecordingType auditEventRecordingType;
 		if (systemConfiguration != null) {
@@ -1329,18 +1329,6 @@ public class Clockwork {
 						if (projectionContext != null && StringUtils.isNotBlank(projectionContext.getResourceOid())) {
 							auditRecord.addResourceOid(projectionContext.getResourceOid());
 						}
-//						PrismObject<ShadowType> shadow;
-//						try {
-//							
-//							shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(),
-//									null, task.getResult());
-//							ObjectReferenceType resource = shadow.getRealValue().getResourceRef();
-//							if (resource != null && resource.getOid() != null) {
-//								auditRecord.addResourceOid(resource.getOid());
-//							}
-//						} catch (ObjectNotFoundException e) {
-//							LOGGER.error("Couldn't load shadow from reference " + shadowRef, e);
-//						}
 					}
 				} else if (primaryObject.getRealValue() instanceof ShadowType) {
 					ObjectReferenceType resource = ((ShadowType)primaryObject.getRealValue()).getResourceRef();
