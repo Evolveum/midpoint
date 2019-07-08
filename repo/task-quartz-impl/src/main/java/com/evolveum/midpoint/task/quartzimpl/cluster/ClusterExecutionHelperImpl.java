@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -64,6 +65,12 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
 		String nodeId = taskManager.getNodeId();
+
+		if (!taskManager.isClustered()) {
+			LOGGER.trace("Node is not part of a cluster, skipping remote code execution");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node not in cluster");
+			return;
+		}
 
 		SearchResultList<PrismObject<NodeType>> otherClusterNodes;
 		try {

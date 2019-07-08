@@ -2480,6 +2480,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return configuration.isLocalNodeClusteringEnabled();
 	}
 
+	@Override
+	public boolean isClustered() {
+		return configuration.isClustered();
+	}
+
 	public SystemConfigurationChangeDispatcher getSystemConfigurationChangeDispatcher() {
 		return systemConfigurationChangeDispatcher;
 	}
