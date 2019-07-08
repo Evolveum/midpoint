@@ -21,6 +21,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeAssignmentsTabPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -104,6 +105,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
                             }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
+                            }
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_ALL_ASSIGNMENTS);
@@ -137,6 +143,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
                             }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
+                            }
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_ROLE_TYPE_ASSIGNMENTS);
@@ -168,6 +179,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             @Override
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
+                            }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
                             }
                         };
                 assignmentPanel.setOutputMarkupId(true);
@@ -201,6 +217,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
                             }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
+                            }
                         };
                 assignmentPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, assignmentPanel, ID_SERVICE_TYPE_ASSIGNMENTS);
@@ -229,6 +250,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
                             }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
+                            }
                         };
                 constructionsPanel.setOutputMarkupId(true);
                 switchAssignmentTypePerformed(target, constructionsPanel, ID_RESOURCE_TYPE_ASSIGNMENTS);
@@ -255,6 +281,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             @Override
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
+                            }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
                             }
                         } ;
                 policyRulesPanel.setOutputMarkupId(true);
@@ -286,6 +317,11 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
                             @Override
                             protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target) {
                                 target.add(SwitchAssignmentTypePanel.this);
+                            }
+
+                            @Override
+                            protected boolean isNewObjectButtonVisible(PrismObject focusObject){
+                                return !isReadonly() && super.isNewObjectButtonVisible(focusObject);
                             }
                         };
                 dataProtectionPanel.setOutputMarkupId(true);
@@ -491,6 +527,10 @@ public class SwitchAssignmentTypePanel extends BasePanel<PrismContainerWrapper<A
     }
 
     protected boolean isInducement(){
+        return false;
+    }
+
+    protected boolean isReadonly(){
         return false;
     }
 }

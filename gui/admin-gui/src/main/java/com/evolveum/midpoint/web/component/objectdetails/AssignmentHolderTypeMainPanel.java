@@ -72,7 +72,14 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
-                        return new AssignmentHolderTypeAssignmentsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                        return new AssignmentHolderTypeAssignmentsTabPanel<AHT>(panelId, getMainForm(), getObjectModel(), parentPage){
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected boolean isReadonly(){
+                                return AssignmentHolderTypeMainPanel.this.isReadonly();
+                            }
+                        };
                     }
 
                     @Override
@@ -117,6 +124,11 @@ public class AssignmentHolderTypeMainPanel<AHT extends AssignmentHolderType> ext
             }
         }
         return rv;
+    }
+
+    //this value will be used independently of object wrapper isReadonly value,
+    protected boolean isReadonly(){
+        return false;
     }
 
 
