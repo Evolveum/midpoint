@@ -1799,12 +1799,12 @@ public class ResourceObjectConverter {
 			if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
 				maxChanges = batchSizeInTask;
 			} else {
-				warnAboutMaxChanges(batchSizeInTask, ctx, "LiveSync capability has preciseTokenValue not set to 'true'");
+				checkMaxChanges(batchSizeInTask, "LiveSync capability has preciseTokenValue not set to 'true'");
 				maxChanges = null;
 			}
 		} else {
 			// Is this possible?
-			warnAboutMaxChanges(batchSizeInTask, ctx, "LiveSync capability is not found or disabled");
+			checkMaxChanges(batchSizeInTask, "LiveSync capability is not found or disabled");
 			maxChanges = null;
 		}
 
@@ -1883,11 +1883,10 @@ public class ResourceObjectConverter {
 		return changes;
 	}
 
-	private void warnAboutMaxChanges(Integer maxChangesFromTask, ProvisioningContext ctx,
-			String reason) {
+	private void checkMaxChanges(Integer maxChangesFromTask, String reason) {
 		if (maxChangesFromTask != null && maxChangesFromTask > 0) {
-			LOGGER.warn("Ignoring {} parameter in {} because {}", SchemaConstants.SYNC_BATCH_SIZE.getLocalPart(),
-					ctx.getTask(), reason);
+			throw new IllegalArgumentException("Cannot apply " + SchemaConstants.SYNC_BATCH_SIZE.getLocalPart() +
+					" because " + reason);
 		}
 	}
 
