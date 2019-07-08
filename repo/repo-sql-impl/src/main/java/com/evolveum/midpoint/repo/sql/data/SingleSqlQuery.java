@@ -39,11 +39,16 @@ public class SingleSqlQuery extends SqlQuery {
 		this.parameters = parameters;
 	}
 	public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-		return createPreparedStatement(con, false);
+		return createPreparedStatement(con, null);
 	}
 	
-	public PreparedStatement createPreparedStatement(Connection con, boolean getGeneratedKey) throws SQLException {
-		PreparedStatement stmt = con.prepareStatement(query, getGeneratedKey ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS);
+	public PreparedStatement createPreparedStatement(Connection con, String[] keyColumn) throws SQLException {
+		PreparedStatement stmt;
+		if(keyColumn != null && keyColumn.length > 0) {
+			stmt = con.prepareStatement(query, keyColumn);
+		} else {
+			stmt = con.prepareStatement(query);
+		}
 		addParametersToStatment(parameters, stmt);
 		return stmt;
 	}

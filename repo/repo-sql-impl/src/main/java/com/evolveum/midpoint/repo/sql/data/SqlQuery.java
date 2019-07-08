@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.repo.sql.data;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -30,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 public abstract class SqlQuery {
 	
 	private List<Integer> primaryKeys = new ArrayList<Integer>();
+	private Database database = Database.H2;
 
 	public abstract PreparedStatement createPreparedStatement(Connection con) throws SQLException;
 	
@@ -62,7 +65,7 @@ public abstract class SqlQuery {
         } else if (value instanceof OperationResultStatus) {
         	return OperationResultStatus.createStatusType(((OperationResultStatus) value)).ordinal();
         	
-        } else if (value instanceof Enum) {
+        } else if (value.getClass().isEnum()) {
         	return ((Enum) value).ordinal();
         }
 
@@ -72,20 +75,31 @@ public abstract class SqlQuery {
 	protected void addParametersToStatment(Map<Integer, Object> parameters, PreparedStatement stmt) throws SQLException {
 		for(int index : parameters.keySet()) {
 			Object value = toRepoType(parameters.get(index));
-			if(value instanceof String) {
+			if (value == null) {
+				stmt.setObject(index, value, Types.NULL);
+			}
+			if (value instanceof String) {
 				stmt.setString(index, (String) value);
 			} else if(value instanceof Integer) {
 				stmt.setInt(index, (int) value);
 			} else if (value instanceof Timestamp) {
 				stmt.setTimestamp(index, (Timestamp) value);
 			} else if(value instanceof Long) {
-				stmt.setLong(index, (long) value);
+				if(database.equals(Database.ORACLE)) {
+					stmt.setBigDecimal(index, BigDecimal.valueOf((long) value));
+				} else {
+					stmt.setLong(index, (long) value);
+				}
 			} else if(value instanceof byte[]) {
 				stmt.setBytes(index, (byte[]) value);
 			} else {
 				stmt.setObject(index, value);
 			}
 		}
+	}
+	
+	public void setDatabase(Database database) {
+		this.database = database;
 	}
 	
 	public void setPrimaryKeys(List<Integer> primaryKeys) {

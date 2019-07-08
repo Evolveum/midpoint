@@ -69,6 +69,9 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -289,13 +292,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 	
                 	int count = 0;
                 		String basicQuery = query;
-                        if (StringUtils.isBlank(basicQuery)) {
-                        	basicQuery = "select * from m_audit_event as aer where 1=1 order by aer.timestampValue desc";
+                        if (StringUtils.isBlank(query)) {
+                        	basicQuery = "select * from m_audit_event "
+                        			+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        			+ "aer where 1=1 order by aer.timestampValue desc";
                         }
-                        String deltaQuery = "select * from m_audit_delta as delta where delta.record_id=?";
-                        String propertyQuery = "select * from m_audit_prop_value as prop where prop.record_id=?";
-                        String refQuery = "select * from m_audit_ref_value as ref where ref.record_id=?";
-                        String resourceQuery = "select * from m_audit_resource as res where res.record_id=?";
+                        String deltaQuery = "select * from m_audit_delta "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "delta where delta.record_id=?";
+                        String propertyQuery = "select * from m_audit_prop_value "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "prop where prop.record_id=?";
+                        String refQuery = "select * from m_audit_ref_value "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "ref where ref.record_id=?";
+                        String resourceQuery = "select * from m_audit_resource "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "res where res.record_id=?";
                         SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                         setParametersToQuery(queryBuilder, params);
 
@@ -318,7 +331,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 
                                 //query for deltas
                                 PreparedStatement subStmt = con.prepareStatement(deltaQuery);
-                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 ResultSet subResultList = subStmt.executeQuery();
                                 
                                 try {
@@ -339,7 +352,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 
                                 //query for properties
                                 subStmt = con.prepareStatement(propertyQuery);
-                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
                                 
                                 try {
@@ -354,7 +367,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 
                                 //query for references
                                 subStmt = con.prepareStatement(refQuery);
-                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
                                 
                                 try {
@@ -369,7 +382,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 
                                 //query for target resource oids
                                 subStmt = con.prepareStatement(resourceQuery);
-                                subStmt.setString(1, resultList.getString(RAuditEventRecord.ID_COLUMN_NAME));
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
                                 subResultList = subStmt.executeQuery();
                                 
                                 try {
@@ -463,11 +476,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        if (params.containsKey(QUERY_FIRST_RESULT)) {
-        	queryBuilder.addFirstResult(QUERY_FIRST_RESULT);
-        }
-        if (params.containsKey(QUERY_MAX_RESULT)) {
-        	queryBuilder.addMaxResult(QUERY_MAX_RESULT);
+        if (params.containsKey(QUERY_FIRST_RESULT) && params.containsKey(QUERY_MAX_RESULT)) {
+        	queryBuilder.addPaging((int)params.get(QUERY_FIRST_RESULT), (int)params.get(QUERY_MAX_RESULT));
+        	params.remove(QUERY_FIRST_RESULT);
+        	params.remove(QUERY_MAX_RESULT);
         }
         queryBuilder.addParameters(params);
     }
@@ -523,23 +535,25 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = null;
         try {
             session = baseHelper.beginTransaction();
-
-            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
+//            RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext(), true);
 //            session.save(newRecord);
+            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
             Session localSession = session;
             session.doWork(new Work() {
 				
 				@Override
 				public void execute(Connection connection) throws SQLException {
-					Database database = baseHelper.getConfiguration().getDatabase();
-					PreparedStatement smtp = query.createPreparedStatement(connection, true);
+					Database database = getConfiguration().getDatabase();
+					String[] keyColumn = {RAuditEventRecord.ID_COLUMN_NAME};
+					PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
 					Long id = null;
 					try {
-						smtp.execute();
+						smtp.executeUpdate();
 						ResultSet resultSet = smtp.getGeneratedKeys();
 						
 						if (resultSet.next()) {
-						    id = resultSet.getLong(1);
+							id = resultSet.getLong(1);
+						    
 						}
 					} finally {
 						smtp.close();
@@ -549,8 +563,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 					}
 					
 					
-					BatchSqlQuery deltaBatchQuery = new BatchSqlQuery();
-					BatchSqlQuery itemBatchQuery = new BatchSqlQuery();
+					BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
+					BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
 					
 		            for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
 		            	if (delta == null) {
@@ -587,7 +601,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		            	itemBatchQuery.execute(connection);
 		            }
 		            
-		            BatchSqlQuery propertyBatchQuery = new BatchSqlQuery();
+		            BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
 		            for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
 		            	for (String propertyValue : propertyEntry.getValue()) {
 		            		SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
@@ -600,7 +614,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		            	propertyBatchQuery.execute(connection);
 		            }
 		            
-		            BatchSqlQuery referenceBatchQuery = new BatchSqlQuery();
+		            BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
 		            for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
 		            	for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
 		            		SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
@@ -612,7 +626,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 		            	referenceBatchQuery.execute(connection);
 		            }
 		            
-		            BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery();
+		            BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
 		            for (String resourceOid : record.getResourceOids()) {
 		            	SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
 		            	resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
@@ -966,11 +980,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             	
 				@Override
 				public void execute(Connection connection) throws SQLException {
-					Database database = baseHelper.getConfiguration().getDatabase();
+					Database database = getConfiguration().getDatabase();
 					
 					String basicQuery = query;
 					if (StringUtils.isBlank(query)) {
-						basicQuery = "select count (*) from m_audit_event as aer where 1 = 1";
+						basicQuery = "select count (*) from m_audit_event "
+								+ (database.equals(Database.ORACLE) ? "" : "as ") 
+								+ "aer where 1 = 1";
 		            }
 					SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                     setParametersToQuery(queryBuilder, params);

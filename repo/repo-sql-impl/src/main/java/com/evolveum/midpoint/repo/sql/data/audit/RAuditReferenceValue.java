@@ -29,6 +29,9 @@ import javax.persistence.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COLUMN_RECORD_ID;
@@ -224,5 +227,5 @@ public class RAuditReferenceValue implements EntityState {
 				", targetName='" + targetName + '\'' +
 				'}';
 	}
-
+	
 }

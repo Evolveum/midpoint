@@ -24,6 +24,9 @@ import com.evolveum.midpoint.repo.sql.util.EntityState;
 
 import javax.persistence.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLUMN_RECORD_ID;
@@ -159,4 +162,5 @@ public class RAuditPropertyValue implements EntityState {
 				", value='" + value + '\'' +
 				'}';
 	}
+	
 }

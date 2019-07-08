@@ -245,7 +245,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters.remove(PARAMETER_CHANGED_ITEM);
 		}
 		if (filteredOnValueRefTargetNames) {
-			conditions.add("rv.targetName.orig in ( :valueRefTargetNames )");
+			conditions.add("rv.targetName_orig in ( :valueRefTargetNames )");
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}

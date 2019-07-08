@@ -23,10 +23,19 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+
 /**
  * @author skublik
  */
 public class BatchSqlQuery extends SqlQuery {
+	
+	public BatchSqlQuery() {
+	}
+	
+	public BatchSqlQuery(Database database) {
+		setDatabase(database);
+	}
 	
 	private String query;
 	Set<SingleSqlQuery> queriesForBatch = new HashSet<SingleSqlQuery>();

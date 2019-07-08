@@ -52,7 +52,16 @@ public class SelectQueryBuilder {
 			throw new IllegalArgumentException("Query is empty");
 		}
 		this.database = database;
-		this.query = query;
+		if(database.equals(Database.ORACLE)) {
+			int indexOfWhere = query.toLowerCase().indexOf("where");
+			indexOfWhere = (indexOfWhere == -1) ? query.length() : indexOfWhere;
+			String partOfQuery = query.substring(0, indexOfWhere);
+			partOfQuery = partOfQuery.replace("as ", "");
+			partOfQuery = partOfQuery.replace("AS ", "");
+			this.query = partOfQuery + query.substring(indexOfWhere);
+		} else {
+			this.query = query;
+		}
 	}
 	
 	public SelectQueryBuilder(String query) {
@@ -62,84 +71,38 @@ public class SelectQueryBuilder {
 		this.query = query;
 	}
 	
-	public void addPaging(String firstResultName, String maxResultName) {
+	public void addPaging(int firstResult, int maxResult) {
 		Validate.notNull(database, "Database is null");
-		if(StringUtils.isBlank(firstResultName)) {
-			throw new IllegalArgumentException("Name of firstResult value is empty");
-		}
-		if(StringUtils.isBlank(maxResultName)) {
-			throw new IllegalArgumentException("Name of maxResult value is empty");
-		}
-		StringBuilder sb = new StringBuilder(query);
+		StringBuilder sb = new StringBuilder();
 		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.SQLSERVER.equals(database) || Database.ORACLE.equals(database)) {
+		if(Database.SQLSERVER.equals(database)) {
 			if(queryWithoutStringValue.toLowerCase().contains(" offset ")
 					|| queryWithoutStringValue.contains(" fetch ")) {
 				throw new IllegalArgumentException("query already contains offset or fetch");
 			}
-			sb.append(" OFFSET :").append(firstResultName).append(" ROWS FETCH NEXT :")
-			.append(maxResultName).append(" ROWS ONLY ");
+			sb.append(query).append(" OFFSET ").append(firstResult).append(" ROWS FETCH NEXT ")
+			.append(maxResult).append(" ROWS ONLY ");
+		} else if(Database.ORACLE.equals(database)) {
+			sb.append("SELECT * FROM" + 
+						"( "+ 
+							"SELECT a.*, rownum r__ FROM (")
+								.append(query)
+							.append(") a WHERE rownum < ").append(firstResult + maxResult+1)
+						.append(") WHERE r__ >= ").append(firstResult+1).append(" ");
 		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
 				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
 			if(queryWithoutStringValue.toLowerCase().contains(" limit ")
 					|| queryWithoutStringValue.contains(" offset ")) {
 				throw new IllegalArgumentException("query already contains offset or fetch");
 			}
-			sb.append(" LIMIT :").append(maxResultName).append(" OFFSET :")
-			.append(firstResultName).append(" ");
+			sb.append(query).append(" LIMIT ").append(maxResult).append(" OFFSET ")
+			.append(firstResult).append(" ");
 		} else {
 			throw new IllegalArgumentException("Unsoported type of database: " + database);
 		}
 		query = sb.toString();
 	}
 	
-	public void addFirstResult(String firstResultName) {
-		Validate.notNull(database, "Database is null");
-		if(StringUtils.isBlank(firstResultName)) {
-			throw new IllegalArgumentException("Name of firstResult value is empty");
-		}
-		StringBuilder sb = new StringBuilder(query);
-		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.SQLSERVER.equals(database) || Database.ORACLE.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" offset ")) {
-				throw new IllegalArgumentException("query already contains offset");
-			}
-			sb.append(" OFFSET :").append(firstResultName).append(" ROWS ");
-		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
-				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
-			if(queryWithoutStringValue.contains(" offset ")) {
-				throw new IllegalArgumentException("query already contains offset");
-			}
-			sb.append(" OFFSET :").append(firstResultName).append(" ");
-		} else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
-		}
-		query = sb.toString();
-	}
-	
-	public void addMaxResult(String maxResultName) {
-		Validate.notNull(database, "Database is null");
-		if(StringUtils.isBlank(maxResultName)) {
-			throw new IllegalArgumentException("Name of maxResult value is empty");
-		}
-		StringBuilder sb = new StringBuilder(query);
-		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
-		if(Database.SQLSERVER.equals(database) || Database.ORACLE.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
-				throw new IllegalArgumentException("query already contains fetch");
-			}
-			sb.append(" FETCH NEXT :").append(maxResultName).append(" ROWS ONLY ");
-		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
-				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
-			if(queryWithoutStringValue.toLowerCase().contains(" limit ")) {
-				throw new IllegalArgumentException("query already contains limit");
-			}
-			sb.append(" LIMIT :").append(maxResultName).append(" ");
-		} else {
-			throw new IllegalArgumentException("Unsoported type of database: " + database);
-		}
-		query = sb.toString();
-	}
 	
 	public void addParameter(String name, Object value) {
 		String workQuery = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
@@ -157,11 +120,12 @@ public class SelectQueryBuilder {
 		}
 		while(workQuery.contains(name)) {
 			String partQuery = workQuery.substring(0, workQuery.indexOf(name));
-			int index = StringUtils.countMatches(partQuery, ":") + 1;
+			int index = StringUtils.countMatches(partQuery, "?") + StringUtils.countMatches(partQuery, ":") + 1;
 			
 			if(value != null && value.getClass().isArray()) {
 				value = Arrays.asList(value);
 			}
+			
 			if(value instanceof List) {
 				String queryPartForArray = "";
 				for(Object singleValue : (List) value) {
@@ -176,12 +140,11 @@ public class SelectQueryBuilder {
 			}
 			workQuery = (workQuery.length() <= (workQuery.indexOf(name) + name.length())) ? "" : workQuery.substring(workQuery.indexOf(name) + name.length());
 		}
-		
 	}
 	
 	public void addParameters (Map<String, Object> parameters) {
-		String workQuery = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
 		for (String name : parameters.keySet()) {
+			String workQuery = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
 			addParameter(workQuery, name, parameters.get(name));
 		}
 	}

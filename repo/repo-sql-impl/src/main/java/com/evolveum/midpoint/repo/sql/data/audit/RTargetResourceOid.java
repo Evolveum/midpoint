@@ -29,6 +29,10 @@ import org.hibernate.annotations.ForeignKey;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 @Ignore
 @Entity
 @IdClass(RTargetResourceOidId.class)
@@ -131,6 +135,5 @@ public class RTargetResourceOid implements EntityState {
         int result = resourceOid != null ? resourceOid.hashCode() : 0;
         return result;
     }
-
 
 }

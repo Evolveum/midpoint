@@ -817,4 +817,5 @@ public class RAuditEventRecord implements Serializable {
     public void merge(RAuditEventRecord repoRecord) {
         this.id = repoRecord.id;
     }
+
 }

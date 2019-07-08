@@ -44,6 +44,9 @@ import javax.persistence.*;
 import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.COLUMN_RECORD_ID;
 
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -430,4 +433,5 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
         return odo;
     }
+
 }

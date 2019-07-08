@@ -1306,9 +1306,9 @@ public class Clockwork {
 		PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
 		
 		SystemConfigurationAuditEventRecordingType auditEventRecordingType;
-		if(systemConfiguration != null) {
+		if (systemConfiguration != null) {
 			PrismContainer<SystemConfigurationAuditEventRecordingType> auditEventRecording = (PrismContainer) systemConfiguration.getValue().findItem(ItemPath.create("audit", "eventRecording"));
-			if(auditEventRecording != null && auditEventRecording.getRealValue() != null) {
+			if (auditEventRecording != null && auditEventRecording.getRealValue() != null) {
 				auditEventRecordingType = auditEventRecording.getRealValue();
 			} else {
 				auditEventRecordingType = new SystemConfigurationAuditEventRecordingType();
@@ -1321,25 +1321,30 @@ public class Clockwork {
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone(), prismContext);
 			
-			if(Boolean.TRUE.equals(auditEventRecordingType.isRecordResourceOids())) {
-				if(primaryObject.getRealValue() instanceof FocusType) {
+			if (Boolean.TRUE.equals(auditEventRecordingType.isRecordResourceOids())) {
+				if (primaryObject.getRealValue() instanceof FocusType) {
 					FocusType focus = (FocusType) primaryObject.getRealValue();
-					for(ObjectReferenceType shadowRef : focus.getLinkRef()) {
-						PrismObject<ShadowType> shadow;
-						try {
-							shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(),
-									null, task.getResult());
-							ObjectReferenceType resource = shadow.getRealValue().getResourceRef();
-							if(resource != null && resource.getOid() != null) {
-								auditRecord.addResourceOid(resource.getOid());
-							}
-						} catch (ObjectNotFoundException e) {
-							LOGGER.error("Couldn't load shadow from reference " + shadowRef, e);
+					for (ObjectReferenceType shadowRef : focus.getLinkRef()) {
+						LensProjectionContext projectionContext = context.findProjectionContextByOid(shadowRef.getOid());
+						if (projectionContext != null && StringUtils.isNotBlank(projectionContext.getResourceOid())) {
+							auditRecord.addResourceOid(projectionContext.getResourceOid());
 						}
+//						PrismObject<ShadowType> shadow;
+//						try {
+//							
+//							shadow = repositoryService.getObject(ShadowType.class, shadowRef.getOid(),
+//									null, task.getResult());
+//							ObjectReferenceType resource = shadow.getRealValue().getResourceRef();
+//							if (resource != null && resource.getOid() != null) {
+//								auditRecord.addResourceOid(resource.getOid());
+//							}
+//						} catch (ObjectNotFoundException e) {
+//							LOGGER.error("Couldn't load shadow from reference " + shadowRef, e);
+//						}
 					}
-				} else if(primaryObject.getRealValue() instanceof ShadowType) {
+				} else if (primaryObject.getRealValue() instanceof ShadowType) {
 					ObjectReferenceType resource = ((ShadowType)primaryObject.getRealValue()).getResourceRef();
-					if(resource != null && resource.getOid() != null) {
+					if (resource != null && resource.getOid() != null) {
 						auditRecord.addResourceOid(resource.getOid());
 					}
 				}
