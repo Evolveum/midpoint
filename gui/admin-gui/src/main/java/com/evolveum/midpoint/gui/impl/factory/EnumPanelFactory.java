@@ -49,10 +49,11 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFac
 		if (!(property instanceof PrismPropertyWrapper)) {
 			return false;
 		}
-		
+
 		Class<T> valueType = property.getTypeClass();
 		if (valueType == null) {
-			valueType = property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName());
+			valueType = property.getPrismContext() != null ?
+					property.getPrismContext().getSchemaRegistry().getCompileTimeClass(property.getTypeName()) : null;
 		}
 		
 		if (valueType != null) {

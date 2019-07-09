@@ -26,6 +26,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author mederly
@@ -87,4 +89,14 @@ public class CaseTypeUtil {
     public static boolean isApprovalCase(CaseType aCase) {
         return aCase != null && ObjectTypeUtil.hasArchetype(aCase, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
     }
+
+	public static List<ObjectReferenceType> getAllCurrentAssignees(CaseType aCase) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+        for (CaseWorkItemType workItem : aCase.getWorkItem()) {
+            if (workItem.getCloseTimestamp() == null) {
+                rv.addAll(workItem.getAssigneeRef());
+            }
+        }
+        return rv;
+	}
 }

@@ -1133,7 +1133,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 			return null;
 		}
 		PrismObject<? extends FocusType> operationObject = null;
-		if (pageBase instanceof PageAdminFocus){
+		if (pageBase instanceof PageAdminFocus) {
 			operationObject = ((PageAdminFocus)pageBase).getObjectWrapper().getObject();
 		} else if ((pageBase instanceof PageAssignmentDetails || pageBase instanceof PageAssignmentsList) //shopping cart assignment details panels
 				&& !pageBase.getSessionStorage().getRoleCatalog().isMultiUserRequest()){
@@ -1144,7 +1144,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 				operationObject = targetUserList.get(0).asPrismObject();
 			}
 		}
-		if (operationObject == null){
+		if (operationObject == null) {
 			return null;
 		}
 		String targetObjectOid = getModelObject().getTargetRef().getOid();
@@ -1154,7 +1154,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 		PrismObject<AbstractRoleType> targetRefObject = WebModelServiceUtils.loadObject(AbstractRoleType.class,
 				targetObjectOid, pageBase, task, result);
 		ItemSecurityConstraints constraints = null;
-		try{
+		try {
 			constraints =
 					pageBase.getModelInteractionService().getAllowedRequestAssignmentItems(operationObject, targetRefObject, task, result);
 

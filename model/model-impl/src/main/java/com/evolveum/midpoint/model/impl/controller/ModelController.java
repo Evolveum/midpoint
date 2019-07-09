@@ -330,10 +330,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			PrismObject<O> refObject;
 			refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
-			refObject = refObject.cloneIfImmutable();
-			schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
-					SelectorOptions.createCollection(option.getOptions()), null, task, result);
-			refVal.setObject(refObject);
+			if (refObject != null) {
+				refObject = refObject.cloneIfImmutable();
+				schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
+						SelectorOptions.createCollection(option.getOptions()), null, task, result);
+				refVal.setObject(refObject);
+			}
 			return refObject;
 		} catch (CommonException e) {
 			result.recordWarning("Couldn't resolve reference to " + ObjectTypeUtil.toShortString(refVal) + ": " + e.getMessage(), e);
