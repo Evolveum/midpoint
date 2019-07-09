@@ -253,6 +253,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		sb.append("Old item: \n").append(oldItem).append("\n");
 		sb.append("Values: \n");
 		for (VW value : values) {
+			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(value.debugDump());
 		}
 		return sb.toString();

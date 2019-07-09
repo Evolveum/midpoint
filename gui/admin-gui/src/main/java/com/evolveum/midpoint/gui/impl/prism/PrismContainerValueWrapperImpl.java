@@ -382,7 +382,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		StringBuilder sb = new StringBuilder(super.debugDump(indent));
 		sb.append("Items:\n");
 		for (ItemWrapper<?, ?, ?, ?> item: items) {
-			sb.append(item).append("\n");
+			sb.append(item.debugDump(indent + 1)).append("\n");
 		}
 			
 		return sb.toString();
