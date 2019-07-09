@@ -43,8 +43,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 public class SelectQueryBuilder {
 	
 	private Database database;
-	String query;
-	Map<Integer, Object> parameters = new HashMap<Integer, Object>();
+	private String query;
+	private Map<Integer, Object> parameters = new HashMap<Integer, Object>();
+	private Integer firstResult = null;
+	private Integer maxResult = null;
 	
 	public SelectQueryBuilder(Database database, String query) {
 		Validate.notNull(database, "Database is null");
@@ -71,7 +73,7 @@ public class SelectQueryBuilder {
 		this.query = query;
 	}
 	
-	public void addPaging(int firstResult, int maxResult) {
+	private void addPaging(int firstResult, int maxResult) {
 		Validate.notNull(database, "Database is null");
 		StringBuilder sb = new StringBuilder();
 		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
@@ -84,11 +86,11 @@ public class SelectQueryBuilder {
 			.append(maxResult).append(" ROWS ONLY ");
 		} else if(Database.ORACLE.equals(database)) {
 			sb.append("SELECT * FROM" + 
-						"( "+ 
-							"SELECT a.*, rownum r__ FROM (")
-								.append(query)
-							.append(") a WHERE rownum < ").append(firstResult + maxResult+1)
-						.append(") WHERE r__ >= ").append(firstResult+1).append(" ");
+					"( "+ 
+						"SELECT a.*, rownum r__ FROM (")
+							.append(query)
+						.append(") a WHERE rownum < ").append(firstResult + maxResult+1)
+					.append(") WHERE r__ >= ").append(firstResult+1).append(" ");
 		} else if(Database.H2.equals(database) || Database.MARIADB.equals(database)
 				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
 			if(queryWithoutStringValue.toLowerCase().contains(" limit ")
@@ -97,6 +99,59 @@ public class SelectQueryBuilder {
 			}
 			sb.append(query).append(" LIMIT ").append(maxResult).append(" OFFSET ")
 			.append(firstResult).append(" ");
+		} else {
+			throw new IllegalArgumentException("Unsoported type of database: " + database);
+		}
+		query = sb.toString();
+	}
+	
+	private void addFirstResult(int firstResult) {
+		Validate.notNull(database, "Database is null");
+		
+		StringBuilder sb = new StringBuilder();
+		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+		if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+			if(queryWithoutStringValue.contains(" offset ")) {
+				throw new IllegalArgumentException("query already contains offset");
+			}
+			sb.append(query).append(" OFFSET ").append(firstResult).append(" ");
+		} else if(Database.ORACLE.equals(database)) {
+			sb.append("SELECT * FROM" + 
+					"( ") 
+							.append(query)
+						.append(") WHERE rownum > ").append(firstResult).append(" ");
+		} else if(Database.SQLSERVER.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" offset ")) {
+				throw new IllegalArgumentException("query already contains offset");
+			}
+			sb.append(query).append(" OFFSET ").append(firstResult).append(" ROWS ");
+		}  else {
+			throw new IllegalArgumentException("Unsoported type of database: " + database);
+		}
+		query = sb.toString();
+	}
+	
+	private void addMaxResult(int maxResult) {
+		Validate.notNull(database, "Database is null");
+		StringBuilder sb = new StringBuilder(query);
+		String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+		if(Database.H2.equals(database) || Database.MARIADB.equals(database)
+				|| Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" limit ")) {
+				throw new IllegalArgumentException("query already contains limit");
+			}
+			sb.append(" LIMIT ").append(maxResult).append(" ");
+		} else if(Database.SQLSERVER.equals(database)) {
+			if(queryWithoutStringValue.toLowerCase().contains(" fetch ")) {
+				throw new IllegalArgumentException("query already contains fetch");
+			}
+			sb.append(" FETCH NEXT ").append(maxResult).append(" ROWS ONLY ");
+		} else if(Database.ORACLE.equals(database)) {
+			sb.append("SELECT * FROM" + 
+					"( ") 
+							.append(query)
+						.append(") WHERE rownum <= ").append(maxResult).append(" ");
 		} else {
 			throw new IllegalArgumentException("Unsoported type of database: " + database);
 		}
@@ -159,6 +214,23 @@ public class SelectQueryBuilder {
 	}
 	
 	public SingleSqlQuery build() {
+		if(firstResult != null && maxResult != null) {
+			addPaging(firstResult, maxResult);
+		} else if (firstResult != null || maxResult != null) {
+			if(firstResult != null) {
+				addFirstResult(firstResult);
+			} else {
+				addMaxResult(maxResult);
+			}
+		}
 		return new SingleSqlQuery(query, parameters);
+	}
+	
+	public void setFirstResult(Integer firstResult) {
+		this.firstResult = firstResult;
+	}
+	
+	public void setMaxResult(Integer maxResult) {
+		this.maxResult = maxResult;
 	}
 }

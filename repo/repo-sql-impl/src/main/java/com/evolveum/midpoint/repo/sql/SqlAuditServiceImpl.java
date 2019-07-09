@@ -433,9 +433,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             return;
         }
 
-        if (params.containsKey(QUERY_FIRST_RESULT) && params.containsKey(QUERY_MAX_RESULT)) {
-        	queryBuilder.addPaging((int)params.get(QUERY_FIRST_RESULT), (int)params.get(QUERY_MAX_RESULT));
+        if (params.containsKey(QUERY_FIRST_RESULT)) {
+        	queryBuilder.setFirstResult((int)params.get(QUERY_FIRST_RESULT));
         	params.remove(QUERY_FIRST_RESULT);
+        }
+        if (params.containsKey(QUERY_MAX_RESULT)) {
+        	queryBuilder.setMaxResult((int)params.get(QUERY_MAX_RESULT));
         	params.remove(QUERY_MAX_RESULT);
         }
         queryBuilder.addParameters(params);
