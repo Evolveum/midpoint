@@ -34,10 +34,6 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 	public void applyAuthorization(Authorization autz) {
 		List<String> actions = autz.getAction();
 		AuthorizationPhaseType phase = autz.getPhase();
-		AuthorizationDecisionType decision = autz.getDecision();
-		if (decision == null) {
-			decision = AuthorizationDecisionType.ALLOW;
-		}
 		for (String action: actions) {
 			if (phase == null) {
 				getOrCreateItemConstraints(action, AuthorizationPhaseType.REQUEST).collectItems(autz);

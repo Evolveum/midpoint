@@ -91,7 +91,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	// For compatibility with other PrismValue types
 	C getValue();
 
-	@SuppressWarnings("unchecked")
+	@NotNull
 	C asContainerable();
 
 	Class<C> getCompileTimeClass();
@@ -350,8 +350,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	@Override
 	Class<?> getRealClass();
 
-	@SuppressWarnings("unchecked")
-	@Nullable
+	@NotNull
 	@Override
 	<T> T getRealValue();
 

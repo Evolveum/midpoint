@@ -344,7 +344,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="AbstractWorkItemOutputType">
@@ -372,6 +372,7 @@
             <xsd:element name="evidenceFilename" type="xsd:string" minOccurs="0" />
             <xsd:element name="evidenceContentType" type="xsd:string" minOccurs="0" />
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="CaseWorkItemType">
@@ -465,6 +466,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="WorkItemEventCauseInformationType">
@@ -861,6 +863,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="WorkItemActionsType">
@@ -916,6 +919,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="AbstractWorkItemActionType">
@@ -963,6 +967,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="CompleteWorkItemActionType">

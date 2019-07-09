@@ -13855,40 +13855,33 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 			        </xsd:element>
-					<xsd:element name="requester" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+					<xsd:element name="requester" type="tns:SubjectedObjectSelectorType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								The object matches the specification if it has a requester specified by this element.
-								(So it is applicable only for tasks and, in the future, case- and work items-like objects.)
-
-								LIMITATION: Supported only for TaskType and not for search pre-processing.
+								(So it is applicable only for cases and, in the future, work items.)
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.9</a:since>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+					<xsd:element name="assignee" type="tns:SubjectedObjectSelectorType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								The object matches the specification if it has a (current) assignee specified by this element.
-								(So it is applicable only for task-, case- and work item-like objects.)
-
-								LIMITATION: Supported only for TaskType with work items fully fetched; and not for search
-								pre-processing.
+								(So it is applicable only for cases and, in the future, work items.)
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.9</a:since>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="relatedObject" type="tns:SubjectedObjectSelectorType" minOccurs="0" maxOccurs="1">
+					<xsd:element name="relatedObject" type="tns:SubjectedObjectSelectorType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								The object matches the specification if it has a related object specified by this element.
-								(So it is applicable only for task-, case- and work item-like objects.)
-
-								LIMITATION: Supported only for TaskType; and for search pre-processing it is limited to "self".
+								(So it is applicable only for cases and tasks and, in the future, work items.)
 							</xsd:documentation>
 							<xsd:appinfo>
 								<a:since>3.9</a:since>
@@ -13999,6 +13992,10 @@
 					<xsd:documentation>
 						Selects approval work items access to which will be delegated. If not present, access to these work items is NOT delegated.
 					</xsd:documentation>
+					<xsd:appinfo>
+						<a:deprecated>true</a:deprecated>
+						<a:deprecatedSince>4.0</a:deprecatedSince>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="certificationWorkItems" type="c:WorkItemSelectorType" minOccurs="0">
@@ -14011,12 +14008,15 @@
 			<xsd:element name="caseManagementWorkItems" type="c:WorkItemSelectorType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Selects case management work items access to which will be delegated. If not present, access to these work items is NOT delegated.
+						Selects case management work items access to which will be delegated.
+						If not present, access to these work items is NOT delegated. Since midPoint 4.0
+						this covers all work items related to cases, i.e. both approval work items
+						and manual resource operation cases. (And others that come later.)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+        <xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="WorkItemSelectorType">

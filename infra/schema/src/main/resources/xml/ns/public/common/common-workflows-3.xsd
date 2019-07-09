@@ -91,6 +91,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="ApprovalStageDefinitionType">
@@ -298,6 +299,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="ApprovalSchemaExecutionInformationType">
@@ -340,6 +342,7 @@
 			</xsd:element>
 			<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType"/>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="ApprovalStageExecutionInformationType">
@@ -384,6 +387,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="ApprovalStageExecutionPreviewType">
@@ -431,6 +435,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="ApprovalStageExecutionRecordType">
@@ -459,6 +464,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:simpleType name="ApprovalLevelOutcomeType">
@@ -730,7 +736,8 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-    </xsd:complexType>
+		<xsd:attribute name="id" type="xsd:long"/>
+	</xsd:complexType>
 
 	<xsd:complexType name="PerformerCommentsFormattingType">
 		<xsd:annotation>
@@ -807,6 +814,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:complexType name="WfExecutionTasksSerializationType">
@@ -867,6 +875,7 @@
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
 	</xsd:complexType>
 
 	<xsd:simpleType name="WfExecutionTasksSerializationScopeType">
@@ -1007,6 +1016,9 @@
             <xsd:documentation>
                 Configuration for workflow change processor.
             </xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
@@ -1026,13 +1038,17 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
-    </xsd:complexType>
+		<xsd:attribute name="id" type="xsd:long"/>
+	</xsd:complexType>
 
     <xsd:complexType name="GeneralChangeProcessorConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Configuration for GeneralChangeProcessor.
             </xsd:documentation>
+			<xsd:appinfo>
+				<a:container>true</a:container>
+			</xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:WfChangeProcessorConfigurationType">
@@ -1087,7 +1103,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-
         </xsd:sequence>
     </xsd:complexType>
 
@@ -1242,6 +1257,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
 
     <xsd:complexType name="GenericPcpAspectConfigurationType">
@@ -1299,6 +1315,7 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="associationAddition" type="tns:AssociationAdditionType"/>
 
@@ -1319,6 +1336,7 @@
 			<xsd:element name="approvalSchema" type="tns:ApprovalSchemaType" minOccurs="0"/>
 			<xsd:element name="policyRules" type="tns:SchemaAttachedPolicyRulesType" minOccurs="0"/>
         </xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="approvalContext" type="tns:ApprovalContextType" />
 
@@ -1336,6 +1354,7 @@
 			<xsd:element name="scenario" type="xsd:string"/>
 			<xsd:element name="modelContext" type="c:LensContextType" minOccurs="0" />
 		</xsd:sequence>
+		<xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="wfGeneralChangeProcessorStateType" type="tns:WfGeneralChangeProcessorStateType" />
 
