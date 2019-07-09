@@ -229,6 +229,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		return asContainerable();
 	}
 
+	@NotNull
 	public C asContainerable() {
 		if (containerable != null) {
 			return containerable;
@@ -290,6 +291,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 		return requiredClass;
 	}
 
+	@NotNull
 	private C asContainerableInternal(Class<C> clazz) {
 		if (clazz == null) {
 			String elementName = getParent() != null ? String.valueOf(getParent().getElementName()) : String.valueOf(this);
@@ -1545,7 +1547,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 	}
 
 	@SuppressWarnings("unchecked")
-	@Nullable
+	@NotNull
 	@Override
 	public <T> T getRealValue() {
 		return (T) asContainerable();

@@ -81,6 +81,7 @@ public interface PrismContainer<C extends Containerable>
     @Override
 	Collection<C> getRealValues();
 
+	@NotNull
 	C getRealValue();
 
 	void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;

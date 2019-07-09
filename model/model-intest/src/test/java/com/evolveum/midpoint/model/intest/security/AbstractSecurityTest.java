@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -59,7 +60,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -80,29 +80,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -111,9 +88,12 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
+@SuppressWarnings({ "unused", "WeakerAccess", "SameParameterValue", "UnusedReturnValue" })
 public abstract class AbstractSecurityTest extends AbstractInitializedModelIntegrationTest {
 
 	public static final File TEST_DIR = new File("src/test/resources/security");
+
+	protected static final File ARCHETYPE_APPROVAL_CASE_FILE = new File(TEST_DIR, "archetype-approval-case.xml");
 
 	protected static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
 	protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "00000000-0000-0000-0000-000000000321";
@@ -137,6 +117,16 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected static final File USER_CAPSIZE_FILE = new File(TEST_DIR, "user-capsize.xml");
 	protected static final String USER_CAPSIZE_OID = "bab2c6a8-5f2a-11e8-97d2-4fc12ba39043";
+
+	// loaded ad-hoc (not in init)
+	protected static final File USER_DEPUTY_1_FILE = new File(TEST_DIR, "user-deputy-1.xml");
+	protected static final String USER_DEPUTY_1_NAME = "deputy-1";
+	protected static final String USER_DEPUTY_1_OID = "af69e388-88bd-43f9-9259-73676124c196";
+
+	// loaded ad-hoc (not in init)
+	protected static final File USER_DEPUTY_2_FILE = new File(TEST_DIR, "user-deputy-2.xml");
+	protected static final String USER_DEPUTY_2_NAME = "deputy-2";
+	protected static final String USER_DEPUTY_2_OID = "0223b993-b8bd-4599-8873-80d04b88a1ce";
 
 	protected static final File USER_ANGELICA_FILE = new File(TEST_DIR, "user-angelica.xml");
 	protected static final String USER_ANGELICA_NAME = "angelika";
@@ -174,6 +164,18 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
 	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
+
+	protected static final File ROLE_SELF_DELEGABLE_FILE = new File(TEST_DIR, "role-self-delegable.xml");
+	protected static final String ROLE_SELF_DELEGABLE_OID = "c58f2665-e7c6-47a0-b106-974da5a990b4";
+
+	protected static final File ROLE_CASES_ASSIGNEE_SELF_FILE = new File(TEST_DIR, "role-cases-assignee-self.xml");
+	protected static final String ROLE_CASES_ASSIGNEE_SELF_OID = "541ad3fc-1ae7-4412-a205-47093a78f0cf";
+
+	protected static final File ROLE_CASES_OBJECT_SELF_FILE = new File(TEST_DIR, "role-cases-object-self.xml");
+	protected static final String ROLE_CASES_OBJECT_SELF_OID = "96bbb1be-cf8c-4e9c-a994-ec0fbfcadb1d";
+
+	protected static final File ROLE_CASES_REQUESTOR_SELF_FILE = new File(TEST_DIR, "role-cases-requestor-self.xml");
+	protected static final String ROLE_CASES_REQUESTOR_SELF_OID = "d8a114e1-6f55-4380-876b-87071dbed1b7";
 
 	protected static final File ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-modify-caribbean.xml");
 	protected static final String ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa04";
@@ -303,8 +305,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final File ROLE_LIMITED_USER_ADMIN_FILE = new File(TEST_DIR, "role-limited-user-admin.xml");
 	protected static final String ROLE_LIMITED_USER_ADMIN_OID = "66ee3a78-1b8a-11e7-aac6-5f43a0a86116";
 
-	protected static final File ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE = new File(TEST_DIR,"role-end-user-requestable-abstractroles.xml");
-	protected static final String ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID = "9434bf5b-c088-456f-9286-84a1e5a0223c";
+	protected static final File ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_FILE = new File(TEST_DIR,"role-end-user-requestable-abstractroles.xml");
+	protected static final String ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID = "9434bf5b-c088-456f-9286-84a1e5a0223c";
 
 	protected static final File ROLE_SELF_TASK_OWNER_FILE = new File(TEST_DIR, "role-self-task-owner.xml");
 	protected static final String ROLE_SELF_TASK_OWNER_OID = "455edc40-30c6-11e7-937f-df84f38dd402";
@@ -376,10 +378,19 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
     protected static final File CAMPAIGNS_FILE = new File(TEST_DIR, "campaigns.xml");
 
+    protected static final File CASE1_FILE = new File(TEST_DIR, "case-1.xml");
+    protected static final String CASE1_OID = "99cf4e9f-fced-4f09-a302-57ad3ad6c0c1";
+	protected static final File CASE2_FILE = new File(TEST_DIR, "case-2.xml");
+    protected static final String CASE2_OID = "13326d91-9308-499f-9ea7-a4d6daaad437";
+	protected static final File CASE3_FILE = new File(TEST_DIR, "case-3.xml");
+	protected static final String CASE3_OID = "88b9b365-be94-4407-8c1a-6522d6beac7d";
+	protected static final File CASE4_FILE = new File(TEST_DIR, "case-4.xml");
+	protected static final String CASE4_OID = "4a1e4047-f574-43e5-a254-d7cd050cf00f";
+
     protected static final ItemPath PASSWORD_PATH = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
 	protected static final XMLGregorianCalendar JACK_VALID_FROM_LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(10000L);
-	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AGEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
+	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
 	protected static final int NUMBER_OF_IMPORTED_ROLES = 70;
@@ -393,7 +404,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		super.initSystem(initTask, initResult);
 
         repoAddObjectsFromFile(CAMPAIGNS_FILE, initResult);
+        repoAddObjectsFromFile(CASE1_FILE, initResult);
+        repoAddObjectsFromFile(CASE2_FILE, initResult);
+        repoAddObjectsFromFile(CASE3_FILE, initResult);
+        repoAddObjectsFromFile(CASE4_FILE, initResult);
 
+        repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_BUSINESS_ROLE_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_APPLICATION_ROLE_FILE, initResult);
         
@@ -405,6 +421,10 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_BASIC_ITEMS_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_SELF_DELEGABLE_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CASES_ASSIGNEE_SELF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CASES_OBJECT_SELF_FILE, initResult);
+		repoAddObjectFromFile(ROLE_CASES_REQUESTOR_SELF_FILE, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_USER_FILE, initResult);
@@ -458,7 +478,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_ROLE_OWNER_ASSIGN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_SELF_TASK_OWNER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PERSONA_MANAGEMENT_FILE, initResult);
-		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTACTROLES_FILE, initResult);
+		repoAddObjectFromFile(ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PERSONA_ADMIN_FILE, initResult);
 		repoAddObjectFromFile(ROLE_ORDINARY_FILE, initResult);
 		repoAddObjectFromFile(ROLE_UNINTERESTING_FILE, initResult);
@@ -568,6 +588,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 		assertSearch(AccessCertificationCampaignType.class, null, 2);		// 2 campaigns there
 		assertReadCertCasesAllow();
+		assertReadCasesAllow();
 		assertSearch(TaskType.class, null, 2);
 
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
@@ -587,6 +608,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertDeleteDeny();
 
 		assertReadCertCasesDeny();
+		assertReadCasesDeny();
 
         RoleSelectionSpecification roleSpec = getAssignableRoleSpecification(userJack);
         assertNotNull("Null role spec "+roleSpec, roleSpec);
@@ -613,6 +635,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected void assertAttributeFlags(RefinedObjectClassDefinition rOcDef, QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(attrName);
+		assertNotNull(rAttrDef);
 		assertEquals("Wrong readability flag for "+attrName, expectedRead, rAttrDef.canRead());
 		assertEquals("Wrong addition flag for "+attrName, expectedAdd, rAttrDef.canAdd());
 		assertEquals("Wrong modification flag for "+attrName, expectedModify, rAttrDef.canModify());
@@ -620,6 +643,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	
 	protected void assertAttributeFlags(ObjectClassComplexTypeDefinition rOcDef, QName attrName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		ResourceAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(attrName);
+		assertNotNull(rAttrDef);
 		assertEquals("Wrong readability flag for "+attrName, expectedRead, rAttrDef.canRead());
 		assertEquals("Wrong addition flag for "+attrName, expectedAdd, rAttrDef.canAdd());
 		assertEquals("Wrong modification flag for "+attrName, expectedModify, rAttrDef.canModify());
@@ -725,12 +749,28 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertReadCertCases(0);
 	}
 
+	protected void assertReadCasesDeny() throws Exception {
+		assertReadCases(0);
+	}
+
 	protected void assertReadCertCasesAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		assertReadCertCases(3);
 	}
 
+	protected void assertReadCasesAllow() throws Exception {
+		assertReadCases(4);
+	}
+
 	protected void assertReadCertCases(int expectedNumber) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         assertContainerSearch(AccessCertificationCaseType.class, null, expectedNumber);
+    }
+
+	protected void assertReadCases(int expectedNumber) throws Exception {
+        assertSearch(CaseType.class,  null, expectedNumber);
+    }
+
+	protected void assertReadCases(String... expectedOids) throws Exception {
+        assertSearch(CaseType.class,  null, expectedOids);
     }
 
 	protected void assertReadDeny(int expectedNumAllUsers) throws Exception {
@@ -800,7 +840,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertAddAllow(USER_DRAKE_FILE, ModelExecuteOptions.createRaw());
 	}
 
-	protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		// self-modify, common property
 		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
 		// TODO: self-modify password
@@ -809,7 +849,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assertModifyDenyRaw();
 	}
 	
-	protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected void assertModifyDenyRaw() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 	}
 
@@ -867,13 +907,13 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
     }
 
 
-	protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyMetadataDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		XMLGregorianCalendar oneHourAgo = XmlTypeConverter.addDuration(clock.currentTimeXMLGregorianCalendar(), "-PT1H");
 		assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_MODIFY_TIMESTAMP), null, oneHourAgo);
 		assertModifyDenyOptions(type, oid, getMetadataPath(MetadataType.F_CREATE_CHANNEL), null, "hackHackHack");
 	}
 	
-	protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertPasswordChangeDeny(Class<O> type, String oid, String newPassword) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		ProtectedStringType passwordPs = new ProtectedStringType();
         passwordPs.setClearValue(newPassword);
         assertModifyDeny(type, oid, PASSWORD_PATH, passwordPs);
@@ -885,21 +925,21 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertModifyAllow(type, oid, PASSWORD_PATH, passwordPs);
 	}
 
-	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDenyRaw(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createRaw(), newRealValue);
 	}
 	
-	protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDenyPartial(Class<O> type, String oid, ItemName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		PartialProcessingOptionsType partialProcessing = new PartialProcessingOptionsType();
 		partialProcessing.setApprovals(PartialProcessingTypeType.SKIP);
 		assertModifyDenyOptions(type, oid, propertyName, ModelExecuteOptions.createPartialProcessing(partialProcessing), newRealValue);
 	}
 
-	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, ItemPath itemPath, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		assertModifyDenyOptions(type, oid, itemPath, null, newRealValue);
 	}
 
-	protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void assertModifyDenyOptions(Class<O> type, String oid, ItemPath itemPath, ModelExecuteOptions options, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertModifyDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta = prismContext.deltaFactory().object()
@@ -968,7 +1008,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         InputStream stream = new FileInputStream(file);
 		// This does not throw exception, failure is indicated in the result
-        modelService.importObjectsFromStream(stream, null, task, result);
+        modelService.importObjectsFromStream(stream, PrismContext.LANG_XML, null, task, result);
 		result.computeStatus();
 		TestUtil.assertFailure(result);
 	}
@@ -977,7 +1017,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertImportStreamAllow");
         OperationResult result = task.getResult();
         InputStream stream = new FileInputStream(file);
-        modelService.importObjectsFromStream(stream, null, task, result);
+        modelService.importObjectsFromStream(stream, PrismContext.LANG_XML, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
@@ -996,15 +1036,12 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         userType.asPrismObject().checkConsistence(true, true);
 	}
 
-	protected void assertHasAuthotizationAllow(Authorization authorization, String... action) {
+	protected void assertHasAuthorizationAllow(Authorization authorization, String... action) {
 		assertNotNull("Null authorization", authorization);
 		assertEquals("Wrong decision in "+authorization, AuthorizationDecisionType.ALLOW, authorization.getDecision());
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
 	}
 
-
-
-	
 	protected <O extends ObjectType, T extends ObjectType> void assertIsAuthorized(String operationUrl, AuthorizationPhaseType phase, AuthorizationParameters<O,T> params, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractSecurityTest.class.getName() + ".assertIsAuthorized");
         OperationResult result = task.getResult();
@@ -1023,9 +1060,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		TestUtil.assertSuccess(result);
 	}
 		
-
-
-
 	protected void assertGlobalStateUntouched() throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(getDummyResourceObject());
 		RefinedObjectClassDefinition rOcDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -1034,7 +1068,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertAttributeFlags(rOcDef, new QName("location"), true, true, true);
         assertAttributeFlags(rOcDef, new QName("weapon"), true, true, true);
 	}
-
 
 	protected void assertAuditReadDeny() throws Exception {
 		assertDeny("auditHistory", (task,result) -> getAllAuditRecords(task, result));
@@ -1118,14 +1151,14 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	/**
 	 * Assert for "read some, modify some" roles
 	 */
-    protected void assertReadSomeModifySome(int exprectedJackAssignments) throws Exception {
+    protected void assertReadSomeModifySome(int expectedJackAssignments) throws Exception {
     	assertReadAllow();
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
 
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("Jack", userJack);
-		assertUserJackReadSomeModifySome(userJack, exprectedJackAssignments);
+		assertUserJackReadSomeModifySome(userJack, expectedJackAssignments);
 		assertJackEditSchemaReadSomeModifySome(userJack);
 
         PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
@@ -1158,8 +1191,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         assertDeleteDeny();
     }
     
-    protected void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack, int exprectedJackAssignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-
+    protected void assertUserJackReadSomeModifySome(PrismObject<UserType> userJack, int expectedJackAssignments) {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
 		PrismAsserts.assertPropertyValue(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
@@ -1169,7 +1201,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
 		PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
 		PrismAsserts.assertNoItem(userJack, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
-		assertAssignmentsWithTargets(userJack, exprectedJackAssignments);
+		assertAssignmentsWithTargets(userJack, expectedJackAssignments);
     }
 
     protected void assertJackEditSchemaReadSomeModifySome(PrismObject<UserType> userJack) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {

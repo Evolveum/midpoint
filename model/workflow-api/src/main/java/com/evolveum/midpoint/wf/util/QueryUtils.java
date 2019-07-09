@@ -16,21 +16,18 @@
 
 package com.evolveum.midpoint.wf.util;
 
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -40,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -92,7 +88,7 @@ public class QueryUtils {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER).relation(defaultRelation).asReferenceValue());
 		for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
-			if (DeputyUtils.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
+			if (SchemaDeputyUtil.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
 				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator(), defaultRelation).asReferenceValue());
 			}
 		}
