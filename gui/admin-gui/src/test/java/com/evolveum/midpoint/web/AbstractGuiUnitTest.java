@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web;
 
 import java.util.Locale;
 
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
@@ -112,7 +115,11 @@ public abstract class AbstractGuiUnitTest extends AbstractHigherUnitTest {
 
 			@Override
 			public GuiComponentRegistry getRegistry() {
-				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
 				return null;
 			}
 		};

@@ -17,28 +17,6 @@
 
 package com.evolveum.midpoint.model.impl.sync;
 
-import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.impl.lens.*;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.SynchronizationUtils;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -46,7 +24,10 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
 import com.evolveum.midpoint.model.impl.expr.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
@@ -68,18 +49,23 @@ import com.evolveum.midpoint.schema.statistics.SynchronizationInformation;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.util.*;
+
+import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 /**
  * Synchronization service receives change notifications from provisioning. It
@@ -133,6 +119,11 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 				.addArbitraryObjectAsContext("task", task)
 				.build();
 
+		if (change.isCleanDeadShadow()) {
+			cleanDeadShadow(change, subResult);
+			return;
+		}
+
 		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
 		PrismObject<ShadowType> applicableShadow = currentShadow;
 		if (applicableShadow == null) {
@@ -148,7 +139,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(subResult);
 			SynchronizationContext<F> syncCtx = loadSynchronizationContext(applicableShadow, currentShadow, change.getResource(), change.getSourceChannel(), configuration, task, subResult);
 			syncCtx.setUnrelatedChange(change.isUnrelatedChange());
-			
 			traceObjectSynchronization(syncCtx);
 
 			if (!checkSynchronizationPolicy(syncCtx, eventInfo)) {
@@ -200,6 +190,39 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			task.markObjectActionExecutedBoundary();
 		}
 		LOGGER.debug("SYNCHRONIZATION: DONE for {}", currentShadow);
+	}
+
+	private <F extends FocusType> void cleanDeadShadow(ResourceObjectShadowChangeDescription change, OperationResult subResult) {
+		LOGGER.trace("Cleaning old dead shadows, checking for old links, cleaning them up");
+		String shadowOid = getOidFromChange(change);
+		if (shadowOid == null) {
+			LOGGER.trace("No shadow oid, nothing to clean up.");
+			return;
+		}
+
+		PrismObject<F> currentOwner = repositoryService.searchShadowOwner(shadowOid,
+				SelectorOptions.createCollection(GetOperationOptions.createAllowNotFound()), subResult);
+		if (currentOwner == null) {
+			LOGGER.trace("Nothing to do, shadow doesn't have any owner.");
+			return;
+		}
+
+		try {
+
+			F ownerType = currentOwner.asObjectable();
+			for (ObjectReferenceType linkRef : ownerType.getLinkRef()) {
+				if (shadowOid.equals(linkRef.getOid())) {
+					Collection<? extends  ItemDelta> modifications = prismContext.deltaFactory().reference().createModificationDeleteCollection(FocusType.F_LINK_REF, currentOwner.getDefinition(), linkRef.asReferenceValue().clone());
+						repositoryService.modifyObject(UserType.class, currentOwner.getOid(), modifications, subResult);
+					break;
+				}
+			}
+		} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+			LOGGER.error("SYNCHRONIZATION: Error in synchronization - clean up dead shadows. Change: {}", change, e);
+			//nothing more to do. and we don't want to trow exception to not cancel the whole execution.
+		}
+
+		subResult.computeStatus();
 	}
 	
 	@Override
@@ -888,13 +911,9 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 			projectionContext.setSyncAbsoluteTrigger(true);
 		}
 
-		if (tombstone && delta.isDelete()) {
-			projectionContext.setObjectOld(shadow);
-		} else {
+		// we insert account if available in change
+		projectionContext.setLoadedObject(shadow);
 
-			// we insert account if available in change
-			projectionContext.setLoadedObject(shadow);
-		}
 		if (!tombstone && !containsIncompleteItems(shadow)) {
 			projectionContext.setFullShadow(true);
 		}

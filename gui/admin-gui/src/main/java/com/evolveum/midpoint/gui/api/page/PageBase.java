@@ -2643,6 +2643,15 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
     
     //REGISTRY
+
+    @Override
+    public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
+        return registry.getObjectWrapperFactory(objectDef);
+    }
+
+    public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
+        return registry.findWrapperFactory(def);
+    }
     
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
     	
@@ -2690,14 +2699,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			throw new SystemException("Cannot instantiate " + panelClass, e);
 		}
-    }
-    
-    public <O extends ObjectType> PrismObjectWrapperFactory<O> findObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
-    	return registry.getObjectWrapperFactory(objectDef);
-    }
-    
-    public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
-    	return registry.findWrapperFactory(def);
     }
     
     public <CVW extends PrismContainerValueWrapper<C>, C extends Containerable> Panel initContainerValuePanel(String id, IModel<CVW> model, ItemVisibilityHandler visibilityHandler) {
