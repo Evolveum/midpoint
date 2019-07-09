@@ -1658,6 +1658,13 @@ public class ShadowCache {
 			// Perish you stinking corpse!
 			LOGGER.debug("Deleting dead {} because it is expired", repoShadow);
 			shadowManager.deleteShadow(ctx, repoShadow, parentResult);
+			ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+			change.setCleanDeadShadow(true);
+			change.setOldShadow(repoShadow);
+			change.setResource(ctx.getResource().asPrismObject());
+			change.setObjectDelta(repoShadow.createDeleteDelta());
+			change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+			changeNotificationDispatcher.notifyChange(change, task, parentResult);
 			applyDefinition(repoShadow, parentResult);
 			ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
 					repoShadow.createDeleteDelta(), parentResult);

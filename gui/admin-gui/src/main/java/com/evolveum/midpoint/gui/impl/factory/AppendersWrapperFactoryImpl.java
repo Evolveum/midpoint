@@ -42,7 +42,12 @@ public class AppendersWrapperFactoryImpl<C extends Containerable> extends PrismC
 	public boolean match(ItemDefinition<?> def) {
 		return QNameUtil.match(def.getTypeName(), AppenderConfigurationType.COMPLEX_TYPE);
 	}
-	
+
+	@Override
+	public int getOrder() {
+		return 10;
+	}
+
 	@Override
 	protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent,
 			PrismContainerValue<C> value) {
