@@ -153,13 +153,15 @@ public class WrapperTestUtil {
 		assertEquals("Wrong status in wrapper "+containerWrapper, status, containerWrapper.getStatus());
 	}
 
-	public static <O extends ObjectType> void assertWrapper(PrismObjectWrapper<O> objectWrapper, String displayName, String description, PrismObject<O> object,
+	public static <O extends ObjectType> void assertWrapper(PrismObjectWrapper<O> objectWrapper, String displayName, String description, PrismObject<O> object, PrismObject<O> objectOld,
                                                             ItemStatus status) {
 		assertNotNull("null wrapper", objectWrapper);
 		assertEquals("Wrong object in wrapper "+objectWrapper, object, objectWrapper.getObject());
-		assertEquals("Wrong old object in wrapper "+objectWrapper, object, objectWrapper.getObjectOld());
+		if (ItemStatus.ADDED != objectWrapper.getStatus()) {
+			assertEquals("Wrong old object in wrapper " + objectWrapper, objectOld, objectWrapper.getObjectOld());
+		}
 		assertFalse("object and old object not clonned in "+objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
-//		assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getDisplayName());
+		assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getDisplayName());
 //		assertEquals("Wrong description in wrapper "+objectWrapper, description, objectWrapper.getDescription());
 		assertEquals("Wrong status in wrapper "+objectWrapper, status, objectWrapper.getStatus());
 //		assertNull("Unexpected old delta in "+objectWrapper, objectWrapper.getOldDelta());

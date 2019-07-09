@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -129,7 +130,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = DebugUtil.createIndentedStringBuilder(indent);
 		sb.append("Status: ").append(status).append("\n");
 		sb.append("New value: ").append(newValue.debugDump()).append("\n");
 		sb.append("Old value: ").append(oldValue.debugDump()).append("\n");
