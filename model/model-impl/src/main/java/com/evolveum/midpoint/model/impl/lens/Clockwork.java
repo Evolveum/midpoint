@@ -1304,7 +1304,6 @@ public class Clockwork {
 		auditRecord.setRequestIdentifier(context.getRequestIdentifier());
 
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
-		
 		SystemConfigurationAuditEventRecordingType auditEventRecordingType;
 		if (systemConfiguration != null) {
 			PrismContainer<SystemConfigurationAuditEventRecordingType> auditEventRecording = (PrismContainer) systemConfiguration.getValue().findItem(ItemPath.create("audit", "eventRecording"));
@@ -1320,7 +1319,6 @@ public class Clockwork {
 		
 		if (primaryObject != null) {
 			auditRecord.setTarget(primaryObject.clone(), prismContext);
-			
 			if (Boolean.TRUE.equals(auditEventRecordingType.isRecordResourceOids())) {
 				if (primaryObject.getRealValue() instanceof FocusType) {
 					FocusType focus = (FocusType) primaryObject.getRealValue();

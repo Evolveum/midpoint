@@ -1187,7 +1187,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertCustomColumn("foo", "test");
+        dummyAuditService.assertCustomColumn("foo", "test");
 //        dummyAuditService.assertResourceOid(RESOURCE_DUMMY_OID);
         dummyAuditService.assertExecutionSuccess();
 
