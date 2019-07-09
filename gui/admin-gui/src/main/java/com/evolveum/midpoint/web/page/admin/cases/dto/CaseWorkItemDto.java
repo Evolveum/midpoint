@@ -17,17 +17,17 @@
 package com.evolveum.midpoint.web.page.admin.cases.dto;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemTypeUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
  * DTO representing a particular CaseWorkItem.
@@ -36,7 +36,8 @@ import javax.xml.namespace.QName;
  *
  * @author bpowers
  */
-public class CaseWorkItemDto extends Selectable {
+public class CaseWorkItemDto extends ObjectType
+        implements Serializable, Cloneable, Objectable {
 
     public static final String F_NAME = "name";
     public static final String F_OBJECT_NAME = "objectName";
@@ -140,7 +141,7 @@ public class CaseWorkItemDto extends Selectable {
         return WebComponentUtil.getName(workItem.getOriginalAssigneeRef());
     }
 
-    public String getName() {
+    public com.evolveum.prism.xml.ns._public.types_3.PolyStringType getName() {
         return workItem.getName();
     }
 

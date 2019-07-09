@@ -25,7 +25,11 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -33,6 +37,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -110,6 +115,9 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
     // Data Table
     private static final String ID_CASE_WORK_ITEMS_TABLE = "caseWorkItemsTable";
     private static final String ID_BUTTON_BAR = "buttonBar";
+
+    public static final String ID_MAIN_FORM = "mainForm";
+    public static final String ID_CASE_WORK_ITEMS_TABLE2 = "table";
     // Buttons
     private static final String ID_CREATE_CASE_BUTTON = "createCaseButton";
 
@@ -271,6 +279,155 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
         table.setItemsPerPage(itemsPerPage);        // really don't know why this is necessary, as e.g. in PageRoles the size setting works without it
         add(table);
         initSearch();
+
+
+
+        com.evolveum.midpoint.web.component.form.Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        add(mainForm);
+
+        LOGGER.trace("Creating caseWorkItemsPanel");
+        MainObjectListPanel<CaseWorkItemDto> caseWorkItemsPanel = new MainObjectListPanel<CaseWorkItemDto>(
+                ID_CASE_WORK_ITEMS_TABLE2,
+                CaseWorkItemDto.class,
+                UserProfileStorage.TableId.TABLE_CASE_WORK_ITEMS,
+                null,
+                this) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void objectDetailsPerformed(AjaxRequestTarget target, CaseWorkItemDto caseWorkItemInstance) {
+                PageCaseWorkItems.this.caseDetailsPerformed(target, caseWorkItemInstance);
+            }
+
+            @Override
+            protected void newObjectPerformed(AjaxRequestTarget target) {
+                navigateToNext(PageCase.class);
+            }
+
+            @Override
+            protected List<IColumn<SelectableBean<CaseWorkItemDto>, String>> createColumns() {
+                return PageCaseWorkItems.this.initColumns2();
+            }
+
+            @Override
+            protected List<InlineMenuItem> createInlineMenu() {
+                return new ArrayList<>();
+            }
+
+            @Override
+            protected IColumn<SelectableBean<CaseWorkItemDto>, String> createActionsColumn() {
+                return null;
+            }
+        };
+        caseWorkItemsPanel.setOutputMarkupId(true);
+        mainForm.add(caseWorkItemsPanel);
+    }
+
+    private List<IColumn<SelectableBean<CaseWorkItemDto>, String>> initColumns2() {
+        LOGGER.trace("initColumns()");
+
+        List<IColumn<SelectableBean<CaseWorkItemDto>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseWorkItemDto>, String>>();
+
+        IColumn column = new LinkColumn<SelectableBean<CaseWorkItemDto>>(createStringResource("PageCaseWorkItems.table.description"), CaseWorkItemDto.F_DESCRIPTION) {
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<CaseWorkItemDto>> rowModel) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(PARAMETER_CASE_ID, rowModel.getObject().getValue().getCase().getOid());
+                parameters.add(PARAMETER_CASE_WORK_ITEM_ID, rowModel.getObject().getValue().getWorkItemId());
+                navigateToNext(PageCaseWorkItem.class, parameters);
+            }
+        };
+        columns.add(column);
+
+        /*column = new PropertyColumn<>(
+                createStringResource("PageCaseWorkItems.table.objectName"),
+                SearchingUtils.CASE_OBJECT_NAME, CaseWorkItemDto.F_OBJECT_NAME);
+        columns.add(column);
+
+        column = new PropertyColumn<>(createStringResource("PageCaseWorkItems.table.actor"), CaseWorkItemDto.F_ASSIGNEES);
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.openTimestamp"),
+                SearchingUtils.CASE_OPEN_TIMESTAMP, CaseWorkItemDto.F_OPEN_TIMESTAMP) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar createdCal = dto.getOpenTimestamp();
+                final Date created;
+                if (createdCal != null) {
+                    created = createdCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                } else {
+                    created = null;
+                }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(created, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.deadline"),
+                SearchingUtils.WORK_ITEM_DEADLINE, CaseWorkItemDto.F_DEADLINE) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar deadlineCal = dto.getDeadline();
+                final Date deadline;
+                if (deadlineCal != null) {
+                    deadline = deadlineCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                } else {
+                    deadline = null;
+                }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(deadline, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<CaseWorkItemDto, String>(
+                createStringResource("PageCaseWorkItems.table.closeTimestamp"),
+                SearchingUtils.WORK_ITEM_CLOSE_TIMESTAMP, CaseWorkItemDto.F_CLOSE_TIMESTAMP) {
+            @Override
+            public void populateItem(Item<ICellPopulator<CaseWorkItemDto>> item, String componentId, IModel<CaseWorkItemDto> rowModel) {
+                CaseWorkItemDto dto = rowModel.getObject();
+                XMLGregorianCalendar closedCal = dto.getCloseTimestamp();
+                final Date closed;
+                if (closedCal != null) {
+                    closed = closedCal.toGregorianCalendar().getTime();
+                    item.add(AttributeModifier.replace("title", WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE)));
+                    item.add(new TooltipBehavior());
+                } else {
+                    closed = null;
+                }
+                item.add(new Label(componentId, new AbstractReadOnlyModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getLocalizedDate(closed, DateLabelComponent.LONG_MEDIUM_STYLE);
+                    }
+                }));
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<>(
+                createStringResource("PageCaseWorkItems.table.state"), CaseWorkItemDto.F_STATE);
+        columns.add(column);*/
+
+        return columns;
     }
 
     private List<IColumn<CaseWorkItemDto, String>> initColumns() {
@@ -565,5 +722,12 @@ public abstract class PageCaseWorkItems extends PageAdminCaseWorkItems {
             });
             add(createCase);
         }
+    }
+    private void caseDetailsPerformed(AjaxRequestTarget target, CaseWorkItemDto caseWorkItemInstance) {
+        LOGGER.trace("caseDetailsPerformed()");
+
+        PageParameters pageParameters = new PageParameters();
+        pageParameters.add(OnePageParameterEncoder.PARAMETER, caseWorkItemInstance.getOid());
+        navigateToNext(PageCaseWorkItem.class, pageParameters);
     }
 }
