@@ -18,27 +18,19 @@ package com.evolveum.midpoint.notifications.impl.api.transports;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly
@@ -51,7 +43,7 @@ public class TransportUtil {
         fw.close();
     }
 
-	public static <T extends NamedConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
+	public static <T extends NotificationTransportConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
 			Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
 			OperationResult result) {
 
