@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Locale;
 
@@ -32,9 +33,18 @@ import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import org.apache.wicket.Application;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.protocol.http.WicketFilter;
 import org.apache.wicket.util.tester.WicketTester;
@@ -44,10 +54,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.mock.web.MockFilterConfig;
 import org.springframework.mock.web.MockServletContext;
 import org.springframework.web.context.WebApplicationContext;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.*;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
@@ -85,6 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.xml.sax.SAXException;
 
 /**
  * @author lazyman
@@ -141,8 +149,6 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 	protected static final String SECURITY_POLICY_OID = "00000000-0000-0000-0000-000000000120";
 
     @Autowired private MidPointApplication application;
-    
-//    @Autowired private ApplicationContext appContext;
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired protected RelationRegistry relationRegistry;
@@ -158,15 +164,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 		super.initSystem(initTask, initResult);
 		
 		LOGGER.info("after super init");
-	    WebComponentUtil.setStaticallyProvidedRelationRegistry(relationRegistry);
-	    
-	    PrismObject<SystemConfigurationType> configuration = repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, initResult);
-	    relationRegistry.applyRelationsConfiguration(configuration.asObjectable());
-	    
-	    repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
-	    repoAddObjectFromFile(ROLE_ENDUSER_FILE, initResult);
-	    repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
-	    repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, initResult);
+//	    WebComponentUtil.setStaticallyProvidedRelationRegistry(relationRegistry);
 
 	  	login(USER_ADMINISTRATOR_USERNAME);
 	  	LOGGER.info("user logged in");
@@ -226,7 +224,11 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
 			@Override
 			public Task createSimpleTask(String operationName) {
-				return taskManager.createTaskInstance(operationName);
+				MidPointPrincipal user = SecurityUtils.getPrincipalUser();
+				if (user == null) {
+					throw new IllegalStateException("No authenticated user");
+				}
+				return WebModelServiceUtils.createSimpleTask(operationName, SchemaConstants.CHANNEL_GUI_USER_URI, user.getUser().asPrismObject(), taskManager);
 			}
 
 			@Override

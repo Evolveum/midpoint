@@ -160,7 +160,24 @@
         </userDashboardLink>
         <objectCollectionViews>
             <objectCollectionView>
+                <identifier>my-cases</identifier>
+                <displayOrder>1000</displayOrder>
+                <type>CaseType</type>
+                <display>
+                    <label>Case</label>
+                    <pluralLabel>My Cases</pluralLabel>
+                    <icon>
+                        <cssClass>fe fe-case-object</cssClass>
+                    </icon>
+                </display>
+                <collection>
+                    <collectionRef oid="00000000-0000-0000-0000-000000000344" relation="org:default" type="c:ObjectCollectionType">
+                    </collectionRef>
+                </collection>
+            </objectCollectionView>
+            <objectCollectionView>
                 <identifier>manual-case-view</identifier>
+                <displayOrder>1001</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000340" relation="org:default" type="c:ArchetypeType">
@@ -169,6 +186,7 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>operation-request-case-view</identifier>
+                <displayOrder>1002</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType">
@@ -177,6 +195,7 @@
             </objectCollectionView>
             <objectCollectionView>
                 <identifier>approval-case-view</identifier>
+                <displayOrder>1003</displayOrder>
                 <type>CaseType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="c:ArchetypeType">

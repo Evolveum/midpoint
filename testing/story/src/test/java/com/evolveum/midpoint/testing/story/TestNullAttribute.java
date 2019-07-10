@@ -214,7 +214,7 @@ public class TestNullAttribute extends AbstractStoryTest {
 		@SuppressWarnings("unchecked, raw")
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
 				(Collection) prismContext.deltaFor(UserType.class)
-				.item(UserType.F_EXTENSION, new QName(NS_PIRACY, "ship")).add("Black Pearl")
+				.item(NSION, new QName(NS_PIRACY, "ship")).add("Black Pearl")
 				.asObjectDeltas(USER_SMACK_OID);
 		modelService.executeChanges(deltas, null, task, result);
 
