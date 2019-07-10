@@ -239,9 +239,10 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
 
 	/**
-	 * TODO TODO TODO
+	 * TODO TODO TODO (think out better name)
+	 * Use with care. Never provide to outside world (beyond task manager).
 	 */
-	PrismObject<TaskType> getLiveTaskPrismObject() {
+	PrismObject<TaskType> getLiveTaskObjectForNotRunningTasks() {
 		if (isLiveRunningInstance()) {
 			throw new UnsupportedOperationException("It is not possible to get live task prism object from the running task instance: " + this);
 		} else {
@@ -249,10 +250,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 		}
 	}
 
+
+	// Use with utmost care! Never provide to outside world (beyond task manager)
+	PrismObject<TaskType> getLiveTaskObject() {
+		return taskPrism;
+	}
+
+	@NotNull
 	@Override
-	public PrismObject<TaskType> getTaskPrismObject() {
+	public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
 		if (isLiveRunningInstance()) {
 			return getTaskPrismObjectClone();
+		} else {
+			updateTaskPrismResult(taskPrism);
+			return taskPrism;
+		}
+	}
+
+	@NotNull
+	@Override
+	public PrismObject<TaskType> getUpdatedTaskObject() {
+		if (isLiveRunningInstance()) {
+			throw new IllegalStateException("Cannot get task object from live running task instance");
 		} else {
 			updateTaskPrismResult(taskPrism);
 			return taskPrism;
@@ -1357,7 +1376,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	 * Beware: this returns cloned object reference!
 	 */
 	@Override
-	public ObjectReferenceType getObjectRef() {
+	public ObjectReferenceType getObjectRefOrClone() {
 		return cloneIfRunning(getObjectRefInternal());
 	}
 
@@ -1645,10 +1664,19 @@ public class TaskQuartzImpl implements InternalTaskInterface {
      */
 
 	@Override
-	public PrismContainer<? extends ExtensionType> getExtension() {
+	public PrismContainer<? extends ExtensionType> getExtensionOrClone() {
 		synchronized (PRISM_ACCESS) {
 			//noinspection unchecked
 			return cloneIfRunning((PrismContainer<ExtensionType>) taskPrism.getExtension());
+		}
+	}
+
+	@NotNull
+	@Override
+	public PrismContainer<? extends ExtensionType> getOrCreateExtension() throws SchemaException {
+		synchronized (PRISM_ACCESS) {
+			//noinspection unchecked
+			return cloneIfRunning((PrismContainer<ExtensionType>) taskPrism.getOrCreateExtension());
 		}
 	}
 
@@ -1667,7 +1695,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Override
-	public <T> PrismProperty<T> getExtensionProperty(ItemName name) {
+	public <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName name) {
 		synchronized (PRISM_ACCESS) {
 			return cloneIfRunning(getExtensionPropertyUnsynchronized(name));
 		}
@@ -1689,7 +1717,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Override
-	public <T extends Containerable> T getExtensionContainerRealValue(ItemName name) {
+	public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName name) {
 		synchronized (PRISM_ACCESS) {
 			Item<?, ?> item = getExtensionItemUnsynchronized(name);
 			if (item == null || item.getValues().isEmpty()) {
@@ -1701,20 +1729,20 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	@Override
-	public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(ItemName name) {
+	public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName name) {
 		synchronized (PRISM_ACCESS) {
 			return cloneIfRunning(getExtensionItemUnsynchronized(name));
 		}
 	}
 
 	private <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemUnsynchronized(ItemName name) {
-		PrismContainer<? extends ExtensionType> extension = getExtension();
+		PrismContainer<? extends ExtensionType> extension = getExtensionOrClone();
 		return extension != null ? extension.findItem(name) : null;
 	}
 
 	@Override
-	public PrismReference getExtensionReference(ItemName name) {
-		return (PrismReference) (Item) getExtensionItem(name);
+	public PrismReference getExtensionReferenceOrClone(ItemName name) {
+		return (PrismReference) (Item) getExtensionItemOrClone(name);
 	}
 
 	@Override

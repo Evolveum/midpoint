@@ -316,7 +316,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	    	// For workflow-related tasks the task object might not be created yet (MID-4512). The simplest way
 		    // of avoiding displaying the error is to use a separate operation result.
 		    currentResult = new OperationResult(TaskDto.class.getName() + ".getTaskObjectName");
-		    objectRef = null; // was: taskType.getApprovalContext().getObjectRef();  // here should be the name present (important for objects that are to be created)
+		    objectRef = null; // was: taskType.getApprovalContext().getObjectRefOrClone();  // here should be the name present (important for objects that are to be created)
 	    } else {
 	    	currentResult = thisOpResult;
 	    	objectRef = null;
@@ -385,7 +385,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			ChangesByState changesByState = null; //workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
 			List<TaskChangesDto> changeCategories = Collections.emptyList();
 			// was:
-					// computeChangesCategorizationList(changesByState, wfc.getObjectRef(),
+					// computeChangesCategorizationList(changesByState, wfc.getObjectRefOrClone(),
 					// modelInteractionService, prismContext, opTask, thisOpResult);
 			if (changeCategories.size() > 1) {
 				throw new IllegalStateException("More than one task change category for task " + taskType + ": " + changeCategories);
@@ -408,7 +408,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		//ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
 		this.changesCategorizationList = Collections.emptyList();
 		// was:
-				// computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRef() : null,
+				// computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRefOrClone() : null,
 				// modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
@@ -438,7 +438,7 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return Collections.emptyList();
         //was:
 		      //  objectTreeDeltasToDeltaDtoList(pcps.getDeltasToApprove(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
-				//				wfc.getObjectRef(), opTask, thisOpResult);
+				//				wfc.getObjectRefOrClone(), opTask, thisOpResult);
     }
 
 	private SceneDto retrieveDeltaToProcess(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,

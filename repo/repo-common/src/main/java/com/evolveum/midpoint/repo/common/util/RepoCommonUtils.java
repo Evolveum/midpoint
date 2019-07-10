@@ -21,7 +21,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author katka
@@ -31,7 +30,7 @@ public class RepoCommonUtils {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(RepoCommonUtils.class);
 	
-	public static <O extends ObjectType> void processErrorCriticality(O object, CriticalityType criticality, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, 
+	public static void processErrorCriticality(Object object, CriticalityType criticality, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException,
 	ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
 	switch (criticality) {
 		case FATAL:

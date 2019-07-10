@@ -52,7 +52,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -2841,7 +2840,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PrismContainer<?> taskExtension = task.getExtension();
+        PrismContainer<?> taskExtension = task.getExtensionOrClone();
         AssertJUnit.assertNotNull(taskExtension);
         display("Task extension", taskExtension);
         PrismProperty<String> shipStateProp = taskExtension.findProperty(MY_SHIP_STATE);
@@ -3077,7 +3076,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private Object findSyncTokenObject(Task syncCycle) {
         Object token = null;
-        PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        PrismProperty<?> tokenProperty = syncCycle.getExtensionOrClone().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
         	Collection<?> values = tokenProperty.getRealValues();
         	if (values.size() > 1) {

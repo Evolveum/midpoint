@@ -291,7 +291,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 		subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
 		subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
 		subtask.setCategory(masterTask.getCategory());
-		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRef()));
+		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));
 		subtask.setRecurrence(TaskRecurrenceType.SINGLE);
 		subtask.setParent(masterTask.getTaskIdentifier());
 		boolean copyMasterExtension = applyDefaults(

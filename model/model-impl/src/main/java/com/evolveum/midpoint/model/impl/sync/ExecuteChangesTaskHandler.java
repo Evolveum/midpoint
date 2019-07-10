@@ -121,7 +121,7 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
 	}
 
 	private <T extends ObjectType> ObjectDelta<T> createDeltaFromTask(Task task) throws SchemaException {
-		PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+		PrismProperty<ObjectDeltaType> objectDeltaType = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
         if (objectDeltaType != null && objectDeltaType.getRealValue() != null) {
         	return DeltaConvertor.createObjectDelta(objectDeltaType.getRealValue(), prismContext);
         } else {

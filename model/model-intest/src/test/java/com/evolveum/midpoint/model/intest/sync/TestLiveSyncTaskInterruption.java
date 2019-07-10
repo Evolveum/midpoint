@@ -415,7 +415,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
 		display("Task after", taskAfter);
 		assertPartialError(taskAfter.getResult());      // the task should continue (i.e. not suspend) - TODO reconsider this
-		assertTaskClosed(taskAfter.getTaskPrismObject());
+		assertTaskClosed(taskAfter);
 
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) ERROR_ON, token);
@@ -477,7 +477,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		Task taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
 		display("Task after", taskAfter);
 		assertPartialError(taskAfter.getResult());            // the task should continue (i.e. not suspend) - TODO reconsider this
-		assertTaskClosed(taskAfter.getTaskPrismObject());
+		assertTaskClosed(taskAfter);
 
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 0, token);

@@ -131,7 +131,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks + ". This task cannot be run with worker threads. Please remove workerThreads extension property or set its value to 0.");
         }
 
-        PrismProperty<String> diagnosePrismProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DIAGNOSE);
+        PrismProperty<String> diagnosePrismProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DIAGNOSE);
         if (diagnosePrismProperty == null || diagnosePrismProperty.isEmpty()) {
             checkIntents = true;
             checkUniqueness = true;
@@ -148,7 +148,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             checkExtraData = contains(diagnosePrismProperty, EXTRA_DATA);
             checkProperty(diagnosePrismProperty);
         }
-        PrismProperty<String> fixPrismProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_FIX);
+        PrismProperty<String> fixPrismProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_FIX);
         if (fixPrismProperty == null || fixPrismProperty.isEmpty()) {
             fixIntents = false;
             fixUniqueness = false;
@@ -178,7 +178,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         if (fixUniqueness) {
-            PrismProperty<String> duplicateShadowsResolverClass = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER);
+            PrismProperty<String> duplicateShadowsResolverClass = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER);
             String duplicateShadowsResolverClassName;
             if (duplicateShadowsResolverClass != null) {
                 duplicateShadowsResolverClassName = duplicateShadowsResolverClass.getRealValue();
@@ -192,7 +192,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             }
         }
 
-        PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
+        PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
         if (checkDuplicatesOnPrimaryIdentifiersOnlyProperty != null && checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue() != null) {
             checkDuplicatesOnPrimaryIdentifiersOnly = checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue();
         }

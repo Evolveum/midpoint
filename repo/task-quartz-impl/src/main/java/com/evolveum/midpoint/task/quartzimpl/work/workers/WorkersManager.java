@@ -276,7 +276,7 @@ public class WorkersManager {
 			worker.setExecutionStatus(workerExecutionStatus);
 			worker.setOwnerRef(CloneUtil.clone(coordinatorTask.getOwnerRef()));
 			worker.setCategory(coordinatorTask.getCategory());
-			worker.setObjectRef(CloneUtil.clone(coordinatorTask.getObjectRef()));
+			worker.setObjectRef(CloneUtil.clone(coordinatorTask.getObjectRefOrClone()));
 			worker.setRecurrence(TaskRecurrenceType.SINGLE);
 			worker.setParent(coordinatorTask.getTaskIdentifier());
 			worker.setExecutionEnvironment(CloneUtil.clone(coordinatorTask.getExecutionEnvironment()));

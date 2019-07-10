@@ -367,8 +367,8 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
 			Tracer tracer = taskManager.getTracer();
 			LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
-			TracingProfileType tracingProfile = coordinatorTask.getExtensionContainerRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-			PrismProperty<TracingPointType> tracingPointProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_TRACING_POINT);
+			TracingProfileType tracingProfile = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
+			PrismProperty<TracingPointType> tracingPointProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_POINT);
 			Collection<TracingPointType> points = tracingPointProperty != null && !tracingPointProperty.isEmpty() ?
 					tracingPointProperty.getRealValues() : singleton(defaultTracingPoint);
 			points.forEach(this::addTracingRequest);

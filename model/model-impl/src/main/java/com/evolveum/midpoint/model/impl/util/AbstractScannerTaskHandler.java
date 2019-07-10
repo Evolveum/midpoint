@@ -63,7 +63,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 		}
 
 		XMLGregorianCalendar lastScanTimestamp = null;
-    	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+    	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         if (lastScanTimestampProperty != null) {
             lastScanTimestamp = lastScanTimestampProperty.getValue().getValue();
         }

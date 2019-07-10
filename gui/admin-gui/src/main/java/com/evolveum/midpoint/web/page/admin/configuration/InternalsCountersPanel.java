@@ -13,7 +13,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.repo.api.CounterSepcification;
+import com.evolveum.midpoint.repo.api.CounterSpecification;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
@@ -46,12 +46,12 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 		Label thresholdCounter = new Label(ID_THRESHOLD_COUNTER, createStringResource("InternalsCountersPanel.thresholds"));
 		add(thresholdCounter);
 		
-		ListView<CounterSepcification> thresholdCountersTable = new ListView<CounterSepcification>(ID_THRESHOLD_COUNTERS_TABLE, createThresholdCounterModel()) {
+		ListView<CounterSpecification> thresholdCountersTable = new ListView<CounterSpecification>(ID_THRESHOLD_COUNTERS_TABLE, createThresholdCounterModel()) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(ListItem<CounterSepcification> item) {
-				CounterSepcification counter = item.getModelObject();
+			protected void populateItem(ListItem<CounterSpecification> item) {
+				CounterSpecification counter = item.getModelObject();
 				Label task = new Label(ID_COUNTER_TASK_LABEL, counter.getTaskName());
 				item.add(task);
 				
@@ -112,13 +112,13 @@ public class InternalsCountersPanel extends BasePanel<ListView<InternalCounters>
 		add(countersTable);
 	}
 	
-	private IModel<List<CounterSepcification>> createThresholdCounterModel() {
-		return new IModel<List<CounterSepcification>>() {
+	private IModel<List<CounterSpecification>> createThresholdCounterModel() {
+		return new IModel<List<CounterSpecification>>() {
 			private static final long serialVersionUID = 1L;
 			
 			@Override
-			public List<CounterSepcification> getObject() {
-				Collection<CounterSepcification> thresholdCounters = getPageBase().getCounterManager().listCounters();
+			public List<CounterSpecification> getObject() {
+				Collection<CounterSpecification> thresholdCounters = getPageBase().getCounterManager().listCounters();
 				return new ArrayList<>(thresholdCounters);
 			}
 		};
