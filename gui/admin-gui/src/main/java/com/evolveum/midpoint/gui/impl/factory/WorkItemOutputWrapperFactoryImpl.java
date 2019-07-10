@@ -23,10 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemCompletionEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,15 +31,14 @@ import org.springframework.stereotype.Component;
  * Created by honchar
  */
 @Component
-public class CaseEventWrapperFactoryImpl<CET extends CaseEventType> extends PrismContainerWrapperFactoryImpl<CET> {
+public class WorkItemOutputWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<AbstractWorkItemOutputType> {
 
     @Autowired
     private GuiComponentRegistry registry;
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return CaseEventType.COMPLEX_TYPE.equals(def.getTypeName()) || WorkItemEventType.COMPLEX_TYPE.equals(def.getTypeName()) ||
-                WorkItemCompletionEventType.COMPLEX_TYPE.equals(def.getTypeName()) || WorkItemDelegationEventType.COMPLEX_TYPE.equals(def.getTypeName());
+        return AbstractWorkItemOutputType.COMPLEX_TYPE.equals(def.getTypeName());
     }
 
     @Override
@@ -56,19 +52,19 @@ public class CaseEventWrapperFactoryImpl<CET extends CaseEventType> extends Pris
     }
 
     @Override
-    protected PrismContainerValue<CET> createNewValue(PrismContainer<CET> item) {
-        throw new UnsupportedOperationException("New case event value should not be created while creating wrappers.");
+    protected PrismContainerValue<AbstractWorkItemOutputType> createNewValue(PrismContainer<AbstractWorkItemOutputType> item) {
+        throw new UnsupportedOperationException("New work item output value should not be created while creating wrappers.");
     }
 
 
     @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<CET> item, WrapperContext context) {
+    protected boolean shouldCreateEmptyValue(PrismContainer<AbstractWorkItemOutputType> item, WrapperContext context) {
         return false;
     }
 
     @Override
-    public PrismContainerValueWrapper<CET> createValueWrapper(PrismContainerWrapper<CET> parent,
-                                                                           PrismContainerValue<CET> value, ValueStatus status, WrapperContext context) throws SchemaException {
+    public PrismContainerValueWrapper<AbstractWorkItemOutputType> createValueWrapper(PrismContainerWrapper<AbstractWorkItemOutputType> parent,
+                   PrismContainerValue<AbstractWorkItemOutputType> value, ValueStatus status, WrapperContext context) throws SchemaException {
         context.setCreateIfEmpty(false);
         return super.createValueWrapper(parent, value, status, context);
     }

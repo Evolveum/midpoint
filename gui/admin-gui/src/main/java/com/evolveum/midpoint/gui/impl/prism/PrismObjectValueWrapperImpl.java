@@ -56,5 +56,9 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 	public String getDisplayName() {
 		return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
 	}
-	
+
+	@Override
+	public boolean isExpanded() {
+		return true;
+	}
 }

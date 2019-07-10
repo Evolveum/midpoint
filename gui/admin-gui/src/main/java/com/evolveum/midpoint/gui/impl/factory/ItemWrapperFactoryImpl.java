@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -29,10 +30,6 @@ import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -136,7 +133,12 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
 			return false;
 		}
-		
+
+		if (ItemProcessing.IGNORE == def.getProcessing()) {
+			LOGGER.trace("Skip creating wrapper for {}, because item processig is set to IGNORE.", def);
+			return false;
+		}
+
 		if (def.isExperimental() && !WebModelServiceUtils.isEnableExperimentalFeature(modelInteractionService, context.getTask(), context.getResult())) {
 			LOGGER.trace("Skipping creating wrapper for {}, because experimental GUI features are turned off.", def);
 			return false;
