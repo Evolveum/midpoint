@@ -16,13 +16,13 @@
 package com.evolveum.midpoint.gui.impl.prism;
 
 import java.text.Collator;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -44,7 +44,6 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.Containerable;
@@ -149,82 +148,14 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
     	propertiesLabel.setOutputMarkupId(true);
     	
-    	ListView<IW> properties = new ListView<IW>("properties",
-    		new IModel<List<IW>>() {
+    	ListView<IW> properties = new ListView<IW>("properties", createNonContainerWrappersModel()) {
 
-				@Override
-				public List<IW> getObject() {
-					CVW containerValueWrapper = getModelObject();
-					List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = containerValueWrapper.getNonContainers();
-					
-					Locale locale = WebModelServiceUtils.getLocale();
-					if (locale == null) {
-						locale = Locale.getDefault();
-					}
-					Collator collator = Collator.getInstance(locale);
-					collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
-					collator.setDecomposition(Collator.FULL_DECOMPOSITION); 
-					ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
-					if (CollectionUtils.isNotEmpty(nonContainers)) {
-						nonContainers.sort((Comparator) comparator);
-						
-						int visibleProperties = 0;
-
-				 		for (ItemWrapper<?,?,?,?> item : nonContainers) {
-							if (item.isVisible(containerValueWrapper.isShowEmpty(), containerValueWrapper.isExpanded(), visibilityHandler)) {
-								visibleProperties++;
-							}
-							
-							if (visibleProperties % 2 == 0) {
-								item.setStripe(false);
-							} else {
-								item.setStripe(true);
-							}
-							
-						}
-					}
-					
-					return (List<IW>) nonContainers;
-				}
-			}) {
-//            new PropertyModel<>(getModel(), "nonContainers")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
             protected void populateItem(final ListItem<IW> item) {
-				item.setOutputMarkupId(true);
-				IW itemWrapper = item.getModelObject();
-				try {
-					QName typeName = itemWrapper.getTypeName();
-					if(item.getModelObject() instanceof ResourceAttributeWrapper) {
-						typeName = new QName("ResourceAttributeDefinition");
-					}
-					Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), visibilityHandler);
-					panel.setOutputMarkupId(true);
-					panel.add(new VisibleEnableBehaviour() {
-						
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public boolean isEnabled() {
-							return !item.getModelObject().isReadOnly();
-						}
-						
-						@Override
-						public boolean isVisible() {
-							CVW parent = PrismContainerValuePanel.this.getModelObject();
-							return item.getModelObject().isVisible(parent.isShowEmpty(), parent.isExpanded(), visibilityHandler);
-						}
-					});
-					item.add(panel);
-				} catch (SchemaException e1) {
-					throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
-				}
-				
-	            item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+				populateNonContainer(item);
             }
-			
-			
         };
 //        properties.setReuseItems(true);
         properties.setOutputMarkupId(true);
@@ -236,7 +167,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				onShowEmptyClick(target);
-//				target.add(PrismContainerValuePanel.this);
 			}
 			
 			@Override
@@ -259,33 +189,114 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 	
 	private <PV extends PrismValue, I extends Item<PV, ID>, ID extends ItemDefinition<I>, IW extends ItemWrapper> void createContainersPanel() {
-		ListView<IW> containers = new ListView<IW>("containers", new PropertyModel<>(getModel(), "containers")) {
+		ListView<PrismContainerWrapper> containers = new ListView<PrismContainerWrapper>("containers", new PropertyModel<>(getModel(), "containers")) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void populateItem(final ListItem<IW> item) {
-				item.setOutputMarkupId(true);
-
-				item.setOutputMarkupId(true);
-				IW itemWrapper = item.getModelObject();
-				try {
-					Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), item.getModel(), visibilityHandler);
-					panel.setOutputMarkupId(true);
-					panel.add(new VisibleBehaviour(() -> {
-						CVW parent = PrismContainerValuePanel.this.getModelObject();
-						return item.getModelObject().isVisible(parent.isShowEmpty(), parent.isExpanded(), visibilityHandler);
-					}));
-					item.add(panel);
-				} catch (SchemaException e) {
-					throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
-				}
-				
+			protected void populateItem(final ListItem<PrismContainerWrapper> item) {
+				populateContainer(item);
 			}
 		};
 
 		containers.setReuseItems(true);
 		containers.setOutputMarkupId(true);
 		add(containers);
+
+	}
+
+	private <IW extends ItemWrapper> IModel<List<IW>> createNonContainerWrappersModel() {
+		return new IModel<List<IW>>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public List<IW> getObject() {
+				return getNonContainerWrappers();
+			}
+		};
+	}
+
+	private <IW extends ItemWrapper> List<IW> getNonContainerWrappers() {
+		CVW containerValueWrapper = getModelObject();
+		List<? extends ItemWrapper<?, ?, ?, ?>> nonContainers = containerValueWrapper.getNonContainers();
+
+		Locale locale = WebModelServiceUtils.getLocale();
+		if (locale == null) {
+			locale = Locale.getDefault();
+		}
+		Collator collator = Collator.getInstance(locale);
+		collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+		collator.setDecomposition(Collator.FULL_DECOMPOSITION);
+		ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
+		if (CollectionUtils.isNotEmpty(nonContainers)) {
+			nonContainers.sort((Comparator) comparator);
+
+			int visibleProperties = 0;
+
+			for (ItemWrapper<?,?,?,?> item : nonContainers) {
+				if (item.isVisible(containerValueWrapper, visibilityHandler)) {
+					visibleProperties++;
+				}
+
+				if (visibleProperties % 2 == 0) {
+					item.setStripe(false);
+				} else {
+					item.setStripe(true);
+				}
+
+			}
+		}
+
+		return (List<IW>) nonContainers;
+	}
+
+	private <IW extends ItemWrapper> void populateNonContainer(ListItem<IW> item) {
+		item.setOutputMarkupId(true);
+		IW itemWrapper = item.getModelObject();
+		try {
+			QName typeName = itemWrapper.getTypeName();
+			if(item.getModelObject() instanceof ResourceAttributeWrapper) {
+				typeName = new QName("ResourceAttributeDefinition");
+			}
+			Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), visibilityHandler);
+			panel.setOutputMarkupId(true);
+			panel.add(new VisibleEnableBehaviour() {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public boolean isEnabled() {
+					return !item.getModelObject().isReadOnly();
+				}
+
+				@Override
+				public boolean isVisible() {
+					CVW parent = PrismContainerValuePanel.this.getModelObject();
+					return item.getModelObject().isVisible(parent, visibilityHandler);
+				}
+			});
+			item.add(panel);
+		} catch (SchemaException e1) {
+			throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
+		}
+
+		item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+	}
+
+	private void populateContainer(ListItem<PrismContainerWrapper> container) {
+		container.setOutputMarkupId(true);
+		PrismContainerWrapper itemWrapper = container.getModelObject();
+		try {
+			Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), visibilityHandler);
+			panel.setOutputMarkupId(true);
+			panel.add(new VisibleBehaviour(() -> {
+				CVW parent = PrismContainerValuePanel.this.getModelObject();
+				return container.getModelObject().isVisible(parent, visibilityHandler);
+			}));
+			container.add(panel);
+		} catch (SchemaException e) {
+			throw new SystemException("Cannot instantiate panel for: " + itemWrapper.getDisplayName());
+		}
 
 	}
 	
@@ -299,9 +310,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	    	PrismContainerValueWrapper<C> wrapper = getModelObject();
 			wrapper.setShowEmpty(!wrapper.isShowEmpty());
 			refreshPanel(target);
-//			wrapper.computeStripes();
-//			target.add(ContainerValuePanel.this);
-//			target.add(getPageBase().getFeedbackPanel());
 		}
 	
 	private <IW extends ItemWrapper<?,?,?,?>> IModel<String> createStyleClassModel(final IModel<IW> wrapper) {

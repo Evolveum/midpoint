@@ -86,6 +86,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	private boolean stripe;
 	
 	private boolean showEmpty;
+
+	private boolean showInVirtualContainer;
 	
 	
 	//consider
@@ -363,20 +365,34 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	public void setShowEmpty(boolean isShowEmpty, boolean recursive) {
 		this.showEmpty = isShowEmpty;
 	}
-	
+
 	@Override
-	public boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
+	public boolean isShowInVirtualContainer() {
+		return showInVirtualContainer;
+	}
+
+	@Override
+	public void setShowInVirtualContainer(boolean showInVirtualContainer) {
+		this.showInVirtualContainer = showInVirtualContainer;
+	}
+
+	@Override
+	public boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler) {
 		
-		if (!isVisibleByVisibilityHandler(parentExpanded, visibilityHandler)) {
+		if (!isVisibleByVisibilityHandler(parentContainer.isExpanded(), visibilityHandler)) {
+			return false;
+		}
+
+		if (!parentContainer.isVirtual() && showInVirtualContainer) {
 			return false;
 		}
 		
 		ID def = getItemDefinition();
 		switch (findObjectStatus()) {
 			case NOT_CHANGED:
-				return isVisibleForModify(parentShowEmpty, def);
+				return isVisibleForModify(parentContainer.isShowEmpty(), def);
 			case ADDED:
-				return isVisibleForAdd(parentShowEmpty, def);
+				return isVisibleForAdd(parentContainer.isShowEmpty(), def);
 			case DELETED:
 				return false;
 		}
@@ -694,5 +710,5 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	protected I getOldItem() {
 		return oldItem;
 	}
-	
+
 }

@@ -43,7 +43,7 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	String debugDump(int indent);
 	
-	boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler);
+	boolean isVisible(PrismContainerValueWrapper parentContainer, ItemVisibilityHandler visibilityHandler);
 	
 	boolean checkRequired(PageBase pageBase);
 	
@@ -53,7 +53,10 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	
 	void setShowEmpty(boolean isShowEmpty, boolean recursive);
 	
-	
+	boolean isShowInVirtualContainer();
+
+	void setShowInVirtualContainer(boolean showInVirtualContainer);
+
 	ItemPath getPath();
 	
 	//NEW
@@ -82,6 +85,5 @@ public interface ItemWrapper<V extends PrismValue, I extends Item<V, ID>, ID ext
 	<O extends ObjectType> ItemStatus findObjectStatus();
 
 	<OW extends PrismObjectWrapper<O>, O extends ObjectType> OW findObjectWrapper();
-	
-	
+
 }

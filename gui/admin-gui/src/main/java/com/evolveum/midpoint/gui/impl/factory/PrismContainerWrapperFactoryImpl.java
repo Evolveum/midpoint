@@ -96,7 +96,8 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		}
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
-//		containerValueWrapper.sort();
+		containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
+		parent.setVirtual(context.getVirtualItemSpecification() != null);
 		return containerValueWrapper;
 	}
 	

@@ -19,7 +19,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,7 +39,6 @@ import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -54,10 +60,18 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	@Override
 	public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
 		ItemName name = def.getName();
-		
-		I childItem = (I) parent.getNewValue().findItem(name);
-		ItemStatus status = getStatus(childItem);
-		
+
+
+		I childItem = null;
+		ItemStatus status = null;
+		if (CollectionUtils.isNotEmpty(context.getVirtualItemSpecification())) {
+			childItem = (I) def.instantiate();
+			status = ItemStatus.NOT_CHANGED;
+		} else {
+			childItem = (I) parent.getNewValue().findItem(name);
+			status = getStatus(childItem);
+		}
+
 		if (!skipCreateWrapper(def, status, context, childItem == null || CollectionUtils.isEmpty(childItem.getValues()))) {
 			LOGGER.trace("Skipping creating wrapper for non-existent item. It is not supported for {}", def);
 			return null;
@@ -94,7 +108,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 		
 		boolean readOnly = determineReadOnly(itemWrapper, context);
 		itemWrapper.setReadOnly(readOnly);
-		
+
+		boolean showInVirtualContainer = determineShowInVirtualContainer(itemWrapper, context);
+		itemWrapper.setShowInVirtualContainer(showInVirtualContainer);
+
 		setupWrapper(itemWrapper);
 		
 		return itemWrapper;
@@ -192,6 +209,30 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 			}
 		}
 		
+		return false;
+	}
+
+	private boolean determineShowInVirtualContainer(IW itemWrapper, WrapperContext context) {
+		List<VirtualContainersSpecificationType> virtualContainers = context.getVirtualContainers();
+
+		if (virtualContainers == null) {
+			return false;
+		}
+
+		for (VirtualContainersSpecificationType virtualContainer : virtualContainers) {
+			for (VirtualContainerItemSpecificationType item : virtualContainer.getItem()) {
+				ItemPathType itemPathType = item.getPath();
+				if (itemPathType == null) {
+					LOGGER.error("Bad virtual item specification, missing path. Skipping virtual item settings for {}", itemWrapper);
+					continue;
+				}
+				ItemPath itemPath = itemPathType.getItemPath();
+				if (itemPath.equivalent(itemWrapper.getPath())) {
+					return true;
+				}
+			}
+		}
+
 		return false;
 	}
 

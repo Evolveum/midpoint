@@ -1024,7 +1024,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 																	   boolean visible) throws SchemaException {
 		ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
 		assertEquals("Wrong "+propName+" readOnly", Boolean.FALSE, (Boolean)itemWrapper.isReadOnly());
-		assertEquals("Wrong "+propName+" visible", visible, itemWrapper.isVisible(containerWrapper.isShowEmpty(), containerWrapper.isExpanded(), w -> ItemVisibility.AUTO));
+		assertEquals("Wrong "+propName+" visible", visible, itemWrapper.isVisible(containerWrapper, w -> ItemVisibility.AUTO));
 		assertEquals("Wrong "+propName+" definition.canRead", Boolean.TRUE, (Boolean)itemWrapper.canRead());
 		assertEquals("Wrong "+propName+" definition.canAdd", Boolean.TRUE, (Boolean)itemWrapper.canAdd());
 		assertEquals("Wrong "+propName+" definition.canModify", Boolean.TRUE, (Boolean)itemWrapper.canModify());
