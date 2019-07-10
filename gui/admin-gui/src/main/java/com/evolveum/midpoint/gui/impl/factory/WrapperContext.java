@@ -21,6 +21,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
+
+import javax.xml.namespace.QName;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author katka
@@ -38,13 +44,16 @@ public class WrapperContext {
 	private boolean showEmpty;
 	
 	private ItemStatus objectStatus;
-	
+
 	//Shadow related attributes
 	private ResourceType resource;
 	private ResourceShadowDiscriminator discriminator;
 	
 	//used e.g. for metadata - opertionsla attributes but want to create wrappers for them
 	private boolean createOperational;
+
+	private List<VirtualContainersSpecificationType> virtualContainers;
+	private List<VirtualContainerItemSpecificationType>  virtualItemSpecification;
 	
 	public WrapperContext(Task task, OperationResult result) {
 		this.task = task;
@@ -119,12 +128,41 @@ public class WrapperContext {
 	public void setObjectStatus(ItemStatus objectStatus) {
 		this.objectStatus = objectStatus;
 	}
-	
+
 	public boolean isCreateOperational() {
 		return createOperational;
 	}
 	
 	public void setCreateOperational(boolean createOperational) {
 		this.createOperational = createOperational;
+	}
+
+	public List<VirtualContainersSpecificationType> getVirtualContainers() {
+		return virtualContainers;
+	}
+
+	public void setVirtualContainers(List<VirtualContainersSpecificationType> virtualContainers) {
+		this.virtualContainers = virtualContainers;
+	}
+
+	public void setVirtualItemSpecification(List<VirtualContainerItemSpecificationType> virtualItemSpecification) {
+		this.virtualItemSpecification = virtualItemSpecification;
+	}
+
+	public List<VirtualContainerItemSpecificationType> getVirtualItemSpecification() {
+		return virtualItemSpecification;
+	}
+
+	public WrapperContext clone() {
+		WrapperContext ctx = new WrapperContext(task,result);
+		ctx.setAuthzPhase(authzPhase);
+		ctx.setCreateIfEmpty(createIfEmpty);
+		ctx.setReadOnly(readOnly);
+		ctx.setShowEmpty(showEmpty);
+		ctx.setObjectStatus(objectStatus);
+		ctx.setResource(resource);
+		ctx.setDiscriminator(discriminator);
+		ctx.setCreateOperational(createOperational);
+		return ctx;
 	}
 }

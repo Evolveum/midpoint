@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 
 /**
  * @author katka
@@ -93,5 +94,8 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 	
 	boolean isHeterogenous();
 	void setHeterogenous(boolean heterogenous);
+
+	void setVirtualContainerItems(List<VirtualContainerItemSpecificationType> virtualItems);
+	boolean isVirtual();
 	
 }

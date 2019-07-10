@@ -24955,7 +24955,7 @@
 							</xsd:appinfo>
 	           			</xsd:annotation>
 	           		</xsd:element>
-	           		<xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="forms" type="tns:ObjectFormType" minOccurs="0" maxOccurs="1">
 	           			<xsd:annotation>
 	           				<xsd:documentation>
 	           					<p>
@@ -24972,11 +24972,76 @@
 							</xsd:appinfo>
 	           			</xsd:annotation>
 	           		</xsd:element>
+                    <xsd:element name="container" type="tns:VirtualContainersSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Used to specify "virtual" containers for displaying details page in GUI.
+                                As an example, the user might need to reorganize attributes to some logic
+                                block such as personal info, basic info, additional info. Each of this
+                                section should have only attributes which belong to it, e.g. given name,
+                                family name, date of the birth are attributes corresponding to the personal info.
+                                Basic info section will contains attributes describing organizationalUnit, emailAddress
+                                or job position and additional info will contain attributes about user's nickname and so on.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
 	           	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
+
+    <xsd:complexType name="VirtualContainersSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Used to specify "virtual" containers for displaying details page in GUI.
+                As an example, the user might need to reorganize attributes to some logic
+                block such as personal info, basic info, additional info. Each of this
+                section should have only attributes which belong to it, e.g. given name,
+                family name, date of the birth are attributes corresponding to the personal info.
+                Basic info section will contains attributes describing organizationalUnit, emailAddress
+                or job position and additional info will contain attributes about user's nickname and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:UserInterfaceFeatureType">
+                <xsd:sequence>
+                    <xsd:element name="item" type="tns:VirtualContainerItemSpecificationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>VirtualContainersSpecificationType.item</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="VirtualContainerItemSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Item specification to display in container
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>VirtualContainerItemSpecificationType.display</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="SummaryPanelSpecificationType">
         <xsd:annotation>
         	<xsd:documentation>
@@ -25370,6 +25435,7 @@
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+            <!-- later add displayOrder so we are able to sort items according to it -->
             <!-- basic properties -->
             <xsd:element name="label" type="t:PolyStringType" minOccurs="0" >
             	<xsd:annotation>
