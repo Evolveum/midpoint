@@ -5190,13 +5190,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
-		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
+		return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
 	}
 
 	protected List<AuditEventRecord> getAuditRecords(int maxRecords, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
 		params.put("setMaxResults", maxRecords);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer order by aer.timestamp asc", params, task, result);
+		return modelAuditService.listRecords("select * from m_audit_event as aer order by aer.timestampValue asc", params, task, result);
 	}
 
 	protected List<AuditEventRecord> getObjectAuditRecords(String oid) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
@@ -5208,7 +5208,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected List<AuditEventRecord> getObjectAuditRecords(String oid, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		Map<String,Object> params = new HashMap<>();
 		params.put("targetOid", oid);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.targetOid = :targetOid) order by aer.timestamp asc",
+		return modelAuditService.listRecords("select * from m_audit_event as aer where (aer.targetOid = :targetOid) order by aer.timestampValue asc",
         		params, task, result);
 	}
 
@@ -5216,7 +5216,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Map<String,Object> params = new HashMap<>();
 		params.put("paramName", paramName);
 		params.put("paramValue", paramValue);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer left join aer.propertyValues as pv where (pv.name = :paramName and pv.value = :paramValue) order by aer.timestamp asc",
+		return modelAuditService.listRecords("select * from m_audit_event as aer left join aer.propertyValues as pv where (pv.name = :paramName and pv.value = :paramValue) order by aer.timestampValue asc",
         		params, task, result);
 	}
 
@@ -5230,7 +5230,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Map<String,Object> params = new HashMap<>();
 		params.put("from", from);
 		params.put("to", to);
-		return modelAuditService.listRecords("from RAuditEventRecord as aer where (aer.timestamp >= :from) and (aer.timestamp <= :to) order by aer.timestamp asc",
+		return modelAuditService.listRecords("select * from m_audit_event as aer where (aer.timestampValue >= :from) and (aer.timestampValue <= :to) order by aer.timestampValue asc",
         		params, task, result);
 	}
 

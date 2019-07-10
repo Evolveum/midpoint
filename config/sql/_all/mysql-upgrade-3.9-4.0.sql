@@ -91,3 +91,17 @@ CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
 CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
+
+-- 2019-06-25 09:00
+
+CREATE TABLE m_audit_resource (
+  resourceOid 	  VARCHAR(255) NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+);
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid);
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id);
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event (id);

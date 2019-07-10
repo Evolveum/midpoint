@@ -266,6 +266,11 @@ CREATE TABLE m_audit_ref_value (
   type            NVARCHAR(255) COLLATE database_default,
   PRIMARY KEY (id)
 );
+CREATE TABLE m_audit_resource (
+  resourceOid     NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+);
 CREATE TABLE m_case_wi (
   id                            INT                                   NOT NULL,
   owner_oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -810,6 +815,10 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid);
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
@@ -1059,6 +1068,8 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE m_case_wi_reference

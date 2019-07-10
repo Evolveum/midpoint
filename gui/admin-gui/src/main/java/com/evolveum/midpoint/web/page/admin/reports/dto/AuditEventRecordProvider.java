@@ -82,13 +82,15 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	@Nullable private final IModel<ObjectCollectionType> objectCollectionModel;
 	@NotNull private final SerializableSupplier<Map<String, Object>> parametersSupplier;
 
-	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer";
-	private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join aer.changedItems as item";
-	private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join aer.referenceValues as rv";
+	private static final String AUDIT_RECORDS_QUERY_SELECT = "select * ";
+	private static final String AUDIT_RECORDS_QUERY_CORE = " from m_audit_event as aer";
+	private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join m_audit_item as item on item.record_id=aer.id ";
+	private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join m_audit_ref_value as rv on rv.record_id=aer.id ";
 	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
-	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
+	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestampValue desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
+
 //	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
 
 	public AuditEventRecordProvider(Component component, @Nullable IModel<ObjectCollectionType> objectCollectionModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
@@ -171,12 +173,12 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		boolean filteredOnValueRefTargetNames = filteredOnValueRefTargetNames(parameters);
 		List<String> conditions = new ArrayList<>();
 		if (parameters.get(PARAMETER_FROM) != null) {
-			conditions.add("aer.timestamp >= :from");
+			conditions.add("aer.timestampValue >= :from");
 		} else {
 			parameters.remove(PARAMETER_FROM);
 		}
 		if (parameters.get(PARAMETER_TO) != null) {
-			conditions.add("aer.timestamp <= :to");
+			conditions.add("aer.timestampValue <= :to");
 		} else {
 			parameters.remove(PARAMETER_TO);
 		}
@@ -243,7 +245,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters.remove(PARAMETER_CHANGED_ITEM);
 		}
 		if (filteredOnValueRefTargetNames) {
-			conditions.add("rv.targetName.orig in ( :valueRefTargetNames )");
+			conditions.add("rv.targetName_orig in ( :valueRefTargetNames )");
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
@@ -266,6 +268,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		}
 		if (isCount) {
 			query = AUDIT_RECORDS_QUERY_COUNT + query;
+		} else {
+			query = AUDIT_RECORDS_QUERY_SELECT + query;
 		}
 		query += conditions.stream().collect(Collectors.joining(" and "));
 		if (ordered) {
@@ -277,7 +281,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private String generateFullQuery(String origQuery, boolean ordered, boolean isCount) {
 		String query = origQuery;
 		if (isCount) {
-			query = AUDIT_RECORDS_QUERY_COUNT + query;
+			int index = query.toLowerCase().indexOf("from");
+			query = AUDIT_RECORDS_QUERY_COUNT + query.substring(index);
 		}
 		if (ordered) {
 			query += AUDIT_RECORDS_ORDER_BY;

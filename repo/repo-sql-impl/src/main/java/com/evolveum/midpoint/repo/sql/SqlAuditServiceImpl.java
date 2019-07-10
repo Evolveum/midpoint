@@ -16,7 +16,16 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.*;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.CanonicalItemPath;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.data.BatchSqlQuery;
+import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -26,7 +35,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
@@ -36,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -47,14 +59,19 @@ import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
+import org.hibernate.jdbc.Work;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.propertyeditors.CustomCollectionEditor;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -78,7 +95,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
-
+    
+    private Map<String, String> customColumn = new HashMap<String, String>();
+    
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
     }
@@ -212,71 +231,166 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
                                              AuditResultHandler handler) {
         Session session = null;
-        int count = 0;
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
                     DebugUtil.debugDump(params, 2));
         }
+        
+        session = baseHelper.beginReadOnlyTransaction();
 
         try {
-            session = baseHelper.beginReadOnlyTransaction();
+        	Session localSession = session;
+            session.doWork(new Work() {
+                
+                @Override
+                public void execute(Connection con) throws SQLException {
+                	
+                	Database database = baseHelper.getConfiguration().getDatabase();
+                	int count = 0;
+                		String basicQuery = query;
+                        if (StringUtils.isBlank(query)) {
+                        	basicQuery = "select * from m_audit_event "
+                        			+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        			+ "aer where 1=1 order by aer.timestampValue desc";
+                        }
+                        String deltaQuery = "select * from m_audit_delta "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "delta where delta.record_id=?";
+                        String propertyQuery = "select * from m_audit_prop_value "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "prop where prop.record_id=?";
+                        String refQuery = "select * from m_audit_ref_value "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "ref where ref.record_id=?";
+                        String resourceQuery = "select * from m_audit_resource "
+                        		+ (database.equals(Database.ORACLE) ? "" : "as ") 
+                        		+ "res where res.record_id=?";
+                        SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
+                        setParametersToQuery(queryBuilder, params);
 
-            Query q;
-
-            if (StringUtils.isBlank(query)) {
-                query = "from RAuditEventRecord as aer where 1=1 order by aer.timestamp desc";
-                q = session.createQuery(query);
-                setParametersToQuery(q, params);
-            } else {
-                q = session.createQuery(query);
-                setParametersToQuery(q, params);
-            }
-            // q.setResultTransformer(Transformers.aliasToBean(RAuditEventRecord.class));
-
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("List records attempt\n  processed query: {}", q);
-            }
-
-            ScrollableResults resultList = q.scroll();
-
-            while (resultList.next()) {
-                Object o = resultList.get(0);
-                if (!(o instanceof RAuditEventRecord)) {
-                    throw new DtoTranslationException(
-                            "Unexpected object in result set. Expected audit record, but got "
-                                    + o.getClass().getSimpleName());
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
+                        }
+                        
+                        PreparedStatement stmt = queryBuilder.build().createPreparedStatement(con);
+                        
+                        ResultSet resultList = stmt.executeQuery();
+                        try {
+                        	while (resultList.next()) {
+                            	
+                                AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
+                                if(!customColumn.isEmpty()) {
+                                	for(Entry<String, String> property : customColumn.entrySet()) {
+                                		audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
+                                	}
+                                }
+                                
+                                //query for deltas
+                                PreparedStatement subStmt = con.prepareStatement(deltaQuery);
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+                                ResultSet subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	try {
+                                    	while (subResultList.next()) {
+                                    		ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
+                                    		if(odo != null) {
+                                    			audit.addDelta(odo);
+                                    		}
+                                    	}
+                                    } finally {
+                                    	subResultList.close();
+                                    	subStmt.close();
+    								}
+                                } catch (DtoTranslationException ex) {
+    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
+    					        }
+                                
+                                //query for properties
+                                subStmt = con.prepareStatement(propertyQuery);
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
+                                							   subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                //query for references
+                                subStmt = con.prepareStatement(refQuery);
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
+                                				RAuditReferenceValue.fromRepo(subResultList));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                //query for target resource oids
+                                subStmt = con.prepareStatement(resourceQuery);
+                                subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+                                subResultList = subStmt.executeQuery();
+                                
+                                try {
+                                	while (subResultList.next()) {
+                                		audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
+                                	}
+                                } finally {
+                                	subResultList.close();
+                                	subStmt.close();
+								}
+                                
+                                try {
+                                	// TODO what if original name (in audit log) differs from the current one (in repo) ?
+                                	audit.setInitiator(resolve(localSession, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
+                                			resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                                    		defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.USER)));
+                                    audit.setAttorney(resolve(localSession, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
+                                    		resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.USER));
+                                    audit.setTarget(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
+                                    		resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
+                                    		RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
+        							audit.setTargetOwner(resolve(localSession, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
+        									resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
+        									RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
+    							} catch (SchemaException ex) {
+    					            baseHelper.handleGeneralCheckedException(ex, localSession, null);
+    					        }
+                                count++;
+                                if (!handler.handle(audit)) {
+                                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
+                                    break;
+                                }
+                            }
+                        }finally {
+                        	stmt.close();
+						}
+                        
+//                	
+                	LOGGER.trace("List records iterative attempt processed {} records", count);
                 }
-                RAuditEventRecord raudit = (RAuditEventRecord) o;
-
-                AuditEventRecord audit = RAuditEventRecord.fromRepo(raudit, getPrismContext(), getConfiguration().isUsingSQLServer());
-
-                // TODO what if original name (in audit log) differs from the current one (in repo) ?
-                audit.setInitiator(resolve(session, raudit.getInitiatorOid(), raudit.getInitiatorName(), defaultIfNull(raudit.getInitiatorType(), RObjectType.USER)));
-                audit.setAttorney(resolve(session, raudit.getAttorneyOid(), raudit.getAttorneyName(), RObjectType.USER));
-                audit.setTarget(resolve(session, raudit.getTargetOid(), raudit.getTargetName(), raudit.getTargetType()),
-		                getPrismContext());
-                audit.setTargetOwner(resolve(session, raudit.getTargetOwnerOid(), raudit.getTargetOwnerName(), raudit.getTargetOwnerType()));
-                count++;
-                if (!handler.handle(audit)) {
-                    LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
-                    break;
-                }
-            }
-
+            });
             session.getTransaction().commit();
 
-        } catch (DtoTranslationException | SchemaException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
 
-        LOGGER.trace("List records iterative attempt processed {} records", count);
     }
-
+    
     private void setParametersToQuery(Query q, Map<String, Object> params) {
         if (params == null) {
             return;
@@ -312,6 +426,22 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 //				q.setParameter(p.getKey(), p.getValue());
 //			}
         }
+    }
+    
+    private void setParametersToQuery(SelectQueryBuilder queryBuilder, Map<String, Object> params) {
+        if (params == null) {
+            return;
+        }
+
+        if (params.containsKey(QUERY_FIRST_RESULT)) {
+        	queryBuilder.setFirstResult((int)params.get(QUERY_FIRST_RESULT));
+        	params.remove(QUERY_FIRST_RESULT);
+        }
+        if (params.containsKey(QUERY_MAX_RESULT)) {
+        	queryBuilder.setMaxResult((int)params.get(QUERY_MAX_RESULT));
+        	params.remove(QUERY_MAX_RESULT);
+        }
+        queryBuilder.addParameters(params);
     }
 
     private List<?> convertValues(List<?> originValues) {
@@ -365,9 +495,107 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = null;
         try {
             session = baseHelper.beginTransaction();
-
-            RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext(), true);
-            session.save(newRecord);
+//            RAuditEventRecord newRecord = RAuditEventRecord.toRepo(record, getPrismContext(), true);
+//            session.save(newRecord);
+            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
+            Session localSession = session;
+            session.doWork(new Work() {
+				
+				@Override
+				public void execute(Connection connection) throws SQLException {
+					Database database = getConfiguration().getDatabase();
+					String[] keyColumn = {RAuditEventRecord.ID_COLUMN_NAME};
+					PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
+					Long id = null;
+					try {
+						smtp.executeUpdate();
+						ResultSet resultSet = smtp.getGeneratedKeys();
+						
+						if (resultSet.next()) {
+							id = resultSet.getLong(1);
+						    
+						}
+					} finally {
+						smtp.close();
+					}
+					if(id == null) {
+						throw new IllegalArgumentException("Returned id of new record is null");
+					}
+					
+					
+					BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
+					BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
+					
+		            for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
+		            	if (delta == null) {
+		                    continue;
+		                }
+		
+		                ObjectDelta<?> objectDelta = delta.getObjectDelta();
+		                for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
+		                    ItemPath path = itemDelta.getPath();
+		                    if (path != null) {        // TODO what if empty?
+		                        CanonicalItemPath canonical = getPrismContext().createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+		                        for (int i = 0; i < canonical.size(); i++) {
+		                        	
+		                            SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
+//		                            changedItem.setTransient(true);
+		                            itemBatchQuery.addQueryForBatch(itemQuery);
+		                        }
+		                    }
+		                }
+		
+		                SingleSqlQuery deltaQuery;
+						try {
+							deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext());
+							deltaBatchQuery.addQueryForBatch(deltaQuery);
+						} catch (DtoTranslationException e) {
+							baseHelper.handleGeneralCheckedException(e, localSession, null);
+						}
+//		                rDelta.setTransient(true);
+		            }
+		            if(!deltaBatchQuery.isEmpty()) {
+		            	deltaBatchQuery.execute(connection);
+		            }
+		            if(!itemBatchQuery.isEmpty()) {
+		            	itemBatchQuery.execute(connection);
+		            }
+		            
+		            BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
+		            for (Map.Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
+		            	for (String propertyValue : propertyEntry.getValue()) {
+		            		SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
+		            				id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
+//	              	      	val.setTransient(isTransient);
+		            		propertyBatchQuery.addQueryForBatch(propertyQuery);
+		            	}
+		            }
+		            if(!propertyBatchQuery.isEmpty()) {
+		            	propertyBatchQuery.execute(connection);
+		            }
+		            
+		            BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
+		            for (Map.Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
+		            	for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
+		            		SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
+//	           	  	        val.setTransient(isTransient);
+		            		referenceBatchQuery.addQueryForBatch(referenceQuery);
+		            	}
+		            }
+		            if(!referenceBatchQuery.isEmpty()) {
+		            	referenceBatchQuery.execute(connection);
+		            }
+		            
+		            BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
+		            for (String resourceOid : record.getResourceOids()) {
+		            	SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
+		            	resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
+		            }
+		            if(!resourceOidBatchQuery.isEmpty()) {
+		            	resourceOidBatchQuery.execute(connection);
+		            }
+				}
+			});
 
             session.getTransaction().commit();
         } catch (DtoTranslationException ex) {
@@ -537,6 +765,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 					RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
 			session.createNativeQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
 					RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
+			session.createNativeQuery(createDeleteQuery(RTargetResourceOid.TABLE_NAME, tempTable,
+					RTargetResourceOid.COLUMN_RECORD_ID)).executeUpdate();
 			session.createNativeQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
 					.executeUpdate();
 
@@ -701,29 +931,65 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     public long countObjects(String query, Map<String, Object> params) {
         Session session = null;
-        long count = 0;
+        long[] count = {0};
         try {
             session = baseHelper.beginTransaction();
             session.setFlushMode(FlushMode.MANUAL);
-            if (StringUtils.isBlank(query)) {
-                query = "select count (*) from RAuditEventRecord as aer where 1 = 1";
-            }
-            Query q = session.createQuery(query);
+//            Query q = session.createQuery(query);
+            session.doWork(new Work() {
+            	
+				@Override
+				public void execute(Connection connection) throws SQLException {
+					Database database = getConfiguration().getDatabase();
+					
+					String basicQuery = query;
+					if (StringUtils.isBlank(query)) {
+						basicQuery = "select count (*) from m_audit_event "
+								+ (database.equals(Database.ORACLE) ? "" : "as ") 
+								+ "aer where 1 = 1";
+		            }
+					SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
+                    setParametersToQuery(queryBuilder, params);
 
-            setParametersToQuery(q, params);
-            Number numberCount = (Number) q.uniqueResult();
-            count = numberCount != null ? numberCount.intValue() : 0;
+                    if (LOGGER.isTraceEnabled()) {
+                        LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
+                    }
+                    
+                    PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection);
+                    try {
+                    	ResultSet resultList = stmt.executeQuery();
+                    	if(!resultList.next()) {
+                    		throw new IllegalArgumentException("Result set don't have value for select: " + query);
+                    	}
+                    	if(resultList.getMetaData().getColumnCount() > 1) {
+                    		throw new IllegalArgumentException("Result have more as one value for select: " + query);
+                    	}
+                    	count[0] = resultList.getLong(1);
+                    } finally {
+						stmt.close();
+					}
+					
+				}
+			});
+
+//            setParametersToQuery(q, params);
+//            Number numberCount = (Number) q.uniqueResult();
+//            count = numberCount != null ? numberCount.intValue() : 0;
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
-        return count;
+        return count[0];
     }
 
     @Override
     public boolean supportsRetrieval() {
         return true;
     }
+    
+    public Map<String, String> getCustomColumn() {
+		return customColumn;
+	}
 
 }
