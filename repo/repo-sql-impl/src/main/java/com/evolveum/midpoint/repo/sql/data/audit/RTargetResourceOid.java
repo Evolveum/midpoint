@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +18,39 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import javax.persistence.*;
 
+import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+
 import org.hibernate.annotations.ForeignKey;
 
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditItem.COLUMN_RECORD_ID;
+import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 @Ignore
 @Entity
-@IdClass(RAuditItemId.class)
-@Table(name = RAuditItem.TABLE_NAME, indexes = {
-		@Index(name = "iChangedItemPath", columnList = "changedItemPath"),
-		@Index(name = "iAuditItemRecordId", columnList = COLUMN_RECORD_ID)})
-public class RAuditItem implements EntityState {
+@IdClass(RTargetResourceOidId.class)
+@Table(name = RTargetResourceOid.TABLE_NAME, indexes = {
+		@Index(name = "iAuditResourceOid", columnList = "resourceOid"),
+		@Index(name = "iAuditResourceOidRecordId", columnList = COLUMN_RECORD_ID)})
+public class RTargetResourceOid implements EntityState {
 
-	public static final String TABLE_NAME = "m_audit_item";
+	public static final String TABLE_NAME = "m_audit_resource";
 	public static final String COLUMN_RECORD_ID = "record_id";
 	
-	private static final String CHANGE_ITEM_PATH_COLUMN_NAME = "changedItemPath";
+	public static final String RESOURCE_OID_COLUMN_NAME = "resourceOid";
 
     private Boolean trans;
 
     private RAuditEventRecord record;
     private Long recordId;
-        private String changedItemPath;
+        private String resourceOid;
 
     @Transient
     @Override
@@ -76,9 +83,9 @@ public class RAuditItem implements EntityState {
     }
 
     @Id
-    @Column(name = "changedItemPath")
-    public String getChangedItemPath() {
-        return changedItemPath;
+    @Column(name = "resourceOid")
+    public String getResourceOid() {
+        return resourceOid;
     }
 
     public void setRecord(RAuditEventRecord record) {
@@ -93,24 +100,23 @@ public class RAuditItem implements EntityState {
 		this.recordId = recordId;
 	}
 
-    public void setChangedItemPath(String changedItemPath) {
-		this.changedItemPath = changedItemPath;
+    public void setresourceOid(String resourceOid) {
+		this.resourceOid = resourceOid;
 	}
 
-    public static RAuditItem toRepo(RAuditEventRecord record, String itemPath) {
-    	RAuditItem itemChanged = new RAuditItem();
-    	itemChanged.setRecord(record);
-    	itemChanged.setChangedItemPath(itemPath);
-    	return itemChanged;
+    public static RTargetResourceOid toRepo(RAuditEventRecord record, String resourceOid) {
+    	RTargetResourceOid resourceOidObject = new RTargetResourceOid();
+    	resourceOidObject.setRecord(record);
+    	resourceOidObject.setresourceOid(resourceOid);
+    	return resourceOidObject;
 
     }
     
-    public static SingleSqlQuery toRepo(Long recordId, String itemPath) {
-    	InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
-    	queryBuilder.addParameter(CHANGE_ITEM_PATH_COLUMN_NAME, itemPath, true);
-    	queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+    public static SingleSqlQuery toRepo(Long recordId, String resourceOid) {
+		InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+		queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+		queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, resourceOid, true);
     	return queryBuilder.build();
-
     }
 
     @Override
@@ -118,19 +124,16 @@ public class RAuditItem implements EntityState {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAuditItem that = (RAuditItem) o;
+        RTargetResourceOid that = (RTargetResourceOid) o;
 
-        if (changedItemPath != null ? !changedItemPath.equals(that.changedItemPath) : that.changedItemPath != null) return false;
-//        if (record != null ? !record.equals(that.record) : that.record != null) return false;
+        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) return false;
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result1 = changedItemPath != null ? changedItemPath.hashCode() : 0;
-//        result1 = 31 * result1 + (record != null ? record.hashCode() : 0);
-        return result1;
+        int result = resourceOid != null ? resourceOid.hashCode() : 0;
+        return result;
     }
-
 
 }

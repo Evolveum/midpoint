@@ -266,6 +266,11 @@ CREATE TABLE m_audit_ref_value (
   type            VARCHAR2(255 CHAR),
   PRIMARY KEY (id)
 ) INITRANS 30;
+CREATE TABLE m_audit_resource (
+  resourceOid     VARCHAR2(255 CHAR) NOT NULL,
+  record_id       NUMBER(19, 0)      NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+) INITRANS 30;
 CREATE TABLE m_case_wi (
   id                            NUMBER(10, 0)     NOT NULL,
   owner_oid                     VARCHAR2(36 CHAR) NOT NULL,
@@ -810,6 +815,10 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id) INITRANS 30;
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id) INITRANS 30;
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid) INITRANS 30;
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id) INITRANS 30;
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid) INITRANS 30;
 
@@ -1061,6 +1070,8 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE m_case_wi_reference
