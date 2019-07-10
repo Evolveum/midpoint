@@ -134,7 +134,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
     @Override
     public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {
-        task.setHandlerUri(ReportJasperCreateTaskHandler.REPORT_CREATE_TASK_URI);
+    	if(isDashboarReport(object)) {
+    		task.setHandlerUri(ReportHTMLCreateTaskHandler.REPORT_HTML_CREATE_TASK_URI);
+    	} else {
+    		task.setHandlerUri(ReportJasperCreateTaskHandler.REPORT_CREATE_TASK_URI);
+    	}
         task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
         try {
         	if (paramContainer != null && !paramContainer.isEmpty()){
@@ -150,7 +154,16 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     	taskManager.switchToBackground(task, parentResult);
 		parentResult.setBackgroundTaskOid(task.getOid());
     }
-    /**
+    
+    private boolean isDashboarReport(PrismObject<ReportType> object) {
+		if(object.getRealValue() != null && object.getRealValue().getReportEngine() != null
+				&& object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
      * Transforms change:
      * 1/ ReportOutputType DELETE to MODIFY some attribute to mark it for deletion.
      * 2/ ReportType ADD and MODIFY should compute jasper design and styles if necessary

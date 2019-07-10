@@ -40,6 +40,96 @@
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-core-3" />
 
+    <xsd:complexType name="NotificationTransportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration that is common to all notification transports.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enables debugging specific for a given transport (if supported by it). For example, when used for
+                        mail transport it enables debugging of javamail - sending diagnostics to standard output (console).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.debug</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Instead of sending message via this transport, writes it to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.redirectToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        In addition to sending message via this transport, writes it to a file. Useful for debugging.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.logToFile</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="blackList" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Addresses that are on a "black list". If a message contains one or more addresses that are blacklisted,
+                        it is stored into file specified in "redirectToFile" and either not sent at all (if no other addresses
+                        remain) or sent without blacklisted addresses.
+
+                        An address can contain "*" character, that matches any substring, e.g. "*@acme.org".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.blackList</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="whiteList" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Addresses that are on a "white list". If specified, then all addresses are blacklisted, except for
+                        those that match a white list entry.
+
+                        An address can contain "*" character, that matches any substring, e.g. "*@acme.org".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.whiteList</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recipientFilterExpression" type="tns:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        An expression that decides whether the recipient address is allowed to pass through or it should
+                        be blacklisted. The expression expects input value in "recipientAddress" variable (usually a String),
+                        and should provide a boolean value: "true" means "pass through", "false" means "block".
+
+                        At most one of "blackList", "whiteList" and "recipientFilterExpression" can be used.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationTransportConfigurationType.whiteList</a:displayName>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" />
+    </xsd:complexType>
+
     <xsd:complexType name="MailConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -47,59 +137,32 @@
             </xsd:documentation>
             <xsd:appinfo>
 				<a:displayName>MailConfigurationType.details</a:displayName>
-				<!--<a:container/>-->
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Configuration of a particular mail server host. If there are more of them, they are tried
-                        one after another. If there is none, mail notifications are not sent.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        What to put into "From" field of mail messages (unless overridden by specific situation).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailConfigurationType.defaultFrom</a:displayName>
-					</xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="debug" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Enables quite crude debugging of javamail - sending diagnostics to standard output (console).
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailConfigurationType.debug</a:displayName>
-					</xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Instead of sending mail via SMTP, writes all messages to a file. Useful for debugging.
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailConfigurationType.redirectToFile</a:displayName>
-					</xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        In addition to sending mail via SMTP, writes all messages to a file. Useful for debugging.
-                    </xsd:documentation>
-					<xsd:appinfo>
-						<a:displayName>MailConfigurationType.logToFile</a:displayName>
-					</xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:NotificationTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of a particular mail server host. If there are more of them, they are tried
+                                one after another. If there is none, mail notifications are not sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to put into "From" field of mail messages (unless overridden by specific situation).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>MailConfigurationType.defaultFrom</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="MailServerConfigurationType">
@@ -226,10 +289,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="NamedConfigurationType">
-        <xsd:attribute name="name" type="xsd:string" />
-    </xsd:complexType>
-
     <xsd:complexType name="SmsConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -239,38 +298,27 @@
             <!--<a:container/>-->
             <!--</xsd:appinfo>-->
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Configuration of a particular mail server host. If there are more of them, they are tried
-                        one after another. If there is none, mail notifications are not sent.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        What to put into "From" field of SMS, if supported by the gateway.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Instead of sending messages via SMS, writes all messages to a file. Useful for debugging.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="logToFile" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        In addition to sending messages via SMS, writes all messages to a file. Useful for debugging.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:complexContent>
+            <xsd:extension base="tns:NotificationTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Configuration of a particular mail server host. If there are more of them, they are tried
+                                one after another. If there is none, mail notifications are not sent.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="defaultFrom" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                What to put into "From" field of SMS, if supported by the gateway.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="FileConfigurationType">
@@ -284,7 +332,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:NamedConfigurationType">
+            <xsd:extension base="tns:NotificationTransportConfigurationType">
                 <xsd:sequence>
                     <xsd:element name="file" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
@@ -310,32 +358,21 @@
             <!--<a:container/>-->
             <!--</xsd:appinfo>-->
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Expression that processes incoming message.
-						Expects a single-valued "message" variable. (If really needed, "event" variable is also available.)
-						Should not return anything.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Instead of executing the expression, writes all messages to a file. Useful for debugging.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="logToFile" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						In addition to executing the expression, writes all messages to a file. Useful for debugging.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string" />
+        <xsd:complexContent>
+            <xsd:extension base="tns:NotificationTransportConfigurationType">
+                <xsd:sequence>
+                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expression that processes incoming message.
+                                Expects a single-valued "message" variable. (If really needed, "event" variable is also available.)
+                                Should not return anything.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="SmsGatewayConfigurationType">
@@ -433,42 +470,42 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="proxyHost" type="xsd:string" minOccurs="0">
+            <xsd:element name="proxyHost" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Proxy host.
                     </xsd:documentation>
-		    <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="proxyPort" type="xsd:string" minOccurs="0">
+            <xsd:element name="proxyPort" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Proxy port.
                     </xsd:documentation>
-		    <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="proxyUsername" type="xsd:string" minOccurs="0">
+            <xsd:element name="proxyUsername" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the proxy.
                     </xsd:documentation>
-		    <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-	    <xsd:element name="proxyPassword" type="t:ProtectedStringType" minOccurs="0">
+            <xsd:element name="proxyPassword" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the proxy.
                     </xsd:documentation>
-		    <xsd:appinfo>
+                    <xsd:appinfo>
                         <a:since>4.0</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -507,13 +544,13 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
-            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:displayName>NotificationConfigurationType.mail</a:displayName>
-			</xsd:appinfo>
+            <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0">    <!-- TODO consider more mail transports in the future -->
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>NotificationConfigurationType.mail</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
-	    </xsd:element>
+            </xsd:element>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="file" type="tns:FileConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="customTransport" type="tns:CustomTransportConfigurationType" minOccurs="0" maxOccurs="unbounded"/>

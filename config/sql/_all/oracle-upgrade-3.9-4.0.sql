@@ -107,3 +107,17 @@ CREATE INDEX iServiceTypeOid ON M_SERVICE_TYPE(SERVICE_OID);
 CREATE INDEX iTaskDependentOid ON M_TASK_DEPENDENT(TASK_OID);
 
 UPDATE m_global_metadata SET value = '4.0' WHERE name = 'databaseSchemaVersion';
+
+-- 2019-06-25 09:00
+
+CREATE TABLE m_audit_resource (
+  resourceOid     VARCHAR2(255 CHAR) NOT NULL,
+  record_id       NUMBER(19, 0)      NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+) INITRANS 30;
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid) INITRANS 30;
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id) INITRANS 30;
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;

@@ -17,12 +17,21 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 import javax.persistence.*;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COLUMN_RECORD_ID;
@@ -36,6 +45,12 @@ public class RAuditReferenceValue implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_ref_value";
 	public static final String COLUMN_RECORD_ID = "record_id";
+	
+	public static final String NAME_COLUMN_NAME = "name";
+	private static final String OID_COLUMN_NAME = "oid";
+	private static final String TARGET_NAME_NORM_COLUMN_NAME = "targetName_norm";
+	private static final String TARGET_NAME_ORIG_COLUMN_NAME = "targetName_orig";
+	private static final String TYPE_COLUMN_NAME = "type";
 
 	private Boolean trans;
 
@@ -141,9 +156,43 @@ public class RAuditReferenceValue implements EntityState {
 		}
     	return rValue;
     }
+	
+	public static SingleSqlQuery toRepo(Long recordId, String name, AuditReferenceValue value) {
+		InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+		queryBuilder.addParameter(COLUMN_RECORD_ID, recordId);
+		queryBuilder.addParameter(NAME_COLUMN_NAME, name);
+    	if (value != null) {
+    		queryBuilder.addParameter(OID_COLUMN_NAME, value.getOid());
+    		queryBuilder.addParameter(TYPE_COLUMN_NAME, RUtil.qnameToString(value.getType()));
+    		if(value.getTargetName() != null) {
+    			queryBuilder.addParameter(TARGET_NAME_ORIG_COLUMN_NAME, value.getTargetName().getOrig());
+    			queryBuilder.addParameter(TARGET_NAME_NORM_COLUMN_NAME, value.getTargetName().getNorm());
+    		} else {
+    			queryBuilder.addNullParameter(TARGET_NAME_ORIG_COLUMN_NAME);
+    			queryBuilder.addNullParameter(TARGET_NAME_NORM_COLUMN_NAME);
+    		}
+		} else {
+			queryBuilder.addNullParameter(OID_COLUMN_NAME);
+    		queryBuilder.addNullParameter(TYPE_COLUMN_NAME);
+    		queryBuilder.addNullParameter(TARGET_NAME_ORIG_COLUMN_NAME);
+			queryBuilder.addNullParameter(TARGET_NAME_NORM_COLUMN_NAME);
+		}
+    	return queryBuilder.build();
+    }
 
 	public AuditReferenceValue fromRepo() {
 		return new AuditReferenceValue(oid, RUtil.stringToQName(type), RPolyString.fromRepo(targetName));
+	}
+	
+	public static AuditReferenceValue fromRepo(ResultSet resultSet) throws SQLException {
+		PolyString targetName = null;
+		if(resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME)!= null
+				|| resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME) != null) {
+			targetName = new PolyString(resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME),
+					resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME));
+		}
+		return new AuditReferenceValue(resultSet.getString(OID_COLUMN_NAME),
+				RUtil.stringToQName(resultSet.getString(TYPE_COLUMN_NAME)), targetName);
 	}
 
 
@@ -178,5 +227,5 @@ public class RAuditReferenceValue implements EntityState {
 				", targetName='" + targetName + '\'' +
 				'}';
 	}
-
+	
 }

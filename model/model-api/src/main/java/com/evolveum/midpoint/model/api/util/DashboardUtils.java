@@ -41,8 +41,8 @@ public class DashboardUtils {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(DashboardUtils.class);
 
-	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
-	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
+	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestampValue desc";
+	private static final String TIMESTAMP_VALUE_NAME = "aer.timestampValue";
 	private static final String PARAMETER_FROM = "from";
 	
 	public static DashboardWidgetSourceTypeType getSourceType(DashboardWidgetType widget) {

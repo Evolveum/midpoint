@@ -334,7 +334,27 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public void assertExecutionDeltas(int index, int expectedNumber) {
 		assertEquals("Wrong number of execution deltas in audit trail (index "+index+")", expectedNumber, getExecutionDeltas(index).size());
 	}
-
+	
+	public void assertCustomColumn(String nameOfProperty, String value) {
+		for (AuditEventRecord record: records) {
+			Map<String, String> properties = record.getCustomColumnProperty();
+			if (properties.containsKey(nameOfProperty) && properties.get(nameOfProperty).equals(value)) {
+				return;
+			}
+		}
+		assert false : "Custom column property "+nameOfProperty+" with value " +value+ " not found in audit records";
+	}
+	
+	public void assertResourceOid(String oid) {
+		for (AuditEventRecord record: records) {
+			Set<String> resourceOid = record.getResourceOids();
+			if (resourceOid.contains(oid)) {
+				return;
+			}
+		}
+		assert false : "Resource oid "+oid+" not found in audit records";
+	}
+	
 	public void assertTarget(String expectedOid, AuditEventStage stage) {
 		Collection<PrismReferenceValue> targets = new ArrayList<>();
 		for(AuditEventRecord record: records) {
