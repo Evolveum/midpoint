@@ -145,22 +145,13 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
             @Override
             public void setObject(String object) {
-                if (getModelObject() == null){
-                    if (StringUtils.isBlank(object)) {
-                        getModel().setObject(null);
-                    } else {
-                        getModel().setObject(new PolyString(object));
-                    }
+                PolyString oldModelObject = getModelObject();
+                if (oldModelObject != null && (oldModelObject.getTranslation() != null || MapUtils.isNotEmpty(oldModelObject.getLang()))) {
+                    getModel().setObject(new PolyString(object, oldModelObject.getNorm(), oldModelObject.getTranslation(), oldModelObject.getLang()));
+                } else if (StringUtils.isNotBlank(object)) {
+                    getModel().setObject(new PolyString(object));
                 } else {
-                    PolyString oldModelObject = getModelObject();
-                    if (StringUtils.isBlank(object)) {
-                        if (oldModelObject.getTranslation() != null || MapUtils.isNotEmpty(oldModelObject.getLang())) {
-                            getModel().setObject(new PolyString(object, oldModelObject.getNorm(), oldModelObject.getTranslation(), oldModelObject.getLang()));
-                        } else {
-                            getModel().setObject(null);
-                        }
-                    }
-
+                    getModel().setObject(null);
                 }
             }
 
