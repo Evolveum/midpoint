@@ -1384,12 +1384,12 @@ public class Clockwork {
 			ExpressionType expression = property.getExpression();
 			if(expression != null) {
 				ExpressionVariables variables = new ExpressionVariables();
-				variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
-				variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+				variables.put(ExpressionConstants.VAR_TARGET, primaryObject.clone(), PrismObject.class);
+				variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord.clone(), AuditEventRecord.class);
 				String shortDesc = "value for custom column of audit table";
 				try {
 					Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression, context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
-					if(!values.isEmpty()) {
+					if(values != null && !values.isEmpty()) {
 						if(values.size() > 1) {
 							throw new IllegalArgumentException("Collection of expression result contains more as one value");
 						}
