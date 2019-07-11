@@ -61,7 +61,10 @@
             <xsd:element name="redirectToFile" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Instead of sending message via this transport, writes it to a file. Useful for debugging.
+                        When this transport don't have definision blackList, whiteList or recipient FilterExpression,
+			instead of sending message via this transport, writes it to a file. Useful for debugging.
+			When is defined one of whiteList, blackList or recipientFilterExpression, the messages 
+			for allowed recipient are sended, and the messages for forbidden recipients are writed to a file.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>NotificationTransportConfigurationType.redirectToFile</a:displayName>

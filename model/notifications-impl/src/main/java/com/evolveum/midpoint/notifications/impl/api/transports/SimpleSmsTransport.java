@@ -147,11 +147,28 @@ public class SimpleSmsTransport implements Transport {
             TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
         }
         String file = smsConfigurationType.getRedirectToFile();
-        if (file != null) {
-            writeToFile(message, file, null, emptyList(), null, result);
-            return;
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(smsConfigurationType);
+        
+        List<String> allowedRecipientTo = new ArrayList<String>();
+    	List<String> forbiddenRecipientTo = new ArrayList<String>();
+    	
+        if (optionsForFilteringRecipient != 0) {
+        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	
+        	if (file != null) {
+        		if (!forbiddenRecipientTo.isEmpty()) {
+        			message.setTo(forbiddenRecipientTo);
+        			writeToFile(message, file, null, emptyList(), null, result);
+        		}
+            	message.setTo(allowedRecipientTo);
+            }
+        	
+        } else if (file != null) {
+        	writeToFile(message, file, null, emptyList(), null, result);
+           	return;
         }
-
+        
         if (smsConfigurationType.getGateway().isEmpty()) {
             String msg = "SMS gateway(s) are not defined, notification to " + message.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -169,12 +186,18 @@ public class SimpleSmsTransport implements Transport {
         }
 
         if (message.getTo().isEmpty()) {
-            String msg = "There is no recipient to send the notification to.";
-            LOGGER.warn(msg) ;
-            result.recordWarning(msg);
+        	if(optionsForFilteringRecipient != 0) {
+        		String msg = "After recipient validation there is no recipient to send the notification to.";
+        		LOGGER.debug(msg) ;
+                result.recordSuccess();
+        	} else {
+        		String msg = "There is no recipient to send the notification to.";
+        		LOGGER.warn(msg) ;
+                result.recordWarning(msg);
+        	}
             return;
         }
-
+        
         List<String> to = message.getTo();
         assert to.size() > 0;
 
