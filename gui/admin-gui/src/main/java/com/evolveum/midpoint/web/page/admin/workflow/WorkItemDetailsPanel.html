@@ -52,25 +52,31 @@
                     </td>
                     <td class="col-md-9" style="max-width: 600px; word-wrap: break-word;"><span wicket:id="requesterCommentMessage"/></td>
                 </tr>
-            </table>
-        </div>
-    </div>
+     </table>
+</div>
+</div>
 
-    <div wicket:id="deltasToBeApproved"/>
+<div wicket:id="deltasToBeApproved"/>
 
-    <div class="box box-info" wicket:id="additionalAttributes">
-        <div class="box-header">
-            <h3 class="box-title"><wicket:message key="workItemPanel.additionalAttributes"/></h3>
-        </div>
-        <div class="box-body">
-            <div wicket:id="customForm" />
-        </div>
-    </div>
+<div class="box box-info" wicket:id="additionalAttributes">
+<div class="box-header">
+    <h3 class="box-title"><wicket:message key="workItemPanel.additionalAttributes"/></h3>
+</div>
+<div class="box-body">
+    <div wicket:id="customForm" />
+</div>
+</div>
 
+<h3><wicket:message key="workItemPanel.approverComment"/></h3>
+<textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
+<p/>
 
-    <h3><wicket:message key="workItemPanel.approverComment"/></h3>
-    <textarea wicket:id="approverComment" class="form-control input-sm" rows="2"></textarea>
-    <p/>
-
+<form wicket:id="caseWorkItemEvidenceForm">
+<h4>
+    <wicket:message key="PageCaseWorkItem.caseWorkItem.evidence"/>
+</h4>
+<div wicket:id="caseWorkItemEvidence" />
+<p/>
+</form>
 </wicket:panel>
 </html>
