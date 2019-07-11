@@ -15,12 +15,15 @@
  */
 package com.evolveum.midpoint.gui.impl.prism;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import java.util.List;
 
 /**
  * @author katka
@@ -31,7 +34,8 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_VALUE = "value";
-	
+	private static final String ID_VIRTUAL_CONTAINERS = "virtualContainers";
+
 	private ItemVisibilityHandler visibilityHandler;
 
 	public PrismObjectValuePanel(String id, IModel<PrismObjectWrapper<O>> model, ItemVisibilityHandler visibilityHandler) {
@@ -47,83 +51,18 @@ public class PrismObjectValuePanel<O extends ObjectType> extends BasePanel<Prism
 	}
 	
 	private void initLayout() {
-//		createHeaderPanel();
-		
 		createValuePanel(ID_VALUE, new PropertyModel<>(getModel(), "value"));
 	}
-	
-//	private Panel createHeaderPanel() {
-//		return new PrismContainerHeaderPanel(ID_HEADER, getModel());
-////		return header;
-//	}
-//	
-	
+
 	protected void createValuePanel(String panelId, IModel<PrismObjectValueWrapper<O>> valueModel) {
 		
 		PrismContainerValuePanel<O, PrismObjectValueWrapper<O>> valueWrapper = new PrismContainerValuePanel<>(panelId, valueModel, visibilityHandler);
 		valueWrapper.setOutputMarkupId(true);
 		add(valueWrapper);
-		
+
 	}
-	
-//	private <IW extends ItemWrapper> void createProperties() {
-//		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
-//    	propertiesLabel.setOutputMarkupId(true);
-//    	
-//		ListView<IW> properties = new ListView<IW>("properties",
-//	            new PropertyModel<>(getModel(), "nonContainers")) {
-//				private static final long serialVersionUID = 1L;
-//
-//				@Override
-//	            protected void populateItem(final ListItem<IW> item) {
-//					item.setOutputMarkupId(true);
-//					IW itemWrapper = item.getModelObject();
-//					Class<?> panelClass = getPageBase().getWrapperPanel(itemWrapper.getTypeName());
-//					
-//					Constructor<?> constructor;
-//					try {
-//						constructor = panelClass.getConstructor(String.class, IModel.class);
-//						Panel panel = (Panel) constructor.newInstance("property", item.getModel());
-//						item.add(panel);
-//					} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-//						throw new SystemException("Cannot instantiate " + panelClass);
-//					}
-//					
-//					
-//					
-//		            item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
-//	            }
-//	        };
-//	        properties.setReuseItems(true);
-//	        properties.setOutputMarkupId(true);
-//	        add(propertiesLabel);
-//	       	propertiesLabel.add(properties);
-//	       	
-//	        AjaxButton labelShowEmpty = new AjaxButton(ID_SHOW_EMPTY_BUTTON) {
-//				private static final long serialVersionUID = 1L;
-//				@Override
-//				public void onClick(AjaxRequestTarget target) {
-//					onShowEmptyClick(target);
-//					target.add(PrismContainerValuePanel.this);
-//				}
-//				
-//				@Override
-//				public IModel<?> getBody() {
-//					return getNameOfShowEmptyButton();
-//				}
-//			};
-//			labelShowEmpty.setOutputMarkupId(true);
-//			labelShowEmpty.add(AttributeAppender.append("style", "cursor: pointer;"));
-//			labelShowEmpty.add(new VisibleEnableBehaviour() {
-//				
-//				private static final long serialVersionUID = 1L;
-//
-//				@Override
-//				public boolean isVisible() {
-//					return getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
-//				}
-//			});
-//			add(labelShowEmpty);
-//	}
-//	
+
+
+
+
 }

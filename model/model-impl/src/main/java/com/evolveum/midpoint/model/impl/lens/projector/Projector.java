@@ -330,7 +330,7 @@ public class Projector {
 //		ate.setResult(result);
 //		ate.setSource(taskType);
 //		ate.setTask(task);
-//		DeltaSetTriple<EvaluatedAssignmentImpl<TaskType>> evaluatedAssignments = ate.preProcessAssignments(task.getTaskPrismObject());
+//		DeltaSetTriple<EvaluatedAssignmentImpl<TaskType>> evaluatedAssignments = ate.preProcessAssignments(task.getUpdatedOrClonedTaskObject());
 //		
 //		Set<EvaluatedPolicyRule> evaluatedPolicyRules = new HashSet<>(); 
 //		

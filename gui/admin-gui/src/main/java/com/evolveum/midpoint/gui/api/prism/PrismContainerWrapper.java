@@ -46,6 +46,9 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 	boolean isShowOnTopLevel();
 	
 	ItemStatus getStatus();
+
+	void setVirtual(boolean virtual);
+	boolean isVirtual();
 	
 //	ItemWrapper<?, ?, ?,?> findItem(ItemPath path);
 	

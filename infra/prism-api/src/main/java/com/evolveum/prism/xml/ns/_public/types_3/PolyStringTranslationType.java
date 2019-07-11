@@ -68,12 +68,22 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 		this.key = key;
 	}
 
+	public PolyStringTranslationType key(String key) {
+		setKey(key);
+		return this;
+	}
+
 	public String getFallback() {
 		return fallback;
 	}
 
 	public void setFallback(String fallback) {
 		this.fallback = fallback;
+	}
+
+	public PolyStringTranslationType fallback(String fallback) {
+		setFallback(fallback);
+		return this;
 	}
 	
 	public PolyStringTranslationType getFallbackTranslation() {
@@ -82,6 +92,11 @@ public class PolyStringTranslationType implements Serializable, Cloneable {
 
 	public void setFallbackTranslation(PolyStringTranslationType fallbackTranslation) {
 		this.fallbackTranslation = fallbackTranslation;
+	}
+
+	public PolyStringTranslationType fallbackTranslation(PolyStringTranslationType fallbackTranslation) {
+		setFallbackTranslation(fallbackTranslation);
+		return this;
 	}
 
 	public List<PolyStringTranslationArgumentType> getArgument() {

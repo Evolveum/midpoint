@@ -182,7 +182,7 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 	    		return false;
 	    	}
 			
-	    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+	    	PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 			if (item == null || item.isEmpty()){
 				return false;
 			}

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  * @author katka
  *
  */
-public class CounterSepcification implements DebugDumpable {
+public class CounterSpecification implements DebugDumpable {
 	
 	private int count = 0;
 	private long counterStart;
@@ -34,7 +34,7 @@ public class CounterSepcification implements DebugDumpable {
 	private PolicyRuleType policyRule;
 	private String policyRuleId;
 	
-	public CounterSepcification(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
+	public CounterSpecification(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
 		this.task = task;
 		this.policyRuleId = policyRuleId;
 		this.policyRule = policyRule;

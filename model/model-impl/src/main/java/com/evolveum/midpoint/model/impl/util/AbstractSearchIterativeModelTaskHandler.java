@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -178,7 +177,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
     }
 
     protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
-		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
 		return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
 	}
 

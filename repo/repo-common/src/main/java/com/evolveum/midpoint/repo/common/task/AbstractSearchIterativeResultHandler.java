@@ -488,7 +488,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 		
 		CriticalityType criticality = ExceptionUtil.getCriticality(stageType.getErrorCriticality(), ex, CriticalityType.PARTIAL);
-		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
+		RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
 		
 		return stopOnError;
 	}
@@ -580,7 +580,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	protected Integer getWorkerThreadsCount(Task task) {
-		PrismProperty<Integer> workerThreadsPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+		PrismProperty<Integer> workerThreadsPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
 		if (workerThreadsPrismProperty != null && workerThreadsPrismProperty.getRealValue() != null) {
 			return workerThreadsPrismProperty.getRealValue();
 		} else {

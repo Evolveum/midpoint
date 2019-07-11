@@ -53,6 +53,8 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	private boolean showOnTopLevel;
 	
 	private boolean expanded;
+
+	private boolean virtual;
 	
 
 	public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
@@ -336,14 +338,22 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	}
 
 	@Override
-	public boolean isVisible(boolean parentShowEmpty, boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
+	public boolean isVisible(PrismContainerValueWrapper parent, ItemVisibilityHandler visibilityHandler) {
 		
 		if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return (getParent() != null && getParent().isShowMetadata());
 		}
 		
-		return isVisibleByVisibilityHandler(parentExpanded, visibilityHandler);
+		return isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler);
 	}
 
-		
+	@Override
+	public void setVirtual(boolean virtual) {
+		this.virtual = virtual;
+	}
+
+	@Override
+	public boolean isVirtual() {
+		return virtual;
+	}
 }

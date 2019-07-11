@@ -86,7 +86,7 @@ public class MockParallelTaskHandler implements TaskHandler {
 			parentTask.setOperationStatsUpdateInterval(1000L);
 			while (System.currentTimeMillis() < end) {
 				// hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
-				task.getParentForLightweightAsynchronousTask().getTaskPrismObject();
+				task.getParentForLightweightAsynchronousTask().getUpdatedOrClonedTaskObject();
 				long started = System.currentTimeMillis();
 				task.recordIterativeOperationStart("o1", null, UserType.COMPLEX_TYPE, "oid1");
 				try {
@@ -120,7 +120,7 @@ public class MockParallelTaskHandler implements TaskHandler {
 		OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
-		PrismProperty<Integer> duration = task.getExtensionProperty(DURATION_QNAME);
+		PrismProperty<Integer> duration = task.getExtensionPropertyOrClone(DURATION_QNAME);
 		Integer durationValue = null;
 		if (duration != null) {
 			durationValue = duration.getRealValue();

@@ -63,9 +63,9 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 		TaskRunResult runResult = new TaskRunResult();
 
 		Collection<ObjectDeltaType> deltas;
-		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
 		if (deltasProperty == null || deltasProperty.isEmpty()) {
-			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
 			if (deltaProperty == null || deltaProperty.isEmpty()) {
 				throw new IllegalArgumentException("No deltas to execute");
 			} else {
@@ -74,7 +74,7 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 		} else {
 			deltas = deltasProperty.getRealValues();
 		}
-		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
 		ModelExecuteOptions options = optionsProperty != null ?
 				ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
 

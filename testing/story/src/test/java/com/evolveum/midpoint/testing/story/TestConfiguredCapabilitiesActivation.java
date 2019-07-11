@@ -15,30 +15,15 @@
  */
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import java.util.List;
-
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.resource.ConflictException;
-import com.evolveum.icf.dummy.resource.SchemaViolationException;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.CapabilityUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import java.io.File;
 
 /**
  * Test for resources with configured capabilities (MID-5400)
@@ -72,7 +57,7 @@ public class TestConfiguredCapabilitiesActivation extends AbstractStoryTest {
 		displayTestTitle(TEST_NAME);
 		
 		Task task = createTask(TEST_NAME);
-		OperationResult result = task.getResult(); 
+		OperationResult result = task.getResult();
 		
 		// WHEN
         displayWhen(TEST_NAME);

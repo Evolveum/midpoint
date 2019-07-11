@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -448,7 +447,7 @@ public class ModelWebService extends AbstractModelWebService implements ModelPor
 	 * @param task
 	 */
 	private TaskType handleTaskResult(Task task) {
-		return task.getTaskPrismObject().asObjectable();
+		return task.getUpdatedTaskObject().asObjectable();
 	}
 
 }
