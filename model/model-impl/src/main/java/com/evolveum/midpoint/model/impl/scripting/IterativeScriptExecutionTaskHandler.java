@@ -42,8 +42,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-import static java.util.Collections.emptyMap;
-
 @Component
 public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, AbstractSearchIterativeResultHandler<ObjectType>> {
 
@@ -71,7 +69,7 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
-		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
+		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
 		if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
 				executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
 			throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");

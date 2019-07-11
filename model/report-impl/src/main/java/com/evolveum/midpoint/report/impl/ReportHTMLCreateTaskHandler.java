@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,7 +33,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -46,7 +44,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
@@ -84,6 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -119,6 +117,8 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 	private static final String EVENT_STAGE_COLUMN = "Event stage";
 	private static final String EVENT_TYPE_COLUMN = "Event type";
 	private static final String TARGET_COLUMN = "Target";
+	private static final String DELTA_COLUMN = "Delta";
+	private static final String MESSAGE_COLUMN = "Message";
 	private static final String TARGET_OWNER_COLUMN = "Target owner";
 	private static final String CHANNEL_COLUMN = "Channel";
 	private static final String OUTCOME_COLUMN = "Outcome";
@@ -229,9 +229,12 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 				add(EVENT_STAGE_COLUMN);
 				add(EVENT_TYPE_COLUMN);
 				add(TARGET_COLUMN);
-				add(TARGET_OWNER_COLUMN);
-				add(CHANNEL_COLUMN);
+//				add(TARGET_OWNER_COLUMN);
+//				add(TARGET_OWNER_COLUMN);
+//				add(CHANNEL_COLUMN);
 				add(OUTCOME_COLUMN);
+				add(MESSAGE_COLUMN);
+				add(DELTA_COLUMN);
 			}
 		};
 	}
@@ -255,7 +258,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
 		super.recordProgress(task, 0, result);
 		try {
-			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null,
+			ReportType parentReport = objectResolver.resolve(task.getObjectRefOrClone(), ReportType.class, null,
 					"resolving report", task, result);
 
 			if (parentReport.getReportEngine() == null) {
@@ -405,7 +408,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 					auditRecordList.add(record.createAuditEventRecordType());
 				}
 
-				ContainerTag table = createTable();
+				ContainerTag table = createTable(true);
 				table.with(createTHead(getHeadsOfAuditEventRecords()));
 				ContainerTag tBody = TagCreator.tbody();
 				auditRecordList.forEach(record -> {
@@ -450,6 +453,27 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 				return "";
 			}
 			return record.getOutcome().toString();
+		case MESSAGE_COLUMN:
+			if (record.getMessage() == null) {
+				return "";
+			}
+			return record.getMessage();
+		case DELTA_COLUMN:
+			if (record.getDelta() == null || record.getDelta().isEmpty()) {
+				return "";
+			}
+			StringBuilder sb = new StringBuilder();
+			List<ObjectDeltaOperationType> deltas = record.getDelta();
+			for (int i = 0; i < deltas.size(); i++) {
+				ObjectDeltaOperationType delta = deltas.get(i);
+				sb.append(ReportUtils.printDelta(delta.getObjectDelta(), 
+						(delta.getObjectName() == null ? null : delta.getObjectName().toString()),
+						(delta.getResourceName()) == null ? null : delta.getResourceName().toString()));
+				if ((i+1)!=deltas.size()) {
+					sb.append("\n");
+				}
+			}
+			return sb.toString();
 		}
 		return "";
 
@@ -549,8 +573,15 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		}
 		return object;
 	}
-
+	
 	private ContainerTag createTable() {
+		return createTable(false);
+	}
+
+	private ContainerTag createTable(boolean isAudit) {
+		if(isAudit) {
+			return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered", "table-audit");
+		}
 		return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered");
 	}
 
@@ -564,7 +595,25 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
 	private ContainerTag createTHead(Set<String> set) {
 		return TagCreator.thead(TagCreator.tr(TagCreator.each(set,
-				header -> TagCreator.th(TagCreator.div(TagCreator.span(header).withClass("sortableLabel"))))));
+				header -> TagCreator.th(TagCreator.div(TagCreator.span(header).withClass("sortableLabel"))).withStyle(getStyleForColumn(header)))).withStyle("width: 100%;"));
+	}
+
+	private String getStyleForColumn(String column) {
+		switch (column) {
+		case TIME_COLUMN:
+			return "width: 10%;";
+		case INITIATOR_COLUMN:
+			return "width: 8%;";
+		case EVENT_STAGE_COLUMN:
+			return "width: 5%;";
+		case EVENT_TYPE_COLUMN:
+			return "width: 10%;";
+		case TARGET_COLUMN:
+			return "width: 8%;";
+		case OUTCOME_COLUMN:
+			return "width: 7%;";
+		}
+		return "";
 	}
 
 	private ContainerTag createTBodyRow(DashboardWidget data) {

@@ -23,7 +23,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
-import com.evolveum.midpoint.util.aspect.MidpointInterceptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import org.springframework.test.annotation.DirtiesContext;
@@ -141,7 +140,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		Task taskAfter = waitForTaskFinish(TASK_IMPORT_OID, true, SYNC_TASK_WAIT_TIMEOUT);
 
-		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getTaskPrismObject()));
+		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
 		OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_IMPORT_OID);
 		displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
@@ -172,7 +171,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		Task taskAfter = waitForTaskFinish(TASK_RECONCILIATION_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100);
 
-		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getTaskPrismObject()));
+		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
 		OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_RECONCILIATION_OID);
 		displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);
@@ -203,7 +202,7 @@ public class TestShadowsPerformance extends AbstractStoryTest {
 		displayThen(TEST_NAME);
 		Task taskAfter = waitForTaskFinish(TASK_BULK_DELETE_OID, true, 0L, SYNC_TASK_WAIT_TIMEOUT, false, 100);
 
-		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getTaskPrismObject()));
+		display("task after", prismContext.xmlSerializer().serialize(taskAfter.getUpdatedTaskObject()));
 
 		OperationStatsType statistics = getTaskTreeOperationStatistics(TASK_BULK_DELETE_OID);
 		displayOperationStatistics("Task operation statistics for " + TEST_NAME, statistics);

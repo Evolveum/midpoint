@@ -27,7 +27,6 @@ import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +57,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -456,7 +454,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	private PrismProperty<?> getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty<?> taskTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<?> taskTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 
 		if (taskTokenProperty != null) {
 			if (taskTokenProperty.getAnyRealValue() != null) {

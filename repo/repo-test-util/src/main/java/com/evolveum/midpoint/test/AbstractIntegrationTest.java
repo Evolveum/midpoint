@@ -20,6 +20,9 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
@@ -92,6 +95,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
@@ -113,6 +117,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -1236,7 +1241,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<Object> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 		if (expectedValue == null && syncTokenProperty == null) {
 			return;
 		}
@@ -2559,5 +2564,41 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected ItemFactory itemFactory() {
 		return prismContext.itemFactory();
 	}
-	
+
+	protected void setModelAndProvisioningLoggers(Level level) {
+		setModelLoggers(level);
+		setProvisioningLoggers(level);
+	}
+
+	protected void setModelLoggers(Level level) {
+		setLoggers(Collections.singletonList("com.evolveum.midpoint.model"), level);
+	}
+
+	protected void setProvisioningLoggers(Level level) {
+		setLoggers(Collections.singletonList("com.evolveum.midpoint.provisioning"), level);
+	}
+
+	protected void setLoggers(List<String> prefixes, Level level) {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		int set = 0;
+		for (Logger logger : context.getLoggerList()) {
+			if (prefixes.stream().anyMatch(prefix -> logger.getName().startsWith(prefix))) {
+				logger.setLevel(level);
+				set++;
+			}
+		}
+		System.out.println("Loggers set to " + level + ": " + set);
+	}
+
+	protected void clearLogFile() {
+		try {
+			RandomAccessFile file = new RandomAccessFile(new File("target/test.log"), "rw");
+			file.setLength(0);
+			file.close();
+			System.out.println("Log file truncated");
+		} catch (IOException e) {
+			System.err.println("Couldn't truncate log file");
+			e.printStackTrace(System.err);
+		}
+	}
 }

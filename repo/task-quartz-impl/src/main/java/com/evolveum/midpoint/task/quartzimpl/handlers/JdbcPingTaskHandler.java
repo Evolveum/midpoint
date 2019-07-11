@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.sql.*;
 
 /**
@@ -183,7 +182,7 @@ public class JdbcPingTaskHandler implements TaskHandler {
 	}
 
 	private <T> T get(Task task, ItemName propertyName, T defaultValue) {
-		PrismProperty<T> property = task.getExtensionProperty(propertyName);
+		PrismProperty<T> property = task.getExtensionPropertyOrClone(propertyName);
 		if (property == null) {
 			return defaultValue;
 		} else {

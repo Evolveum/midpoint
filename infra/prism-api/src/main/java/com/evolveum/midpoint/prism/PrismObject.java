@@ -98,6 +98,8 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	PrismContainer<?> getExtension();
 
+	PrismContainer<?> getOrCreateExtension() throws SchemaException;
+
 	PrismContainerValue<?> getExtensionContainerValue();
 
 	<I extends Item> I findExtensionItem(String elementLocalName);

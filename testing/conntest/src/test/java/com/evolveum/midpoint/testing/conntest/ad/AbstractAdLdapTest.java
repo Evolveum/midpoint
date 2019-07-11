@@ -1350,7 +1350,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 			SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
 		Task task = taskManager.getTask(syncTaskOid, result);
-		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 		assertNotNull("No sync token", syncTokenProperty);
 		assertNotNull("No sync token value", syncTokenProperty.getRealValue());
 		assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));

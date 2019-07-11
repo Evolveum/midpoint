@@ -967,7 +967,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		}
 
 		try {
-			CryptoUtil.encryptValues(protector, taskImpl.getLiveTaskPrismObject());
+			CryptoUtil.encryptValues(protector, taskImpl.getLiveTaskObjectForNotRunningTasks());
 			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
@@ -1007,7 +1007,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
         String oid;
         try {
-		     oid = repositoryService.addObject(task.getTaskPrismObject(), options, result);
+		     oid = repositoryService.addObject(task.getUpdatedTaskObject(), options, result);
         } catch (ObjectAlreadyExistsException | SchemaException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;
@@ -1353,7 +1353,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             fillInSubtasks(task, clusterStatusInformation, options, result);
         }
         fillOperationExecutionState(task);
-        return task.getTaskPrismObject();
+        return task.getUpdatedTaskObject();     // task is never live running
     }
 
     private void fillOperationExecutionState(Task task0) {
@@ -1408,8 +1408,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	// subtask is Task or PrismObject<TaskType>
     private void addSubtask(Object task, Object subtask) {
     	TaskType subtaskBean;
-    	if (subtask instanceof Task) {
-    		subtaskBean = ((Task) subtask).getTaskType();
+    	if (subtask instanceof TaskQuartzImpl) {
+    		subtaskBean = ((TaskQuartzImpl) subtask).getLiveTaskObject().asObjectable();
 	    } else if (subtask instanceof PrismObject<?>) {
 		    //noinspection unchecked
 		    subtaskBean = ((PrismObject<TaskType>) subtask).asObjectable();
@@ -1654,7 +1654,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
         TaskType taskBean;
         if (task instanceof TaskQuartzImpl) {
-        	taskBean = ((TaskQuartzImpl) task).getLiveTaskPrismObject().asObjectable();
+        	taskBean = ((TaskQuartzImpl) task).getLiveTaskObjectForNotRunningTasks().asObjectable();
         } else if (task instanceof PrismObject<?>) {
 	        //noinspection unchecked
 	        taskBean = ((PrismObject<TaskType>) task).asObjectable();
@@ -2544,7 +2544,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 			LOGGER.warn("Task {} is already a RunningTask", task);
 			return ((RunningTaskQuartzImpl) task);
 		} else {
-			PrismObject<TaskType> taskPrismObject = task.getTaskPrismObject();
+			PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
 			return new RunningTaskQuartzImpl(this, taskPrismObject, repositoryService);
 		}
 	}

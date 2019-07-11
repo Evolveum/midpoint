@@ -18,6 +18,14 @@ package com.evolveum.midpoint.gui.impl.prism;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
@@ -36,6 +44,8 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
 	private static final long serialVersionUID = 1L;
 
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismObjectWrapperImpl.class);
+
 	public PrismObjectValueWrapperImpl(PrismObjectWrapper<O> parent, PrismObjectValue<O> pcv, ValueStatus status) {
 		super(parent, pcv, status);
 	}
@@ -47,10 +57,18 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
 			collectExtensionItems(container, true, containers);
 
+			if (container instanceof  PrismContainerWrapper && ((PrismContainerWrapper) container).isVirtual()) {
+				((List)containers).add(container);
+			}
+
 		}
+
+
+
 		return containers;
 		
 	}
+
 
 	@Override
 	public String getDisplayName() {

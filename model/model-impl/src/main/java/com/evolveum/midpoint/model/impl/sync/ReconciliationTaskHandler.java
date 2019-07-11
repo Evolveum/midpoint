@@ -185,7 +185,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		LOGGER.trace("ReconciliationTaskHandler.run starting (stage: {})", stage);
 		ReconciliationTaskResult reconResult = new ReconciliationTaskResult();
 
-		LOGGER.trace("Recon task: {}", localCoordinatorTask.getTaskPrismObject().debugDumpLazily());
+		LOGGER.trace("Recon task: {}", localCoordinatorTask.debugDumpLazily());
 
 		if (BooleanUtils.isTrue(localCoordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_FINISH_OPERATIONS_ONLY))) {
 			if (stage == Stage.ALL) {

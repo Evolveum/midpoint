@@ -352,7 +352,7 @@ public class RTask extends RObject<TaskType> implements OperationResultFull {
 //        WfContextType wfc = jaxb.getApprovalContext();
 //        if (wfc != null) {
 //            repo.setWfRequesterRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getRequesterRef(), repositoryContext.relationRegistry));
-//            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRef(), repositoryContext.relationRegistry));
+//            repo.setWfObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getObjectRefOrClone(), repositoryContext.relationRegistry));
 //            repo.setWfTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(wfc.getTargetRef(), repositoryContext.relationRegistry));
 //            repo.setWfStartTimestamp(wfc.getStartTimestamp());
 //            repo.setWfEndTimestamp(wfc.getEndTimestamp());

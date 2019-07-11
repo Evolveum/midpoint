@@ -20,7 +20,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -497,19 +495,19 @@ public class ModelImplUtils {
 	public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
 	
 	    QName objectclass = null;
-	    PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
+	    PrismProperty<QName> objectclassProperty = task.getExtensionPropertyOrClone(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
 	    if (objectclassProperty != null) {
 	        objectclass = objectclassProperty.getValue().getValue();
 	    }
 	
 	    ShadowKindType kind = null;
-	    PrismProperty<ShadowKindType> kindProperty = task.getExtensionProperty(ModelConstants.KIND_PROPERTY_NAME);
+	    PrismProperty<ShadowKindType> kindProperty = task.getExtensionPropertyOrClone(ModelConstants.KIND_PROPERTY_NAME);
 	    if (kindProperty != null) {
 	        kind = kindProperty.getValue().getValue();
 	    }
 	
 	    String intent = null;
-	    PrismProperty<String> intentProperty = task.getExtensionProperty(ModelConstants.INTENT_PROPERTY_NAME);
+	    PrismProperty<String> intentProperty = task.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
 	    if (intentProperty != null) {
 	        intent = intentProperty.getValue().getValue();
 	    }
@@ -619,7 +617,7 @@ public class ModelImplUtils {
 		if (!task.hasExtension()) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(ItemName.fromQName(path));
+		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -634,7 +632,7 @@ public class ModelImplUtils {
 		if (!task.hasExtension()) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(ItemName.fromQName(path));
+		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -653,7 +651,7 @@ public class ModelImplUtils {
 			return null;
 		}
 		//LOGGER.info("Task:\n{}",task.debugDump(1));
-		PrismProperty<ModelExecuteOptionsType> item = task.getExtensionProperty(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
 		if (item == null || item.isEmpty()) {
 			return null;
 		}

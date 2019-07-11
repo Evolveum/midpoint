@@ -173,6 +173,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
 
+	public PrismContainer<?> getOrCreateExtension() throws SchemaException {
+		//noinspection unchecked
+		return (PrismContainer<?>) getValue().findOrCreateItem(getExtensionContainerElementName(), PrismContainer.class);
+	}
+
 	public PrismContainerValue<?> getExtensionContainerValue() {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null || extension.getValues().isEmpty()) {

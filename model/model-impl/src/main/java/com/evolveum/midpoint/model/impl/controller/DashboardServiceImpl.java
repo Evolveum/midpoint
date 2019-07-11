@@ -254,7 +254,8 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 	
 	private String getQueryForCount(String query) {
-		query = "select count (*) " + query;
+		int index = query.toLowerCase().indexOf("from");
+		query = "select count (*) " + query.substring(index);
 		query = query.split("order")[0];
 		LOGGER.debug("Query for select: " + query);
 		return query;

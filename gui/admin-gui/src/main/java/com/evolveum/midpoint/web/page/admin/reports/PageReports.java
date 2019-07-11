@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -193,28 +194,38 @@ public class PageReports extends PageAdmin {
         return menu;
 
     }
+    
+    private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam,
+    		Task task, OperationResult result) {
+        try {
+
+            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
+        hideMainPopup(target);
+
+	}
 
     protected void runReportPerformed(AjaxRequestTarget target, ReportType report) {
-
+    	OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+    	Task task = createSimpleTask(OPERATION_RUN_REPORT);
+    	if(report.getReportEngine() != null && report.getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
+    		runConfirmPerformed(target, report, null, task, result);
+    		return;
+    	}
+    	
     	RunReportPopupPanel runReportPopupPanel = new RunReportPopupPanel(getMainPopupBodyId(), report) {
 
     		private static final long serialVersionUID = 1L;
 
 			protected void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {
-    			OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
-    	        try {
-
-    	            Task task = createSimpleTask(OPERATION_RUN_REPORT);
-
-    	            getReportManager().runReport(reportType.asPrismObject(), reportParam, task, result);
-    	        } catch (Exception ex) {
-    	            result.recordFatalError(ex);
-    	        } finally {
-    	            result.computeStatusIfUnknown();
-    	        }
-
-    	        showResult(result);
-    	        target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM)));
+    	        PageReports.this.runConfirmPerformed(target, reportType, reportParam, task, result);
     	        hideMainPopup(target);
 
     		};

@@ -207,12 +207,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
         		prismContext, task, result);
         
-        TaskType taskType = task.getTaskType();
-        LOGGER.trace("Task for process: {}", taskType.asPrismObject().debugDumpLazily());
-        AssignmentType taskAssignment = null;
-        if (CollectionUtils.isNotEmpty(taskType.getAssignment())) {
+        LOGGER.trace("Task for process: {}", task.debugDumpLazily());
+        AssignmentType taskAssignment;
+        if (task.hasAssignments()) {
         	taskAssignment = new AssignmentType(prismContext);
-        	taskAssignment.setTarget(taskType);
+        	taskAssignment.setTarget(task.getUpdatedOrClonedTaskObject().asObjectable());
+        } else {
+        	taskAssignment = null;
         }
         
         LOGGER.trace("Task assignment: {}", taskAssignment);
