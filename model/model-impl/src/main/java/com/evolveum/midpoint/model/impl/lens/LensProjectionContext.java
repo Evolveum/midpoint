@@ -30,6 +30,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -1398,29 +1399,32 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return getKindValue(resourceShadowDiscriminator.getKind());
 	}
 
-	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, boolean reduced) throws SchemaException {
+	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensProjectionContextType, reduced);
-        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-		lensProjectionContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
-        lensProjectionContextType.setWave(wave);
-        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
-                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
-        lensProjectionContextType.setFullShadow(fullShadow);
-        lensProjectionContextType.setIsAssigned(isAssigned);
-        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
-        lensProjectionContextType.setIsActive(isActive);
-        lensProjectionContextType.setIsLegal(isLegal);
-        lensProjectionContextType.setIsLegalOld(isLegalOld);
-        lensProjectionContextType.setIsExists(isExists);
-        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
-        lensProjectionContextType.setDoReconciliation(doReconciliation);
-        lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
-        lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
-        if (!reduced) {
-			lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
-		}
-        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+        super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
+		lensProjectionContextType.setWave(wave);
+		lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
+				resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
+		lensProjectionContextType.setFullShadow(fullShadow);
+		lensProjectionContextType.setIsExists(isExists);
+		lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
+		lensProjectionContextType.setDoReconciliation(doReconciliation);
+		lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
+		lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
+        if (exportType != LensContext.ExportType.MINIMAL) {
+	        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
+	        lensProjectionContextType
+			        .setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
+	        lensProjectionContextType.setIsAssigned(isAssigned);
+	        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
+	        lensProjectionContextType.setIsActive(isActive);
+	        lensProjectionContextType.setIsLegal(isLegal);
+	        lensProjectionContextType.setIsLegalOld(isLegalOld);
+	        if (exportType != LensContext.ExportType.REDUCED) {
+		        lensProjectionContextType.setAccountPasswordPolicy(CloneUtil.clone(accountPasswordPolicy));
+	        }
+	        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+        }
     }
 
     public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {

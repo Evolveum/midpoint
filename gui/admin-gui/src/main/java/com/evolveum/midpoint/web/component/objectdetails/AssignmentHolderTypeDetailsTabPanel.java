@@ -79,7 +79,7 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 			Panel password = getPageBase().initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
 			add(password);
 		} catch (SchemaException e) {
-			LOGGER.error("Could not create focu details panel. Reason: ", e.getMessage(), e);
+			LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);
 		}
 	}
 	

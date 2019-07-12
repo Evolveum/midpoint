@@ -336,7 +336,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			if (!isNonScavengingWorker()) {     // todo configure this somehow
 				int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
 				workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
-				workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING);
+				workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
@@ -349,9 +349,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			OperationResultBuilder builder = parentResult.subresult(taskOperationPrefix + ".handle")
 					.addParam("object", object);
-			if (workerTask.getTracingRequestedFor().contains(TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
+			if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
 				tracingRequested = true;
-				builder.tracingProfile(taskManager.getTracer().resolve(workerTask.getTracingProfile(), result));
+				builder.tracingProfile(taskManager.getTracer().compileProfile(workerTask.getTracingProfile(), result));
 			}
 			result = builder.build();
 

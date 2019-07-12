@@ -18,10 +18,17 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -39,6 +46,8 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS_CONTAINER = "executeAfterAllApprovalsContainer";
     private static final String ID_KEEP_DISPLAYING_RESULTS = "keepDisplayingResults";
     private static final String ID_KEEP_DISPLAYING_RESULTS_CONTAINER = "keepDisplayingResultsContainer";
+    private static final String ID_TRACING = "tracing";
+    private static final String ID_TRACING_CONTAINER = "tracingContainer";
 
     private static final String FORCE_LABEL = "ExecuteChangeOptionsPanel.label.force";
     private static final String FORCE_HELP = "ExecuteChangeOptionsPanel.label.force.help";
@@ -107,6 +116,38 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
         		KEEP_DISPLAYING_RESULTS_LABEL,
         		KEEP_DISPLAYING_RESULTS_HELP,
         		showKeepDisplayingResults);
+
+	    WebMarkupContainer tracingContainer = new WebMarkupContainer(ID_TRACING_CONTAINER);
+	    tracingContainer.setVisible(WebModelServiceUtils.isEnableExperimentalFeature(getPageBase()));
+	    add(tracingContainer);
+
+	    DropDownChoice tracing = new DropDownChoice<>(ID_TRACING, PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING),
+			    PropertyModel.of(getModel(), ExecuteChangeOptionsDto.F_TRACING_CHOICES), new IChoiceRenderer<TracingProfileType>() {
+		    @Override
+		    public Object getDisplayValue(TracingProfileType profile) {
+			    if (profile == null) {
+			    	return "(none)";
+			    } else if (profile.getDisplayName() != null) {
+			    	return profile.getDisplayName();
+			    } else if (profile.getName() != null) {
+			    	return profile.getName();
+			    } else {
+			    	return "(unnamed profile)";
+			    }
+		    }
+
+		    @Override
+		    public String getIdValue(TracingProfileType object, int index) {
+			    return String.valueOf(index);
+		    }
+
+		    @Override
+		    public TracingProfileType getObject(String id, IModel<? extends List<? extends TracingProfileType>> choices) {
+			    return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+		    }
+	    });
+	    tracing.setNullValid(true);
+	    tracingContainer.add(tracing);
     }
 
     private void createContainer(String containerId, IModel<Boolean> checkboxModel, String labelKey, String helpKey, boolean show) {

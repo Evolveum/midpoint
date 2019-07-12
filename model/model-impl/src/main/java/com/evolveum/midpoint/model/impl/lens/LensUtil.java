@@ -1161,4 +1161,11 @@ public class LensUtil {
 		}
 	}
 
+	public static LensContext.ExportType getExportType(TraceType trace, OperationResult result) {
+		return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.MINIMAL;
+	}
+
+	public static LensContext.ExportType getExportTypeTraceOrReduced(TraceType trace, OperationResult result) {
+		return result.isTracingNormal(trace.getClass()) ? LensContext.ExportType.TRACE : LensContext.ExportType.REDUCED;
+	}
 }

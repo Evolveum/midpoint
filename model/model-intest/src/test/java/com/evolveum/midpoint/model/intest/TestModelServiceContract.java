@@ -292,9 +292,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
 
         // Check account in dummy resource
-        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+	    DummyAccount dummyAccount = assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+	    display("dummyAccount after", dummyAccount);
 
-        assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
+	    assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
 
         // Check audit
         display("Audit", dummyAuditService);

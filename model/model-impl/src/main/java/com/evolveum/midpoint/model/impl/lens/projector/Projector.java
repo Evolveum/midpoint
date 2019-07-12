@@ -17,12 +17,14 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorRunTraceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -168,6 +170,14 @@ public class Projector {
 				.addContext("projectionWave", context.getProjectionWave())
 				.addContext("executionWave", context.getExecutionWave())
 				.build();
+		ProjectorRunTraceType trace;
+		if (result.isTraced()) {
+			trace = new ProjectorRunTraceType();
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
@@ -307,6 +317,9 @@ public class Projector {
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
 			if (context.getInspector() != null) {
 				context.getInspector().projectorFinish(context);
 			}

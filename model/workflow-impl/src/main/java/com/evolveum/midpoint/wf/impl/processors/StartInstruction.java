@@ -108,7 +108,7 @@ public class StartInstruction implements DebugDumpable {
     	LensContextType bean;
 	    if (context != null) {
 		    boolean reduced = context.getState() == ModelState.PRIMARY;
-		    bean = ((LensContext) context).toLensContextType(reduced);
+		    bean = ((LensContext) context).toLensContextType(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL);
 	    } else {
 	    	bean = null;
 	    }

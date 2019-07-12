@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingPointType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 import org.jetbrains.annotations.NotNull;
 
@@ -362,15 +362,15 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
 	}
 
 	@Override
-	public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingPointType defaultTracingPoint) {
+	public boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot) {
 		Integer interval = coordinatorTask.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_TRACING_INTERVAL);
 		if (interval != null && interval != 0 && objectsSeen%interval == 0) {
 			Tracer tracer = taskManager.getTracer();
 			LOGGER.info("Starting tracing for object number {} (interval is {})", this.objectsSeen, interval);
 			TracingProfileType tracingProfile = coordinatorTask.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_PROFILE);
-			PrismProperty<TracingPointType> tracingPointProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_POINT);
-			Collection<TracingPointType> points = tracingPointProperty != null && !tracingPointProperty.isEmpty() ?
-					tracingPointProperty.getRealValues() : singleton(defaultTracingPoint);
+			PrismProperty<TracingRootType> tracingRootProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_TRACING_ROOT);
+			Collection<TracingRootType> points = tracingRootProperty != null && !tracingRootProperty.isEmpty() ?
+					tracingRootProperty.getRealValues() : singleton(defaultTracingRoot);
 			points.forEach(this::addTracingRequest);
 			setTracingProfile(tracingProfile != null ? tracingProfile : tracer.getDefaultProfile());
 			return true;

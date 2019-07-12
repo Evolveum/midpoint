@@ -511,7 +511,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="tracingPoint" type="c:TracingPointType">
+    <xsd:element name="tracingRoot" type="c:TracingRootType">
         <xsd:annotation>
             <xsd:documentation>
                 Point(s) to be traced.

@@ -147,7 +147,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@NotNull    // beware, we still have to synchronize on pendingModifications while iterating over it
 	private final List<ItemDelta<?, ?>> pendingModifications = Collections.synchronizedList(new ArrayList<>());
 
-	private final Set<TracingPointType> tracingRequestedFor = new HashSet<>();
+	private final Set<TracingRootType> tracingRequestedFor = new HashSet<>();
 	private TracingProfileType tracingProfile;      // the profile to be used for tracing - it is copied into operation result at specified tracing point(s)
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskQuartzImpl.class);
@@ -2640,12 +2640,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 
 	@NotNull
 	@Override
-	public Set<TracingPointType> getTracingRequestedFor() {
+	public Set<TracingRootType> getTracingRequestedFor() {
 		return tracingRequestedFor;
 	}
 
 	@Override
-	public void addTracingRequest(TracingPointType point) {
+	public void addTracingRequest(TracingRootType point) {
 		tracingRequestedFor.add(point);
 	}
 

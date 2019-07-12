@@ -114,6 +114,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
+	public static final String RETURN_COMMENT = "comment";
 	public static final String DEFAULT = "";
 
 	private static long TOKEN_COUNT = 1000000000000000000L;
@@ -150,7 +151,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private Long microseconds;
 	private Long invocationId;
 
-	private TracingProfileType tracingProfile;      // NOT SERIALIZED
+	private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
 
 	private final List<TraceType> traces = new ArrayList<>();
 
@@ -848,7 +849,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		traces.add(trace);
 	}
 
-	public void startTracing(@NotNull TracingProfileType profile) {
+	public void startTracing(@NotNull CompiledTracingProfile profile) {
 		this.tracingProfile = profile;
 		if (invocationId == null) {
 			recordStart(this, operation, createArguments());
@@ -856,7 +857,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	@Override
-	public OperationResultBuilder tracingProfile(TracingProfileType profile) {
+	public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
 		this.tracingProfile = profile;
 		return this;
 	}
@@ -874,6 +875,35 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				}
 			}
 			return null;
+		}
+	}
+
+	public void addReturnComment(String comment) {
+		addReturn(RETURN_COMMENT, comment);
+	}
+
+	public boolean isTracingNormal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.NORMAL);
+	}
+
+	public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.MINIMAL);
+	}
+
+	public boolean isTracingDetailed(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.DETAILED);
+	}
+
+	public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType level) {
+		return getTracingLevel(traceClass).isAtLeast(level);
+	}
+
+	@NotNull
+	public TracingLevelType getTracingLevel(Class<? extends TraceType> traceClass) {
+		if (tracingProfile != null) {
+			return tracingProfile.getLevel(traceClass);
+		} else {
+			return TracingLevelType.OFF;
 		}
 	}
 
@@ -2290,7 +2320,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return tracingProfile != null;
 	}
 
-	public TracingProfileType getTracingProfile() {
+	public CompiledTracingProfile getTracingProfile() {
 		return tracingProfile;
 	}
 
