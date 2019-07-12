@@ -1811,4 +1811,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			provisioningService.applyDefinition(object.asPrismObject(), getCurrentTask(), getCurrentResult());
 		}
 	}
+
+	@Override
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
 }

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1167,4 +1168,6 @@ public interface MidpointFunctions {
 	<T extends ObjectType> void applyDefinition(T object)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
 			ExpressionEvaluationException;
+
+	RepositoryService getRepositoryService();
 }
