@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
@@ -210,4 +211,13 @@ public abstract class AbstractLdapTest extends AbstractStoryTest {
 	protected int getNumberOfLdapAccounts() {
 		return 4;   // idm, jgibbs, hbarbossa, jbeckett
 	}
+	
+	protected Entry getLdapEntryByUid(String uid) throws DirectoryException {
+		return openDJController.searchSingle("uid="+uid);
+	}
+
+	protected void assertCn(Entry entry, String expectedValue) {
+		OpenDJController.assertAttribute(entry, LDAP_ATTRIBUTE_CN, expectedValue);
+	}
+
 }
