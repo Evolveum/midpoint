@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1196,4 +1197,6 @@ public interface MidpointFunctions {
 
 	<O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
 			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+
+	RepositoryService getRepositoryService();
 }
