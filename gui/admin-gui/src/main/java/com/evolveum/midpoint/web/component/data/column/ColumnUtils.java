@@ -409,7 +409,7 @@ public class ColumnUtils {
 
 		if (showAccounts) {
 			IColumn<SelectableBean<T>, String> column = new AbstractExportableColumn<SelectableBean<T>, String>(
-					createStringResource("pageUsers.accounts")) {
+					createStringResource("AbstractRole.projectionsColumn")) {
 
 				@Override
 				public void populateItem(Item<ICellPopulator<SelectableBean<T>>> cellItem,
