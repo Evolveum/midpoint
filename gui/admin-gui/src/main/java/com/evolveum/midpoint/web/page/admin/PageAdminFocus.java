@@ -26,6 +26,7 @@ import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,20 +90,6 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjectDetails<F>
 		implements ProgressReportingAwarePage {
@@ -952,6 +939,9 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				DeltaSetTriple<? extends EvaluatedAssignmentTarget> targetsTriple = evaluatedAssignment.getRoles();
 				Collection<? extends EvaluatedAssignmentTarget> targets = targetsTriple.getNonNegativeValues();
 				for (EvaluatedAssignmentTarget target : targets) {
+					if (target.getTarget() != null && ArchetypeType.class.equals(target.getTarget().getCompileTimeClass())){
+						continue;
+					}
 					if (target.appliesToFocusWithAnyRelation(getRelationRegistry())) {
 						assignmentInfoDtoSet.add(createAssignmentsPreviewDto(target, task, result));
 					}
