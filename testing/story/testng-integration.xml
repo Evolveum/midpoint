@@ -35,6 +35,7 @@
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapDependency"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapSyncMassive"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapPolyString"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapMutilated"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapNested"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapHierarchical"/>

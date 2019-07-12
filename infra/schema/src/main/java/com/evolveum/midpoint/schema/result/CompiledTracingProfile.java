@@ -124,4 +124,8 @@ public class CompiledTracingProfile implements Serializable {
 	public boolean isLevel(@NotNull Class<? extends TraceType> traceClass, @NotNull TracingLevelType level) {
 		return getLevel(traceClass).ordinal() >= level.ordinal();
 	}
+
+	public boolean isCollectingLogEntries() {
+		return Boolean.TRUE.equals(definition.isCollectLogEntries());
+	}
 }

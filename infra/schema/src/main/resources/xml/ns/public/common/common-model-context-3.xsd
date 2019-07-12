@@ -804,14 +804,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="log" type="tns:LogSegmentType" minOccurs="0" maxOccurs="unbounded">
-                <!-- todo consider putting this into OperationResultType -->
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Log segments related to this trace.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="text" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -823,38 +815,6 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="trace" type="tns:TraceType" />
-
-    <xsd:complexType name="LogSegmentType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Segment of the logfile.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:experimental>true</a:experimental>
-                <a:container>true</a:container>
-                <a:since>4.0</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <!-- todo or should we store separate lines here? -->
-            <xsd:element name="sequenceNumber" type="xsd:int" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Sequence number - used to sort segments in correct order.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="text" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Log file content.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-        <xsd:attribute name="id" type="xsd:long"/>
-    </xsd:complexType>
-    <xsd:element name="logSegment" type="tns:LogSegmentType" />
 
     <xsd:complexType name="ClockworkTraceType">
         <xsd:annotation>
@@ -1715,6 +1675,14 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether the output is to be compressed when saving. (Default is true.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="collectLogEntries" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to collect log entries. (Default is false.)
+                        Temporary. Will be replaced with something more elaborate.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

@@ -135,6 +135,7 @@
                 <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
                 <createRepoObject>true</createRepoObject>
                 <compressOutput>true</compressOutput>
+                <collectLogEntries>true</collectLogEntries>
                 <tracingTypeProfile>
                     <level>normal</level>
                 </tracingTypeProfile>
