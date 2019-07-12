@@ -52,10 +52,17 @@ public class TooltipBehavior extends Behavior {
     public void renderHead(Component component, IHeaderResponse response) {
         super.renderHead(component, response);
 
+        StringBuilder componentSb = new StringBuilder();
+        componentSb.append("$('#");
+        componentSb.append(component.getMarkupId());
+        componentSb.append("')");
+
         StringBuilder sb = new StringBuilder();
-        sb.append("$('#");
-        sb.append(component.getMarkupId());
-        sb.append("').tooltip({html:true");
+        sb.append("if (typeof ");
+        sb.append(componentSb.toString());
+        sb.append(".tooltip === \"function\"){");
+        sb.append(componentSb.toString());
+        sb.append(".tooltip({html:true");
 
         if(!isInsideModal()){
             sb.append(", 'container':'body'");
@@ -66,7 +73,7 @@ public class TooltipBehavior extends Behavior {
         }
 
         sb.append("});");
-
+        sb.append("}");
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
