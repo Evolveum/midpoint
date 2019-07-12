@@ -209,7 +209,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return o != null ? o.asPrismObject() : null;
 	}
 
-	static Objectable asObjectable(PrismObject<?> object) {
+	static <T extends Objectable> T asObjectable(PrismObject<T> object) {
 		return object != null ? object.asObjectable() : null;
 	}
 }

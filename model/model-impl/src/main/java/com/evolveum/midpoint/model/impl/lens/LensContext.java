@@ -372,6 +372,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return systemConfiguration;
 	}
 
+	public SystemConfigurationType getSystemConfigurationType() {
+		return systemConfiguration != null ? systemConfiguration.asObjectable() : null;
+	}
+
 	public InternalsConfigurationType getInternalsConfiguration() {
 		return systemConfiguration != null ? systemConfiguration.asObjectable().getInternals() : null;
 	}
