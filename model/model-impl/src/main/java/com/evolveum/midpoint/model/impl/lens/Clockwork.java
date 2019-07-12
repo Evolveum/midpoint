@@ -19,7 +19,8 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.C
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.WAITING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.EXITING;
-import static com.evolveum.midpoint.model.api.context.ModelState.toModelStateType;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceOrReduced;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
@@ -241,7 +242,7 @@ public class Clockwork {
 			result.recordFatalError(t.getMessage(), t);
 			throw t;
 		} finally {
-			recordTraceAtEnd(context, trace);
+			recordTraceAtEnd(context, trace, result);
 			if (tracingRequested) {
 				tracer.storeTrace(task, result);
 			}
@@ -256,11 +257,11 @@ public class Clockwork {
 		// we would like to have two traces, even if the second one is contained also within the first one.
 		TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
 		if (tracingProfile != null) {
-			result.startTracing(tracer.resolve(tracingProfile, result));
+			result.startTracing(tracer.compileProfile(tracingProfile, result));
 			return true;
-		} else if (task.getTracingRequestedFor().contains(TracingPointType.CLOCKWORK_RUN)) {
+		} else if (task.getTracingRequestedFor().contains(TracingRootType.CLOCKWORK_RUN)) {
 			TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
-			result.startTracing(tracer.resolve(profile, result));
+			result.startTracing(tracer.compileProfile(profile, result));
 			return true;
 		} else {
 			return false;
@@ -270,19 +271,22 @@ public class Clockwork {
 	private <F extends ObjectType> ClockworkRunTraceType recordTraceAtStart(LensContext<F> context, Task task,
 			OperationResult result) throws SchemaException {
 		ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
-		trace.getText().add(context.debugDump());
-		trace.getText().add(task.debugDump());
-		trace.getText().add(task.getResult().getOperation());
-		trace.setInputLensContext(context.toLensContextType());     // todo if configured
+		TracingLevelType level = result.getTracingLevel(trace.getClass());
+		if (level.ordinal() >= TracingLevelType.MINIMAL.ordinal()) {
+			trace.getText().add(context.debugDump());   // todo
+			trace.getText().add(task.debugDump());      // todo
+			trace.getText().add(task.getResult().getOperation());   // todo
+		}
+		trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
 		result.addTrace(trace);
 		return trace;
 	}
 
-	private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace)
-			throws SchemaException {
+	private <F extends ObjectType> void recordTraceAtEnd(LensContext<F> context, ClockworkRunTraceType trace,
+			OperationResult result) throws SchemaException {
 		if (trace != null) {
-			trace.setOutputLensContext(context.toLensContextType());        // todo if configured
-			if (context.getFocusContext() != null) {
+			trace.setOutputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
+			if (context.getFocusContext() != null) {    // todo reconsider this
 				PrismObject<F> objectAny = context.getFocusContext().getObjectAny();
 				if (objectAny != null) {
 					trace.setFocusName(PolyString.getOrig(objectAny.getName()));
@@ -538,10 +542,8 @@ public class Clockwork {
 
 		ClockworkClickTraceType trace;
 		if (result.isTraced()) {
-			trace = new ClockworkClickTraceType(prismContext)
-					.state(toModelStateType(context.getState()))
-					.executionWave(context.getExecutionWave())
-					.projectionWave(context.getProjectionWave());
+			trace = new ClockworkClickTraceType(prismContext);
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
 			result.getTraces().add(trace);
 		} else {
 			trace = null;
@@ -630,6 +632,9 @@ public class Clockwork {
 			processClockworkException(context, e, task, result, parentResult);
 			throw e;
 		} finally {
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
 			result.computeStatusIfUnknown();
 			result.cleanupResultDeeply();
 		}

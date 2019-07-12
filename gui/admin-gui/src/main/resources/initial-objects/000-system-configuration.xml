@@ -117,6 +117,30 @@
             <maxAge>P1M</maxAge>
         </closedTasks>
     </cleanupPolicy>
+    <internals>
+        <tracing>
+            <profile>
+                <name>performance</name>
+                <displayName>Performance tracing</displayName>
+                <visible>true</visible>
+                <default>true</default>
+                <fileNamePattern>performance-trace %{timestamp} %{focusName} %{milliseconds}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+            </profile>
+            <profile>
+                <name>functional</name>
+                <displayName>Functional tracing</displayName>
+                <visible>true</visible>
+                <fileNamePattern>functional-trace %{timestamp} %{focusName}</fileNamePattern>
+                <createRepoObject>true</createRepoObject>
+                <compressOutput>true</compressOutput>
+                <tracingTypeProfile>
+                    <level>normal</level>
+                </tracingTypeProfile>
+            </profile>
+        </tracing>
+    </internals>
     <adminGuiConfiguration>
         <userDashboardLink>
             <targetUrl>/self/profile</targetUrl>

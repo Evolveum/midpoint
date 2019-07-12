@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceOrReduced;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
 
@@ -115,7 +117,15 @@ public class ContextLoader {
 		context.recompute();
 		
 		OperationResult result = parentResult.createMinorSubresult(OPERATION_LOAD);
-		
+		ProjectorComponentTraceType trace;
+		if (result.isTraced()) {
+			trace = new ProjectorComponentTraceType(prismContext);
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
+
 		try {
 	
 			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -195,6 +205,10 @@ public class ContextLoader {
 		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
+		} finally {
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
 		}
 	}
 
@@ -316,56 +330,85 @@ public class ContextLoader {
 	/**
 	 * try to load focus context from oid, delta, projections (e.g. by determining account owners)
 	 */
-	public <O extends ObjectType> void determineFocusContext(LensContext<O> context, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public <O extends ObjectType> void determineFocusContext(LensContext<O> context, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException, ExpressionEvaluationException {
+
+		OperationResult result = parentResult.subresult(CLASS_DOT + "determineFocusContext")
+				.setMinor()
+				.build();
+		FocusLoadedTraceType trace;
+		if (result.isTraced()) {
+			trace = new FocusLoadedTraceType();
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 		LensFocusContext<O> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			focusContext = determineFocusContextFromProjections(context, result);
-		}
-		
-		if (focusContext == null) {
-			// Nothing to load
-			return;
-		}
-		
-		// Make sure that we RELOAD the user object if the context is not fresh
-		// the user may have changed in the meantime
-        if (focusContext.getObjectCurrent() != null && focusContext.isFresh()) {
-            // already loaded
-            return;
-        }
-        ObjectDelta<O> objectDelta = focusContext.getDelta();
-        if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
-            //we're adding the focal object. No need to load it, it is in the delta
-        	focusContext.setFresh(true);
-            return;
-        }
-        if (focusContext.getObjectCurrent() != null && objectDelta != null && objectDelta.isDelete()) {
-            // do not reload if the delta is delete. the reload will most likely fail anyway
-        	// but DO NOT set the fresh flag in this case, it may be misleading
-            return;
-        }
+		try {
+			if (focusContext == null) {
+				focusContext = determineFocusContextFromProjections(context, result);
+			}
 
-        String focusOid = focusContext.getOid();
-        if (StringUtils.isBlank(focusOid)) {
-        	throw new IllegalArgumentException("No OID in primary focus delta");
-        }
-        
-        PrismObject<O> object;
-        if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
-        	object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
-        } else {
+			if (focusContext == null) {
+				result.addReturnComment("Nothing to load");
+				return;
+			}
 
-	        // Always load a complete object here, including the not-returned-by-default properties.
-	        // This is temporary measure to make sure that the mappings will have all they need.
-	        // See MID-2635
-	        Collection<SelectorOptions<GetOperationOptions>> options =
-	        		SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-			object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
-        }
-        
-        focusContext.setLoadedObject(object);
-        focusContext.setFresh(true);
-		LOGGER.trace("Focal object loaded: {}", object);
+			// Make sure that we RELOAD the user object if the context is not fresh
+			// the user may have changed in the meantime
+			if (focusContext.getObjectCurrent() != null && focusContext.isFresh()) {
+				result.addReturnComment("Already loaded");
+				return;
+			}
+			ObjectDelta<O> objectDelta = focusContext.getDelta();
+			if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
+				//we're adding the focal object. No need to load it, it is in the delta
+				focusContext.setFresh(true);
+				result.addReturnComment("Obtained from delta");
+				return;
+			}
+			if (focusContext.getObjectCurrent() != null && objectDelta != null && objectDelta.isDelete()) {
+				// do not reload if the delta is delete. the reload will most likely fail anyway
+				// but DO NOT set the fresh flag in this case, it may be misleading
+				result.addReturnComment("Not loading as delta is DELETE");
+				return;
+			}
+
+			String focusOid = focusContext.getOid();
+			if (StringUtils.isBlank(focusOid)) {
+				throw new IllegalArgumentException("No OID in primary focus delta");
+			}
+
+			PrismObject<O> object;
+			if (ObjectTypes.isClassManagedByProvisioning(focusContext.getObjectTypeClass())) {
+				object = provisioningService.getObject(focusContext.getObjectTypeClass(), focusOid,
+						SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
+				result.addReturnComment("Loaded via provisioning");
+			} else {
+
+				// Always load a complete object here, including the not-returned-by-default properties.
+				// This is temporary measure to make sure that the mappings will have all they need.
+				// See MID-2635
+				Collection<SelectorOptions<GetOperationOptions>> options =
+						SelectorOptions.createCollection(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+				object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, options, result);
+				result.addReturnComment("Loaded from repository");
+			}
+
+			focusContext.setLoadedObject(object);
+			focusContext.setFresh(true);
+			LOGGER.trace("Focal object loaded: {}", object);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
+			result.computeStatusIfUnknown();
+		}
     }
 
 	private <O extends ObjectType> LensFocusContext<O> determineFocusContextFromProjections(LensContext<O> context, OperationResult result) {
@@ -1358,6 +1401,14 @@ public class ContextLoader {
 		OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
 				.setMinor()
 				.build();
+		FullShadowLoadedTraceType trace;
+		if (result.isTraced()) {
+			trace = new FullShadowLoadedTraceType(prismContext);
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 		try {
 			ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
 			if (discr != null && discr.getOrder() > 0) {
@@ -1420,6 +1471,9 @@ public class ContextLoader {
 			result.recordFatalError(t);
 			throw t;
 		} finally {
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
 			result.computeStatusIfUnknown();
 		}
 	}

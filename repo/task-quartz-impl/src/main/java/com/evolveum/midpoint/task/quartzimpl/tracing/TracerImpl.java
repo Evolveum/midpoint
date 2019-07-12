@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -93,7 +94,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	@Override
 	public void storeTrace(Task task, OperationResult result) {
-		TracingProfileType tracingProfile = result.getTracingProfile();
+		TracingProfileType tracingProfile = result.getTracingProfile().getDefinition();
 		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
 		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
 		File file = createFileName(zip, tracingProfile, templateParameters);
@@ -216,10 +217,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		} else if (tracingProfile.getRef().isEmpty()) {
 			return tracingProfile;
 		} else {
-			TracingConfigurationType tracingConfiguration = systemConfiguration != null && systemConfiguration.getInternals() != null ?
-					systemConfiguration.getInternals().getTracing() : null;
 			List<String> resolutionPath = new ArrayList<>();
-			return resolveProfile(tracingProfile, tracingConfiguration, resolutionPath);
+			return resolveProfile(tracingProfile, getTracingConfiguration(), resolutionPath);
 		}
 	}
 
@@ -279,7 +278,35 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	@Override
 	public TracingProfileType getDefaultProfile() {
-		// TODO
-		return new TracingProfileType(prismContext);
+		TracingConfigurationType tracingConfiguration = getTracingConfiguration();
+		if (tracingConfiguration == null || tracingConfiguration.getProfile().isEmpty()) {
+			return new TracingProfileType(prismContext);
+		} else {
+			List<TracingProfileType> defaultProfiles = tracingConfiguration.getProfile().stream()
+					.filter(p -> Boolean.TRUE.equals(p.isDefault()))
+					.collect(Collectors.toList());
+			if (defaultProfiles.isEmpty()) {
+				return tracingConfiguration.getProfile().get(0);
+			} else if (defaultProfiles.size() == 1) {
+				return defaultProfiles.get(0);
+			} else {
+				LOGGER.warn("More than one default tracing profile configured; selecting the first one");
+				return defaultProfiles.get(0);
+			}
+		}
 	}
+
+	@Override
+	public CompiledTracingProfile compileProfile(TracingProfileType profile, OperationResult result) throws SchemaException {
+		TracingProfileType resolvedProfile = resolve(profile, result);
+		return CompiledTracingProfile.create(resolvedProfile, prismContext);
+	}
+
+	@Nullable
+	private TracingConfigurationType getTracingConfiguration() {
+		return systemConfiguration != null && systemConfiguration.getInternals() != null ?
+				systemConfiguration.getInternals().getTracing() :
+				null;
+	}
+
 }

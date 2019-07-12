@@ -67,6 +67,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
+	public enum ExportType {
+		MINIMAL, REDUCED, OPERATIONAL, TRACE
+	}
+
 	/**
 	 * Unique identifier of a request (operation).
 	 * Used to correlate request and execution audit records of a single operation.
@@ -1145,7 +1149,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {
-		return toLensContextType(false);
+		return toLensContextType(ExportType.OPERATIONAL);
 	}
 
 	/**
@@ -1157,43 +1161,46 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 *
 	 * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
 	 */
-	public LensContextType toLensContextType(boolean reduced) throws SchemaException {
+	public LensContextType toLensContextType(ExportType exportType) throws SchemaException {
 
 		PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer
 				.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
 		LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
 
-		lensContextType.setRequestIdentifier(requestIdentifier);
 		lensContextType.setState(state != null ? state.toModelStateType() : null);
-		lensContextType.setChannel(channel);
+		if (exportType != ExportType.MINIMAL) {
+			lensContextType.setRequestIdentifier(requestIdentifier);
+			lensContextType.setChannel(channel);
+		}
 
 		if (focusContext != null) {
-			PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer
-					.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
-			focusContext.addToPrismContainer(lensFocusContextTypeContainer, reduced);
+			lensContextType.setFocusContext(focusContext.toLensFocusContextType(prismContext, exportType));
 		}
 
 		PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
 				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
 		for (LensProjectionContext lensProjectionContext : projectionContexts) {
-			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
+			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, exportType);
 		}
-		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
-		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
-		lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
 		lensContextType.setProjectionWave(projectionWave);
 		lensContextType.setExecutionWave(executionWave);
-		lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
-		lensContextType.setLazyAuditRequest(lazyAuditRequest);
-		lensContextType.setRequestAudited(requestAudited);
-		lensContextType.setExecutionAudited(executionAudited);
-		lensContextType.setRequestAuthorized(isRequestAuthorized);
-		lensContextType.setStats(stats);
-		lensContextType.setRequestMetadata(requestMetadata);
-		lensContextType.setOwnerOid(ownerOid);
+		if (exportType != ExportType.MINIMAL) {
+			lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
+			lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+			lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
+			lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+			lensContextType.setLazyAuditRequest(lazyAuditRequest);
+			lensContextType.setRequestAudited(requestAudited);
+			lensContextType.setExecutionAudited(executionAudited);
+			lensContextType.setRequestAuthorized(isRequestAuthorized);
+			lensContextType.setStats(stats);
+			lensContextType.setRequestMetadata(requestMetadata);
+			lensContextType.setOwnerOid(ownerOid);
 
-		for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
-			lensContextType.getRottenExecutedDeltas().add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+			for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
+				lensContextType.getRottenExecutedDeltas()
+						.add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+			}
 		}
 
 		return lensContextType;

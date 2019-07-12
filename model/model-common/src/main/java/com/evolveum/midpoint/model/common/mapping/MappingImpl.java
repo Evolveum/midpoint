@@ -137,7 +137,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private String mappingContextDescription = null;
 
 	private VariableProducer variableProducer;
-	
+
+	private MappingEvaluationTraceType trace;
+
 	/**
 	 * Mapping pre-expression is invoked just before main mapping expression.
 	 * Pre expression will get the same expression context as the main expression.
@@ -413,6 +415,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				.addArbitraryObjectAsContext("task", task)
 				.setMinor()
 				.build();
+		if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+			// temporary solution - to avoid checking level at too many places
+			trace = new MappingEvaluationTraceType(prismContext);
+			trace.setMapping(mappingType.clone());
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 		try {
 			prepare(task, result);
 
@@ -489,6 +499,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			// We may need to re-parse the sources here
 
 			evaluateTimeConstraintValid(task, result);
+			if (trace != null) {
+				trace.setNextRecomputeTime(nextRecomputeTime);
+				trace.setTimeConstraintValid(timeConstraintValid);
+			}
 
 			if (!timeConstraintValid) {
 				outputTriple = null;
@@ -505,6 +519,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple==null ? null : conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 
+			if (trace != null) {
+				trace.setConditionResultOld(conditionResultOld);
+				trace.setConditionResultNew(conditionResultNew);
+			}
+
 			if (!conditionResultOld && !conditionResultNew) {
 				outputTriple = null;
 				transitionState(MappingEvaluationState.EVALUATED);
@@ -512,6 +531,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				traceNotApplicable("condition is false");
 				return;
 			}
+
+			// TODO trace source and target values ... and range processing
 
 			// TODO: input filter
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
@@ -730,7 +751,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
+		return trace != null || LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
 	}
 
 	private void trace(String msg) {
@@ -738,6 +759,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			LOGGER.info(msg);
 		} else {
 			LOGGER.trace(msg);
+		}
+		if (trace != null) {
+			trace.setTextTrace(msg);
 		}
 	}
 
@@ -794,6 +818,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		XMLGregorianCalendar timeFrom = parseTime(timeFromType, task, result);
+		if (trace != null) {
+			trace.setTimeFrom(timeFrom);
+		}
 		if (timeFrom == null && timeFromType != null) {
 			// Time is specified but there is no value for it.
 			// This means that event that should start validity haven't happened yet
@@ -802,6 +829,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return;
 		}
 		XMLGregorianCalendar timeTo = parseTime(timeToType, task, result);
+		if (trace != null) {
+			trace.setTimeTo(timeTo);
+		}
 
 		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
 			// before timeFrom

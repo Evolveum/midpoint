@@ -103,5 +103,5 @@ public interface OperationResultBuilder {
 
 	OperationResult setImportance(OperationResultImportanceType value);
 
-	OperationResultBuilder tracingProfile(TracingProfileType profile);
+	OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
 }

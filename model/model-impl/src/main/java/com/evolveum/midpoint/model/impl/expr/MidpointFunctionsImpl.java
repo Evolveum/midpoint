@@ -1923,4 +1923,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), itemDeltas,
 				getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
 	}
+
+	@Override
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
 }

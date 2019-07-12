@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 /**
  * @author semancik
@@ -198,6 +201,14 @@ public class ClockworkMedic {
 			OperationResult result = parentResult.subresult(operationName)
 					.addQualifier(qualifier)
 					.build();
+			ProjectorComponentTraceType trace;
+			if (result.isTraced()) {
+				trace = new ProjectorComponentTraceType();
+				trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+				result.addTrace(trace);
+			} else {
+				trace = null;
+			}
 			try {
 				LOGGER.trace("Projector component started: {}", componentName);
 				if (clockworkInspector != null) {
@@ -212,6 +223,9 @@ public class ClockworkMedic {
 				throw e;
 			} finally {
 				result.computeStatusIfUnknown();
+				if (trace != null) {
+					trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+				}
 				if (clockworkInspector != null) {
 					clockworkInspector.projectorComponentFinish(componentName);
 				}

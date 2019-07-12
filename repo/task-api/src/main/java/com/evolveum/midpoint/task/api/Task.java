@@ -981,9 +981,9 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	boolean isScavenger();
 
 	@NotNull
-	Set<TracingPointType> getTracingRequestedFor();
+	Set<TracingRootType> getTracingRequestedFor();
 
-	void addTracingRequest(TracingPointType point);
+	void addTracingRequest(TracingRootType point);
 
 	void removeTracingRequests();
 

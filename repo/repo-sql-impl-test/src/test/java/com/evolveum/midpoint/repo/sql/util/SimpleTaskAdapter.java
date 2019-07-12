@@ -879,12 +879,12 @@ public class SimpleTaskAdapter implements Task {
 
     @NotNull
     @Override
-    public Set<TracingPointType> getTracingRequestedFor() {
+    public Set<TracingRootType> getTracingRequestedFor() {
         return emptySet();
     }
 
     @Override
-    public void addTracingRequest(TracingPointType point) {
+    public void addTracingRequest(TracingRootType point) {
     }
 
 	@Override
