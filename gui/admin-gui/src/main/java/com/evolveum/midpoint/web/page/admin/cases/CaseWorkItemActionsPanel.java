@@ -129,6 +129,13 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                     output = new AbstractWorkItemOutputType(getPrismContext());
                 }
                 output.setOutcome(ApprovalUtils.toUri(approved));
+                AbstractWorkItemOutputType workItemOutput = getWorkItemOutput(approved);
+                if (workItemOutput != null && workItemOutput.getComment() != null){
+                    output.setComment(workItemOutput.getComment());
+                }
+                if (workItemOutput != null && workItemOutput.getEvidence() != null){
+                    output.setEvidence(workItemOutput.getEvidence());
+                }
                 WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), getCaseWorkItemModelObject().getId());
                 getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
             } catch (Exception ex) {
@@ -158,9 +165,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                     }
                     assumePowerOfAttorneyIfRequested(result);
                     getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
-                            new AbstractWorkItemOutputType(getPrismContext())
-                                    .outcome(ApprovalUtils.toUri(approved))
-                                    .comment(getApproverComment()),
+                            getWorkItemOutput(approved),
                             additionalDelta, task, result);
                 } finally {
                     dropPowerOfAttorneyIfRequested(result);
@@ -174,8 +179,9 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         getPageBase().redirectBack();
     }
 
-    protected String getApproverComment(){
-        return "";
+    protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+        return new AbstractWorkItemOutputType(getPrismContext())
+                .outcome(ApprovalUtils.toUri(approved));
     }
 
     private boolean isParentCaseClosed(){

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import java.io.InputStream;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -105,14 +106,16 @@ public class UploadDownloadPanel extends InputPanel {
             }
         });
 
-        add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
+        AjaxSubmitButton deleteButton = new AjaxSubmitButton(ID_BUTTON_DELETE) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
             protected void onSubmit(AjaxRequestTarget target) {
                 removeFilePerformed(target);
             }
-        });
+        };
+        deleteButton.add(new VisibleBehaviour(() -> !isReadOnly));
+        add(deleteButton);
 
         add(new VisibleEnableBehaviour() {
         	private static final long serialVersionUID = 1L;

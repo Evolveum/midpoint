@@ -42,8 +42,10 @@ import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -56,6 +58,8 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -82,8 +86,12 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getApproverComment(){
-                return workItemDetails != null ? workItemDetails.getApproverComment() : null;
+            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+                String comment = workItemDetails != null ? workItemDetails.getApproverComment() : null;
+                byte[] evidence = workItemDetails != null ? workItemDetails.getWorkItemEvidence() : null;
+                return super.getWorkItemOutput(approved)
+                        .comment(comment)
+                        .evidence(evidence);
             }
 
             @Override

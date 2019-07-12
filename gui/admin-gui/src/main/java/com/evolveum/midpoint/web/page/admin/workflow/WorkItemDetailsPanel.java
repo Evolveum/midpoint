@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.IconedObjectNamePanel;
+import com.evolveum.midpoint.web.component.input.UploadDownloadPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
@@ -46,13 +48,24 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by honchar
@@ -76,10 +89,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_ADDITIONAL_ATTRIBUTES = "additionalAttributes";
     private static final String ID_APPROVER_COMMENT = "approverComment";
     private static final String ID_CUSTOM_FORM = "customForm";
+    private static final String ID_CASE_WORK_ITEM_EVIDENCE = "caseWorkItemEvidence";
+    private static final String ID_CASE_WORK_ITEM_EVIDENCE_FORM = "caseWorkItemEvidenceForm";
 
 
     private IModel<SceneDto> sceneModel;
     private String approverCommentValue = null;
+    private byte[] evidenceFile = null;
 
     public WorkItemDetailsPanel(String id, IModel<CaseWorkItemType> caseWorkItemTypeIModel) {
         super(id, caseWorkItemTypeIModel);
@@ -100,6 +116,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                 return WebComponentUtil.createSceneDto(WorkItemDetailsPanel.this.getModelObject(), pageBase,  OPERATION_PREPARE_DELTA_VISUALIZATION);
             }
         };
+        evidenceFile = WorkItemTypeUtil.getEvidence(getModelObject());
     }
 
     private void initLayout(){
@@ -127,6 +144,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                         parentCase != null && parentCase.getStageNumber() != null ? parentCase.getStageNumber() : 0)));
         reasonPanel.setOutputMarkupId(true);
         add(reasonPanel);
+
 
         if (CaseTypeUtil.isApprovalCase(parentCase)){
             ScenePanel scenePanel = new ScenePanel(ID_DELTAS_TO_APPROVE, sceneModel);
@@ -163,6 +181,46 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
         } else {
             additionalAttributes.add(new Label(ID_CUSTOM_FORM));
         }
+
+        Form evidenceForm = new Form(ID_CASE_WORK_ITEM_EVIDENCE_FORM);
+        evidenceForm.add(new VisibleBehaviour(() -> CaseTypeUtil.isManualProvisioningCase(parentCase) &&
+                (!SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) || WorkItemTypeUtil.getEvidence(getModelObject()) != null)));
+        add(evidenceForm);
+
+        UploadDownloadPanel evidencePanel = new UploadDownloadPanel(ID_CASE_WORK_ITEM_EVIDENCE,
+                SchemaConstants.CASE_STATE_CLOSED.equals(parentCase.getState()) && WorkItemTypeUtil.getEvidence(getModelObject()) != null){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void updateValue(byte[] file) {
+                if (file != null) {
+                    evidenceFile = Arrays.copyOf(file, file.length);
+                }
+            }
+
+            @Override
+            public InputStream getStream() {
+                return evidenceFile != null ? new ByteArrayInputStream((byte[]) evidenceFile) : new ByteArrayInputStream(new byte[0]);
+            }
+
+            @Override
+            public String getDownloadContentType() {
+                return "image/jpeg";
+            }
+
+        };
+        evidencePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        evidencePanel.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isVisible() {
+                CaseWorkItemType workItem = WorkItemDetailsPanel.this.getModelObject();
+                CaseType caseObj = CaseTypeUtil.getCase(workItem);
+                return CaseTypeUtil.isManualProvisioningCase(caseObj);
+            }
+        });
+        evidenceForm.add(evidencePanel);
 
         TextArea<String> approverComment = new TextArea<String>(ID_APPROVER_COMMENT, new IModel<String>() {
             private static final long serialVersionUID = 1L;
@@ -225,6 +283,10 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
 
     public String getApproverComment(){
         return approverCommentValue;
+    }
+
+    public byte[] getWorkItemEvidence(){
+        return evidenceFile;
     }
 
     public Component getCustomForm(){

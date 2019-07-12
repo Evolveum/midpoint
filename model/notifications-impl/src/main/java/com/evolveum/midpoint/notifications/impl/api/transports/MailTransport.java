@@ -20,7 +20,9 @@ import static com.evolveum.midpoint.notifications.impl.api.transports.TransportU
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 
 import javax.activation.DataHandler;
@@ -50,7 +52,9 @@ import com.evolveum.midpoint.notifications.impl.util.MimeTypeUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -86,6 +90,9 @@ public class MailTransport implements Transport {
 
     @Autowired
     private NotificationManager notificationManager;
+    
+    @Autowired
+    protected ExpressionFactory expressionFactory;
 
     @PostConstruct
     public void init() {
@@ -94,7 +101,7 @@ public class MailTransport implements Transport {
 
     @Override
     public void send(Message mailMessage, String transportName, Event event, Task task, OperationResult parentResult) {
-
+    	
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addArbitraryObjectCollectionAsParam("mailMessage recipient(s)", mailMessage.getTo());
         result.addParam("mailMessage subject", mailMessage.getSubject());
@@ -117,7 +124,6 @@ public class MailTransport implements Transport {
 //        		}
 //        	}
 //        }
-
         if (systemConfiguration == null  || systemConfiguration.getNotificationConfiguration() == null
                 || systemConfiguration.getNotificationConfiguration().getMail() == null) {
             String msg = "No notifications are configured. Mail notification to " + mailMessage.getTo() + " will not be sent.";
@@ -126,19 +132,54 @@ public class MailTransport implements Transport {
             return;
         }
 
-//		if (mailConfigurationType == null) {
-			MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
-//		}
+		MailConfigurationType mailConfigurationType = systemConfiguration.getNotificationConfiguration().getMail();
+		
 		String logToFile = mailConfigurationType.getLogToFile();
 		if (logToFile != null) {
 			TransportUtil.logToFile(logToFile, formatToFileOld(mailMessage), LOGGER);
 		}
         String redirectToFile = mailConfigurationType.getRedirectToFile();
-        if (redirectToFile != null) {
-            TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(mailConfigurationType);
+        
+        List<String> allowedRecipientTo = new ArrayList<String>();
+    	List<String> forbiddenRecipientTo = new ArrayList<String>();
+    	List<String> allowedRecipientCc = new ArrayList<String>();
+    	List<String> forbiddenRecipientCc = new ArrayList<String>();
+    	List<String> allowedRecipientBcc = new ArrayList<String>();
+    	List<String> forbiddenRecipientBcc = new ArrayList<String>();
+    	
+        if (optionsForFilteringRecipient != 0) {
+        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, mailMessage.getTo(), mailConfigurationType, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, mailMessage.getCc(), mailConfigurationType, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, mailMessage.getBcc(), mailConfigurationType, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	
+        	if (redirectToFile != null) {
+        		if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+        			mailMessage.setTo(forbiddenRecipientTo);
+                	mailMessage.setCc(forbiddenRecipientCc);
+                	mailMessage.setBcc(forbiddenRecipientBcc);
+                	TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
+        		}
+            	mailMessage.setTo(allowedRecipientTo);
+            	mailMessage.setCc(allowedRecipientCc);
+            	mailMessage.setBcc(allowedRecipientBcc);
+            }
+        	
+        } else if (redirectToFile != null) {
+        	TransportUtil.appendToFile(redirectToFile, formatToFileOld(mailMessage), LOGGER, result);
+           	return;
+        }
+        
+    	if (optionsForFilteringRecipient != 0 && mailMessage.getTo().isEmpty()) {
+            String msg = "No recipient found after recipient validation.";
+            LOGGER.debug(msg) ;
+            result.recordSuccess();
             return;
         }
-
+    	
         if (mailConfigurationType.getServer().isEmpty()) {
             String msg = "Mail server(s) are not defined, mail notification to " + mailMessage.getTo() + " will not be sent.";
             LOGGER.warn(msg) ;
@@ -208,10 +249,10 @@ public class MailTransport implements Transport {
                		mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                	}
                 for (String recipientCc : mailMessage.getCc()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
+                	mimeMessage.addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(recipientCc));
                 }
                 for (String recipientBcc : mailMessage.getBcc()) {
-                    mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
+                	mimeMessage.addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(recipientBcc));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject(), "utf-8");
                 String contentType = mailMessage.getContentType();
@@ -313,8 +354,7 @@ public class MailTransport implements Transport {
         task.recordNotificationOperation(NAME, false, System.currentTimeMillis() - start);
     }
 
-
-    private String formatToFile(Message mailMessage) {
+	private String formatToFile(Message mailMessage) {
         return "============================================ " + "\n" +new Date() + "\n" + mailMessage.toString() + "\n\n";
     }
 
