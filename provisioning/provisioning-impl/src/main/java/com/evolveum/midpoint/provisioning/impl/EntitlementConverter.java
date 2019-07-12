@@ -773,7 +773,7 @@ class EntitlementConverter {
 		if (baseContextRef != null) {
 			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
 			if (baseContextShadow == null) {
-				throw new ObjectNotFoundException("No base context defined by "+baseContextRef+" in base context specification in "+objectClassDef);
+				throw new ObjectNotFoundException("Base context not found for "+objectClassDef+", specified as "+baseContextRef);
 			}
 			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
 			baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
