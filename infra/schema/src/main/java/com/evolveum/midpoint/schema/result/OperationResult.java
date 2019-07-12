@@ -895,7 +895,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType level) {
-		return getTracingLevel(traceClass).isAtLeast(level);
+		return getTracingLevel(traceClass).ordinal() >= level.ordinal();
 	}
 
 	@NotNull

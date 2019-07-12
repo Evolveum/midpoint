@@ -272,7 +272,7 @@ public class Clockwork {
 			OperationResult result) throws SchemaException {
 		ClockworkRunTraceType trace = new ClockworkRunTraceType(prismContext);
 		TracingLevelType level = result.getTracingLevel(trace.getClass());
-		if (level.isAtLeast(TracingLevelType.MINIMAL)) {
+		if (level.ordinal() >= TracingLevelType.MINIMAL.ordinal()) {
 			trace.getText().add(context.debugDump());   // todo
 			trace.getText().add(task.debugDump());      // todo
 			trace.getText().add(task.getResult().getOperation());   // todo
