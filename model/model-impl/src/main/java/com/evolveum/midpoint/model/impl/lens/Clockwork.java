@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -245,6 +246,7 @@ public class Clockwork {
 			recordTraceAtEnd(context, trace, result);
 			if (tracingRequested) {
 				tracer.storeTrace(task, result);
+				TracingAppender.resetCollectingForCurrentThread();  // todo reconsider
 			}
 		}
 	}

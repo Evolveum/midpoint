@@ -1784,6 +1784,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		Task task = taskManager.createTaskInstance(operationName);
 //		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
 //		task.setTracingProfile(new TracingProfileType()
+//				.collectLogEntries(true)
 //				.beginTracingTypeProfile()
 //					.level(TracingLevelType.NORMAL)
 //				.<TracingProfileType>end()

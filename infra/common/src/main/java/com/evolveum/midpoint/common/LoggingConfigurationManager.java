@@ -55,6 +55,8 @@ public class LoggingConfigurationManager {
     private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
 	private static final String ALT_APPENDER_NAME = "ALT_LOG";
+	private static final String TRACING_APPENDER_NAME = "TRACING_LOG";
+	private static final String TRACING_APPENDER_CLASS_NAME = "com.evolveum.midpoint.util.logging.TracingAppender"; // todo replace by class reference?
 	private static final LoggingLevelType DEFAULT_PROFILING_LEVEL = LoggingLevelType.INFO;
 
 	private static String currentlyUsedVersion = null;
@@ -196,8 +198,9 @@ public class LoggingConfigurationManager {
 
 		//Generate appenders configuration
 		for (AppenderConfigurationType appender : config.getAppender()) {
-			boolean createAlt = altAppenderEnabled && rootAppenderDefined && config.getRootLoggerAppender().equals(appender.getName());
-			prepareAppenderConfiguration(sb, appender, config, createAlt, midpointConfiguration);
+			boolean isRoot = rootAppenderDefined && config.getRootLoggerAppender().equals(appender.getName());
+			boolean createAlt = altAppenderEnabled && isRoot;
+			prepareAppenderConfiguration(sb, appender, config, isRoot, createAlt, midpointConfiguration);
 			altAppenderCreated = altAppenderCreated || createAlt;
 		}
 
@@ -212,6 +215,7 @@ public class LoggingConfigurationManager {
 			if (altAppenderCreated) {
 				sb.append("\t\t<appender-ref ref=\"" + ALT_APPENDER_NAME + "\"/>");
 			}
+			sb.append("\t\t<appender-ref ref=\"" + TRACING_APPENDER_NAME + "\"/>");
 			sb.append("\t</root>\n");
 		}
 
@@ -298,7 +302,7 @@ public class LoggingConfigurationManager {
 	}
 
 	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
-			LoggingConfigurationType config, boolean createAltForThisAppender,
+			LoggingConfigurationType config, boolean isRoot, boolean createAltForThisAppender,
 			MidpointConfiguration midpointConfiguration) throws SchemaException {
 		if (appender instanceof FileAppenderConfigurationType) {
 			prepareFileAppenderConfiguration(sb, (FileAppenderConfigurationType) appender, config);
@@ -309,6 +313,9 @@ public class LoggingConfigurationManager {
 		}
 		if (createAltForThisAppender) {
 			prepareAltAppenderConfiguration(sb, appender, midpointConfiguration);
+		}
+		if (isRoot) {
+			prepareTracingAppenderConfiguration(sb, appender);
 		}
 	}
 
@@ -322,13 +329,13 @@ public class LoggingConfigurationManager {
 					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
 					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
 					.append("\t\t\t\t</layout>\n")
-					.append("\t\t\t</appender>");
+					.append("\t\t\t</appender>\n");
 		} else {
 			sb.append("<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
 					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
 					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
 					.append("\t\t\t\t</layout>\n")
-					.append("\t\t\t</appender>");
+					.append("\t\t\t</appender>\n");
 		}
 	}
 
@@ -415,6 +422,14 @@ public class LoggingConfigurationManager {
 			sb.append(value);
 			sb.append("</").append(name).append(">\n");
 		}
+	}
+
+	private static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
+		sb.append("<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
+				.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+				.append("\t\t\t\t\t<pattern>").append(appender.getPattern()).append("</pattern>\n")
+				.append("\t\t\t\t</layout>\n")
+				.append("\t\t\t</appender>\n");
 	}
 
 	private static void prepareCommonAppenderHeader(StringBuilder sb,
