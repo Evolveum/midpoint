@@ -247,15 +247,15 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         variables.put(ExpressionConstants.VAR_REQUESTEE, resolveTypedObject(requestee, true, result));
     }
 
-    protected TypedValue<ObjectType> resolveTypedObject(SimpleObjectRef ref, boolean allowNotFound, OperationResult result) {
-		if (ref == null) {
-			PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
-			return new TypedValue<>(null, def);
-		} else {
-			ObjectType resolveObjectType = ref.resolveObjectType(result, allowNotFound);
-			return new TypedValue<>(resolveObjectType, resolveObjectType.asPrismObject().getDefinition());
-		}
-	}
+    TypedValue<ObjectType> resolveTypedObject(SimpleObjectRef ref, boolean allowNotFound, OperationResult result) {
+	    ObjectType resolved = ref != null ? ref.resolveObjectType(result, allowNotFound) : null;
+	    if (resolved != null) {
+		    return new TypedValue<>(resolved, resolved.asPrismObject().getDefinition());
+	    } else {
+		    PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+		    return new TypedValue<>(null, def);
+	    }
+    }
 
 	// Finding items in deltas/objects
     // this is similar to delta.hasItemDelta but much, much more relaxed (we completely ignore ID path segments and we take subpaths into account)
