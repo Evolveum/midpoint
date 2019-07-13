@@ -629,4 +629,5 @@ public abstract class SchemaConstants {
 	//enum defs
 	public final static QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
+	public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 }

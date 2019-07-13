@@ -1829,4 +1829,141 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="TraceDictionaryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Object dictionary. Very experimental.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="entry" type="tns:TraceDictionaryEntryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Single entry.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="traceDictionary" type="tns:TraceDictionaryType" />
+
+    <xsd:complexType name="TraceDictionaryEntryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                One object.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="identifier" type="xsd:long" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Entry identifier.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="object" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object. The reference must contain full object.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="traceDictionaryEntry" type="tns:TraceDictionaryEntryType" />
+
+    <xsd:complexType name="TracingOutputType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Output of the tracing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="metadata" type="tns:TracingOutputMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata e.g. time of creation, etc.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operation result tree.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dictionary" type="tns:TraceDictionaryType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Object dictionary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="tracingOutput" type="tns:TracingOutputType" />
+
+    <xsd:complexType name="TracingOutputMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Metadata e.g. time of creation, etc.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="createTimestamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        When the tracing output was created.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="creatorRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The creator.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="profile" type="tns:TracingProfileType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Tracing profile used.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="tracingOutputMetadata" type="tns:TracingOutputMetadataType" />
+
 </xsd:schema>
