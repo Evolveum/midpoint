@@ -51,6 +51,12 @@ public interface ItemDefinition<I extends Item> extends Definition, Visitable {
 	boolean isOperational();
 
 	/**
+	 * EXPERIMENTAL. If true, this item is not stored in XML representation in repo.
+	 * TODO better name
+	 */
+	boolean isIndexOnly();
+
+	/**
 	 * Whether an item is inherited from a supertype.
 	 */
 	boolean isInherited();

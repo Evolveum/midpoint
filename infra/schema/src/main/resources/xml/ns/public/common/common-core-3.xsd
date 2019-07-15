@@ -7824,6 +7824,15 @@
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="storageStrategy" type="tns:AttributeStorageStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.storageStrategy</a:displayName>
+								<a:since>4.0</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -8119,6 +8128,39 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="AttributeStorageStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The way how an attribute is stored in repo - in case of passive caching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		TODO
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="indexOnly">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Attribute is not stored in full repo object (XML) structure.
+						It can be queried. If needed to get it, explicit INCLUDE option has to be used.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="QUERY_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

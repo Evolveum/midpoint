@@ -53,4 +53,6 @@ public interface MutableItemDefinition<I extends Item> extends ItemDefinition<I>
 	void setHeterogeneousListItem(boolean value);
 
 	void setSubstitutionHead(QName value);
+
+	void setIndexOnly(boolean value);
 }
