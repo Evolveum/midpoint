@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 /**
  *  Represents visitable JAXB bean.
  *
@@ -25,4 +27,19 @@ public interface JaxbVisitable {
 
 	void accept(JaxbVisitor visitor);
 
+	static void visitPrismStructure(JaxbVisitable visitable, Visitor prismVisitor) {
+		if (visitable instanceof Containerable) {
+			((Containerable) visitable).asPrismContainerValue().accept(prismVisitor);
+		} else if (visitable instanceof Referencable) {
+			PrismObject<?> object = ((Referencable) visitable).asReferenceValue().getObject();
+			if (object != null) {
+				object.accept(prismVisitor);
+			}
+		} else if (visitable instanceof RawType) {
+			RawType raw = (RawType) visitable;
+			if (raw.isParsed()) {
+				raw.getAlreadyParsedValue().accept(prismVisitor);
+			}
+		}
+	}
 }
