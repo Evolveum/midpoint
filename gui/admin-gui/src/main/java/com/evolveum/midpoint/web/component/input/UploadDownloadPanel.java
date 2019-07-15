@@ -21,10 +21,13 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
@@ -90,7 +93,16 @@ public class UploadDownloadPanel extends InputPanel {
 
 			@Override
 			protected InputStream initStream() {
-				return getStream();
+			    InputStream is = getStream();
+			    try {
+                    String newContentType = URLConnection.guessContentTypeFromStream(is);
+                    if (StringUtils.isNotEmpty(newContentType)){
+                        setContentType(newContentType);
+                    }
+                } catch (IOException ex){
+			        LOGGER.error("Unable to define download file content type, ", ex.getLocalizedMessage());
+                }
+                return is;
 			}
 		};
         downloadBehavior.setContentType(getDownloadContentType());

@@ -77,15 +77,15 @@
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
             
-            <!-- We need to explicitly define base context here.
-                 Default base context is dc=example,dc=com. Searching in that
-                 with scope=one will produce nothing. -->
             <baseContext>
             	<objectClass>ri:organizationalUnit</objectClass>
             	<filter>
             		<q:equal>
+            			<!-- MID-5544: Wrong format. Matching rule should be QName, not URI. -->
+            			<q:matching>http://prism.evolveum.com/xml/ns/public/matching-rule-3#distinguishedName</q:matching>
             			<q:path>attributes/dn</q:path>
-            			<q:value>ou=accounts,dc=example,dc=com</q:value>
+            			<!-- MID-5544: non-normalized DN value. -->
+            			<q:value>ou=aCCounts, dc=Example, dc=COM</q:value>
             		</q:equal>
             	</filter>
             </baseContext>
@@ -101,7 +101,8 @@
                     <expression>
                     	<script>
 	                        <code>
-	                        	basic.composeDnWithSuffix('uid', name, 'ou=accounts,dc=example,dc=com')
+	                        	<!-- MID-5544: Crazy DN suffix format. -->
+	                        	basic.composeDnWithSuffix('uid', name, 'ou=aCcOuNts, dc=eXample,dc=cOm')
 	                        </code>
                         </script>
                     </expression>
