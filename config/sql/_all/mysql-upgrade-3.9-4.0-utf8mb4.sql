@@ -98,7 +98,10 @@ CREATE TABLE m_audit_resource (
   resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
-);
+) DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
+
 CREATE INDEX iAuditResourceOid
   ON m_audit_resource (resourceOid);
 CREATE INDEX iAuditResourceOidRecordId
