@@ -94,6 +94,9 @@
 				<inbound>
 					<target>
 						<path>employeeType</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
 					</target>
 				</inbound>
 			</attribute>
@@ -110,6 +113,9 @@
 				<inbound>
 					<target>
 						<path>organization</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
 					</target>
 				</inbound>
 			</attribute>
