@@ -66,6 +66,12 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+	
+		repoAddObjectFromFile(ROLE_READER_FILE, true, initResult);
+		repoAddObjectFromFile(USER_READER_FILE, true, initResult);
+		repoAddObjectFromFile(ROLE_RUNNER_FILE, true, initResult);
+		repoAddObjectFromFile(USER_RUNNER_FILE, true, initResult);
+		repoAddObjectFromFile(USER_READER_RUNNER_FILE, true, initResult);
 		
 		repoAddObjectFromFile(REPORT_USER_LIST_EXPRESSIONS_CSV_FILE, ReportType.class, initResult);
 		repoAddObjectFromFile(REPORT_USER_LIST_EXPRESSIONS_POISONOUS_QUERY_CSV_FILE, ReportType.class, initResult);
@@ -148,8 +154,97 @@ public class TestReportWebService extends AbstractReportIntegrationTest {
 		}
 	}
 	
-	// TODO: test that violates authorization to run report
-	// TODO: test that violates authorization to read report
+	/**
+	 * MID-5463
+	 */
+	@Test
+	public void test115ProcessReportUserListUnauthorizedReader() throws Exception {
+		final String TEST_NAME = "test115ProcessReportUserListUnauthorizedReader";
+		displayTestTitle(TEST_NAME);
+		
+		login(USER_READER_USERNAME);
+
+		String query = createAllQueryString(UserType.class);
+		RemoteReportParametersType parameters = createReportParameters();
+            
+		try {
+			
+			// WHEN
+			displayWhen(TEST_NAME);
+			reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
+			
+			assertNotReached();
+			
+		} catch (Fault f) {
+			// THEN
+			displayThen(TEST_NAME);
+			display("Expected fault", f);
+		} finally {
+			login(USER_ADMINISTRATOR_USERNAME);
+		}
+	}
+	
+	/**
+	 * MID-5463
+	 */
+	@Test
+	public void test116ProcessReportUserListUnauthorizedRunner() throws Exception {
+		final String TEST_NAME = "test116ProcessReportUserListUnauthorizedRunner";
+		displayTestTitle(TEST_NAME);
+		
+		login(USER_RUNNER_USERNAME);
+
+		String query = createAllQueryString(UserType.class);
+		RemoteReportParametersType parameters = createReportParameters();
+            
+		try {
+			
+			// WHEN
+			displayWhen(TEST_NAME);
+			reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
+			
+			assertNotReached();
+			
+		} catch (Fault f) {
+			// THEN
+			displayThen(TEST_NAME);
+			display("Expected fault", f);
+		} finally {
+			login(USER_ADMINISTRATOR_USERNAME);
+		}
+	}
+
+	/**
+	 * MID-5463
+	 */
+	@Test
+	public void test119ProcessReportUserListReaderRunner() throws Exception {
+		final String TEST_NAME = "test119ProcessReportUserListReaderRunner";
+		displayTestTitle(TEST_NAME);
+		
+		login(USER_READER_RUNNER_USERNAME);
+
+		String query = createAllQueryString(UserType.class);
+		RemoteReportParametersType parameters = createReportParameters();
+        
+		ObjectListType userList;
+		try {
+			
+			// WHEN
+			displayWhen(TEST_NAME);
+			userList = reportWebService.processReport(REPORT_USER_LIST_EXPRESSIONS_CSV_OID, query, parameters, null);
+			
+		} finally {
+			login(USER_ADMINISTRATOR_USERNAME);
+		}
+		
+		// THEN
+		displayThen(TEST_NAME);
+		display("Returned user list ("+userList.getObject().size()+" objects)", userList);
+		
+		assertUserList(userList);
+	}
+
 	// TODO: test that violates safe profile
 
 	private String createAllQueryString(Class<?> type) {

@@ -45,7 +45,7 @@ public interface ReportManager {
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
     /**
      * todo comments [lazyman]
