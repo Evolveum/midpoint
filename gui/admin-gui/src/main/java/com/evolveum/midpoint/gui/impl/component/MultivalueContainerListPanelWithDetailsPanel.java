@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -50,6 +51,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 	public static final String ID_DETAILS = "details";
 
+	private final static String ID_BUTTONS_PANEL = "buttonsPanel";
 	private final static String ID_DONE_BUTTON = "doneButton";
 	private final static String ID_CANCEL_BUTTON = "cancelButton";
 
@@ -117,6 +119,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 		itemDetailsView.setOutputMarkupId(true);
 		details.add(itemDetailsView);
 
+		WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_PANEL);
+		buttonsContainer.add(new VisibleBehaviour(() -> isButtonPanelVisible()));
+		details.add(buttonsContainer);
+
 		AjaxButton doneButton = new AjaxButton(ID_DONE_BUTTON,
 				createStringResource("MultivalueContainerListPanel.doneButton")) {
 			private static final long serialVersionUID = 1L;
@@ -128,7 +134,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 				ajaxRequestTarget.add(MultivalueContainerListPanelWithDetailsPanel.this);
 			}
 		};
-		details.add(doneButton);
+		buttonsContainer.add(doneButton);
 
 		AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
 				createStringResource("MultivalueContainerListPanel.cancelButton")) {
@@ -142,7 +148,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 				ajaxRequestTarget.add(getPageBase().getFeedbackPanel());
 			}
 		};
-		details.add(cancelButton);
+		buttonsContainer.add(cancelButton);
 	}
 	
 	protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
@@ -157,7 +163,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
 	protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
 	}
-	
+
+	protected boolean isButtonPanelVisible(){
+		return true;
+	}
+
 	@Override
 	public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
 			List<PrismContainerValueWrapper<C>> listItems) {

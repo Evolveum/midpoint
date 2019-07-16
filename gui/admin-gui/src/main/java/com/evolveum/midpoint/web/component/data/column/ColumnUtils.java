@@ -609,39 +609,39 @@ public class ColumnUtils {
 					}, WebComponentUtil.getShortDateTimeFormat(pageBase)));
 				}
 			});
+			columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+					createStringResource("WorkItemsPanel.deadline")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+										 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+					cellItem.add(new Label(componentId,
+							WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(), pageBase)));
+				}
+
+				@Override
+				public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+					return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(),
+							pageBase));
+				}
+			});
+			columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
+					createStringResource("WorkItemsPanel.escalationLevel")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
+										 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+					cellItem.add(new Label(componentId, ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
+				}
+
+				@Override
+				public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+					return Model.of(ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
+				}
+			});
 		}
-		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
-				createStringResource("WorkItemsPanel.deadline")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				cellItem.add(new Label(componentId,
-						WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(), pageBase)));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				return Model.of(WebComponentUtil.getShortDateTimeFormattedValue(unwrapRowModel(rowModel).getDeadline(),
-						pageBase));
-			}
-		});
-		columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
-				createStringResource("WorkItemsPanel.escalationLevel")) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
-									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				cellItem.add(new Label(componentId, ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel))));
-			}
-
-			@Override
-			public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				return Model.of(ApprovalContextUtil.getEscalationLevelInfo(unwrapRowModel(rowModel)));
-			}
-		});
 		return columns;
 	}
 
