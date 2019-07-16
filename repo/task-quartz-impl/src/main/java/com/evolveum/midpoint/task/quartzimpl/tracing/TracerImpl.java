@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.task.quartzimpl.tracing;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -49,6 +53,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -93,13 +98,13 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	@Override
 	public void storeTrace(Task task, OperationResult result) {
-		TracingProfileType tracingProfile = result.getTracingProfile();
+		TracingProfileType tracingProfile = result.getTracingProfile().getDefinition();
 		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
 		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
 		File file = createFileName(zip, tracingProfile, templateParameters);
 		try {
-			OperationResultType resultBean = result.createOperationResultType();
-			String xml = prismContext.xmlSerializer().serializeRealValue(resultBean);
+			TracingOutputType tracingOutput = createTracingOutput(result);
+			String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
 			if (zip) {
 				MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
 				LOGGER.info("Trace was written to {} ({} chars uncompressed)", file, xml.length());
@@ -121,6 +126,89 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
 			throw new SystemException(e);
 		}
+	}
+
+	private TracingOutputType createTracingOutput(OperationResult result) {
+		TracingOutputType output = new TracingOutputType(prismContext);
+		output.beginMetadata()
+				.createTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
+				.profile(result.getTracingProfile().getDefinition());
+		OperationResultType resultBean = result.createOperationResultType();
+		output.setDictionary(extractDictionary(resultBean));
+		output.setResult(resultBean);
+		return output;
+	}
+
+	// Extracting from JAXB objects currently does not work because RawType.getValue fails for
+	// raw versions of ObjectReferenceType holding full object
+	private static class ExtractingVisitor implements Visitor {
+
+		private final TraceDictionaryType dictionary;
+		private final PrismContext prismContext;
+
+		private ExtractingVisitor(TraceDictionaryType dictionary, PrismContext prismContext) {
+			this.dictionary = dictionary;
+			this.prismContext = prismContext;
+		}
+
+//		@Override
+//		public void visit(JaxbVisitable visitable) {
+//			JaxbVisitable.visitPrismStructure(visitable, this);
+//		}
+
+		@Override
+		public void visit(Visitable visitable) {
+//			if (visitable instanceof PrismPropertyValue) {
+//				PrismPropertyValue<?> pval = ((PrismPropertyValue) visitable);
+//				Object realValue = pval.getRealValue();
+//				if (realValue instanceof JaxbVisitable) {
+//					((JaxbVisitable) realValue).accept(this);
+//				}
+//			} else
+			if (visitable instanceof PrismReferenceValue) {
+				PrismReferenceValue refVal = (PrismReferenceValue) visitable;
+				//noinspection unchecked
+				PrismObject<? extends ObjectType> object = refVal.getObject();
+				if (object != null) {
+					long entryId = findOrCreateEntry(object);
+					refVal.setObject(null);
+					refVal.setOid(SchemaConstants.TRACE_DICTIONARY_PREFIX + entryId);
+				}
+			}
+		}
+
+		private long findOrCreateEntry(PrismObject<? extends ObjectType> object) {
+			long max = 0;
+			for (TraceDictionaryEntryType entry : dictionary.getEntry()) {
+				PrismObject dictionaryObject = entry.getObject().asReferenceValue().getObject();
+				if (Objects.equals(object.getOid(), dictionaryObject.getOid()) &&   // todo remove if POV implements this
+						Objects.equals(object.getVersion(), dictionaryObject.getVersion()) &&   // todo remove if POV implements this
+						object.equals(dictionaryObject, EquivalenceStrategy.LITERAL)) {
+					return entry.getIdentifier();
+				}
+				if (entry.getIdentifier() > max) {
+					max = entry.getIdentifier();
+				}
+			}
+			long newId = max + 1;
+			System.out.println("Inserting object as entry #" + newId + ": " + object);
+			dictionary.beginEntry()
+					.identifier(newId)
+					.object(ObjectTypeUtil.createObjectRefWithFullObject(object, prismContext));
+			return newId;
+		}
+	}
+
+	private TraceDictionaryType extractDictionary(OperationResultType resultBean) {
+		TraceDictionaryType dictionary = new TraceDictionaryType(prismContext);
+		ExtractingVisitor extractingVisitor = new ExtractingVisitor(dictionary, prismContext);
+		extractDictionary(resultBean, extractingVisitor);
+		return dictionary;
+	}
+
+	private void extractDictionary(OperationResultType resultBean, ExtractingVisitor extractingVisitor) {
+		resultBean.getTrace().forEach(trace -> trace.asPrismContainerValue().accept(extractingVisitor));
+		resultBean.getPartialResults().forEach(partialResult -> extractDictionary(partialResult, extractingVisitor));
 	}
 
 	private Map<String, String> createTemplateParameters(Task task, OperationResult result) {
@@ -216,10 +304,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		} else if (tracingProfile.getRef().isEmpty()) {
 			return tracingProfile;
 		} else {
-			TracingConfigurationType tracingConfiguration = systemConfiguration != null && systemConfiguration.getInternals() != null ?
-					systemConfiguration.getInternals().getTracing() : null;
 			List<String> resolutionPath = new ArrayList<>();
-			return resolveProfile(tracingProfile, tracingConfiguration, resolutionPath);
+			return resolveProfile(tracingProfile, getTracingConfiguration(), resolutionPath);
 		}
 	}
 
@@ -279,7 +365,34 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	@Override
 	public TracingProfileType getDefaultProfile() {
-		// TODO
-		return new TracingProfileType(prismContext);
+		TracingConfigurationType tracingConfiguration = getTracingConfiguration();
+		if (tracingConfiguration == null || tracingConfiguration.getProfile().isEmpty()) {
+			return new TracingProfileType(prismContext);
+		} else {
+			List<TracingProfileType> defaultProfiles = tracingConfiguration.getProfile().stream()
+					.filter(p -> Boolean.TRUE.equals(p.isDefault()))
+					.collect(Collectors.toList());
+			if (defaultProfiles.isEmpty()) {
+				return tracingConfiguration.getProfile().get(0);
+			} else if (defaultProfiles.size() == 1) {
+				return defaultProfiles.get(0);
+			} else {
+				LOGGER.warn("More than one default tracing profile configured; selecting the first one");
+				return defaultProfiles.get(0);
+			}
+		}
+	}
+
+	@Override
+	public CompiledTracingProfile compileProfile(TracingProfileType profile, OperationResult result) throws SchemaException {
+		TracingProfileType resolvedProfile = resolve(profile, result);
+		return CompiledTracingProfile.create(resolvedProfile, prismContext);
+	}
+
+	@Nullable
+	private TracingConfigurationType getTracingConfiguration() {
+		return systemConfiguration != null && systemConfiguration.getInternals() != null ?
+				systemConfiguration.getInternals().getTracing() :
+				null;
 	}
 }

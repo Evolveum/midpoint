@@ -115,7 +115,7 @@ public class TestSemiManualGroupingProposed extends TestSemiManualGrouping {
 	@Override
 	protected void assertFinishedPropagationTask(Task finishedTask, OperationResultStatusType expectedStatus) {
 		super.assertFinishedPropagationTask(finishedTask, expectedStatus);
-		SearchFilterType filterType = finishedTask.getObjectRef().getFilter();
+		SearchFilterType filterType = finishedTask.getObjectRefOrClone().getFilter();
 		display("Propagation task filter", filterType);
 		
 		assertEquals("Unexpected propagation task progress", 1, finishedTask.getProgress());

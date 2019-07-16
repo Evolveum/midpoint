@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -784,6 +785,11 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	@Override
 	public ModelProjectionContext getProjectionContext() {
 		return ModelExpressionThreadLocalHolder.getProjectionContext();
+	}
+	
+	@Override
+	public <V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping() {
+		return ModelExpressionThreadLocalHolder.getMapping();
 	}
 
 	@Override
@@ -1922,5 +1928,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				.asItemDeltas();
 		repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), itemDeltas,
 				getCurrentResult(CLASS_DOT + "addRecomputeTrigger"));
+	}
+
+	@Override
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
 	}
 }

@@ -4095,8 +4095,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 
-	protected void assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
-		assertDummyAccount(null, username, fullname, active);
+	protected DummyAccount assertDefaultDummyAccount(String username, String fullname, boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
+		return assertDummyAccount(null, username, fullname, active);
 	}
 
 	protected DummyAccount assertDummyAccount(String dummyInstanceName, String username, String fullname, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
@@ -5182,6 +5182,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected void assertTaskClosed(PrismObject<TaskType> task) {
 		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatusType.CLOSED, task.asObjectable().getExecutionStatus());
+	}
+
+	protected void assertTaskClosed(Task task) {
+		assertEquals("Wrong executionStatus in "+task, TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 	}
 
 	protected List<AuditEventRecord> getAllAuditRecords(Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {

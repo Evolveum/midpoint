@@ -26,10 +26,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
  */
 public interface CounterManager {
 
-	
-	CounterSepcification getCounterSpec(TaskType task, String policyRuleId, PolicyRuleType policyRule);
+	CounterSpecification getCounterSpec(TaskType task, String policyRuleId, PolicyRuleType policyRule);
 	void cleanupCounters(String taskOid);
-	Collection<CounterSepcification> listCounters();
-	void removeCounter(CounterSepcification counterSpecification);
+	Collection<CounterSpecification> listCounters();
+	void removeCounter(CounterSpecification counterSpecification);
 	void resetCounters(String taskOid);
 }

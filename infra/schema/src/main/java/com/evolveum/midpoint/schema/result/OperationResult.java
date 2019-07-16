@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
+import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -42,8 +44,6 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -93,6 +93,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     private static final ThreadLocal<OperationResultHandlingStrategyType> localHandlingStrategy =
 		    new ThreadLocal<>();
 
+    private static final AtomicInteger logSequenceCounter = new AtomicInteger(0);
+
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
 	public static final String CONTEXT_OID = "oid";
@@ -114,6 +116,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
+	public static final String RETURN_COMMENT = "comment";
 	public static final String DEFAULT = "";
 
 	private static long TOKEN_COUNT = 1000000000000000000L;
@@ -150,7 +153,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private Long microseconds;
 	private Long invocationId;
 
-	private TracingProfileType tracingProfile;      // NOT SERIALIZED
+	private final List<LogSegmentType> logSegments = new ArrayList<>();
+
+	private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
+	private boolean collectingLogEntries;               // NOT SERIALIZED
 
 	private final List<TraceType> traces = new ArrayList<>();
 
@@ -257,6 +263,21 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
 		result.invocationId = result.invocationRecord.getInvocationId();
 		result.start = System.currentTimeMillis();
+		result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
+		if (result.collectingLogEntries) {
+			TracingAppender.startCollectingForCurrentThread(result::appendLoggedEvents);
+		}
+	}
+
+	private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
+		if (!loggingEventSink.getEvents().isEmpty()) {
+			LogSegmentType segment = new LogSegmentType();
+			segment.setSequenceNumber(logSequenceCounter.getAndIncrement());
+			for (LoggedEvent event : loggingEventSink.getEvents()) {
+				segment.getEntry().add(event.getText());
+			}
+			logSegments.add(segment);
+		}
 	}
 
 	private Object[] createArguments() {
@@ -307,6 +328,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			invocationRecord.processReturnValue(returnValue);
 			invocationRecord.afterCall();
 			microseconds = invocationRecord.getElapsedTimeMicros();
+			TracingAppender.stopCollectingForCurrentThread();
 			invocationRecord = null;
 		}
 		end = System.currentTimeMillis();
@@ -848,7 +870,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		traces.add(trace);
 	}
 
-	public void startTracing(@NotNull TracingProfileType profile) {
+	public void startTracing(@NotNull CompiledTracingProfile profile) {
 		this.tracingProfile = profile;
 		if (invocationId == null) {
 			recordStart(this, operation, createArguments());
@@ -856,7 +878,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	@Override
-	public OperationResultBuilder tracingProfile(TracingProfileType profile) {
+	public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
 		this.tracingProfile = profile;
 		return this;
 	}
@@ -874,6 +896,35 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				}
 			}
 			return null;
+		}
+	}
+
+	public void addReturnComment(String comment) {
+		addReturn(RETURN_COMMENT, comment);
+	}
+
+	public boolean isTracingNormal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.NORMAL);
+	}
+
+	public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.MINIMAL);
+	}
+
+	public boolean isTracingDetailed(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.DETAILED);
+	}
+
+	public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType level) {
+		return getTracingLevel(traceClass).ordinal() >= level.ordinal();
+	}
+
+	@NotNull
+	public TracingLevelType getTracingLevel(Class<? extends TraceType> traceClass) {
+		if (tracingProfile != null) {
+			return tracingProfile.getLevel(traceClass);
+		} else {
+			return TracingLevelType.OFF;
 		}
 	}
 
@@ -1545,6 +1596,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		}
 		opResult.setMicroseconds(result.getMicroseconds());
 		opResult.setInvocationId(result.getInvocationId());
+		opResult.logSegments.addAll(result.getLog());
 		return opResult;
 	}
 
@@ -1617,6 +1669,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
 		resultType.setMicroseconds(opResult.microseconds);
 		resultType.setInvocationId(opResult.invocationId);
+		resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
 		resultType.getTrace().addAll(opResult.traces);           // consider cloning here
 		return resultType;
 	}
@@ -2290,7 +2343,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return tracingProfile != null;
 	}
 
-	public TracingProfileType getTracingProfile() {
+	public CompiledTracingProfile getTracingProfile() {
 		return tracingProfile;
 	}
 

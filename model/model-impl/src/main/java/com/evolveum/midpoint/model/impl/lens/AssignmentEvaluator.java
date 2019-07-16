@@ -367,9 +367,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 				return false;
 			}
 			
-			ResultHandler<R> handler = (object, result) -> {
-				return forcedRoles.add(object.asObjectable());
-			};
+			ResultHandler<R> handler = (object, result) -> forcedRoles.add(object.asObjectable());
 			objectResolver.searchIterative(virtualAssignmenetSpecification.getType(), 
 					prismContext.queryFactory().createQuery(virtualAssignmenetSpecification.getFilter()), null, handler, ctx.task, ctx.result);
 		} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException
@@ -380,10 +378,10 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     	for (AssignmentType taskAssignment : ctx.task.getAssignments()) {
     		try {
 				forcedRoles.add(objectResolver.resolve(taskAssignment.getTargetRef(), 
-						getPrismContext().getSchemaRegistry().determineClassForType(taskAssignment.getTargetRef().getType()), null, " resolve task assignemnts ", ctx.task, ctx.result));
+						getPrismContext().getSchemaRegistry().determineClassForType(taskAssignment.getTargetRef().getType()), null, " resolve task assignments ", ctx.task, ctx.result));
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException
 					| SecurityViolationException | ExpressionEvaluationException e) {
-				LOGGER.error("Cannot resolve task assignemnts.");
+				LOGGER.error("Cannot resolve task assignments.");
 				throw e;
 			}
     	}

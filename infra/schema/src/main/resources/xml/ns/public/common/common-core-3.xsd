@@ -15757,10 +15757,46 @@
             </xsd:element>
             <xsd:element name="userFriendlyMessage" type="tns:LocalizableMessageType" minOccurs="0"/>
             <xsd:element name="details" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="log" type="tns:LogSegmentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Log segments related to this operation result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="operationResult" type="tns:OperationResultType"/>
+
+	<xsd:complexType name="LogSegmentType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Segment of the logfile.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:experimental>true</a:experimental>
+				<a:since>4.0</a:since>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="sequenceNumber" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Sequence number - used to sort segments in correct order.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="entry" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Log entries.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="logSegment" type="tns:LogSegmentType" />
 
 	<xsd:simpleType name="OperationResultImportanceType">
 		<xsd:annotation>

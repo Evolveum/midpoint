@@ -2745,7 +2745,7 @@ public class ShadowCache {
 		Throwable ex = RepoCommonUtils.getResultException(result);
 		ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
 		CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
-		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
+		RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
 	}
 
 	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(

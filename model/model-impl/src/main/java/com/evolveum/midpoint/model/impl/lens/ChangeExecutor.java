@@ -966,6 +966,18 @@ public class ChangeExecutor {
 					LOGGER.trace("Recording executed delta:\n{}", objectDeltaOp.shorterDebugDump(1));
 				}
 				objectContext.addToExecutedDeltas(objectDeltaOp);
+				if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
+					TraceType trace = new ModelExecuteDeltaTraceType(prismContext)
+							.delta(objectDeltaOp.clone().toLensObjectDeltaOperationType());     // todo kill operation result?
+					result.addTrace(trace);
+				}
+			} else {
+				if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
+					LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<>(objectDelta);    // todo
+					TraceType trace = new ModelExecuteDeltaTraceType(prismContext)
+							.delta(objectDeltaOp.toLensObjectDeltaOperationType());
+					result.addTrace(trace);
+				}
 			}
 
 			if (LOGGER.isDebugEnabled()) {
@@ -1745,7 +1757,7 @@ public class ChangeExecutor {
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				result);
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, 
+		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, 
 				objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, env);

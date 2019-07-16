@@ -26,11 +26,15 @@ import javax.xml.namespace.QName;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -470,7 +474,21 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 		});
 
 		columns.add(new PrismContainerWrapperColumn<>(getModel(), AssignmentType.F_ACTIVATION, getPageBase()));
-		
+
+		if (getAssignmentType() == null) {
+			columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentPanel.moreData")) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> cellItem, String componentId,
+										 IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+					AssignmentType assignmentType = rowModel != null && rowModel.getObject() != null ?
+							rowModel.getObject().getRealValue() : null;
+					cellItem.add(new Label(componentId, AssignmentsUtil.getAssignmentSpecificInfoLabel(assignmentType, AssignmentPanel.this.getPageBase())));
+				}
+			});
+		}
+
 		columns.addAll(initColumns());
 		List<InlineMenuItem> menuActionsList = getAssignmentMenuActions();
 		columns.add(new InlineMenuButtonColumn<PrismContainerValueWrapper<AssignmentType>>(menuActionsList, getPageBase()){

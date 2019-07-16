@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
@@ -42,4 +43,8 @@ public interface Tracer {
 	TracingProfileType resolve(TracingProfileType tracingProfile, OperationResult result) throws SchemaException;
 
 	TracingProfileType getDefaultProfile();
+
+	CompiledTracingProfile compileProfile(TracingProfileType profile, OperationResult result) throws SchemaException;
+
+	//TracingLevelType getLevel(@NotNull TracingProfileType resolvedProfile, @NotNull Class<TraceType> traceClass);
 }

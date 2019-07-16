@@ -16,9 +16,19 @@
 
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 
 /**
  * @author bpowers
@@ -31,9 +41,18 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
                 label = "PageCaseWorkItems.auth.caseWorkItemsAll.label",
                 description = "PageCaseWorkItems.auth.caseWorkItemsAll.description")})
 public class PageCaseWorkItemsAll extends PageCaseWorkItems {
+    private static final long serialVersionUID = 1L;
 
     public PageCaseWorkItemsAll() {
-        super(true);
+        super();
     }
 
+    @Override
+    protected ObjectFilter getCaseWorkItemsFilter(){
+        return getPrismContext().queryFor(CaseWorkItemType.class)
+                .not()
+                .item(PrismConstants.T_PARENT, CaseType.F_STATE)
+                .eq(SchemaConstants.CASE_STATE_CLOSED)
+                .buildFilter();
+    }
 }

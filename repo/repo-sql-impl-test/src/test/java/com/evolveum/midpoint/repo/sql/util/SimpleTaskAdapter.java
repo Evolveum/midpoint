@@ -31,8 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.xml.namespace.QName;
 import java.util.*;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 
 /**
  * @author lazyman
@@ -207,7 +206,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public ObjectReferenceType getObjectRef() {
+    public ObjectReferenceType getObjectRefOrClone() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -287,7 +286,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(ItemName propertyName) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -360,13 +359,15 @@ public class SimpleTaskAdapter implements Task {
     public void setProgressTransient(Long value) {
     }
 
+    @NotNull
     @Override
-    public PrismObject<TaskType> getTaskPrismObject() {
+    public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @NotNull
     @Override
-    public TaskType getTaskType() {
+    public PrismObject<TaskType> getUpdatedTaskObject() {
         return null;
     }
 
@@ -441,8 +442,14 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public PrismContainer<? extends ExtensionType> getExtension() {
+    public PrismContainer<? extends ExtensionType> getExtensionOrClone() {
         return null;
+    }
+
+    @NotNull
+    @Override
+    public PrismContainer<? extends ExtensionType> getOrCreateExtension() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -456,7 +463,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T> PrismProperty<T> getExtensionProperty(ItemName propertyName) {
+    public <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName propertyName) {
         return null;
     }
 
@@ -466,12 +473,12 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T extends Containerable> T getExtensionContainerRealValue(ItemName containerName) {
+    public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName containerName) {
         return null;
     }
 
     @Override
-    public PrismReference getExtensionReference(ItemName name) {
+    public PrismReference getExtensionReferenceOrClone(ItemName name) {
         return null;
     }
 
@@ -872,12 +879,12 @@ public class SimpleTaskAdapter implements Task {
 
     @NotNull
     @Override
-    public Set<TracingPointType> getTracingRequestedFor() {
+    public Set<TracingRootType> getTracingRequestedFor() {
         return emptySet();
     }
 
     @Override
-    public void addTracingRequest(TracingPointType point) {
+    public void addTracingRequest(TracingRootType point) {
     }
 
 	@Override
@@ -892,6 +899,5 @@ public class SimpleTaskAdapter implements Task {
 
     @Override
     public void setTracingProfile(TracingProfileType tracingProfile) {
-
     }
 }

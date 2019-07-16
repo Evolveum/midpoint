@@ -111,7 +111,7 @@ public class DeleteTaskHandler implements TaskHandler {
 		opResult.setSummarizeSuccesses(true);
 
 		QueryType queryType;
-		PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+		PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
         if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
         	queryType = objectQueryPrismProperty.getRealValue();
         } else {
@@ -124,7 +124,7 @@ public class DeleteTaskHandler implements TaskHandler {
 
         Class<O> objectType;
 		QName objectTypeName;
-        PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> objectTypePrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
 			objectTypeName = objectTypePrismProperty.getRealValue();
 	        //noinspection unchecked
@@ -150,7 +150,7 @@ public class DeleteTaskHandler implements TaskHandler {
         }
 
         boolean optionRaw = true;
-        PrismProperty<Boolean> optionRawPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OPTION_RAW);
+        PrismProperty<Boolean> optionRawPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OPTION_RAW);
         if (optionRawPrismProperty != null && optionRawPrismProperty.getRealValue() != null && !optionRawPrismProperty.getRealValue()) {
         	optionRaw = false;
         }

@@ -227,7 +227,7 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
 
 //    private void createCaseWorkItems(CaseType caseInstance, Task task, OperationResult result) {
 //        PrismObject<ResourceType> resource;
-//        ObjectReferenceType resourceRef = caseInstance.getObjectRef();
+//        ObjectReferenceType resourceRef = caseInstance.getObjectRefOrClone();
 //        if (resourceRef != null) {
 //            String resourceOid = resourceRef.getOid();
 //            resource = WebModelServiceUtils.loadObject(ResourceType.class, resourceOid, PageCase.this, task, result);

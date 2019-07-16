@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -1130,6 +1132,8 @@ public interface MidpointFunctions {
 
 	ModelProjectionContext getProjectionContext();
 	
+	<V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping();
+	
 	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
 			throws SchemaException, ObjectNotFoundException,
 			ExpressionEvaluationException, CommunicationException, ConfigurationException,
@@ -1196,4 +1200,6 @@ public interface MidpointFunctions {
 
 	<O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
 			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+
+	RepositoryService getRepositoryService();
 }

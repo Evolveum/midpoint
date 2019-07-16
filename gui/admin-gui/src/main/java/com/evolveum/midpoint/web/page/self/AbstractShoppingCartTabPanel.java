@@ -445,7 +445,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     protected QName getNewAssignmentRelation() {
-        return WebComponentUtil.getDefaultRelationOrFail();
+        return getRoleCatalogStorage().getSelectedRelation() != null ?
+                getRoleCatalogStorage().getSelectedRelation() : WebComponentUtil.getDefaultRelationOrFail();
     }
 
     protected RoleCatalogStorage getRoleCatalogStorage(){

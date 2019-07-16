@@ -200,7 +200,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     public void storeModelContext(Task task, ModelContext context, boolean reduced) throws SchemaException {
-        LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType(reduced) : null;
+        LensContextType modelContext = context != null ? ((LensContext) context).toLensContextType(reduced ? LensContext.ExportType.REDUCED : LensContext.ExportType.OPERATIONAL) : null;
         storeModelContext(task, modelContext);
     }
 

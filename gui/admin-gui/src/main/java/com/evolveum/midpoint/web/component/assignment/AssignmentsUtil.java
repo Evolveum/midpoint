@@ -22,7 +22,9 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang3.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hssf.record.ObjRecord;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -51,20 +53,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentRelationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Created by honchar.
@@ -324,8 +312,9 @@ public class AssignmentsUtil {
 		} else if (isNotEmptyRef(assignment.getTargetRef())) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
 		}
-		appendTenantAndOrgName(assignment, sb, pageBase);
-		
+
+//		appendTenantAndOrgName(assignment, pageBase);
+
 		if(sb.toString().isEmpty() && assignment.getFocusMappings() != null) {
 			for(MappingType mapping : assignment.getFocusMappings().getMapping()) {
 				String name = mapping.getName() == null ? "" : mapping.getName();
@@ -346,17 +335,66 @@ public class AssignmentsUtil {
     	return ref != null && ref.getOid() != null && ref.getType() != null;
     }
     
-    private static void appendTenantAndOrgName(AssignmentType assignmentType, StringBuilder sb, PageBase pageBase) {
+    public static String getAssignmentSpecificInfoLabel(AssignmentType assignmentType, PageBase pageBase) {
+        if (assignmentType == null){
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (assignmentType.getConstruction() != null){
+            ShadowKindType kindValue = assignmentType.getConstruction().getKind();
+            if (kindValue != null){
+                sb.append(pageBase.createStringResource("AssignmentPanel.kind").getString());
+                sb.append(" ");
+                sb.append(kindValue.value());
+            }
+            String intentValue = assignmentType.getConstruction().getIntent();
+            if (StringUtils.isNotEmpty(intentValue)){
+                if (StringUtils.isNotEmpty(sb.toString())){
+                    sb.append(", ");
+                }
+                sb.append(pageBase.createStringResource("AssignmentPanel.intent").getString());
+                sb.append(" ");
+                sb.append(intentValue);
+            }
+            return sb.toString();
+        }
+
+        ObjectReferenceType targetRefObj = assignmentType.getTargetRef();
+        if (targetRefObj != null && !SchemaConstants.ORG_DEFAULT.equals(targetRefObj.getRelation())){
+            sb.append(pageBase.createStringResource("AbstractRoleAssignmentPanel.relationLabel").getString());
+            sb.append(": ");
+            String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());
+            sb.append(StringUtils.isNotEmpty(relationDisplayName) ?
+                    pageBase.createStringResource(relationDisplayName).getString() :
+                    pageBase.createStringResource(targetRefObj.getRelation().getLocalPart()).getString());
+        }
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
 		if (tenantRef != null && !tenantRef.asReferenceValue().isEmpty()) {
-			WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
+			String tenantDisplayName = WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
+			if (StringUtils.isNotEmpty(tenantDisplayName)){
+                if (StringUtils.isNotEmpty(sb.toString())){
+                    sb.append(", ");
+                }
+                sb.append(pageBase.createStringResource("roleMemberPanel.tenant").getString());
+                sb.append(" ");
+                sb.append(tenantDisplayName);
+            }
 		}
 
 		ObjectReferenceType orgRef = assignmentType.getOrgRef();
-		if (orgRef != null && !tenantRef.asReferenceValue().isEmpty()) {
-			WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
+		if (orgRef != null && !orgRef.asReferenceValue().isEmpty()) {
+			String orgDisplayName = WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
+            if (StringUtils.isNotEmpty(orgDisplayName)){
+                if (StringUtils.isNotEmpty(sb.toString())){
+                    sb.append(", ");
+                }
+                sb.append(pageBase.createStringResource("roleMemberPanel.project").getString());
+                sb.append(" ");
+                sb.append(orgDisplayName);
+            }
 		}
 
+		return sb.toString();
 	}
 
     private static void appendRelation(AssignmentType assignment, StringBuilder sb, PageBase pageBase) {

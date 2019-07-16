@@ -70,7 +70,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
-        PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
+        PrismProperty<ExecuteScriptType> executeScriptProperty = task.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
         if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
                 executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
             throw new IllegalStateException("There's no script to be run in task " + task + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");

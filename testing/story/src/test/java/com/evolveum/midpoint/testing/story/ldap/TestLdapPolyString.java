@@ -20,11 +20,15 @@ package com.evolveum.midpoint.testing.story.ldap;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,6 +45,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -165,6 +170,32 @@ public class TestLdapPolyString extends AbstractLdapTest {
 
         dumpLdap();
 	}
+	
+	/**
+	 * Make sure there is no shadow for ou=people,dc=example,dc=com.
+	 * In fact, there should be no shadow at all.
+	 * MID-5544
+	 */
+	@Test
+    public void test010Shadows() throws Exception {
+		final String TEST_NAME = "test010Shadows";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        display("Found shadows", shadows);
+        assertEquals("Unexpected number of shadows", 0, shadows.size());
+	}
 
 	/**
 	 * Simple test, more like a sanity test that everything works OK with simple polystrings (no lang yet).
@@ -188,13 +219,41 @@ public class TestLdapPolyString extends AbstractLdapTest {
 			.singleLink()
 				.getOid();
 		
-		assertModelShadow(accountJackOid);
+		assertModelShadow(accountJackOid)
+			.display();
 		
 		Entry accountEntry = getLdapEntryByUid(USER_JACK_USERNAME);
 		display("Jack LDAP entry", accountEntry);
 		assertCn(accountEntry, USER_JACK_FULL_NAME);
 		assertDescription(accountEntry, USER_JACK_FULL_NAME /* no langs here (yet) */);
 		assertTitle(accountEntry, null /* no langs here (yet) */);
+	}
+	
+	/**
+	 * Make sure there is no shadow for ou=people,dc=example,dc=com.
+	 * In fact, there should be no shadow at all.
+	 * MID-5544
+	 */
+	@Test
+    public void test055Shadows() throws Exception {
+		final String TEST_NAME = "test055Shadows";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        display("Query", query);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        display("Found shadows", shadows);
+        assertEquals("Unexpected number of shadows", 1, shadows.size());
 	}
 	
 	@Test
@@ -819,12 +878,39 @@ public class TestLdapPolyString extends AbstractLdapTest {
 	}
 	
 	/**
+	 * Make sure there is no shadow for ou=people,dc=example,dc=com.
+	 * We haven't searched for accounts yet.
+	 * Therefore there should be just one shadow for jack's account.
+	 * MID-5544
+	 */
+	@Test
+    public void test300Shadows() throws Exception {
+		final String TEST_NAME = "test300Shadows";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        display("Found shadows", shadows);
+        assertEquals("Unexpected number of shadows", 1, shadows.size());
+	}
+	
+	/**
 	 * Normal search, all accounts in ou=people, nothing special.
 	 * MID-5485
 	 */
 	@Test
-    public void test300SearchLdapAccounts() throws Exception {
-		final String TEST_NAME = "test300SearchLdapAccounts";
+    public void test310SearchLdapAccounts() throws Exception {
+		final String TEST_NAME = "test310SearchLdapAccounts";
         displayTestTitle(TEST_NAME);
 
         ObjectQuery query = ObjectQueryUtil.createResourceAndKindIntent(RESOURCE_OPENDJ_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT, prismContext);
@@ -836,13 +922,50 @@ public class TestLdapPolyString extends AbstractLdapTest {
 	}
 	
 	/**
+	 * 
+	 * MID-5544
+	 */
+	@Test
+    public void test312Shadows() throws Exception {
+		final String TEST_NAME = "test312Shadows";
+        displayTestTitle(TEST_NAME);
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceQuery(RESOURCE_OPENDJ_OID, prismContext);
+        
+        // WHEN
+        displayWhen(TEST_NAME);
+		SearchResultList<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
+        
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+        
+        display("Found shadows", shadows);
+        // 4 account shadows, 1 shadow for ou=people
+        assertEquals("Unexpected number of shadows", 5, shadows.size());
+        PrismObject<ShadowType> peopleShadow = null;
+        for (PrismObject<ShadowType> shadow : shadows) {
+        	if (StringUtils.equalsIgnoreCase(shadow.getName().getOrig(),OPENDJ_PEOPLE_SUFFIX)) {
+        		peopleShadow = shadow;
+        	}
+        }
+        assertNotNull("No ou=people shadow", peopleShadow);
+        assertShadow(peopleShadow, "ou=people shadow")
+        	.display()
+        	.assertObjectClass(new QName(MidPointConstants.NS_RI, "organizationalUnit"))
+        	.assertKind(ShadowKindType.UNKNOWN);
+	}
+	
+	/**
 	 * Create an account in sub-ou. If scope is still set to "sub" ten this account will be found.
 	 * But the scope is overridden in the resource to "one". Therefore this account should be ignored.
 	 * MID-5485
 	 */
 	@Test
-    public void test302SearchLdapAccountsBelow() throws Exception {
-		final String TEST_NAME = "test302SearchLdapAccountsBelow";
+    public void test320SearchLdapAccountsBelow() throws Exception {
+		final String TEST_NAME = "test320SearchLdapAccountsBelow";
         displayTestTitle(TEST_NAME);
         
         openDJController.addEntry("dn: ou=below,ou=People,dc=example,dc=com\n" + 
@@ -885,15 +1008,6 @@ public class TestLdapPolyString extends AbstractLdapTest {
 			cvals.add(cval);
 		}
 		return cvals;
-	}
-
-		
-	private Entry getLdapEntryByUid(String uid) throws DirectoryException {
-		return openDJController.searchSingle("uid="+uid);
-	}
-
-	private void assertCn(Entry entry, String expectedValue) {
-		OpenDJController.assertAttribute(entry, LDAP_ATTRIBUTE_CN, expectedValue);
 	}
 
 	private void assertDescription(Entry entry, String expectedOrigValue, String... params) {

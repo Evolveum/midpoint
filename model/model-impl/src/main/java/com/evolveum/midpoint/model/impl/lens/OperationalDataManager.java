@@ -93,7 +93,7 @@ public class OperationalDataManager {
 		T objectType = objectToAdd.asObjectable();
 		MetadataType metadataType = objectType.getMetadata();
 		if (metadataType == null) {
-			metadataType = new MetadataType();
+			metadataType = new MetadataType(prismContext);
 			objectType.setMetadata(metadataType);
 		}
 
@@ -225,7 +225,7 @@ public class OperationalDataManager {
 	}
 
 	public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-		MetadataType metaData = new MetadataType();
+		MetadataType metaData = new MetadataType(prismContext);
 		applyCreateMetadata(context, metaData, now, task);
 		return metaData;
 	}

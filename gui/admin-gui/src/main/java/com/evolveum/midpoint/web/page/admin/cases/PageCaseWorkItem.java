@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -45,6 +46,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -219,8 +222,10 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected String getApproverComment(){
-				return workItemDetailsPanel.getApproverComment();
+			protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+				return super.getWorkItemOutput(approved)
+						.comment(workItemDetailsPanel.getApproverComment())
+						.evidence(workItemDetailsPanel.getWorkItemEvidence());
 			}
 
 			@Override

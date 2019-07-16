@@ -258,18 +258,8 @@ public class CryptoUtil {
 				} catch (EncryptionException e) {
 					throw new TunnelException(e);
 				}
-			} else if (visitable instanceof Containerable) {
-				((Containerable) visitable).asPrismContainerValue().accept(this);
-			} else if (visitable instanceof Referencable) {
-				PrismObject<?> object = ((Referencable) visitable).asReferenceValue().getObject();
-				if (object != null) {
-					object.accept(this);
-				}
-			} else if (visitable instanceof RawType) {
-				RawType raw = (RawType) visitable;
-				if (raw.isParsed()) {
-					raw.getAlreadyParsedValue().accept(this);
-				}
+			} else {
+				JaxbVisitable.visitPrismStructure(visitable, this);
 			}
 		}
 

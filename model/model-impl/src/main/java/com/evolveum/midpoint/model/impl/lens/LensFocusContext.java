@@ -507,10 +507,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return sb.toString();
 	}
 
-    void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer, boolean reduced) throws SchemaException {
-        LensFocusContextType lensFocusContextType = lensFocusContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensFocusContextType, reduced);
-        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+    public LensFocusContextType toLensFocusContextType(PrismContext prismContext, LensContext.ExportType exportType) throws SchemaException {
+	    LensFocusContextType rv = new LensFocusContextType(prismContext);
+	    super.storeIntoLensElementContextType(rv, exportType);
+	    if (exportType != LensContext.ExportType.MINIMAL) {
+		    rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+	    }
+	    return rv;
     }
 
     public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {

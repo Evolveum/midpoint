@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 
@@ -336,7 +337,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			if (!isNonScavengingWorker()) {     // todo configure this somehow
 				int objectsSeen = coordinatorTask.getAndIncrementObjectsSeen();
 				workerTask.startDynamicProfilingIfNeeded(coordinatorTask, objectsSeen);
-				workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING);
+				workerTask.requestTracingIfNeeded(coordinatorTask, objectsSeen, TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING);
 			}
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} starting for {} {}", getProcessShortNameCapitalized(), object, getContextDesc());
@@ -349,9 +350,9 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			OperationResultBuilder builder = parentResult.subresult(taskOperationPrefix + ".handle")
 					.addParam("object", object);
-			if (workerTask.getTracingRequestedFor().contains(TracingPointType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
+			if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
 				tracingRequested = true;
-				builder.tracingProfile(taskManager.getTracer().resolve(workerTask.getTracingProfile(), result));
+				builder.tracingProfile(taskManager.getTracer().compileProfile(workerTask.getTracingProfile(), result));
 			}
 			result = builder.build();
 
@@ -427,6 +428,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			if (tracingRequested) {
 				taskManager.getTracer().storeTrace(workerTask, result);
+				TracingAppender.resetCollectingForCurrentThread();  // todo reconsider
 			}
 			if (result.isSuccess()) {
 				// FIXME: hack. Hardcoded ugly summarization of successes. something like
@@ -488,7 +490,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 		
 		CriticalityType criticality = ExceptionUtil.getCriticality(stageType.getErrorCriticality(), ex, CriticalityType.PARTIAL);
-		RepoCommonUtils.processErrorCriticality(task.getTaskType(), criticality, ex, result);
+		RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
 		
 		return stopOnError;
 	}
@@ -580,7 +582,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	protected Integer getWorkerThreadsCount(Task task) {
-		PrismProperty<Integer> workerThreadsPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
+		PrismProperty<Integer> workerThreadsPrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS);
 		if (workerThreadsPrismProperty != null && workerThreadsPrismProperty.getRealValue() != null) {
 			return workerThreadsPrismProperty.getRealValue();
 		} else {

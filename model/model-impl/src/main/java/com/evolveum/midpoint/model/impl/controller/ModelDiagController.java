@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.DataModelVisualizer;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -94,6 +95,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	@Autowired private SecurityEnforcer securityEnforcer;
 	@Autowired private MappingDiagEvaluator mappingDiagEvaluator;
 	@Autowired private MidpointConfiguration midpointConfiguration;
+	@Autowired private SystemObjectCache systemObjectCache;
 
 	private RandomString randomString;
 
@@ -604,7 +606,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_CONTENT);
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
-			File logFile = getLogFile();
+			File logFile = getLogFile(result);
 			LogFileContentType rv = getLogFileFragment(logFile, fromPosition, maxSize);
 			result.recordSuccess();
 			return rv;
@@ -660,7 +662,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 		OperationResult result = parentResult.createSubresult(GET_LOG_FILE_SIZE);
 		try {
 			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
-			File logFile = getLogFile();
+			File logFile = getLogFile(result);
 			long size = logFile.length();
 			result.recordSuccess();
 			return size;
@@ -670,12 +672,24 @@ public class ModelDiagController implements ModelDiagnosticService {
 		}
 	}
 
-	private File getLogFile() throws SchemaException {
+	private File getLogFile(OperationResult result) throws SchemaException {
 		Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
-		if (c == null || !c.containsKey(LOG_FILE_CONFIG_KEY)) {
-			throw new SchemaException("No log file specified in system configuration. Please set logFile in <midpoint><system> section.");
+		if (c != null && c.containsKey(LOG_FILE_CONFIG_KEY)) {
+			return new File(c.getString(LOG_FILE_CONFIG_KEY));
 		}
-		return new File(c.getString(LOG_FILE_CONFIG_KEY));
+		PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
+		LoggingConfigurationType logging = configuration != null ? configuration.asObjectable().getLogging() : null;
+		if (logging != null) {
+			String rootLoggerAppender = logging.getRootLoggerAppender();
+			if (rootLoggerAppender != null) {
+				AppenderConfigurationType rootFileAppender = logging.getAppender().stream()
+						.filter(a -> rootLoggerAppender.equals(a.getName())).findFirst().orElse(null);
+				if (rootFileAppender instanceof FileAppenderConfigurationType) {
+					String fileName = ((FileAppenderConfigurationType) rootFileAppender).getFileName();
+					return new File(MiscUtil.expandProperties(fileName));
+				}
+			}
+		}
+		throw new SchemaException("No log file specified in system configuration file not in system configuration object. Please set logFile in <midpoint><system> section or specify file appender.");
 	}
-
 }

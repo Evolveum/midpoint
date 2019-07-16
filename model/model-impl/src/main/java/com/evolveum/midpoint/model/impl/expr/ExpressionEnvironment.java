@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.model.impl.expr;
 
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -25,10 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * @author semancik
  *
  */
-public class ExpressionEnvironment<F extends ObjectType> {
+public class ExpressionEnvironment<F extends ObjectType,V extends PrismValue, D extends ItemDefinition> {
 
 	private LensContext<F> lensContext;
 	private LensProjectionContext projectionContext;
+	private Mapping<V, D> mapping;
 	private OperationResult currentResult;
 	private Task currentTask;
 
@@ -39,11 +43,20 @@ public class ExpressionEnvironment<F extends ObjectType> {
 		this.currentResult = currentResult;
 		this.currentTask = currentTask;
 	}
-
+	
 	public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext,
 			Task currentTask, OperationResult currentResult) {
 		this.lensContext = lensContext;
 		this.projectionContext = projectionContext;
+		this.currentResult = currentResult;
+		this.currentTask = currentTask;
+	}
+	
+	public ExpressionEnvironment(LensContext<F> lensContext, LensProjectionContext projectionContext, Mapping<V, D> mapping,
+			Task currentTask, OperationResult currentResult) {
+		this.lensContext = lensContext;
+		this.projectionContext = projectionContext;
+		this.mapping = mapping;
 		this.currentResult = currentResult;
 		this.currentTask = currentTask;
 	}
@@ -62,6 +75,14 @@ public class ExpressionEnvironment<F extends ObjectType> {
 
 	public void setProjectionContext(LensProjectionContext projectionContext) {
 		this.projectionContext = projectionContext;
+	}
+
+	public Mapping<V, D> getMapping() {
+		return mapping;
+	}
+
+	public void setMapping(Mapping<V, D> mapping) {
+		this.mapping = mapping;
 	}
 
 	public OperationResult getCurrentResult() {

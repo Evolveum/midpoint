@@ -39,6 +39,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.Iterator;
 
+import static com.evolveum.midpoint.model.impl.lens.LensContext.*;
+
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context
  * of the task (i.e., in most cases, asynchronously).
@@ -82,7 +84,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		} else {
             LensContext context;
             try {
-                context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, task, result);
+                context = fromLensContextType(contextType, prismContext, provisioningService, task, result);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
             } catch (ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException e) {
@@ -115,7 +117,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 				}
                 clockwork.run(context, task, result);
 
-				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL));
+				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL ? ExportType.REDUCED : ExportType.OPERATIONAL));
                 task.flushPendingModifications(result);
 
                 if (result.isUnknown()) {

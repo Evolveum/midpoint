@@ -333,6 +333,9 @@ CREATE TABLE m_audit_resource (
   record_id       BIGINT       NOT NULL,
   PRIMARY KEY (record_id, resourceOid)
 )
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE = InnoDB;
 CREATE TABLE m_case_wi (
   id                            INTEGER     NOT NULL,
   owner_oid                     VARCHAR(36) NOT NULL,

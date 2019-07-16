@@ -293,7 +293,7 @@ public abstract class SchemaConstants {
 	public static final ItemName MODEL_EXTENSION_PROFILING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "profilingInterval");
 	public static final ItemName MODEL_EXTENSION_TRACING_INTERVAL = new ItemName(NS_MODEL_EXTENSION, "tracingInterval");
 	public static final ItemName MODEL_EXTENSION_TRACING_PROFILE = new ItemName(NS_MODEL_EXTENSION, "tracingProfile");
-	public static final ItemName MODEL_EXTENSION_TRACING_POINT = new ItemName(NS_MODEL_EXTENSION, "tracingPoint");
+	public static final ItemName MODEL_EXTENSION_TRACING_ROOT = new ItemName(NS_MODEL_EXTENSION, "tracingRoot");
 
 	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
 	public static final String MODEL_DISABLE_REASON_EXPLICIT =
@@ -629,4 +629,5 @@ public abstract class SchemaConstants {
 	//enum defs
 	public final static QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
+	public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 }

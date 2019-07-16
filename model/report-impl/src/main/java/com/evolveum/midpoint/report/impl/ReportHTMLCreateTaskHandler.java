@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,7 +33,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -46,7 +44,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
@@ -261,7 +258,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 
 		super.recordProgress(task, 0, result);
 		try {
-			ReportType parentReport = objectResolver.resolve(task.getObjectRef(), ReportType.class, null,
+			ReportType parentReport = objectResolver.resolve(task.getObjectRefOrClone(), ReportType.class, null,
 					"resolving report", task, result);
 
 			if (parentReport.getReportEngine() == null) {
