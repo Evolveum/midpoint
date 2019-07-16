@@ -63,6 +63,10 @@ public class TestMappingMadness extends AbstractStoryTest {
 	protected static final File RESOURCE_DUMMY_SMART_RANGE_FILE = new File(TEST_DIR, "resource-dummy-smart-range.xml");
 	protected static final String RESOURCE_DUMMY_SMART_RANGE_OID = "41510274-a7aa-11e9-a083-1b48cd667229";
 	protected static final String RESOURCE_DUMMY_SMART_RANGE_NAME = "smart-range";
+	
+	protected static final File RESOURCE_DUMMY_NONTOLERANT_FILE = new File(TEST_DIR, "resource-dummy-nontolerant.xml");
+	protected static final String RESOURCE_DUMMY_NONTOLERANT_OID = "a09869c0-a7c3-11e9-85ac-6f2cafd8f0c2";
+	protected static final String RESOURCE_DUMMY_NONTOLERANT_NAME = "nontolerant";
 
 	private static final String JACK_TITLE_WHATEVER_UPPER = "WHATEVER";
 	private static final String JACK_TITLE_WHATEVER_LOWER = "whatever";
@@ -77,6 +81,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 	private static final String JACK_MAD_DRINK_1 = "DrinkMe";
 	private static final String JACK_MAD_DRINK_2 = "DrinkMeAgain";
 
+	private static final String JACK_QUOTE = "Where's the rum?";
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -84,6 +90,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		initDummyResourcePirate(RESOURCE_DUMMY_TOLERANT_NAME, RESOURCE_DUMMY_TOLERANT_FILE, RESOURCE_DUMMY_TOLERANT_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, RESOURCE_DUMMY_TOLERANT_RANGE_FILE, RESOURCE_DUMMY_TOLERANT_RANGE_OID, initTask, initResult);
 		initDummyResourcePirate(RESOURCE_DUMMY_SMART_RANGE_NAME, RESOURCE_DUMMY_SMART_RANGE_FILE, RESOURCE_DUMMY_SMART_RANGE_OID, initTask, initResult);
+		initDummyResourcePirate(RESOURCE_DUMMY_NONTOLERANT_NAME, RESOURCE_DUMMY_NONTOLERANT_FILE, RESOURCE_DUMMY_NONTOLERANT_OID, initTask, initResult);
 		
 		modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, initTask, initResult, createPolyString(JACK_TITLE_PIRATE));
 	}
@@ -105,36 +112,18 @@ public class TestMappingMadness extends AbstractStoryTest {
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
         assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_SMART_RANGE_OID, null, task, result);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
 		assertSuccess(result);
 		
-		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
-			.assertFullName(USER_JACK_FULL_NAME)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_PIRATE)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_PIRATE));
-		
-		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
-			.assertFullName(USER_JACK_FULL_NAME)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_PIRATE)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_PIRATE));
-		
-		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
-			.assertFullName(USER_JACK_FULL_NAME)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_PIRATE)
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_PIRATE))
-			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_PIRATE));
+		assertJackPirateAccount(RESOURCE_DUMMY_TOLERANT_NAME);
+		assertJackPirateAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME);
+		assertJackPirateAccount(RESOURCE_DUMMY_SMART_RANGE_NAME);
+		assertJackPirateAccount(RESOURCE_DUMMY_NONTOLERANT_NAME);
 	}
-
+	
 	/**
 	 * Change title from pirate to captain. Mapping madness begins.
 	 * See the comments in the code for explanation.
@@ -146,6 +135,8 @@ public class TestMappingMadness extends AbstractStoryTest {
 		
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        setAccountQuotes();
 
 		// WHEN
         displayWhen(TEST_NAME);
@@ -188,6 +179,16 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
 			// This mapping is non-authoritative. But the old value (pirate) is in mapping range and it is not produced by the mapping. It should be gone.
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
+		
+		assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_CAPTAIN))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_CAPTAIN)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_CAPTAIN))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
+		
+		assertAccountQuotes();
 	}
 	
 	/**
@@ -237,7 +238,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 		
 		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
 			.assertFullName(USER_JACK_FULL_NAME)
-			// Mappings for title, ship and weapon and authoritative. 
+			// Mappings for title, ship and weapon are authoritative. 
 			// Therefore the value is explicitly removed even if it is not in the range.
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
@@ -246,6 +247,21 @@ public class TestMappingMadness extends AbstractStoryTest {
 			// Therefore the old value (captain) is not in mapping range. It should stay.
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
+
+		// Mapping will produce nothing. Those are non-tolerant attributes. Nothing means nothing. All values removed.
+		assertNoAttributes(assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME));
+		
+		assertAccountQuotes();
+	}
+
+	private void assertNoAttributes(DummyAccountAsserter<Void> asserter) {
+		asserter
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
 	}
 
 	/**
@@ -293,6 +309,10 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME)
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_CAPTAIN))
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
+		
+		assertNoAttributes(assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME));
+		
+		assertAccountQuotes();
 	}
 	
 	/**
@@ -307,6 +327,9 @@ public class TestMappingMadness extends AbstractStoryTest {
 		
 		Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
+        
+        // Make sure that quotes are re-set. Especially in the nontolerant resource.
+        setAccountQuotes();
         
         setAccountMad(getDummyAccount(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME));
         setAccountMad(getDummyAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME));
@@ -324,6 +347,12 @@ public class TestMappingMadness extends AbstractStoryTest {
 		assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
 		assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME);
 		assertJackMadAccount(RESOURCE_DUMMY_SMART_RANGE_NAME);
+		
+		// Mapping will produce nothing. Those are non-tolerant attributes. Nothing means nothing.
+		// All the mad values should be removed. 
+		assertNoAttributes(assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME));
+		
+		assertAccountQuotes();
 	}
 	
 	/**
@@ -350,6 +379,9 @@ public class TestMappingMadness extends AbstractStoryTest {
 		assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_NAME);
 		assertJackMadAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME);
 		assertJackMadAccount(RESOURCE_DUMMY_SMART_RANGE_NAME);
+		assertNoAttributes(assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME));
+		
+		assertAccountQuotes();
 	}
 	
 	/**
@@ -387,6 +419,10 @@ public class TestMappingMadness extends AbstractStoryTest {
 			// Non-authoritative mappings. But the range is "all". Values should be gone.
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME)
 			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+		
+		assertNoAttributes(assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME));
+	
+		assertAccountQuotes();
 	}
 
 	@Test
@@ -402,6 +438,8 @@ public class TestMappingMadness extends AbstractStoryTest {
         
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_OID, null, task, result);
         unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_TOLERANT_RANGE_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_SMART_RANGE_OID, null, task, result);
+        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_NONTOLERANT_OID, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -409,6 +447,40 @@ public class TestMappingMadness extends AbstractStoryTest {
 		
 		assertNoDummyAccount(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME);
+		assertNoDummyAccount(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME);
+	}
+	
+	private void setAccountQuotes() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		getDummyAccount(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
+			.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		getDummyAccount(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
+			.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		getDummyAccount(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		getDummyAccount(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME)
+			.replaceAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+	}
+
+	private void assertAccountQuotes() throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_NAME, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		assertDummyAccountByUsername(RESOURCE_DUMMY_TOLERANT_RANGE_NAME, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		assertDummyAccountByUsername(RESOURCE_DUMMY_SMART_RANGE_NAME, USER_JACK_USERNAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, JACK_QUOTE);
+		assertDummyAccountByUsername(RESOURCE_DUMMY_NONTOLERANT_NAME, USER_JACK_USERNAME)
+			.assertNoAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME);
+	}
+	
+	private void assertJackPirateAccount(String dummyName) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		assertDummyAccountByUsername(dummyName, USER_JACK_USERNAME)
+			.assertFullName(USER_JACK_FULL_NAME)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, JACK_TITLE_PIRATE)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, shipize(JACK_TITLE_PIRATE))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, weaponize(JACK_TITLE_PIRATE))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, locationize(JACK_TITLE_PIRATE))
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_PIRATE));
 	}
 	
 	private DummyAccount setAccountMad(DummyAccount dummyAccount) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {

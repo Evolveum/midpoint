@@ -217,12 +217,11 @@
 			</attribute>
 			<attribute>
 				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>false</tolerant>
+				<tolerant>true</tolerant>
+				<!-- No mapping here -->
 			</attribute>
             <attribute>
                 <ref>ri:gossip</ref>
-                <displayName>Gossip</displayName>
                 <tolerant>true</tolerant>
             </attribute>
             <attribute>
