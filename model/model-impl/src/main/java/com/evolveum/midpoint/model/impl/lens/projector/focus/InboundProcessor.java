@@ -1108,11 +1108,8 @@ public class InboundProcessor {
 		// The decision is that default behavior for single-value properties is to be non-tolerant. This is intuitive behavior.
 		// And as single-value properties cannot have more than one value anyway, it does not really has a big potential for any harm.
 		
-		boolean tolerateTargetValues = true;
-		if (outputDefinition.isSingleValue() && !rangeCompletelyDefined) {
-			tolerateTargetValues = false;
-		}
-		
+		boolean tolerateTargetValues = !outputDefinition.isSingleValue() || rangeCompletelyDefined;
+
 		if (targetFocusItem != null) {
 			ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
 			if (LOGGER.isTraceEnabled()) {
