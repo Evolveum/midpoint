@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -152,7 +153,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	}
 
 	protected SearchResultList<CaseWorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(CaseWorkItemType.class, null, null, task, result);
+		ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+				.item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+				.build();
+		return modelService.searchContainers(CaseWorkItemType.class, query, null, task, result);
 	}
 
 	protected ObjectReferenceType ort(String oid) {

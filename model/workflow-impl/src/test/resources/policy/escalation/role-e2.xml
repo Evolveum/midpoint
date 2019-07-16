@@ -14,6 +14,8 @@
   ~ limitations under the License.
   -->
 
+<!-- does NOT have "metarole-escalated" assigned -->
+
 <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	  oid="bb38a7fc-8610-49b0-a76d-7b01cb8a6de1">
 	<name>role-e2</name>
