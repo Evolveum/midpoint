@@ -32,8 +32,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * @author skublik
@@ -56,14 +62,29 @@ public abstract class SqlQuery {
         	Date date = MiscUtil.asDate((XMLGregorianCalendar) value);
         	return new Timestamp(date.getTime());
         	
+        } else if (value instanceof Date) {
+        	return new Timestamp(((Date)value).getTime());
+        	
         } else if (value instanceof AuditEventType) {
-        	return AuditEventType.fromAuditEventType(((AuditEventType) value)).ordinal();
+        	return RAuditEventType.toRepo((AuditEventType) value).ordinal();
+        	
+        } else if (value instanceof AuditEventTypeType) {
+        	return RAuditEventType.toRepo(
+        			AuditEventType.toAuditEventType((AuditEventTypeType) value)).ordinal();
         	
         } else if (value instanceof AuditEventStage) {
-        	return AuditEventStage.fromAuditEventStage(((AuditEventStage) value)).ordinal();
+        	return RAuditEventStage.toRepo((AuditEventStage) value).ordinal();
+        	
+        } else if (value instanceof AuditEventStageType) {
+        	return RAuditEventStage.toRepo(
+        			AuditEventStage.toAuditEventStage((AuditEventStageType) value)).ordinal();
+        	
+        } else if (value instanceof OperationResultStatusType) {
+        	return ROperationResultStatus.toRepo((OperationResultStatusType) value).ordinal();
         	
         } else if (value instanceof OperationResultStatus) {
-        	return OperationResultStatus.createStatusType(((OperationResultStatus) value)).ordinal();
+        	return ROperationResultStatus.toRepo(
+        			OperationResultStatus.createStatusType((OperationResultStatus) value)).ordinal();
         	
         } else if (value.getClass().isEnum()) {
         	return ((Enum) value).ordinal();
