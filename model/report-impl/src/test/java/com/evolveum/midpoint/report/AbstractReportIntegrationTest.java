@@ -74,6 +74,15 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
 
 	protected final static File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
+	
+	protected final static File USER_READER_FILE = new File(TEST_DIR_COMMON, "user-reader.xml");
+	protected final static String USER_READER_USERNAME = "reader";
+	protected final static File USER_RUNNER_FILE = new File(TEST_DIR_COMMON, "user-runner.xml");
+	protected final static String USER_RUNNER_USERNAME = "runner";
+	protected final static File USER_READER_RUNNER_FILE = new File(TEST_DIR_COMMON, "user-reader-runner.xml");
+	protected final static String USER_READER_RUNNER_USERNAME = "reader-runner";
+	protected final static File ROLE_READER_FILE = new File(TEST_DIR_COMMON, "role-reader.xml");
+	protected final static File ROLE_RUNNER_FILE = new File(TEST_DIR_COMMON, "role-runner.xml");
 
 	@Autowired protected ReportManager reportManager;
 	@Autowired
@@ -86,7 +95,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		repoAddObjectFromFile(USER_JACK_FILE, true, initResult).asObjectable();
+		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		// System Configuration
 		modelService.postInit(initResult);

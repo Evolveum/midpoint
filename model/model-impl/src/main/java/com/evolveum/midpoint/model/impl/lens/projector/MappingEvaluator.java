@@ -99,9 +99,10 @@ public class MappingEvaluator {
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(
 			MappingImpl<V,D> mapping, LensContext<F> lensContext, LensProjectionContext projContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-    	ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+    	ExpressionEnvironment<F,V,D> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setProjectionContext(projContext);
+		env.setMapping(mapping);
 		env.setCurrentResult(parentResult);
 		env.setCurrentTask(task);
 		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);

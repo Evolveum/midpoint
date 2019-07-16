@@ -19,7 +19,11 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismValueWrapper;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -28,6 +32,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.testng.AssertJUnit;
 
@@ -41,27 +46,32 @@ import static org.testng.AssertJUnit.*;
  */
 public class WrapperTestUtil {
 	
-//	public static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... newValues) {
-//		ItemWrapperOld itemWrapper = containerWrapper.findPropertyWrapper(itemPath);
-//		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
-//		fillInPropertyWrapper(containerWrapper, itemWrapper, itemPath.lastName(), newValues);
-//	}
-//	
-//	private static <C extends Containerable,T> void fillInPropertyWrapper(ContainerValueWrapper<C> containerWrapper, ItemWrapperOld itemWrapper, QName itemName, T... newValues) {
-//		for (T newValue: newValues) {
-//			List<ValueWrapperOld> valueWrappers = itemWrapper.getValues();
-//			ValueWrapperOld lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
-//			PrismPropertyValue<T> pval = (PrismPropertyValue<T>) lastValueWrapper.getValue();
-//			if (!isEmptyValue(pval)) {
-//				itemWrapper.addValue(true);
-//				valueWrappers = itemWrapper.getValues();
-//				lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
-//				pval = (PrismPropertyValue<T>) lastValueWrapper.getValue();
-//			}
-//			pval.setValue(newValue);
-//		}
-//	}
+	public static <C extends Containerable,T> void fillInPropertyWrapper(ModelServiceLocator modelServiceLocator, PrismContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... newValues) throws SchemaException {
+		PrismPropertyWrapper itemWrapper = containerWrapper.findProperty(itemPath);
+		assertNotNull("No item wrapper for path "+itemPath+" in "+containerWrapper, itemWrapper);
+		fillInPropertyWrapper(modelServiceLocator, itemWrapper, itemPath.lastName(), newValues);
+	}
 
+	private static <C extends Containerable,T> void fillInPropertyWrapper(ModelServiceLocator modelServiceLocator, PrismPropertyWrapper itemWrapper, ItemName itemName, T... newValues) throws SchemaException {
+		for (T newValue: newValues) {
+			List<PrismValueWrapper> valueWrappers = itemWrapper.getValues();
+			PrismValueWrapper lastValueWrapper = valueWrappers.get(valueWrappers.size() - 1);
+			PrismPropertyValue<T> pval = (PrismPropertyValue<T>) lastValueWrapper.getNewValue();
+//			if (!isEmptyValue(pval)) {
+//				PrismPropertyValue<T> newPropertyValue = modelServiceLocator.getPrismContext().itemFactory().createPropertyValue();
+//				newPropertyValue.setValue(newValue);
+//				WrapperContext context = new WrapperContext(modelServiceLocator.getPageTask(), modelServiceLocator.getPageTask().getResult());
+//				context.setShowEmpty(true);
+//				context.setCreateIfEmpty(true);
+//				context.setObjectStatus(itemWrapper.findObjectStatus());
+//				PrismPropertyValueWrapper newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newPropertyValue, ValueStatus.ADDED, context);
+//				itemWrapper.getValues().add(newValueWrapper);
+//
+//				pval = (PrismPropertyValue<T>) newValueWrapper.getNewValue();
+//			}
+			pval.setValue(newValue);
+		}
+	}
 
 	public static <C extends Containerable,T> void assertPropertyWrapper(PrismContainerValueWrapper<C> containerWrapper, ItemPath itemPath, T... expectedValues) throws SchemaException {
 		ItemWrapper itemWrapper = containerWrapper.findItem(itemPath, ItemWrapper.class);
@@ -90,7 +100,7 @@ public class WrapperTestUtil {
 			return;
 		}
 		for (PrismValueWrapper vw: valueWrappers) {
-			PrismValue actualPval = vw.getOldValue();
+			PrismValue actualPval = vw.getNewValue();
 			if (actualPval instanceof PrismPropertyValue<?>) {
 				T actualValue = ((PrismPropertyValue<T>)actualPval).getValue();
 				if (expectedValues == null || expectedValues.length == 0 || ( expectedValues.length == 1 && expectedValues[0] == null)) {
@@ -130,7 +140,7 @@ public class WrapperTestUtil {
 	}
 
 	public static <C extends Containerable, O extends ObjectType> void assertWrapper(PrismContainerWrapper<C> containerWrapper, String displayName,
-                                                                                     ItemPath expectedPath, PrismObject<O> object, ItemStatus status) {
+                                                                                     ItemPath expectedPath, PrismObject<O> object, ItemStatus status) throws SchemaException {
 		PrismContainer<C> container;
 		if (expectedPath == null) {
 			container = (PrismContainer<C>) object;
@@ -141,7 +151,7 @@ public class WrapperTestUtil {
 	}
 
 	public static <C extends Containerable> void assertWrapper(PrismContainerWrapper<C> containerWrapper, String displayName, ItemPath expectedPath,
-                                                               PrismContainer<C> container, boolean isMain, ItemStatus status) {
+                                                               PrismContainer<C> container, boolean isMain, ItemStatus status) throws SchemaException {
 		assertNotNull("null wrapper", containerWrapper);
 		PrismAsserts.assertEquivalent("Wrong path in wrapper " + containerWrapper,
 				expectedPath == null ? ItemPath.EMPTY_PATH : expectedPath, containerWrapper.getPath());
@@ -149,7 +159,7 @@ public class WrapperTestUtil {
 		if (container != null) {
 			assertEquals("Wrong item in wrapper "+containerWrapper, container, containerWrapper.getItem());
 		}
-		assertEquals("Wrong displayName in wrapper "+containerWrapper, displayName, containerWrapper.getDisplayName());
+		assertEquals("Wrong displayName in wrapper "+containerWrapper, displayName, containerWrapper.getValue().getDisplayName());
 		assertEquals("Wrong status in wrapper "+containerWrapper, status, containerWrapper.getStatus());
 	}
 
@@ -161,7 +171,7 @@ public class WrapperTestUtil {
 			assertEquals("Wrong old object in wrapper " + objectWrapper, objectOld, objectWrapper.getObjectOld());
 		}
 		assertFalse("object and old object not clonned in "+objectWrapper, objectWrapper.getObject() == objectWrapper.getObjectOld());
-		assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getDisplayName());
+		assertEquals("Wrong displayName in wrapper "+objectWrapper, displayName, objectWrapper.getValue().getDisplayName());
 //		assertEquals("Wrong description in wrapper "+objectWrapper, description, objectWrapper.getDescription());
 		assertEquals("Wrong status in wrapper "+objectWrapper, status, objectWrapper.getStatus());
 //		assertNull("Unexpected old delta in "+objectWrapper, objectWrapper.getOldDelta());

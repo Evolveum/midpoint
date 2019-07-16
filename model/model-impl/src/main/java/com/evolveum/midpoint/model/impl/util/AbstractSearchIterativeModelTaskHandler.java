@@ -86,7 +86,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
 					configuration != null ? configuration.asObjectable() : null, prismContext);
 			try {
-				ExpressionEnvironment<?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
+				ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
 				ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
 				query = ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(), expressionFactory,
 						prismContext, "evaluate query expressions", coordinatorTask, opResult);

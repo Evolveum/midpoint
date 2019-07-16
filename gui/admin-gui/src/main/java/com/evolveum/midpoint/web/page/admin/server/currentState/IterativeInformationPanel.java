@@ -339,27 +339,25 @@ public class IterativeInformationPanel extends BasePanel<TaskCurrentStateDto> {
         });
         add(currentObjectProcessedTime);
 
-        Label objectsTotal = new Label(ID_OBJECTS_TOTAL, new IModel<String>() {
-            @Override
-            public String getObject() {
-                TaskCurrentStateDto dto = getModelObject();
-                if (dto == null) {
-                    return null;
-                }
-                IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
-                if (info == null) {
-                    return null;
-                }
-                int objectsTotal = info.getTotalSuccessCount() + info.getTotalFailureCount();
-                if (WALL_CLOCK_AVG_CATEGORIES.contains(dto.getTaskDto().getCategory())) {
-                    Long avg = getWallClockAverage(dto, objectsTotal);
-                    if (avg != null) {
-                        return getString("TaskStatePanel.message.objectsTotal",
-                                objectsTotal, avg);
-                    }
-                }
-                return String.valueOf(objectsTotal);
+        Label objectsTotal = new Label(ID_OBJECTS_TOTAL, (IModel<String>) () -> {
+            TaskCurrentStateDto dto = getModelObject();
+            if (dto == null) {
+                return null;
             }
+            IterativeTaskInformationType info = dto.getIterativeTaskInformationType();
+            if (info == null) {
+                return null;
+            }
+            int objectsTotal1 = info.getTotalSuccessCount() + info.getTotalFailureCount();
+            if (WALL_CLOCK_AVG_CATEGORIES.contains(dto.getTaskDto().getCategory())) {
+                Long avg = getWallClockAverage(dto, objectsTotal1);
+                if (avg != null) {
+                    long throughput = avg != 0 ? 60000 / avg : 0;       // TODO what if avg == 0?
+                    return getString("TaskStatePanel.message.objectsTotal",
+                            objectsTotal1, avg, throughput);
+                }
+            }
+            return String.valueOf(objectsTotal1);
         });
         add(objectsTotal);
     }

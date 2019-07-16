@@ -310,7 +310,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             if (!minusIvwos.isEmpty() && plusIvwos.isEmpty()) {
             	boolean weakOnly = true;
             	boolean hasStrong = false;
-            	boolean hasAuthoritative = false;
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<V,D> pvwo : minusIvwos) {
@@ -321,14 +320,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     	hasStrong = true;
                     }
-                    if (mapping.isAuthoritative()) {
-                        hasAuthoritative = true;
-                    }
-                }
-                if (!hasAuthoritative) {
-                	LOGGER.trace("Value {} has no authoritative mapping for item {}, skipping deletion in {}",
-							value, itemPath, contextDescription);
-                	continue;
                 }
                 if (!hasStrong && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
                     // There is already a delta, skip this
@@ -360,21 +351,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             if (!zeroIvwos.isEmpty()) {
-            	boolean weakOnly = true;
             	boolean hasStrong = false;
-            	boolean hasAuthoritative = false;
             	// There may be several mappings that imply that value. So check them all for
                 // exclusions and strength
                 for (ItemValueWithOrigin<V,D> pvwo : zeroIvwos) {
                 	PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
-                    if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                        weakOnly = false;
-                    }
                     if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     	hasStrong = true;
-                    }
-                    if (mapping.isAuthoritative()) {
-                        hasAuthoritative = true;
                     }
                 }
 

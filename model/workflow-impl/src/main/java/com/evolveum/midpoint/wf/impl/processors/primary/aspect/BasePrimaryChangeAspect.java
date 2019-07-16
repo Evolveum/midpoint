@@ -122,7 +122,7 @@ public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect, Be
 	private <O extends ObjectType, F extends ObjectType> List<ObjectReferenceType> resolveReferenceFromFilter(Class<O> clazz, SearchFilterType filter, String sourceDescription,
 			LensContext<F> lensContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setCurrentResult(result);
 		env.setCurrentTask(task);

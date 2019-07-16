@@ -156,6 +156,12 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
 
         try {
             ReportType parentReport = objectResolver.resolve(task.getObjectRefOrClone(), ReportType.class, null, "resolving report", task, result);
+            
+            if (!reportService.isAuthorizedToRunReport(parentReport.asPrismObject(), task, parentResult)) {
+        		LOGGER.error("Task {} is not authorized to run report {}", task, parentReport);
+        		throw new SecurityViolationException("Not authorized");
+        	}
+            
             Map<String, Object> parameters = completeReport(parentReport, task, result);
 
             JasperReport jasperReport = loadJasperReport(parentReport);
