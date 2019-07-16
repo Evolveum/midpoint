@@ -502,10 +502,10 @@ public class TestOrgSync extends AbstractStoryTest {
 	 * Remove "canibalism" responsibility from redskull.
 	 */
 	@Test
-	public void test108RedskullGoesVegeratian() throws Exception {
-		final String TEST_NAME = "test108RedskullGoesVegeratian";
+	public void test108RedskullGoesVegetarian() throws Exception {
+		final String TEST_NAME = "test108RedskullGoesVegetarian";
 		displayTestTitle(TEST_NAME);
-		Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOrgSync.class.getName() + "." + TEST_NAME);
 
 		DummyAccount account = dummyResourceHr.getAccountByUsername(ACCOUNT_REDSKULL_USERNAME);
 
@@ -1287,7 +1287,7 @@ public class TestOrgSync extends AbstractStoryTest {
 			CommunicationException, ConfigurationException, DirectoryException, ExpressionEvaluationException {
 		String respRoleName = "R_" + respName;
 		PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
-		assertNotNull("No role for responsibility " + respName);
+		assertNotNull("No role for responsibility " + respName, respRole);
 		display("Responsibility role for " + respName, respRole);
 		assertNotAssignedRole(user, respRole.getOid());
 

@@ -1195,7 +1195,7 @@ public class InboundProcessor {
     	}
     	
     	if (tolerantCount > 0 && intolerantCount > 0) {
-    		throw new SchemaException("Incorrect configuration. There cannot be different 'tolernt' settings for the target item " + mappingStructs.iterator().next().getMapping().getOutputDefinition());
+    		throw new SchemaException("Incorrect configuration. There cannot be different 'tolerant' settings for the target item " + mappingStructs.iterator().next().getMapping().getOutputDefinition());
     	}
     	
     }
