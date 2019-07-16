@@ -88,6 +88,9 @@ public class TestMappingMadness extends AbstractStoryTest {
 		modifyUserReplace(USER_JACK_OID, UserType.F_TITLE, initTask, initResult, createPolyString(JACK_TITLE_PIRATE));
 	}
 	
+	/**
+	 * Just a basic setup. Create the accounts with title=pirate.
+	 */
 	@Test
 	public void test100AssignJackDummyAccounts() throws Exception {
 		final String TEST_NAME = "test100AssignJackDummyAccounts";
@@ -132,6 +135,10 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_PIRATE));
 	}
 
+	/**
+	 * Change title from pirate to captain. Mapping madness begins.
+	 * See the comments in the code for explanation.
+	 */
 	@Test
 	public void test105ModifyJackTitleCaptain() throws Exception {
 		final String TEST_NAME = "test105ModifyJackTitleCaptain";
@@ -185,6 +192,7 @@ public class TestMappingMadness extends AbstractStoryTest {
 	
 	/**
 	 * Switch title to WHATEVER. This means that mappings will produce null.
+	 * 
 	 * Authoritative mappings should still remove the value.
 	 * Non-authoritative mappings should keep the values.
 	 */
@@ -240,6 +248,9 @@ public class TestMappingMadness extends AbstractStoryTest {
 			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, drinkize(JACK_TITLE_CAPTAIN));
 	}
 
+	/**
+	 * Just to make sure that situation is stable (reconcile will not ruin anything).
+	 */
 	@Test
 	public void test112ReconcileJackWhatever() throws Exception {
 		final String TEST_NAME = "test112ReconcileJackWhatever";
@@ -343,6 +354,9 @@ public class TestMappingMadness extends AbstractStoryTest {
 	
 	/**
 	 * Change title to no value. This means that mapping will also produce no value.
+	 * This will not really affect tolerant and tolerant-range resources. In that case
+	 * it is the same situation as "whatever". But smart-range resource behaves differently.
+	 * No value in title means that range is NOT reduced. Therefore the old values are gone.
 	 */
 	@Test
 	public void test140ModifyJackTitleEmpty() throws Exception {

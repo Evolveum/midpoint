@@ -181,7 +181,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<!-- Singlevalue, tolerant, empty range -->
+				<!-- Singlevalue, tolerant, smart range -->
 				<ref>ri:ship</ref>
 				<tolerant>true</tolerant>
 				<outbound>
@@ -222,7 +222,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<!-- Multivalue, tolerant, empty range, absolute -->
+				<!-- Multivalue, tolerant, smart range, absolute -->
 				<ref>ri:weapon</ref>
 				<tolerant>true</tolerant>
 				<outbound>
@@ -264,7 +264,7 @@
 				</outbound>
 			</attribute>
 			<attribute>
-				<!-- Multivalue, tolerant, empty range, non-authoritative -->
+				<!-- Multivalue, tolerant, smart range, non-authoritative -->
 				<ref>ri:drink</ref>
 				<tolerant>true</tolerant>
 				<outbound>
