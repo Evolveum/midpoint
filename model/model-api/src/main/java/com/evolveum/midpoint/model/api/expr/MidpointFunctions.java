@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -1130,6 +1131,8 @@ public interface MidpointFunctions {
 	<F extends ObjectType> ModelElementContext<F> getFocusContext();
 
 	ModelProjectionContext getProjectionContext();
+	
+	<V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping();
 	
 	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
 			throws SchemaException, ObjectNotFoundException,

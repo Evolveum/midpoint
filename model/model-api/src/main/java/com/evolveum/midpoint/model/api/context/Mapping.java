@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,4 +29,7 @@ public interface Mapping<V extends PrismValue,D extends ItemDefinition> {
 	 */
 	Long getEtime();
 
+	<T> T getStateProperty(String propertyName);
+	
+	<T> T setStateProperty(String propertyName, T value);
 }

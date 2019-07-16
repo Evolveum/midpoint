@@ -1757,7 +1757,7 @@ public class ChangeExecutor {
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task,
 				result);
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, 
+		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, 
 				objectContext instanceof LensProjectionContext ? (LensProjectionContext) objectContext : null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = ModelExpressionThreadLocalHolder
 				.evaluateExpressionInContext(expression, params, env);
