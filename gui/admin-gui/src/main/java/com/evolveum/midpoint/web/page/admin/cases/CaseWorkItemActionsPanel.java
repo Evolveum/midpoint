@@ -85,6 +85,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
                         getCustomForm(), getPowerDonor(), true, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
+                		CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
+
             }
         };
         workItemApproveButton.setOutputMarkupId(true);
@@ -97,6 +99,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                 WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
                         getCustomForm(), getPowerDonor(), false, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
+                CaseWorkItemActionsPanel.this.getPageBase().redirectBack();
             }
         };
         workItemRejectButton.setOutputMarkupId(true);

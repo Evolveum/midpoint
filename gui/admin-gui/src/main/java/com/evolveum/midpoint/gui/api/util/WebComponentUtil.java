@@ -3991,7 +3991,6 @@ public final class WebComponentUtil {
 			}
 		}
 		pageBase.processResult(target, result, false);
-//		pageBase.redirectBack();
 	}
 
 	public static void assumePowerOfAttorneyIfRequested(OperationResult result, PrismObject<UserType> powerDonor, PageBase pageBase) {
