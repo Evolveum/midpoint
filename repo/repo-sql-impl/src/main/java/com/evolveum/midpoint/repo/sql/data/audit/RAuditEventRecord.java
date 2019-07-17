@@ -706,8 +706,8 @@ public class RAuditEventRecord implements Serializable {
         }
         queryBulder.addParameter(CHANNEL_COLUMN_NAME, record.getChannel());
         queryBulder.addParameter(TIMESTAMP_VALUE_COLUMN_NAME, new Timestamp(record.getTimestamp()));
-        queryBulder.addParameter(EVENT_STAGE_COLUMN_NAME, record.getEventStage());
-    	queryBulder.addParameter(EVENT_TYPE_COLUMN_NAME, record.getEventType());
+        queryBulder.addParameter(EVENT_STAGE_COLUMN_NAME, RAuditEventStage.toRepo(record.getEventStage()));
+    	queryBulder.addParameter(EVENT_TYPE_COLUMN_NAME, RAuditEventType.toRepo(record.getEventType()));
     	queryBulder.addParameter(SESSION_IDENTIFIER_COLUMN_NAME, record.getSessionIdentifier());
     	queryBulder.addParameter(EVENT_IDENTIFIER_COLUMN_NAME, record.getEventIdentifier());
     	queryBulder.addParameter(HOST_IDENTIFIER_COLUMN_NAME, record.getHostIdentifier());
@@ -715,7 +715,12 @@ public class RAuditEventRecord implements Serializable {
     	queryBulder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
     	queryBulder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
     	queryBulder.addParameter(MESSAGE_COLUMN_NAME, record.getMessage());
-        queryBulder.addParameter(OUTCOME_COLUMN_NAME, record.getOutcome());
+    	if(record.getOutcome() != null) {
+        queryBulder.addParameter(OUTCOME_COLUMN_NAME, RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
+                ROperationResultStatus.class));
+    	} else {
+    		queryBulder.addParameter(OUTCOME_COLUMN_NAME, null);
+    	}
         queryBulder.addParameter(REQUEST_IDENTIFIER_COLUMN_NAME, record.getRequestIdentifier());
     	queryBulder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
     	queryBulder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOID());
@@ -768,10 +773,10 @@ public class RAuditEventRecord implements Serializable {
         audit.setChannel(resultSet.getString(CHANNEL_COLUMN_NAME));
         audit.setEventIdentifier(resultSet.getString(EVENT_IDENTIFIER_COLUMN_NAME));
         if (resultSet.getObject(EVENT_STAGE_COLUMN_NAME) != null) {
-            audit.setEventStage(AuditEventStage.values()[resultSet.getInt(EVENT_STAGE_COLUMN_NAME)]);
+            audit.setEventStage(RAuditEventStage.values()[resultSet.getInt(EVENT_STAGE_COLUMN_NAME)].getStage());
         }
         if (resultSet.getObject(EVENT_TYPE_COLUMN_NAME) != null) {
-            audit.setEventType(AuditEventType.values()[resultSet.getInt(EVENT_TYPE_COLUMN_NAME)]);
+            audit.setEventType(RAuditEventType.values()[resultSet.getInt(EVENT_TYPE_COLUMN_NAME)].getType());
         }
         audit.setHostIdentifier(resultSet.getString(HOST_IDENTIFIER_COLUMN_NAME));
         audit.setRemoteHostAddress(resultSet.getString(REMOTE_HOST_ADDRESS_COLUMN_NAME));
@@ -779,8 +784,8 @@ public class RAuditEventRecord implements Serializable {
         audit.setMessage(resultSet.getString(MESSAGE_COLUMN_NAME));
 
         if (resultSet.getObject(OUTCOME_COLUMN_NAME) != null) {
-            audit.setOutcome(OperationResultStatus.parseStatusType(
-            		OperationResultStatusType.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)]));
+            audit.setOutcome(
+            		ROperationResultStatus.values()[resultSet.getInt(OUTCOME_COLUMN_NAME)].getStatus());
         }
         audit.setParameter(resultSet.getString(PARAMETER_COLUMN_NAME));
         audit.setResult(resultSet.getString(RESULT_COLUMN_NAME));

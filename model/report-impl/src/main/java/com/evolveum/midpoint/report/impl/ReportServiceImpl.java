@@ -339,16 +339,11 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	private Collection<FunctionLibrary> createFunctionLibraries() {
-//		FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext,
-//				prismContext.getDefaultProtector());
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
 		ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaHelper, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
-//
-//		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
-//		mp.
 
 		Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(basicFunctionLibrary);
@@ -432,5 +427,11 @@ public class ReportServiceImpl implements ReportService {
 	@Override
 	public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return model.getObject(ReportType.class, reportOid, null, task, result);
+	}
+
+	@Override
+	public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
+		return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
 	}
 }

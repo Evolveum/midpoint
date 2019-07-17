@@ -89,7 +89,7 @@
             <default>true</default>
             <objectClass>ri:inetOrgPerson</objectClass>
             <auxiliaryObjectClassMappings>
-            	<tolerant>true</tolerant>
+            	<tolerant>true</tolerant>			<!-- because of outbound processing? -->
             	<inbound>
             		<expression>
             			<script>
@@ -98,6 +98,9 @@
             		</expression>
             		<target>
             			<path>organizationalUnit</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
             		</target>
             	</inbound>
             </auxiliaryObjectClassMappings>

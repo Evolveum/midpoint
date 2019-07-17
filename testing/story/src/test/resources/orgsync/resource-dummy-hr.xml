@@ -94,6 +94,9 @@
 				<inbound>
 					<target>
 						<path>extension/ext:responsibility</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
 					</target>
 				</inbound>
 			</attribute>
