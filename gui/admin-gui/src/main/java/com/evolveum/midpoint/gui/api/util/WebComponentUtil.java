@@ -46,11 +46,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -204,10 +206,6 @@ import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -3893,6 +3891,83 @@ public final class WebComponentUtil {
 		}
 		return null;
 	}
+
+	public static void workItemApproveActionPerformed(AjaxRequestTarget target, CaseWorkItemType workItem, AbstractWorkItemOutputType workItemOutput,
+												Component formPanel, PrismObject<UserType> powerDonor, boolean approved, String operation, PageBase pageBase) {
+		if (workItem == null){
+			return;
+		}
+		CaseType parentCase = CaseWorkItemUtil.getCase(workItem);
+		OperationResult result;
+		if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
+			Task task = pageBase.createSimpleTask(operation);
+			result = new OperationResult(operation);
+			try {
+				AbstractWorkItemOutputType output = workItem.getOutput();
+				if (output == null) {
+					output = new AbstractWorkItemOutputType(pageBase.getPrismContext());
+				}
+				output.setOutcome(ApprovalUtils.toUri(approved));
+				if (workItemOutput != null && workItemOutput.getComment() != null){
+					output.setComment(workItemOutput.getComment());
+				}
+				if (workItemOutput != null && workItemOutput.getEvidence() != null){
+					output.setEvidence(workItemOutput.getEvidence());
+				}
+				WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), workItem.getId());
+				pageBase.getWorkflowService().completeWorkItem(workItemId, output, task, result);
+			} catch (Exception ex) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
+				result.recordFatalError(ex);
+			}
+		} else {
+
+			Task task = pageBase.createSimpleTask(operation);
+			result = task.getResult();
+			try {
+				try {
+					ObjectDelta additionalDelta = null;
+					if (formPanel != null && formPanel instanceof DynamicFormPanel) {
+						if (approved) {
+							boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(pageBase);
+							if (!requiredFieldsPresent) {
+								target.add(pageBase.getFeedbackPanel());
+								return;
+							}
+						}
+						additionalDelta = ((DynamicFormPanel<?>) formPanel).getObjectDelta();
+						if (additionalDelta != null) {
+							pageBase.getPrismContext().adopt(additionalDelta);
+						}
+					}
+					assumePowerOfAttorneyIfRequested(result, powerDonor, pageBase);
+					pageBase.getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
+							workItemOutput,
+							additionalDelta, task, result);
+				} finally {
+					dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
+				}
+			} catch (Exception ex) {
+				result.recordFatalError("Couldn't save work item.", ex);
+				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
+			}
+		}
+		pageBase.processResult(target, result, false);
+//		pageBase.redirectBack();
+	}
+
+	public static void assumePowerOfAttorneyIfRequested(OperationResult result, PrismObject<UserType> powerDonor, PageBase pageBase) {
+		if (powerDonor != null) {
+			WebModelServiceUtils.assumePowerOfAttorney(powerDonor, pageBase.getModelInteractionService(), pageBase.getTaskManager(), result);
+		}
+	}
+
+	public static void dropPowerOfAttorneyIfRequested(OperationResult result, PrismObject<UserType> powerDonor, PageBase pageBase) {
+		if (powerDonor != null) {
+			WebModelServiceUtils.dropPowerOfAttorney(pageBase.getModelInteractionService(), pageBase.getTaskManager(), result);
+		}
+	}
+
 
 	@NotNull
 	public static List<SceneDto> computeChangesCategorizationList(ChangesByState changesByState, ObjectReferenceType objectRef,

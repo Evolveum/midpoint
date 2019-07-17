@@ -83,7 +83,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                savePerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), true);
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(true),
+                        getCustomForm(), getPowerDonor(), true, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
             }
         };
         workItemApproveButton.setOutputMarkupId(true);
@@ -94,7 +95,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                savePerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), false);
+                WebComponentUtil.workItemApproveActionPerformed(ajaxRequestTarget, getCaseWorkItemModelObject(), getWorkItemOutput(false),
+                        getCustomForm(), getPowerDonor(), false, OPERATION_COMPLETE_WORK_ITEM, getPageBase());
             }
         };
         workItemRejectButton.setOutputMarkupId(true);
@@ -117,67 +119,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         return getModelObject();
     }
 
-    private void savePerformed(AjaxRequestTarget target, CaseWorkItemType workItem, boolean approved) {
-        CaseType parentCase = CaseWorkItemUtil.getCase(getCaseWorkItemModelObject());
-        OperationResult result;
-        if (CaseTypeUtil.isManualProvisioningCase(parentCase)){
-            Task task = getPageBase().createSimpleTask(OPERATION_COMPLETE_WORK_ITEM);
-            result = new OperationResult(OPERATION_COMPLETE_WORK_ITEM);
-            try {
-                AbstractWorkItemOutputType output = getCaseWorkItemModelObject().getOutput();
-                if (output == null) {
-                    output = new AbstractWorkItemOutputType(getPrismContext());
-                }
-                output.setOutcome(ApprovalUtils.toUri(approved));
-                AbstractWorkItemOutputType workItemOutput = getWorkItemOutput(approved);
-                if (workItemOutput != null && workItemOutput.getComment() != null){
-                    output.setComment(workItemOutput.getComment());
-                }
-                if (workItemOutput != null && workItemOutput.getEvidence() != null){
-                    output.setEvidence(workItemOutput.getEvidence());
-                }
-                WorkItemId workItemId = WorkItemId.create(parentCase.getOid(), getCaseWorkItemModelObject().getId());
-                getPageBase().getWorkflowService().completeWorkItem(workItemId, output, task, result);
-            } catch (Exception ex) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Unable to complete work item, ", ex);
-                result.recordFatalError(ex);
-            }
-        } else {
-
-            Task task = getPageBase().createSimpleTask(OPERATION_SAVE_WORK_ITEM);
-            result = task.getResult();
-            try {
-                try {
-                    Component formPanel = getCustomForm();
-                    ObjectDelta additionalDelta = null;
-                    if (formPanel != null && formPanel instanceof DynamicFormPanel) {
-                        if (approved) {
-                            boolean requiredFieldsPresent = ((DynamicFormPanel<?>) formPanel).checkRequiredFields(getPageBase());
-                            if (!requiredFieldsPresent) {
-                                target.add(getPageBase().getFeedbackPanel());
-                                return;
-                            }
-                        }
-                        additionalDelta = ((DynamicFormPanel<?>) formPanel).getObjectDelta();
-                        if (additionalDelta != null) {
-                            getPrismContext().adopt(additionalDelta);
-                        }
-                    }
-                    assumePowerOfAttorneyIfRequested(result);
-                    getPageBase().getWorkflowService().completeWorkItem(WorkItemId.of(workItem),
-                            getWorkItemOutput(approved),
-                            additionalDelta, task, result);
-                } finally {
-                    dropPowerOfAttorneyIfRequested(result);
-                }
-            } catch (Exception ex) {
-                result.recordFatalError("Couldn't save work item.", ex);
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
-            }
-        }
-        getPageBase().processResult(target, result, false);
-        getPageBase().redirectBack();
-    }
 
     protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
         return new AbstractWorkItemOutputType(getPrismContext())
@@ -211,11 +152,11 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         try {
             List<ObjectReferenceType> delegates = Collections.singletonList(ObjectTypeUtil.createObjectRef(delegate, getPrismContext()));
             try {
-                assumePowerOfAttorneyIfRequested(result);
+                WebComponentUtil.assumePowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
                 getPageBase().getWorkflowService().delegateWorkItem(WorkItemId.of(getModelObject()), delegates, WorkItemDelegationMethodType.ADD_ASSIGNEES,
                         task, result);
             } finally {
-                dropPowerOfAttorneyIfRequested(result);
+                WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }
         } catch (Exception ex) {
             result.recordFatalError("Couldn't delegate work item.", ex);
@@ -227,20 +168,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
     protected Component getCustomForm() {
         return null;
-    }
-
-    private void assumePowerOfAttorneyIfRequested(OperationResult result) {
-        PrismObject<UserType> powerDonor = getPowerDonor();
-        if (powerDonor != null) {
-            WebModelServiceUtils.assumePowerOfAttorney(powerDonor, getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
-        }
-    }
-
-    private void dropPowerOfAttorneyIfRequested(OperationResult result) {
-        PrismObject<UserType> powerDonor = getPowerDonor();
-        if (powerDonor != null) {
-            WebModelServiceUtils.dropPowerOfAttorney(getPageBase().getModelInteractionService(), getPageBase().getTaskManager(), result);
-        }
     }
 
     public PrismObject<UserType> getPowerDonor() {

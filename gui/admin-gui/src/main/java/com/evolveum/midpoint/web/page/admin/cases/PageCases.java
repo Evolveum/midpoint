@@ -226,7 +226,6 @@ public class PageCases extends PageAdminObjectList<CaseType> {
                     result, PageCases.this);
         });
         result.computeStatusComposite();
-        getObjectListPanel().clearCache();
 
         showResult(result);
         target.add(getFeedbackPanel());
@@ -253,7 +252,6 @@ public class PageCases extends PageAdminObjectList<CaseType> {
             }
         });
         result.computeStatusComposite();
-        getObjectListPanel().clearCache();
 
         showResult(result);
         target.add(getFeedbackPanel());
