@@ -45,6 +45,11 @@ public class SceneItemValuePanel extends BasePanel<SceneItemValue> {
 
 	public SceneItemValuePanel(String id, IModel<SceneItemValue> model) {
 		super(id, model);
+	}
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 
