@@ -111,6 +111,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
@@ -2906,6 +2907,43 @@ public final class WebComponentUtil {
 
 	}
 
+	public static boolean isActivationSupported(ShadowType shadowType) {
+		ResourceType resource = shadowType.getResource();
+
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+
+		if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			return true;
+		}
+
+		return false;
+
+	}
+
+	public static boolean isPasswordSupported(ShadowType shadowType) {
+		ResourceType resource = shadowType.getResource();
+
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+
+		if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			return true;
+		}
+
+		return false;
+
+	}
+
+
 	public static boolean isAssociationSupported(ShadowType shadowType) {
 		ResourceType resource = shadowType.getResource();
 
@@ -4050,6 +4088,57 @@ public final class WebComponentUtil {
 		}
 		return Model.of("");
     }
+    
+    public static String getPendingOperationsLabels(ShadowType shadow, BasePanel panel) {
+    	if(shadow == null || shadow.getPendingOperation().isEmpty()) {
+    		return null;
+    	}
+    	StringBuilder sb = new StringBuilder();
+    	List<PendingOperationType> operations = shadow.getPendingOperation();
+    	sb.append("\n").append(panel.getString("DisplayNamePanel.pendingOperation")).append(":");
+		boolean isFirst = true;
+		for(PendingOperationType operation : operations) {
+			if(operation != null) {
+				if(!isFirst) {
+					sb.append(", ");
+				} else {
+				sb.append(" ");
+				}
+				sb.append(getPendingOperationLabel(operation, panel));
+		        isFirst = false;
+			}
+		}
+    	return sb.toString();
+    }
+    
+    public static String getPendingOperationLabel(PendingOperationType realValue, BasePanel panel) {
+		StringBuilder sb = new StringBuilder();
+		boolean empty = true;
+		ObjectDeltaType delta = realValue.getDelta();
+		if(delta != null && delta.getChangeType() != null) {
+			sb.append(panel.getString(delta.getChangeType()));
+			empty = false;
+		}
+		PendingOperationTypeType type = realValue.getType();
+		if(type != null) {
+			if(!empty) {
+				sb.append(" ");
+			}
+			sb.append("(").append(panel.getString(type)).append(")");
+		}
+		OperationResultStatusType rStatus = realValue.getResultStatus();
+        PendingOperationExecutionStatusType eStatus = realValue.getExecutionStatus();
+        if(!empty) {
+			sb.append(" ");
+		}
+        sb.append(panel.getString("PendingOperationType.label.status")).append(": ");
+        if (rStatus == null) {
+            sb.append(panel.getString(eStatus));
+        } else {
+        	sb.append(panel.getString(rStatus));
+        }
+		return sb.toString();
+	}
 
 
     public static String getObjectListPageStorageKey(String additionalKeyValue){

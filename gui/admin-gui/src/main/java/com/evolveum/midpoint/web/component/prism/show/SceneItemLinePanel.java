@@ -49,25 +49,20 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
 
     public SceneItemLinePanel(String id, IModel<SceneItemLineDto> model) {
         super(id, model);
+	}
 
-        initLayout();
-    }
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
 
 	private void initLayout() {
 		WebMarkupContainer nameCell = new WebMarkupContainer(ID_NAME_CONTAINER);
 		nameCell.add(new AttributeModifier("rowspan",
 				new PropertyModel<Integer>(getModel(), SceneItemLineDto.F_NUMBER_OF_LINES)));
-		Label label = new Label("name", new IModel<String>() {
-			@Override
-			public String getObject() {
-				final SceneItemLineDto lineDto = getModel().getObject();
-				if (lineDto == null || lineDto.getName() == null) {
-					return null;
-				}
-				String key = lineDto.getName();
-				return getLocalizer().getString(key, SceneItemLinePanel.this, key);
-			}
-		});
+
+		Label label = new Label("name",createStringResource("${name}", getModel()));
 		nameCell.add(label);
 		nameCell.add(new VisibleEnableBehaviour() {
 			@Override

@@ -84,6 +84,13 @@ public class BasePanel<T> extends Panel {// extends Serializable> extends Panel 
         return createStringResource(e).getString();
     }
 
+    public StringResourceModel createStringResource(String resourceKey, IModel model, Object... objects) {
+        return new StringResourceModel(resourceKey, this).setModel(model)
+                .setDefaultValue(resourceKey)
+                .setParameters(objects);
+//    	return StringResourceModelMigration.of(resourceKey, this, null, resourceKey, objects);
+    }
+
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this).setModel(null)
                 .setDefaultValue(resourceKey)
