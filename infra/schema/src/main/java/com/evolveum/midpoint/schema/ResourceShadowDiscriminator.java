@@ -112,9 +112,9 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	}
 
 	public void setIntent(String intent) {
-		if (intent == null) {
-			intent = SchemaConstants.INTENT_DEFAULT;
-		}
+//		if (intent == null) {
+//			intent = SchemaConstants.INTENT_DEFAULT;
+//		}
 		this.intent = intent;
 	}
 	
