@@ -55,6 +55,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -90,7 +91,6 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
@@ -161,34 +161,33 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     	MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
 				new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition(),
 						tableId, pageStorage) {
-			
     		
-			private static final long serialVersionUID = 1L;
+    		private static final long serialVersionUID = 1L;
 
-					@Override
-					protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
-						return new LoadableModel<List<PrismContainerValueWrapper<ShadowType>>>(false) {
-							
-							private static final long serialVersionUID = 1L;
-							
-							@Override
-							protected List<PrismContainerValueWrapper<ShadowType>> load() {
-								List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<PrismContainerValueWrapper<ShadowType>>();
-								for (ShadowWrapper projection : projectionModel.getObject()) {
-									items.add(projection.getValue());
-								}
-								return items;
-							}
-						};
-						
-					}
+    		@Override
+			protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
+				return new LoadableModel<List<PrismContainerValueWrapper<ShadowType>>>(false) {
+					
+					private static final long serialVersionUID = 1L;
 					
 					@Override
-					protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
-							List<PrismContainerValueWrapper<ShadowType>> items) {
-						
+					protected List<PrismContainerValueWrapper<ShadowType>> load() {
+						List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<PrismContainerValueWrapper<ShadowType>>();
+						for (ShadowWrapper projection : projectionModel.getObject()) {
+							items.add(projection.getValue());
+						}
 						return items;
 					}
+				};
+				
+			}
+			
+			@Override
+			protected List<PrismContainerValueWrapper<ShadowType>> postSearch(
+					List<PrismContainerValueWrapper<ShadowType>> items) {
+				
+				return items;
+			}
 
 			@Override
 			protected void newItemPerformed(AjaxRequestTarget target) {
@@ -296,8 +295,21 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					}
 					
 					@Override
-					protected IModel<String> getDescriptionLabelModel() {
-						return WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase());
+					protected IModel<List<String>> getDescriptionLabelsModel() {
+						List<String> descriptionLabels = new ArrayList<String>();
+						descriptionLabels.add(WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase()).getObject());
+						String pendingOperations = WebComponentUtil.getPendingOperationsLabels(getModelObject(), this);
+						if(pendingOperations != null) {
+							descriptionLabels.add(pendingOperations);
+						}
+						return new IModel<List<String>>() {
+
+							@Override
+							public List<String> getObject() {
+								return descriptionLabels;
+							}
+							
+						};
 					}
 					
 					@Override
@@ -448,10 +460,35 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 		});
 		columns.add(new PrismReferenceWrapperColumn(shadowDef, ShadowType.F_RESOURCE_REF, ColumnType.STRING, getPageBase()));
 		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_OBJECT_CLASS, ColumnType.STRING, getPageBase()));
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_KIND, ColumnType.STRING, getPageBase()));
-		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_INTENT, ColumnType.STRING, getPageBase()));
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_KIND, ColumnType.STRING, getPageBase()){
+			@Override
+			public String getCssClass()
+			{
+				return "col-xs-1";
+			}
+		});
+		columns.add(new PrismPropertyWrapperColumn<ShadowType, String>(shadowDef, ShadowType.F_INTENT, ColumnType.STRING, getPageBase()){
+			@Override
+			public String getCssClass()
+			{
+				return "col-xs-1";
+			}
+		});
+		columns.add(new PrismContainerWrapperColumn<ShadowType>(shadowDef, ShadowType.F_PENDING_OPERATION, getPageBase()) {
+			@Override
+			public String getCssClass()
+			{
+				return "col-xs-2";
+			}
+		});
 		
-		columns.add(new InlineMenuButtonColumn<>(createShadowMenu(), getPageBase()));
+		columns.add(new InlineMenuButtonColumn(createShadowMenu(), getPageBase()) {
+			@Override
+			public String getCssClass()
+			{
+				return "col-xs-1";
+			}
+		});
 		
 		return columns;
 	}
@@ -561,7 +598,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 		PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
 		PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
-		ButtonInlineMenuItem item;
+		InlineMenuItem item;
 		PrismPropertyDefinition<ActivationStatusType> administrativeStatus = def
 				.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
@@ -587,7 +624,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				}
 			};
 			items.add(item);
-			item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.disable")) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.disable")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -602,16 +639,11 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						}
 					};
 				}
-				
-				@Override
-				public String getButtonIconCssClass() {
-					return "fa fa-ban";
-				}
 			};
 			items.add(item);
 		}
 		if (ref.canRead() && ref.canAdd()) {
-			item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.unlink")) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlink")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -626,17 +658,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						}
 					};
 				}
-				
-				@Override
-				public String getButtonIconCssClass() {
-					return GuiStyleConstants.CLASS_UNASSIGN;
-				}
 			};
 			items.add(item);
 		}
 		PrismPropertyDefinition<LockoutStatusType> locakoutStatus = def.findPropertyDefinition(SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS);
 		if (locakoutStatus.canRead() && locakoutStatus.canModify()) {
-			item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.unlock")) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.unlock")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -651,17 +678,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 						}
 					};
 				}
-				
-				@Override
-				public String getButtonIconCssClass() {
-					return "fa fa-unlock";
-				}
 			};
 			items.add(item);
 		}
 		if (administrativeStatus.canRead() && administrativeStatus.canModify()) {
 //			items.add(new InlineMenuItem());
-			item = new ButtonInlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
+			item = new InlineMenuItem(createStringResource("pageAdminFocus.button.delete")) {
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -675,11 +697,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 									.getPerformedSelectedItems(getRowModel()));
 						}
 					};
-				}
-
-				@Override
-				public String getButtonIconCssClass() {
-					return GuiStyleConstants.CLASS_DELETE_MENU_ITEM;
 				}
 			};
 			items.add(item);
