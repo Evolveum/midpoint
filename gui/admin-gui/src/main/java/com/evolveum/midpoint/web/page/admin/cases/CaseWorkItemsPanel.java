@@ -145,7 +145,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
 
-        columns.add(new CheckBoxHeaderColumn<>());
+        if (View.FULL_LIST.equals(view)) {
+            columns.add(new CheckBoxHeaderColumn<>());
+        }
         columns.add(new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
@@ -185,8 +187,9 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         });
 
         columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view)));
-
-        columns.add(new InlineMenuButtonColumn<>(createRowActions(), getPageBase()));
+        if (View.FULL_LIST.equals(view)) {
+            columns.add(new InlineMenuButtonColumn<>(createRowActions(), getPageBase()));
+        }
         return columns;
     }
 
