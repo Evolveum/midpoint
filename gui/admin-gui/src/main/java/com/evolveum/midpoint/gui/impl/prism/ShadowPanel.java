@@ -83,10 +83,12 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
     		
     		Panel activationPanel = getPageBase().initItemPanel(ID_ACTIVATION, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ShadowType.F_ACTIVATION), 
     				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		activationPanel.add(new VisibleBehaviour(() -> isActivationSupported()));
     		add(activationPanel);
 			
     		Panel passwordPanel = getPageBase().initItemPanel(ID_PASSWORD, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getModel(), ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), 
     				itemWrapper -> checkShadowContainerVisibility(itemWrapper, getModel()));
+    		passwordPanel.add(new VisibleBehaviour(() -> isCredentialsSupported()));
     		add(passwordPanel);
 		} catch (SchemaException e) {
 			getSession().error("Cannot create panels for shadow, reason: " + e.getMessage());
@@ -107,5 +109,15 @@ public class ShadowPanel extends BasePanel<ShadowWrapper> {
 		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
 		return WebComponentUtil.isAssociationSupported(shadowType);
 		
+	}
+
+	private boolean isActivationSupported() {
+		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+		return WebComponentUtil.isActivationSupported(shadowType);
+	}
+
+	private boolean isCredentialsSupported() {
+		ShadowType shadowType = getModelObject().getObjectOld().asObjectable();
+		return WebComponentUtil.isPasswordSupported(shadowType);
 	}
 }

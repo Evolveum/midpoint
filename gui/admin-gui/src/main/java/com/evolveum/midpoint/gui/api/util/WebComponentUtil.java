@@ -2908,6 +2908,43 @@ public final class WebComponentUtil {
 
 	}
 
+	public static boolean isActivationSupported(ShadowType shadowType) {
+		ResourceType resource = shadowType.getResource();
+
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+
+		if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			return true;
+		}
+
+		return false;
+
+	}
+
+	public static boolean isPasswordSupported(ShadowType shadowType) {
+		ResourceType resource = shadowType.getResource();
+
+		if (resource == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+
+		if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			return true;
+		}
+
+		return false;
+
+	}
+
+
 	public static boolean isAssociationSupported(ShadowType shadowType) {
 		ResourceType resource = shadowType.getResource();
 
