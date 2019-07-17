@@ -80,7 +80,6 @@ public class WebPrismUtil {
 			itemWrapper.getValues().add(newValueWrapper);
 			result.recordSuccess();
 
-			return newValueWrapper;
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create new value for {}", itemWrapper, e);
 			result.recordFatalError("Cannot create value wrapper for " + newValue + ". Reason: " + e.getMessage(), e);

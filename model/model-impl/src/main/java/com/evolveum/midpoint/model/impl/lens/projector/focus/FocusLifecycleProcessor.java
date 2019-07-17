@@ -142,7 +142,7 @@ public class FocusLifecycleProcessor {
 				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()),
 				MiscSchemaUtil.getExpressionProfile(), desc, task, result);
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		PrismPropertyValue<Boolean> expressionOutputValue = ExpressionUtil.getExpressionOutputValue(outputTriple, desc);		
 		return ExpressionUtil.getBooleanConditionOutput(expressionOutputValue);

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -152,6 +153,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
+	
+	// Mapping state properties that are exposed to the expressions. They can be used by the expressions to "communicate".
+	// E.g. one expression seting the property and other expression checking the property.
+	private Map<String,Object> stateProperties;
 
 	private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
@@ -272,6 +277,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sources.isEmpty();
 	}
 
+	@Override
 	public MappingStrengthType getStrength() {
 		return getStrength(mappingType);
 	}
@@ -287,6 +293,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isAuthoritative() {
 		if (mappingType == null) {
 			return true;
@@ -298,6 +305,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isExclusive() {
 		if (mappingType == null) {
 			return false;
@@ -405,6 +413,22 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		return refinedObjectClassDefinition;
+	}
+	
+	@Override
+	public <T> T getStateProperty(String propertyName) {
+		if (stateProperties == null) {
+			return null;
+		}
+		return (T) stateProperties.get(propertyName);
+	}
+	
+	@Override
+	public <T> T setStateProperty(String propertyName, T value) {
+		if (stateProperties == null) {
+			stateProperties = new HashMap<>();
+		}
+		return (T)stateProperties.put(propertyName, value);
 	}
 
 	// TODO: rename to evaluateAll
@@ -534,13 +558,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 			// TODO trace source and target values ... and range processing
 
-			// TODO: input filter
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
-			// TODO: output filter
-
+			adjustForAuthoritative();
 			checkRange(task, result);
 
 			transitionState(MappingEvaluationState.EVALUATED);
@@ -552,6 +574,21 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			traceFailure(e);
 			throw e;
 		}
+	}
+
+	private void adjustForAuthoritative() {
+		if (isAuthoritative()) {
+			return;
+		}
+		if (outputTriple == null) {
+			return;
+		}
+		// Non-authoritative mappings do not remove values. Simply eliminate any values from the
+		// minus set to do that.
+		// However, we need to do this before we process range. Non-authoritative mappings may
+		// still remove values if range is set. We do not want to ignore minus values from
+		// range processing.
+		outputTriple.clearMinusSet();
 	}
 
 	private void checkRange(Task task, OperationResult result)
@@ -567,7 +604,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		String name = outputPath.lastName().getLocalPart();
+		String name = null;
+		if (outputPath != null) {
+			name = outputPath.lastName().getLocalPart();
+		} else {
+			name = outputDefinition.getName().getLocalPart();
+		} 
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -787,6 +829,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			sb.append("null");
 		} else {
 			sb.append(expression.shortDebugDump());
+		}
+		if (stateProperties != null) {
+			sb.append("\nState:\n");
+			DebugUtil.debugDumpMapMultiLine(sb, stateProperties, 1);
 		}
 	}
 

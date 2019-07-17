@@ -33,6 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.report.api.ReportService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -149,6 +150,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 	@Autowired private Clock clock;
 	@Autowired private TaskManager taskManager;
 	@Autowired private AuditService auditService;
+	@Autowired private ReportService reportService;
 	@Autowired private ModelService modelService;
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
@@ -260,6 +262,11 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		try {
 			ReportType parentReport = objectResolver.resolve(task.getObjectRefOrClone(), ReportType.class, null,
 					"resolving report", task, result);
+			
+			if (!reportService.isAuthorizedToRunReport(parentReport.asPrismObject(), task, parentResult)) {
+        		LOGGER.error("Task {} is not authorized to run report {}", task, parentReport);
+        		throw new SecurityViolationException("Not authorized");
+        	}
 
 			if (parentReport.getReportEngine() == null) {
 				throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");

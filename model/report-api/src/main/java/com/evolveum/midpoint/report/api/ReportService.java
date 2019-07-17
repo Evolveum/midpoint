@@ -61,4 +61,8 @@ public interface ReportService {
 
 	// hack todo fixme
 	PrismContext getPrismContext();
+
+	boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException;
 }
