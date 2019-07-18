@@ -25,11 +25,13 @@ import java.io.UnsupportedEncodingException;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.LoggingSchemaUtil;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
+import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import ch.qos.logback.classic.Level;
@@ -42,8 +44,6 @@ import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class LoggingConfigurationManager {
 
@@ -52,11 +52,11 @@ public class LoggingConfigurationManager {
 	private final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
-    private static final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
+    private static final String PROFILING_ASPECT_LOGGER = ProfilingDataManager.class.getName();
     private static final String IDM_PROFILE_APPENDER = "IDM_LOG";
 	private static final String ALT_APPENDER_NAME = "ALT_LOG";
 	private static final String TRACING_APPENDER_NAME = "TRACING_LOG";
-	private static final String TRACING_APPENDER_CLASS_NAME = "com.evolveum.midpoint.util.logging.TracingAppender"; // todo replace by class reference?
+	private static final String TRACING_APPENDER_CLASS_NAME = TracingAppender.class.getName();
 	private static final LoggingLevelType DEFAULT_PROFILING_LEVEL = LoggingLevelType.INFO;
 
 	private static String currentlyUsedVersion = null;
@@ -133,7 +133,7 @@ public class LoggingConfigurationManager {
 			internalLog = baos.toString("UTF8");
 		} catch (UnsupportedEncodingException e) {
 			// should never happen
-			LOGGER.error("Woops?", e);
+			LOGGER.error("Whoops?", e);
 		}
 
 		if (!StringUtils.isEmpty(internalLog)) {
@@ -166,10 +166,12 @@ public class LoggingConfigurationManager {
 		boolean debug = Boolean.TRUE.equals(config.isDebug());
 		sb.append("<configuration scan=\"false\" debug=\"").append(debug).append("\">\n");
 
+		sb.append("\t<turboFilter class=\"").append(LevelOverrideTurboFilter.class.getName()).append("\"/>\n");
+
 		//find and configure ALL logger and bring it to top of turbo stack
 		for (SubSystemLoggerConfigurationType ss : config.getSubSystemLogger()) {
 			if ("ALL".contentEquals(ss.getComponent().name())) {
-				defineTurbo(sb, ss);
+				defineSubsystemTurboFilter(sb, ss);
 			}
 		}
 
@@ -189,7 +191,7 @@ public class LoggingConfigurationManager {
 			if ("ALL".contentEquals(ss.getComponent().name())) {
 				continue;
 			}			
-			defineTurbo(sb, ss);
+			defineSubsystemTurboFilter(sb, ss);
 		}
 
 		boolean rootAppenderDefined = StringUtils.isNotEmpty(config.getRootLoggerAppender());
@@ -257,9 +259,9 @@ public class LoggingConfigurationManager {
 
 		if (profilingMode == ProfilingMode.DYNAMIC) {
 			if (profilingLoggingLevelSet != null) {
-				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(toLevel(profilingLoggingLevelSet));
+				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(LoggingSchemaUtil.toLevel(profilingLoggingLevelSet));
 			} else {
-				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(toLevel(DEFAULT_PROFILING_LEVEL));
+				OperationExecutionLogger.setGlobalOperationInvocationLevelOverride(LoggingSchemaUtil.toLevel(DEFAULT_PROFILING_LEVEL));
 				sb.append("\t<logger name=\"");
 				sb.append(MidPointConstants.PROFILING_LOGGER_NAME);
 				sb.append("\" level=\"TRACE\"/>\n");
@@ -286,19 +288,6 @@ public class LoggingConfigurationManager {
 		
 		sb.append("</configuration>");
 		return sb.toString();
-	}
-
-	private static Level toLevel(@NotNull LoggingLevelType level) {
-		switch (level) {
-			case ALL: return Level.ALL;
-			case TRACE: return Level.TRACE;
-			case DEBUG: return Level.DEBUG;
-			case INFO: return Level.INFO;
-			case WARN: return Level.WARN;
-			case ERROR: return Level.ERROR;
-			case OFF: return Level.OFF;
-			default: throw new IllegalArgumentException("level: " + level);
-		}
 	}
 
 	private static void prepareAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender,
@@ -437,9 +426,9 @@ public class LoggingConfigurationManager {
 		sb.append("\t<appender name=\"").append(appender.getName()).append("\" class=\"").append(appenderClass).append("\">\n");
 
         //Apply profiling appender filter if necessary
-        if(IDM_PROFILE_APPENDER.equals(appender.getName())){
-            for(ClassLoggerConfigurationType cs: config.getClassLogger()){
-                if(REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())){
+        if (IDM_PROFILE_APPENDER.equals(appender.getName())) {
+            for (ClassLoggerConfigurationType cs: config.getClassLogger()) {
+                if (REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())) {
                     LOGGER.debug("Defining ProfilingLogbackFilter to {} appender.", appender.getName());
                     sb.append(defineProfilingLogbackFilter());
                 }
@@ -484,8 +473,10 @@ public class LoggingConfigurationManager {
 		}
 	}
 
-	private static void defineTurbo(StringBuilder sb, SubSystemLoggerConfigurationType ss) {
-		sb.append("\t<turboFilter class=\"com.evolveum.midpoint.util.logging.MDCLevelTurboFilter\">\n");
+	// Not very useful these days, as we don't set system loggers in the sysconfig object any more.
+	// But let's keep this just in case it's needed in the future.
+	private static void defineSubsystemTurboFilter(StringBuilder sb, SubSystemLoggerConfigurationType ss) {
+		sb.append("\t<turboFilter class=\"").append(MDCLevelTurboFilter.class.getName()).append("\">\n");
 		sb.append("\t\t<MDCKey>subsystem</MDCKey>\n");
 		sb.append("\t\t<MDCValue>");
 		sb.append(ss.getComponent().name());
@@ -497,8 +488,8 @@ public class LoggingConfigurationManager {
 		sb.append("\t</turboFilter>\n");
 	}
 
-    private static String defineProfilingLogbackFilter(){
-        return ("\t<filter class=\"com.evolveum.midpoint.util.logging.ProfilingLogbackFilter\" />\n");
+    private static String defineProfilingLogbackFilter() {
+        return ("\t<filter class=\"" + ProfilingLogbackFilter.class.getName() + "\" />\n");
     }
 
     public static void dummy() {

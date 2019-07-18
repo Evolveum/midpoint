@@ -141,6 +141,9 @@ public class CloneUtil {
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
 
+	/**
+	 * @return List that can be freely used.
+	 */
 	@Contract("!null -> !null; null -> null")
 	public static <T> List<T> cloneCollectionMembers(Collection<T> collection) {
 		if (collection == null) {
@@ -148,14 +151,6 @@ public class CloneUtil {
 		}
 		List<T> clonedCollection = new ArrayList<>(collection.size());
 		for (T element : collection) {
-			clonedCollection.add(clone(element));
-		}
-		return clonedCollection;
-	}
-
-	public static <T> List<T> cloneListMembers(List<T> list) {
-		List<T> clonedCollection = new ArrayList<>(list.size());
-		for (T element : list) {
 			clonedCollection.add(clone(element));
 		}
 		return clonedCollection;

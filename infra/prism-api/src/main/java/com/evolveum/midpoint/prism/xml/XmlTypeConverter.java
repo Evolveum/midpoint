@@ -118,6 +118,10 @@ public class XmlTypeConverter {
 		return false;
 	}
 
+	public static XMLGregorianCalendar createXMLGregorianCalendar() {
+    	return createXMLGregorianCalendar(System.currentTimeMillis());
+	}
+
     public static XMLGregorianCalendar createXMLGregorianCalendar(Long timeInMillis) {
     	if (timeInMillis == null) {
     		return null;
@@ -158,6 +162,7 @@ public class XmlTypeConverter {
     }
     
     // in some environments, XMLGregorianCalendar.clone does not work
+    @Contract("null -> null; !null -> !null")
     public static XMLGregorianCalendar createXMLGregorianCalendar(XMLGregorianCalendar cal) {
         if (cal == null) {
             return null;

@@ -98,12 +98,15 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
 	@Override
 	public void storeTrace(Task task, OperationResult result) {
-		TracingProfileType tracingProfile = result.getTracingProfile().getDefinition();
+		CompiledTracingProfile compiledTracingProfile = result.getTracingProfile();
+		TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
+		result.clearTracingProfile();
+
 		boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
 		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
 		File file = createFileName(zip, tracingProfile, templateParameters);
 		try {
-			TracingOutputType tracingOutput = createTracingOutput(result);
+			TracingOutputType tracingOutput = createTracingOutput(result, tracingProfile);
 			String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
 			if (zip) {
 				MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
@@ -128,11 +131,11 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		}
 	}
 
-	private TracingOutputType createTracingOutput(OperationResult result) {
+	private TracingOutputType createTracingOutput(OperationResult result, TracingProfileType tracingProfile) {
 		TracingOutputType output = new TracingOutputType(prismContext);
 		output.beginMetadata()
 				.createTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
-				.profile(result.getTracingProfile().getDefinition());
+				.profile(tracingProfile);
 		OperationResultType resultBean = result.createOperationResultType();
 		output.setDictionary(extractDictionary(resultBean));
 		output.setResult(resultBean);
@@ -191,7 +194,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 				}
 			}
 			long newId = max + 1;
-			System.out.println("Inserting object as entry #" + newId + ": " + object);
+//			System.out.println("Inserting object as entry #" + newId + ": " + object);
 			dictionary.beginEntry()
 					.identifier(newId)
 					.object(ObjectTypeUtil.createObjectRefWithFullObject(object, prismContext));

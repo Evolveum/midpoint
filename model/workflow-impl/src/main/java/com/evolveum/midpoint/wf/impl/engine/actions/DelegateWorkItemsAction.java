@@ -36,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemOperationKindType.DELEGATE;
@@ -58,8 +57,9 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
 			SecurityViolationException, ExpressionEvaluationException {
 		traceEnter(LOGGER);
+		XMLGregorianCalendar now = request.getNow() != null ? request.getNow() : XmlTypeConverter.createXMLGregorianCalendar();
 		for (DelegateWorkItemsRequest.SingleDelegation delegation : request.getDelegations()) {
-			executeDelegation(delegation, result);
+			executeDelegation(delegation, now, result);
 		}
 		traceExit(LOGGER, null);
 		return null;
@@ -69,7 +69,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 	//  check if there are any approvers etc
 
 	private void executeDelegation(DelegateWorkItemsRequest.SingleDelegation delegation,
-			OperationResult result)
+			XMLGregorianCalendar now, OperationResult result)
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, CommunicationException,
 			ConfigurationException, ExpressionEvaluationException {
 		CaseWorkItemType workItem = ctx.findWorkItemById(delegation.getWorkItemId());
@@ -110,11 +110,7 @@ public class DelegateWorkItemsAction extends RequestedAction<DelegateWorkItemsRe
 		workItem.getAssigneeRef().addAll(CloneUtil.cloneCollectionMembers(newAssignees));
 		if (delegation.getNewDuration() != null) {
 			XMLGregorianCalendar newDeadline;
-			if (workItem.getDeadline() != null) {
-				newDeadline = (XMLGregorianCalendar) workItem.getDeadline().clone();
-			} else {
-				newDeadline = XmlTypeConverter.createXMLGregorianCalendar(new Date());
-			}
+			newDeadline = CloneUtil.clone(now);
 			newDeadline.add(delegation.getNewDuration());
 			workItem.setDeadline(newDeadline);
 		}
