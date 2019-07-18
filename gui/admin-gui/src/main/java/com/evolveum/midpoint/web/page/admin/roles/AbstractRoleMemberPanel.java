@@ -25,7 +25,6 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -752,7 +751,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 					@Override
 					public Object getDisplayValue(QName qname) {
-						if (qname == null || FocusType.COMPLEX_TYPE.equals(qname)){
+						if (qname == null || getObjectTypesListParentType().equals(qname)){
 							return StringUtils.leftPad(createStringResource("ObjectTypes.all").getString(), 1);
 						} else {
 							return super.getDisplayValue(qname);
@@ -763,7 +762,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                     public QName getObject(String id, IModel<? extends List<? extends QName>> choices) {
                         QName qname = super.getObject(id, choices);
                         if (qname == null){
-                            return FocusType.COMPLEX_TYPE;
+                            return getObjectTypesListParentType();
                         }
                         return qname;
                     }
@@ -815,7 +814,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
 		return WebComponentUtil.createFocusTypeList(includeAbstractTypes);
 	}
-	
+
+	protected QName getObjectTypesListParentType(){
+		return FocusType.COMPLEX_TYPE;
+	}
+
 	protected List<QName> getNewMemberObjectTypes() {
 		return WebComponentUtil.createFocusTypeList();
 	}
