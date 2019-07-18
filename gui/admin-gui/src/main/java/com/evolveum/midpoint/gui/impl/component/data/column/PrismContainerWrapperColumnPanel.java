@@ -25,6 +25,7 @@ import org.apache.wicket.model.IModel;
 
 import com.ctc.wstx.util.StringUtil;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
@@ -41,9 +42,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * @author katka
@@ -74,7 +80,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 		}
 		
 		if (ActivationType.class.isAssignableFrom(realValue.getClass())) {
-			return getActivationLabelModel((ActivationType) realValue);
+			return getActivationLabelLabel((ActivationType) realValue);
 		}
 		
 		
@@ -95,12 +101,16 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 			return getAssociationLabel((ResourceObjectAssociationType) realValue);
 		}
 		
+		if(PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
+			return WebComponentUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
+		}
+		
 		return realValue.toString();
 		
 		
 	}
 
-	private String getActivationLabelModel(ActivationType activation){
+	private String getActivationLabelLabel(ActivationType activation){
 		if (activation.getAdministrativeStatus() != null) {
 			return activation.getAdministrativeStatus().value();
 		}

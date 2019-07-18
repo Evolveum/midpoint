@@ -285,14 +285,16 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			SynchronizeAccountResultHandler resultHandler, TaskRunResult runResult, Task coordinatorTask,
 			OperationResult opResult) {
 		Collection<SelectorOptions<GetOperationOptions>> options = super.createSearchOptions(resultHandler, runResult, coordinatorTask, opResult);
+		GetOperationOptions doDiscovery = new GetOperationOptions();
+		doDiscovery.setDoNotDiscovery(false);
 		if (options == null) {
-			options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			options = SelectorOptions.createCollection(doDiscovery);
 		} else {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 			if (rootOptions == null) {
-				options.add(SelectorOptions.create(GetOperationOptions.createDoNotDiscovery()));
+				options.add(SelectorOptions.create(doDiscovery));
 			} else {
-				rootOptions.setDoNotDiscovery(true);
+				rootOptions.setDoNotDiscovery(false);
 			}
 		}
 		return options;

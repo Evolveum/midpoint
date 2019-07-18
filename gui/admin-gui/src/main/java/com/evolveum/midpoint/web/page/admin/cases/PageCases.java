@@ -219,12 +219,18 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         if (casesToDelete == null){
             return;
         }
+        OperationResult result = new OperationResult(OPERATION_DELETE_CASE_OBJECT);
         casesToDelete.forEach(caseObject -> {
             WebModelServiceUtils.deleteObject(CaseType.class, caseObject.getOid(),
                     ExecuteChangeOptionsDto.createFromSystemConfiguration().createOptions(),
-                    new OperationResult(OPERATION_DELETE_CASE_OBJECT), PageCases.this);
+                    result, PageCases.this);
         });
-        target.add(PageCases.this);
+        result.computeStatusComposite();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        getObjectListPanel().refreshTable(CaseType.class, target);
+        getObjectListPanel().clearCache();
     }
 
     private void stopCaseProcessConfirmed(AjaxRequestTarget target){
@@ -235,17 +241,21 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         if (casesToStop == null){
             return;
         }
+        OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
         casesToStop.forEach(caseObject -> {
             Task task = createSimpleTask(OPERATION_STOP_CASE_PROCESS);
-            OperationResult result = new OperationResult(OPERATION_STOP_CASE_PROCESS);
             try {
                 getWorkflowService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex){
                 LOGGER.error("Couldn't stop case process, ", ex.getLocalizedMessage());
                 result.recordFatalError("Couldn't stop case process, ", ex);
-                showResult(result);
             }
         });
-        target.add(PageCases.this);
+        result.computeStatusComposite();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        getObjectListPanel().refreshTable(CaseType.class, target);
+        getObjectListPanel().clearCache();
     }
 }
