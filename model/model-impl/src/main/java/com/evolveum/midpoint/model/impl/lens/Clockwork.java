@@ -40,8 +40,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.schema.result.OperationResultBuilder;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.logging.TracingAppender;
+import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -77,7 +78,6 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -112,9 +112,6 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -169,11 +166,11 @@ public class Clockwork {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 
-		OperationResult result = parentResult.createSubresult(Clockwork.class.getName() + ".run");
+		OperationResultBuilder builder = parentResult.subresult(Clockwork.class.getName() + ".run");
+		boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
+		OperationResult result = builder.build();
 		ClockworkRunTraceType trace = null;
-		boolean tracingRequested = false;
 		try {
-			tracingRequested = startTracingIfRequested(context, task, result);
 			if (result.isTraced()) {
 				trace = recordTraceAtStart(context, task, result);
 			}
@@ -247,24 +244,25 @@ public class Clockwork {
 			recordTraceAtEnd(context, trace, result);
 			if (tracingRequested) {
 				tracer.storeTrace(task, result);
-				TracingAppender.resetCollectingForCurrentThread();  // todo reconsider
+				TracingAppender.terminateCollecting();  // todo reconsider
+				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}
 		}
 	}
 
 	// todo check authorization in this method
-	private <F extends ObjectType> boolean startTracingIfRequested(LensContext<F> context, Task task, OperationResult result)
-			throws SchemaException {
+	private <F extends ObjectType> boolean startTracingIfRequested(LensContext<F> context, Task task,
+			OperationResultBuilder builder, OperationResult parentResult) throws SchemaException {
 		// If the result is already traced, we could abstain from recording the final trace ourselves.
 		// But I think it's more reasonable to do that, because e.g. if there is clockwork-inside-clockwork processing,
 		// we would like to have two traces, even if the second one is contained also within the first one.
 		TracingProfileType tracingProfile = ModelExecuteOptions.getTracingProfile(context.getOptions());
 		if (tracingProfile != null) {
-			result.startTracing(tracer.compileProfile(tracingProfile, result));
+			builder.tracingProfile(tracer.compileProfile(tracingProfile, parentResult));
 			return true;
 		} else if (task.getTracingRequestedFor().contains(TracingRootType.CLOCKWORK_RUN)) {
 			TracingProfileType profile = task.getTracingProfile() != null ? task.getTracingProfile() : tracer.getDefaultProfile();
-			result.startTracing(tracer.compileProfile(profile, result));
+			builder.tracingProfile(tracer.compileProfile(profile, parentResult));
 			return true;
 		} else {
 			return false;

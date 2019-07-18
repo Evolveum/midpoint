@@ -1686,6 +1686,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="loggingOverride" type="tns:LoggingOverrideType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        How to override logging while this tracing profile is active.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="tracingTypeProfile" type="tns:TracingTypeProfileType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1965,5 +1972,58 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="tracingOutputMetadata" type="tns:TracingOutputMetadataType" />
+
+    <xsd:complexType name="LoggingOverrideType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information how to override logging configuration.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimenta>true</a:experimenta>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="levelOverride" type="tns:ClassLoggerLevelOverrideType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Overridden level(s) for particular logger(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="loggingOverride" type="tns:LoggingOverrideType" />
+
+    <xsd:complexType name="ClassLoggerLevelOverrideType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information how to override logging level for specified logger(s).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimenta>true</a:experimenta>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="logger" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Loggers to override. All loggers with a given prefixes will be overridden using the specified level.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="level" type="tns:LoggingLevelType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Level to set for given loggers.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="classLoggerLevelOverride" type="tns:ClassLoggerLevelOverrideType" />
 
 </xsd:schema>

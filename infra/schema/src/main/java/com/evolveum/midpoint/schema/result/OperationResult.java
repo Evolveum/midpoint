@@ -157,6 +157,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
 	private boolean collectingLogEntries;               // NOT SERIALIZED
+	private boolean startedLoggingOverride;             // NOT SERIALIZED
 
 	private final List<TraceType> traces = new ArrayList<>();
 
@@ -234,6 +235,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		OperationResult subresult = new OperationResult(operation);
 		subresult.building = true;
 		subresult.futureParent = this;
+		subresult.tracingProfile = tracingProfile;
 		return subresult;
 	}
 
@@ -265,7 +267,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		result.start = System.currentTimeMillis();
 		result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
 		if (result.collectingLogEntries) {
-			TracingAppender.startCollectingForCurrentThread(result::appendLoggedEvents);
+			LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+			if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+				LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+				result.startedLoggingOverride = true;
+			}
+			TracingAppender.openSink(result::appendLoggedEvents);
 		}
 	}
 
@@ -295,15 +302,15 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return createSubresult(operation, true, true, null);        // temporarily profiled todo make this configurable
 	}
 
-	public static OperationResult createProfiled(String operation) {
-		return createProfiled(operation, new Object[0]);
-	}
-
-	public static OperationResult createProfiled(String operation, Object[] arguments) {
-		OperationResult result = new OperationResult(operation);
-		recordStart(result, operation, arguments);
-		return result;
-	}
+//	public static OperationResult createProfiled(String operation) {
+//		return createProfiled(operation, new Object[0]);
+//	}
+//
+//	public static OperationResult createProfiled(String operation, Object[] arguments) {
+//		OperationResult result = new OperationResult(operation);
+//		recordStart(result, operation, arguments);
+//		return result;
+//	}
 
 	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
 		OperationResult subresult = new OperationResult(operation);
@@ -328,10 +335,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			invocationRecord.processReturnValue(returnValue);
 			invocationRecord.afterCall();
 			microseconds = invocationRecord.getElapsedTimeMicros();
-			TracingAppender.stopCollectingForCurrentThread();
+			TracingAppender.closeCurrentSink();
 			invocationRecord = null;
 		}
 		end = System.currentTimeMillis();
+		if (startedLoggingOverride) {
+			LevelOverrideTurboFilter.cancelLoggingOverride();
+			startedLoggingOverride = false;
+		}
 	}
 
 	/**
@@ -870,13 +881,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		traces.add(trace);
 	}
 
-	public void startTracing(@NotNull CompiledTracingProfile profile) {
-		this.tracingProfile = profile;
-		if (invocationId == null) {
-			recordStart(this, operation, createArguments());
-		}
-	}
-
 	@Override
 	public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
 		this.tracingProfile = profile;
@@ -926,6 +930,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		} else {
 			return TracingLevelType.OFF;
 		}
+	}
+
+	public void clearTracingProfile() {
+		tracingProfile = null;
 	}
 
 	public static class PreviewResult {
