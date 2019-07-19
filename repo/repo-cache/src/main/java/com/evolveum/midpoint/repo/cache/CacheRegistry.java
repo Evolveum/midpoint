@@ -22,7 +22,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesStateInformationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +40,9 @@ public class CacheRegistry implements CacheListener {
 	private static transient Trace LOGGER = TraceManager.getTrace(CacheListener.class);
 	
 	private List<Cacheable> cacheableServices = new ArrayList<>();
-	
-	private @Autowired CacheDispatcher dispatcher;
+
+	@Autowired private CacheDispatcher dispatcher;
+	@Autowired private PrismContext prismContext;
 	
 	@PostConstruct
 	public void registerListener() {
@@ -73,6 +76,12 @@ public class CacheRegistry implements CacheListener {
 		for (Cacheable cacheableService : cacheableServices) {
 			cacheableService.invalidate(type, oid, context);
 		}
+	}
+
+	public CachesStateInformationType getStateInformation() {
+		CachesStateInformationType rv = new CachesStateInformationType(prismContext);
+		cacheableServices.forEach(cacheable -> rv.getEntry().addAll(cacheable.getStateInformation()));
+		return rv;
 	}
 }
 

@@ -44,9 +44,8 @@ public class MidPointQueryExecutorFactory extends AbstractQueryExecuterFactory {
 	private final static Object[] MIDPOINT_BUILTIN_PARAMETERS = {
 		ReportService.PARAMETER_REPORT_SERVICE, ReportTypeUtil.PARAMETER_OPERATION_RESULT,
 		ReportTypeUtil.PARAMETER_REPORT_OBJECT, ReportTypeUtil.PARAMETER_REPORT_OID,
-		ReportTypeUtil.PARAMETER_TASK,
-		"midpoint.connection"
-		};
+		ReportTypeUtil.PARAMETER_TASK, "midpoint.connection"
+	};
 
 
 	@Override

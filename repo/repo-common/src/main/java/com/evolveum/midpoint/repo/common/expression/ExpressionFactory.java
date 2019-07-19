@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +39,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Factory for expressions and registry for expression evaluator factories.
@@ -48,7 +52,7 @@ public class ExpressionFactory implements Cacheable {
 
 	private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
 	private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-	private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
+	@NotNull private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
 	final private PrismContext prismContext;
 	private ObjectResolver objectResolver;					// using setter to allow Spring to handle circular references
 	final private SecurityContextManager securityContextManager;
@@ -78,10 +82,6 @@ public class ExpressionFactory implements Cacheable {
 		this.cacheRegistry = cacheRegistry;
 	}
 	
-	public CacheRegistry getCacheRegistry() {
-		return cacheRegistry;
-	}
-	
 	@PostConstruct
 	public void register() {
 		cacheRegistry.registerCacheableService(this);
@@ -96,6 +96,7 @@ public class ExpressionFactory implements Cacheable {
 			D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, SecurityViolationException {
 		ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
+		//noinspection unchecked
 		Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
 		if (expression == null) {
 			expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
@@ -120,7 +121,7 @@ public class ExpressionFactory implements Cacheable {
 		return expression;
 	}
 
-	public <V extends PrismValue> ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
+	public ExpressionEvaluatorFactory getEvaluatorFactory(QName elementName) {
 		return evaluatorFactoriesMap.get(elementName);
 	}
 
@@ -209,4 +210,13 @@ public class ExpressionFactory implements Cacheable {
 		}
 	}
 
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Collections.singleton(
+				new SingleCacheStateInformationType(prismContext)
+						.name(ExpressionFactory.class.getName())
+						.size(cache.size())
+		);
+	}
 }

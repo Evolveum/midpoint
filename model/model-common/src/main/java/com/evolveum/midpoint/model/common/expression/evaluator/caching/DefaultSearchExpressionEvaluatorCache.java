@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategy
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Default search expression evaluator cache.
@@ -47,10 +48,10 @@ public class DefaultSearchExpressionEvaluatorCache
 
     private static final Trace LOGGER = TraceManager.getTrace(DefaultSearchExpressionEvaluatorCache.class);
 
-    private static ThreadLocal<DefaultSearchExpressionEvaluatorCache> cacheInstances = new ThreadLocal<>();
+    private static ConcurrentHashMap<Thread, DefaultSearchExpressionEvaluatorCache> cacheInstances = new ConcurrentHashMap<>();
 
     public static AbstractSearchExpressionEvaluatorCache getCache() {
-        return cacheInstances.get();
+        return cacheInstances.get(Thread.currentThread());
     }
 
     public static void enterCache(CacheConfiguration configuration) {

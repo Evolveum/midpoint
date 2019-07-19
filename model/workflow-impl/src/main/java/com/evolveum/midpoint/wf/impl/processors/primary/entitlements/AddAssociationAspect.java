@@ -269,8 +269,9 @@ public class AddAssociationAspect extends BasePrimaryChangeAspect {
     private ObjectTreeDeltas associationAdditionToDelta(ModelContext<?> modelContext, AssociationAdditionType addition)
             throws SchemaException {
         ObjectTreeDeltas changes = new ObjectTreeDeltas(prismContext);
+        // TODO reconsider providing default intent here
         ResourceShadowDiscriminator shadowDiscriminator =
-                ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator());
+                ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(addition.getResourceShadowDiscriminator(), true);
         String projectionOid = modelContext.findProjectionContext(shadowDiscriminator).getOid();
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFor(ShadowType.class)
                 .item(ShadowType.F_ASSOCIATION).add(addition.getAssociation().clone())

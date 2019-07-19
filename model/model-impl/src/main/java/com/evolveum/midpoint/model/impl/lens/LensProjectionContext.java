@@ -1433,7 +1433,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (StringUtils.isEmpty(objectTypeClassString)) {
             throw new SystemException("Object type class is undefined in LensProjectionContextType");
         }
-        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(projectionContextType.getResourceShadowDiscriminator());
+        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
+        		projectionContextType.getResourceShadowDiscriminator(), false);
 
         LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 

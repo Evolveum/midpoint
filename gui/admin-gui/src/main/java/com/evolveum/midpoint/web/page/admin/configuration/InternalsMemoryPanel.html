@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,21 +15,23 @@
   ~ limitations under the License.
   -->
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
     <div class="row">
         <div class="col-md-12">
-            <h3><wicket:message key="PageInternals.title.cache"/></h3>
-
+            <h3><wicket:message key="PageInternals.title.memory"/></h3>
             <textarea wicket:id="information"></textarea>
-            <p></p>
+            <p/>
+            <wicket:message key="InternalsMemoryPanel.text.explanation"/>
+            <p/>
             <div class="main-button-bar">
-                <a class="btn btn-primary" wicket:id="clearCaches"/>
+                <a class="btn btn-primary" wicket:id="show"/>
             </div>
-            
         </div>
     </div>
 </wicket:panel>
 </body>
 </html>
+

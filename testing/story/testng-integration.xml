@@ -66,6 +66,8 @@
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncFull"/>
             <class name="com.evolveum.midpoint.testing.story.TestMappingMadness"/>
+            <class name="com.evolveum.midpoint.testing.story.TestConfiguredCapabilitiesActivation"/>
+            <class name="com.evolveum.midpoint.testing.story.TestImportGroups"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
         </classes>

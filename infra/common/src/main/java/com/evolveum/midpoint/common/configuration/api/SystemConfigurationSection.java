@@ -13,18 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.common.configuration.api;
 
-import java.util.Collection;
+/**
+ *  This is an attempt to provide more typed access to config.xml file content.
+ *
+ *  EXPERIMENTAL.
+ */
+public interface SystemConfigurationSection {
 
-public interface Cacheable {
+	String getJmap();
 
-	void invalidate(Class<?> type, String oid, CacheInvalidationContext context);
-
-	@NotNull
-	Collection<SingleCacheStateInformationType> getStateInformation();
+	String getLogFile();
 }

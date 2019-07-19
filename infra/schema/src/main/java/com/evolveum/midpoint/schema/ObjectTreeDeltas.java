@@ -174,8 +174,9 @@ public class ObjectTreeDeltas<T extends ObjectType> implements DebugDumpable {
 	        deltas.setFocusChange(DeltaConvertor.createObjectDelta(deltasType.getFocusPrimaryDelta(), prismContext));
         }
         for (ProjectionObjectDeltaType projectionObjectDeltaType : deltasType.getProjectionPrimaryDelta()) {
+	        // TODO reconsider providing default intent here
             ResourceShadowDiscriminator rsd = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
-                    projectionObjectDeltaType.getResourceShadowDiscriminator());
+                    projectionObjectDeltaType.getResourceShadowDiscriminator(), true);
             ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(projectionObjectDeltaType.getPrimaryDelta(), prismContext);
 	        //noinspection unchecked
 	        deltas.addProjectionChange(rsd, objectDelta);
