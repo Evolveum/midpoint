@@ -609,7 +609,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return dashboardService;
     }
 
-    protected ModelDiagnosticService getModelDiagnosticService() {
+    public ModelDiagnosticService getModelDiagnosticService() {
         return modelDiagnosticService;
     }
     

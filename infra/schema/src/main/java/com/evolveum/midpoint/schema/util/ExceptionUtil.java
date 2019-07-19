@@ -27,6 +27,9 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ErrorSelectorType;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * @author Radovan Semancik
  *
@@ -119,5 +122,13 @@ public class ExceptionUtil {
 			throwable = throwable.getCause();
 		}
 		return null;
+	}
+
+	public static String printStackTrace(Throwable t) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		pw.close();
+		return sw.toString();
 	}
 }

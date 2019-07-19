@@ -31,9 +31,9 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.SystemUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -81,7 +81,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 	private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
-	private static final String LOG_FILE_CONFIG_KEY = "logFile";
+	private static final long JMAP_TIMEOUT = 120000;
 
 	@Autowired private DataModelVisualizer dataModelVisualizer;
 	@Autowired private PrismContext prismContext;
@@ -673,9 +673,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 	}
 
 	private File getLogFile(OperationResult result) throws SchemaException {
-		Configuration c = midpointConfiguration.getConfiguration(MidpointConfiguration.SYSTEM_CONFIGURATION);
-		if (c != null && c.containsKey(LOG_FILE_CONFIG_KEY)) {
-			return new File(c.getString(LOG_FILE_CONFIG_KEY));
+		String configuredLogFile = midpointConfiguration.getSystemSection().getLogFile();
+		if (configuredLogFile != null) {
+			return new File(configuredLogFile);
 		}
 		PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
 		LoggingConfigurationType logging = configuration != null ? configuration.asObjectable().getLogging() : null;
@@ -691,5 +691,43 @@ public class ModelDiagController implements ModelDiagnosticService {
 			}
 		}
 		throw new SchemaException("No log file specified in system configuration file not in system configuration object. Please set logFile in <midpoint><system> section or specify file appender.");
+	}
+
+	@Override
+	public String getMemoryInformation(Task task, OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, IOException {
+		OperationResult result = parentResult.createSubresult(GET_MEMORY_INFORMATION);
+		try {
+			securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, result);
+			String pid = SystemUtil.getMyPid();
+			if (pid == null) {
+				result.recordPartialError("Cannot determine current process ID");
+				return "Cannot determine current process ID";
+			}
+			StringBuilder sb = new StringBuilder();
+			String jmap = midpointConfiguration.getSystemSection().getJmap();
+			String heapCommand = jmap + " -heap " + pid;
+			sb.append("Executing: ").append(heapCommand).append("\n\n");
+			boolean finished1 = SystemUtil.executeCommand(heapCommand, "", sb, JMAP_TIMEOUT);
+			if (!finished1) {
+				sb.append("\nBeware: the command execution has not finished in given time limit.\n\n");
+			} else {
+				String histogramCommand = jmap + " -histo:live " + pid;
+				sb.append("\n------------------------------------------------------------------------------------------------------------\n\n");
+				sb.append("Executing: ").append(histogramCommand).append("\n\n");
+				boolean finished2 = SystemUtil.executeCommand(histogramCommand, "", sb, JMAP_TIMEOUT);
+				if (!finished2) {
+					sb.append("\nBeware: the command execution has not finished in given time limit.\n\n");
+				}
+			}
+			result.recordSuccess();
+			return sb.toString();
+		} catch (Throwable t) {
+			result.recordFatalError(t.getMessage(), t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 }

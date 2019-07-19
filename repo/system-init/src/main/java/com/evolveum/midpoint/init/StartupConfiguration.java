@@ -20,6 +20,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -368,6 +369,11 @@ public class StartupConfiguration implements MidpointConfiguration {
 				return c.getBoolean(PROFILING_ENABLED, false) ? ProfilingMode.ON : ProfilingMode.OFF;
 			}
 		}
+	}
+
+	@Override
+	public SystemConfigurationSection getSystemSection() {
+		return new SystemConfigurationSectionImpl(getConfiguration(SYSTEM_CONFIGURATION));
 	}
 
 	private String getFileIndirectionSuffix() {

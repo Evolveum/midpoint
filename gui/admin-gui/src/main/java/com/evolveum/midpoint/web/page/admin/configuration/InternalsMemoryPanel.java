@@ -16,18 +16,10 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.OperationsPerformanceInformationUtil;
-import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
-import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceInformation;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitor;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AceEditor;
-import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.wicket.model.IModel;
-
-import java.util.Map;
 
 /**
  *  Unfinished.
@@ -36,6 +28,8 @@ public class InternalsMemoryPanel extends BasePanel<Void> {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_INFORMATION = "information";
+
+	private static final String OPERATION_GET_MEMORY_INFORMATION = InternalsMemoryPanel.class.getName() + ".getMemoryInformation";
 
 	InternalsMemoryPanel(String id) {
 		super(id);
@@ -64,11 +58,12 @@ public class InternalsMemoryPanel extends BasePanel<Void> {
 
 	@SuppressWarnings("Duplicates")
 	private String getMemoryInformation() {
-		StringBuilder sb = new StringBuilder();
-		MidPointApplication midPointApplication = MidPointApplication.get();
-		if (midPointApplication != null) {
+		try {
+			Task task = getPageBase().createSimpleTask(OPERATION_GET_MEMORY_INFORMATION);
+			return getPageBase().getModelDiagnosticService().getMemoryInformation(task, task.getResult());
+		} catch (Throwable t) {
+			// TODO show feedback message as well
+			return ExceptionUtil.printStackTrace(t);
 		}
-		// TODO
-		return sb.toString();
 	}
 }

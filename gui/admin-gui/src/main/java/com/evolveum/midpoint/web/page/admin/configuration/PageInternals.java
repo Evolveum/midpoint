@@ -57,8 +57,6 @@ public class PageInternals extends PageAdminConfiguration {
 
     private static final String ID_TAB_PANEL = "tabPanel";
     
-    
-
     private LoadableModel<XMLGregorianCalendar> model;
     private IModel<InternalsConfigDto> internalsModel;
     private Map<String,Boolean> tracesMap;
@@ -163,10 +161,18 @@ public class PageInternals extends PageAdminConfiguration {
 				return initPerformancePanel(panelId);
 			}
 		});
+        // TODO show only if experimental features are enabled?
+        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.memory")) {
 
-        TabbedPanel<ITab> tabPannel = new TabbedPanel<>(ID_TAB_PANEL, tabs);
-        add(tabPannel);
-       
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initMemoryPanel(panelId);
+			}
+		});
+
+	    add(new TabbedPanel<>(ID_TAB_PANEL, tabs));
     }
     
     private WebMarkupContainer createClockPanel(String panelId) {
@@ -199,5 +205,9 @@ public class PageInternals extends PageAdminConfiguration {
 
     private WebMarkupContainer initPerformancePanel(String panelId) {
 	    return new InternalsPerformancePanel(panelId);
+    }
+
+    private WebMarkupContainer initMemoryPanel(String panelId) {
+	    return new InternalsMemoryPanel(panelId);
     }
 }
