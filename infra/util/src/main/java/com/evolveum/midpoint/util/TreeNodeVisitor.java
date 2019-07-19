@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.util;
 
-import java.util.Collection;
-
-public interface Cacheable {
-
-	void invalidate(Class<?> type, String oid, CacheInvalidationContext context);
-
-	@NotNull
-	Collection<SingleCacheStateInformationType> getStateInformation();
+/**
+ *
+ */
+@FunctionalInterface
+public interface TreeNodeVisitor<T> {
+	void visit(TreeNode<T> node);
 }

@@ -56,6 +56,12 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	
 	protected final static File REPORT_USER_LIST_SCRIPT_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-script.xml"); 
 	protected final static String REPORT_USER_LIST_SCRIPT_OID = "222bf2b8-c89b-11e7-bf36-ebd4e4d45a80";
+	
+	protected final static File REPORT_AUDIT_CSV_FILE = new File(TEST_REPOSTS_DIR, "report-audit-csv.xml"); 
+	protected final static String REPORT_AUDIT_CSV_OID = "66dbbecc-a9fc-11e9-b75c-03927bebc9f7";
+	
+	protected final static File REPORT_AUDIT_CSV_LEGACY_FILE = new File(TEST_REPOSTS_DIR, "report-audit-csv-legacy.xml"); 
+	protected final static String REPORT_AUDIT_CSV_LEGACY_OID = "78faa28c-a9ff-11e9-8c60-e7843d75831e";
 
 	protected final static File USER_JACK_FILE = new File(TEST_DIR_COMMON, "user-jack.xml"); 
 	protected final static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";

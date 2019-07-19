@@ -22,12 +22,18 @@ import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryPolicy;
 import org.cache2k.processor.EntryProcessor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -112,6 +118,29 @@ public class GlobalQueryCache extends AbstractGlobalCache {
 	public void clear() {
 		if (cache != null) {
 			cache.clear();
+		}
+	}
+
+	Collection<SingleCacheStateInformationType> getStateInformation() {
+		Map<Class<?>, Integer> counts = new HashMap<>();
+		AtomicInteger size = new AtomicInteger(0);
+		if (cache != null) {
+			cache.invokeAll(cache.keys(), e -> {
+				Class<?> objectType = e.getKey().getType();
+				counts.compute(objectType, (type, count) -> count != null ? count+1 : 1);
+				size.incrementAndGet();
+				return null;
+			});
+			SingleCacheStateInformationType info = new SingleCacheStateInformationType(prismContext)
+					.name(GlobalQueryCache.class.getName())
+					.size(size.get());
+			counts.forEach((type, count) ->
+					info.beginComponent()
+							.name(type.getSimpleName())
+							.size(count));
+			return Collections.singleton(info);
+		} else {
+			return Collections.emptySet();
 		}
 	}
 }
