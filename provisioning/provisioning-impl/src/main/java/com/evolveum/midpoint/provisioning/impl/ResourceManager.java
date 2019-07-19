@@ -1322,7 +1322,9 @@ public class ResourceManager {
 		}
 
 
-		return applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
+		CapabilitiesType finalCapabilities = applyObjectClassCapabilities(connectorCapabilities, objectClassDefinition);
+		LOGGER.trace("Returning final capabilities:\n{} ", finalCapabilities);
+		return finalCapabilities;
 
 	}
 
@@ -1334,21 +1336,23 @@ public class ResourceManager {
 
 		CapabilitiesType objectClassCapabilities = objectClassDefinition.getCapabilities();
 		if (objectClassCapabilities == null) {
-			if (connectorCapabilities == null) {
-				return null;
-			}
-		}
-
-		CapabilitiesType finalCapabilities = new CapabilitiesType();
-		finalCapabilities.setNative(connectorCapabilities.getNative());
-
-		if (objectClassCapabilities == null) {
-			finalCapabilities.setConfigured(connectorCapabilities.getConfigured());
-			return finalCapabilities;
+			LOGGER.trace("No capabilities for {} specified, skipping merge.", objectClassDefinition);
+			return connectorCapabilities;
 		}
 
 		CapabilityCollectionType configured = objectClassCapabilities.getConfigured();
+		if (configured == null) {
+			LOGGER.trace("Empty capabilities in {} specified, skipping merge", objectClassDefinition);
+			return connectorCapabilities;
+		}
+
+		CapabilitiesType finalCapabilities = new CapabilitiesType();
+		if (connectorCapabilities.getNative() != null) {
+			finalCapabilities.setNative(connectorCapabilities.getNative());
+		}
+
 		if (!hasConfiguredCapabilities(connectorCapabilities)) {
+			LOGGER.trace("No configured capabilities found for connector, replacing with capabilities defined for {}", objectClassDefinition);
 			finalCapabilities.setConfigured(configured);
 			return finalCapabilities;
 		}

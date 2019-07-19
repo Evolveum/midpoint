@@ -335,6 +335,14 @@ public class ProvisioningContext extends StateReporter {
 		return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
 	}
 
+	public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
+		return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
+	}
+
 	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
 	}

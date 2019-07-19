@@ -340,4 +340,15 @@ public class CapabilityUtil {
 		}
 		return getCapability(nativeCaps.getAny(), capabilityClass) != null;
 	}
+
+	public static <T extends CapabilityType>  boolean hasConfiguredCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
+		if (capabilities == null) {
+			return false;
+		}
+		CapabilityCollectionType configuredCaps = capabilities.getConfigured();
+		if (configuredCaps == null) {
+			return false;
+		}
+		return getCapability(configuredCaps.getAny(), capabilityClass) != null;
+	}
 }
