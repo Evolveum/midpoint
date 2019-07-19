@@ -233,16 +233,24 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
          OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "invoke");
          try {
              ReportType reportType = (ReportType) object.asObjectable();
+             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
              JasperDesign jasperDesign = null;
-             if (reportType.getTemplate() == null){
+             
+            byte[] reportTemplateBase64;
+     		if (jasperConfig == null) {
+     			reportTemplateBase64 = reportType.getTemplate();
+     		} else {
+     			reportTemplateBase64 = jasperConfig.getTemplate();
+     		}
+             
+             if (reportTemplateBase64 == null){
             	 String message = "Report template must not be null";
             	 LOGGER.error(message);
                  result.recordFatalError(message, new SystemException());
              }
              else
              {
-            	 byte[] reportTemplateBase64 = reportType.getTemplate();
-            	 byte[] reportTemplate = Base64.decodeBase64(reportTemplateBase64);
+            	 byte[] reportTemplate = ReportUtils.decodeIfNeeded(reportTemplateBase64);
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);
