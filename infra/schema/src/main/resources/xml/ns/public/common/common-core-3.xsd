@@ -14601,23 +14601,21 @@
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Defines how any of the User's properties should
-                                be constructed. It can contain fixed value or
-                                an expression.
-
-                                In case an expression is used following variables should be set:
-                                $user - The user object being created.
-                                $account - (optional) the account from which was the user created (if present)
-
-                                Note: the expressions will be evaluated in the order as
-                                they are specified in the XML file for now, as the dependency
-                                mechanism does not work yet. Later, the order should be insignificant.
-                                
-                                DEPRECATED. Use "item" mechanism instead.
+                            	<p>
+	                                Generic mapping that defines how object properties should be constructed.
+								</p><p>
+	                                There is a major overlap of this mechanism with the "item" element of
+	                                object template. However, the overlap is not complete. The "item" functionality
+	                                can influence the presentation of the items, interpretation of schema and so on.
+	                                At the other hand this "mapping" mechanism can provide mappings that are not bound
+	                                to any specific target item. This can be useful for a variety of "validation" mappings
+	                                and other special-purpose configurations. Therfore both elements are needed.
+                                </p><p>
+                                	However, it is STRONGLY RECOMMENDED to use the "item" mechanism whenever possible.
+                                	This "mapping" mechanism should be used only in situation when no other mechanism
+                                	would do the job.
+                                </p>
                             </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
