@@ -1175,8 +1175,6 @@ public class ResourceObjectConverter {
 					entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, associationDelta, subjectShadowBefore, subjectShadowAfter, parentResult);
 				}
 				
-//				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
-//				entitlementConverter.processEntitlementsAdd(resource, shadowAfter, objectClassDefinition);
 			}
 		}
 		
@@ -1422,9 +1420,8 @@ public class ResourceObjectConverter {
 		ResourceType resource = ctx.getResource();
 		Collection<Operation> operations = new ArrayList<>();
 		
-//		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(UpdateCapabilityType.class);
 		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
-
+		LOGGER.trace("Found activation capability: {}", PrettyPrinter.prettyPrint(activationCapability));
 		// administrativeStatus
 		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
@@ -1436,19 +1433,17 @@ public class ResourceObjectConverter {
 			}
 			ActivationStatusType status = enabledPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
-	
-			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
-				// Native activation, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivationAdministrativeStatus(ctx, objectChange, status, activationCapability, shadow, result);
-				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
-			} else {
-				// Try to simulate activation capability
+
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				PropertyModificationOperation activationAttribute = convertToSimulatedActivationAdministrativeStatusAttribute(
 						ctx, enabledPropertyDelta, shadow, status, activationCapability, result);
 				if (activationAttribute != null) {
 					operations.add(activationAttribute);
 				}
-			}	
+			} else {
+				LOGGER.trace("Native activation capability, creating property modification");
+				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
+			}
 		}
 		
 		// validFrom
@@ -1489,17 +1484,14 @@ public class ResourceObjectConverter {
 			}
 			LockoutStatusType status = lockoutPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
-
-			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
-				// Native lockout, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivationLockoutStatus(ctx, objectChange, status, activationCapability, shadow, result);
-				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
-			} else {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				// Try to simulate lockout capability
 				PropertyModificationOperation activationAttribute = convertToSimulatedActivationLockoutStatusAttribute(
 						ctx, lockoutPropertyDelta, shadow, status, activationCapability, result);
 				operations.add(activationAttribute);
-			}	
+			} else {
+				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
+			}
 		}
 		
 		return operations;
@@ -1605,13 +1597,15 @@ public class ResourceObjectConverter {
 		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
 
 		if (activation.getAdministrativeStatus() != null) {
-			if (!ctx.hasNativeCapability(ActivationCapabilityType.class)) {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
+				LOGGER.trace("Start converting simulated activation attribute.");
 				ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
 					throw new SchemaException("Attempt to change activation/administrativeStatus on "+ctx.getResource()+" that has neither native" +
 							" nor simulated activation capability");
 				}
+				LOGGER.trace("Activation status capability: \n{}", capActStatus);
 				ResourceAttribute<?> newSimulatedAttr = getSimulatedActivationAdministrativeStatusAttribute(ctx, shadow,
 						capActStatus, result);
 				if (newSimulatedAttr != null) {
@@ -1624,6 +1618,7 @@ public class ResourceObjectConverter {
 						newSimulatedAttrRealValue = getDisableValue(capActStatus, simulatedAttrValueClass);
 					}
 
+					LOGGER.trace("Converted activation status value to {}, attribute {}", newSimulatedAttrRealValue, newSimulatedAttr);
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
 						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPropertyValue(newSimulatedAttrRealValue);
@@ -1638,12 +1633,14 @@ public class ResourceObjectConverter {
 					}
 					activation.setAdministrativeStatus(null);
 				}
+			}else {
+				LOGGER.trace("No activation simulated capability, nothing to do.");
 			}
 		}
 
 		// TODO enable non-string lockout values (MID-3374)
 		if (activation.getLockoutStatus() != null) {
-			if (!ctx.hasNativeCapability(ActivationCapabilityType.class)) {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
@@ -2003,13 +2000,11 @@ public class ResourceObjectConverter {
 
 		if (resourceObjectType.getActivation() != null || CapabilityUtil.isCapabilityEnabled(activationCapability)) {
 			ActivationType activationType = null;
-		
-			if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
-				activationType = resourceObjectType.getActivation();
-				
-			} else if (CapabilityUtil.isCapabilityEnabled(activationCapability)) {
+
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class) && CapabilityUtil.isCapabilityEnabled(activationCapability)){
 				activationType = convertFromSimulatedActivationAttributes(resourceType, resourceObject, activationCapability, parentResult);
-				
+			} else if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
+				activationType = resourceObjectType.getActivation();
 			} else {
 				// No activation capability, nothing to do
 			}
@@ -2306,6 +2301,8 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
+		LOGGER.trace("Simulted activation attribute: {}", simulatedAttribute);
+
 		Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, simulatedAttribute, capActStatus);
 
 		PropertyDelta<?> simulatedAttrDelta;
@@ -2315,9 +2312,11 @@ public class ResourceObjectConverter {
 					ItemPath.create(ShadowType.F_ATTRIBUTES, simulatedAttribute.getElementName()), simulatedAttribute.getDefinition(), simulatedAttribute.getRealValue());
 		} else if (status == ActivationStatusType.ENABLED) {
 			Object enableValue = getEnableValue(capActStatus, simulatedAttrValueClass);
+			LOGGER.trace("Value for simulated enable {}", enableValue);
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), enableValue);
 		} else {
 			Object disableValue = getDisableValue(capActStatus, simulatedAttrValueClass);
+			LOGGER.trace("Value for simulated disable {}", disableValue);
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), disableValue);
 		}
 
