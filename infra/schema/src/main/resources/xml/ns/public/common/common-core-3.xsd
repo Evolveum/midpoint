@@ -27252,5 +27252,109 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:complexType name="CachesStateInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Report on the state of midPoint caches.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:container>true</a:container>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="entry" type="tns:SingleCacheStateInformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						State of a single cache.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="cachesStateInformation" type="tns:CachesStateInformationType" />
+
+	<xsd:complexType name="SingleCacheStateInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Report on the cache state. Can be specialized for different caches.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:container>true</a:container>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Cache name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO somehow indicate current configuration -->
+			<xsd:element name="size" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Current size of the cache (whatever that means).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="component" type="tns:ComponentSizeInformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Size of cache components (whatever that means).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="performance" type="tns:SingleCachePerformanceInformationType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Performance information (if requested).
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="singleCacheStateInformation" type="tns:SingleCacheStateInformationType" />
+
+	<xsd:complexType name="ComponentSizeInformationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Report on structured object size.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:since>4.0</a:since>
+				<a:container>true</a:container>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="name" type="xsd:string" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Component name.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="size" type="xsd:int" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Component size.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="component" type="tns:ComponentSizeInformationType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Information on sub-components.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="componentSizeInformation" type="tns:ComponentSizeInformationType" />
 </xsd:schema>
 

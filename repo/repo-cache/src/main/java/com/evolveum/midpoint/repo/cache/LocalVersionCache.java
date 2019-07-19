@@ -18,14 +18,15 @@ package com.evolveum.midpoint.repo.cache;
 
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  */
 public class LocalVersionCache extends AbstractThreadLocalCache {
-    private Map<String, String> data = new HashMap<>();
+
+    private final Map<String, String> data = new ConcurrentHashMap<>();
 
     public String get(String oid) {
         return data.get(oid);
@@ -42,5 +43,10 @@ public class LocalVersionCache extends AbstractThreadLocalCache {
     @Override
     public String description() {
         return "V:" + data.size();
+    }
+
+    @Override
+    protected int getSize() {
+        return data.size();
     }
 }

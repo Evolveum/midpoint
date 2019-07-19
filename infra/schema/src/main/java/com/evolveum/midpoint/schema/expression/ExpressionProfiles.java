@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class ExpressionProfiles {
 	
-	private Map<String,ExpressionProfile> profiles = new HashMap<>();
+	private final Map<String,ExpressionProfile> profiles = new HashMap<>();
 
 	public ExpressionProfile getProfile(String identifier) {
 		return profiles.get(identifier);
@@ -32,5 +32,9 @@ public class ExpressionProfiles {
 	
 	public void add(ExpressionProfile profile) {
 		profiles.put(profile.getIdentifier(), profile);
+	}
+
+	public int size() {
+		return profiles.size();
 	}
 }

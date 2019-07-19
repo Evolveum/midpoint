@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -53,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
-	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
+	private static ConcurrentHashMap<Thread, Cache> cacheInstances = new ConcurrentHashMap<>();
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -200,11 +201,11 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	}
 
 	public static void enterCache(CacheConfiguration configuration) {
-		Cache.enter(cacheThreadLocal, Cache.class, configuration, LOGGER);
+		Cache.enter(cacheInstances, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
-		Cache.exit(cacheThreadLocal, LOGGER);
+		Cache.exit(cacheInstances, LOGGER);
 	}
 
 	public static <T extends ObjectType> void clearCacheFor(PolyStringType name) {
@@ -239,9 +240,9 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
 	public static class Cache extends AbstractThreadLocalCache {
 
-		private Set<String> conflictFreeNames = new HashSet<>();
+		private final Set<String> conflictFreeNames = ConcurrentHashMap.newKeySet();
 
-		public static boolean isOk(PolyStringType name, CacheConfigurationManager cacheConfigurationManager) {
+		static boolean isOk(PolyStringType name, CacheConfigurationManager cacheConfigurationManager) {
 			if (name == null) {
 				log("Null name", false);
 				return false;			// strange case
@@ -283,7 +284,7 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 
 		private static Cache getCache() {
-			return cacheThreadLocal.get();
+			return cacheInstances.get(Thread.currentThread());
 		}
 
 		public static void remove(PolyStringType name) {
@@ -297,6 +298,11 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		@Override
 		public String description() {
 			return "conflict-free names: " + conflictFreeNames;
+		}
+
+		@Override
+		protected int getSize() {
+			return conflictFreeNames.size();
 		}
 
 		private static void log(String message, boolean info, Object... params) {

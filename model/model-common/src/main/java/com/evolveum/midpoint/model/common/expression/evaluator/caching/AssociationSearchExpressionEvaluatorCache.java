@@ -36,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Search expression evaluator dealing with shadows - requires specific invalidation strategies.
@@ -50,10 +51,10 @@ public class AssociationSearchExpressionEvaluatorCache
 
     private static final Trace LOGGER = TraceManager.getTrace(AssociationSearchExpressionEvaluatorCache.class);
 
-    private static ThreadLocal<AssociationSearchExpressionEvaluatorCache> cacheInstances = new ThreadLocal<>();
+    private static ConcurrentHashMap<Thread, AssociationSearchExpressionEvaluatorCache> cacheInstances = new ConcurrentHashMap<>();
 
     public static AbstractSearchExpressionEvaluatorCache getCache() {
-        return cacheInstances.get();
+        return cacheInstances.get(Thread.currentThread());
     }
 
     public static AssociationSearchExpressionEvaluatorCache enterCache(CacheConfiguration configuration) {

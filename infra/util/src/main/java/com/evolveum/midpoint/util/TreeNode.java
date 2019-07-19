@@ -87,4 +87,13 @@ public class TreeNode<T> implements DebugDumpable {
 		}
 		return rv;
 	}
+
+	public void acceptDepthFirst(TreeNodeVisitor<T> visitor) {
+		visitor.visit(this);
+		children.forEach(child -> child.acceptDepthFirst(visitor));
+	}
+
+	public int getDepth() {
+		return parent != null ? parent.getDepth() + 1 : 0;
+	}
 }

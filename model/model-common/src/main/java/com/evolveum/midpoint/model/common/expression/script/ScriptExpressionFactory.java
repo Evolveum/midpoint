@@ -49,6 +49,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
@@ -237,6 +239,14 @@ public class ScriptExpressionFactory implements Cacheable {
 			// Currently we don't try to select entries to be cleared based on OID
 			customFunctionLibraryCache = null;
 		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+				.name(ScriptExpressionFactory.class.getName())
+				.size(customFunctionLibraryCache != null ? customFunctionLibraryCache.size() : 0));
 	}
 }
 
