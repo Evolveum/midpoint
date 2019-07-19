@@ -19,9 +19,18 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-
-    <textarea wicket:id="information"></textarea>
-
+    <div class="row">
+        <div class="col-md-12">
+            <h3><wicket:message key="PageInternals.title.memory"/></h3>
+            <textarea wicket:id="information"></textarea>
+            <p/>
+            <wicket:message key="InternalsMemoryPanel.text.explanation"/>
+            <p/>
+            <div class="main-button-bar">
+                <a class="btn btn-primary" wicket:id="show"/>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
 </body>
 </html>

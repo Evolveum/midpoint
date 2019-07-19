@@ -142,7 +142,16 @@ public class PageInternals extends PageAdminConfiguration {
 				return initCachePanel(panelId);
 			}
 		});
-        
+	    // TODO show only if experimental features are enabled?
+	    tabs.add(new AbstractTab(createStringResource("PageInternals.tab.memory")) {
+
+		    private static final long serialVersionUID = 1L;
+
+		    @Override
+		    public WebMarkupContainer getPanel(String panelId) {
+			    return initMemoryPanel(panelId);
+		    }
+	    });
         tabs.add(new AbstractTab(createStringResource("PageInternals.tab.threads")) {
 
 			private static final long serialVersionUID = 1L;
@@ -159,16 +168,6 @@ public class PageInternals extends PageAdminConfiguration {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
 				return initPerformancePanel(panelId);
-			}
-		});
-        // TODO show only if experimental features are enabled?
-        tabs.add(new AbstractTab(createStringResource("PageInternals.tab.memory")) {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public WebMarkupContainer getPanel(String panelId) {
-				return initMemoryPanel(panelId);
 			}
 		});
 

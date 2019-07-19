@@ -40,7 +40,7 @@ public class SystemConfigurationSectionImpl implements SystemConfigurationSectio
 		if (configured != null) {
 			return configured;
 		}
-		String javaHome = System.getProperty(MidPointConstants.JAVA_HOME_ENVIRONMENT_VARIABLE);
+		String javaHome = System.getenv(MidPointConstants.JAVA_HOME_ENVIRONMENT_VARIABLE);
 		if (javaHome != null) {
 			return javaHome + "/bin/jmap";
 		}
