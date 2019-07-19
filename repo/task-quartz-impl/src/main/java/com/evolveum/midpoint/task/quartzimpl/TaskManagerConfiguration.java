@@ -368,17 +368,18 @@ public class TaskManagerConfiguration {
             return null;
         } else {
             TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
-            for (String limitation : StringUtils.splitPreserveAllTokens(limitations, ',')) {
-                String[] limitationParts = limitation.split(":");
+            for (String limitation : StringUtils.splitPreserveAllTokens(limitations.trim(), ',')) {
+                String[] limitationParts = limitation.trim().split(":");
                 String groupName;
                 Integer groupLimit;
                 if (limitationParts.length == 1) {
-                    groupName = limitationParts[0];
+                    groupName = limitationParts[0].trim();
                     groupLimit = null;
                 } else if (limitationParts.length == 2) {
-                    groupName = limitationParts[0];
+                    groupName = limitationParts[0].trim();
                     try {
-                        groupLimit = "*".equals(limitationParts[1]) ? null : Integer.parseInt(limitationParts[1]);
+                        String limitValue = limitationParts[1].trim();
+                        groupLimit = "*".equals(limitValue) ? null : Integer.parseInt(limitValue);
                     } catch (NumberFormatException e) {
                         throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations, e);
                     }

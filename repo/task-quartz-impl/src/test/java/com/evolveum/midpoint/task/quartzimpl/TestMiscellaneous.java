@@ -57,13 +57,13 @@ public class TestMiscellaneous {
 
     @Test
     public void testParsingTaskExecutionLimitations() throws TaskManagerConfigurationException, SchemaException {
-        assertLimitationsParsed("", emptyList());
-        assertLimitationsParsed("_", singletonList(new TaskGroupExecutionLimitationType().groupName("_")));
-        assertLimitationsParsed("#,_", Arrays.asList(new TaskGroupExecutionLimitationType().groupName("#"), new TaskGroupExecutionLimitationType().groupName("_")));
-        assertLimitationsParsed(":0", singletonList(new TaskGroupExecutionLimitationType().groupName("").limit(0)));
+        assertLimitationsParsed(" ", emptyList());
+        assertLimitationsParsed("_   ", singletonList(new TaskGroupExecutionLimitationType().groupName("_")));
+        assertLimitationsParsed("#,   _   ", Arrays.asList(new TaskGroupExecutionLimitationType().groupName("#"), new TaskGroupExecutionLimitationType().groupName("_")));
+        assertLimitationsParsed(":    0", singletonList(new TaskGroupExecutionLimitationType().groupName("").limit(0)));
         assertLimitationsParsed("_:0", singletonList(new TaskGroupExecutionLimitationType().groupName("_").limit(0)));
         assertLimitationsParsed("_:*", singletonList(new TaskGroupExecutionLimitationType().groupName("_").limit(null)));
-        assertLimitationsParsed("admin-node:2,sync-jobs:4", Arrays.asList(
+        assertLimitationsParsed("admin-node : 2 , sync-jobs    : 4    ", Arrays.asList(
                 new TaskGroupExecutionLimitationType().groupName("admin-node").limit(2),
                 new TaskGroupExecutionLimitationType().groupName("sync-jobs").limit(4)));
         assertLimitationsParsed("admin-node:2,sync-jobs:4,#:0,_:0,*:*", Arrays.asList(
