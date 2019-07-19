@@ -47,6 +47,11 @@
     <expressions>
     	<expressionProfile>
     		<identifier>safe</identifier>
+    		<description>
+    			THIS EXPRESSION PROFILE IS PROVIDED ONLY FOR THE TESTS.
+    			Even though it is called "safe", it may not be safe or secure. It may not be complete.
+    			DO NOT USE FOR OTHER PURPOSES THAN THIS TEST.
+    		</description>
     		<decision>deny</decision> <!-- default decision of those evaluators that are not explicitly enumerated. -->
     		<evaluator>
     			<type>asIs</type>
