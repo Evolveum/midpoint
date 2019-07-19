@@ -95,6 +95,18 @@
     			<decision>allow</decision>
 	    	</class>
 	    	<class>
+	    		<name>java.lang.Object</name>
+	    			<description>Basic Java operations.</description>
+	    			<decision>deny</decision>
+	    			<method>
+	    				<name>equals</name>
+	    				<decision>allow</decision>
+	    			</method><method>
+	    				<name>hashCode</name>
+	    				<decision>allow</decision>
+	    			</method>
+	    	</class>
+	    	<class>
 	    		<name>java.lang.String</name>
 	    			<description>String operations are generally safe. But Groovy is adding execute() method which is very dangerous.</description>
 	    			<decision>allow</decision> <!-- Default decision for those methods that are not explicitly enumerated. -->
@@ -105,6 +117,10 @@
 	    	</class>
 	    	<class>
 	    		<name>java.lang.CharSequence</name>
+	    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>java.lang.Enum</name>
 	    			<decision>allow</decision>
 	    	</class>
 	    	<class>
@@ -129,23 +145,31 @@
     			<decision>allow</decision>
 	    	</class>
 	    	<class>
+	    		<name>javax.xml.namespace.QName</name>
+    			<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>javax.xml.datatype.XMLGregorianCalendar</name>
+    			<decision>allow</decision>
+	    	</class>
+	    	<class>
 	    		<name>java.lang.System</name>
-	    			<description>Just a few methods of System are safe enough.</description>
-	    			<decision>deny</decision>
-	    			<method>
-	    				<name>currentTimeMillis</name>
-	    				<decision>allow</decision>
-	    			</method>
+    			<description>Just a few methods of System are safe enough.</description>
+    			<decision>deny</decision>
+    			<method>
+    				<name>currentTimeMillis</name>
+    				<decision>allow</decision>
+    			</method>
 	    	</class>
 	    	<class>
 	    		<name>java.lang.IllegalStateException</name>
-	    			<description>Basic Java exception. Also used in test.</description>
-	    			<decision>allow</decision>
+    			<description>Basic Java exception. Also used in test.</description>
+    			<decision>allow</decision>
 	    	</class>
 	    	<class>
 	    		<name>java.lang.IllegalArgumentException</name>
-	    			<description>Basic Java exception.</description>
-	    			<decision>allow</decision>
+    			<description>Basic Java exception.</description>
+    			<decision>allow</decision>
 	    	</class>
 	    	<class>
 	    		<name>com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions</name>
@@ -160,6 +184,55 @@
 	    	<class>
 	    		<name>com.evolveum.midpoint.report.impl.ReportFunctions</name>
 	    		<description>MidPoint report functions library</description>
+	    		<decision>allow</decision>
+	    	</class>
+	    	<class>
+	    		<name>org.apache.commons.lang.StringUtils</name>
+	    		<description>Apache Commons: Strings</description>
+	    		<decision>allow</decision>
+	    	</class>
+	    	
+	    	<!-- Following are needed for audit reports. May not be completely safe.-->
+	    	<class>
+	    		<name>com.evolveum.midpoint.schema.expression.VariablesMap</name>
+	    		<description>Expression variables map.</description>
+	    		<decision>deny</decision>
+    			<method>
+    				<name>get</name>
+    				<decision>allow</decision>
+    			</method>
+    			<method>
+    				<name>remove</name>
+    				<decision>allow</decision>
+    			</method>
+	    	</class>
+	    	<class>
+	    		<name>com.evolveum.midpoint.schema.expression.TypedValue</name>
+	    		<description>Typed values, holding expression variables. Read-only access.</description>
+	    		<decision>deny</decision>
+    			<method>
+    				<name>getValue</name>
+    				<decision>allow</decision>
+    			</method>
+	    	</class>
+	    	<class>
+	    		<name>com.evolveum.midpoint.report.impl.ReportUtils</name>
+	    		<decision>deny</decision>
+    			<method>
+    				<name>convertDateTime</name>
+    				<decision>allow</decision>
+    			</method>
+    			<method>
+    				<name>getPropertyString</name>
+    				<decision>allow</decision>
+    			</method>
+    			<method>
+    				<name>printDelta</name>
+    				<decision>allow</decision>
+    			</method>
+	    	</class>
+	    	<class>
+	    		<name>com.evolveum.midpoint.prism.PrismReferenceValue</name>
 	    		<decision>allow</decision>
 	    	</class>
 	    </permissionProfile>

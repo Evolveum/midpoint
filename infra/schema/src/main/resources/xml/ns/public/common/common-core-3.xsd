@@ -23707,13 +23707,18 @@
                 		</xsd:annotation>
                 	</xsd:element>
                 	
-                	<!-- Following elements are jasper-specific. -->
+                	<!-- Following elements are jasper-specific.
+                	     Those elements are all DEPRECATED. Use the elements in the
+                	     "jasper" container instead. -->
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
                     			Indicates whether this report is a parent report or subreport.
                     			This item is specific to JasperRepors.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded">
@@ -23722,6 +23727,9 @@
                     			Reference to subreport.
                     			This item is specific to JasperRepors.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
@@ -23730,6 +23738,9 @@
                     			Report template. This is definition of base query, report structure and so on.
                     			This item is specific to JasperRepors. But it may be reused for other report types.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
@@ -23738,6 +23749,9 @@
                     			Report style template. This defines colors and similar look and feel properties.
                     			This item is specific to JasperRepors. But it may be reused for other report types.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
@@ -23746,6 +23760,9 @@
                                 Report page orientation (portrait/landscape).
                                 This item is specific to JasperRepors. But it may be reused for other report types.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="export" type="tns:ExportType" minOccurs="0">
@@ -23753,6 +23770,9 @@
                             <xsd:documentation>
                                 Report output file format.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0">
@@ -23760,6 +23780,9 @@
                     		<xsd:documentation>
                     			This item is specific to JasperRepors.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
                     <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0">
@@ -23767,6 +23790,9 @@
                     		<xsd:documentation>
                     			This item is specific to JasperRepors.
                     		</xsd:documentation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
             		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -23775,10 +23801,25 @@
                                 Columns user definition. Name, type, report field, column name.
                                 This item is specific to JasperRepors.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0"/>
-                    <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0"/>
+                    <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0">
+                    	<xsd:annotation>
+                    		<xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
+                    	</xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="virtualizer" type="xsd:string" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23789,7 +23830,8 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:operational/>
-                            </xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>                
                     </xsd:element>
                     <xsd:element name="virtualizerKickOn" type="xsd:int" minOccurs="0" maxOccurs="1">
@@ -23798,6 +23840,9 @@
                                 Number of pages after Jasper virtualizer kicks on.
                                 This item is specific to JasperRepors.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="maxPages" type="xsd:int" minOccurs="0" maxOccurs="1">
@@ -23806,6 +23851,9 @@
                                 Number of pages after Jasper cancels report execution.
                                 This item is specific to JasperRepors.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="timeout" type="xsd:int" minOccurs="0" maxOccurs="1">
@@ -23814,14 +23862,17 @@
                                 Timeout in [ms] after Jasper cancels report execution.
                                 This item is specific to JasperRepors.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:deprecated>true</a:deprecated>
+                    		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <!-- End of jasper-specific elements. -->
                     
-                    <xsd:element name="defaultScriptConfiguration" type="tns:ScriptExpressionEvaluatorConfigurationType" minOccurs="0">
+                    <xsd:element name="jasper" type="tns:JasperReportEngineConfigurationType" minOccurs="0">
                 		<xsd:annotation>
                 			<xsd:documentation>
-                				Default configuration for the scripts executed inside the report.
+                				Configuration for jasper-based reports. Only applicable if reportEngine=jasper.
                 			</xsd:documentation>
                 			<xsd:appinfo>
                 				<a:since>4.0</a:since>
@@ -23833,6 +23884,17 @@
                 		<xsd:annotation>
                 			<xsd:documentation>
                 				Configuration for dashboard-based reports. Only applicable if reportEngine=dashboard.
+                			</xsd:documentation>
+                			<xsd:appinfo>
+                				<a:since>4.0</a:since>
+                			</xsd:appinfo>
+                		</xsd:annotation>
+                	</xsd:element>
+                	
+                	<xsd:element name="defaultScriptConfiguration" type="tns:ScriptExpressionEvaluatorConfigurationType" minOccurs="0">
+                		<xsd:annotation>
+                			<xsd:documentation>
+                				Default configuration for the scripts executed inside the report.
                 			</xsd:documentation>
                 			<xsd:appinfo>
                 				<a:since>4.0</a:since>
@@ -23909,6 +23971,200 @@
             </xsd:any>
         </xsd:sequence>
     </xsd:complexType>
+    
+    <xsd:complexType name="JasperReportEngineConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuraiton of jasper-based reports.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container>true</a:container>
+            	<a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="reportType" type="tns:JasperReportTypeType" default="legacy" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Specifies type of the report.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Indicates whether this report is a parent report or subreport.
+            			This item is specific to JasperRepors.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Reference to subreport.
+            			This item is specific to JasperRepors.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+             <xsd:annotation>
+            		<xsd:documentation>
+            			Report template. This is definition of base query, report structure and so on.
+            			This item is specific to JasperRepors. But it may be reused for other report types.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+            		<xsd:documentation>
+            			Report style template. This defines colors and similar look and feel properties.
+            			This item is specific to JasperRepors. But it may be reused for other report types.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
+    <xsd:annotation>
+                    <xsd:documentation>
+                        Report page orientation (portrait/landscape).
+                        This item is specific to JasperRepors. But it may be reused for other report types.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="export" type="tns:ExportType" minOccurs="0">
+<xsd:annotation>
+                    <xsd:documentation>
+                        Report output file format.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0">
+             <xsd:annotation>
+            		<xsd:documentation>
+            			This item is specific to JasperRepors.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0">
+             <xsd:annotation>
+            		<xsd:documentation>
+            			This item is specific to JasperRepors.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+    		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Columns user definition. Name, type, report field, column name.
+                        This item is specific to JasperRepors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0"/>
+            <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0"/>
+            <xsd:element name="virtualizer" type="xsd:string" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Optional name of Jasper virtualizer class.
+                        </p>
+                        This item is specific to JasperRepors.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational/>
+                    </xsd:appinfo>
+                </xsd:annotation>                
+            </xsd:element>
+            <xsd:element name="virtualizerKickOn" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of pages after Jasper virtualizer kicks on.
+                        This item is specific to JasperRepors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="maxPages" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of pages after Jasper cancels report execution.
+                        This item is specific to JasperRepors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="timeout" type="xsd:int" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timeout in [ms] after Jasper cancels report execution.
+                        This item is specific to JasperRepors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="JasperReportTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies type of Jasper report.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="legacy">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+                			Legacy report type with automagic detection.
+                			Report type is detected from the format of the query.
+                			The detection is automagic, it may not be completely
+                			reliable.
+                			This is not supposed to work with expression profiles.
+                		</p>
+                		<p>
+                			This option si DEPRECATED. It is provided for compatibility
+                			only. If should not be used.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LEGACY"/>
+                        <a:deprecated>true</a:deprecated>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="objectFilter">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		The report is based on object query based on object filter.
+	                		Report query is midPoint object filter.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OBJECT_FILTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="auditSql">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		<p>
+	                		The report is based on a query for audit table entries.
+	                		The query is a "where clause" of an (SQL) query to the audit
+	                		table.
+                		</p>
+                		<p>
+                			This method is likely to get deprecated in future versions.
+                			It is not deprecated now because there is no replacement yet.
+                		</p>
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AUDIT_SQL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="DashboardReportEngineConfigurationType">
         <xsd:annotation>

@@ -26,6 +26,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.jfree.data.gantt.Task;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -89,7 +91,13 @@ public class ReportTypeUtil {
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {
 
-        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	PrismContainer xmlSchema;
+    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+    	if (jasper != null) {
+    		xmlSchema = jasper.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	} else {
+    		xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	}
         Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
         if (xmlSchemaElement == null) {
             //no schema definition available
@@ -110,8 +118,14 @@ public class ReportTypeUtil {
 
     public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext)
             throws SchemaException {
-
-        PrismContainer<ReportConfigurationType> configuration = report.findContainer(ReportType.F_CONFIGURATION);
+    	
+    	PrismContainer<ReportConfigurationType> configuration;
+    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+    	if (jasper != null) {
+    		configuration = jasper.findContainer(ReportType.F_CONFIGURATION);
+    	} else {
+    		configuration = report.findContainer(ReportType.F_CONFIGURATION);
+    	}
         if (configuration == null) {
             //nothing to apply definitions on
             return;

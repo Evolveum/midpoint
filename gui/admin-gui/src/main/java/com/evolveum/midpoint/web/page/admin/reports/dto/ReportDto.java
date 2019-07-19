@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.BooleanUtils;
@@ -66,18 +67,31 @@ public class ReportDto implements Serializable {
     public ReportDto(ReportType reportType, boolean onlyForPromptingParams) {
         this.oid = reportType.getOid();
         this.name = reportType.getName().getOrig();
-        this.exportType = reportType.getExport();
-        this.searchOnResource = false;
         this.description = reportType.getDescription();
-//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
-        this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
-        this.templateStyle = reportType.getTemplateStyle();
-        this.parent = !BooleanUtils.isFalse(reportType.isParent());
-        this.virtualizer = reportType.getVirtualizer();
-        this.virtualizerKickOn = reportType.getVirtualizerKickOn();
-        this.maxPages = reportType.getMaxPages();
-        this.timeout = reportType.getTimeout();
         this.reportType = reportType;
+        this.searchOnResource = false;
+    	JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
+    	if (jasperConfig == null) {
+	        this.exportType = reportType.getExport();
+	//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+	        this.jasperReportDto = new JasperReportDto(reportType.getTemplate(), onlyForPromptingParams);
+	        this.templateStyle = reportType.getTemplateStyle();
+	        this.parent = !BooleanUtils.isFalse(reportType.isParent());
+	        this.virtualizer = reportType.getVirtualizer();
+	        this.virtualizerKickOn = reportType.getVirtualizerKickOn();
+	        this.maxPages = reportType.getMaxPages();
+	        this.timeout = reportType.getTimeout();
+    	} else {
+	        this.exportType = jasperConfig.getExport();
+	//    	this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
+	        this.jasperReportDto = new JasperReportDto(jasperConfig.getTemplate(), onlyForPromptingParams);
+	        this.templateStyle = jasperConfig.getTemplateStyle();
+	        this.parent = !BooleanUtils.isFalse(jasperConfig.isParent());
+	        this.virtualizer = jasperConfig.getVirtualizer();
+	        this.virtualizerKickOn = jasperConfig.getVirtualizerKickOn();
+	        this.maxPages = jasperConfig.getMaxPages();
+	        this.timeout = jasperConfig.getTimeout();    		
+    	}
     }
 
     public ReportDto(ReportType reportType) {
