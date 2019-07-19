@@ -23,6 +23,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -169,6 +170,11 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                 return true;
             }
         };
+    }
+
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return createStringResource("PageCase.title");
     }
 
 //    private void savePerformed(AjaxRequestTarget target) {
