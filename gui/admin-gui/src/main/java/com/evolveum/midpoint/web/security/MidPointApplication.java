@@ -44,6 +44,7 @@ import javax.servlet.ServletContext;
 import javax.validation.Validator;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.Component;
@@ -231,6 +232,8 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
     transient ModelAuditService auditService;
     @Autowired
     transient private RepositoryService repositoryService;            // temporary
+    @Autowired
+    transient private CacheRegistry cacheRegistry;
     @Autowired
     transient private WorkflowService workflowService;
     @Autowired
@@ -554,6 +557,10 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public CacheRegistry getCacheRegistry() {
+        return cacheRegistry;
     }
 
     public TaskService getTaskService() {

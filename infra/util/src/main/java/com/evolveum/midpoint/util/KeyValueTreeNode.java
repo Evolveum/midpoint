@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.repo.api;
 
-import com.evolveum.midpoint.CacheInvalidationContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
-import org.jetbrains.annotations.NotNull;
+package com.evolveum.midpoint.util;
 
-import java.util.Collection;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
-public interface Cacheable {
+/**
+ * Experimental.
+ */
+public class KeyValueTreeNode<K, V> extends TreeNode<Pair<K, V>> {
 
-	void invalidate(Class<?> type, String oid, CacheInvalidationContext context);
+	public KeyValueTreeNode(K key, V value) {
+		super(new ImmutablePair<>(key, value));
+	}
 
-	@NotNull
-	Collection<SingleCacheStateInformationType> getStateInformation();
+	public KeyValueTreeNode<K, V> createChild(K key, V value) {
+		KeyValueTreeNode<K, V> child = new KeyValueTreeNode<>(key, value);
+		add(child);
+		return child;
+	}
 }

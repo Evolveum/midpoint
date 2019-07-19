@@ -63,9 +63,9 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         this.clientContextInformation = clientContextInformation;
     }
 
-    // ConcurrentHashMap should not be required here because the cache should be accessed only from a single thread.
-    // However, there could be bugs that make this assumption invalid (see e.g. MID-5355). So just for sure let's make this thread-safe.
-    protected Map<QK, QR> queries = new ConcurrentHashMap<>();
+    // We need thread-safety here e.g. because of size determination, see getSize() method.
+    // Also probably because of MID-5355, although it's a bit unclear.
+    Map<QK, QR> queries = new ConcurrentHashMap<>();
 
     public List<V> getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
@@ -96,5 +96,10 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
     @Override
     public String description() {
         return "Q:"+queries.size();
+    }
+
+    @Override
+    protected int getSize() {
+        return queries.size();
     }
 }

@@ -45,6 +45,7 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 import java.util.Objects;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.repo.cache.RepositoryCache.PassReasonType.*;
@@ -86,9 +87,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	private static final String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
 	private static final String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
 
-	private static final ThreadLocal<LocalObjectCache> localObjectCacheInstance = new ThreadLocal<>();
-	private static final ThreadLocal<LocalVersionCache> localVersionCacheInstance = new ThreadLocal<>();
-	private static final ThreadLocal<LocalQueryCache> localQueryCacheInstance = new ThreadLocal<>();
+	private static final ConcurrentHashMap<Thread, LocalObjectCache> localObjectCacheInstance = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<Thread, LocalVersionCache> localVersionCacheInstance = new ConcurrentHashMap<>();
+	private static final ConcurrentHashMap<Thread, LocalQueryCache> localQueryCacheInstance = new ConcurrentHashMap<>();
 
 	@Autowired private PrismContext prismContext;
 	@Autowired private RepositoryService repositoryService;
@@ -113,15 +114,15 @@ public class RepositoryCache implements RepositoryService, Cacheable {
     }
 
 	private static LocalObjectCache getLocalObjectCache() {
-		return localObjectCacheInstance.get();
+		return localObjectCacheInstance.get(Thread.currentThread());
 	}
 
 	private static LocalVersionCache getLocalVersionCache() {
-		return localVersionCacheInstance.get();
+		return localVersionCacheInstance.get(Thread.currentThread());
 	}
 
 	private static LocalQueryCache getLocalQueryCache() {
-		return localQueryCacheInstance.get();
+		return localQueryCacheInstance.get(Thread.currentThread());
 	}
 
 	public static void init() {
@@ -152,8 +153,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	}
 
 	public static boolean exists() {
-		return LocalObjectCache.exists(localObjectCacheInstance) || LocalVersionCache.exists(localVersionCacheInstance) || LocalQueryCache
-				.exists(localQueryCacheInstance);
+		return LocalObjectCache.exists(localObjectCacheInstance) ||
+				LocalVersionCache.exists(localVersionCacheInstance) ||
+				LocalQueryCache.exists(localQueryCacheInstance);
 	}
 
 	@SuppressWarnings("unused")
@@ -1838,5 +1840,23 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		public Object getObject() {
 			return details;
 		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		List<SingleCacheStateInformationType> rv = new ArrayList<>();
+		rv.add(new SingleCacheStateInformationType(prismContext)
+						.name(LocalObjectCache.class.getName())
+						.size(LocalObjectCache.getTotalSize(localObjectCacheInstance)));
+		rv.add(new SingleCacheStateInformationType(prismContext)
+						.name(LocalQueryCache.class.getName())
+						.size(LocalQueryCache.getTotalSize(localQueryCacheInstance)));
+		rv.add(new SingleCacheStateInformationType(prismContext)
+						.name(LocalVersionCache.class.getName())
+						.size(LocalVersionCache.getTotalSize(localVersionCacheInstance)));
+		rv.addAll(globalObjectCache.getStateInformation());
+		rv.addAll(globalQueryCache.getStateInformation());
+		return rv;
 	}
 }

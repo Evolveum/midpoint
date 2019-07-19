@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
@@ -36,6 +37,7 @@ public abstract class AbstractGlobalCache {
 	static final int DEFAULT_TIME_TO_LIVE = 60;                     // see also default-caching-profile.xml in resources
 
 	@Autowired protected CacheConfigurationManager configurationManager;
+	@Autowired protected PrismContext prismContext;
 
 	boolean supportsObjectType(Class<?> type) {
 		CacheType cacheType = getCacheType();

@@ -19,6 +19,8 @@ package com.evolveum.midpoint.util.caching;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author mederly
  */
@@ -32,70 +34,73 @@ public abstract class AbstractThreadLocalCache {
 
     private CacheConfiguration configuration;
 
-    public static <T extends AbstractThreadLocalCache> T enter(ThreadLocal<T> cacheThreadLocal, Class<T> cacheClass,
+    public static <T extends AbstractThreadLocalCache> T enter(ConcurrentHashMap<Thread, T> cacheThreadMap, Class<T> cacheClass,
             CacheConfiguration configuration, Trace logger) {
-        T inst = cacheThreadLocal.get();
-        logger.trace("Cache: ENTER for thread {}, {}", Thread.currentThread().getName(), inst);
+        Thread currentThread = Thread.currentThread();
+        T inst = cacheThreadMap.get(currentThread);
+        logger.trace("Cache: ENTER for thread {}, {}", currentThread.getName(), inst);
         if (inst == null) {
-            logger.trace("Cache: creating for thread {}", Thread.currentThread().getName());
+            logger.trace("Cache: creating for thread {}", currentThread.getName());
             try {
                 inst = cacheClass.newInstance();
             } catch (InstantiationException|IllegalAccessException e) {
                 throw new SystemException("Couldn't instantiate cache: " + e.getMessage(), e);
             }
             inst.setConfiguration(configuration);
-            cacheThreadLocal.set(inst);
+            cacheThreadMap.put(currentThread, inst);
         }
         inst.incrementEntryCount();
         return inst;
     }
 
-    public static <T extends AbstractThreadLocalCache> T exit(ThreadLocal<T> cacheThreadLocal, Trace logger) {
-        T inst = cacheThreadLocal.get();
+    public static <T extends AbstractThreadLocalCache> T exit(ConcurrentHashMap<Thread, T> cacheThreadMap, Trace logger) {
+        Thread currentThread = Thread.currentThread();
+        T inst = cacheThreadMap.get(currentThread);
         logger.trace("Cache: EXIT for thread {}, {}", Thread.currentThread().getName(), inst);
         if (inst == null || inst.getEntryCount() == 0) {
             logger.error("Cache: Attempt to exit cache that does not exist or has entry count 0: {}", inst);
-            cacheThreadLocal.set(null);
+            cacheThreadMap.remove(currentThread);
         } else {
             inst.decrementEntryCount();
             if (inst.getEntryCount() <= 0) {
-                destroy(cacheThreadLocal, logger);
+                destroy(cacheThreadMap, logger);
             }
         }
         return inst;
     }
 
-    public static <T extends AbstractThreadLocalCache> void destroy(ThreadLocal<T> cacheThreadLocal, Trace logger) {
-        T inst = cacheThreadLocal.get();
+    public static <T extends AbstractThreadLocalCache> void destroy(ConcurrentHashMap<Thread, T> cacheThreadMap, Trace logger) {
+        Thread currentThread = Thread.currentThread();
+        T inst = cacheThreadMap.get(currentThread);
         if (inst != null) {
             logger.trace("Cache: DESTROY for thread {}: {}", Thread.currentThread().getName(), inst.getCacheStatisticsString());
             //CachePerformanceCollector.INSTANCE.onCacheDestroy(inst);
-            cacheThreadLocal.set(null);
+            cacheThreadMap.remove(currentThread);
         }
     }
 
-    public String getCacheStatisticsString() {
+    String getCacheStatisticsString() {
         return "hits: " + hits + ", misses: " + misses + ", passes: " + passes +
                 (hits+misses+passes != 0 ? ", % of hits: " + (100.0f * hits / (hits + misses + passes)) : "");
     }
 
-    public int getHits() {
+    int getHits() {
         return hits;
     }
 
-    public int getMisses() {
+    int getMisses() {
         return misses;
     }
 
-    public int getPasses() {
+    int getPasses() {
         return passes;
     }
 
-    public void incrementEntryCount() {
+    void incrementEntryCount() {
         entryCount++;
     }
 
-    public void decrementEntryCount() {
+    void decrementEntryCount() {
         entryCount--;
     }
 
@@ -103,12 +108,12 @@ public abstract class AbstractThreadLocalCache {
         return entryCount;
     }
 
-    public static boolean exists(ThreadLocal<? extends AbstractThreadLocalCache> cacheThreadLocal) {
-        return cacheThreadLocal.get() != null;
+    public static boolean exists(ConcurrentHashMap<Thread, ? extends AbstractThreadLocalCache> instances) {
+        return instances.get(Thread.currentThread()) != null;
     }
 
-    public static <T extends AbstractThreadLocalCache> String debugDump(ThreadLocal<T> cacheThreadLocal) {
-        T inst = cacheThreadLocal.get();
+    public static <T extends AbstractThreadLocalCache> String debugDump(ConcurrentHashMap<Thread, T> instances) {
+        T inst = instances.get(Thread.currentThread());
         StringBuilder sb = new StringBuilder("Cache ");
         if (inst != null) {
             sb.append("exists (").append(inst.getCacheStatisticsString()).append("), entry count ");
@@ -161,4 +166,14 @@ public abstract class AbstractThreadLocalCache {
                 "entryCount=" + entryCount +
                 '}';
     }
+
+    public static <T extends AbstractThreadLocalCache> int getTotalSize(ConcurrentHashMap<Thread, T> cacheInstances) {
+        int rv = 0;
+        for (T cacheInstance : cacheInstances.values()) {
+            rv += cacheInstance.getSize();
+        }
+        return rv;
+    }
+
+    protected abstract int getSize();
 }

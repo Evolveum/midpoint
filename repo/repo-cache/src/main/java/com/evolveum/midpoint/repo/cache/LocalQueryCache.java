@@ -19,15 +19,16 @@ package com.evolveum.midpoint.repo.cache;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  */
 public class LocalQueryCache extends AbstractThreadLocalCache {
-    private Map<QueryKey, SearchResultList> data = new HashMap<>();
+
+    private final Map<QueryKey, SearchResultList> data = new ConcurrentHashMap<>();
 
     public SearchResultList get(QueryKey key) {
         return data.get(key);
@@ -46,7 +47,12 @@ public class LocalQueryCache extends AbstractThreadLocalCache {
         return "Q:" + data.size();
     }
 
-	public Iterator<Map.Entry<QueryKey, SearchResultList>> getEntryIterator() {
+    @Override
+    protected int getSize() {
+        return data.size();
+    }
+
+    public Iterator<Map.Entry<QueryKey, SearchResultList>> getEntryIterator() {
         return data.entrySet().iterator();
     }
 }
