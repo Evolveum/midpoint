@@ -1,0 +1,145 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.task.quartzimpl;
+
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.task.api.TaskManagerConfigurationException;
+import com.evolveum.midpoint.task.quartzimpl.cluster.NodeRegistrar;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import javax.xml.namespace.QName;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.display;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.testng.AssertJUnit.assertEquals;
+
+/**
+ *
+ */
+@ContextConfiguration(locations = {"classpath:ctx-task-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class TestMiscellaneous {
+
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+
+    @Test
+    public void testParsingTaskExecutionLimitations() throws TaskManagerConfigurationException, SchemaException {
+        assertLimitationsParsed("", emptyList());
+        assertLimitationsParsed("_", singletonList(new TaskGroupExecutionLimitationType().groupName("_")));
+        assertLimitationsParsed("#,_", Arrays.asList(new TaskGroupExecutionLimitationType().groupName("#"), new TaskGroupExecutionLimitationType().groupName("_")));
+        assertLimitationsParsed(":0", singletonList(new TaskGroupExecutionLimitationType().groupName("").limit(0)));
+        assertLimitationsParsed("_:0", singletonList(new TaskGroupExecutionLimitationType().groupName("_").limit(0)));
+        assertLimitationsParsed("_:*", singletonList(new TaskGroupExecutionLimitationType().groupName("_").limit(null)));
+        assertLimitationsParsed("admin-node:2,sync-jobs:4", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("admin-node").limit(2),
+                new TaskGroupExecutionLimitationType().groupName("sync-jobs").limit(4)));
+        assertLimitationsParsed("admin-node:2,sync-jobs:4,#:0,_:0,*:*", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("admin-node").limit(2),
+                new TaskGroupExecutionLimitationType().groupName("sync-jobs").limit(4),
+                new TaskGroupExecutionLimitationType().groupName("#").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("_").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(null)));
+    }
+
+    @Test
+    public void testComputingLimitations() throws TaskManagerConfigurationException, SchemaException {
+        assertLimitationsComputed("", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName(""),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("_", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName(""),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("_:1", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("").limit(1),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("#,_", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName(""),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed(":0", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("_:0", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("_:*", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName(""),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("admin-node:2,sync-jobs:4", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("admin-node").limit(2),
+                new TaskGroupExecutionLimitationType().groupName("sync-jobs").limit(4),
+                new TaskGroupExecutionLimitationType().groupName(""),
+                new TaskGroupExecutionLimitationType().groupName("NODE"),
+                new TaskGroupExecutionLimitationType().groupName("*").limit(0)
+        ));
+        assertLimitationsComputed("admin-node:2,sync-jobs:4,#:0,_:0,*:*", Arrays.asList(
+                new TaskGroupExecutionLimitationType().groupName("admin-node").limit(2),
+                new TaskGroupExecutionLimitationType().groupName("sync-jobs").limit(4),
+                new TaskGroupExecutionLimitationType().groupName("NODE").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("").limit(0),
+                new TaskGroupExecutionLimitationType().groupName("*")));
+    }
+
+    private void assertLimitationsParsed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
+        TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
+        display("parsed value of '" + value + "'", serialize(parsed));
+        assertEquals("Wrong parsed value for '" + value + "'", expected, parsed.getGroupLimitation());
+    }
+
+    private void assertLimitationsComputed(String value, List<TaskGroupExecutionLimitationType> expected) throws TaskManagerConfigurationException, SchemaException {
+        TaskExecutionLimitationsType parsed = TaskManagerConfiguration.parseExecutionLimitations(value);
+        display("parsed value of '" + value + "'", serialize(parsed));
+        TaskExecutionLimitationsType computed = NodeRegistrar.computeTaskExecutionLimitations(parsed, "NODE");
+        assertEquals("Wrong computed value for '" + value + "'", expected, computed.getGroupLimitation());
+    }
+
+    private String serialize(TaskExecutionLimitationsType parsed) throws SchemaException {
+        return getPrismContext().xmlSerializer().serializeRealValue(parsed, new QName(SchemaConstants.NS_C, "value"));
+    }
+}
