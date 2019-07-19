@@ -138,20 +138,24 @@ public abstract class AbstractValuePolicyOriginResolver<O extends ObjectType> {
 		} else {
 			return;
 		}
-		ResourceShadowDiscriminator shadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(prohibitedValueItemType.getProjectionDiscriminator());
+		// We want to provide default intent to allow configurators to be a little lazy and skip intent specification.
+		// Consider changing this if necessary.
+		ResourceShadowDiscriminator shadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
+				prohibitedValueItemType.getProjectionDiscriminator(), true);
 		for (ObjectReferenceType linkRef: focusType.getLinkRef()) {
 			GetOperationOptions options = GetOperationOptions.createReadOnly();
 			options.setNoFetch(true);
-			ShadowType shadowType = objectResolver.resolve(linkRef, ShadowType.class, 
+			ShadowType resolvedShadow = objectResolver.resolve(linkRef, ShadowType.class,
 					SelectorOptions.createCollection(options), 
 					"resolving projection shadow in " + contextDescription, task, result);
 			if (shadowDiscriminator != null) {
-				if (!ShadowUtil.matches(shadowType.asPrismObject(), shadowDiscriminator)) {
-					LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator", shadowType, contextDescription);
+				if (!ShadowUtil.matches(resolvedShadow.asPrismObject(), shadowDiscriminator)) {
+					LOGGER.trace("Skipping evaluation of projection {} in {} because it does not match discriminator", resolvedShadow, contextDescription);
 					continue;
 				}
 			}
-			handler.handle((PrismObject<P>) shadowType.asPrismObject(), result);
+			//noinspection unchecked
+			handler.handle((PrismObject<P>) resolvedShadow.asPrismObject(), result);
 		}
 	}
 
