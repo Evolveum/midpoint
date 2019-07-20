@@ -124,7 +124,13 @@ public class NodeRegistrar {
         if (nodesInRepo.size() == 1) {
             PrismObject<NodeType> nodeInRepo = nodesInRepo.get(0);
             // copy all information that need to be preserved from the repository
-            nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
+            if (configuration.getTaskExecutionLimitations() != null) {
+                // In this (special) case, we overwrite repository information by statically configured values.
+                LOGGER.info("Using statically-defined task execution limitations for the current node");
+            } else {
+                // But usually we take execution limitations from the repository.
+                nodeToBe.setTaskExecutionLimitations(nodeInRepo.asObjectable().getTaskExecutionLimitations());
+            }
             nodeToBe.setUrlOverride(applyDefault(nodeInRepo.asObjectable().getUrlOverride(), configuration.getUrl()));
             nodeToBe.setUrl(nodeInRepo.asObjectable().getUrl());        // URL is refreshed later, in cluster manager thread
             if (shouldRenewSecret(nodeInRepo.asObjectable())) {
@@ -202,15 +208,54 @@ public class NodeRegistrar {
         node.setRunning(true);
         node.setLastCheckInTime(currentTime);
         node.setBuild(getBuildInformation());
-        node.setTaskExecutionLimitations(
-        		new TaskExecutionLimitationsType()
-                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName("").limit(null))
-                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName(nodeId).limit(null))
-                    .groupLimitation(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0)));
+        node.setTaskExecutionLimitations(computeTaskExecutionLimitations(
+                configuration.getTaskExecutionLimitations(), configuration.getNodeId()));
         generateInternalNodeIdentifier(node);
         node.setSecretUpdateTimestamp(currentTime);                 // overridden later (if already exists in repo)
         node.setSecret(generateNodeSecret());                       // overridden later (if already exists in repo)
         return node;
+    }
+
+    // public static because of testing
+    @NotNull
+    public static TaskExecutionLimitationsType computeTaskExecutionLimitations(TaskExecutionLimitationsType configuredLimitations,
+            String nodeId) {
+        TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
+        boolean nullGroupPresent = false;
+        boolean currentNodePresent = false;
+        boolean otherGroupPresent = false;
+        if (configuredLimitations != null) {
+            for (TaskGroupExecutionLimitationType limitation : configuredLimitations.getGroupLimitation()) {
+                TaskGroupExecutionLimitationType limitationToAdd;
+                if (TaskConstants.LIMIT_FOR_CURRENT_NODE.equals(limitation.getGroupName())) {
+                    limitationToAdd = new TaskGroupExecutionLimitationType(limitation);
+                    limitationToAdd.setGroupName(nodeId);
+                } else if (TaskConstants.LIMIT_FOR_NULL_GROUP.equals(limitation.getGroupName())) {
+                    limitationToAdd = new TaskGroupExecutionLimitationType(limitation);
+                    limitationToAdd.setGroupName("");
+                } else {
+                    limitationToAdd = limitation;
+                }
+                rv.getGroupLimitation().add(limitationToAdd);
+                if (StringUtils.isEmpty(limitationToAdd.getGroupName())) {
+                    nullGroupPresent = true;
+                } else if (limitationToAdd.getGroupName().equals(nodeId)) {
+                    currentNodePresent = true;
+                } else if (limitationToAdd.getGroupName().equals(TaskConstants.LIMIT_FOR_OTHER_GROUPS)) {
+                    otherGroupPresent = true;
+                }
+            }
+        }
+        if (!nullGroupPresent) {
+            rv.getGroupLimitation().add(new TaskGroupExecutionLimitationType().groupName("").limit(null));
+        }
+        if (!currentNodePresent) {
+            rv.getGroupLimitation().add(new TaskGroupExecutionLimitationType().groupName(nodeId).limit(null));
+        }
+        if (!otherGroupPresent) {
+            rv.getGroupLimitation().add(new TaskGroupExecutionLimitationType().groupName(TaskConstants.LIMIT_FOR_OTHER_GROUPS).limit(0));
+        }
+        return rv;
     }
 
     private void discoverUrlSchemeAndPort() {
@@ -622,7 +667,8 @@ public class NodeRegistrar {
 		}
 	}
 	
-	private boolean isLocalAddress(String addr) {
+	@SuppressWarnings("RedundantIfStatement")
+    private boolean isLocalAddress(String addr) {
 		if (addr.startsWith("127.")) {
 			return true;
 		}
