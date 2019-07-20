@@ -19,12 +19,14 @@
 <body>
 <wicket:panel>
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <h3><wicket:message key="PageInternals.title.cache"/></h3>
-            	
-                <div class="main-button-bar">
-                    <a class="btn btn-primary" wicket:id="clearCaches"/>
-                </div>
+
+            <textarea wicket:id="information"></textarea>
+            <p></p>
+            <div class="main-button-bar">
+                <a class="btn btn-primary" wicket:id="clearCaches"/>
+            </div>
             
         </div>
     </div>

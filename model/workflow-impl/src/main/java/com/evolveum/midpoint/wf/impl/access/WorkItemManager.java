@@ -17,9 +17,7 @@
 package com.evolveum.midpoint.wf.impl.access;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,6 +39,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -162,7 +161,7 @@ public class WorkItemManager {
 	// We can eventually provide bulk version of this method as well.
 	public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
 			WorkItemEscalationLevelType escalation, Duration newDuration, WorkItemEventCauseInformationType causeInformation,
-			Task task, OperationResult parentResult)
+			XMLGregorianCalendar now, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		OperationResult result = parentResult.createSubresult(OPERATION_DELEGATE_WORK_ITEM);
 		result.addArbitraryObjectAsParam("workItemId", workItemId);
@@ -171,7 +170,7 @@ public class WorkItemManager {
 		try {
 			LOGGER.trace("Delegating work item {} to {}: escalation={}; cause={}", workItemId, delegates,
 					escalation != null ? escalation.getName() + "/" + escalation.getDisplayName() : "none", causeInformation);
-			DelegateWorkItemsRequest request = new DelegateWorkItemsRequest(workItemId.caseOid, causeInformation);
+			DelegateWorkItemsRequest request = new DelegateWorkItemsRequest(workItemId.caseOid, causeInformation, now);
 			request.getDelegations().add(new DelegateWorkItemsRequest.SingleDelegation(workItemId.id, delegates,
 					defaultIfNull(method, WorkItemDelegationMethodType.REPLACE_ASSIGNEES), escalation, newDuration));
 			workflowEngine.executeRequest(request, task, result);

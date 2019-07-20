@@ -24,46 +24,23 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
 import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItem;
-import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
-import com.evolveum.midpoint.web.page.admin.cases.dto.SearchingUtils;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -79,6 +56,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
 
     private LoadableModel<Search> searchModel = null;
     UserProfileStorage.TableId tableId;
+    ContainerListDataProvider provider = null;
 
     public ContainerableListPanel(String id, UserProfileStorage.TableId tableId){
         super(id);
@@ -113,7 +91,7 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
     }
 
     private void initLayout() {
-        ContainerListDataProvider provider = createProvider();
+        initProvider();
         BoxedTablePanel<PrismContainerValueWrapper<C>> table =
                 new BoxedTablePanel<PrismContainerValueWrapper<C>>(ID_TABLE, provider, initColumns(),
                         tableId, (int)getItemsPerPage()) {
@@ -144,8 +122,8 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
         add(table);
     }
 
-    private ContainerListDataProvider createProvider() {
-        ContainerListDataProvider<C> containerableListProvider = new ContainerListDataProvider<C>(this,
+    private void initProvider() {
+        provider = new ContainerListDataProvider<C>(this,
                 getType(), getQueryOptions()) {
             private static final long serialVersionUID = 1L;
 
@@ -166,8 +144,6 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
             }
 
         };
-        containerableListProvider.setSort(SearchingUtils.WORK_ITEM_DEADLINE, SortOrder.ASCENDING);// default sorting
-        return containerableListProvider;
     }
 
     protected abstract Class<C> getType();
@@ -223,5 +199,9 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
 
     protected boolean isSearchVisible(){
         return true;
+    }
+
+    public ContainerListDataProvider getProvider(){
+        return provider;
     }
 }

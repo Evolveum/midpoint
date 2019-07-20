@@ -125,8 +125,12 @@
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
         
-        <!--  Testing dependecies  -->
+        <!--  Testing dependencies  -->
         <dependency>
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>

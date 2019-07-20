@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,6 +43,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
+import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -79,7 +84,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 		
 		try {
 			
-			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			PrismObject<ReportType> report = authorizeReportProcessing("evaluateScript", reportOid, task, operationResult);
 			
 			VariablesMap params = getParamsMap(parameters);
 			Collection resultList = reportService.evaluateScript(report, script, params, task, operationResult);
@@ -98,7 +103,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 		OperationResult operationResult = task.getResult();
 
 		try {
-			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			PrismObject<ReportType> report = authorizeReportProcessing("evaluateAuditScript", reportOid, task, operationResult);
 			
 			VariablesMap params = getParamsMap(parameters);
 			Collection<AuditEventRecord> resultList = reportService.evaluateAuditScript(report, script, params, task, operationResult);
@@ -185,7 +190,7 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 		
 		try {
 
-			PrismObject<ReportType> report = authorizeReportProcessing(reportOid, task, operationResult);
+			PrismObject<ReportType> report = authorizeReportProcessing("processReport", reportOid, task, operationResult);
 			
 			VariablesMap parametersMap = getParamsMap(parameters);
 			ObjectQuery q = reportService.parseQuery(report, query, parametersMap, task, operationResult);
@@ -201,12 +206,16 @@ public class ReportWebService extends AbstractModelWebService implements ReportP
 
 	}
 
-	private PrismObject<ReportType> authorizeReportProcessing(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+	private PrismObject<ReportType> authorizeReportProcessing(String operationName, String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (StringUtils.isBlank(reportOid)) {
+			LOGGER.error("No report OID was specified during access to report service operation {}", operationName);
 			throw new SchemaException("No report OID specified");
 		}
 		PrismObject<ReportType> report = reportService.getReportDefinition(reportOid, task, result);
-		// TODO TODO TODO: authorization
+		if (!reportService.isAuthorizedToRunReport(report, task, result)) {
+			LOGGER.error("User is not authorized to run report {}, therefore access to report service operation {} was denied", report, operationName);
+			throw new Fault(new SecurityViolationException("Not authorized"));
+		}
 		return report;
 	}
 

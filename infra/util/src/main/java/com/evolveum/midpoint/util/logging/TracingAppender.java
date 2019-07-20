@@ -47,11 +47,11 @@ public class TracingAppender<E> extends AppenderBase<E> {
 		this.layout = layout;
 	}
 
-	public static void resetCollectingForCurrentThread() {
+	public static void terminateCollecting() {
 		eventsThreadLocal.remove();
 	}
 
-	public static void startCollectingForCurrentThread(LoggingEventCollector collector) {
+	public static void openSink(LoggingEventCollector collector) {
 		LoggingEventSink currentSink = eventsThreadLocal.get();
 		if (currentSink != null) {
 			currentSink.collectEvents();
@@ -59,7 +59,7 @@ public class TracingAppender<E> extends AppenderBase<E> {
 		eventsThreadLocal.set(new LoggingEventSink(collector, currentSink));
 	}
 
-	public static void stopCollectingForCurrentThread() {
+	public static void closeCurrentSink() {
 		LoggingEventSink currentSink = eventsThreadLocal.get();
 		if (currentSink != null) {
 			currentSink.collectEvents();

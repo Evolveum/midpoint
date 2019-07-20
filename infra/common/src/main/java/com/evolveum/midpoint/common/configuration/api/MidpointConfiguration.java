@@ -86,4 +86,7 @@ public interface MidpointConfiguration {
 
 	@NotNull
 	ProfilingMode getProfilingMode();
+
+	@NotNull
+	SystemConfigurationSection getSystemSection();
 }

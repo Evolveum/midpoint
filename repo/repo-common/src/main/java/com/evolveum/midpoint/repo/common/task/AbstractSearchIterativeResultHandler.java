@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
 import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -352,7 +353,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					.addParam("object", object);
 			if (workerTask.getTracingRequestedFor().contains(TracingRootType.ITERATIVE_TASK_OBJECT_PROCESSING)) {
 				tracingRequested = true;
-				builder.tracingProfile(taskManager.getTracer().compileProfile(workerTask.getTracingProfile(), result));
+				builder.tracingProfile(taskManager.getTracer().compileProfile(workerTask.getTracingProfile(), parentResult));
 			}
 			result = builder.build();
 
@@ -428,7 +429,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 			if (tracingRequested) {
 				taskManager.getTracer().storeTrace(workerTask, result);
-				TracingAppender.resetCollectingForCurrentThread();  // todo reconsider
+				TracingAppender.terminateCollecting();  // todo reconsider
+				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}
 			if (result.isSuccess()) {
 				// FIXME: hack. Hardcoded ugly summarization of successes. something like

@@ -129,6 +129,11 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
+	protected QName getObjectTypesListParentType(){
+		return AssignmentHolderType.COMPLEX_TYPE;
+	}
+
+	@Override
 	protected List<ObjectReferenceType> getMembershipReferenceList(FocusType focusObject){
 		return focusObject.getParentOrgRef();
 	}

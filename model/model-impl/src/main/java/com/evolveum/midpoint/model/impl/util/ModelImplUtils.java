@@ -845,7 +845,7 @@ public class ModelImplUtils {
 	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
 	            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
-		ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
+		ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
 		env.setLensContext(lensContext);
 		env.setCurrentResult(parentResult);
 		env.setCurrentTask(task);

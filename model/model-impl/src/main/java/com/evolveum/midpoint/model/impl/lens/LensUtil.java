@@ -534,7 +534,7 @@ public class LensUtil {
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken, String.class);
 
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {

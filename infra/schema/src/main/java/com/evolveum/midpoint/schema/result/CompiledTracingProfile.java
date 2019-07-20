@@ -21,19 +21,21 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.LoggingLevelOverrideConfiguration;
+import com.evolveum.midpoint.util.logging.LoggingLevelOverrideConfiguration.Entry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TraceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.util.LoggingSchemaUtil.toLevel;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
@@ -44,10 +46,13 @@ public class CompiledTracingProfile implements Serializable {
 	private static final Trace LOGGER = TraceManager.getTrace(CompiledTracingProfile.class);
 
 	@NotNull private final TracingProfileType definition;
+	@Nullable private final LoggingLevelOverrideConfiguration loggingLevelOverrideConfiguration;
+
 	private final Map<Class<? extends TraceType>, TracingLevelType> levelMap = new HashMap<>();
 
 	private CompiledTracingProfile(@NotNull TracingProfileType definition) {
 		this.definition = definition;
+		this.loggingLevelOverrideConfiguration = compileLevelOverrideConfiguration(definition.getLoggingOverride());
 	}
 
 	public static CompiledTracingProfile create(TracingProfileType resolvedProfile, PrismContext prismContext) {
@@ -128,4 +133,21 @@ public class CompiledTracingProfile implements Serializable {
 	public boolean isCollectingLogEntries() {
 		return Boolean.TRUE.equals(definition.isCollectLogEntries());
 	}
+
+	public LoggingLevelOverrideConfiguration getLoggingLevelOverrideConfiguration() {
+		return loggingLevelOverrideConfiguration;
+	}
+
+	private LoggingLevelOverrideConfiguration compileLevelOverrideConfiguration(LoggingOverrideType override) {
+		if (override == null) {
+			return null;
+		}
+		LoggingLevelOverrideConfiguration rv = new LoggingLevelOverrideConfiguration();
+		for (ClassLoggerLevelOverrideType levelOverride : override.getLevelOverride()) {
+			rv.addEntry(new Entry(new HashSet<>(levelOverride.getLogger()), toLevel(levelOverride.getLevel())));
+		}
+		return rv;
+	}
+
+
 }

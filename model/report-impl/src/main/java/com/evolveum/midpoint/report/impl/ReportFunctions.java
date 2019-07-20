@@ -221,30 +221,13 @@ public class ReportFunctions {
         return resolvedAssignments;
     }
 
-    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> params) {
+    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> jasperParams) {
 
         if (StringUtils.isBlank(query)) {
             return new ArrayList<>();
         }
 
-        Map<String, Object> resultSet = new HashMap<>();
-        Set<Entry<String, Object>> paramSet = params.entrySet();
-        for (Entry<String, Object> p : paramSet) {
-        	Object value;
-        	if(p.getValue() instanceof TypedValue) {
-        		value = ((TypedValue)p.getValue()).getValue();
-        	} else {
-        		value = p.getValue();
-        	}
-            if (value instanceof AuditEventTypeType) {
-                resultSet.put(p.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) value));
-            } else if (value instanceof AuditEventStageType) {
-                resultSet.put(p.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) value));
-            } else {
-                resultSet.put(p.getKey(), value);
-            }
-        }
-        return auditService.listRecords(query, resultSet);
+        return auditService.listRecords(query, ReportUtils.jasperParamsToAuditParams(jasperParams));
     }
 
     public List<AuditEventRecord> searchAuditRecordsAsWorkflows(String query, Map<String, Object> params) {

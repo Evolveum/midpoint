@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileCompiler;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.CacheRegistry;
@@ -31,10 +32,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationExpressionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -42,6 +41,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Cache for system object such as SystemConfigurationType. This is a global cache,
@@ -71,6 +71,7 @@ public class SystemObjectCache implements Cacheable {
 	private transient RepositoryService cacheRepositoryService;
 
 	@Autowired private CacheRegistry cacheRegistry;
+	@Autowired private PrismContext prismContext;
 
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private Long systemConfigurationCheckTimestamp;
@@ -192,5 +193,19 @@ public class SystemObjectCache implements Cacheable {
 		if (type == null || SystemConfigurationType.class.isAssignableFrom(type)) {
 			invalidateCaches();
 		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+				.name(SystemObjectCache.class.getName())
+				.size(getSize())
+		);
+	}
+
+	private int getSize() {
+		return (systemConfiguration != null ? 1 : 0) +
+				(expressionProfiles != null ? expressionProfiles.size() : 0);
 	}
 }

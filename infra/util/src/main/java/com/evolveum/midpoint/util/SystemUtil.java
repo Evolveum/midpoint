@@ -22,11 +22,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author mederly
@@ -35,8 +37,9 @@ public class SystemUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SystemUtil.class);
 
-	public static void executeCommand(String command, String input, StringBuilder output) throws IOException {
+	public static boolean executeCommand(String command, String input, StringBuilder output, long timeout) throws IOException {
 		LOGGER.debug("Executing {}", command);
+		boolean finished;
 		try {
 			Process process = Runtime.getRuntime().exec(command);
 
@@ -45,12 +48,18 @@ public class SystemUtil {
 			writer.close();
 
 			BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line = "";
+			String line;
 			while ((line = reader.readLine()) != null) {
 				output.append(line).append("\n");
 			}
 			try {
-				process.waitFor();
+				if (timeout > 0) {
+					finished = process.waitFor(timeout, TimeUnit.MILLISECONDS);
+					process.destroyForcibly();
+				} else {
+					process.waitFor();
+					finished = true;
+				}
 			} catch (InterruptedException e) {
 				throw new SystemException("Got interruptedException while waiting for external command execution", e);
 			}
@@ -58,7 +67,13 @@ public class SystemUtil {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute command {}", e, command);
 			throw e;
 		}
-		LOGGER.debug("Finished executing {}; result has a length of {} characters", command, output.length());
+		if (finished) {
+			LOGGER.debug("Finished executing {}; result has a length of {} characters", command, output.length());
+		} else {
+			LOGGER.warn("Timed out while waiting for {} to finish ({} seconds); result collected to this moment has "
+					+ "a length of {} characters", command, timeout/1000.0, output.length());
+		}
+		return finished;
 	}
 	
 	public static void setPrivateFilePermissions(String fileName) throws IOException {
@@ -72,6 +87,22 @@ public class SystemUtil {
 		} catch (UnsupportedOperationException e) {
 			// Windows. Sorry.
 			LOGGER.trace("Cannot set permissions for file {}, this is obviously not a POSIX system", fileName);
+		}
+	}
+
+	public static String getMyPid() {
+		String jvmName = ManagementFactory.getRuntimeMXBean().getName();
+		if (jvmName != null) {
+			int i = jvmName.indexOf('@');
+			if (i > 0) {
+				return jvmName.substring(0, i);
+			} else {
+				LOGGER.warn("Cannot determine current PID; jvmName = {}", jvmName);
+				return null;
+			}
+		} else {
+			LOGGER.warn("Cannot determine current PID; jvmName is null");
+			return null;
 		}
 	}
 }

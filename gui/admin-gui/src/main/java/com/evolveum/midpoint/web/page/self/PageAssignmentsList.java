@@ -74,7 +74,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
     private static final Trace LOGGER = TraceManager.getTrace(PageAssignmentsList.class);
     private static final String DOT_CLASS = PageAssignmentsList.class.getName() + ".";
     private static final String OPERATION_REQUEST_ASSIGNMENTS = DOT_CLASS + "requestAssignments";
-    private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.WfHook.invoke";
+    private static final String OPERATION_WF_TASK_CREATED = "com.evolveum.midpoint.wf.impl.hook.WfHook.invoke";
     private static final String OPERATION_PREVIEW_ASSIGNMENT_CONFLICTS = "reviewAssignmentConflicts";
 
     private IModel<List<AssignmentEditorDto>> assignmentsModel;
@@ -274,7 +274,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
         findBackgroundTaskOperation(result);
         if (backgroundTaskOperationResult != null
-                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())){
+                && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())){
             result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
             showResult(result);
             clearStorage();
@@ -336,7 +336,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
             findBackgroundTaskOperation(result);
             if (backgroundTaskOperationResult != null
-                    && StringUtils.isNotEmpty(backgroundTaskOperationResult.getBackgroundTaskOid())) {
+                    && StringUtils.isNotEmpty(backgroundTaskOperationResult.getAsynchronousOperationReference())) {
                 result.setMessage(createStringResource("PageAssignmentsList.requestInProgress").getString());
                 showResult(result);
                 clearStorage();

@@ -28,6 +28,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -96,6 +97,8 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import org.apache.wicket.request.mapper.parameter.PageParametersEncoder;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
+
 /**
  * @author bpowers
  */
@@ -135,15 +138,12 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private static final String ID_CREATE_CASE_BUTTON = "createCaseButton";
 
     private LoadableModel<Search> searchModel = null;
-    private boolean all;
     private PageParameters pageParameters = null;
 
-    public PageCaseWorkItems(boolean all) {
-        this.all = all;
+    public PageCaseWorkItems() {
     }
 
     public PageCaseWorkItems(PageParameters pageParameters) {
-//        this.all = all;
         this.pageParameters = pageParameters;
     }
 
@@ -156,12 +156,34 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
     private void initLayout() {
         CaseWorkItemsPanel workItemsPanel;
         if (pageParameters != null) {
-            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST, pageParameters);
+            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST, pageParameters){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected ObjectFilter getCaseWorkItemsFilter(){
+                    return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+                            SecurityUtils.getPrincipalUser(),
+                            OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                            .desc(F_CREATE_TIMESTAMP)
+                            .buildFilter();
+                }
+            };
         } else {
-            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST);
+            workItemsPanel = new CaseWorkItemsPanel(ID_CASE_WORK_ITEMS_TABLE, CaseWorkItemsPanel.View.FULL_LIST){
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected ObjectFilter getCaseWorkItemsFilter(){
+                    return PageCaseWorkItems.this.getCaseWorkItemsFilter();
+                }
+            };
         }
         workItemsPanel.setOutputMarkupId(true);
         add(workItemsPanel);
+    }
+
+    protected ObjectFilter getCaseWorkItemsFilter(){
+        return null;
     }
 
     private Table getCaseWorkItemsTable() {

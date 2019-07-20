@@ -143,6 +143,11 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
+    protected boolean isButtonPanelVisible(){
+        return false;
+    }
+
+    @Override
     protected List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<CaseWorkItemType> containerDef) {
         List<SearchItemDefinition> defs = new ArrayList<>();
         return defs;

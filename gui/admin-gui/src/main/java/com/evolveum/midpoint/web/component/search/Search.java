@@ -288,13 +288,17 @@ public class Search implements Serializable, DebugDumpable {
             String value = normalizer.normalize(text);
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingNorm().buildFilter();
+        } else if (propDef.getValueEnumerationRef() != null){
+            String value = (String) searchValue.getValue();
+            return ctx.queryFor(ObjectType.class)
+                    .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
         }
 
         //we don't know how to create filter from search item, should not happen, ha ha ha :)
         //at least we try to cleanup field
 
         if (searchValue instanceof SearchValue) {
-            ((SearchValue) searchValue).clear();
+//            ((SearchValue) searchValue).clear();
         }
 
         return null;

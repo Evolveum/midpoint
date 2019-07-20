@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+  
+<!-- Mad mappings, non-tolerant attributes -->
+
+<resource oid="a09869c0-a7c3-11e9-85ac-6f2cafd8f0c2"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+		  xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource: Nontolerant</name>
+	<connectorRef type="ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>nontolerant</icfi:instanceId>
+			<icfi:uselessGuardedString>
+				<clearValue>whatever</clearValue>
+			</icfi:uselessGuardedString>
+			<icfi:uselessString>USEless</icfi:uselessString>
+		</icfc:configurationProperties>
+		
+		<icfc:resultsHandlerConfiguration>
+			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+			<icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+			<icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+		</icfc:resultsHandlerConfiguration>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<outbound>
+				    <strength>strong</strength>
+				    <source>
+				    	<path>$user/name</path>
+				    </source>
+					<expression>
+						<script>
+							<code>
+								name + iterationToken
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>icfs:uid</ref>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- Multivalue, tolerant -->
+				<ref>ri:title</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>title</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (title == null || title.norm == 'whatever') {
+									// This is supposed to tolerate the existing value in the resource
+									return null
+								} else {
+									return title
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- Singlevalue, tolerant, non-authoritative -->
+				<ref>ri:location</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<authoritative>false</authoritative>
+					<strength>strong</strength>
+					<source>
+						<path>title</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (title == null || title.norm == 'whatever') {
+									// This is supposed to tolerate the existing value in the resource
+									return null
+								} else {
+									return "Live like a " + title
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- Singlevalue, tolerant -->
+				<ref>ri:ship</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>title</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (title == null || title.norm == 'whatever') {
+									// This is supposed to tolerate the existing value in the resource
+									return null
+								} else {
+									return "Sail like a " + title
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- Multivalue, tolerant, absolute -->
+				<ref>ri:weapon</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<strength>strong</strength>
+					<source>
+						<path>title</path>
+					</source>
+					<expression>
+						<script>
+							<relativityMode>absolute</relativityMode>
+							<code>
+								if (title == null || title.norm == 'whatever') {
+									// This is supposed to tolerate the existing value in the resource
+									return null
+								} else {
+									return "Fight like a " + title
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<!-- Multivalue, tolerant, non-authoritative -->
+				<ref>ri:drink</ref>
+				<tolerant>false</tolerant>
+				<outbound>
+					<authoritative>false</authoritative>
+					<strength>strong</strength>
+					<source>
+						<path>title</path>
+					</source>
+					<expression>
+						<script>
+							<code>
+								if (title == null || title.norm == 'whatever') {
+									// This is supposed to tolerate the existing value in the resource
+									return null
+								} else {
+									return "Drink like a " + title
+								}
+							</code>
+						</script>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
+				<ref>ri:quote</ref>
+				<tolerant>false</tolerant>
+				<!-- No mapping here -->
+			</attribute>
+            <attribute>
+                <ref>ri:gossip</ref>
+                <tolerant>false</tolerant>
+            </attribute>
+            <attribute>
+                <ref>ri:water</ref>
+                <limitations>
+                	<ignore>true</ignore>
+                </limitations>
+            </attribute>
+            
+			<iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+                        
+            <activation>
+            	<existence>
+            		<outbound/>
+            	</existence>
+            	<administrativeStatus>
+            		<outbound/>
+            	</administrativeStatus>
+            	<lockoutStatus>
+            		<outbound/>
+            	</lockoutStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+	</schemaHandling>
+	
+</resource>

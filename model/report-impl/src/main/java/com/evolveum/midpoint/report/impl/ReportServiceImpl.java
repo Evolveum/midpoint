@@ -18,6 +18,7 @@ package com.evolveum.midpoint.report.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -82,6 +83,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectVariableModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -205,13 +208,13 @@ public class ReportServiceImpl implements ReportService {
 	@Override
 	public Collection<PrismContainerValue<? extends Containerable>> evaluateScript(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) 
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.putAll(parameters);
 
+		TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
 		// special variable for audit report
-		variables.put("auditParams", getConvertedParams(parameters));
+		variables.put("auditParams", auditParams);
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
@@ -221,7 +224,8 @@ public class ReportServiceImpl implements ReportService {
 		setupExpressionProfiles(context, report);
 		
 		Object o = evaluateReportScript(script, context, report);
-
+		
+		List<PrismContainerValue<? extends Containerable>> results = new ArrayList<>();
 		if (o != null) {
 
 			if (Collection.class.isAssignableFrom(o.getClass())) {
@@ -240,6 +244,20 @@ public class ReportServiceImpl implements ReportService {
 		return results;
 	}
 	
+
+	private Collection<AuditEventRecord> runAuditQuery(String sqlWhereClause, TypedValue<VariablesMap> jasperAuditParams) {
+		if (StringUtils.isBlank(sqlWhereClause)) {
+            return new ArrayList<>();
+        }
+		
+		String query = "select * from m_audit_event as aer " + sqlWhereClause;
+		LOGGER.info("AAAAAAA: query: {}", query);
+		Map<String, Object> auditParams = ReportUtils.jasperParamsToAuditParams((VariablesMap)jasperAuditParams.getValue());
+		LOGGER.info("AAAAAAA: auditParams:\n{}", auditParams);
+		List<AuditEventRecord> auditRecords = auditService.listRecords(query, auditParams);
+		LOGGER.info("AAAAAAA: {} records", auditRecords==null?null:auditRecords.size());
+		return auditRecords;
+	}
 
 	@Override
 	public Object evaluate(PrismObject<ReportType> report, String script, VariablesMap parameters, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException,
@@ -283,8 +301,9 @@ public class ReportServiceImpl implements ReportService {
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Collection<AuditEventRecord> results = new ArrayList<>();
 
+		TypedValue<VariablesMap> auditParams = getConvertedParams(parameters);
 		ExpressionVariables variables = new ExpressionVariables();
-			variables.put("auditParams", getConvertedParams(parameters));
+			variables.put("auditParams", auditParams);
 
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext();
 		context.setVariables(variables);
@@ -295,6 +314,24 @@ public class ReportServiceImpl implements ReportService {
 		setupExpressionProfiles(context, report);
 
 		Object o = evaluateReportScript(script, context, report);
+		
+		// HACK to allow audit reports where query is just a plain string.
+		// Oh my, this code is a mess. This needs a real rewrite. MID-5572
+		if (o instanceof String) {
+			JasperReportEngineConfigurationType jasperConfig = report.asObjectable().getJasper();
+			if (jasperConfig == null) {
+				throw new SchemaException("Jasper reportType not set, cannot determine how to use string query");
+			}
+			JasperReportTypeType reportType = jasperConfig.getReportType();
+			if (reportType == null) {
+				throw new SchemaException("Jasper reportType not set, cannot determine how to use string query");
+			}
+			if (reportType.equals(JasperReportTypeType.AUDIT_SQL)) {
+				return runAuditQuery((String)o, auditParams);
+			} else {
+				throw new SchemaException("Jasper reportType is not set to auditSql, cannot determine how to use string query");
+			}
+		}
 
 		if (o != null) {
 
@@ -339,16 +376,11 @@ public class ReportServiceImpl implements ReportService {
 	}
 
 	private Collection<FunctionLibrary> createFunctionLibraries() {
-//		FunctionLibrary functionLib = ExpressionUtil.createBasicFunctionLibrary(prismContext,
-//				prismContext.getDefaultProtector());
 		FunctionLibrary midPointLib = new FunctionLibrary();
 		midPointLib.setVariableName("report");
 		midPointLib.setNamespace("http://midpoint.evolveum.com/xml/ns/public/function/report-3");
 		ReportFunctions reportFunctions = new ReportFunctions(prismContext, schemaHelper, model, taskManager, auditService);
 		midPointLib.setGenericFunctions(reportFunctions);
-//
-//		MidpointFunctionsImpl mp = new MidpointFunctionsImpl();
-//		mp.
 
 		Collection<FunctionLibrary> functions = new ArrayList<>();
 		functions.add(basicFunctionLibrary);
@@ -432,5 +464,11 @@ public class ReportServiceImpl implements ReportService {
 	@Override
 	public PrismObject<ReportType> getReportDefinition(String reportOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		return model.getObject(ReportType.class, reportOid, null, task, result);
+	}
+
+	@Override
+	public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
+		return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
 	}
 }

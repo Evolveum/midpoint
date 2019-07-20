@@ -448,8 +448,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         display("Inspector", inspector);
 
-        // TODO: why *3 ???
-        inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS * 3);
+        inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
@@ -608,8 +607,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         display("Inspector", inspector);
 
-        // TODO: why *3 ???
-        inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS * 3);
+        inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);

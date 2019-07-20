@@ -56,6 +56,12 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	
 	protected final static File REPORT_USER_LIST_SCRIPT_FILE = new File(TEST_REPOSTS_DIR, "report-user-list-script.xml"); 
 	protected final static String REPORT_USER_LIST_SCRIPT_OID = "222bf2b8-c89b-11e7-bf36-ebd4e4d45a80";
+	
+	protected final static File REPORT_AUDIT_CSV_FILE = new File(TEST_REPOSTS_DIR, "report-audit-csv.xml"); 
+	protected final static String REPORT_AUDIT_CSV_OID = "66dbbecc-a9fc-11e9-b75c-03927bebc9f7";
+	
+	protected final static File REPORT_AUDIT_CSV_LEGACY_FILE = new File(TEST_REPOSTS_DIR, "report-audit-csv-legacy.xml"); 
+	protected final static String REPORT_AUDIT_CSV_LEGACY_OID = "78faa28c-a9ff-11e9-8c60-e7843d75831e";
 
 	protected final static File USER_JACK_FILE = new File(TEST_DIR_COMMON, "user-jack.xml"); 
 	protected final static String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -74,6 +80,15 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	protected final static File ROLE_SUPERUSER_FILE = new File(TEST_DIR_COMMON, "role-superuser.xml");
 
 	protected final static File USER_ADMINISTRATOR_FILE = new File(TEST_DIR_COMMON, "user-administrator.xml");
+	
+	protected final static File USER_READER_FILE = new File(TEST_DIR_COMMON, "user-reader.xml");
+	protected final static String USER_READER_USERNAME = "reader";
+	protected final static File USER_RUNNER_FILE = new File(TEST_DIR_COMMON, "user-runner.xml");
+	protected final static String USER_RUNNER_USERNAME = "runner";
+	protected final static File USER_READER_RUNNER_FILE = new File(TEST_DIR_COMMON, "user-reader-runner.xml");
+	protected final static String USER_READER_RUNNER_USERNAME = "reader-runner";
+	protected final static File ROLE_READER_FILE = new File(TEST_DIR_COMMON, "role-reader.xml");
+	protected final static File ROLE_RUNNER_FILE = new File(TEST_DIR_COMMON, "role-runner.xml");
 
 	@Autowired protected ReportManager reportManager;
 	@Autowired
@@ -86,7 +101,7 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 
-		repoAddObjectFromFile(USER_JACK_FILE, true, initResult).asObjectable();
+		repoAddObjectFromFile(USER_JACK_FILE, true, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, initResult);
 		// System Configuration
 		modelService.postInit(initResult);

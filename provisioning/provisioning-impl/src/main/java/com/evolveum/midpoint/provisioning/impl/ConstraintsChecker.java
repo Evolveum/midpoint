@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
@@ -63,7 +64,7 @@ public class ConstraintsChecker {
 	private static final Trace LOGGER = TraceManager.getTrace(ConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
+	private static ConcurrentHashMap<Thread, Cache> cacheInstances = new ConcurrentHashMap<>();
 
 	private ProvisioningContext provisioningContext;
 	private PrismContext prismContext;
@@ -278,11 +279,11 @@ public class ConstraintsChecker {
 	}
 
 	public static void enterCache(CacheConfiguration configuration) {
-		Cache.enter(cacheThreadLocal, Cache.class, configuration, LOGGER);
+		Cache.enter(cacheInstances, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
-		Cache.exit(cacheThreadLocal, LOGGER);
+		Cache.exit(cacheInstances, LOGGER);
 	}
 
 	public static <T extends ShadowType> void onShadowAddOperation(T shadow) {
@@ -395,7 +396,7 @@ public class ConstraintsChecker {
 
 	public static class Cache extends AbstractThreadLocalCache {
 
-		private Set<Situation> conflictFreeSituations = new HashSet<>();
+		private final Set<Situation> conflictFreeSituations = ConcurrentHashMap.newKeySet();
 
 		private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName,
 				List attributeValues, CacheConfigurationManager cacheConfigurationManager) {
@@ -464,7 +465,7 @@ public class ConstraintsChecker {
 		}
 
 		private static Cache getCache() {
-			return cacheThreadLocal.get();
+			return cacheInstances.get(Thread.currentThread());
 		}
 
 		public static void remove(PolyStringType name) {
@@ -478,6 +479,11 @@ public class ConstraintsChecker {
 		@Override
 		public String description() {
 			return "conflict-free situations: " + conflictFreeSituations;
+		}
+
+		@Override
+		protected int getSize() {
+			return conflictFreeSituations.size();
 		}
 	}
 

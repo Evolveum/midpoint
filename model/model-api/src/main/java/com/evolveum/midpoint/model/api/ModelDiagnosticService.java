@@ -25,10 +25,7 @@ import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LogFileContentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationRequestType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationResponseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * A service provided by the IDM Model focused on system diagnostic. It allows to retrieve diagnostic data
@@ -51,6 +48,7 @@ public interface ModelDiagnosticService {
 	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	String GET_LOG_FILE_CONTENT = CLASS_NAME_WITH_DOT + "getLogFileContent";
 	String GET_LOG_FILE_SIZE = CLASS_NAME_WITH_DOT + "getLogFileSize";
+	String GET_MEMORY_INFORMATION = CLASS_NAME_WITH_DOT + "getMemoryInformation";
 
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
@@ -134,4 +132,9 @@ public interface ModelDiagnosticService {
 			throws SecurityViolationException, IOException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	long getLogFileSize(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException;
+
+	// change the return type eventually
+	String getMemoryInformation(Task task, OperationResult parentResult)
+			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+			ConfigurationException, ExpressionEvaluationException, IOException;
 }

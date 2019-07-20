@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -93,6 +94,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 	@Autowired private HookRegistry hookRegistry;
 	@Autowired private TaskManager taskManager;
 	@Autowired private PrismContext prismContext;
+	@Autowired private ReportService reportService;
 	@Autowired private ModelService modelService;
 	@Autowired private ClusterExecutionHelper clusterExecutionHelper;
 
@@ -133,7 +135,13 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      */
 
     @Override
-    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) {
+    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	
+    	if (!reportService.isAuthorizedToRunReport(object, task, parentResult)) {
+    		LOGGER.error("User is not authorized to run report {}", object);
+    		throw new SecurityViolationException("Not authorized");
+    	}
+    	
     	if(isDashboarReport(object)) {
     		task.setHandlerUri(ReportHTMLCreateTaskHandler.REPORT_HTML_CREATE_TASK_URI);
     	} else {
@@ -155,7 +163,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 		parentResult.setBackgroundTaskOid(task.getOid());
     }
     
-    private boolean isDashboarReport(PrismObject<ReportType> object) {
+    
+
+	private boolean isDashboarReport(PrismObject<ReportType> object) {
 		if(object.getRealValue() != null && object.getRealValue().getReportEngine() != null
 				&& object.getRealValue().getReportEngine().equals(ReportEngineSelectionType.DASHBOARD)) {
 			return true;
@@ -223,16 +233,24 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
          OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "invoke");
          try {
              ReportType reportType = (ReportType) object.asObjectable();
+             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
              JasperDesign jasperDesign = null;
-             if (reportType.getTemplate() == null){
+             
+            byte[] reportTemplateBase64;
+     		if (jasperConfig == null) {
+     			reportTemplateBase64 = reportType.getTemplate();
+     		} else {
+     			reportTemplateBase64 = jasperConfig.getTemplate();
+     		}
+             
+             if (reportTemplateBase64 == null){
             	 String message = "Report template must not be null";
             	 LOGGER.error(message);
                  result.recordFatalError(message, new SystemException());
              }
              else
              {
-            	 byte[] reportTemplateBase64 = reportType.getTemplate();
-            	 byte[] reportTemplate = Base64.decodeBase64(reportTemplateBase64);
+            	 byte[] reportTemplate = ReportUtils.decodeIfNeeded(reportTemplateBase64);
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -265,6 +283,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
     	OperationResult result = parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS);
 
+    	// This operation does not need any extra authorization check. All model operations carried out by this
+    	// method are executed through modelService. Therefore usual object authorizations are checked.
+    	
         if (cleanupPolicy.getMaxAge() == null) {
             return;
         }
@@ -335,6 +356,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     @Override
     public void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
     	String oid = reportOutput.getOid();
+    	
+    	// This operation does not need any extra authorization check. All model operations carried out by this
+    	// method are executed through modelService. Therefore usual object authorizations are checked.
 
     	Task task = taskManager.createTaskInstance(DELETE_REPORT_OUTPUT);
     	parentResult.addSubresult(task.getResult());
@@ -389,6 +413,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
     	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
         result.addParam("oid", reportOutputOid);
+        
+        // This operation does not need any extra authorization check. All model operations carried out by this
+    	// method are executed through modelService. Therefore usual object authorizations are checked.
+        // Here we assume that anyone that can read the ReportOutputType object can also read report data. Which is a fair assumption.
 
         try {
         	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task,

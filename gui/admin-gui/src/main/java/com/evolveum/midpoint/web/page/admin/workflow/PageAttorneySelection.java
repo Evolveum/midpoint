@@ -20,8 +20,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,6 +72,7 @@ import java.util.List;
                         description = "PageAttorneySelection.auth.workItems.attorney.description")
         })
 public class PageAttorneySelection extends PageBase {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 

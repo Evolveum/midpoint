@@ -152,6 +152,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 			CompiledUserProfile userProfile = modelInteractionService.getCompiledUserProfile(context.getTask(), context.getResult());
 			GuiObjectDetailsSetType objectDetailsSetType = userProfile.getObjectDetails();
 			if (objectDetailsSetType == null) {
+				result.recordSuccess();
 				return null;
 			}
 			List<GuiObjectDetailsPageType> detailsPages = objectDetailsSetType.getObjectDetailsPage();
@@ -166,9 +167,11 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 				}
 
 				if (QNameUtil.match(objectType, detailsPage.getType())) {
+					result.recordSuccess();
 					return detailsPage.getContainer();
 				}
 			}
+			result.recordSuccess();
 			return null;
 		} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException e) {
 			LOGGER.error("Cannot determine virtual containers for {}, reason: {}", objectType, e.getMessage(), e);
