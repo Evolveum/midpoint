@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.component.AbstractSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
@@ -134,6 +135,19 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
 				}
 			}
 		};
+	}
+
+	@Override
+	protected ObjectReferenceType getReferencedObjectToNavigate(){
+		ObjectReferenceType caseReference = new ObjectReferenceType();
+		caseReference.setOid(CaseTypeUtil.getCase(getModelObject()).getOid());
+		caseReference.setType(CaseType.COMPLEX_TYPE);
+		return caseReference;
+	}
+
+	@Override
+	protected IModel<String> getReferenceObjectTitleModel(){
+		return createStringResource("CaseWorkItemSummaryPanel.viewParentCaseButton");
 	}
 
 	@Override

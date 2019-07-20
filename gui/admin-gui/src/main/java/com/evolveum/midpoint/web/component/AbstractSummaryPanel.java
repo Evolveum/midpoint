@@ -31,6 +31,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.NonCachingImage;
@@ -58,6 +60,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     protected static final String ID_DISPLAY_NAME = "summaryDisplayName";
     protected static final String ID_IDENTIFIER = "summaryIdentifier";
     protected static final String ID_IDENTIFIER_PANEL = "summaryIdentifierPanel";
+    protected static final String ID_NAVIGATE_TO_OBJECT_BUTTON = "navigateToObject";
     protected static final String ID_TITLE = "summaryTitle";
     protected static final String ID_TITLE2 = "summaryTitle2";
     protected static final String ID_TITLE3 = "summaryTitle3";
@@ -114,7 +117,26 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         });
         box.add(identifierPanel);
 
-	    if (getTitleModel() != null) {
+		AjaxButton navigateToObject = new AjaxButton(ID_NAVIGATE_TO_OBJECT_BUTTON) {
+			@Override
+			public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+				ObjectReferenceType ort = getReferencedObjectToNavigate();
+				WebComponentUtil.dispatchToObjectDetailsPage(ort, AbstractSummaryPanel.this, false);
+			}
+		};
+		navigateToObject.add(AttributeAppender.append("title", getReferenceObjectTitleModel()));
+		navigateToObject.add(new VisibleBehaviour(() -> {
+			ObjectReferenceType ort = getReferencedObjectToNavigate();
+			Class refType = ort != null ?
+					WebComponentUtil.qnameToClass(AbstractSummaryPanel.this.getPageBase().getPrismContext(), ort.getType()) : null;
+			return ort != null && refType != null &&
+					WebComponentUtil.getObjectDetailsPage(refType) != null;
+
+		}));
+		navigateToObject.setOutputMarkupId(true);
+		box.add(navigateToObject);
+
+		if (getTitleModel() != null) {
 		    box.add(new Label(ID_TITLE, getTitleModel()));
 	    } else if (getTitlePropertyName() != null) {
         	box.add(new Label(ID_TITLE, createLabelModel(getTitlePropertyName(), SummaryPanelSpecificationType.F_TITLE_1)));
@@ -227,6 +249,14 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
 	protected List<SummaryTag<C>> getSummaryTagComponentList(){
     	return new ArrayList<>();
+	}
+
+	protected ObjectReferenceType getReferencedObjectToNavigate(){
+		return null;
+	}
+
+	protected IModel<String> getReferenceObjectTitleModel(){
+		return null;
 	}
 
 	private SummaryTag<C> getArchetypeSummaryTag(){
