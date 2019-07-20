@@ -602,6 +602,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	}
 
 	@Override
+	public boolean isIndexOnly() {
+		return refinedAttributeDefinition.isIndexOnly();
+	}
+
+	@Override
 	public PropertyDelta<T> createEmptyDelta(ItemPath path) {
 		return refinedAttributeDefinition.createEmptyDelta(path);
 	}
