@@ -82,6 +82,7 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
     private static final String ID_DISPLAY_NAME_PANEL = "displayNamePanel";
     private static final String ID_REQUESTED_BY = "requestedBy";
     private static final String ID_REQUESTED_FOR = "requestedFor";
+    private static final String ID_APPROVER = "approver";
     private static final String ID_TARGET = "target";
     private static final String ID_REASON = "reason";
     private static final String ID_COMMENT = "requesterCommentMessage";
@@ -130,6 +131,13 @@ public class WorkItemDetailsPanel extends BasePanel<CaseWorkItemType>{
                 WorkItemTypeUtil.getObjectReference(getModelObject()));
         requestedFor.setOutputMarkupId(true);
         add(requestedFor);
+
+
+        IconedObjectNamePanel approver = new IconedObjectNamePanel(ID_APPROVER,
+                getModelObject().getAssigneeRef() != null && getModelObject().getAssigneeRef().size() > 0 ?
+                getModelObject().getAssigneeRef().get(0) : null);
+        approver.setOutputMarkupId(true);
+        add(approver);
 
         IconedObjectNamePanel target = new IconedObjectNamePanel(ID_TARGET,
                 WorkItemTypeUtil.getTargetReference(getModelObject()));
