@@ -717,9 +717,12 @@ public class ResourceObjectConverter {
 			if (primaryIdentifiers == null || primaryIdentifiers.isEmpty()) {
 				throw new ObjectNotFoundException("Cannot find repository shadow for identifiers "+identifiers);
 			}
-			identifiers = primaryIdentifiers;
+			Collection allIdentifiers = new ArrayList();
+			allIdentifiers.addAll(identifiers);
+			allIdentifiers.addAll(primaryIdentifiers);
+			identifiers = allIdentifiers;
 		}
-		
+				
 		// Invoke ICF
 		ConnectorInstance connector = ctx.getConnector(UpdateCapabilityType.class, parentResult);
 		AsynchronousOperationReturnValue<Collection<PropertyModificationOperation>> connectorAsyncOpRet = null;
