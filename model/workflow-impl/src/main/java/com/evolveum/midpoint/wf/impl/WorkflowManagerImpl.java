@@ -18,43 +18,32 @@ package com.evolveum.midpoint.wf.impl;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskDeletionListener;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.ProcessListener;
-import com.evolveum.midpoint.wf.api.WorkItemListener;
+import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.wf.api.WorkflowListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.ProcessInstanceProvider;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemManager;
-import com.evolveum.midpoint.wf.impl.activiti.dao.WorkItemProvider;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.access.CaseManager;
+import com.evolveum.midpoint.wf.impl.access.WorkItemManager;
+import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.access.AuthorizationHelper;
+import com.evolveum.midpoint.wf.impl.engine.helpers.NotificationHelper;
 import com.evolveum.midpoint.wf.impl.util.PerformerCommentsFormatterImpl;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.util.ChangesSorter;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -63,140 +52,73 @@ import java.util.List;
  * Note: don't autowire this class - because of Spring AOP use it couldn't be found by implementation class; only by its interface.
  */
 @Component("workflowManager")
-public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListener {
+public class WorkflowManagerImpl implements WorkflowManager {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(WorkflowManagerImpl.class);
 
     @Autowired private PrismContext prismContext;
 	@Autowired private WfConfiguration wfConfiguration;
-	@Autowired private ProcessInstanceProvider processInstanceProvider;
-	@Autowired private ProcessInstanceManager processInstanceManager;
-	@Autowired private WfTaskController wfTaskController;
-	@Autowired private WorkItemProvider workItemProvider;
+	@Autowired private CaseManager caseManager;
+	@Autowired private NotificationHelper notificationHelper;
 	@Autowired private WorkItemManager workItemManager;
-	@Autowired private WfTaskUtil wfTaskUtil;
-	@Autowired private MiscDataUtil miscDataUtil;
+	@Autowired private ChangesSorter changesSorter;
+	@Autowired private AuthorizationHelper authorizationHelper;
 	@Autowired private ApprovalSchemaExecutionInformationHelper approvalSchemaExecutionInformationHelper;
-	@Autowired private TaskManager taskManager;
-	@Autowired private RepositoryService repositoryService;
-	@Autowired private WfExpressionEvaluationHelper expressionEvaluationHelper;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
+	@Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
 	@PostConstruct
 	public void initialize() {
 		LOGGER.debug("Workflow manager starting.");
-		taskManager.registerTaskDeletionListener(this);
 	}
 
-    /*
-     * Work items
-     * ==========
-     */
-
-    @Override
-    public <T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-            throws SchemaException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countContainers");
-        result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addParam(OperationResult.PARAM_QUERY, query);
-        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
-		try {
-			if (!WorkItemType.class.equals(type)) {
-				throw new UnsupportedOperationException("countContainers is available only for work items");
-			}
-			return workItemProvider.countWorkItems(query, options, result);
-		} catch (SchemaException|RuntimeException e) {
-			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
-			throw e;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-    }
-
-	@SuppressWarnings("unchecked")
-    @Override
-    public <T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-            throws SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchContainers");
-		result.addParam(OperationResult.PARAM_TYPE, type);
-        result.addParam(OperationResult.PARAM_QUERY, query);
-        result.addArbitraryObjectCollectionAsParam(OperationResult.PARAM_OPTIONS, options);
-		try {
-			if (!WorkItemType.class.equals(type)) {
-				throw new UnsupportedOperationException("searchContainers is available only for work items");
-			}
-			return (SearchResultList<T>) workItemProvider.searchWorkItems(query, options, result);
-		} catch (SchemaException|RuntimeException e) {
-			result.recordFatalError("Couldn't count items: " + e.getMessage(), e);
-			throw e;
-		} finally {
-			result.computeStatusIfUnknown();
-		}
-    }
-
-    @Override
-    public void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult)
+	//region Work items
+	@Override
+    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output,
+			WorkItemEventCauseInformationType causeInformation, Task task, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        workItemManager.completeWorkItem(taskId, ApprovalUtils.toUri(decision), comment, additionalDelta,
-				causeInformation, parentResult);
+	    try {
+		    workItemManager.completeWorkItem(workItemId, output, causeInformation, task, parentResult);
+	    } catch (ObjectAlreadyExistsException e) {
+		    throw new IllegalStateException(e);
+	    }
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException {
-        workItemManager.claimWorkItem(workItemId, result);
+    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult result)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        workItemManager.claimWorkItem(workItemId, task, result);
     }
 
     @Override
-    public void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException {
-        workItemManager.releaseWorkItem(workItemId, result);
+    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult result)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        workItemManager.releaseWorkItem(workItemId, task, result);
     }
 
     @Override
-    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, parentResult);
+    public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+		    Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        workItemManager.delegateWorkItem(workItemId, delegates, method, null, null, null, null, task, parentResult);
     }
+    //endregion
 
-    /*
-     * Process instances
-     * =================
-     */
-
+	//region Process instances (cases)
     @Override
-    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
-        processInstanceManager.stopProcessInstance(instanceId, username, parentResult);
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult)
+		    throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        caseManager.cancelCase(caseOid, task, parentResult);
     }
+    //endregion
 
-	@Override
-	public void synchronizeWorkflowRequests(OperationResult parentResult) {
-		processInstanceManager.synchronizeWorkflowRequests(parentResult);
-	}
-
-    /*
-     * Tasks
-     * =====
-     */
-
-    @Override
-    public <T extends ObjectType> void augmentTaskObject(PrismObject<T> object,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
-        processInstanceProvider.augmentTaskObject(object, options, task, result);
-    }
-
-    @Override
-    public <T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
-            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) {
-        processInstanceProvider.augmentTaskObjectList(list, options, task, result);
-    }
-
-	@Override
-	public void onTaskDelete(Task task, OperationResult result) {
-		processInstanceManager.onTaskDelete(task, result);
-	}
-
-    /*
+	/*
      * Other
      * =====
      */
@@ -211,76 +133,40 @@ public class WorkflowManagerImpl implements WorkflowManager, TaskDeletionListene
         return prismContext;
     }
 
-    public WfTaskUtil getWfTaskUtil() {
-        return wfTaskUtil;
-    }
-
-    public MiscDataUtil getMiscDataUtil() {
-        return miscDataUtil;
-    }
-
     @Override
-    public void registerProcessListener(ProcessListener processListener) {
-        wfTaskController.registerProcessListener(processListener);
-    }
-
-    @Override
-    public void registerWorkItemListener(WorkItemListener workItemListener) {
-        wfTaskController.registerWorkItemListener(workItemListener);
-    }
-
-    @Override
-    public Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException {
-        return wfTaskUtil.getApprovedByFromTaskTree(task, result);
+    public void registerWorkflowListener(WorkflowListener workflowListener) {
+	    notificationHelper.registerWorkItemListener(workflowListener);
     }
 
 	@Override
-	public Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException {
-		return wfTaskUtil.getApproverCommentsFromTaskTree(task, result);
-	}
-
-	@Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.COMPLETE, task, result);
+    public boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.COMPLETE, task, result);
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
-        return miscDataUtil.isAuthorizedToClaim(workItem);
+    public boolean isCurrentUserAuthorizedToClaim(CaseWorkItemType workItem) {
+        return authorizationHelper.isAuthorizedToClaim(workItem);
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return miscDataUtil.isAuthorized(workItem, MiscDataUtil.RequestedOperation.DELEGATE, task, result);
+    public boolean isCurrentUserAuthorizedToDelegate(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        return authorizationHelper.isAuthorized(workItem, AuthorizationHelper.RequestedOperation.DELEGATE, task, result);
     }
 
 	@Override
-	public ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
+			Task task, OperationResult result) throws SchemaException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByStateForRoot(rootTask, modelInteractionService, prismContext, task, result);
+		return changesSorter.getChangesByStateForRoot(rootCase, prismContext, result);
 	}
 
 	@Override
-	public ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext,
-			OperationResult result) throws SchemaException, ObjectNotFoundException {
+	public ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext,
+			OperationResult result) throws SchemaException {
 
 		// TODO op subresult
-		return miscDataUtil.getChangesByStateForChild(childTask, rootTask, modelInteractionService, prismContext, result);
-	}
-
-	@Override
-	public void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".cleanupActivitiProcesses");
-		try {
-			processInstanceManager.cleanupActivitiProcesses(result);
-		} catch (Throwable t) {
-			result.recordFatalError("Couldn't cleanup Activiti processes: " + t.getMessage(), t);
-			throw t;
-		} finally {
-			result.recordSuccessIfUnknown();
-		}
+		return changesSorter.getChangesByStateForChild(approvalCase, rootCase, prismContext, result);
 	}
 
 	@Override

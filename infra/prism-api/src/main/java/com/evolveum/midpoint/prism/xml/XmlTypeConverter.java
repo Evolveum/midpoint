@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.codec.binary.Base64;
+import org.jetbrains.annotations.Contract;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.annotation.XmlEnumValue;
@@ -117,12 +118,20 @@ public class XmlTypeConverter {
 		return false;
 	}
 
-    public static XMLGregorianCalendar createXMLGregorianCalendar(long timeInMillis) {
+	public static XMLGregorianCalendar createXMLGregorianCalendar() {
+    	return createXMLGregorianCalendar(System.currentTimeMillis());
+	}
+
+    public static XMLGregorianCalendar createXMLGregorianCalendar(Long timeInMillis) {
+    	if (timeInMillis == null) {
+    		return null;
+	    }
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(timeInMillis);
         return createXMLGregorianCalendar(gregorianCalendar);
     }
 
+	@Contract("null -> null")
 	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
         if (date == null) {
             return null;
@@ -153,6 +162,7 @@ public class XmlTypeConverter {
     }
     
     // in some environments, XMLGregorianCalendar.clone does not work
+    @Contract("null -> null; !null -> !null")
     public static XMLGregorianCalendar createXMLGregorianCalendar(XMLGregorianCalendar cal) {
         if (cal == null) {
             return null;
@@ -191,7 +201,41 @@ public class XmlTypeConverter {
     	return getDatatypeFactory().newDuration(durationInMilliSeconds);
     }
 
-    public static Duration createDuration(String lexicalRepresentation) {
+    public static Duration createDuration(Duration duration) {
+	    return getDatatypeFactory().newDuration(duration.getSign() >= 0,
+			    toBigInteger(duration.getField(DatatypeConstants.YEARS)),
+			    toBigInteger(duration.getField(DatatypeConstants.MONTHS)),
+			    toBigInteger(duration.getField(DatatypeConstants.DAYS)),
+			    toBigInteger(duration.getField(DatatypeConstants.HOURS)),
+			    toBigInteger(duration.getField(DatatypeConstants.MINUTES)),
+			    toBigDecimal(duration.getField(DatatypeConstants.SECONDS)));
+    }
+
+    // to be used from within createDuration only (for general use it should be rewritten!!)
+	private static BigDecimal toBigDecimal(Number number) {
+		if (number instanceof BigDecimal) {
+			return (BigDecimal) number;                     // this is the most probable case as seconds are stored as BigDecimal
+		} else if (number instanceof BigInteger) {
+			return BigDecimal.valueOf(number.longValue());
+		} else if (number != null) {
+			return new BigDecimal(number.toString());       // hack ... see https://stackoverflow.com/questions/16216248/convert-java-number-to-bigdecimal-best-way
+		} else {
+			return null;
+		}
+	}
+
+	// to be used from within createDuration only (for general use it should be rewritten!!)
+	private static BigInteger toBigInteger(Number number) {
+		if (number instanceof BigInteger) {
+			return (BigInteger) number;                     // this is the most probable case as fields are stored as BigIntegers
+		} else if (number != null) {
+			return BigInteger.valueOf(number.longValue());
+		} else {
+			return null;
+		}
+	}
+
+	public static Duration createDuration(String lexicalRepresentation) {
     	return lexicalRepresentation != null ? getDatatypeFactory().newDuration(lexicalRepresentation) : null;
     }
 

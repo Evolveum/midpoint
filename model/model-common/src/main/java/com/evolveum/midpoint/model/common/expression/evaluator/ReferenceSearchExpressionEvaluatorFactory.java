@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.common.expression.AbstractObjectResolvableExpressionEvaluatorFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -43,14 +45,18 @@ import org.apache.commons.lang.Validate;
  *
  */
 public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectResolvableExpressionEvaluatorFactory {
+	
+	private static final QName ELEMENT_NAME = new ObjectFactory().createReferenceSearch(new ReferenceSearchExpressionEvaluatorType()).getName();
 
 	private final PrismContext prismContext;
 	private final Protector protector;
 	private final ModelService modelService;
     private final SecurityContextManager securityContextManager;
 
-	public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext, Protector protector, ModelService modelService, SecurityContextManager securityContextManager) {
-		super(expressionFactory);
+	public ReferenceSearchExpressionEvaluatorFactory(ExpressionFactory expressionFactory, PrismContext prismContext,
+			Protector protector, ModelService modelService, SecurityContextManager securityContextManager,
+			CacheConfigurationManager cacheConfigurationManager) {
+		super(expressionFactory, cacheConfigurationManager);
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.modelService = modelService;
@@ -62,15 +68,19 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createReferenceSearch(new ReferenceSearchExpressionEvaluatorType()).getName();
+		return ELEMENT_NAME;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory#createEvaluator(javax.xml.bind.JAXBElement)
 	 */
 	@Override
-	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(Collection<JAXBElement<?>> evaluatorElements,
-																									D outputDefinition, ExpressionFactory factory, String contextDescription, Task task, OperationResult result) throws SchemaException {
+	public <V extends PrismValue,D extends ItemDefinition> ExpressionEvaluator<V,D> createEvaluator(
+			Collection<JAXBElement<?>> evaluatorElements,
+			D outputDefinition,
+			ExpressionProfile expressionProfile,
+			ExpressionFactory factory,
+			String contextDescription, Task task, OperationResult result) throws SchemaException {
 
         Validate.notNull(outputDefinition, "output definition must be specified for referenceSearch expression evaluator");
 
@@ -89,8 +99,9 @@ public class ReferenceSearchExpressionEvaluatorFactory extends AbstractObjectRes
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof ReferenceSearchExpressionEvaluatorType)) {
             throw new SchemaException("reference search expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator((ReferenceSearchExpressionEvaluatorType)evaluatorTypeObject,
-        		(PrismReferenceDefinition) outputDefinition, protector, getObjectResolver(), modelService, prismContext, securityContextManager, getLocalizationService());
+        ReferenceSearchExpressionEvaluator expressionEvaluator = new ReferenceSearchExpressionEvaluator(ELEMENT_NAME, (ReferenceSearchExpressionEvaluatorType)evaluatorTypeObject,
+        		(PrismReferenceDefinition) outputDefinition, protector, prismContext, getObjectResolver(), modelService, securityContextManager, getLocalizationService(),
+		        cacheConfigurationManager);
         return (ExpressionEvaluator<V,D>) expressionEvaluator;
 	}
 

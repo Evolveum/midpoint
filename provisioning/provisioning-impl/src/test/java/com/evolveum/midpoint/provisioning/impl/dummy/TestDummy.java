@@ -27,6 +27,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,10 +51,14 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyDelta;
+import com.evolveum.icf.dummy.resource.DummyDeltaType;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
+import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -164,6 +170,11 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 	protected ItemComparisonResult getExpectedPasswordComparisonResultMismatch() {
 		return ItemComparisonResult.NOT_APPLICABLE;
+	}
+
+	// temporary measure just to make provisioning tests pass, MID-5363
+	boolean areEntitlementByAttributesTestsEnabled() {
+		return true;
 	}
 	
 	@Override
@@ -350,6 +361,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
 		assertSteadyResource();
+	}
+
+	/**
+	 * Incomplete attributes should not be cached.
+	 */
+	@Test
+	public void test107CSkipCachingForIncompleteAttributes() throws Exception {
+		// overridden in TestDummyCaching
 	}
 
 	/**
@@ -3124,11 +3143,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("Account", shadow);
-
-		display(result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 		assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 3);
 
 		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
@@ -3189,15 +3204,162 @@ public class TestDummy extends AbstractBasicDummyTest {
 		delta.checkConsistence();
 
 		// WHEN
+		displayWhen(TEST_NAME);
 		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
 				new OperationProvisioningScriptsType(), null, task, result);
 
 		// THEN
-		result.computeStatus();
-		display("modifyObject result", result);
-		TestUtil.assertSuccess(result);
-
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	/**
+	 * Entitle will to pirates. But this time use identifiers instead of OID.
+	 * Relates to MID-5315
+	 */
+	@Test
+	public void test232EntitleAccountWillPiratesIdentifiersName() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test232EntitleAccountWillPiratesIdentifiersName";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesEntitled();
+	}
+	
+	/**
+	 * Detitle will to pirates. But this time use identifiers instead of OID.
+	 * MID-5315
+	 */
+	@Test
+	public void test233DetitleAccountWillPiratesIdentifiersName() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test233DetitleAccountWillPiratesIdentifiersName";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_NAME, GROUP_PIRATES_NAME, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	/**
+	 * Entitle will to pirates. But this time use identifiers instead of OID.
+	 * Relates to MID-5315
+	 */
+	@Test
+	public void test234EntitleAccountWillPiratesIdentifiersUid() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test234EntitleAccountWillPiratesIdentifiersUid";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesEntitled();
+	}
+	
+	/**
+	 * Detitle will to pirates. But this time use identifiers instead of OID.
+	 * MID-5315
+	 */
+	@Test
+	public void test235DetitleAccountWillPiratesIdentifiersUid() throws Exception {
+		if (!areEntitlementByAttributesTestsEnabled()) {
+			return;
+		}
+		final String TEST_NAME = "test235DetitleAccountWillPiratesIdentifiersUid";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		rememberDummyResourceGroupMembersReadCount(null);
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDeltaIdentifiers(ACCOUNT_WILL_OID,
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SchemaConstants.ICFS_UID, piratesIcfUid, prismContext);
+		display("ObjectDelta", delta);
+		delta.checkConsistence();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, delta.getOid(), delta.getModifications(),
+				new OperationProvisioningScriptsType(), null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		delta.checkConsistence();
+		assertAccountPiratesDetitled();
+	}
+	
+	private void assertAccountPiratesDetitled() throws Exception {
 		if (isAvoidDuplicateValues()) {
 			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
 		} else {
@@ -3225,6 +3387,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertDummyResourceGroupMembersReadCountIncrement(null, 0);
 		syncServiceMock.assertNotifySuccessOnly();
 
+		Task task = createTask("assertAccountPiratesDetitled");
+		OperationResult result = task.getResult();
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
 		display("Shadow after", shadow);
 		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
@@ -3232,10 +3396,49 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		assertSteadyResource();
 	}
+	
+	private void assertAccountPiratesEntitled() throws Exception {
+		if (isAvoidDuplicateValues()) {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 1);
+		} else {
+			assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		}
+
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertMember(group, getWillRepoIcfName());
+
+		// Make sure that account is still there and it has the privilege
+		DummyAccount dummyAccount = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		assertNotNull("Account will is gone!", dummyAccount);
+		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
+		PrismAsserts.assertSets("Wrong account privileges", accountProvileges,
+				PRIVILEGE_PILLAGE_NAME, PRIVILEGE_BARGAIN_NAME, PRIVILEGE_NONSENSE_NAME);
+
+		assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+
+		// Make sure that privilege object is still there
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
+		assertNotNull("Privilege object is gone!", priv);
+        DummyPrivilege priv2 = getDummyPrivilegeAssert(PRIVILEGE_BARGAIN_NAME, bargainIcfUid);
+        assertNotNull("Privilege object (bargain) is gone!", priv2);
+
+        assertDummyResourceGroupMembersReadCountIncrement(null, 0);
+		syncServiceMock.assertNotifySuccessOnly();
+
+		Task task = createTask("assertAccountPiratesDetitled");
+		OperationResult result = task.getResult();
+        PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
+		display("Shadow after", shadow);
+		assertEntitlementGroup(shadow, GROUP_PIRATES_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementPriv(shadow, PRIVILEGE_BARGAIN_OID);
+
+		assertSteadyResource();
+	}
 
 	@Test
-	public void test232DetitleAccountWillPillage() throws Exception {
-		final String TEST_NAME = "test232DetitleAccountWillPillage";
+	public void test238DetitleAccountWillPillage() throws Exception {
+		final String TEST_NAME = "test238DetitleAccountWillPillage";
 		displayTestTitle(TEST_NAME);
 
 		Task task = createTask(TEST_NAME);
@@ -3283,8 +3486,8 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
     @Test
-    public void test234DetitleAccountWillBargain() throws Exception {
-        final String TEST_NAME = "test234DetitleAccountWillBargain";
+    public void test239DetitleAccountWillBargain() throws Exception {
+        final String TEST_NAME = "test239DetitleAccountWillBargain";
         displayTestTitle(TEST_NAME);
 
         Task task = createTask(TEST_NAME);
@@ -3683,6 +3886,149 @@ public class TestDummy extends AbstractBasicDummyTest {
 		assertSteadyResource();
 	}
 	
+	protected final String WILL_GOSSIP_AVAST = "Aye! Avast!";
+	protected final String WILL_GOSSIP_BLOOD_OF_A_PIRATE = "Blood of a pirate";
+	protected final String WILL_GOSSIP_EUNUCH = "Eunuch!";
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test340ModifyWillReplaceGossipBloodAvast() throws Exception {
+		final String TEST_NAME = "test340ModifyWillReplaceGossipBloodAvast";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.ZERO, WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+		assertWillDummyGossipRecord(PlusMinusZero.ZERO, WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test342ModifyWillAddGossipEunuch() throws Exception {
+		final String TEST_NAME = "test342ModifyWillAddGossipEunuch";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_AVAST, WILL_GOSSIP_EUNUCH);
+		assertWillDummyGossipRecord(PlusMinusZero.PLUS, WILL_GOSSIP_EUNUCH);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	/**
+	 * Gossip is a multivalue attribute. Make sure that replace operations work
+	 * as expected also for multivalue.
+	 */
+	@Test
+	public void test344ModifyWillDeleteGossipAvast() throws Exception {
+		final String TEST_NAME = "test344ModifyWillDeleteGossipAvast";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		// This turns on recording of the operations
+		dummyResourceCtl.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
+
+		List<ItemDelta<?, ?>> mods = getGossipDelta(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_WILL_OID, mods, null, null, task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		assertAccountWillGossip(WILL_GOSSIP_BLOOD_OF_A_PIRATE, WILL_GOSSIP_EUNUCH);
+		assertWillDummyGossipRecord(PlusMinusZero.MINUS, WILL_GOSSIP_AVAST);
+
+		syncServiceMock.assertNotifySuccessOnly();
+		assertSteadyResource();
+	}
+	
+	protected List<ItemDelta<?, ?>> getGossipDelta(PlusMinusZero plusMinusZero, String... values) throws SchemaException {
+		List<ItemDelta<?, ?>> mods = prismContext.deltaFor(ShadowType.class)
+				.property(dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME), null)
+					.mod(plusMinusZero, values)
+				.asItemDeltas();
+		display("Modifications", mods);
+		return mods;
+	}
+	
+	protected void assertAccountWillGossip(String... values) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException, InterruptedException {
+		display("Account will", getDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid));
+		assertDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid)
+			.assertAttribute(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, values);
+	}
+	
+	private void assertWillDummyGossipRecord(PlusMinusZero plusminus, String... expectedValues) {
+		display("Dummy resource deltas", dummyResource.dumpDeltas());
+		List<DummyDelta> dummyDeltas = dummyResource.getDeltas();
+		assertFalse("Empty dummy resource deltas", dummyDeltas.isEmpty());
+		assertEquals("Too many dummy resource deltas", 1, dummyDeltas.size());
+		DummyDelta dummyDelta = dummyDeltas.get(0);
+		assertEquals("Wrong dummy resource delta object name", transformNameFromResource(ACCOUNT_WILL_USERNAME), dummyDelta.getObjectName());
+		assertEquals("Wrong dummy resource delta type", DummyDeltaType.MODIFY, dummyDelta.getType());
+		assertEquals("Wrong dummy resource delta attribute", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, dummyDelta.getAttributeName());
+		Collection<String> valuesToConsider = null;
+		switch (plusminus) {
+			case PLUS:
+				valuesToConsider = (Collection)dummyDelta.getValuesAdded();
+				break;
+			case MINUS:
+				valuesToConsider = (Collection)dummyDelta.getValuesDeleted();
+				break;
+			case ZERO:
+				valuesToConsider = (Collection)dummyDelta.getValuesReplaced();
+				break;
+		}
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong values for "+plusminus+" in dummy resource delta", valuesToConsider, expectedValues);
+	}
+
+	
 	protected String getLastModifierName(String expected) {
 		return transformNameToResource(expected);
 	}
@@ -3801,18 +4147,21 @@ public class TestDummy extends AbstractBasicDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		// WHEN
 		try {
+
+			// WHEN
+			displayWhen(TEST_NAME);
+
 			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
+			
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
+			displayThen(TEST_NAME);
 			display("Expected exception", e);
 		}
 
-		result.computeStatus();
-		display("deleteObject result (expected failure)", result);
-		TestUtil.assertFailure(result);
+		assertFailure(result);
 
 		syncServiceMock.assertNotifyFailureOnly();
 
@@ -3909,6 +4258,39 @@ public class TestDummy extends AbstractBasicDummyTest {
 	}
 
 	/**
+	 * Make sure that refresh of the shadow adds missing primaryIdentifierValue
+	 * to the shadow.
+	 * This is a test for migration from previous midPoint versions that haven't
+	 * had primaryIdentifierValue.
+	 */
+	@Test
+	public void test520MigrationPrimaryIdentifierValueRefresh() throws Exception {
+		final String TEST_NAME = "test520MigrationPrimaryIdentifierValueRefresh";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadowBefore = PrismTestUtil.parseObject(ACCOUNT_RELIC_FILE);
+		repositoryService.addObject(shadowBefore, null, result);
+
+		// WHEN
+		displayWhen(TEST_NAME);
+
+		provisioningService.refreshShadow(shadowBefore, null, task, result);
+
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+		
+		assertRepoShadow(ACCOUNT_RELIC_OID)
+			.assertName(ACCOUNT_RELIC_USERNAME)
+			.assertPrimaryIdentifierValue(ACCOUNT_RELIC_USERNAME);
+
+		assertSteadyResource();
+	}
+	
+	/**
 	 * Test for proper handling of "already exists" exception. We try to add a shadow.
 	 * It fails, because there is unknown conflicting object on the resource. But a new
 	 * shadow for the conflicting object should be created in the repository.
@@ -3967,6 +4349,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		syncTokenTask = taskManager.createTaskInstance(TestDummy.class.getName() + ".syncTask");
 
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
+		dummyResource.clearDeltas();
 		syncServiceMock.reset();
 
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -3980,7 +4363,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4021,7 +4404,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4084,7 +4467,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		result.computeStatus();
@@ -4248,7 +4631,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4320,7 +4703,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4381,7 +4764,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4458,7 +4841,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4526,7 +4909,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -4582,7 +4965,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		provisioningService.synchronize(coords, syncTokenTask, result);
+		provisioningService.synchronize(coords, syncTokenTask, null, result);
 
 		// THEN
 		displayThen(TEST_NAME);

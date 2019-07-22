@@ -16,15 +16,16 @@
 package com.evolveum.midpoint.repo.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,13 @@ public class RepoObjectResolver implements ObjectResolver {
 			OperationResult parentResult)
 			throws SchemaException {
 		cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);
+	}
+
+	@Override
+	public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException {
+		return cacheRepositoryService.searchObjects(type, query, options, parentResult);
 	}
 
 	@Override

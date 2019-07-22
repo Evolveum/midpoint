@@ -24,6 +24,8 @@ import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -148,6 +150,11 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 		} else {
 			return true;
 		}
+	}
+	
+	@Override
+	public Class getTypeClass() {
+		return ObjectReferenceType.class;
 	}
 
 	@Override

@@ -25,21 +25,21 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LensContextType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Iterator;
+
+import static com.evolveum.midpoint.model.impl.lens.LensContext.*;
 
 /**
  * Handles a "ModelOperation task" - executes a given model operation in a context
@@ -48,6 +48,9 @@ import java.util.Iterator;
  * The context of the model operation (i.e., model context) is stored in task property
  * called "modelContext". When this handler is executed, the context is retrieved, unwrapped from
  * its XML representation, and the model operation is (re)started.
+ *
+ * This was to be used for workflow execution. Currently this responsibility is moved to CaseOperationExecutionTaskHandler
+ * and this class is unused.
  *
  * @author mederly
  */
@@ -67,8 +70,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 	@Autowired private Clockwork clockwork;
 
 	@Override
-	public TaskRunResult run(Task task) {
-
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
@@ -82,7 +84,7 @@ public class ModelOperationTaskHandler implements TaskHandler {
 		} else {
             LensContext context;
             try {
-                context = LensContext.fromLensContextType(contextType, prismContext, provisioningService, task, result);
+                context = fromLensContextType(contextType, prismContext, provisioningService, task, result);
             } catch (SchemaException e) {
                 throw new SystemException("Cannot recover model context from task " + task + " due to schema exception", e);
             } catch (ObjectNotFoundException | ConfigurationException | ExpressionEvaluationException e) {
@@ -115,8 +117,8 @@ public class ModelOperationTaskHandler implements TaskHandler {
 				}
                 clockwork.run(context, task, result);
 
-				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL));
-                task.savePendingModifications(result);
+				task.setModelOperationContext(context.toLensContextType(context.getState() == ModelState.FINAL ? ExportType.REDUCED : ExportType.OPERATIONAL));
+                task.flushPendingModifications(result);
 
                 if (result.isUnknown()) {
                     result.computeStatus();

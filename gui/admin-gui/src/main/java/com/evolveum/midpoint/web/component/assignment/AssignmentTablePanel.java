@@ -233,7 +233,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends AbstractAssignme
 							int count = WebModelServiceUtils.countObjects(OrgType.class, null, getPageBase());
 							if (count > 0) {
 								OrgTreeAssignablePanel orgTreePanel = new OrgTreeAssignablePanel(
-										getPageBase().getMainPopupBodyId(), true, getPageBase()) {
+										getPageBase().getMainPopupBodyId(), true) {
 									private static final long serialVersionUID = 1L;
 
 									@Override

@@ -105,6 +105,14 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 			}
 		}
 	}
+	
+	private XMLInputFactory getXMLInputFactory() {
+		XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+		xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false); 
+		xmlInputFactory.setProperty("javax.xml.stream.isSupportingExternalEntities", false);
+		// TODO: cache? static? prism context?
+		return xmlInputFactory;
+	}
 
 	// code taken from Validator class
 	@Override
@@ -113,7 +121,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 		InputStream is = source.getInputStream();
 		XMLStreamReader stream = null;
 		try {
-			stream = XMLInputFactory.newInstance().createXMLStreamReader(is);
+			stream = getXMLInputFactory().createXMLStreamReader(is);
 
 			int eventType = stream.nextTag();
 			if (eventType != XMLStreamConstants.START_ELEMENT) {
@@ -619,7 +627,7 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 				return serializeToElement(xlist.get(0), elementName);
 			}
 		} else {
-			throw new IllegalArgumentException("Cannot serialized "+xnode+" to element");
+			throw new IllegalArgumentException("Cannot serialize "+xnode+" to element");
 		}
 	}
 

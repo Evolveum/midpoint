@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,11 +84,11 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		if (ExpressionUtil.hasExpressions(query.getFilter())) {
 			PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(opResult);
 			ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(null, null, null,
-					configuration != null ? configuration.asObjectable() : null);
+					configuration != null ? configuration.asObjectable() : null, prismContext);
 			try {
-				ExpressionEnvironment<?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
+				ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(coordinatorTask, opResult);
 				ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-				query = ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory,
+				query = ExpressionUtil.evaluateQueryExpressions(query, variables, getExpressionProfile(), expressionFactory,
 						prismContext, "evaluate query expressions", coordinatorTask, opResult);
 			} finally {
 				ModelExpressionThreadLocalHolder.popExpressionEnvironment();
@@ -97,7 +97,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
 		
 		return query;
 	}
-	
+
 	@Override
 	protected <O extends ObjectType> Integer countObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> queryOptions, Task coordinatorTask, OperationResult opResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		return modelObjectResolver.countObjects(type, query, queryOptions, coordinatorTask, opResult);
@@ -177,7 +177,7 @@ public abstract class AbstractSearchIterativeModelTaskHandler<O extends ObjectTy
     }
 
     protected ModelExecuteOptions getExecuteOptionsFromTask(Task task) {
-		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> property = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
 		return property != null ? ModelExecuteOptions.fromModelExecutionOptionsType(property.getRealValue()) : null;
 	}
 

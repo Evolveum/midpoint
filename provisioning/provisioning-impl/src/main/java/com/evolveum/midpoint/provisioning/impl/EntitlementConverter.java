@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -76,14 +77,9 @@ class EntitlementConverter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(EntitlementConverter.class);
 
-	@Autowired(required=true)
-	private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
-
-	@Autowired(required=true)
-	private PrismContext prismContext;
-
-	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private ResourceObjectReferenceResolver resourceObjectReferenceResolver;
+	@Autowired private PrismContext prismContext;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	//////////
 	// GET
@@ -95,45 +91,43 @@ class EntitlementConverter {
 		LOGGER.trace("Starting postProcessEntitlementRead");
 		RefinedObjectClassDefinition objectClassDefinition = subjectCtx.getObjectClassDefinition();
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getAssociationDefinitions();
-		if (entitlementAssociationDefs != null) {
-			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(resourceObject);
 
-			PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
-			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
+		PrismContainerDefinition<ShadowAssociationType> associationDef = resourceObject.getDefinition().findContainerDefinition(ShadowType.F_ASSOCIATION);
+		PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 
-			for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
-				ShadowKindType entitlementKind = assocDefType.getKind();
-				if (entitlementKind == null) {
-					entitlementKind = ShadowKindType.ENTITLEMENT;
+		for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
+			ShadowKindType entitlementKind = assocDefType.getKind();
+			if (entitlementKind == null) {
+				entitlementKind = ShadowKindType.ENTITLEMENT;
+			}
+			for (String entitlementIntent: assocDefType.getIntents()) {
+				LOGGER.trace("Resolving association {} for kind {} and intent {}", assocDefType.getName(), entitlementKind, entitlementIntent);
+				ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
+				RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
+				if (entitlementDef == null) {
+					throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
 				}
-				for (String entitlementIntent: assocDefType.getIntents()) {
-					LOGGER.trace("Resolving association {} for kind {} and intent {}", assocDefType.getName(), entitlementKind, entitlementIntent);
-					ProvisioningContext entitlementCtx = subjectCtx.spawn(entitlementKind, entitlementIntent);
-					RefinedObjectClassDefinition entitlementDef = entitlementCtx.getObjectClassDefinition();
-					if (entitlementDef == null) {
-						throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
-					}
-					ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
-					if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
-						postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);
-					} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
-						if (assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute() != null) {
-							postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition,
-									assocDefType, entitlementDef, attributesContainer, associationContainer,
-									assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute(),
-									assocDefType.getResourceObjectAssociationType().getShortcutValueAttribute(), parentResult);
-						} else {
-							postProcessEntitlementEntitlementToSubject(subjectCtx, resourceObject, assocDefType, entitlementCtx, attributesContainer, associationContainer, parentResult);
-						}
+				ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
+				if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
+					postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition, assocDefType, entitlementDef, attributesContainer, associationContainer, parentResult);
+				} else if (direction == ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
+					if (assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute() != null) {
+						postProcessEntitlementSubjectToEntitlement(resourceType, resourceObject, objectClassDefinition,
+								assocDefType, entitlementDef, attributesContainer, associationContainer,
+								assocDefType.getResourceObjectAssociationType().getShortcutAssociationAttribute(),
+								assocDefType.getResourceObjectAssociationType().getShortcutValueAttribute(), parentResult);
 					} else {
-						throw new IllegalArgumentException("Unknown entitlement direction "+direction+" in association "+assocDefType+" in "+resourceType);
+						postProcessEntitlementEntitlementToSubject(subjectCtx, resourceObject, assocDefType, entitlementCtx, attributesContainer, associationContainer, parentResult);
 					}
+				} else {
+					throw new IllegalArgumentException("Unknown entitlement direction "+direction+" in association "+assocDefType+" in "+resourceType);
 				}
 			}
+		}
 
-			if (!associationContainer.isEmpty()) {
-				resourceObject.add(associationContainer);
-			}
+		if (!associationContainer.isEmpty()) {
+			resourceObject.add(associationContainer);
 		}
 	}
 
@@ -245,17 +239,7 @@ class EntitlementConverter {
 
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
 
-		SearchHierarchyConstraints searchHierarchyConstraints = null;
-		ResourceObjectReferenceType baseContextRef = entitlementDef.getBaseContext();
-		if (baseContextRef != null) {
-			// TODO: this should be done once per search. Not in every run of postProcessEntitlementEntitlementToSubject
-			// this has to go outside of this method
-			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(subjectCtx, baseContextRef,
-					null, "base context specification in "+entitlementDef, parentResult);
-			RefinedObjectClassDefinition baseContextObjectClassDefinition = subjectCtx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-			ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-		}
+		SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
 		ShadowResultHandler handler = new ShadowResultHandler() {
 			@Override
@@ -458,15 +442,7 @@ class EntitlementConverter {
 
 				AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
 
-				SearchHierarchyConstraints searchHierarchyConstraints = null;
-				ResourceObjectReferenceType baseContextRef = entitlementOcDef.getBaseContext();
-				if (baseContextRef != null) {
-					PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(subjectCtx,
-							baseContextRef, null, "base context specification in "+entitlementOcDef, parentResult);
-					RefinedObjectClassDefinition baseContextObjectClassDefinition = subjectCtx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-					ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-					searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-				}
+				SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
 				ShadowResultHandler handler = new ShadowResultHandler() {
 					@Override
@@ -659,8 +635,7 @@ class EntitlementConverter {
 				throw new SchemaException("Association attribute '"+assocAttrName+"'defined in entitlement association was not found in entitlement intent(s) '"+entitlementIntents+"' in schema for "+resource);
 			}
 
-			ResourceAttributeContainer identifiersContainer =
-					ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
+			ResourceAttributeContainer identifiersContainer = getIdentifiersAttributeContainer(associationCVal, entitlementOcDef);
 			Collection<ResourceAttribute<?>> entitlementIdentifiersFromAssociation = identifiersContainer.getAttributes();
 
 			ResourceObjectDiscriminator disc = new ResourceObjectDiscriminator(entitlementOcDef.getTypeName(), entitlementIdentifiersFromAssociation);
@@ -767,5 +742,47 @@ class EntitlementConverter {
 		return subjectShadowAfter;
 	}
 
+	private ResourceAttributeContainer getIdentifiersAttributeContainer(PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition entitlementOcDef) throws SchemaException {
+		PrismContainer container = associationCVal.findContainer(ShadowAssociationType.F_IDENTIFIERS);
+		if (container == null) {
+			return null;
+		}
+		if (container instanceof ResourceAttributeContainer) {
+			return (ResourceAttributeContainer)container;
+		}
+		ResourceAttributeContainer attributesContainer = entitlementOcDef.toResourceAttributeContainerDefinition().instantiate(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<?> cval = container.getValue();
+		for (PrismProperty<?> prop : cval.getProperties()) {
+			RefinedAttributeDefinition<Object> attrDef = entitlementOcDef.findAttributeDefinition(prop.getElementName());
+			ResourceAttribute<Object> attribute = attrDef.instantiate();
+			for (Object val : prop.getRealValues()) {
+				attribute.addRealValue(val);
+			}
+			attributesContainer.add(attribute);
+		}
+		return attributesContainer;
+	}
 
+	// This is perhaps not the best place for this method. It has nothing to do with entitlements.
+	// But given class dependencies this is a very convenient place. Let's leave it here for now.
+	public SearchHierarchyConstraints determineSearchHierarchyConstraints(final ProvisioningContext ctx, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
+		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
+		SearchHierarchyConstraints searchHierarchyConstraints = null;
+		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
+		ResourceObjectIdentification baseContextIdentification = null;
+		if (baseContextRef != null) {
+			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
+			if (baseContextShadow == null) {
+				throw new ObjectNotFoundException("Base context not found for "+objectClassDef+", specified as "+baseContextRef);
+			}
+			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
+			baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
+		}
+		
+		SearchHierarchyScope scope = objectClassDef.getSearchHierarchyScope();
+		if (baseContextIdentification == null && scope == null) {
+			return null;
+		}
+		return new SearchHierarchyConstraints(baseContextIdentification, scope);
+	}
 }

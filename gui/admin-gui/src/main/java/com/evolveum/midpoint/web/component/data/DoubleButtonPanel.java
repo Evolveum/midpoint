@@ -28,6 +28,7 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  *  @author shood
  * */
+//@Deprecated
 public class DoubleButtonPanel<T> extends BasePanel<T>{
 
     private static final String ID_BUTTON_FIRST = "first";

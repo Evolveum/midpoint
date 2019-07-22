@@ -167,6 +167,14 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
+	protected PolyString getPolyStringPropertyValue(QName propName) {
+		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
+		if (prop == null) {
+			return null;
+		}
+		return prop.getRealValue();
+	}
+	
 	protected void assertPolyStringProperty(QName propName, String expectedOrig) {
 		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
 		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
@@ -175,8 +183,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	
 	protected void assertPolyStringPropertyMulti(QName propName, String... expectedOrigs) {
 		PrismProperty<PolyString> prop = getObject().findProperty(ItemName.fromQName(propName));
-		assertNotNull("No "+propName.getLocalPart()+" in "+desc(), prop);
-		PrismAsserts.assertEqualsPolyStringMulti("Wrong "+propName.getLocalPart()+" in "+desc(), prop.getRealValues(), expectedOrigs);
+		if (expectedOrigs.length > 0) {
+			assertNotNull("No " + propName.getLocalPart() + " in " + desc(), prop);
+			PrismAsserts.assertEqualsPolyStringMulti("Wrong "+propName.getLocalPart()+" in "+desc(), prop.getRealValues(), expectedOrigs);
+		} else {
+			assertTrue("Property is not empty even if it should be: " + prop, prop == null || prop.isEmpty());
+		}
 	}
 	
 	protected <T> void assertPropertyEquals(QName propName, T expected) {

@@ -20,6 +20,9 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
@@ -69,6 +72,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.test.asserter.refinedschema.RefinedResourceSchemaAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
@@ -91,6 +95,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.crypto.password.LdapShaPasswordEncoder;
@@ -112,6 +117,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -145,6 +151,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 
 	protected static final Random RND = new Random();
+
+	private static final float FLOAT_EPSILON = 0.001f;
 
 	// Values used to check if something is unchanged or changed properly
 
@@ -440,9 +448,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ResourceType> addResourceFromFile(File file, String connectorType, boolean overwrite, OperationResult result)
 			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
-		LOGGER.trace("addObjectFromFile: {}, connector type {}", file, connectorType);
+		return addResourceFromFile(file, Collections.singletonList(connectorType), overwrite, result);
+	}
+
+	protected PrismObject<ResourceType> addResourceFromFile(File file, List<String> connectorTypes, boolean overwrite, OperationResult result)
+			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
+		LOGGER.trace("addObjectFromFile: {}, connector types {}", file, connectorTypes);
 		PrismObject<ResourceType> resource = prismContext.parseObject(file);
-		fillInConnectorRef(resource, connectorType, result);
+		return addResourceFromObject(resource, connectorTypes, overwrite, result);
+	}
+
+	@NotNull
+	protected PrismObject<ResourceType> addResourceFromObject(PrismObject<ResourceType> resource, List<String> connectorTypes,
+			boolean overwrite, OperationResult result)
+			throws SchemaException, EncryptionException,
+			ObjectAlreadyExistsException {
+		for (int i = 0; i < connectorTypes.size(); i++) {
+			String type = connectorTypes.get(i);
+			if (i == 0) {
+				fillInConnectorRef(resource, type, result);
+			} else {
+				fillInAdditionalConnectorRef(resource, i-1, type, result);
+			}
+		}
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);
 		RepoAddOptions options = null;
@@ -502,6 +530,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				additionalConnector.setConnectorRef(ref);
 			}
 		}
+	}
+
+	protected void fillInAdditionalConnectorRef(PrismObject<ResourceType> resource, int connectorIndex, String connectorType, OperationResult result)
+			throws SchemaException {
+		ResourceType resourceType = resource.asObjectable();
+		PrismObject<ConnectorType> connectorPrism = findConnectorByType(connectorType, result);
+		ConnectorInstanceSpecificationType additionalConnector = resourceType.getAdditionalConnector().get(connectorIndex);
+		ObjectReferenceType ref = new ObjectReferenceType().oid(connectorPrism.getOid());
+		additionalConnector.setConnectorRef(ref);
 	}
 
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
@@ -879,11 +916,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
                                     QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 //		Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
-		if (attributes == null){
-			AssertJUnit.fail("No attributes in repo shadow");
-		}
 		RefinedResourceSchema refinedSchema = null;
 		try {
 			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -899,7 +933,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertRepoShadowAttributes(attributes, secIdentifiers.size()+1);
 	}
 
-	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+	protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		assertEquals("Unexpected number of attributes in repo shadow", expectedNumberOfIdentifiers, attributes.size());
 	}
 
@@ -977,6 +1011,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 	}
 
@@ -987,6 +1022,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 	}
 
@@ -1205,7 +1241,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<Object> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 		if (expectedValue == null && syncTokenProperty == null) {
 			return;
 		}
@@ -1306,7 +1342,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected void assertNumberOfAttributes(PrismObject<ShadowType> shadow, Integer expectedNumberOfAttributes) {
 		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
 		assertNotNull("No attributes in repo shadow "+shadow, attributesContainer);
-		List<Item<?,?>> attributes = attributesContainer.getValue().getItems();
+		Collection<Item<?,?>> attributes = attributesContainer.getValue().getItems();
 
 		assertFalse("Empty attributes in repo shadow "+shadow, attributes.isEmpty());
 		if (expectedNumberOfAttributes != null) {
@@ -1413,7 +1449,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 				}
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
-				return protector.compare(actualValue, expectedPs);
+				return protector.compareCleartext(actualValue, expectedPs);
 
 			default:
 				throw new IllegalArgumentException("Unknown storage "+storageType);
@@ -1723,12 +1759,46 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			Long actual) {
 		TestUtil.assertBetween(message, start, end, actual);
 	}
+	
+	protected void assertFloat(String message, Integer expectedIntPercentage, Float actualPercentage) {
+		assertFloat(message, expectedIntPercentage==null?null:new Float(expectedIntPercentage), actualPercentage);
+	}
+	
+	protected void assertFloat(String message, Float expectedPercentage, Float actualPercentage) {
+		if (expectedPercentage == null) {
+			if (actualPercentage == null) {
+				return;
+			} else {
+				fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+			}
+		}
+		if (actualPercentage > expectedPercentage + FLOAT_EPSILON || actualPercentage < expectedPercentage - FLOAT_EPSILON) {
+			fail(message + ", expected: " + expectedPercentage + ", but was "+actualPercentage);
+		}
+	}
 
 	protected Task createTask(String operationName) {
 		if (!operationName.contains(".")) {
 			operationName = this.getClass().getName() + "." + operationName;
 		}
 		Task task = taskManager.createTaskInstance(operationName);
+//		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
+//		task.setTracingProfile(new TracingProfileType()
+//				.collectLogEntries(true)
+//				.beginLoggingOverride()
+//					.beginLevelOverride()
+//						.logger("org.hibernate.SQL")
+//						.level(LoggingLevelType.TRACE)
+//					.<LoggingOverrideType>end()
+//					.beginLevelOverride()
+//						.logger("org.hibernate.type")
+//						.level(LoggingLevelType.TRACE)
+//					.<LoggingOverrideType>end()
+//				.<TracingProfileType>end()
+//				.beginTracingTypeProfile()
+//					.level(TracingLevelType.NORMAL)
+//				.<TracingProfileType>end()
+//				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}"));
 		return task;
 	}
 
@@ -1763,6 +1833,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		TestUtil.assertSuccess(message, result);
 	}
 	
+	protected void assertSuccess(String message, OperationResultType resultType) {
+		TestUtil.assertSuccess(message, resultType);
+	}
+	
 	protected void assertResultStatus(OperationResult result, OperationResultStatus expectedStatus) {
 		if (result.isUnknown()) {
 			result.computeStatus();
@@ -1787,6 +1861,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			result.computeStatus();
 		}
 		TestUtil.assertFailure(result);
+	}
+	
+	protected void assertFailure(String message, OperationResultType result) {
+		TestUtil.assertFailure(message, result);
 	}
 
 	protected void assertPartialError(OperationResult result) {
@@ -1868,7 +1946,13 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismObject<CaseType> acase = repositoryService.getObject(CaseType.class, oid, null, result);
 		display("Case", acase);
 		CaseType caseType = acase.asObjectable();
-		assertEquals("Wrong state of "+acase, expectedState ,caseType.getState());
+		String realState = caseType.getState();
+		if (SchemaConstants.CASE_STATE_OPEN.equals(expectedState)) {
+			assertTrue("Wrong state of " + acase + "; expected was open/created, real is " + realState,
+					SchemaConstants.CASE_STATE_OPEN.equals(realState) || SchemaConstants.CASE_STATE_CREATED.equals(realState));
+		} else {
+			assertEquals("Wrong state of " + acase, expectedState, realState);
+		}
 	}
 
 	protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
@@ -2072,30 +2156,36 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, OperationResult result) throws Exception {
-		generateRoles(numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
+		generateObjects(RoleType.class, numberOfRoles, nameFormat, oidFormat, mutator, role -> repositoryService.addObject(role, null, result), result);
+	}
+	
+	protected void generateUsers(int numberOfUsers, String nameFormat, String oidFormat, BiConsumer<UserType,Integer> mutator, OperationResult result) throws Exception {
+		generateObjects(UserType.class, numberOfUsers, nameFormat, oidFormat, mutator, user -> repositoryService.addObject(user, null, result), result);
 	}
 
-	protected void generateRoles(int numberOfRoles, String nameFormat, String oidFormat, BiConsumer<RoleType,Integer> mutator, FailableProcessor<PrismObject<RoleType>> adder, OperationResult result) throws Exception {
+	protected <O extends ObjectType> void generateObjects(Class<O> type, int numberOfObjects, String nameFormat, String oidFormat, BiConsumer<O,Integer> mutator, FailableProcessor<PrismObject<O>> adder, OperationResult result) throws Exception {
 		long startMillis = System.currentTimeMillis();
 
-		PrismObjectDefinition<RoleType> roleDefinition = getRoleDefinition();
-		for(int i=0; i < numberOfRoles; i++) {
-			PrismObject<RoleType> role = roleDefinition.instantiate();
-			RoleType roleType = role.asObjectable();
+		PrismObjectDefinition<O> objectDefinition = getObjectDefinition(type);
+		for(int i=0; i < numberOfObjects; i++) {
+			PrismObject<O> object = objectDefinition.instantiate();
+			O objectType = object.asObjectable();
 			String name = String.format(nameFormat, i);
-			String oid = String.format(oidFormat, i);
-			roleType.setName(createPolyStringType(name));
-			roleType.setOid(oid);
-			if (mutator != null) {
-				mutator.accept(roleType, i);
+			objectType.setName(createPolyStringType(name));
+			if (oidFormat != null) {
+				String oid = String.format(oidFormat, i);
+				objectType.setOid(oid);
 			}
-			LOGGER.info("Adding {}:\n{}", role, role.debugDump(1));
-			adder.process(role);
+			if (mutator != null) {
+				mutator.accept(objectType, i);
+			}
+			LOGGER.info("Adding {}:\n{}", object, object.debugDump(1));
+			adder.process(object);
 		}
 
 		long endMillis = System.currentTimeMillis();
 		long duration = (endMillis - startMillis);
-		display("Roles import", "import of "+numberOfRoles+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfRoles)+"ms per role)");
+		display(type.getSimpleName() + " import", "import of "+numberOfObjects+" roles took "+(duration/1000)+" seconds ("+(duration/numberOfObjects)+"ms per object)");
 	}
 
 	protected String assignmentSummary(PrismObject<UserType> user) {
@@ -2160,42 +2250,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected ParallelTestThread[] multithread(final String TEST_NAME, MultithreadRunner lambda, int numberOfThreads, Integer randomStartDelayRange) {
-		ParallelTestThread[] threads = new ParallelTestThread[numberOfThreads];
-		for (int i = 0; i < numberOfThreads; i++) {
-			threads[i] = new ParallelTestThread(i,
-					(ii) -> {
-						randomDelay(randomStartDelayRange);
-						LOGGER.info("{} starting", Thread.currentThread().getName());
-						lambda.run(ii);
-					});
-			threads[i].setName("Thread " + (i+1) + " of " + numberOfThreads);
-			threads[i].start();
-		}
-		return threads;
+		return TestUtil.multithread(TEST_NAME, lambda, numberOfThreads, randomStartDelayRange);
 	}
 	
 	protected void randomDelay(Integer range) {
-		if (range == null) {
-			return;
-		}
-		try {
-			Thread.sleep(RND.nextInt(range));
-		} catch (InterruptedException e) {
-			// Nothing to do, really
-		}
+		TestUtil.randomDelay(range);
 	}
 
 	protected void waitForThreads(ParallelTestThread[] threads, long timeout) throws InterruptedException {
-		for (int i = 0; i < threads.length; i++) {
-			if (threads[i].isAlive()) {
-				System.out.println("Waiting for " + threads[i]);
-				threads[i].join(timeout);
-			}
-			Throwable threadException = threads[i].getException();
-			if (threadException != null) {
-				throw new AssertionError("Test thread "+i+" failed: "+threadException.getMessage(), threadException);
-			}
-		}
+		TestUtil.waitForThreads(threads, timeout);
 	}
 	
 	protected ItemPath getMetadataPath(QName propName) {
@@ -2419,6 +2482,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		asserter.setProtector(protector);
 	}
 	
+	protected PolyStringAsserter<Void> assertPolyString(PolyString polystring, String desc) {
+		PolyStringAsserter<Void> asserter = new PolyStringAsserter<>(polystring, desc);
+		initializeAsserter(asserter);
+		return asserter;
+	}
+	
 	protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
 		assertNotNull("No refined schema for "+resource+" ("+details+")", refinedSchema);
@@ -2463,6 +2532,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         List<ItemDelta<?, ?>> deadModifications = deltaFor(ShadowType.class)
             	.item(ShadowType.F_DEAD).replace(true)
             	.item(ShadowType.F_EXISTS).replace(false)
+            	.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
             	.asItemDeltas();
         repositoryService.modifyObject(ShadowType.class, oid, deadModifications, result);
         assertSuccess(result);
@@ -2508,5 +2578,42 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected ItemFactory itemFactory() {
 		return prismContext.itemFactory();
+	}
+
+	protected void setModelAndProvisioningLoggers(Level level) {
+		setModelLoggers(level);
+		setProvisioningLoggers(level);
+	}
+
+	protected void setModelLoggers(Level level) {
+		setLoggers(Collections.singletonList("com.evolveum.midpoint.model"), level);
+	}
+
+	protected void setProvisioningLoggers(Level level) {
+		setLoggers(Collections.singletonList("com.evolveum.midpoint.provisioning"), level);
+	}
+
+	protected void setLoggers(List<String> prefixes, Level level) {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		int set = 0;
+		for (Logger logger : context.getLoggerList()) {
+			if (prefixes.stream().anyMatch(prefix -> logger.getName().startsWith(prefix))) {
+				logger.setLevel(level);
+				set++;
+			}
+		}
+		System.out.println("Loggers set to " + level + ": " + set);
+	}
+
+	protected void clearLogFile() {
+		try {
+			RandomAccessFile file = new RandomAccessFile(new File("target/test.log"), "rw");
+			file.setLength(0);
+			file.close();
+			System.out.println("Log file truncated");
+		} catch (IOException e) {
+			System.err.println("Couldn't truncate log file");
+			e.printStackTrace(System.err);
+		}
 	}
 }

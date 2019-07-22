@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.expr.ExpressionEnvironment;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.FullTextFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -85,6 +86,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  *
@@ -493,19 +495,19 @@ public class ModelImplUtils {
 	public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) throws SchemaException {
 	
 	    QName objectclass = null;
-	    PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
+	    PrismProperty<QName> objectclassProperty = task.getExtensionPropertyOrClone(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
 	    if (objectclassProperty != null) {
 	        objectclass = objectclassProperty.getValue().getValue();
 	    }
 	
 	    ShadowKindType kind = null;
-	    PrismProperty<ShadowKindType> kindProperty = task.getExtensionProperty(ModelConstants.KIND_PROPERTY_NAME);
+	    PrismProperty<ShadowKindType> kindProperty = task.getExtensionPropertyOrClone(ModelConstants.KIND_PROPERTY_NAME);
 	    if (kindProperty != null) {
 	        kind = kindProperty.getValue().getValue();
 	    }
 	
 	    String intent = null;
-	    PrismProperty<String> intentProperty = task.getExtensionProperty(ModelConstants.INTENT_PROPERTY_NAME);
+	    PrismProperty<String> intentProperty = task.getExtensionPropertyOrClone(ModelConstants.INTENT_PROPERTY_NAME);
 	    if (intentProperty != null) {
 	        intent = intentProperty.getValue().getValue();
 	    }
@@ -593,40 +595,44 @@ public class ModelImplUtils {
 	}
 
 	public static boolean isDryRun(Task task) throws SchemaException {
-		Boolean dryRun = findItemValue(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		if (dryRun == null && task.isLightweightAsynchronousTask() && task.getParentForLightweightAsynchronousTask() != null) {
-			dryRun = findItemValue(task.getParentForLightweightAsynchronousTask(), SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		}
+		Boolean dryRun = findExtensionItemValueInThisOrParent(task, SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 		return dryRun != null ? dryRun : Boolean.FALSE;
 	}
-	
-	public static boolean canPerformStage(String stageUri, Task task) throws SchemaException {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return false;
+	private static Boolean findExtensionItemValueInThisOrParent(Task task, QName path) throws SchemaException {
+		Boolean value = findExtensionItemValue(task, path);
+		if (value != null) {
+			return value;
 		}
-		
-		String stageTypeRealValue = stageType.getRealValue();
-		return stageUri.equals(stageTypeRealValue);
+		if (task instanceof RunningTask) {
+			RunningTask runningTask = (RunningTask) task;
+			if (runningTask.isLightweightAsynchronousTask() && runningTask.getParentForLightweightAsynchronousTask() != null) {
+				return findExtensionItemValue(runningTask.getParentForLightweightAsynchronousTask(), path);
+			}
+		}
+		return null;
 	}
 	
-	public static String getStageUri(Task task) {
-		PrismObject<TaskType> taskType = task.getTaskPrismObject();
-		PrismProperty<String> stageType = taskType.findProperty(ItemPath.create(TaskType.F_STAGE, TaskStageType.F_STAGE));
-		if (stageType == null) {
-			return ModelPublicConstants.RECONCILIATION_TASK_HANDLER_URI + "#execute";
-		}
-		
-		return stageType.getRealValue();
-	}
-	
-	static Boolean findItemValue(Task task, QName path) throws SchemaException{
+	private static Boolean findExtensionItemValue(Task task, QName path) throws SchemaException{
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
-		PrismProperty<Boolean> item = task.getExtensionProperty(path);
+		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
+		if (item == null || item.isEmpty()) {
+			return null;
+		}
+		if (item.getValues().size() > 1) {
+			throw new SchemaException("Unexpected number of values for option 'dry run'.");
+		}
+		return item.getValues().iterator().next().getValue();
+	}
+		
+	static Boolean findItemValue(RunningTask task, QName path) throws SchemaException{
+		Validate.notNull(task, "Task must not be null.");
+		if (!task.hasExtension()) {
+			return null;
+		}
+		PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(ItemName.fromQName(path));
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -641,11 +647,11 @@ public class ModelImplUtils {
 
 	public static ModelExecuteOptions getModelExecuteOptions(Task task) throws SchemaException {
 		Validate.notNull(task, "Task must not be null.");
-		if (task.getExtension() == null) {
+		if (!task.hasExtension()) {
 			return null;
 		}
 		//LOGGER.info("Task:\n{}",task.debugDump(1));
-		PrismProperty<ModelExecuteOptionsType> item = task.getExtensionProperty(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> item = task.getExtensionPropertyOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
 		if (item == null || item.isEmpty()) {
 			return null;
 		}
@@ -666,26 +672,27 @@ public class ModelImplUtils {
 	public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {
 		ExpressionVariables variables = new ExpressionVariables();
 		if (context.getFocusContext() != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+			variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
+			variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
 		}
 		if (projCtx != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projCtx.getObjectDeltaObject());
-			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+			variables.put(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			variables.put(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			variables.put(ExpressionConstants.VAR_ACCOUNT, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+			variables.put(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), projCtx.getResource().asPrismObject().getDefinition());
 		}
 	
-		variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue());
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx));
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx));
+		variables.put(ExpressionConstants.VAR_OPERATION, projCtx.getOperation().getValue(), String.class);
+		variables.put(ExpressionConstants.VAR_ITERATION, LensUtil.getIterationVariableValue(projCtx), Integer.class);
+		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, LensUtil.getIterationTokenVariableValue(projCtx), String.class);
 	
-		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition());
 		return variables;
 	}
 
 	public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
-			ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType) {
+			ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType,
+			PrismContext prismContext) {
 		PrismObject<? extends ObjectType> focus = null;
 		if (focusType != null) {
 			focus = focusType.asPrismObject();
@@ -702,53 +709,85 @@ public class ModelImplUtils {
 		if (configurationType != null) {
 			configuration = configurationType.asPrismObject();
 		}
-		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration, null);
+		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration, null, prismContext);
 	}
 
 	public static <O extends ObjectType> ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
 			PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
-			PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
+			PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
+			PrismContext prismContext) {
 		ExpressionVariables variables = new ExpressionVariables();
-		addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration, affectedElementContext);
+		addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration, affectedElementContext, prismContext);
 		return variables;
 	}
 
 	public static <O extends ObjectType> void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
 			PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr,
-			PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext) {
+			PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration, LensElementContext<O> affectedElementContext,
+			PrismContext prismContext) {
 	
+		PrismObjectDefinition<? extends ObjectType> focusDef;
+		if (focus == null) {
+			focusDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(FocusType.class);
+		} else {
+			focusDef = focus.getDefinition();
+		}
+		
+		PrismObjectDefinition<? extends ShadowType> shadowDef;
+		if (shadow == null) {
+			shadowDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+		} else {
+			shadowDef = shadow.getDefinition();
+		}
+		
+		PrismObjectDefinition<ResourceType> resourceDef;
+		if (resource == null) {
+			resourceDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ResourceType.class);
+		} else {
+			resourceDef = resource.getDefinition();
+		}
+		
+		PrismObjectDefinition<SystemConfigurationType> configDef;
+		if (configuration == null) {
+			configDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
+		} else {
+			configDef = configuration.getDefinition();
+		}
+		
 	    // Legacy. And convenience/understandability.
 	    if (focus == null || focus.canRepresent(UserType.class) || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
-		    variables.addVariableDefinition(ExpressionConstants.VAR_USER, focus);
-	        variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow);
+		    variables.put(ExpressionConstants.VAR_USER, focus, focusDef);
+	        variables.put(ExpressionConstants.VAR_ACCOUNT, shadow, shadowDef);
 	    }
 	
-	    variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
-		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
-		variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, shadow);
-		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
+	    variables.put(ExpressionConstants.VAR_FOCUS, focus, focusDef);
+		variables.put(ExpressionConstants.VAR_SHADOW, shadow, shadowDef);
+		variables.put(ExpressionConstants.VAR_PROJECTION, shadow, shadowDef);
+		variables.put(ExpressionConstants.VAR_RESOURCE, resource, resourceDef);
+		variables.put(ExpressionConstants.VAR_CONFIGURATION, configuration, configDef);
 	
 		if (affectedElementContext != null) {
-			variables.addVariableDefinition(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue());
+			variables.put(ExpressionConstants.VAR_OPERATION, affectedElementContext.getOperation().getValue(), String.class);
 			// We do not want to add delta to all expressions. The delta may be tricky. Is it focus delta? projection delta? Primary? Secondary?
 			// It is better to leave delta to be accessed from the model context. And in cases when it is clear which delta is meant
 			// (e.g. provisioning scripts) we can still add the delta explicitly.
 		}
 	}
 
-	public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables) {
+	public static void addAssignmentPathVariables(AssignmentPathVariables assignmentPathVariables, ExpressionVariables expressionVariables, PrismContext prismContext) {
 		if (assignmentPathVariables != null) {
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath());
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+			PrismContainerDefinition<AssignmentType> assignmentDef = assignmentPathVariables.getAssignmentDefinition();
+			expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment(), assignmentDef);
+			expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, assignmentPathVariables.getAssignmentPath(), AssignmentPath.class);
+			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment(), assignmentDef);
+			expressionVariables.put(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment(), assignmentDef);
+			expressionVariables.put(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment(), assignmentDef);
+			PrismObjectDefinition<AbstractRoleType> abstractRoleDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AbstractRoleType.class);
+			expressionVariables.put(ExpressionConstants.VAR_IMMEDIATE_ROLE, (PrismObject) assignmentPathVariables.getImmediateRole(), abstractRoleDefinition);
 		} else {
 			// to avoid "no such variable" exceptions in boundary cases
 			// for null/empty paths we might consider creating empty AssignmentPathVariables objects to keep null/empty path distinction
-			expressionVariables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_PATH, null);
+			expressionVariables.put(ExpressionConstants.VAR_ASSIGNMENT_PATH, null, AssignmentPath.class);
 		}
 	}
 
@@ -805,20 +844,24 @@ public class ModelImplUtils {
 
 	public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
 	            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-			ExpressionEnvironment<F> env = new ExpressionEnvironment<>();
-			env.setLensContext(lensContext);
-			env.setCurrentResult(parentResult);
-			env.setCurrentTask(task);
-			ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
-	        try {
-	            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
-	        } finally {
-	        	ModelExpressionThreadLocalHolder.popExpressionEnvironment();
-	//			if (lensContext.getDebugListener() != null) {
-	//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
-	//			}
-	        }
-	    }
+			
+		ExpressionEnvironment<F,?,?> env = new ExpressionEnvironment<>();
+		env.setLensContext(lensContext);
+		env.setCurrentResult(parentResult);
+		env.setCurrentTask(task);
+		ModelExpressionThreadLocalHolder.pushExpressionEnvironment(env);
+		
+        try {
+        	
+            return scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, useNew, shortDesc, task, parentResult);
+            
+        } finally {
+        	ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
+        }
+    }
 
 	public static CriticalityType handleConnectorErrorCriticality(ResourceType resourceType, Throwable e, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, 
 	SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
@@ -847,4 +890,8 @@ public class ModelImplUtils {
 		return criticality;
 	}
 	
+	public static String generateRequestIdentifier() {
+		return UUID.randomUUID().toString();
+	}
+
 }

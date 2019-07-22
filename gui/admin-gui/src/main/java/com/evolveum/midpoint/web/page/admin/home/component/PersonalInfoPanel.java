@@ -46,16 +46,23 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
     private static final String ID_PASSWORD_EXP = "passwordExp";
 
 
-    public PersonalInfoPanel(String id, PageBase parentPage) {
-        super(id);
-        initLayout(parentPage);
+    public PersonalInfoPanel(String id) {
+        super(id, (IModel<PersonalInfoDto>) null);
+    }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
     }
 
     @Override
     public IModel<PersonalInfoDto> createModel() {
         return new LoadableModel<PersonalInfoDto>(false) {
 
-            @Override
+           private static final long serialVersionUID = 1L;
+
+			@Override
             protected PersonalInfoDto load() {
                 return loadPersonalInfo();
             }
@@ -87,22 +94,32 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         return dto;
     }
 
-    protected void initLayout(PageBase parentPage) {
+    protected void initLayout() {
         DateLabelComponent lastLoginDate = new DateLabelComponent(ID_LAST_LOGIN_DATE, new IModel<Date>() {
 
+        	private static final long serialVersionUID = 1L;
             @Override
             public Date getObject() {
-                PersonalInfoDto dto = getModel().getObject();
+
+            	if(getModel() ==  null) {
+            		return null;
+            	}
+            	PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastLoginDate();
             }
-        }, WebComponentUtil.getLongDateTimeFormat(parentPage));
-        lastLoginDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
+        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
+        lastLoginDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(lastLoginDate);
 
         Label lastLoginFrom = new Label(ID_LAST_LOGIN_FROM, new IModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastLoginFrom()) ? dto.getLastLoginFrom() :
@@ -112,20 +129,30 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastLoginFrom);
 
         DateLabelComponent lastFailDate = new DateLabelComponent(ID_LAST_FAIL_DATE, new IModel<Date>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public Date getObject() {
+            	if(getModel() ==  null) {
+            		return null;
+            	}
                 PersonalInfoDto dto = getModel().getObject();
                 return dto == null ? null : dto.getLastFailDate();
             }
-        }, WebComponentUtil.getLongDateTimeFormat(parentPage));
-        lastFailDate.setBeforeTextOnDateNull(parentPage.getString("PersonalInfoPanel.never"));
+        }, WebComponentUtil.getLongDateTimeFormat(getPageBase()));
+        lastFailDate.setBeforeTextOnDateNull(getPageBase().getString("PersonalInfoPanel.never"));
         add(lastFailDate);
 
         Label lastFailFrom = new Label(ID_LAST_FAIL_FROM, new IModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return StringUtils.isNotEmpty(dto.getLastFailFrom()) ? dto.getLastFailFrom() :
@@ -135,9 +162,14 @@ public class PersonalInfoPanel extends BasePanel<PersonalInfoDto> {
         add(lastFailFrom);
 
         Label passwordExp = new Label(ID_PASSWORD_EXP, new IModel<String>() {
+        	
+        	private static final long serialVersionUID = 1L;
 
             @Override
             public String getObject() {
+            	if(getModel() ==  null) {
+            		return PersonalInfoPanel.this.getString("PersonalInfoPanel.undefined");
+            	}
                 PersonalInfoDto dto = getModel().getObject();
 
                 return dto.getPasswordExp() != null ? WebComponentUtil.formatDate(dto.getPasswordExp()) :

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -87,6 +86,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
@@ -94,7 +94,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocalAutoassignSpeci
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType;
@@ -225,23 +224,19 @@ public class ObjectTemplateProcessor {
 		if (focusContext == null) {
 			return null;
 		}
-		ObjectPolicyConfigurationType policyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-		if (policyConfigurationType == null) {
+		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+		if (archetypePolicy == null) {
 			LOGGER.trace("No default object template (no policy)");
 			return null;
 		}
-		ObjectReferenceType templateRef = policyConfigurationType.getObjectTemplateRef();
+		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
 		if (templateRef == null) {
 			LOGGER.trace("No default object template (no templateRef)");
 			return null;
 		}
 
 		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-		
-		if (template != null) {
-			context.setFocusTemplate(template.asObjectable());
-		}
-		
+		context.setFocusTemplate(template.asObjectable());
 	    return template.asObjectable();
 	}
 
@@ -421,12 +416,12 @@ public class ObjectTemplateProcessor {
 					PropertyDelta propertyDelta = ((PropertyDelta) itemDelta);
 					QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
 					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
-					if (propertyDelta.isRedundant(targetObject, matchingRule)) {
+					if (propertyDelta.isRedundant(targetObject, matchingRule, false)) {
 						LOGGER.trace("Computed property delta is redundant => skipping it. Delta = \n{}", propertyDelta.debugDump());
 						continue;
 					}
 				} else {
-					if (itemDelta.isRedundant(targetObject)) {
+					if (itemDelta.isRedundant(targetObject, false)) {
 						LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDump());
 						continue;
 					}
@@ -616,12 +611,13 @@ public class ObjectTemplateProcessor {
 
 	// must be Uniform because of the later use in outputTripleMap
 	private ItemPath stripFocusVariableSegment(ItemPath sourcePath) {
-		if (sourcePath.startsWithVariable()
-			&& QNameUtil.matchAny(sourcePath.firstToVariableNameOrNull(), MappingEvaluator.FOCUS_VARIABLE_NAMES)) {
-			return sourcePath.stripVariableSegment();
-		} else {
-			return sourcePath;
+		if (sourcePath.startsWithVariable()) {
+			QName variableQName = sourcePath.firstToVariableNameOrNull();
+			if (variableQName != null && MappingEvaluator.FOCUS_VARIABLE_NAMES.contains(variableQName.getLocalPart())) {
+				return sourcePath.stripVariableSegment();
+			}
 		}
+		return sourcePath;
 	}
 
 	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> XMLGregorianCalendar collectTripleFromMappings(

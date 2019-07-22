@@ -18,6 +18,8 @@ package com.evolveum.midpoint.repo.sql.testing;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.repo.api.DeleteObjectResult;
+import com.evolveum.midpoint.repo.api.ModifyObjectResult;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
@@ -35,7 +38,7 @@ import java.util.Collection;
 /**
  * @author lazyman
  */
-@Repository
+//@Repository           // (perhaps) temporarily disabled
 public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
 
     public TestSqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
@@ -52,28 +55,31 @@ public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
     }
 
     @Override
-    public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException {
+    @NotNull
+    public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException {
         try {
-            super.deleteObject(type, oid, result);
+            return super.deleteObject(type, oid, result);
         } finally {
 //            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    @NotNull
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
-            super.modifyObject(type, oid, modifications, result);
+            return super.modifyObject(type, oid, modifications, result);
         } finally {
 //            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 
     @Override
-    public <T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    @NotNull
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
                                                     RepoModifyOptions options, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
-            super.modifyObject(type, oid, modifications, options, result);
+            return super.modifyObject(type, oid, modifications, options, result);
         } finally {
 //            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }

@@ -44,4 +44,7 @@
 	</workManagement>
 	<recurrence>single</recurrence>
 	<binding>loose</binding>
+	<executionEnvironment>
+		<cachingProfile>profile1</cachingProfile>
+	</executionEnvironment>
 </task>

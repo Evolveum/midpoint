@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.task.api.StateReporter;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -59,7 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
@@ -76,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabi
  * @author Radovan Semancik
  */
 @ManagedConnector
+@Experimental
 public abstract class AbstractManualConnectorInstance extends AbstractManagedConnectorInstance implements AsynchronousOperationQueryable {
 
 	private static final String OPERATION_ADD = AbstractManualConnectorInstance.class.getName() + ".addObject";
@@ -113,7 +112,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
-		String ticketIdentifier = null;
+		String ticketIdentifier;
 		
 		InternalMonitor.recordConnectorOperation("add");
 		InternalMonitor.recordConnectorModification("add");
@@ -224,11 +223,9 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(createCap));
 
 		UpdateCapabilityType updateCap = new UpdateCapabilityType();
+		updateCap.setAddRemoveAttributeValues(true);
 		setManual(updateCap);
 		capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(updateCap));
-		
-		AddRemoveAttributeValuesCapabilityType addRemoveAttributeValuesCap = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemoveAttributeValuesCap));
 		
 		DeleteCapabilityType deleteCap = new DeleteCapabilityType();
 		setManual(deleteCap);
@@ -293,10 +290,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	}
 
 	@Override
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult)
+	public ResourceSchema fetchResourceSchema(OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, ConfigurationException {
 		// Schema discovery is not supported. Schema must be defined manually. Or other connector has to provide it.
-		InternalMonitor.recordConnectorOperation("schea");
+		InternalMonitor.recordConnectorOperation("schema");
 		return null;
 	}
 
@@ -310,9 +307,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ConfigurationException {
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult) {
 		// not supported
 		return null;
 	}

@@ -135,6 +135,8 @@ public class ActionsExecutedInformationPanel extends BasePanel<ActionsExecutedIn
 		showResultingActionsOnlyLabel.setOutputMarkupId(true);
 		add(showResultingActionsOnlyLabel);
         add(new AjaxFallbackLink<String>(ID_SHOW_RESULTING_ACTIONS_ONLY_LINK) {
+        	
+        	private static final long serialVersionUID = 1L;
             @Override
             public void onClick(Optional<AjaxRequestTarget> ajaxRequestTarget) {
                 showResultingActionsOnly = !showResultingActionsOnly;

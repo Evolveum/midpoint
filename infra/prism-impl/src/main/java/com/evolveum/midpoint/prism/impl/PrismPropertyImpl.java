@@ -253,8 +253,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public void addRealValue(T valueToAdd) {
-    	PrismPropertyValue<T> pval = new PrismPropertyValueImpl<>(valueToAdd);
-    	addValue(pval);
+	    addValue(new PrismPropertyValueImpl<>(valueToAdd));
     }
 
     public void addRealValues(T... valuesToAdd) {
@@ -475,16 +474,26 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 							dump = null;
 						} else {
 							T realValue = value.getValue();
-							if (realValue instanceof ShortDumpable) {
-								((ShortDumpable)realValue).shortDump(sb);
-							} else if (realValue instanceof DebugDumpable) {
+							
+							if (DebugUtil.isDetailedDebugDump() && realValue instanceof DebugDumpable) {
+								// Override in case that the value is both DebugDumpable and ShortDumpable
+								// In that case we want to force debugDump as we are in detailedDebugMode here.
+								// This is important e.g. for PolyString, in detailedDebugMode we want to see
+								// all the PolyString details.
 								sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
 							} else {
-								if (DebugUtil.isDetailedDebugDump()) {
-									PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
+								if (realValue instanceof ShortDumpable) {
+									DebugUtil.indentDebugDump(sb, indent + 1);
+									((ShortDumpable)realValue).shortDump(sb);
+								} else if (realValue instanceof DebugDumpable) {
+									sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
 								} else {
-									sb.append("SS{"+realValue+"}");
-									PrettyPrinter.shortDump(sb, realValue);
+									if (DebugUtil.isDetailedDebugDump()) {
+										PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
+									} else {
+										sb.append("SS{"+realValue+"}");
+										PrettyPrinter.shortDump(sb, realValue);
+									}
 								}
 							}
 						}
@@ -505,7 +514,8 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
 						sb.append(" (expression)");
 					} else {
 						T realValue = value.getValue();						
-						if (DebugUtil.isDetailedDebugDump()) {
+						if (DebugUtil.isDetailedDebugDump() ||
+								!(realValue instanceof ShortDumpable) && DebugUtil.getPrettyPrintBeansAs() != null) {
 							PrismPrettyPrinter.debugDumpValue(sb, indent + 1, realValue, prismContext, getElementName(), null);
 						} else {
 							PrettyPrinter.shortDump(sb, realValue);

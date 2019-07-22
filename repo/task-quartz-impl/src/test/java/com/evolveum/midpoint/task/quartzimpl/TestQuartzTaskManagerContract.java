@@ -54,7 +54,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -126,7 +125,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         
         addObjectFromFile(taskFilename(TEST_NAME));
 
-        logger.trace("Retrieving the task and getting its progress...");
+        LOGGER.trace("Retrieving the task and getting its progress...");
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
         AssertJUnit.assertEquals("Progress is not 0", 0, task.getProgress());
@@ -156,7 +155,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
         // property definition
-        QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
+        ItemName bigStringQName = new ItemName("http://midpoint.evolveum.com/repo/test", "bigString");
         MutablePrismPropertyDefinition bigStringDefinition = prismContext.definitionFactory().createPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING);
         bigStringDefinition.setIndexed(false);
         bigStringDefinition.setMinOccurs(0);
@@ -167,16 +166,16 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         bigStringProperty.setRealValue(string300);
         task.setExtensionProperty(bigStringProperty);
 
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
 
         System.out.println("1st round: Task = " + task.debugDump());
 
-        logger.trace("Retrieving the task and comparing its properties...");
+        LOGGER.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
-        PrismProperty<String> bigString001 = task001.getExtensionProperty(bigStringQName);
+        PrismProperty<String> bigString001 = task001.getExtensionPropertyOrClone(bigStringQName);
         assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
 
         // second round
@@ -185,15 +184,15 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task001.setExtensionProperty(bigStringProperty);
 
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        task001.getExtensionProperty(bigStringQName).getDefinition().toMutable().setIndexed(false);
+        task001.getExtensionPropertyOrClone(bigStringQName).getDefinition().toMutable().setIndexed(false);
 
         System.out.println("2nd round: Task before save = " + task001.debugDump());
-        task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
+        task001.flushPendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
 
         Task task002 = getTask(taskOid(TEST_NAME), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
-        PrismProperty<String> bigString002 = task002.getExtensionProperty(bigStringQName);
+        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(bigStringQName);
         assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -220,7 +219,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
         // property definition
-        QName shipStateQName = new QName("http://myself.me/schemas/whatever", "shipState");
+        ItemName shipStateQName = new ItemName("http://myself.me/schemas/whatever", "shipState");
         PrismPropertyDefinition shipStateDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(shipStateQName);
         assertNotNull("Cannot find property definition for shipState", shipStateDefinition);
 
@@ -228,16 +227,16 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         shipStateProperty.setRealValue(string300);
         task.setExtensionProperty(shipStateProperty);
 
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
 
         System.out.println("1st round: Task = " + task.debugDump());
 
-        logger.trace("Retrieving the task and comparing its properties...");
+        LOGGER.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
-        PrismProperty<String> shipState001 = task001.getExtensionProperty(shipStateQName);
+        PrismProperty<String> shipState001 = task001.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
 
         // second round
@@ -246,12 +245,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task001.setExtensionProperty(shipStateProperty);
 
         System.out.println("2nd round: Task before save = " + task001.debugDump());
-        task001.savePendingModifications(result);
+        task001.flushPendingModifications(result);
 
         Task task002 = getTask(taskOid(TEST_NAME), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
-        PrismProperty<String> bigString002 = task002.getExtensionProperty(shipStateQName);
+        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -263,17 +262,17 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
-        System.out.println("Task extension = " + task.getExtension());
+        System.out.println("Task extension = " + task.getExtensionOrClone());
 
         //PrismObject<UserType> requestee = task.getOwner();
         //task.setRequesteeRef(requestee);
 
-        //logger.trace("Saving modifications...");
-        //task.savePendingModifications(result);          // here it crashes
+        //LOGGER.trace("Saving modifications...");
+        //task.flushPendingModifications(result);          // here it crashes
 
-        //logger.trace("Retrieving the task and comparing its properties...");
+        //LOGGER.trace("Retrieving the task and comparing its properties...");
         //Task task001 = getTask(taskOid(test), result);
-        //logger.trace("Task from repo: " + task001.debugDump());
+        //LOGGER.trace("Task from repo: " + task001.debugDump());
         //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
     }
 
@@ -286,7 +285,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
-        System.out.println("Task extension = " + task.getExtension());
+        System.out.println("Task extension = " + task.getExtensionOrClone());
 
         PrismPropertyDefinition delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
         System.out.println("property definition = " + delayDefinition);
@@ -314,7 +313,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 //            task.modifyExtension(id2);
 //        }
 
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
         System.out.println("Task = " + task.debugDump());
 
         repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
@@ -324,7 +323,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // other properties will be set in batched mode
         String newname = "Test task, name changed";
         task.setName(PrismTestUtil.createPolyStringType(newname));
-        task.setProgress(10);
+        task.setProgress(10L);
         long currentTime = System.currentTimeMillis();
         long currentTime1 = currentTime + 10000;
         long currentTime2 = currentTime + 25000;
@@ -364,14 +363,14 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         objectReferenceType.setOid(objectOid);
         task.setObjectRef(objectReferenceType);
 
-        logger.trace("Saving modifications...");
+        LOGGER.trace("Saving modifications...");
 
-        task.savePendingModifications(result);
+        task.flushPendingModifications(result);
 
-        logger.trace("Retrieving the task (second time) and comparing its properties...");
+        LOGGER.trace("Retrieving the task (second time) and comparing its properties...");
 
         Task task001 = getTask(taskOid(TEST_NAME), result);
-        logger.trace("Task from repo: " + task001.debugDump());
+        LOGGER.trace("Task from repo: " + task001.debugDump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
         PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
 //        AssertJUnit.assertEquals(newname, task001.getName());
@@ -390,12 +389,12 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("First schedule from the handler stack does not match", st0, us.getUriStackEntry().get(0).getSchedule());
         AssertJUnit.assertEquals("Second handler from the handler stack does not match", "http://no-handler.org/1", us.getUriStackEntry().get(1).getHandlerUri());
         AssertJUnit.assertEquals("Second schedule from the handler stack does not match", st1, us.getUriStackEntry().get(1).getSchedule());
-        AssertJUnit.assertTrue(task001.isCycle());
+        AssertJUnit.assertTrue(task001.isRecurring());
         OperationResult r001 = task001.getResult();
         AssertJUnit.assertNotNull(r001);
         //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
 
-        PrismProperty<?> d = task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<?> d = task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertNotNull("delay extension property was not found", d);
         AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
 
@@ -408,8 +407,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
         //AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
 
-        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRef().getOid());
-        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRef().getType());
+        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRefOrClone().getOid());
+        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRefOrClone().getType());
 
         // now pop the handlers
 
@@ -419,7 +418,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         task001.finishHandler(result);
         task001.refresh(result);
@@ -427,7 +426,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         task001.finishHandler(result);
         task001.refresh(result);
@@ -453,11 +452,11 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // Add single task. This will get picked by task scanner and executed
         addObjectFromFile(taskFilename(TEST_NAME));
 
-        logger.trace("Retrieving the task...");
+        LOGGER.trace("Retrieving the task...");
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
        	AssertJUnit.assertNotNull(task);
-       	logger.trace("Task retrieval OK.");
+       	LOGGER.trace("Task retrieval OK.");
 
         // We need to wait for a sync interval, so the task scanner has a chance
         // to pick up this
@@ -465,7 +464,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         waitForTaskClose(taskOid(TEST_NAME), result, 10000, 1000);
 
-        logger.info("... done");
+        LOGGER.info("... done");
 
         // Check task status
 
@@ -481,7 +480,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
 
         assertNotNull(task1.getCompletionTimestamp());
-        List<TriggerType> triggers = task1.getTaskPrismObject().asObjectable().getTrigger();
+        List<TriggerType> triggers = task1.getUpdatedTaskObject().asObjectable().getTrigger();
         assertEquals(1, triggers.size());
         TriggerType trigger = triggers.get(0);
         long delta = XmlTypeConverter.toMillis(trigger.getTimestamp()) - task1.getCompletionTimestamp();
@@ -817,7 +816,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // check if we can read the extension (xsi:type issue)
 
         Task taskTemp = getTask(taskOid(TEST_NAME), result);
-        PrismProperty delay = taskTemp.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty delay = taskTemp.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
@@ -865,7 +864,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // check if we can read the extension (xsi:type issue)
 
-        PrismProperty delay = task.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty delay = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
 
         // let us resume (i.e. start the task)
@@ -1306,20 +1305,44 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         addObjectFromFile(taskFilename(TEST_NAME));
 
-        Task task = getTask(taskOid(TEST_NAME), result);
+        String taskOid = taskOid(TEST_NAME);
+        Task task = getTask(taskOid, result);
         System.out.println("After setup: " + task.debugDump());
 
-        waitForTaskClose(taskOid(TEST_NAME), result, 15000, 500);
+        checkTaskStateRepeatedly(taskOid, result, 15000, 20);
+
+        waitForTaskClose(taskOid, result, 15000, 500);
         task.refresh(result);
         System.out.println("After refresh (task was executed): " + task.debugDump());
 
-        Collection<? extends Task> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (Task subtask : subtasks) {
+        for (RunningTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());
             assertTrue("Handler has not exited", handler.hasExited());
+        }
+    }
+
+    private void checkTaskStateRepeatedly(String taskOid, OperationResult result, int duration, int checkInterval)
+            throws SchemaException, ObjectNotFoundException, InterruptedException {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() < start + duration) {
+            Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
+                    .item(TaskType.F_SUBTASK).retrieve()
+                    .build();
+            TaskType task = taskManager.getObject(TaskType.class, taskOid, options, result).asObjectable();
+            OperationStatsType stats = task.getOperationStats();
+            Integer totalSuccessCount = stats != null && stats.getIterativeTaskInformation() != null ?
+                    stats.getIterativeTaskInformation().getTotalSuccessCount() : null;
+            System.out.println((System.currentTimeMillis()-start) + ": subtasks: " + task.getSubtask().size() +
+                    ", progress = " + task.getProgress() + ", objects = " + totalSuccessCount);
+            if (task.getExecutionStatus() != TaskExecutionStatusType.RUNNABLE) {
+                System.out.println("Done. Status = " + task.getExecutionStatus());
+                break;
+            }
+            Thread.sleep(checkInterval);
         }
     }
 
@@ -1345,7 +1368,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         JobExecutionContext found = null;
         for (JobExecutionContext jobExecutionContext : jobExecutionContexts) {
             if (task.getOid().equals(jobExecutionContext.getJobDetail().getKey().getName())) {
-                found = jobExecutionContext; break;
+                found = jobExecutionContext;
+                break;
             }
         }
         assertNotNull("Job for the task was not found", found);
@@ -1361,9 +1385,9 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
 
-        Collection<? extends Task> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
+        Collection<? extends RunningTask> subtasks = parallelTaskHandler.getLastTaskExecuted().getLightweightAsynchronousSubtasks();
         assertEquals("Wrong number of subtasks", MockParallelTaskHandler.NUM_SUBTASKS, subtasks.size());
-        for (Task subtask : subtasks) {
+        for (RunningTask subtask : subtasks) {
             assertEquals("Wrong subtask state", TaskExecutionStatus.CLOSED, subtask.getExecutionStatus());
             MockParallelTaskHandler.MyLightweightTaskHandler handler = (MockParallelTaskHandler.MyLightweightTaskHandler) subtask.getLightweightTaskHandler();
             assertTrue("Handler has not run", handler.hasRun());

@@ -294,9 +294,9 @@
                                 <exec executable="cmd" osfamily="windows" failonerror="true">
                                     <arg line=' /c rmdir "${home}" /S /Q '/>
                                 </exec>
-                                <exec executable="rm" osfamily="unix" failonerror="true">
-                                    <arg line="-rf ${home}"/>
-                                </exec>
+                                <!--<exec executable="rm" osfamily="unix" failonerror="true">-->
+                                    <!--<arg line="-rf ${home}"/>-->
+                                <!--</exec>-->
                             </target>
                         </configuration>
                         <goals>

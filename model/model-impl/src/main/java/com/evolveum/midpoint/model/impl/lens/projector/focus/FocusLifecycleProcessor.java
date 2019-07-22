@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LifecycleUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -67,9 +68,8 @@ public class FocusLifecycleProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusLifecycleProcessor.class);
 
-
 	public <O extends ObjectType> void processLifecycle(LensContext<O> context, XMLGregorianCalendar now,
-            Task task, OperationResult parentResult) throws SchemaException,
+            Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -79,23 +79,14 @@ public class FocusLifecycleProcessor {
     		// We can do this only for FocusType.
     		return;
     	}
-    	
-    	OperationResult result = parentResult.createSubresult(FocusLifecycleProcessor.class.getName() + ".processLifecycle");
 
-    	try {
-    		processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
-    	} catch (Throwable e) {
-    		result.recordFatalError(e);
-    		throw e;
-    	}
-    	
-    	result.computeStatus();
-    	result.recordSuccessIfUnknown();
+		//noinspection unchecked
+		processLifecycleWithFocus((LensContext<? extends AssignmentHolderType>)context, now, task, result);
     }
 
 	private <F extends AssignmentHolderType> void processLifecycleWithFocus(LensContext<F> context, XMLGregorianCalendar now,
     		Task task, OperationResult result) throws SchemaException,
-    		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    		ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectDelta<F> focusDelta = focusContext.getDelta();
@@ -144,13 +135,14 @@ public class FocusLifecycleProcessor {
 		String desc = "condition for transition to state "+targetLifecycleState+" for "+context.getFocusContext().getHumanReadableName();
 		
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew());
+		variables.put(ExpressionConstants.VAR_OBJECT, context.getFocusContext().getObjectNew(), context.getFocusContext().getObjectNew().getDefinition());
 		// TODO: more variables?
 		
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression = expressionFactory.makeExpression(
-				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()) , desc, task, result);
+				conditionExpressionType, ExpressionUtil.createConditionOutputDefinition(context.getPrismContext()),
+				MiscSchemaUtil.getExpressionProfile(), desc, task, result);
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		ExpressionEnvironment<?> env = new ExpressionEnvironment<>(context, null, task, result);
+		ExpressionEnvironment<?,?,?> env = new ExpressionEnvironment<>(context, null, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, expressionContext, env);
 		PrismPropertyValue<Boolean> expressionOutputValue = ExpressionUtil.getExpressionOutputValue(outputTriple, desc);		
 		return ExpressionUtil.getBooleanConditionOutput(expressionOutputValue);

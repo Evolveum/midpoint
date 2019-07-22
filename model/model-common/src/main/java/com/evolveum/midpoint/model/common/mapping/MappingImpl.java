@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +29,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -88,8 +93,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private final MappingType mappingType;
 	private final ExpressionFactory expressionFactory;
 	private final ExpressionVariables variables;
+	private final PrismContext prismContext;
 
 	private final ObjectDeltaObject<?> sourceContext;
+	private TypedValue<ObjectDeltaObject<?>> typedSourceContext; // cahced
 	private final Collection<Source<?,?>> sources;
 	private final Source<?,?> defaultSource;
 
@@ -97,6 +104,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private final ItemPath defaultTargetPath;
 	private final D defaultTargetDefinition;
 	private final Collection<V> originalTargetValues;
+	private final ExpressionProfile expressionProfile;
 
 	private final ObjectResolver objectResolver;
     private final SecurityContextManager securityContextManager;          // in order to get c:actor variable
@@ -130,7 +138,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private String mappingContextDescription = null;
 
 	private VariableProducer variableProducer;
-	
+
+	private MappingEvaluationTraceType trace;
+
 	/**
 	 * Mapping pre-expression is invoked just before main mapping expression.
 	 * Pre expression will get the same expression context as the main expression.
@@ -143,10 +153,15 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
+	
+	// Mapping state properties that are exposed to the expressions. They can be used by the expressions to "communicate".
+	// E.g. one expression seting the property and other expression checking the property.
+	private Map<String,Object> stateProperties;
 
 	private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
 	private MappingImpl(Builder<V,D> builder) {
+		prismContext = builder.prismContext;
 		expressionFactory = builder.expressionFactory;
 		variables = builder.variables;
 		mappingType = builder.mappingType;
@@ -154,6 +169,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		securityContextManager = builder.securityContextManager;
 		defaultSource = builder.defaultSource;
 		defaultTargetDefinition = builder.defaultTargetDefinition;
+		expressionProfile = builder.expressionProfile;
 		defaultTargetPath = builder.defaultTargetPath;
 		originalTargetValues = builder.originalTargetValues;
 		sourceContext = builder.sourceContext;
@@ -220,6 +236,16 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public String getContextDescription() {
 		return contextDescription;
 	}
+	
+	private TypedValue<ObjectDeltaObject<?>> getTypedSourceContext() {
+		if (sourceContext == null) {
+			return null;
+		}
+		if (typedSourceContext == null) {
+			typedSourceContext = new TypedValue<ObjectDeltaObject<?>>(sourceContext, sourceContext.getDefinition());
+		}
+		return typedSourceContext;
+	}
 
 	public String getMappingContextDescription() {
 		if (mappingContextDescription == null) {
@@ -251,6 +277,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sources.isEmpty();
 	}
 
+	@Override
 	public MappingStrengthType getStrength() {
 		return getStrength(mappingType);
 	}
@@ -266,6 +293,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isAuthoritative() {
 		if (mappingType == null) {
 			return true;
@@ -277,6 +305,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isExclusive() {
 		if (mappingType == null) {
 			return false;
@@ -310,7 +339,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	}
 
 	private PrismContext getPrismContext() {
-		return outputDefinition.getPrismContext();
+		return prismContext;
 	}
 
 	@SuppressWarnings("unused")
@@ -385,19 +414,56 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		return refinedObjectClassDefinition;
 	}
+	
+	@Override
+	public <T> T getStateProperty(String propertyName) {
+		if (stateProperties == null) {
+			return null;
+		}
+		return (T) stateProperties.get(propertyName);
+	}
+	
+	@Override
+	public <T> T setStateProperty(String propertyName, T value) {
+		if (stateProperties == null) {
+			stateProperties = new HashMap<>();
+		}
+		return (T)stateProperties.put(propertyName, value);
+	}
 
 	// TODO: rename to evaluateAll
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		prepare(task, parentResult);
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("context", getContextDescription())
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor()
+				.build();
+		if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+			// temporary solution - to avoid checking level at too many places
+			trace = new MappingEvaluationTraceType(prismContext);
+			trace.setMapping(mappingType.clone());
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
+		try {
+			prepare(task, result);
 
-//		if (!isActivated()) {
-//			outputTriple = null;
-//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
-//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
-//			return;
-//		}
+			//		if (!isActivated()) {
+			//			outputTriple = null;
+			//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
+			//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
+			//			return;
+			//		}
 
-		evaluateBody(task, parentResult);
+			evaluateBody(task, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	/**
@@ -408,7 +474,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public void prepare(Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
 			ConfigurationException, CommunicationException {
-			OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".prepare");
+			OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".prepare")
+					.addArbitraryObjectAsContext("mapping", this)
+					.addArbitraryObjectAsContext("task", task)
+					.setMinor()
+					.build();
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
 
@@ -435,12 +505,16 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sourcesChanged();
 	}
 
-	// TODO: rename to evaluate
+	// TODO: rename to evaluate -- or evaluatePrepared?
 	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".evaluate");
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluatePrepared")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor()
+				.build();
 
         traceEvaluationStart();
 
@@ -449,6 +523,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			// We may need to re-parse the sources here
 
 			evaluateTimeConstraintValid(task, result);
+			if (trace != null) {
+				trace.setNextRecomputeTime(nextRecomputeTime);
+				trace.setTimeConstraintValid(timeConstraintValid);
+			}
 
 			if (!timeConstraintValid) {
 				outputTriple = null;
@@ -465,6 +543,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple==null ? null : conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 
+			if (trace != null) {
+				trace.setConditionResultOld(conditionResultOld);
+				trace.setConditionResultNew(conditionResultNew);
+			}
+
 			if (!conditionResultOld && !conditionResultNew) {
 				outputTriple = null;
 				transitionState(MappingEvaluationState.EVALUATED);
@@ -473,13 +556,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				return;
 			}
 
-			// TODO: input filter
+			// TODO trace source and target values ... and range processing
+
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
-			// TODO: output filter
-
+			adjustForAuthoritative();
 			checkRange(task, result);
 
 			transitionState(MappingEvaluationState.EVALUATED);
@@ -491,6 +574,21 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			traceFailure(e);
 			throw e;
 		}
+	}
+
+	private void adjustForAuthoritative() {
+		if (isAuthoritative()) {
+			return;
+		}
+		if (outputTriple == null) {
+			return;
+		}
+		// Non-authoritative mappings do not remove values. Simply eliminate any values from the
+		// minus set to do that.
+		// However, we need to do this before we process range. Non-authoritative mappings may
+		// still remove values if range is set. We do not want to ignore minus values from
+		// range processing.
+		outputTriple.clearMinusSet();
 	}
 
 	private void checkRange(Task task, OperationResult result)
@@ -506,12 +604,17 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		QName name = outputPath.lastName();
+		String name = null;
+		if (outputPath != null) {
+			name = outputPath.lastName().getLocalPart();
+		} else {
+			name = outputDefinition.getName().getLocalPart();
+		} 
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
 		ValueSetDefinitionType rangetSetDefType = mappingType.getTarget().getSet();
-		ValueSetDefinition setDef = new ValueSetDefinition(rangetSetDefType, name, "range of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
+		ValueSetDefinition<V,D> setDef = new ValueSetDefinition<>(rangetSetDefType, outputDefinition, expressionProfile, name, "range of "+name+" in "+getMappingContextDescription(), task, result);
 		setDef.init(expressionFactory);
 		setDef.setAdditionalVariables(variables);
 		for (V originalValue : originalTargetValues) {
@@ -560,10 +663,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			// artificially create parent for PCV in order to pass it to expression
 			PrismContainer.createParentIfNeeded((PrismContainerValue) value, outputDefinition);
 		}
-		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value);
+		variables.addVariableDefinition(ExpressionConstants.VAR_VALUE, value, value.getParent().getDefinition());
 
 		PrismPropertyDefinition<Boolean> outputDef = getPrismContext().definitionFactory().createPropertyDefinition(SchemaConstantsGenerated.C_VALUE, DOMUtil.XSD_BOOLEAN, null, false);
-		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionFactory, "isInSet expression in " + contextDescription, task, result);
+		PrismPropertyValue<Boolean> rv = ExpressionUtil.evaluateExpression(variables, outputDef, range.getIsInSetExpression(), expressionProfile, expressionFactory, "isInSet expression in " + contextDescription, task, result);
 
 		// but now remove the parent! TODO: PM: why???
 //		if (value.getParent() != null) {
@@ -690,7 +793,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
+		return trace != null || LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
 	}
 
 	private void trace(String msg) {
@@ -698,6 +801,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			LOGGER.info(msg);
 		} else {
 			LOGGER.trace(msg);
+		}
+		if (trace != null) {
+			trace.setTextTrace(msg);
 		}
 	}
 
@@ -723,6 +829,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			sb.append("null");
 		} else {
 			sb.append(expression.shortDebugDump());
+		}
+		if (stateProperties != null) {
+			sb.append("\nState:\n");
+			DebugUtil.debugDumpMapMultiLine(sb, stateProperties, 1);
 		}
 	}
 
@@ -754,6 +864,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		XMLGregorianCalendar timeFrom = parseTime(timeFromType, task, result);
+		if (trace != null) {
+			trace.setTimeFrom(timeFrom);
+		}
 		if (timeFrom == null && timeFromType != null) {
 			// Time is specified but there is no value for it.
 			// This means that event that should start validity haven't happened yet
@@ -762,6 +875,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return;
 		}
 		XMLGregorianCalendar timeTo = parseTime(timeToType, task, result);
+		if (trace != null) {
+			trace.setTimeTo(timeTo);
+		}
 
 		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
 			// before timeFrom
@@ -833,7 +949,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
 
-		Object sourceObject = ExpressionUtil.resolvePath(path, variables, false, sourceContext, objectResolver, "reference time definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = ExpressionUtil.resolvePathGetValue(path, variables, false, getTypedSourceContext(), objectResolver, getPrismContext(), "reference time definition in "+getMappingContextDescription(), task, result);
 		if (sourceObject == null) {
 			return null;
 		}
@@ -884,12 +1000,14 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
-		QName name = sourceType.getName();
-		if (name == null) {
-			name = ItemPath.toName(path.last());
+		QName sourceQName = sourceType.getName();
+		if (sourceQName == null) {
+			sourceQName = ItemPath.toName(path.last());
 		}
+		String variableName = sourceQName.getLocalPart();
 		ItemPath resolvePath = path;
-		Object sourceObject = ExpressionUtil.resolvePath(path, variables, true, sourceContext, objectResolver, "source definition in "+getMappingContextDescription(), task, result);
+		TypedValue typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, variables, true, getTypedSourceContext(), objectResolver, getPrismContext(), "source definition in "+getMappingContextDescription(), task, result);
+		Object sourceObject = typedSourceObject.getValue();
 		Item<IV,ID> itemOld = null;
 		ItemDelta<IV,ID> delta = null;
 		Item<IV,ID> itemNew = null;
@@ -918,11 +1036,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				throw new IllegalStateException("Unknown resolve result "+sourceObject);
 			}
 		}
+		
+		ID sourceDefinition = (ID)typedSourceObject.getDefinition();
 
 		// apply domain
 		ValueSetDefinitionType domainSetType = sourceType.getSet();
 		if (domainSetType != null) {
-			ValueSetDefinition setDef = new ValueSetDefinition(domainSetType, name, "domain of "+name.getLocalPart()+" in "+getMappingContextDescription(), task, result);
+			ValueSetDefinition<IV,ID> setDef = new ValueSetDefinition<>(domainSetType, sourceDefinition, expressionProfile, variableName, "domain of "+variableName+" in "+getMappingContextDescription(), task, result);
 			setDef.init(expressionFactory);
 			setDef.setAdditionalVariables(variables);
 			try {
@@ -962,7 +1082,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			}
 		}
 
-		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, name);
+		Source<IV,ID> source = new Source<>(itemOld, delta, itemNew, sourceQName, sourceDefinition);
 		source.setResidualPath(residualPath);
 		source.setResolvePath(resolvePath);
 		source.setSubItemDeltas(subItemDeltas);
@@ -1062,7 +1182,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return;
 		}
 		Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> expression =
-				ExpressionUtil.createCondition(conditionExpressionType, expressionFactory,
+				ExpressionUtil.createCondition(conditionExpressionType, expressionProfile, expressionFactory,
 				"condition in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"condition in "+getMappingContextDescription(), task, result);
@@ -1082,7 +1202,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
-		expression = expressionFactory.makeExpression(expressionType, outputDefinition,
+		expression = expressionFactory.makeExpression(expressionType, outputDefinition, expressionProfile,
 				"expression in "+getMappingContextDescription(), task, result);
 		ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
 				"expression in "+getMappingContextDescription(), task, result);
@@ -1185,6 +1305,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				.conditionMaskOld(conditionMaskOld)
 				.defaultSource(defaultSource)
 				.defaultTargetDefinition(defaultTargetDefinition)
+				.expressionProfile(expressionProfile)
 				.objectResolver(objectResolver)
 				.originObject(originObject)
 				.originType(originType)
@@ -1213,8 +1334,8 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		result = prime * result + (conditionMaskOld ? 1231 : 1237);
 		result = prime * result + ((conditionOutputTriple == null) ? 0 : conditionOutputTriple.hashCode());
 		result = prime * result + ((defaultSource == null) ? 0 : defaultSource.hashCode());
-		result = prime * result
-				+ ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
+		result = prime * result + ((defaultTargetDefinition == null) ? 0 : defaultTargetDefinition.hashCode());
+		result = prime * result + ((expressionProfile == null) ? 0 : expressionProfile.hashCode());
 		result = prime * result + ((expressionFactory == null) ? 0 : expressionFactory.hashCode());
 		result = prime * result + ((mappingType == null) ? 0 : mappingType.hashCode());
 		result = prime * result + ((objectResolver == null) ? 0 : objectResolver.hashCode());
@@ -1257,6 +1378,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			if (other.defaultTargetDefinition != null)
 				return false;
 		} else if (!defaultTargetDefinition.equals(other.defaultTargetDefinition))
+			return false;
+		if (expressionProfile == null) {
+			if (other.expressionProfile != null)
+				return false;
+		} else if (!expressionProfile.equals(other.expressionProfile))
 			return false;
 		if (expressionFactory == null) {
 			if (other.expressionFactory != null)
@@ -1396,6 +1522,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		private SecurityContextManager securityContextManager;
 		private Source<?,?> defaultSource;
 		private D defaultTargetDefinition;
+		private ExpressionProfile expressionProfile;
 		private ItemPath defaultTargetPath;
 		private Collection<V> originalTargetValues;
 		private ObjectDeltaObject<?> sourceContext;
@@ -1452,6 +1579,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			defaultTargetDefinition = val;
 			return this;
 		}
+		
+		public Builder<V,D> expressionProfile(ExpressionProfile val) {
+			expressionProfile = val;
+			return this;
+		}
 
 		public Builder<V,D> defaultTargetPath(ItemPath val) {
 			defaultTargetPath = val;
@@ -1464,6 +1596,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public Builder<V,D> sourceContext(ObjectDeltaObject<?> val) {
+			if (val.getDefinition() == null) {
+				throw new IllegalArgumentException("Attempt to set mapping source context without a definition");
+			}
 			sourceContext = val;
 			return this;
 		}
@@ -1658,39 +1793,21 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		public Builder<V, D> rootNode(ObjectReferenceType objectRef) {
-			return addVariableDefinition(null,(Object)objectRef);
+			return addVariableDefinition(null, objectRef);
 		}
 
 		public Builder<V, D> rootNode(ObjectDeltaObject<?> odo) {
-			return addVariableDefinition(null,(Object)odo);
+			return addVariableDefinition(null, odo);
 		}
 
-		public Builder<V, D> rootNode(ObjectType objectType) {
-			return addVariableDefinition(null,(Object)objectType);
+		public <O extends ObjectType> Builder<V, D> rootNode(O objectType, PrismObjectDefinition<O> definition) {
+			variables.put(null, objectType, definition);
+			return this;
 		}
 
-		public Builder<V, D> rootNode(PrismObject<? extends ObjectType> mpObject) {
-			return addVariableDefinition(null,(Object)mpObject);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectReferenceType objectRef) {
-			rootNode(objectRef);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectDeltaObject<?> odo) {
-			rootNode(odo);
-		}
-
-		@Deprecated
-		public void setRootNode(ObjectType objectType) {
-			rootNode(objectType);
-		}
-
-		@Deprecated
-		public void setRootNode(PrismObject<? extends ObjectType> mpObject) {
-			rootNode(mpObject);
+		public <O extends ObjectType> Builder<V, D> rootNode(PrismObject<? extends ObjectType> mpObject, PrismObjectDefinition<O> definition) {
+			variables.put(null, mpObject, definition);
+			return this;
 		}
 
 		public PrismContext getPrismContext() {
@@ -1701,54 +1818,79 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			if (varDef.getObjectRef() != null) {
 				ObjectReferenceType ref = varDef.getObjectRef();
 				ref.setType(getPrismContext().getSchemaRegistry().qualifyTypeName(ref.getType()));
-				return addVariableDefinition(varDef.getName(), ref);
+				return addVariableDefinition(varDef.getName().getLocalPart(), ref);
 			} else if (varDef.getValue() != null) {
-				return addVariableDefinition(varDef.getName(),varDef.getValue());
+				// This is raw value. We do have definition here. The best we can do is autodetect.
+				// Expression evaluation code will do that as a fallback behavior.
+				return addVariableDefinition(varDef.getName().getLocalPart(), varDef.getValue(), Object.class);
 			} else {
 				LOGGER.warn("Empty definition of variable {} in {}, ignoring it", varDef.getName(), getContextDescription());
 				return this;
 			}
 		}
 
-		public Builder<V, D> addVariableDefinition(QName name, ObjectReferenceType objectRef) {
-			return addVariableDefinition(name, (Object)objectRef);
+		public Builder<V, D> addVariableDefinition(String name, ObjectReferenceType objectRef) {
+			return addVariableDefinition(name, (Object)objectRef, objectRef.asReferenceValue().getDefinition());
 		}
 
-		public Builder<V, D> addVariableDefinition(QName name, ObjectType objectType) {
-			return addVariableDefinition(name,(Object)objectType);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, PrismObject<? extends ObjectType> midpointObject) {
-			return addVariableDefinition(name,(Object)midpointObject);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, String value) {
-			return addVariableDefinition(name,(Object)value);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, int value) {
-			return addVariableDefinition(name,(Object)value);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, Element value) {
-			return addVariableDefinition(name,(Object)value);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, PrismValue value) {
-			return addVariableDefinition(name,(Object)value);
-		}
-
-		public Builder<V, D> addVariableDefinition(QName name, ObjectDeltaObject<?> value) {
-			return addVariableDefinition(name,(Object)value);
-		}
-
-		public Builder<V, D> addVariableDefinitions(Map<QName, Object> extraVariables) {
-			variables.addVariableDefinitions(extraVariables);
+		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, O objectType, Class<O> expectedClass) {
+			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			variables.putObject(name, objectType, expectedClass);
 			return this;
 		}
 
-		public Builder<V, D> addVariableDefinition(QName name, Object value) {
-			variables.addVariableDefinition(name, value);
+		public <O extends ObjectType> Builder<V, D> addVariableDefinition(String name, PrismObject<O> midpointObject, Class<O> expectedClass) {
+			// Maybe determine definiton from schema registry here in case that object is null. We can do that here.
+			variables.putObject(name, midpointObject, expectedClass);
+			return this;
+		}
+
+		public Builder<V, D> addVariableDefinition(String name, String value) {
+			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+					new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
+			return addVariableDefinition(name, (Object)value, def);
+		}
+		
+		public Builder<V, D> addVariableDefinition(String name, boolean value) {
+			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+					new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
+			return addVariableDefinition(name, (Object)value, def);
+		}
+
+		public Builder<V, D> addVariableDefinition(String name, int value) {
+			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+					new QName(SchemaConstants.NS_C, name), PrimitiveType.INT.getQname());
+			return addVariableDefinition(name, (Object)value, def);
+		}
+
+//		public Builder<V, D> addVariableDefinition(String name, Element value) {
+//			return addVariableDefinition(name, (Object)value);
+//		}
+
+		public Builder<V, D> addVariableDefinition(String name, PrismValue value) {
+			return addVariableDefinition(name, (Object)value, value.getParent().getDefinition());
+		}
+
+		public Builder<V, D> addVariableDefinition(String name, ObjectDeltaObject<?> value) {
+			PrismObjectDefinition<?> definition = value.getDefinition();
+			if (definition == null) {
+				throw new IllegalArgumentException("Attempt to set variable '"+name+"' as ODO without a definition: "+value);
+			}
+			return addVariableDefinition(name,(Object)value, definition);
+		}
+
+		public Builder<V, D> addVariableDefinitions(VariablesMap extraVariables) {
+			variables.putAll(extraVariables);
+			return this;
+		}
+
+		public Builder<V, D> addVariableDefinition(String name, Object value, ItemDefinition definition) {
+			variables.put(name, value, definition);
+			return this;
+		}
+		
+		public Builder<V, D> addVariableDefinition(String name, Object value, Class<?> typeClass) {
+			variables.put(name, value, typeClass);
 			return this;
 		}
 

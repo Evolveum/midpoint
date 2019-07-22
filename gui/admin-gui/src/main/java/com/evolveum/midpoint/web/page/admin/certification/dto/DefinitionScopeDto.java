@@ -43,6 +43,8 @@ public class DefinitionScopeDto implements Serializable {
     public static final String F_INCLUDE_ROLES = "includeRoles";
     public static final String F_INCLUDE_ORGS = "includeOrgs";
     public static final String F_INCLUDE_SERVICES = "includeServices";
+    public static final String F_INCLUDE_USERS = "includeUsers";
+    public static final String F_RELATION_LIST = "relationList";
     public static final String F_INCLUDE_ENABLED_ITEMS_ONLY = "enabledItemsOnly";
 
     private String name;

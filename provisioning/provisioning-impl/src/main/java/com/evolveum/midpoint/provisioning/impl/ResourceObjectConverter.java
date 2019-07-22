@@ -32,38 +32,29 @@ import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationQueryable;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
-import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
-import com.evolveum.midpoint.schema.result.OperationConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.result.*;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -108,6 +99,8 @@ public class ResourceObjectConverter {
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
 	@Autowired private RelationRegistry relationRegistry;
+	@Autowired private AsyncUpdateListeningRegistry listeningRegistry;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConverter.class);
 
@@ -245,7 +238,7 @@ public class ResourceObjectConverter {
 		PrismObject<ShadowType> shadowClone = shadow.clone();
 		ShadowType shadowType = shadowClone.asObjectable();
 
-		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
+		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd;
 
 		if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), shadowClone, matchingRuleRegistry,
 				relationRegistry)) {
@@ -921,8 +914,27 @@ public class ResourceObjectConverter {
 		if (rad.getReadReplaceMode() != null) {
 			return rad.getReadReplaceMode();
 		}
-		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present
-		return objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
+		// READ+REPLACE mode is if addRemoveAttributeCapability is NOT present. Try to determine from the capabilities. We may still need to force it.
+		
+		UpdateCapabilityType updateCapabilityType = objectClassDefinition.getEffectiveCapability(UpdateCapabilityType.class, ctx.getResource());
+		if (updateCapabilityType == null) {
+			// Strange. We are going to update, but we cannot update? Anyway, let it go, it should throw an error on a more appropriate place.
+			return false;
+		}
+		if (BooleanUtils.isTrue(updateCapabilityType.isDelta())) {
+			return false;
+		}
+		boolean readReplace;
+		if (updateCapabilityType.isAddRemoveAttributeValues() == null) {
+			// Deprecated. Legacy.
+			readReplace = objectClassDefinition.getEffectiveCapability(AddRemoveAttributeValuesCapabilityType.class, ctx.getResource()) == null;
+		} else {
+			readReplace = !updateCapabilityType.isAddRemoveAttributeValues();
+		}
+		if (readReplace) {
+			LOGGER.trace("Read+replace mode is forced because {} does not support addRemoveAttributeValues", ctx.getResource());
+		}
+		return readReplace;
 	}
 
 	private RefinedAttributeDefinition getRefinedAttributeDefinitionIfApplicable(Operation operation, RefinedObjectClassDefinition objectClassDefinition) {
@@ -1163,8 +1175,6 @@ public class ResourceObjectConverter {
 					entitlementConverter.collectEntitlementsAsObjectOperation(ctx, roMap, associationDelta, subjectShadowBefore, subjectShadowAfter, parentResult);
 				}
 				
-//				shadowAfter.findOrCreateContainer(ShadowType.F_ASSOCIATION).addAll((Collection) association.getClonedValues());
-//				entitlementConverter.processEntitlementsAdd(resource, shadowAfter, objectClassDefinition);
 			}
 		}
 		
@@ -1253,17 +1263,7 @@ public class ResourceObjectConverter {
 		
 		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
-		SearchHierarchyConstraints searchHierarchyConstraints = null;
-		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
-		if (baseContextRef != null) {
-			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
-			if (baseContextShadow == null) {
-				throw new ObjectNotFoundException("No base context defined by "+baseContextRef+" in base context specification in "+objectClassDef);
-			}
-			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-			ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-		}
+		SearchHierarchyConstraints searchHierarchyConstraints = entitlementConverter.determineSearchHierarchyConstraints(ctx, parentResult);
 		
 		if (InternalsConfig.consistencyChecks && query != null && query.getFilter() != null) {
 			query.getFilter().checkConsistence(true);
@@ -1277,8 +1277,8 @@ public class ResourceObjectConverter {
 			metadata = connector.search(objectClassDef, query, 
 					(shadow) -> {
 						// in order to utilize the cache right from the beginning...
-						RepositoryCache.enter();
-						
+						RepositoryCache.enter(cacheConfigurationManager);
+
 						OperationResult objResult = parentResult.createMinorSubresult(OperationConstants.OPERATION_SEARCH_RESULT);
 						
 						try {
@@ -1420,9 +1420,8 @@ public class ResourceObjectConverter {
 		ResourceType resource = ctx.getResource();
 		Collection<Operation> operations = new ArrayList<>();
 		
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(UpdateCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
-
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+		LOGGER.trace("Found activation capability: {}", PrettyPrinter.prettyPrint(activationCapability));
 		// administrativeStatus
 		PropertyDelta<ActivationStatusType> enabledPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
 				SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
@@ -1434,19 +1433,17 @@ public class ResourceObjectConverter {
 			}
 			ActivationStatusType status = enabledPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation administrativeStatus change to: {}", status);
-	
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
-				// Native activation, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivationAdministrativeStatus(ctx, objectChange, status, activationCapability, shadow, result);
-				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
-			} else {
-				// Try to simulate activation capability
+
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				PropertyModificationOperation activationAttribute = convertToSimulatedActivationAdministrativeStatusAttribute(
 						ctx, enabledPropertyDelta, shadow, status, activationCapability, result);
 				if (activationAttribute != null) {
 					operations.add(activationAttribute);
 				}
-			}	
+			} else {
+				LOGGER.trace("Native activation capability, creating property modification");
+				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
+			}
 		}
 		
 		// validFrom
@@ -1487,17 +1484,14 @@ public class ResourceObjectConverter {
 			}
 			LockoutStatusType status = lockoutPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation lockoutStatus change to: {}", status);
-
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
-				// Native lockout, need to check if there is not also change to simulated activation which may be in conflict
-				checkSimulatedActivationLockoutStatus(ctx, objectChange, status, activationCapability, shadow, result);
-				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
-			} else {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				// Try to simulate lockout capability
 				PropertyModificationOperation activationAttribute = convertToSimulatedActivationLockoutStatusAttribute(
 						ctx, lockoutPropertyDelta, shadow, status, activationCapability, result);
 				operations.add(activationAttribute);
-			}	
+			} else {
+				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
+			}
 		}
 		
 		return operations;
@@ -1599,18 +1593,19 @@ public class ResourceObjectConverter {
 			return;
 		}
 		PrismContainer attributesContainer = shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(CreateCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);		
+
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
 
 		if (activation.getAdministrativeStatus() != null) {
-			if (!CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
+				LOGGER.trace("Start converting simulated activation attribute.");
 				ActivationStatusCapabilityType capActStatus = getActivationAdministrativeStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
 					throw new SchemaException("Attempt to change activation/administrativeStatus on "+ctx.getResource()+" that has neither native" +
 							" nor simulated activation capability");
 				}
+				LOGGER.trace("Activation status capability: \n{}", capActStatus);
 				ResourceAttribute<?> newSimulatedAttr = getSimulatedActivationAdministrativeStatusAttribute(ctx, shadow,
 						capActStatus, result);
 				if (newSimulatedAttr != null) {
@@ -1623,6 +1618,7 @@ public class ResourceObjectConverter {
 						newSimulatedAttrRealValue = getDisableValue(capActStatus, simulatedAttrValueClass);
 					}
 
+					LOGGER.trace("Converted activation status value to {}, attribute {}", newSimulatedAttrRealValue, newSimulatedAttr);
 					Item existingSimulatedAttr = attributesContainer.findItem(newSimulatedAttr.getElementName());
 					if (!isBlank(newSimulatedAttrRealValue)) {
 						PrismPropertyValue newSimulatedAttrValue = prismContext.itemFactory().createPropertyValue(newSimulatedAttrRealValue);
@@ -1637,12 +1633,14 @@ public class ResourceObjectConverter {
 					}
 					activation.setAdministrativeStatus(null);
 				}
+			}else {
+				LOGGER.trace("No activation simulated capability, nothing to do.");
 			}
 		}
 
 		// TODO enable non-string lockout values (MID-3374)
 		if (activation.getLockoutStatus() != null) {
-			if (!CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class)) {
 				ActivationLockoutStatusCapabilityType capActStatus = getActivationLockoutStatusFromSimulatedActivation(
 						ctx, activationCapability, shadow, result);
 				if (capActStatus == null) {
@@ -1779,9 +1777,9 @@ public class ResourceObjectConverter {
 		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
-	public List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken,
-			OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException, SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
+	List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, OperationResult parentResult)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("START fetch changes, objectClass: {}", ctx.getObjectClassDefinition());
@@ -1791,14 +1789,29 @@ public class ResourceObjectConverter {
 		}
 		
 		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
-		
+		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.SYNC_BATCH_SIZE);
+		Integer maxChanges;
+		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
+		if (capability != null) {
+			if (Boolean.TRUE.equals(capability.isPreciseTokenValue())) {
+				maxChanges = batchSizeInTask;
+			} else {
+				checkMaxChanges(batchSizeInTask, "LiveSync capability has preciseTokenValue not set to 'true'");
+				maxChanges = null;
+			}
+		} else {
+			// Is this possible?
+			checkMaxChanges(batchSizeInTask, "LiveSync capability is not found or disabled");
+			maxChanges = null;
+		}
+
 		// get changes from the connector
-		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, ctx, parentResult);
+		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, maxChanges, ctx, parentResult);
 
 		Iterator<Change> iterator = changes.iterator();
-		while (iterator.hasNext()) {
+		while (iterator.hasNext() && ctx.canRun()) {
 			Change change = iterator.next();
-			LOGGER.trace("Original change:\n{}", change.debugDump());
+			LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
 			if (change.isTokenOnly()) {
 				continue;
 			}
@@ -1814,7 +1827,7 @@ public class ResourceObjectConverter {
 			if (ctx.isWildcard() && changeObjectClassDefinition != null) {
 				shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
 				if (shadowCtx.isWildcard()) {
-					String message = "Unkown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
+					String message = "Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
 					parentResult.recordFatalError(message);
 					throw new SchemaException(message);
 				}
@@ -1827,12 +1840,11 @@ public class ResourceObjectConverter {
 				if (currentShadow == null) {
 					// There is no current shadow in a change. Add it by fetching it explicitly.
 					try {
-						
+						// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
 						LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
 						currentShadow = fetchResourceObject(shadowCtx, 
 								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
 						change.setCurrentShadow(currentShadow);
-						
 					} catch (ObjectNotFoundException ex) {
 						parentResult.recordHandledError(
 								"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
@@ -1852,7 +1864,6 @@ public class ResourceObjectConverter {
 							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
 							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
 						}
-						
 					}
 							
 					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
@@ -1860,15 +1871,97 @@ public class ResourceObjectConverter {
 					change.setCurrentShadow(processedCurrentShadow);
 				}
 			}
-			LOGGER.trace("Processed change\n:{}", change.debugDump());
+			LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
 		}
 
 		computeResultStatus(parentResult);
 		
-		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
+		LOGGER.trace("END fetch changes ({} changes); interrupted = {}", changes.size(), !ctx.canRun());
 		return changes;
 	}
-	
+
+	private void checkMaxChanges(Integer maxChangesFromTask, String reason) {
+		if (maxChangesFromTask != null && maxChangesFromTask > 0) {
+			throw new IllegalArgumentException("Cannot apply " + SchemaConstants.SYNC_BATCH_SIZE.getLocalPart() +
+					" because " + reason);
+		}
+	}
+
+	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
+			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+
+		LOGGER.trace("START start listening for async updates, objectClass: {}", ctx.getObjectClassDefinition());
+		ConnectorInstance connector = ctx.getConnector(AsyncUpdateCapabilityType.class, parentResult);
+
+		ChangeListener innerListener = change -> {
+			try {
+				LOGGER.trace("Start processing change:\n{}", change.debugDumpLazily());
+				setResourceOidIfMissing(change, ctx.getResourceOid());
+				ProvisioningContext shadowCtx = ctx;
+				ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+				if (changeObjectClassDefinition == null) {
+					if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+						throw new SchemaException("No object class definition in change "+change);
+					}
+				}
+				if (ctx.isWildcard() && changeObjectClassDefinition != null) {
+					shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+					if (shadowCtx.isWildcard()) {
+						String message = "Unknown object class " + changeObjectClassDefinition.getTypeName()
+								+ " found in synchronization delta";
+						throw new SchemaException(message);
+					}
+					change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
+				}
+
+				if (change.getCurrentShadow() != null) {
+					shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());
+					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
+							change.getCurrentShadow(), true, parentResult);
+					change.setCurrentShadow(processedCurrentShadow);
+				} else {
+					// we will fetch current shadow later
+				}
+				return outerListener.onChange(change);
+			} catch (Throwable t) {
+				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
+			}
+		};
+		ListeningActivity listeningActivity = connector.startListeningForChanges(innerListener, parentResult);
+		String handle = listeningRegistry.registerListeningActivity(listeningActivity);
+		computeResultStatus(parentResult);
+
+		LOGGER.trace("END start listening for async updates; listening handle = {}", handle);
+		return handle;
+	}
+
+	private void setResourceOidIfMissing(Change change, String resourceOid) {
+		setResourceOidIfMissing(change.getOldShadow(), resourceOid);
+		setResourceOidIfMissing(change.getCurrentShadow(), resourceOid);
+		if (change.getObjectDelta() != null) {
+			setResourceOidIfMissing(change.getObjectDelta().getObjectToAdd(), resourceOid);
+		}
+	}
+
+	private void setResourceOidIfMissing(PrismObject<ShadowType> object, String resourceOid) {
+		if (object != null && object.asObjectable().getResourceRef() == null && resourceOid != null) {
+			object.asObjectable().setResourceRef(ObjectTypeUtil.createObjectRef(resourceOid, ObjectTypes.RESOURCE));
+		}
+	}
+
+	void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
+		listeningRegistry.removeListeningActivity(listeningActivityHandle).stop();
+		computeResultStatus(parentResult);
+		LOGGER.trace("END stop listening for async updates");
+	}
+
+	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+		ListeningActivity listeningActivity = listeningRegistry.getListeningActivity(listeningActivityHandle);
+		return listeningActivity != null ? listeningActivity.getInformation() : null;
+	}
+
 	/**
 	 * Process simulated activation, credentials and other properties that are added to the object by midPoint. 
 	 */
@@ -1902,18 +1995,16 @@ public class ResourceObjectConverter {
 	private void completeActivation(ProvisioningContext ctx, PrismObject<ShadowType> resourceObject, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resourceType = ctx.getResource();
 		ShadowType resourceObjectType = resourceObject.asObjectable();
-		CapabilitiesType connectorCapabilities = ctx.getConnectorCapabilities(ReadCapabilityType.class);
-		ActivationCapabilityType activationCapability = CapabilityUtil.getEffectiveCapability(connectorCapabilities, ActivationCapabilityType.class);
-		
+
+		ActivationCapabilityType activationCapability = ctx.getEffectiveCapability(ActivationCapabilityType.class);
+
 		if (resourceObjectType.getActivation() != null || CapabilityUtil.isCapabilityEnabled(activationCapability)) {
 			ActivationType activationType = null;
-		
-			if (CapabilityUtil.hasNativeCapability(connectorCapabilities, ActivationCapabilityType.class)) {
-				activationType = resourceObjectType.getActivation();
-				
-			} else if (CapabilityUtil.isCapabilityEnabled(activationCapability)) {
+
+			if (ctx.hasConfiguredCapability(ActivationCapabilityType.class) && CapabilityUtil.isCapabilityEnabled(activationCapability)){
 				activationType = convertFromSimulatedActivationAttributes(resourceType, resourceObject, activationCapability, parentResult);
-				
+			} else if (ctx.hasNativeCapability(ActivationCapabilityType.class)) {
+				activationType = resourceObjectType.getActivation();
 			} else {
 				// No activation capability, nothing to do
 			}
@@ -2210,6 +2301,8 @@ public class ResourceObjectConverter {
 			return null;
 		}
 
+		LOGGER.trace("Simulted activation attribute: {}", simulatedAttribute);
+
 		Class<?> simulatedAttrValueClass = getAttributeValueClass(ctx, shadow, simulatedAttribute, capActStatus);
 
 		PropertyDelta<?> simulatedAttrDelta;
@@ -2219,9 +2312,11 @@ public class ResourceObjectConverter {
 					ItemPath.create(ShadowType.F_ATTRIBUTES, simulatedAttribute.getElementName()), simulatedAttribute.getDefinition(), simulatedAttribute.getRealValue());
 		} else if (status == ActivationStatusType.ENABLED) {
 			Object enableValue = getEnableValue(capActStatus, simulatedAttrValueClass);
+			LOGGER.trace("Value for simulated enable {}", enableValue);
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), enableValue);
 		} else {
 			Object disableValue = getDisableValue(capActStatus, simulatedAttrValueClass);
+			LOGGER.trace("Value for simulated disable {}", disableValue);
 			simulatedAttrDelta = createActivationPropDelta(simulatedAttribute.getElementName(), simulatedAttribute.getDefinition(), disableValue);
 		}
 
@@ -2479,8 +2574,8 @@ public class ResourceObjectConverter {
 	}
 	
 	private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		C capability = ctx.getObjectClassDefinition().getEffectiveCapability(capabilityClass, ctx.getResource());
-		if (capability == null) {
+		C capability = ctx.getEffectiveCapability(capabilityClass);
+		if (capability == null || BooleanUtils.isFalse(capability.isEnabled())) {
 			UnsupportedOperationException e = new UnsupportedOperationException("Operation not supported "+ctx.getDesc()+" as "+capabilityClass.getSimpleName()+" is missing");
 			if (result != null) {
 				result.recordFatalError(e);

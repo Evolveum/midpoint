@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.FocusSummaryPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.UserSummaryPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -63,6 +65,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
@@ -73,13 +76,20 @@ import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
  * @author lazyman
  * @author semancik
  */
-@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
-                label = "PageAdminUsers.auth.usersAll.label",
-                description = "PageAdminUsers.auth.usersAll.description"),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
-                label = "PageUser.auth.user.label",
-                description = "PageUser.auth.user.description")})
+
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/user", matchUrlForSecurity = "/admin/user")
+		},
+		encoder = OnePageParameterEncoder.class,
+		action = {
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
+		                label = "PageAdminUsers.auth.usersAll.label",
+		                description = "PageAdminUsers.auth.usersAll.description"),
+		        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_USER_URL,
+		                label = "PageUser.auth.user.label",
+		                description = "PageUser.auth.user.description")
+		})
 public class PageUser extends PageAdminFocus<UserType> {
     private static final long serialVersionUID = 1L;
 
@@ -94,22 +104,21 @@ public class PageUser extends PageAdminFocus<UserType> {
     private UserDelegationsTabPanel userDelegationsTabPanel = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
-
+    
     public PageUser() {
-        initialize(null);
+        super();
     }
 
     public PageUser(PageParameters parameters) {
-        getPageParameters().overwriteWith(parameters);
-        initialize(null);
+        super(parameters);
     }
 
     public PageUser(final PrismObject<UserType> userToEdit) {
-        initialize(userToEdit);
+    	super(userToEdit);
     }
 
-    public PageUser(final PrismObject<UserType> unitToEdit, boolean isNewObject)  {
-        initialize(unitToEdit, isNewObject);
+    public PageUser(final PrismObject<UserType> userToEdit, boolean isNewObject)  {
+        super(userToEdit, isNewObject);
     }
 
     @Override
@@ -140,7 +149,8 @@ public class PageUser extends PageAdminFocus<UserType> {
 
     @Override
     protected FocusSummaryPanel<UserType> createSummaryPanel() {
-    	return new UserSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new UserSummaryPanel(ID_SUMMARY_PANEL, isEditingFocus() ?
+                Model.of(getObjectModel().getObject().getObject().asObjectable()) : Model.of(), this);
     }
 
     protected void cancelPerformed(AjaxRequestTarget target) {
@@ -186,22 +196,36 @@ public class PageUser extends PageAdminFocus<UserType> {
             @Override
             protected void addSpecificTabs(final PageAdminObjectDetails<UserType> parentPage, List<ITab> tabs) {
                 FocusTabVisibleBehavior<UserType> authorization;
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, isFocusHistoryPage(), PageUser.this);
                 tabs.add(
-                        new PanelTab(parentPage.createStringResource("pageAdminFocus.personas"), authorization){
+                        new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.personas"),
+                                getTabVisibility(ComponentConstants.UI_FOCUS_TAB_PERSONAS_URL, false, parentPage)){
 
                             private static final long serialVersionUID = 1L;
 
                             @Override
                             public WebMarkupContainer createPanel(String panelId) {
-                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+                                return new FocusPersonasTabPanel<>(panelId, getMainForm(), getObjectModel());
+                            }
+                            
+                            @Override
+                            public String getCount() {
+                            	if(getObjectWrapper() == null || getObjectWrapper().getObject() == null) {
+                            		return Integer.toString(0);
+                            	}
+                            	List<ObjectReferenceType> personasRefList = getObjectWrapper().getObject().asObjectable().getPersonaRef();
+                            	int count = 0;
+                            	for(ObjectReferenceType object : personasRefList) {
+                            		if(object != null && !object.asReferenceValue().isEmpty()) {
+                            			count++;
+                            		}
+                            	}
+                                return Integer.toString(count);
                             }
 
                         });
 
-                authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"), authorization)
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegations"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATIONS_URL, false, parentPage))
                 {
                     private static final long serialVersionUID = 1L;
 
@@ -209,7 +233,7 @@ public class PageUser extends PageAdminFocus<UserType> {
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {
                         userDelegationsTabPanel = new UserDelegationsTabPanel<>(panelId, getMainForm(), getObjectModel(),
-								delegationsModel, privilegesListModel, PageUser.this);
+								delegationsModel, privilegesListModel);
                         return userDelegationsTabPanel;
                     }
 
@@ -219,11 +243,10 @@ public class PageUser extends PageAdminFocus<UserType> {
                     }
                 });
 
-                authorization = new FocusTabVisibleBehavior<UserType>(unwrapModel(),
-                        ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, isFocusHistoryPage(), PageUser.this);
-                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"), authorization)
-                {
-                    private static final long serialVersionUID = 1L;
+                tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.delegatedToMe"),
+                        getTabVisibility(ComponentConstants.UI_FOCUS_TAB_DELEGATED_TO_ME_URL, true, parentPage)){
+
+                private static final long serialVersionUID = 1L;
 
                     @Override
                     public WebMarkupContainer createPanel(String panelId) {

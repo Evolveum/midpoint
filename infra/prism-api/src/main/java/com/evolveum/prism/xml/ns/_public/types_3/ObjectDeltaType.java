@@ -38,6 +38,8 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -87,7 +89,7 @@ import org.w3c.dom.Element;
     "oid",
     "itemDelta"
 })
-public class ObjectDeltaType implements Serializable {
+public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     @XmlElement(required = true)
     protected ChangeTypeType changeType;
@@ -282,7 +284,18 @@ public class ObjectDeltaType implements Serializable {
 				+ objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
 	}
 
-    /**
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		for (ItemDeltaType delta : itemDelta) {
+			delta.accept(visitor);
+		}
+		if (objectToAdd != null) {
+			objectToAdd.accept(visitor);
+		}
+	}
+
+	/**
      * <p>Java class for anonymous complex type.
      *
      * <p>The following schema fragment specifies the expected content contained within this class.
@@ -303,7 +316,7 @@ public class ObjectDeltaType implements Serializable {
     @XmlType(name = "", propOrder = {
         "any"
     })
-    public static class ObjectToAdd implements Serializable {
+    public static class ObjectToAdd implements Serializable, JaxbVisitable {
 
         @XmlAnyElement(lax = true)
         protected JAXBElement<?> any;
@@ -353,7 +366,14 @@ public class ObjectDeltaType implements Serializable {
             return retval;
         }
 
-    }
+		@Override
+		public void accept(JaxbVisitor visitor) {
+        	visitor.visit(this);
+			if (any != null && any.getValue() instanceof JaxbVisitable) {
+				((JaxbVisitable) any.getValue()).accept(visitor);
+			}
+		}
+	}
 
     /**
      * Clones the object (objectToAdd is cloned using reflection, assuming it is a subclass of ObjectType, that has public clone() method)

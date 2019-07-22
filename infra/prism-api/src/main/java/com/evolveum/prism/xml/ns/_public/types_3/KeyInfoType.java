@@ -8,6 +8,9 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -44,7 +47,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "KeyInfoType", propOrder = {
     "keyName"
 })
-public class KeyInfoType  implements Serializable, Cloneable {
+public class KeyInfoType implements Serializable, Cloneable, JaxbVisitable {
 
     protected String keyName;
 
@@ -108,4 +111,9 @@ public class KeyInfoType  implements Serializable, Cloneable {
         cloned.setKeyName(getKeyName());
         return cloned;
     }
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+	}
 }

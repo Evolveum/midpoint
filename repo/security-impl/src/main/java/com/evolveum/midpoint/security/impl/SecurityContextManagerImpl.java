@@ -52,6 +52,7 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 	
 	private MidPointPrincipalManager userProfileService = null;
 	private ThreadLocal<HttpConnectionInformation> connectionInformationThreadLocal = new ThreadLocal<>();
+	private ThreadLocal<String> temporaryPrincipalOidThreadLocal = new ThreadLocal<>();
 
 	@Override
 	public MidPointPrincipalManager getUserProfileService() {
@@ -68,20 +69,42 @@ public class SecurityContextManagerImpl implements SecurityContextManager {
 		return SecurityUtil.getPrincipal();
 	}
 
-    @Override
+	@Override
+	public String getPrincipalOid() {
+		String oid = SecurityUtil.getPrincipalOidIfAuthenticated();
+		if (oid != null) {
+			return oid;
+		} else {
+			return temporaryPrincipalOidThreadLocal.get();
+		}
+	}
+
+	@Override
+	public void setTemporaryPrincipalOid(String value) {
+		temporaryPrincipalOidThreadLocal.set(value);
+	}
+
+	@Override
+	public void clearTemporaryPrincipalOid() {
+		temporaryPrincipalOidThreadLocal.remove();
+	}
+
+	@Override
 	public boolean isAuthenticated() {
 		return SecurityUtil.isAuthenticated();
 	}
 
-    
+	@Override
+	public Authentication getAuthentication() {
+		return SecurityUtil.getAuthentication();
+	}
+
 	@Override
     public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(authentication);
     }
 
-	
-	
 	@Override
 	public void setupPreAuthenticatedSecurityContext(MidPointPrincipal principal) {
 		// Make sure that constructor with authorities is used. Otherwise the context will not be authenticated.

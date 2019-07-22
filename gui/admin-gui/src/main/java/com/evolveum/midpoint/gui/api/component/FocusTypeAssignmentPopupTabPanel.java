@@ -15,6 +15,18 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Fragment;
+
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -26,18 +38,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Fragment;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Created by honchar
@@ -112,7 +116,7 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected boolean isInducement(){
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper != null && assignmentWrapper.getPath() != null && assignmentWrapper.getPath().containsNameExactly(AbstractRoleType.F_INDUCEMENT)){
             return true;
         }
@@ -120,18 +124,18 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected <O extends FocusType> PrismObject<O> getTargetedAssignemntObject() {
-        ContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
+    	PrismContainerWrapper<AssignmentType> assignmentWrapper = getAssignmentWrapperModel();
         if (assignmentWrapper == null){
             return null;
         }
-        ObjectWrapper<O> w = assignmentWrapper.getObjectWrapper();
+        PrismObjectWrapper<O> w = (PrismObjectWrapper<O>) assignmentWrapper.getParent().getParent();
         if (w == null) {
             return null;
         }
         return w.getObject();
     }
 
-    protected ContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
+    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
         return null;
     }
 

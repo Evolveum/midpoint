@@ -22,6 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import javax.xml.namespace.QName;
 
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -253,7 +255,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	
 	@Override
 	public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew());
+		return new ObjectDeltaObject<>(getObjectCurrent(), getDelta(), getObjectNew(), getObjectDefinition());
 	}
 
 	public boolean hasSecondaryDelta() {
@@ -372,6 +374,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		} else if (!rsd.getIntent().equals(resourceShadowDiscriminator.getIntent())) {
 			return false;
 		}
+    	if (!Objects.equals(rsd.getTag(), resourceShadowDiscriminator.getTag())) {
+    		return false;
+    	}
 
     	if (compareOrder && rsd.getOrder() != resourceShadowDiscriminator.getOrder()) {
     		return false;
@@ -1249,11 +1254,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 	}
 
-	@Override
-    public String debugDump() {
-        return debugDump(0);
-    }
-
     @Override
     public String debugDump(int indent) {
     	return debugDump(indent, true);
@@ -1287,6 +1287,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
+	    sb.append(", canProject=").append(canProject);
         sb.append(", syncIntent=").append(getSynchronizationIntent());
         sb.append(", decision=").append(synchronizationPolicyDecision);
         if (!isFresh()) {
@@ -1398,29 +1399,32 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return getKindValue(resourceShadowDiscriminator.getKind());
 	}
 
-	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, boolean reduced) throws SchemaException {
+	void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer, LensContext.ExportType exportType) throws SchemaException {
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensProjectionContextType, reduced);
-        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-		lensProjectionContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
-        lensProjectionContextType.setWave(wave);
-        lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
-                resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
-        lensProjectionContextType.setFullShadow(fullShadow);
-        lensProjectionContextType.setIsAssigned(isAssigned);
-        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
-        lensProjectionContextType.setIsActive(isActive);
-        lensProjectionContextType.setIsLegal(isLegal);
-        lensProjectionContextType.setIsLegalOld(isLegalOld);
-        lensProjectionContextType.setIsExists(isExists);
-        lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
-        lensProjectionContextType.setDoReconciliation(doReconciliation);
-        lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
-        lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
-        if (!reduced) {
-			lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
-		}
-        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+        super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
+		lensProjectionContextType.setWave(wave);
+		lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
+				resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
+		lensProjectionContextType.setFullShadow(fullShadow);
+		lensProjectionContextType.setIsExists(isExists);
+		lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
+		lensProjectionContextType.setDoReconciliation(doReconciliation);
+		lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
+		lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
+        if (exportType != LensContext.ExportType.MINIMAL) {
+	        lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
+	        lensProjectionContextType
+			        .setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
+	        lensProjectionContextType.setIsAssigned(isAssigned);
+	        lensProjectionContextType.setIsAssignedOld(isAssignedOld);
+	        lensProjectionContextType.setIsActive(isActive);
+	        lensProjectionContextType.setIsLegal(isLegal);
+	        lensProjectionContextType.setIsLegalOld(isLegalOld);
+	        if (exportType != LensContext.ExportType.REDUCED) {
+		        lensProjectionContextType.setAccountPasswordPolicy(CloneUtil.clone(accountPasswordPolicy));
+	        }
+	        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
+        }
     }
 
     public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -1429,7 +1433,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (StringUtils.isEmpty(objectTypeClassString)) {
             throw new SystemException("Object type class is undefined in LensProjectionContextType");
         }
-        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(projectionContextType.getResourceShadowDiscriminator());
+        ResourceShadowDiscriminator resourceShadowDiscriminator = ResourceShadowDiscriminator.fromResourceShadowDiscriminatorType(
+        		projectionContextType.getResourceShadowDiscriminator(), false);
 
         LensProjectionContext projectionContext = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
 

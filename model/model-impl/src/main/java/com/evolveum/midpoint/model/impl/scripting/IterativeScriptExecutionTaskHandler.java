@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,17 +24,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ValueListType;
 import org.jetbrains.annotations.NotNull;
@@ -42,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-
-import static java.util.Collections.emptyMap;
 
 @Component
 public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterativeModelTaskHandler<ObjectType, AbstractSearchIterativeResultHandler<ObjectType>> {
@@ -69,10 +66,10 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 
 	@NotNull
 	@Override
-	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task coordinatorTask,
+	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, final RunningTask coordinatorTask,
 			OperationResult opResult) {
 
-		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionProperty(SchemaConstants.SE_EXECUTE_SCRIPT);
+		PrismProperty<ExecuteScriptType> executeScriptProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.SE_EXECUTE_SCRIPT);
 		if (executeScriptProperty == null || executeScriptProperty.getValue().getValue() == null ||
 				executeScriptProperty.getValue().getValue().getScriptingExpression() == null) {
 			throw new IllegalStateException("There's no script to be run in task " + coordinatorTask + " (property " + SchemaConstants.SE_EXECUTE_SCRIPT + ")");
@@ -85,11 +82,11 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 		AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
 				coordinatorTask, IterativeScriptExecutionTaskHandler.class.getName(), "execute", "execute task", taskManager) {
 			@Override
-			protected boolean handleObject(PrismObject<ObjectType> object, Task workerTask, OperationResult result) {
+			protected boolean handleObject(PrismObject<ObjectType> object, RunningTask workerTask, OperationResult result) {
 				try {
 					ExecuteScriptType executeScriptRequest = executeScriptRequestTemplate.clone();
 					executeScriptRequest.setInput(new ValueListType().value(object.asObjectable()));
-					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, emptyMap(),
+					ScriptExecutionResult executionResult = scriptingService.evaluateExpression(executeScriptRequest, VariablesMap.emptyMap(),
 							false, workerTask, result);
 					LOGGER.debug("Execution output: {} item(s)", executionResult.getDataOutput().size());
 					LOGGER.debug("Execution result:\n{}", executionResult.getConsoleOutput());

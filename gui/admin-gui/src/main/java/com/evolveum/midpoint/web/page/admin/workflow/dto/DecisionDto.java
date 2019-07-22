@@ -20,7 +20,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -83,19 +83,6 @@ public class DecisionDto extends Selectable {
 		return escalationLevelNumber == null || escalationLevelNumber == 0 ? null : escalationLevelNumber;
 	}
 
-	@Deprecated
-	public static DecisionDto create(DecisionType d) {
-		DecisionDto rv = new DecisionDto();
-		rv.user = WebComponentUtil.getName(d.getApproverRef());
-		rv.originalActor = null;
-		rv.stage = null;
-		rv.outcome = d.isApproved();
-		rv.comment = d.getComment();
-		rv.time = XmlTypeConverter.toDate(d.getDateTime());
-		rv.escalationLevelNumber = null;
-		return rv;
-	}
-
 	// if pageBase is null, references will not be resolved
     @Nullable
 	public static DecisionDto create(CaseEventType e, @Nullable PageBase pageBase) {
@@ -104,7 +91,7 @@ public class DecisionDto extends Selectable {
 		DecisionDto rv = new DecisionDto();
 		rv.user = WebComponentUtil.getName(e.getInitiatorRef());
 		rv.attorney = WebComponentUtil.getName(e.getAttorneyRef());
-		rv.stage = WfContextUtil.getStageInfoTODO(e.getStageNumber());
+		rv.stage = ApprovalContextUtil.getStageInfoTODO(e.getStageNumber());
 		rv.time = XmlTypeConverter.toDate(e.getTimestamp());
 
 		if (e instanceof WorkItemCompletionEventType) {
@@ -127,7 +114,7 @@ public class DecisionDto extends Selectable {
 					}
 				}
 			}
-			rv.escalationLevelNumber = WfContextUtil.getEscalationLevelNumber(completionEvent);
+			rv.escalationLevelNumber = ApprovalContextUtil.getEscalationLevelNumber(completionEvent);
 			if (completionEvent.getOriginalAssigneeRef() != null && pageBase != null) {
 				// TODO optimize repo access
 				rv.originalActor = WebModelServiceUtils.resolveReferenceName(completionEvent.getOriginalAssigneeRef(), pageBase);

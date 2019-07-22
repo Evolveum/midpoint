@@ -1,0 +1,237 @@
+/*
+ * Copyright (c) 2010-2018 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.task.quartzimpl.handlers;
+
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.task.api.TaskConstants;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
+import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
+import com.evolveum.midpoint.task.quartzimpl.execution.HandlerExecutor;
+import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionsDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkStateType;
+
+/**
+ * @author katka
+ *
+ */
+@Component
+public class LightweightPartitioningTaskHandler implements TaskHandler {
+	
+	private static final transient Trace LOGGER  = TraceManager.getTrace(LightweightPartitioningTaskHandler.class);
+	
+	private static final String HANDLER_URI = TaskConstants.LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI;
+	
+	@Autowired private TaskManager taskManager;
+	@Autowired private HandlerExecutor handlerExecutor;
+	@Autowired private CounterManager counterManager;
+	@Autowired private PrismContext prismContext;
+
+	
+	@PostConstruct
+	private void initialize() {
+		taskManager.registerHandler(HANDLER_URI, this);
+	}
+	
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType taskPartition) {
+		OperationResult opResult = new OperationResult(LightweightPartitioningTaskHandler.class.getName()+".run");
+		TaskRunResult runResult = new TaskRunResult();
+		
+		runResult.setProgress(task.getProgress());
+		runResult.setOperationResult(opResult);
+		
+		if (taskPartition != null && taskPartition.getWorkManagement() != null) {
+			throw new UnsupportedOperationException("Work management not supoorted in partitions for lightweigth partitioning task");
+		}
+		
+		TaskPartitionsDefinitionType partitionsDefinition = task.getWorkManagement().getPartitions();
+		List<TaskPartitionDefinitionType> partitions = partitionsDefinition.getPartition();
+		Comparator<TaskPartitionDefinitionType> comparator =
+				(partition1, partition2) -> {
+					
+					Validate.notNull(partition1);
+					Validate.notNull(partition2);
+					
+					Integer index1 = partition1.getIndex();
+					Integer index2 = partition2.getIndex();
+					
+					if (index1 == null) {
+						if (index2 == null) {
+							return 0;
+						}
+						return -1;
+					}
+					
+					if (index2 == null) {
+						return -1;
+					}
+					
+					return index1.compareTo(index2);
+				};
+				
+		partitions.sort(comparator);
+		
+		Iterator<TaskPartitionDefinitionType> partitionsIterator = partitions.iterator();
+		while(partitionsIterator.hasNext()) {
+			TaskPartitionDefinitionType partition = partitionsIterator.next();
+			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+			LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
+			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
+			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
+			opResult.addSubresult(subHandlerOpResult);
+			runResult = subHandlerResult;
+			runResult.setProgress(task.getProgress());
+
+			if (!canContinue(task, subHandlerResult)) {
+				break;
+			}
+			
+			if (subHandlerOpResult.isError()) {
+				break;
+			}
+			
+			try {
+				LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
+				cleanupWorkState(task, runResult.getOperationResult());
+			} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+				LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
+				throw new IllegalStateException(e);
+			}
+			
+			if (partitionsIterator.hasNext()) {
+				counterManager.resetCounters(task.getOid());
+			}
+			
+		}
+		
+//		for (TaskPartitionDefinitionType partition : partitions) {
+//			TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
+//			LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
+//			TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
+//			OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
+//			opResult.addSubresult(subHandlerOpResult);
+//			runResult = subHandlerResult;
+//			runResult.setProgress(task.getProgress());
+//
+//			if (!canContinue(task, subHandlerResult)) {
+//				break;
+//			}
+//			
+//			if (subHandlerOpResult.isError()) {
+//				break;
+//			}
+//			
+//			try {
+//				LOGGER.trace("Cleaning up work state in task {}, workState: {}", task, task.getWorkState());
+//				cleanupWorkState(task, runResult.getOperationResult());
+//			} catch (ObjectNotFoundException | SchemaException | ObjectAlreadyExistsException e) {
+//				LOGGER.error("Unexpected error during cleaning work state: " + e.getMessage(), e);
+//				throw new IllegalStateException(e);
+//			}
+//		}
+		
+		runResult.setProgress(runResult.getProgress() + 1);
+		opResult.computeStatusIfUnknown();
+		counterManager.cleanupCounters(task.getOid());
+			
+		return runResult;
+	}
+	
+	public void cleanupWorkState(RunningTask runningTask, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		ContainerDelta<TaskWorkStateType> containerDelta = (ContainerDelta<TaskWorkStateType>) prismContext
+				.deltaFor(TaskType.class).item(TaskType.F_WORK_STATE).replace().asItemDelta();
+		((InternalTaskInterface) runningTask).applyDeltasImmediate(MiscUtil.createCollection(containerDelta), parentResult);
+
+	}
+	
+	private boolean canContinue(RunningTask task, TaskRunResult runResult) {
+		if (!task.canRun() || runResult.getRunResultStatus() == TaskRunResultStatus.INTERRUPTED) {
+            // first, if a task was interrupted, we do not want to change its status
+            LOGGER.trace("Task was interrupted, exiting the execution cycle. Task = {}", task);
+            return false;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
+            LOGGER.trace("Task encountered temporary error, continuing with the execution cycle. Task = {}", task);
+            return false;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
+            // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
+            // this is implemented by pushHandler and by Quartz
+            LOGGER.trace("Task returned RESTART_REQUESTED state, exiting the execution cycle. Task = {}", task);
+            return false;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
+            LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
+            return false;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
+            LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
+            return true;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.IS_WAITING) {
+            LOGGER.trace("Task switched to waiting state, exiting the execution cycle. Task = {}", task);
+            return true;
+        } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED_HANDLER) {
+            LOGGER.trace("Task handler finished with FINISHED_HANDLER, calling task.finishHandler() and exiting the execution cycle. Task = {}", task);
+            return true;
+        } else {
+            throw new IllegalStateException("Invalid value for Task's runResultStatus: " + runResult.getRunResultStatus() + " for task " + task);
+        }
+	}
+	
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy()
+				.fromZero()
+				.maintainIterationStatistics()
+				.maintainSynchronizationStatistics()
+				.maintainActionsExecutedStatistics();
+	}
+
+	@Override
+	public String getCategoryName(Task task) {
+		return TaskCategory.UTIL;
+	}
+	
+}

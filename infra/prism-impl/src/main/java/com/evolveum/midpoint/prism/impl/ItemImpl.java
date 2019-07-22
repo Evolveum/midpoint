@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -435,7 +436,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
     	return add(newValue, checkUniqueness, getEqualsHashCodeStrategy());
 	}
 
-	public boolean add(@NotNull V newValue, boolean checkUniqueness, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
+	// equivalenceStrategy must not be null if checkUniqueness is true
+	public boolean add(@NotNull V newValue, boolean checkUniqueness, EquivalenceStrategy equivalenceStrategy) throws SchemaException {
 		checkMutability();
 		if (newValue.getPrismContext() == null) {
 			newValue.setPrismContext(prismContext);
@@ -972,6 +974,23 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 		}
 	}
 
+	// should be always called on non-overlapping objects! (for the synchronization to work correctly)
+	public void modifyUnfrozen(Consumer<Item<V, D>> mutator) {
+		synchronized (this) {
+			boolean wasImmutable = immutable;
+			if (wasImmutable) {
+				setImmutable(false);
+			}
+			try {
+				mutator.accept(this);
+			} finally {
+				if (wasImmutable) {
+					setImmutable(true);
+				}
+			}
+		}
+	}
+
 	// Path may contain ambiguous segments (e.g. assignment/targetRef when there are more assignments)
 	// Note that the path can contain name segments only (at least for now)
 	@NotNull
@@ -983,4 +1002,18 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> i
 
 	@Override
 	public abstract Item<V,D> clone();
+
+	@Override
+	public Long getHighestId() {
+		Holder<Long> highest = new Holder<>();
+		this.accept(visitable -> {
+			if (visitable instanceof PrismContainerValue) {
+				Long id = ((PrismContainerValue<?>) visitable).getId();
+				if (id != null && (highest.isEmpty() || id > highest.getValue())) {
+					highest.setValue(id);
+				}
+			}
+		});
+		return highest.getValue();
+	}
 }

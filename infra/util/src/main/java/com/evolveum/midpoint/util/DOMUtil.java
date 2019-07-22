@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -171,6 +171,13 @@ public class DOMUtil {
 				documentBuilderFactory.setFeature("http://xml.org/sax/features/validation", false);
 				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
 				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				// XXE
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+				documentBuilderFactory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+				documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+				documentBuilderFactory.setXIncludeAware(false);
+				documentBuilderFactory.setExpandEntityReferences(false);
 				return documentBuilderFactory.newDocumentBuilder();
 			} catch (ParserConfigurationException e) {
 				throw new RuntimeException(e);

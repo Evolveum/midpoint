@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
  *
  */
 public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
+
+	String getRequestIdentifier();
 
 	ModelState getState();
 
@@ -92,4 +95,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 	<T> T getHookPreviewResult(@NotNull Class<T> clazz);
 
 	boolean isPreview();
+
+	@NotNull
+	ObjectTreeDeltas<F> getTreeDeltas();
 }

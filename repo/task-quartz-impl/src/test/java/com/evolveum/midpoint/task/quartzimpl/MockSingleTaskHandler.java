@@ -18,6 +18,7 @@ package com.evolveum.midpoint.task.quartzimpl;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -25,10 +26,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 
 import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 
@@ -43,8 +43,8 @@ public class MockSingleTaskHandler implements TaskHandler {
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
     private String NS_EXT = "http://myself.me/schemas/whatever";
-    private QName L1_FLAG_QNAME = new QName(NS_EXT, "l1Flag", "m");
-    private QName WFS_FLAG_QNAME = new QName(NS_EXT, "wfsFlag", "m");
+    private ItemName L1_FLAG_QNAME = new ItemName(NS_EXT, "l1Flag", "m");
+    private ItemName WFS_FLAG_QNAME = new ItemName(NS_EXT, "wfsFlag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
@@ -68,7 +68,7 @@ public class MockSingleTaskHandler implements TaskHandler {
     private int executions = 0;
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
@@ -88,7 +88,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 		executions++;
 
         if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
+            PrismProperty<Boolean> l1flag = task.getExtensionPropertyOrClone(L1_FLAG_QNAME);
 
             if (l1flag == null || !l1flag.getRealValue()) {
 
@@ -98,7 +98,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 task.pushHandlerUri(AbstractTaskManagerTest.L2_TASK_HANDLER_URI, l2Schedule, TaskBinding.TIGHT, createExtensionDelta(l1FlagDefinition, true,
 		                taskManager.getPrismContext()));
                 try {
-                    task.savePendingModifications(opResult);
+                    task.flushPendingModifications(opResult);
                 } catch(Exception e) {
                     throw new SystemException("Cannot schedule L2 handler", e);
                 }
@@ -111,7 +111,7 @@ public class MockSingleTaskHandler implements TaskHandler {
                 LOGGER.info("L2 handler, fourth run - scheduling L3 handler");
                 task.pushHandlerUri(AbstractTaskManagerTest.L3_TASK_HANDLER_URI, new ScheduleType(), null);
                 try {
-                    task.savePendingModifications(opResult);
+                    task.flushPendingModifications(opResult);
                 } catch(Exception e) {
                     throw new SystemException("Cannot schedule L3 handler", e);
                 }
@@ -130,7 +130,7 @@ public class MockSingleTaskHandler implements TaskHandler {
             LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
         } else if ("WFS".equals(id)) {
 
-            PrismProperty<Boolean> wfsFlag = task.getExtensionProperty(WFS_FLAG_QNAME);
+            PrismProperty<Boolean> wfsFlag = task.getExtensionPropertyOrClone(WFS_FLAG_QNAME);
 
             if (wfsFlag == null || !wfsFlag.getRealValue()) {
 

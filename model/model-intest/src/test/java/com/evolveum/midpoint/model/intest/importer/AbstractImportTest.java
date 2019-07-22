@@ -453,7 +453,7 @@ public abstract class AbstractImportTest extends AbstractConfiguredModelIntegrat
 //		assertEquals("Task name not imported correctly", "Task1: basic single-run task (takes 180x1 sec)", task1AsType.getName());
 
 		Task task1 = taskManager.createTaskInstance(task1AsPrism, result);
-        PrismProperty<Integer> delayProp = task1.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<Integer> delayProp = task1.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         assertEquals("xsi:type'd property has incorrect type", Integer.class, delayProp.getValues().get(0).getValue().getClass());
         assertEquals("xsi:type'd property not imported correctly", Integer.valueOf(1000), delayProp.getValues().get(0).getValue());
 

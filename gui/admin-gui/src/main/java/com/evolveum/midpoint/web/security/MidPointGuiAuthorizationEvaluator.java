@@ -23,9 +23,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -105,11 +105,31 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 		return securityContextManager.isAuthenticated();
 	}
 
-    @Override
+	@Override
+	public Authentication getAuthentication() {
+		return securityContextManager.getAuthentication();
+	}
+
+	@Override
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityContextManager.getPrincipal();
 	}
-    
+
+	@Override
+	public String getPrincipalOid() {
+		return securityContextManager.getPrincipalOid();
+	}
+
+	@Override
+	public void setTemporaryPrincipalOid(String value) {
+		securityContextManager.setTemporaryPrincipalOid(value);
+	}
+
+	@Override
+	public void clearTemporaryPrincipalOid() {
+		securityContextManager.clearTemporaryPrincipalOid();
+	}
+
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
 			AuthorizationPhaseType phase, AuthorizationParameters<O,T> params,

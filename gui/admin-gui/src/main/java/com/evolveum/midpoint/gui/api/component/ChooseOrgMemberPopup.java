@@ -24,8 +24,10 @@ import com.evolveum.midpoint.schema.constants.RelationTypes;
  */
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,7 +46,8 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
     @Override
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = super.createAssignmentTabs();
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"), null) {
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("chooseMemberForOrgPopup.otherTypesLabel"),
+                new VisibleBehaviour(() -> getAvailableObjectTypes() == null)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -71,6 +74,11 @@ public abstract class ChooseOrgMemberPopup<O extends ObjectType> extends ChooseM
             }
         });
         return tabs;
+    }
+    
+    @Override
+    protected QName getDefaultTargetType() {
+    	return OrgType.COMPLEX_TYPE;
     }
 
 }

@@ -37,7 +37,7 @@ public class TwoValueLinkPanel<T extends Serializable> extends Panel {
     public TwoValueLinkPanel(String id, IModel<String> label, IModel<String> description) {
         super(id);
 
-        AjaxLink link = new AjaxLink(ID_LINK) {
+        AjaxLink<Void> link = new AjaxLink<Void>(ID_LINK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

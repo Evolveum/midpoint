@@ -18,11 +18,7 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConflictResolutionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationBusinessContextType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 import java.util.List;
@@ -157,6 +153,12 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	 * Therefore we do not currently put this to XML version of the options.
 	 */
 	private Boolean evaluateAllAssignmentRelationsOnRecompute;
+
+	/**
+	 * Traces the model operation execution.
+	 * EXPERIMENTAL. (So not put into XML version of the options yet.)
+	 */
+	private TracingProfileType tracingProfile;
 
     public Boolean getForce() {
 		return force;
@@ -587,7 +589,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 	public void setEvaluateAllAssignmentRelationsOnRecompute(Boolean evaluateAllAssignmentRelationsOnRecompute) {
 		this.evaluateAllAssignmentRelationsOnRecompute = evaluateAllAssignmentRelationsOnRecompute;
 	}
-
+	
 	public static boolean isEvaluateAllAssignmentRelationsOnRecompute(ModelExecuteOptions options) {
 		return options != null && isTrue(options.evaluateAllAssignmentRelationsOnRecompute);
 	}
@@ -596,6 +598,23 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
 		ModelExecuteOptions opts = new ModelExecuteOptions();
 		opts.setEvaluateAllAssignmentRelationsOnRecompute(true);
 		return opts;
+	}
+
+	public TracingProfileType getTracingProfile() {
+		return tracingProfile;
+	}
+
+	public void setTracingProfile(TracingProfileType tracingProfile) {
+		this.tracingProfile = tracingProfile;
+	}
+
+	public static TracingProfileType getTracingProfile(ModelExecuteOptions options) {
+		return options != null ? options.tracingProfile : null;
+	}
+
+	public ModelExecuteOptions createTracingProfile(TracingProfileType tracingProfile) {
+		setTracingProfile(tracingProfile);
+		return this;
 	}
 
 	public ModelExecuteOptionsType toModelExecutionOptionsType() {
@@ -698,6 +717,7 @@ public class ModelExecuteOptions extends AbstractOptions implements Serializable
     	appendVal(sb, "partialProcessing", format(partialProcessing));
     	appendVal(sb, "initialPartialProcessing", format(initialPartialProcessing));
     	appendVal(sb, "focusConflictResolution", focusConflictResolution);
+    	appendVal(sb, "tracingProfile", tracingProfile);
     	removeLastComma(sb);
 		sb.append(")");
 		return sb.toString();

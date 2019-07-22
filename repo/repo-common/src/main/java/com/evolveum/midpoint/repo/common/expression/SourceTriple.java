@@ -60,5 +60,18 @@ public class SourceTriple<V extends PrismValue,D extends ItemDefinition> extends
 	public ItemPath getResidualPath() {
 		return source.getResidualPath();
 	}
+	
+	@Override
+	public void shortDump(StringBuilder sb) {
+		super.shortDump(sb);
+		sb.append(", source=").append(source);
+	}
 
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("SourceTriple(");
+		shortDump(sb);
+		sb.append(")");
+		return sb.toString();
+	}
 }

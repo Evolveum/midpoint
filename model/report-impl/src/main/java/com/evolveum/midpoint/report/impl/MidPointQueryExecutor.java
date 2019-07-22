@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,7 @@ package com.evolveum.midpoint.report.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import net.sf.jasperreports.engine.JRDataSource;
@@ -38,6 +35,8 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -49,14 +48,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointLocalQueryExecutor.class);
+	
 	private Object query;
 	private String script;
 	private Class type;
-	private ReportService reportService;
 
 	public String getScript() {
 		return script;
@@ -68,11 +68,11 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return type;
 	}
 
-	protected abstract <T> PrismPropertyValue<T> createPropertyValue(T realValue);
+	protected abstract <T> TypedValue<T> createTypedPropertyValue(T realValue, Class<T> valueClass);
 
-	protected Map<QName, Object> getParameters(){
+	protected VariablesMap getParameters(){
 		JRParameter[] params = dataset.getParameters();
-		Map<QName, Object> expressionParameters = new HashMap<>();
+		VariablesMap expressionParameters = new VariablesMap();
 		for (JRParameter param : params){
 			if (param.isSystemDefined()){
 				continue;
@@ -80,7 +80,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
+			expressionParameters.put(param.getName(), createTypedPropertyValue(v, (Class)param.getValueClass()));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
@@ -90,20 +90,20 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return expressionParameters;
 	}
 
-	protected Map<QName, Object> getPromptingParameters(){
+	protected VariablesMap getPromptingParameters() {
 		JRParameter[] params = dataset.getParameters();
-		Map<QName, Object> expressionParameters = new HashMap<>();
-		for (JRParameter param : params){
-			if (param.isSystemDefined()){
+		VariablesMap expressionParameters = new VariablesMap();
+		for (JRParameter param : params) {
+			if (param.isSystemDefined()) {
 				continue;
 			}
-			if (!param.isForPrompting()){
+			if (!param.isForPrompting()) {
 				continue;
 			}
 			//LOGGER.trace(((JRBaseParameter)param).getName());
 			Object v = getParameterValue(param.getName());
 			try{
-			expressionParameters.put(new QName(param.getName()), createPropertyValue(v));
+			expressionParameters.put(param.getName(), createTypedPropertyValue(v, (Class)param.getValueClass()));
 			} catch (Exception e){
 				//just skip properties that are not important for midpoint
 			}
@@ -113,7 +113,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 		return expressionParameters;
 	}
 
-	protected abstract Object getParsedQuery(String query, Map<QName, Object> expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+	protected abstract Object getParsedQuery(String query, VariablesMap expressionParameters) throws  SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	protected String getParsedScript(String script){
 		String normalized = script.replace("<code>", "");
@@ -127,9 +127,9 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 
 	protected abstract Collection<PrismObject<? extends ObjectType>> searchObjects(Object query, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	protected abstract Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, Map<QName, Object> parameters) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+	protected abstract Collection<PrismContainerValue<? extends Containerable>> evaluateScript(String script, VariablesMap parameters) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	protected abstract Collection<AuditEventRecord> searchAuditRecords(String script, Map<QName, Object> parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+	protected abstract Collection<AuditEventRecord> searchAuditRecords(String script, VariablesMap parameters) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	protected abstract JRDataSource createDataSourceFromObjects(Collection<PrismObject<? extends ObjectType>> results);
 
@@ -170,7 +170,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 				results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 				return createDataSourceFromObjects(results);
 			} else {
-				if (script.contains("AuditEventRecord")){
+				if (isAuditReport()) {
 					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters());
 					Collection<AuditEventRecordType> auditEventRecordsType = new ArrayList<>();
 					for (AuditEventRecord aer : audtiEventRecords){
@@ -190,6 +190,8 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			throw new JRException(e);
 		}
 	}
+	
+	protected abstract boolean isAuditReport();
 
 	@Override
 	public void close() {

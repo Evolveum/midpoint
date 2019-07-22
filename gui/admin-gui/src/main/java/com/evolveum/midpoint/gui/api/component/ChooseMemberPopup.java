@@ -17,13 +17,20 @@ package com.evolveum.midpoint.gui.api.component;
 
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,8 +40,15 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.roles.MemberOperationsHelper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -44,6 +58,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
@@ -118,9 +133,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                     if (selectedObjects == null || selectedObjects.size() == 0){
                         continue;
                     }
-                    executeMemberOperation(memberPanel.getObjectType().getTypeQName(),
-                            createInOidQuery(selectedObjects),
-                           memberPanel.prepareDelta(), target);
+                    executeMemberOperation(memberPanel.getAbstractRoleTypeObject(),
+                    		createInOidQuery(selectedObjects), memberPanel.getRelationValue(),
+                    		memberPanel.getObjectType().getTypeQName(), target, getPageBase());
                     if (memberPanel.getObjectType().equals(ObjectTypes.ORG)){
                         orgPanelProcessed = true;
                     }
@@ -136,11 +151,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     protected List<ITab> createAssignmentTabs() {
         List<ITab> tabs = new ArrayList<>();
-        //TODO should we have any authorization here?
-        VisibleEnableBehaviour authorization = new VisibleEnableBehaviour(){
-        };
-
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"), authorization) {
+        List<QName> objectTypes = getAvailableObjectTypes();
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.USER"),
+                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(UserType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -172,7 +185,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
             }
         });
 
-        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"), authorization) {
+        tabs.add(new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ROLE"),
+                new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(RoleType.COMPLEX_TYPE))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -205,7 +219,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.ORG"),
+                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -245,7 +260,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
 
-        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"), authorization) {
+        tabs.add(new CountablePanelTab(createStringResource("TypedAssignablePanel.orgTreeView"),
+                new VisibleBehaviour(() -> isOrgTreeVisible() && (objectTypes == null || objectTypes.contains(OrgType.COMPLEX_TYPE)))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -279,7 +295,8 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         });
 
         tabs.add(
-                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"), authorization) {
+                new CountablePanelTab(getPageBase().createStringResource("ObjectTypes.SERVICE"),
+                        new VisibleBehaviour(() -> objectTypes == null || objectTypes.contains(ServiceType.COMPLEX_TYPE))) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -313,6 +330,10 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
                 });
 
         return tabs;
+    }
+
+    protected List<QName> getAvailableObjectTypes(){
+        return null;
     }
 
     protected int getTabPanelSelectedCount(WebMarkupContainer panel){
@@ -376,24 +397,16 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
         return false;
     }
 
-    protected void executeMemberOperation(QName type, ObjectQuery memberQuery,
-                                          ObjectDelta delta, AjaxRequestTarget target) {
-
-        Task operationalTask = getPageBase().createSimpleTask("Add.members");
-        OperationResult parentResult = operationalTask.getResult();
-
-        try {
-            WebComponentUtil.executeMemberOperation(operationalTask, type, memberQuery, delta, TaskCategory.EXECUTE_CHANGES, parentResult, getPageBase());
-        } catch (SchemaException e) {
-            parentResult.recordFatalError(parentResult.getOperation(), e);
-            LoggingUtils.logUnexpectedException(LOGGER,
-                    "Failed to execute operation " + parentResult.getOperation(), e);
-            target.add(getPageBase().getFeedbackPanel());
-        }
-
-        target.add(getPageBase().getFeedbackPanel());
+    protected void executeMemberOperation(AbstractRoleType targetObject, ObjectQuery query,
+    		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
+    	MemberOperationsHelper.assignMembersPerformed(targetObject, query,
+        		relation, type, target, pageBase);
     }
 
+    protected boolean isOrgTreeVisible(){
+        return true;
+    }
+    
     protected abstract T getAssignmentTargetRefObject();
 
     public int getWidth(){
@@ -420,5 +433,9 @@ public abstract class ChooseMemberPopup<O extends ObjectType, T extends Abstract
 
     public Component getComponent(){
         return this;
+    }
+    
+    protected QName getDefaultTargetType() {
+    	return RoleType.COMPLEX_TYPE;
     }
 }

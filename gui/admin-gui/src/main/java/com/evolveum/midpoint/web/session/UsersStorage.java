@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 /**
  * @author lazyman
  */
-public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateStorage {
+public class UsersStorage implements PageStorage, DebugDumpable {
 
     /**
 	 *
@@ -57,11 +57,22 @@ public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateSto
      */
     private ObjectPaging usersPaging;
 
-    private SelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
-    private TreeStateSet<SelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
-    private int selectedTabId = -1;                 //selected tab id on the Org. structure page
-    private SelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
-    private boolean inverse = false;
+    public OrgUnitSearchDto getOrgUnitSearch() {
+        return orgUnitSearch;
+    }
+
+    public void setOrgUnitSearch(OrgUnitSearchDto orgUnitSearch) {
+        this.orgUnitSearch = orgUnitSearch;
+    }
+
+    public ObjectPaging getOrgUnitPaging() {
+        return orgUnitPaging;
+    }
+
+    public void setOrgUnitPaging(ObjectPaging orgUnitPaging) {
+        this.orgUnitPaging = orgUnitPaging;
+    }
+
 
     @Override
     public ObjectPaging getPaging() {
@@ -83,72 +94,6 @@ public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateSto
         this.usersSearch = usersSearch;
     }
 
-    public OrgUnitSearchDto getOrgUnitSearch() {
-        return orgUnitSearch;
-    }
-
-    public void setOrgUnitSearch(OrgUnitSearchDto orgUnitSearch) {
-        this.orgUnitSearch = orgUnitSearch;
-    }
-
-    public ObjectPaging getOrgUnitPaging() {
-        return orgUnitPaging;
-    }
-
-    public void setOrgUnitPaging(ObjectPaging orgUnitPaging) {
-        this.orgUnitPaging = orgUnitPaging;
-    }
-
-    @Override
-    public Set<SelectableBean<OrgType>> getExpandedItems() {
-        return expandedItems;
-    }
-
-    @Override
-    public void setExpandedItems(TreeStateSet<SelectableBean<OrgType>> expandedItems) {
-        this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
-    }
-
-    @Override
-    public SelectableBean<OrgType> getSelectedItem() {
-        return selectedItem;
-    }
-
-    @Override
-    public void setSelectedItem(SelectableBean<OrgType> selectedItem) {
-        this.selectedItem = selectedItem;
-    }
-
-    @Override
-    public int getSelectedTabId() {
-        return selectedTabId;
-    }
-
-    @Override
-    public void setSelectedTabId(int selectedTabId) {
-        this.selectedTabId = selectedTabId;
-    }
-
-    @Override
-    public SelectableBean<OrgType> getCollapsedItem() {
-        return collapsedItem;
-    }
-
-    @Override
-    public void setCollapsedItem(SelectableBean<OrgType> collapsedItem) {
-        this.collapsedItem = collapsedItem;
-    }
-
-    @Override
-    public boolean isInverse(){
-        return inverse;
-    }
-
-    @Override
-    public void setInverse(boolean inverse){
-        this.inverse = inverse;
-    }
-
     @Override
 	public String debugDump() {
 		return debugDump(0);
@@ -163,10 +108,6 @@ public class UsersStorage implements PageStorage, DebugDumpable, OrgTreeStateSto
 		DebugUtil.debugDumpWithLabelLn(sb, "orgUnitSearch", orgUnitSearch, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "orgUnitPaging", orgUnitPaging, indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "usersPaging", usersPaging, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "selectedItem", selectedItem, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "expandedItems", expandedItems, indent+1);
-		DebugUtil.debugDumpWithLabelLn(sb, "selectedTabId", selectedTabId, indent+1);
-		DebugUtil.debugDumpWithLabel(sb, "collapsedItem", collapsedItem, indent+1);
 		return sb.toString();
 	}
 }

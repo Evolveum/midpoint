@@ -104,7 +104,7 @@
 				<displayName>Full Name</displayName>
 				<outbound>
 					<source>
-						<path>$user/fullName</path>
+						<path>fullName</path>
 					</source>
 				</outbound>
 				<inbound>

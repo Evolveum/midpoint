@@ -93,11 +93,6 @@ public class PageRoles extends PageAdminObjectList<RoleType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-        navigateToNext(PageRole.class);
-    }
-
-    @Override
     protected Class<RoleType> getType(){
         return RoleType.class;
     }

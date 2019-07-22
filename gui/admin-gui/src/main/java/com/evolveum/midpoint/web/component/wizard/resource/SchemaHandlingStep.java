@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,8 +226,9 @@ public class SchemaHandlingStep extends WizardStep {
                 label.setOutputMarkupId(true);
                 link.add(label);
 
-                AjaxLink delete = new AjaxLink(ID_BUTTON_DELETE_OBJECT_TYPE) {
-                    @Override
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_BUTTON_DELETE_OBJECT_TYPE) {
+                	private static final long serialVersionUID = 1L;
+                	@Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteObjectTypePerformed(target, objectType);
                     }
@@ -575,6 +576,8 @@ public class SchemaHandlingStep extends WizardStep {
         editor.add(assignmentPolicyRefTooltip);
 
         Label iterationTooltip = new Label(ID_T_ITERATION);
+        iterationTooltip.add(AttributeAppender.append("title", createStringResource("SchemaHandlingStep.tooltip.iteration",
+                WebComponentUtil.getMidpointCustomSystemName(getPageBase(), "midpoint.default.system.name"))));
         iterationTooltip.add(new InfoTooltipBehavior());
         editor.add(iterationTooltip);
 

@@ -26,7 +26,7 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>4.0-SNAPSHOT</version>
 	</parent>
-	<description>Implementation for the built-in midpoint connectors, such as the built-in &quot;manaual connector&quot; capability.</description>
+	<description>Implementation for the built-in midpoint connectors, such as the built-in &quot;manual connector&quot; capability.</description>
     <scm>
         <connection>https://github.com/Evolveum/midpoint.git</connection>
         <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
@@ -61,6 +61,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>security-api</artifactId>
+			<version>4.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
 			<version>4.0-SNAPSHOT</version>
 		</dependency>
@@ -79,6 +84,10 @@
 			<artifactId>commons-lang</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-context</artifactId>
 		</dependency>
@@ -90,8 +99,20 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations-java5</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.rabbitmq</groupId>
+			<artifactId>amqp-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+		</dependency>
 
-		<!-- Testing dependecies -->
+		<!-- Testing dependencies -->
 		<dependency>
 			<groupId>javax.xml.bind</groupId>
 			<artifactId>jaxb-api</artifactId>

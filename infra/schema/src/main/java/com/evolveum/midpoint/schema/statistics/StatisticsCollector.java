@@ -43,12 +43,6 @@ import java.util.List;
 public interface StatisticsCollector {
 
     /**
-     * Gets information from the current task and its transient subtasks (aka worker threads).
-     */
-
-    OperationStatsType getAggregatedLiveOperationStats();
-
-    /**
      * Records various kinds of operational information.
      */
 

@@ -35,6 +35,8 @@ public abstract class InlineMenuItem implements Serializable {
     private boolean submit = false;
     private InlineMenuItemAction action;
     private int id = -1;
+    
+    private VisibilityChecker visibilityChecker;
 
     public InlineMenuItem(IModel<String> label) {
         this.label = label;
@@ -86,7 +88,6 @@ public abstract class InlineMenuItem implements Serializable {
 
     /**
      * visible behavior for menu item in the header
-     * @return
      */
     public boolean isHeaderMenuItem(){
         return true;
@@ -114,5 +115,18 @@ public abstract class InlineMenuItem implements Serializable {
 
    public boolean showConfirmationDialog() {
         return true;
+    }
+   
+    public VisibilityChecker getVisibilityChecker() {
+        return visibilityChecker;
+    }
+
+    public void setVisibilityChecker(VisibilityChecker visibilityChecker) {
+        this.visibilityChecker = visibilityChecker;
+    }
+
+    @FunctionalInterface
+    public interface VisibilityChecker extends Serializable {
+        boolean isVisible(IModel<?> rowModel, boolean isHeader);
     }
 }

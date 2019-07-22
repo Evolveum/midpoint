@@ -63,6 +63,10 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 	private List<AuditEventRecord> records = new ArrayList<>();
 
+	// This is to be able to be able to disable this service for some tests e.g. to prevent memory leaks
+	// TODO consider introducing auto-cleanup mechanism for this
+	private boolean enabled = true;
+
 	public static DummyAuditService getInstance() {
 		if (instance == null) {
 			instance = new DummyAuditService();
@@ -71,12 +75,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	}
 
 	@Override
-	public void audit(AuditEventRecord record, Task task) {
-		records.add(record.clone());
+	public synchronized void audit(AuditEventRecord record, Task task) {
+		if (enabled) {
+			records.add(record.clone());
+		}
 	}
 
     @Override
-    public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
+    public synchronized void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Validate.notNull(policy, "Cleanup policy must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -108,7 +114,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		return records;
 	}
 
-	public void clear() {
+	public synchronized void clear() {
 		records.clear();
 	}
 
@@ -120,6 +126,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 		int num = 0;
 		int numRequests = 0;
 		int numExecutions = 0;
+		String requestIdentifier = null;
 		while (iterator.hasNext()) {
 			AuditEventRecord record = iterator.next();
 			num++;
@@ -127,10 +134,14 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
 			if (record.getEventStage() == AuditEventStage.REQUEST) {
 				numRequests++;
+				requestIdentifier = record.getRequestIdentifier();
+				assert requestIdentifier != null : "No request identifier in audit record "+record;
 			}
 			if (record.getEventStage() == AuditEventStage.EXECUTION) {
 				assert numRequests > 0 : "Encountered execution stage audit record without any preceding request: "+record;
 				numExecutions++;
+				assert requestIdentifier != null : "Execution before request? "+record;
+				assert requestIdentifier.equals(record.getRequestIdentifier()) : "Request identifier mismatch between request and execution in "+record+" expected: "+requestIdentifier+", was "+record.getRequestIdentifier();
 			}
 		}
 		assert numRequests <= numExecutions : "Strange number of requests and executions; "+numRequests+" requests, "+numExecutions+" executions";
@@ -323,7 +334,27 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public void assertExecutionDeltas(int index, int expectedNumber) {
 		assertEquals("Wrong number of execution deltas in audit trail (index "+index+")", expectedNumber, getExecutionDeltas(index).size());
 	}
-
+	
+	public void assertCustomColumn(String nameOfProperty, String value) {
+		for (AuditEventRecord record: records) {
+			Map<String, String> properties = record.getCustomColumnProperty();
+			if (properties.containsKey(nameOfProperty) && properties.get(nameOfProperty).equals(value)) {
+				return;
+			}
+		}
+		assert false : "Custom column property "+nameOfProperty+" with value " +value+ " not found in audit records";
+	}
+	
+	public void assertResourceOid(String oid) {
+		for (AuditEventRecord record: records) {
+			Set<String> resourceOid = record.getResourceOids();
+			if (resourceOid.contains(oid)) {
+				return;
+			}
+		}
+		assert false : "Resource oid "+oid+" not found in audit records";
+	}
+	
 	public void assertTarget(String expectedOid, AuditEventStage stage) {
 		Collection<PrismReferenceValue> targets = new ArrayList<>();
 		for(AuditEventRecord record: records) {
@@ -490,5 +521,13 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 	public void reindexEntry(AuditEventRecord record) {
 		// TODO Auto-generated method stub
 
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
 	}
 }

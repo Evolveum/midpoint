@@ -1,0 +1,50 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectCollection oid="9276c3a6-5790-11e9-a931-efe1b34f25f6"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>Active Users</name>
+
+    <type>UserType</type>
+    <filter>
+    	<q:equal>
+    		<q:path>activation/effectiveStatus</q:path>
+    		<q:value>enabled</q:value>
+    	</q:equal>
+    </filter>
+
+    <domain>
+    	<!-- Domain: all users -->
+    </domain>
+
+    <assignment>
+    	<policyRule>
+    		<policyConstraints>
+    			<collectionStats/>
+    		</policyConstraints>
+    		<policyThreshold>
+    			<highWaterMark>
+    				<percentage>90</percentage>
+    			</highWaterMark>
+            </policyThreshold>
+    		<policySituation>http://foo.example.com/policy#tooManyInactiveUsers</policySituation>
+    	</policyRule>
+    </assignment>
+    
+</objectCollection>

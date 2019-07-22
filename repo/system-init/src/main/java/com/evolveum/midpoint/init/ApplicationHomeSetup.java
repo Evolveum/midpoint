@@ -74,7 +74,8 @@ public class ApplicationHomeSetup {
                 midpointHomePath + "import",
                 midpointHomePath + "export",
                 midpointHomePath + "tmp",
-                midpointHomePath + "lib"
+                midpointHomePath + "lib",
+                midpointHomePath + "trace"
         };
 
         for (String directory : directories) {

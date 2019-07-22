@@ -229,6 +229,75 @@ public class TestDummyCaching extends TestDummy {
 	}
 
 	/**
+	 * Incomplete attributes should not be cached.
+	 */
+	@Test
+	public void test107CSkipCachingForIncompleteAttributes() throws Exception {
+		final String TEST_NAME = "test107CSkipCachingForIncompleteAttributes";
+		displayTestTitle(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+		DummyAccount accountWill = getDummyAccountAssert(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
+		accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null);
+		accountWill.getAttributeDefinition(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(true);
+		accountWill.setEnabled(true);
+
+		try {
+			XMLGregorianCalendar startTs = clock.currentTimeXMLGregorianCalendar();
+
+			// WHEN
+			displayWhen(TEST_NAME);
+
+			PrismObject<ShadowType> shadow = provisioningService
+					.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, result);
+
+			// THEN
+			displayThen(TEST_NAME);
+			assertSuccess(result);
+
+			assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+
+			XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
+
+			display("Retrieved account shadow", shadow);
+
+			assertNotNull("No dummy account", shadow);
+
+			assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Very Nice Pirate");
+			assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME);
+			Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
+			assertEquals("Unexpected number of attributes", 7, attributes.size());
+
+			PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_WILL_OID);
+			checkRepoAccountShadowWillBasic(shadowRepo, null, startTs, null);
+
+			assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME,
+					"Very Nice Pirate");
+			assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME,
+					"Black Pearl");
+			assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "sword",
+					"love");
+			assertRepoShadowCachedAttributeValue(shadowRepo, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+			assertRepoShadowCacheActivation(shadowRepo, ActivationStatusType.ENABLED);
+
+			checkUniqueness(shadow);
+
+			assertCachingMetadata(shadow, false, null, startTs);
+
+			assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
+
+			assertSteadyResource();
+		} finally {
+			// cleanup the state to allow other tests to pass
+			accountWill.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Interceptor");
+			accountWill.getAttributeDefinition(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME).setReturnedAsIncomplete(false);
+		}
+	}
+
+	/**
 	 * Search for all accounts with maximum staleness option.
 	 * This is supposed to return only cached data. Therefore
 	 * repo search is performed.
@@ -362,7 +431,7 @@ public class TestDummyCaching extends TestDummy {
 	}
 
 	@Override
-	protected void assertRepoShadowAttributes(List<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
+	protected void assertRepoShadowAttributes(Collection<Item<?,?>> attributes, int expectedNumberOfIdentifiers) {
 		// We can only assert that there are at least the identifiers. But we do not know how many attributes should be there
 		assertTrue("Unexpected number of attributes in repo shadow, expected at least "+
 		expectedNumberOfIdentifiers+", but was "+attributes.size(), attributes.size() >= expectedNumberOfIdentifiers);

@@ -185,6 +185,7 @@ public class GuiStyleConstants {
 	public static final String EVO_CROW_ICON = "fe fe-crown-object";
 	public static final String EVO_RIGHT_TOP_ARROW_ICON = "fe fe-arrow";
 	public static final String EVO_ASSIGNMENT_ICON = "fe fe-assignment";
+	public static final String EVO_ASSIGNMENT_ARROW_ICON = "fe fe-action-assign";
 	public static final String EVO_ASSIGNMENT_ICON_A_PIECE = "fe fe-assign_horizontal_A_piece";
 	public static final String EVO_ASSIGNMENT_ICON_B_PIECE = "fe fe-assign_horizontal_B_piece";
 	public static final String EVO_OFFICER_CAP_ICON = "fe fe-officer-cap-object";
@@ -193,6 +194,7 @@ public class GuiStyleConstants {
 	public static final String EVO_UNEMPLOYER_ICON = "fe fe-unemployer-icon";
 	public static final String EVO_EMPLOYER_ICON = "fe fe-employer-icon";
 	public static final String EVO_APPROVER_ICON = "fe fe-approver-object";
+	public static final String EVO_MANAGER_ICON = "fe fe-manager-tie-object";
 	public static final String EVO_MP_SHORTER_LINES = "fe fe-midpoint-shorter-lines";
 	public static final String EVO_MP_WHEEL_ICON = "fe fe-midpoint-wheel";
 	public static final String EVO_MP_WITH_LINES_ICON = "fe fe-midpoint-with-lines";
@@ -200,9 +202,13 @@ public class GuiStyleConstants {
 	public static final String EVO_ROLE_TIE_ICON = "fe fe-role-tie";
 	public static final String EVO_ROLE_TOP_HAT_ICON = "fe fe-role-top-hat";
 	public static final String EVO_ASSIGNMENT_THICKER_ICON = "fe assignment-thicker";
-	
+	public static final String EVO_CASE_OBJECT_ICON = "fe fe-case-object";
+	public static final String EVO_ARCHETYPE_TYPE_ICON = "fe fe-archetype_smooth";
+
 	public static final String GREEN_COLOR = "color-green";
 	public static final String YELLOW_COLOR = "color-yellow";
 	public static final String RED_COLOR = "color-red";
+	public static final String BLUE_COLOR = "color-blue";
+	
 	
 }

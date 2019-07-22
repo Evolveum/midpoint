@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
@@ -493,6 +494,14 @@ public class ObjectTypeUtil {
         return rv;
     }
 
+    public static <O extends ObjectType> List<ObjectReferenceType> objectListToReferences(Collection<PrismObject<O>> objects) {
+        List<ObjectReferenceType> rv = new ArrayList<>();
+	    for (PrismObject<? extends ObjectType> object : objects) {
+		    rv.add(createObjectRef(object.asObjectable(), object.getPrismContext().getDefaultRelation()));
+	    }
+        return rv;
+    }
+
     public static List<ObjectReferenceType> getAsObjectReferenceTypeList(PrismReference prismReference) throws SchemaException {
 		List<ObjectReferenceType> rv = new ArrayList<>();
 		for (PrismReferenceValue prv : prismReference.getValues()) {
@@ -569,6 +578,11 @@ public class ObjectTypeUtil {
 
 	public static ObjectType toObjectable(PrismObject object) {
     	return object != null ? (ObjectType) object.asObjectable() : null;
+	}
+
+	public static <T extends Objectable> PrismObject<T> toPrismObject(T objectable) {
+		//noinspection unchecked
+		return objectable != null ? objectable.asPrismObject() : null;
 	}
 
 	public static boolean containsOid(Collection<ObjectReferenceType> values, @NotNull String oid) {
@@ -675,6 +689,10 @@ public class ObjectTypeUtil {
 
 	public static <T extends Objectable> T asObjectable(PrismObject<T> prismObject) {
     	return prismObject != null ? prismObject.asObjectable() : null;
+	}
+
+	public static <T extends Objectable> List<T> asObjectables(Collection<PrismObject<T>> objects) {
+    	return objects.stream().map(ObjectTypeUtil::asObjectable).collect(Collectors.toList());
 	}
 
 	public static boolean matchOnOid(ObjectReferenceType ref1, ObjectReferenceType ref2) {
@@ -818,5 +836,46 @@ public class ObjectTypeUtil {
 	    return prismContext.queryFor(objectTypeClass)
 	            .item(ObjectType.F_PARENT_ORG_REF).ref(referencesToFind)
 	            .build();
+	}
+
+	public static <T extends Objectable> List<PrismObject<T>> keepDistinctObjects(Collection<PrismObject<T>> objects) {
+		List<PrismObject<T>> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(objects.size());
+		for (PrismObject<T> object : emptyIfNull(objects)) {
+			if (object.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less object");
+			} else if (!oids.contains(object.getOid())) {
+				rv.add(object);
+				oids.add(object.getOid());
+			}
+		}
+		return rv;
+	}
+
+	public static List<ObjectReferenceType> keepDistinctReferences(Collection<ObjectReferenceType> references) {
+		List<ObjectReferenceType> rv = new ArrayList<>();
+    	Set<String> oids = new HashSet<>(references.size());
+		for (ObjectReferenceType reference : emptyIfNull(references)) {
+			if (reference.getOid() == null) {
+				throw new IllegalArgumentException("Unexpected OID-less reference");
+			} else if (!oids.contains(reference.getOid())) {
+				rv.add(reference);
+				oids.add(reference.getOid());
+			}
+		}
+		return rv;
+	}
+
+	public static <AH extends AssignmentHolderType> boolean hasArchetype(PrismObject<AH> object, String oid) {
+    	return hasArchetype(object.asObjectable(), oid);
+	}
+
+	public static <AH extends AssignmentHolderType> boolean hasArchetype(AH objectable, String oid) {
+		for (ObjectReferenceType orgRef: objectable.getArchetypeRef()) {
+			if (oid.equals(orgRef.getOid())) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

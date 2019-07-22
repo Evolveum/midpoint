@@ -98,24 +98,44 @@ public class OrgMemberPanel extends AbstractRoleMemberPanel<OrgType> {
 	}
 
 	@Override
-	protected <O extends ObjectType> void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList) {
-		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList);
+	protected void assignMembers(AjaxRequestTarget target, List<QName> availableRelationList, List<QName> objectTypes) {
+		MemberOperationsHelper.assignOrgMembers(getPageBase(), getModelObject(), target, availableRelationList, objectTypes);
 	}
 
-	@Override
-	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
-		super.unassignMembersPerformed(objectType, scope, relations, target);
-		if (relations != null && relations.size() > 0) {
-			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
-		}
-	}
+//	@Override
+//	protected void unassignMembersPerformed(QName objectType, QueryScope scope, Collection<QName> relations, AjaxRequestTarget target) {
+//		super.unassignMembersPerformed(objectType, scope, relations, target);
+////		if (relations != null && relations.size() > 0) {
+////			MemberOperationsHelper.unassignOtherOrgMembersPerformed(getPageBase(), getModelObject(), scope, getActionQuery(scope, relations), relations, target);
+////		}
+//	}
 
 	@Override
 	protected List<QName> getSupportedObjectTypes(boolean includeAbstractTypes) {
-		List<QName> objectTypes = WebComponentUtil.createObjectTypeList();
-		objectTypes.remove(ShadowType.COMPLEX_TYPE);
-		objectTypes.remove(ObjectType.COMPLEX_TYPE);
+			List<QName> objectTypes = WebComponentUtil.createAssignmentHolderTypeQnamesList();
+			objectTypes.remove(ShadowType.COMPLEX_TYPE);
+			objectTypes.remove(ObjectType.COMPLEX_TYPE);
+			if (!includeAbstractTypes){
+				objectTypes.remove(AssignmentHolderType.COMPLEX_TYPE);
+			}
+			return objectTypes;
+	}
+
+	@Override
+	protected List<QName> getNewMemberObjectTypes() {
+		List<QName> objectTypes = WebComponentUtil.createFocusTypeList();
+		objectTypes.add(ResourceType.COMPLEX_TYPE);
 		return objectTypes;
+	}
+
+	@Override
+	protected QName getObjectTypesListParentType(){
+		return AssignmentHolderType.COMPLEX_TYPE;
+	}
+
+	@Override
+	protected List<ObjectReferenceType> getMembershipReferenceList(FocusType focusObject){
+		return focusObject.getParentOrgRef();
 	}
 
 	@Override

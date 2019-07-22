@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -23,8 +26,11 @@ import com.evolveum.midpoint.web.component.assignment.AssignmentPanel;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -36,11 +42,13 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
 public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
@@ -55,6 +63,8 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     private final static String ID_RELATION = "relation";
     private final static String ID_KIND_INTENT = "kindIntent";
     private final static String ID_DESCRIPTION = "description";
+    private final static String ID_DESCRIPTION_LABELS = "descriptionLabels";
+    private final static String ID_PENDING_OPERATION = "pendingOperation";
     private final static String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
 
 	public DisplayNamePanel(String id, IModel<C> model) {
@@ -111,11 +121,20 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		kindIntent.add(new VisibleBehaviour(() -> isKindIntentVisible(kindIntentLabelModel)));
         add(kindIntent);
         
-        if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
-        	add(new Label(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart())));
-        } else {
-        	add(new Label(ID_DESCRIPTION, Model.of("")));
-        }
+        ListView<String> descriptionLabels = new ListView<String>(ID_DESCRIPTION_LABELS, getDescriptionLabelsModel()) {
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void populateItem(ListItem<String> item) {
+                item.add(new Label(ID_DESCRIPTION, item.getModel()));
+            }
+        };
+        
+        add(descriptionLabels);
+        
+//        add(new Label(ID_DESCRIPTION, getDescriptionLabelsModel()));
+//        add(new Label(ID_PENDING_OPERATION, getPendingOperationLabelModel()));
 	}
 	
 	private boolean isObjectPolicyConfigurationType() {
@@ -125,7 +144,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		return false;
 	}
 	
-	private String createImageModel() {
+	protected String createImageModel() {
 		if (getModelObject() == null){
 			return "";
 		}
@@ -148,12 +167,15 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 		if (isObjectPolicyConfigurationType()) {
 			QName typeValue = WebComponentUtil.getValue(getModel().getObject().asPrismContainerValue(), ObjectPolicyConfigurationType.F_TYPE, QName.class);
 			ObjectReferenceType objectTemplate = ((ObjectPolicyConfigurationType)getModel().getObject()).getObjectTemplateRef();
-			if(objectTemplate == null){
+			if(objectTemplate == null || objectTemplate.getTargetName() == null){
 				return Model.of("");
 			}
 			String objectTemplateNameValue = objectTemplate.getTargetName().toString();
 			StringBuilder sb = new StringBuilder();
-			sb.append(typeValue.getLocalPart()).append(" - ").append(objectTemplateNameValue);
+			if(typeValue != null) {
+				sb.append(typeValue.getLocalPart()).append(" - ");
+			}
+			sb.append(objectTemplateNameValue);
 			return Model.of(sb.toString());
         } 
 		PrismProperty<String> name = getModelObject().asPrismContainerValue().findProperty(ObjectType.F_NAME);
@@ -205,6 +227,28 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
 	protected IModel<String> getKindIntentLabelModel() {
 		// To be overriden in subclasses
 		return Model.of("");
+	}
+	
+	protected IModel<String> getDescriptionLabelModel() {
+		if(getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
+			return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
+        } 
+		return null;
+	}
+	
+	protected IModel<List<String>> getDescriptionLabelsModel() {
+		List<String> descriptionLabels = new ArrayList<String>();
+		IModel<String> des= getDescriptionLabelModel();
+		if(des != null) {
+			descriptionLabels.add(des.getObject());
+		}
+		return new IModel<List<String>>() {
+
+			@Override
+			public List<String> getObject() {
+				return descriptionLabels;
+			}
+		};
 	}
 
 	protected QName getRelation() {

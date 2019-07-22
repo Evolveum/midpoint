@@ -39,15 +39,15 @@
         </appender>
     </logging>
     <notificationConfiguration>
-		<handler>
-			<simpleCaseManagementNotifier>
-				<recipientExpression>
-					<value>recipient@evolveum.com</value>
-				</recipientExpression>
-				<showTechnicalInformation>true</showTechnicalInformation>
-				<transport>dummy:caseNotifier</transport>
-			</simpleCaseManagementNotifier>
-		</handler>
+<!--		<handler>-->
+<!--			<simpleCaseManagementNotifier>-->
+<!--				<recipientExpression>-->
+<!--					<value>recipient@evolveum.com</value>-->
+<!--				</recipientExpression>-->
+<!--				<showTechnicalInformation>true</showTechnicalInformation>-->
+<!--				<transport>dummy:caseNotifier</transport>-->
+<!--			</simpleCaseManagementNotifier>-->
+<!--		</handler>-->
 		<handler>
 			<simplePolicyRuleNotifier>
 				<recipientExpression>
@@ -360,26 +360,26 @@
 	    	<targetUrl>/foo</targetUrl>
 	    	<label>Foo</label>
 	    </userDashboardLink>
-	    <objectLists>
-	    	<objectList>
+	    <objectCollectionViews>
+	    	<objectCollectionView>
 	    		<type>UserType</type>
 	    		<searchBoxConfiguration>
 	    			<defaultMode>basic</defaultMode>
 	    		</searchBoxConfiguration>
-	    	</objectList>
-	    	<objectList>
+	    	</objectCollectionView>
+	    	<objectCollectionView>
 	    		<type>RoleType</type>
 	    		<searchBoxConfiguration>
 	    			<defaultMode>fulltext</defaultMode>
 	    		</searchBoxConfiguration>
-	    	</objectList>
-	    	<objectList>
+	    	</objectCollectionView>
+	    	<objectCollectionView>
 	    		<type>ServiceType</type>
 	    		<searchBoxConfiguration>
 	    			<defaultMode>advanced</defaultMode>
 	    		</searchBoxConfiguration>
-	    	</objectList>
-	    </objectLists>
+	    	</objectCollectionView>
+	    </objectCollectionViews>
 	    <objectForms>
     		<objectForm>
     			<type>RoleType</type>
@@ -612,5 +612,17 @@
     		<left>take</left>
     	</default>
     </mergeConfiguration>
-    
+    <audit>
+        <eventRecording>
+            <recordResourceOids>true</recordResourceOids>
+            <property>
+                <name>foo</name>
+                <expression>
+                    <script>
+                        <code> return "test"</code>
+                    </script>
+                </expression>
+            </property>
+        </eventRecording>
+    </audit>
 </systemConfiguration>

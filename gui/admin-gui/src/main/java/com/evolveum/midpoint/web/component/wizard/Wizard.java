@@ -110,6 +110,7 @@ public class Wizard extends BasePanel<IWizardModel> implements IWizardModelListe
 		form.add(readOnlyNote);
 
 		readOnlyNote.add(new AjaxFallbackLink<String>(ID_READ_ONLY_SWITCH) {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public void onClick(Optional<AjaxRequestTarget> optionalTarget) {
 				PageResourceWizard wizardPage = (PageResourceWizard) getPageBase();

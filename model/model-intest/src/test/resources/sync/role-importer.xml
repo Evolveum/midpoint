@@ -19,6 +19,14 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Importer</name>
     <description>User with limited authorizations, just to make import possible</description>
+	<authorization>
+		<name>autz-importer-resource-name-get</name>
+		<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#get</action>
+		<object>
+			<type>ResourceType</type>
+		</object>
+		<item>name</item>		<!-- we need to be able to read at least something from the resource object -->
+	</authorization>
     <authorization>
 	  <name>autz-importer-user-write</name>
 	  <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>

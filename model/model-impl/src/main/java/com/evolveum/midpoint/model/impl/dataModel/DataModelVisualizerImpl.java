@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -304,7 +304,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	}
 
 	private DataItem resolveSourceItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType sourceDecl, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType sourceDecl, @Nullable String defaultVariable) {
 		// todo from the description
 		return resolveSourceItem(model, currentItem, mapping, sourceDecl.getPath().getItemPath(), defaultVariable);
 	}
@@ -312,16 +312,16 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	// for outbound (but sometimes also inbound) mappings
 	@NotNull
 	private DataItem resolveSourceItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable String defaultVariable) {
 		if (!path.startsWithName()) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
 			return createAdHocDataItem(model, path);
 		}
-		QName varName;
+		String varName;
 		ItemPath itemPath;
 		Object first = path.first();
 		if (ItemPath.isVariable(first)) {
-			varName = ItemPath.toVariableName(first);
+			varName = ItemPath.toVariableName(first).getLocalPart();
 			itemPath = path.rest();
 		} else {
 			if (defaultVariable == null) {
@@ -332,13 +332,13 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			itemPath = path;
 		}
 
-		if (QNameUtil.match(ExpressionConstants.VAR_ACCOUNT, varName)) {
+		if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
 			return resolveResourceItem(model, currentItem, itemPath);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_USER, varName)) {
+		} else if (ExpressionConstants.VAR_USER.equals(varName)) {
 			return model.resolveRepositoryItem(UserType.class, itemPath);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_ACTOR, varName)) {
+		} else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
 			return model.resolveRepositoryItem(UserType.class, itemPath);			// TODO
-		} else if (QNameUtil.match(ExpressionConstants.VAR_FOCUS, varName)) {
+		} else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
 			Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
 			DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
 			if (item != null) {
@@ -346,7 +346,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			}
 			// TODO guess e.g. by item existence in schema
 			LOGGER.warn("Couldn't resolve {} in $focus", path);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_INPUT, varName)) {
+		} else if (ExpressionConstants.VAR_INPUT.equals(varName)) {
 			return currentItem;
 		} else {
 			LOGGER.warn("Unsupported variable {} in {}", varName, path);
@@ -361,7 +361,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	// currently for inbounds only
 	@NotNull
 	private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType targetDecl, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull VariableBindingDefinitionType targetDecl, @Nullable String defaultVariable) {
 		// todo from the description
 		return resolveTargetItem(model, currentItem, mapping, targetDecl.getPath().getItemPath(), defaultVariable);
 	}
@@ -369,16 +369,16 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 	// currently for inbounds only
 	@NotNull
 	private DataItem resolveTargetItem(@NotNull DataModel model, @NotNull ResourceDataItem currentItem,
-			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable QName defaultVariable) {
+			@NotNull MappingType mapping, @NotNull ItemPath path, @Nullable String defaultVariable) {
 		if (!path.startsWithName()) {
 			LOGGER.warn("Probably incorrect path ({}) - does not start with a name - skipping", path);
 			return createAdHocDataItem(model, path);
 		}
-		QName varName;
+		String varName;
 		ItemPath itemPath;
 		Object first = path.first();
 		if (ItemPath.isVariable(first)) {
-			varName = ItemPath.toVariableName(first);
+			varName = ItemPath.toVariableName(first).getLocalPart();
 			itemPath = path.rest();
 		} else {
 			if (defaultVariable == null) {
@@ -389,13 +389,13 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			itemPath = path;
 		}
 
-		if (QNameUtil.match(ExpressionConstants.VAR_ACCOUNT, varName)) {
+		if (ExpressionConstants.VAR_ACCOUNT.equals(varName)) {
 			return resolveResourceItem(model, currentItem, itemPath);				// does make sense?
-		} else if (QNameUtil.match(ExpressionConstants.VAR_USER, varName)) {
+		} else if (ExpressionConstants.VAR_USER.equals(varName)) {
 			return model.resolveRepositoryItem(UserType.class, itemPath);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_ACTOR, varName)) {
+		} else if (ExpressionConstants.VAR_ACTOR.equals(varName)) {
 			return model.resolveRepositoryItem(UserType.class, itemPath);			// TODO
-		} else if (QNameUtil.match(ExpressionConstants.VAR_FOCUS, varName)) {
+		} else if (ExpressionConstants.VAR_FOCUS.equals(varName)) {
 			Class<? extends ObjectType> guessedClass = guessFocusClass(currentItem.getResourceOid(), currentItem.getKind(), currentItem.getIntent());
 			DataItem item = model.resolveRepositoryItem(guessedClass, itemPath);
 			if (item != null) {
@@ -403,7 +403,7 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 			}
 			// TODO guess e.g. by item existence in schema
 			LOGGER.warn("Couldn't resolve {} in $focus", path);
-		} else if (QNameUtil.match(ExpressionConstants.VAR_INPUT, varName)) {
+		} else if (ExpressionConstants.VAR_INPUT.equals(varName)) {
 			return currentItem;														// does make sense?
 		} else {
 			LOGGER.warn("Unsupported variable {} in {}", varName, path);

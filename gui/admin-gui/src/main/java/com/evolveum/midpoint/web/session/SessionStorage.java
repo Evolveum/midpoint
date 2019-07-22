@@ -58,14 +58,19 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_GLOBAL_POLICY_RULES_TAB = "globalPolicyRulesTab";
     public static final String KEY_LOGGING_TAB_APPENDER_TABLE = "loggingTabAppenderTable";
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
+    public static final String KEY_FOCUS_PROJECTION_TABLE = "focusProjectionTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
     public static final String KEY_ROLE_MEMEBER_PANEL = "roleMemberPanel";
     public static final String KEY_ORG_MEMEBER_PANEL = "orgMemberPanel";
     public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
     public static final String KEY_WORK_ITEMS = "workItems";
     public static final String KEY_OBJECT_LIST = "objectListPage";
+    public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
+    public static final String KEY_CASE_EVENTS_TAB = "caseEventsTab";
+    public static final String KEY_ORG_STRUCTURE_PANEL_STORAGE = "orgStructurePanelStorage";
 
     private static final String KEY_TASKS = "tasks";
+    private static final String KEY_SUBTASKS = "subtasks";
     private static final String KEY_CERT_CAMPAIGNS = "certCampaigns";
 
     /**
@@ -104,6 +109,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_USERS, new UsersStorage());
         }
         return (UsersStorage)pageStorageMap.get(KEY_USERS);
+    }
+
+    public OrgStructurePanelStorage getOrgStructurePanelStorage() {
+        if (pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE) == null) {
+            pageStorageMap.put(KEY_ORG_STRUCTURE_PANEL_STORAGE, new OrgStructurePanelStorage());
+        }
+        return (OrgStructurePanelStorage) pageStorageMap.get(KEY_ORG_STRUCTURE_PANEL_STORAGE);
     }
 
     public ObjectListStorage getObjectListStorage(String key) {
@@ -191,6 +203,14 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return getObjectTabStorage(KEY_INDUCED_ENTITLEMENTS_TAB);
 	}
     
+    public ObjectTabStorage getCaseWorkitemsTabStorage() {
+        return getObjectTabStorage(KEY_CASE_WORKITEMS_TAB);
+	}
+
+    public ObjectTabStorage getCaseEventsTabStorage() {
+        return getObjectTabStorage(KEY_CASE_EVENTS_TAB);
+	}
+
     public ObjectTabStorage getObjectPoliciesConfigurationTabStorage() {
         return getObjectTabStorage(KEY_OBJECT_POLICIES_TAB);
 	}
@@ -205,6 +225,10 @@ public class SessionStorage implements Serializable, DebugDumpable {
     
     public ObjectTabStorage getLoggingConfigurationTabLoggerTableStorage() {
         return getObjectTabStorage(KEY_LOGGING_TAB_LOGGER_TABLE);
+	}
+    
+    public ObjectTabStorage getFocusProjectionTableStorage() {
+        return getObjectTabStorage(KEY_FOCUS_PROJECTION_TABLE);
 	}
     
     public ObjectTabStorage getNotificationConfigurationTabMailServerTableStorage() {
@@ -243,6 +267,13 @@ public class SessionStorage implements Serializable, DebugDumpable {
             pageStorageMap.put(KEY_TASKS, new TasksStorage());
         }
         return (TasksStorage)pageStorageMap.get(KEY_TASKS);
+    }
+    
+    public TasksStorage getSubtasks() {
+        if (pageStorageMap.get(KEY_SUBTASKS) == null) {
+            pageStorageMap.put(KEY_SUBTASKS, new TasksStorage());
+        }
+        return (TasksStorage)pageStorageMap.get(KEY_SUBTASKS);
     }
 
     public CertCampaignsStorage getCertCampaigns() {

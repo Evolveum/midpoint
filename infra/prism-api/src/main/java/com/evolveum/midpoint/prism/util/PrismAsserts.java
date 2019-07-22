@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.QNameUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
@@ -148,7 +149,7 @@ public class PrismAsserts {
 			fail("More than one value in "+object);
 		}
 		PrismContainerValue cval = values.get(0);
-		assertEquals("Wrong number of items in "+object, expectedNumberOfItems, cval.getItems().size());
+		assertEquals("Wrong number of items in "+object, expectedNumberOfItems, cval.size());
 	}
 	
 	public static void assertNoItem(PrismContainer<?> object, ItemPath itemPath) {
@@ -293,11 +294,9 @@ public class PrismAsserts {
 	// MISC asserts
 
 	public static void assertParentConsistency(PrismContainerValue<?> pval) {
-		if (pval.getItems() != null) {
-			for (Item<?,?> item : pval.getItems()) {
-				assert item.getParent() == pval : "Wrong parent in " + item;
-				assertParentConsistency(item);
-			}
+		for (Item<?,?> item : pval.getItems()) {
+			assert item.getParent() == pval : "Wrong parent in " + item;
+			assertParentConsistency(item);
 		}
 	}
 
@@ -640,7 +639,7 @@ public class PrismAsserts {
 			expected.recompute(PrismTestUtil.getPrismContext().getDefaultPolyStringNormalizer());
 			expectedPolystrings.add(expected);
 		}
-		assertEqualsCollectionUnordered(message, actual, expectedPolystrings);
+		assertEqualsCollectionUnordered(message, expectedPolystrings, actual);
 	}
 
 	public static void assertEqualsPolyString(String message, String expectedOrig, PolyStringType actual) {
@@ -880,6 +879,9 @@ public class PrismAsserts {
 	}
 
 	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, Collection<T> expectedValues) throws SchemaException {
+		if (CollectionUtils.isEmpty(expectedValues) && CollectionUtils.isEmpty(actualValues)) {
+			return;
+		}
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message+ "; expected (real values) "
 				+PrettyPrinter.prettyPrint(expectedValues)+"; has (pvalues) "+actualValues,

@@ -26,10 +26,7 @@ public interface TaskDeletionListener {
 
 	/**
 	 * Called when a given task is to be deleted.
-	 * Used e.g. to remove corresponding workflow process instance.
-	 *
-	 * @param task
-	 * @param result
+	 * Currently unused.
 	 */
 	void onTaskDelete(Task task, OperationResult result);
 }

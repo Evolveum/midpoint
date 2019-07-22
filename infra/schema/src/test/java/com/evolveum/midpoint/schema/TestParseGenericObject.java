@@ -48,6 +48,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -253,7 +254,7 @@ public class TestParseGenericObject {
 		PrismContainerDefinition<?> extensionContainerDefinition = extensionContainer.getDefinition();
 		assertTrue("Extension container definition is NOT dynamic", extensionContainerDefinition.isDynamic());
 		PrismContainerValue<?> extensionContainerValue = extensionContainer.getValue();
-		List<Item<?,?>> extensionItems = extensionContainerValue.getItems();
+		Collection<Item<?,?>> extensionItems = extensionContainerValue.getItems();
 		assertEquals("Wrong number of extension items", 5, extensionItems.size());
 
 		// COMPLEX RUN TIME PROPERTIES...NOT SUPPORTED WITH NEW PARSERS..

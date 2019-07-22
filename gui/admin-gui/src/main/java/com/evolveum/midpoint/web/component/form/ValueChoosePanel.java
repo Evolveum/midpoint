@@ -15,12 +15,14 @@
  */
 package com.evolveum.midpoint.web.component.form;
 
-import java.util.ArrayList;
+import java.util.ArrayList; 
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -34,7 +36,7 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -56,18 +57,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  *            common superclass for all the options of objects that this panel
  *            should choose
  */
-public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
+public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
 	private static final long serialVersionUID = 1L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ValueChoosePanel.class);
+	private static final String DOT_CLASS = ValueChoosePanel.class.getName() + ".";
+	protected static final String OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME = DOT_CLASS + "loadReferenceObjectDisplayName";
 
 	private static final String ID_TEXT_WRAPPER = "textWrapper";
 	private static final String ID_TEXT = "text";
 	private static final String ID_FEEDBACK = "feedback";
 	private static final String ID_EDIT = "edit";
 	
-	public ValueChoosePanel(String id, IModel<T> value) {
+	public ValueChoosePanel(String id, IModel<R> value) {
 		super(id, value);
 		setOutputMarkupId(true);		
 	}
@@ -126,7 +129,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 
 	protected void replaceIfEmpty(ObjectType object) {
 		ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(object, getPageBase().getPrismContext());
-		getModel().setObject((T) ort.asReferenceValue());
+		getModel().setObject((R) ort);
 
 	}
 
@@ -175,37 +178,72 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	}
 
 	protected IModel<String> createTextModel() {
-		final IModel<T> model = getModel();
+		final IModel<R> model = getModel();
 		return new IModel<String>() {
+
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public String getObject() {
-				T ort = (T) model.getObject();
+				R prv = model.getObject();
 
-				if (ort instanceof PrismReferenceValue) {
-					PrismReferenceValue prv = (PrismReferenceValue) ort;
-					return prv == null ? null
-							: (prv.getTargetName() != null
-									? (prv.getTargetName().getOrig() + (prv.getTargetType() != null
-											? ": " + prv.getTargetType().getLocalPart() : ""))
-									: prv.getOid());
-				} else if (ort instanceof ObjectReferenceType) {
-					ObjectReferenceType prv = (ObjectReferenceType) ort;
+//				if (ort instanceof PrismReferenceValue) {
+//					PrismReferenceValue prv = (PrismReferenceValue) ort;
+//					return prv == null ? null
+//							: (prv.getTargetName() != null
+//									? (prv.getTargetName().getOrig() + (prv.getTargetType() != null
+//											? ": " + prv.getTargetType().getLocalPart() : ""))
+//									: prv.getOid());
+//				} else if (ort instanceof ObjectReferenceType) {
+//					Referencable prv = (Referencable) ort;
 					return prv == null ? null
 							: (prv.getTargetName() != null ? (prv.getTargetName().getOrig()
 									+ (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
 									: prv.getOid());
-				} else if (ort instanceof ObjectViewDto) {
-					return ((ObjectViewDto) ort).getName();
-				}
-				return ort != null ? ort.toString() : null;
+//				} else if (ort instanceof ObjectViewDto) {
+//					return ((ObjectViewDto) ort).getName();
+//				}
+//				return ort != null ? ort.toString() : null;
+//=======
+//				T ort = (T) model.getObject();
+//				if (ort == null){
+//					return createStringResource("ValueChoosePanel.undefined").getString();
+//				}
+//
+//				if (ort instanceof PrismReferenceValue) {
+//					PrismReferenceValue prv = (PrismReferenceValue) ort;
+//					if (StringUtils.isEmpty(prv.getOid())){
+//						return createStringResource("ValueChoosePanel.undefined").getString();
+//					}
+//					ObjectReferenceType objectReferenceType = new ObjectReferenceType();
+//					objectReferenceType.setupReferenceValue((PrismReferenceValue) ort);
+//					String targetObjectName = WebComponentUtil.getName(objectReferenceType,
+//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
+//					return StringUtils.isNotEmpty(targetObjectName)
+//									? (targetObjectName + (prv.getTargetType() != null ? ": " + prv.getTargetType().getLocalPart() : ""))
+//									: prv.getOid();
+//				} else if (ort instanceof ObjectReferenceType) {
+//					ObjectReferenceType prv = (ObjectReferenceType) ort;
+//					if (StringUtils.isEmpty(prv.getOid())){
+//						return createStringResource("ValueChoosePanel.undefined").getString();
+//					}
+//					String targetObjectName = WebComponentUtil.getName(prv,
+//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
+//
+//					return StringUtils.isNotEmpty(targetObjectName) ?
+//							(targetObjectName + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
+//							: prv.getOid();
+//				} else if (ort instanceof ObjectViewDto) {
+//					return ((ObjectViewDto) ort).getName();
+//				}
+//				return ort != null ? ort.toString() : null;
+//>>>>>>> origin/master
 
 			}
 		};
 	}
 
-	protected void editValuePerformed(AjaxRequestTarget target) {
+	protected <O extends ObjectType> void editValuePerformed(AjaxRequestTarget target) {
 		List<QName> supportedTypes = getSupportedTypes();
 		ObjectFilter filter = createChooseQuery() == null ? null
 				: createChooseQuery().getFilter();
@@ -234,7 +272,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 		return WebComponentUtil.createObjectTypeList();
 	}
 
-	protected Class<O> getDefaultType(List<QName> supportedTypes){
+	protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes){
 		return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
 	}
 
@@ -244,7 +282,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	 * selected values array This is a temporary solution until we well be able
 	 * to create "already-chosen" query
 	 */
-	protected void choosePerformed(AjaxRequestTarget target, O object) {
+	protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
 		choosePerformedHook(target, object);
 
 		if (isObjectUnique(object)) {
@@ -264,26 +302,26 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
     protected void initButtons() {
     }
 
-    protected boolean isObjectUnique(O object) {
+    protected <O extends ObjectType> boolean isObjectUnique(O object) {
 
-		T modelObject = getModelObject();
-		if (modelObject instanceof PrismReferenceValue) {
-
-			PrismReferenceValue old = (PrismReferenceValue) modelObject;
-			if (old == null || old.isEmpty()) {
-				return true;
-			}
-
-			return !old.getOid().equals(object.getOid());
-		} else if (modelObject instanceof ObjectReferenceType) {
-			ObjectReferenceType old = (ObjectReferenceType) modelObject;
+		Referencable old = getModelObject();
+//		if (modelObject instanceof PrismReferenceValue) {
+//
+//			PrismReferenceValue old = (PrismReferenceValue) modelObject;
+//			if (old == null || old.isEmpty()) {
+//				return true;
+//			}
+//
+//			return !old.getOid().equals(object.getOid());
+//		} else if (modelObject instanceof ObjectReferenceType) {
+//			ObjectReferenceType old = (ObjectReferenceType) modelObject;
 			if (old == null) {
 				return true;
 			}
 			return !MiscUtil.equals(old.getOid(),object.getOid());
-		}
-
-		return true;
+//		}
+//
+//		return true;
 
 	}
 
@@ -291,7 +329,7 @@ public class ValueChoosePanel<T, O extends ObjectType> extends BasePanel<T> {
 	 * A custom code in form of hook that can be run on event of choosing new
 	 * object with this chooser component
 	 */
-	protected void choosePerformedHook(AjaxRequestTarget target, O object) {
+	protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
 	}
 
 }

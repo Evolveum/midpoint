@@ -228,6 +228,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				return bar != null ? bar : super.createButtonToolbar(id);
 			}
 
+			@Override
+			protected boolean hideFooterIfSinglePage(){
+				return ObjectListPanel.this.hideFooterIfSinglePage();
+			}
+
 		};
 		table.setOutputMarkupId(true);
 		String storageKey = getStorageKey();
@@ -258,7 +263,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(parentPage);
+		IColumn<SelectableBean<O>, String> iconColumn = createIconColumn();
 		columns.add(iconColumn);
 
 		columns.addAll(getCustomColumnsTransformed(customColumns));
@@ -642,6 +647,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
 
+	protected IColumn<SelectableBean<O>, String> createIconColumn(){
+		return (IColumn) ColumnUtils.createIconColumn(parentPage);
+	}
+
 	protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
 
 	protected abstract List<IColumn<SelectableBean<O>, String>> createColumns();
@@ -690,5 +699,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			return null;
 		}
 		return storage.getPaging();
+	}
+
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 }

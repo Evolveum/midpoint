@@ -35,7 +35,6 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -108,6 +107,21 @@ public class MidPointAsserts {
 				if (QNameUtil.match(refType, targetRef.getType())) {
 					if (targetOid.equals(targetRef.getOid())) {
 						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+" while not expecting it");
+					}
+				}
+			}
+		}
+	}
+	
+	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType, QName relation) {
+		F userType = user.asObjectable();
+		for (AssignmentType assignmentType: userType.getAssignment()) {
+			ObjectReferenceType targetRef = assignmentType.getTargetRef();
+			if (targetRef != null) {
+				if (QNameUtil.match(refType, targetRef.getType())) {
+					if (targetOid.equals(targetRef.getOid()) &&
+							getPrismContext().relationMatches(targetRef.getRelation(), relation)) {
+						AssertJUnit.fail(user + " does have assigned "+refType.getLocalPart()+" "+targetOid+", relation "+relation+"while not expecting it");
 					}
 				}
 			}
@@ -288,11 +302,19 @@ public class MidPointAsserts {
 
 	public static <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
 		O userType = user.asObjectable();
-		assertEquals("Unexepected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
+		assertEquals("Unexpected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
 	}
 
+	public static <O extends AssignmentHolderType> void assertHasArchetypes(PrismObject<O> object, int expectedNumber) {
+		O objectable = object.asObjectable();
+		assertEquals("Unexpected number of archetypes in "+object+": "+objectable.getArchetypeRef(), expectedNumber, objectable.getArchetypeRef().size());
+	}
 
-    public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
+	public static <AH extends AssignmentHolderType> void assertHasArchetype(PrismObject<AH> object, String oid) {
+		AssertJUnit.assertTrue(object + " does not have archetype " + oid, ObjectTypeUtil.hasArchetype(object, oid));
+	}
+
+	public static <O extends ObjectType> void assertVersionIncrease(PrismObject<O> objectOld, PrismObject<O> objectNew) {
 		Long versionOld = parseVersion(objectOld);
 		Long versionNew = parseVersion(objectNew);
 		assertTrue("Version not increased (from "+versionOld+" to "+versionNew+")", versionOld < versionNew);

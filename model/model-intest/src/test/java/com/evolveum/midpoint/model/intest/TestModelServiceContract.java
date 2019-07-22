@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.StringUtils;
@@ -137,8 +138,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUserJack(userJack);
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess(result);
 
         assertSteadyResources();
 	}
@@ -160,8 +160,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
         assertUser(userBarbossa, USER_BARBOSSA_OID, "barbossa", "Hector Barbossa", "Hector", "Barbossa");
 
-        result.computeStatus();
-        TestUtil.assertSuccess("getObject result", result);
+        assertSuccess(result);
 
         userBarbossa.checkConsistence(true, true, ConsistencyCheckScope.THOROUGH);
 
@@ -241,6 +240,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-FAILURE", 0); // This should be called, but it is not implemented now
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -292,9 +292,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertDummyAccountShadowModel(accountModel, accountJackOid, "jack", "Jack Sparrow");
 
         // Check account in dummy resource
-        assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+	    DummyAccount dummyAccount = assertDefaultDummyAccount("jack", "Jack Sparrow", true);
+	    display("dummyAccount after", dummyAccount);
 
-        assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
+	    assertDummyScriptsAdd(userAfter, accountModel, getDummyResourceType());
 
         // Check audit
         display("Audit", dummyAuditService);
@@ -890,10 +891,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      */
 	@Test
     public void test121ModifyUserAddAccountRef() throws Exception {
-        TestUtil.displayTestTitle(this, "test121ModifyUserAddAccountRef");
+		final String TEST_NAME = "test121ModifyUserAddAccountRef";
+        displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test121ModifyUserAddAccountRef");
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -901,10 +903,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		        .createEmptyModifyDelta(UserType.class, USER_JACK_OID);
         ReferenceDelta accountDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountJackOid);
 		userDelta.addModification(accountDelta);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
 		// WHEN
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(userDelta, null, task, result);
 
 		// THEN
 		assertSuccess(result);
@@ -1146,11 +1147,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 71);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 76);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
@@ -1188,6 +1188,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertCustomColumn("foo", "test");
+//        dummyAuditService.assertResourceOid(RESOURCE_DUMMY_OID);
         dummyAuditService.assertExecutionSuccess();
 
         // Check notifications
@@ -1347,8 +1349,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.assertExecutionDeltas(0);         // no deltas, as the operation is idempotent
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -1360,7 +1361,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
@@ -1583,8 +1584,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName()
-        		+ "." + TEST_NAME);
+        Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.FULL);
 
@@ -1607,12 +1607,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(deltas, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // There is strong mapping. Complete account is fetched.
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 
@@ -1637,7 +1636,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // Check audit
         display("Audit", dummyAuditService);
-        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(1);
@@ -1658,6 +1657,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
 
         // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
@@ -1740,6 +1740,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertCounterIncrement(InternalCounters.SCRIPT_COMPILE_COUNT, 0);
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -3332,6 +3333,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionSuccess();
 
         assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0); // MID-4779
+        assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
         assertSteadyResources();
     }
 
@@ -3405,6 +3407,47 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSteadyResources();
     }
+
+	@Test   // MID-5516
+	public void test400RemoveExtensionProtectedStringValue() throws Exception {
+		final String TEST_NAME = "test400RemoveExtensionProtectedStringValue";
+		TestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+		preTestCleanup(AssignmentPolicyEnforcementType.FULL);
+
+		ProtectedStringType protectedValue = protector.encryptString("hi");
+		UserType joe = new UserType(prismContext)
+				.name("joe");
+		PrismPropertyDefinition<ProtectedStringType> definition = joe.asPrismObject().getDefinition()
+				.findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, "locker"));
+		PrismProperty<ProtectedStringType> protectedProperty = definition.instantiate();
+		protectedProperty.setRealValue(protectedValue.clone());
+		joe.asPrismObject().addExtensionItem(protectedProperty);
+
+		addObject(joe.asPrismObject());
+
+		display("joe before", joe.asPrismObject());
+
+		// WHEN
+
+		ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+				.item(UserType.F_EXTENSION, "locker")
+				.delete(protectedValue.clone())
+				.asObjectDelta(joe.getOid());
+
+		executeChanges(delta, null, task, result);
+
+		// THEN
+
+		PrismObject<UserType> joeAfter = getObject(UserType.class, joe.getOid());
+
+		display("joe after", joeAfter);
+
+		joeAfter.checkConsistence();
+	}
 
 	private void assertDummyScriptsAdd(PrismObject<UserType> user, PrismObject<? extends ShadowType> account, ResourceType resource) {
 		ProvisioningScriptSpec script = new ProvisioningScriptSpec("\nto spiral :size\n" +

@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -194,7 +195,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
         	staticVal = this.toString();
         }
 
-        log.info("Connected to dummy resource instance {0} ({1} connections open)", resource, resource.getConnectionCount());
+        log.info("Connected connector #{0} to dummy resource instance {1} ({2} connections open)", instanceNumber, resource, resource.getConnectionCount());
     }
     
     private static synchronized int getNextInstanceNumber() {
@@ -210,7 +211,7 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     public void dispose() {
     	connected = false;
     	resource.disconnect();
-    	log.info("Disconnected from dummy resource instance {0} ({1} connections still open)", resource, resource.getConnectionCount());
+    	log.info("Disconnected connector #{0} from dummy resource instance {1} ({2} connections still open)", instanceNumber, resource, resource.getConnectionCount());
     }
 
     @Override
@@ -558,7 +559,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
 	private void buildAttributes(ObjectClassInfoBuilder icfObjClassBuilder, DummyObjectClass dummyObjectClass) {
 		for (DummyAttributeDefinition dummyAttrDef : dummyObjectClass.getAttributeDefinitions()) {
-        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
+			Class<?> attributeClass = dummyAttrDef.getAttributeType();
+			if (dummyAttrDef.isSensitive()) {
+				attributeClass = GuardedString.class;
+			}
+        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), attributeClass);
         	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
         	attrBuilder.setRequired(dummyAttrDef.isRequired());
         	attrBuilder.setReturnedByDefault(dummyAttrDef.isReturnedByDefault());
@@ -739,7 +744,14 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
     	allObjects = sortObjects(allObjects, options);
     	int matchingObjects = 0;
     	int returnedObjects = 0;
+    	
     	// Brute force. Primitive, but efficient.
+    	
+    	// Strictly speaking, iteration over this collection should be synchronized to the map
+    	// that it came from (e.g. account map in the dummy resource). However, we do not really care.
+    	// Some non-deterministic search results should not harm much, midPoint should be able to recover.
+    	// And in fact, we might want some non-deterministic results to increase the chance of test failures
+    	// (especially parallel tests).
         for (T object : allObjects) {
         	ConnectorObject co = converter.convert(object, attributesToGet);
         	if (matches(query, co)) {
@@ -848,7 +860,11 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 			recorder.accept(object);
 		}
 		co = filterOutAttributesToGet(co, object, attributesToGet, options.getReturnDefaultAttributes());
-		return handler.handle(co);
+		resource.searchHandlerSync();
+		log.info("HANDLE:START: {0}", object.getName());
+		boolean ret = handler.handle(co);
+		log.info("HANDLE:END: {0}", object.getName());
+		return ret;
 	}
 
 	private boolean isEqualsFilter(Filter icfFilter, String icfAttrname) {
@@ -1084,9 +1100,13 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	        		throw new IllegalStateException("Unknown delta type "+delta.getType());
 	        	}
 	        	deltaBuilder.setDeltaType(deltaType);
-	
-	        	deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
-	
+
+	        	if (configuration.isImpreciseTokenValues()) {
+			        deltaBuilder.setToken(new SyncToken(resource.getLatestSyncToken()));
+		        } else {
+			        deltaBuilder.setToken(new SyncToken(delta.getSyncToken()));
+		        }
+
 	        	Uid uid;
 	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
 		        	uid = new Uid(delta.getObjectName());
@@ -1103,7 +1123,9 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 	
 	        	SyncDelta syncDelta = deltaBuilder.build();
 	        	log.info("sync::handle {0}",syncDelta);
-				handler.handle(syncDelta);
+				if (!handler.handle(syncDelta)) {
+					break;
+				}
 	        }
 
 		} catch (ConnectException e) {
@@ -1209,12 +1231,22 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 				}
 			}
 			// Return all attributes that are returned by default. We will filter them out later.
-			Set<Object> values = dummyObject.getAttributeValues(name, Object.class);
+			Set<Object> values = toConnIdAttributeValues(name, attrDef, dummyObject.getAttributeValues(name, Object.class));
 			if (configuration.isVaryLetterCase()) {
 				name = varyLetterCase(name);
 			}
-			if (values != null && !values.isEmpty()) {
-				builder.addAttribute(name, values);
+			AttributeBuilder attributeBuilder = new AttributeBuilder();
+			attributeBuilder.setName(name);
+			attributeBuilder.addValue(values);
+			boolean store;
+			if (attrDef.isReturnedAsIncomplete()) {
+				attributeBuilder.setAttributeValueCompleteness(AttributeValueCompleteness.INCOMPLETE);
+				store = true;
+			} else {
+				store = values != null && !values.isEmpty();
+			}
+			if (store) {
+				builder.addAttribute(attributeBuilder.build());
 			}
 		}
 
@@ -1248,6 +1280,17 @@ public abstract class AbstractDummyConnector implements PoolableConnector, Authe
 
 	   return builder;
    }
+
+	private Set<Object> toConnIdAttributeValues(String name, DummyAttributeDefinition attrDef, Set<Object> dummyAttributeValues) {
+		if (dummyAttributeValues == null || dummyAttributeValues.isEmpty()) {
+			return dummyAttributeValues;
+		}
+		if (attrDef.isSensitive()) {
+			return dummyAttributeValues.stream().map(val -> new GuardedString(((String)val).toCharArray())).collect(Collectors.toSet());
+		} else {
+			return dummyAttributeValues;
+		}
+	}
 
 	protected void addAdditionalCommonAttributes(ConnectorObjectBuilder builder, DummyObject dummyObject) {
 		String connectorInstanceNumberAttribute = getConfiguration().getConnectorInstanceNumberAttribute();

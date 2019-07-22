@@ -19,6 +19,7 @@ package com.evolveum.midpoint.gui.impl.component.icon;
 import java.io.Serializable;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -29,21 +30,23 @@ public class CompositedIcon implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	private String basicIcon;
-	private List<String> layerIcons;
+	private List<IconType> layerIcons;
 	private String basicIconHtmlColor = "";
+	private String title = "";
 	
 	
-	public CompositedIcon(String basicIcon, List<String> layerIcons, String basicIconHtmlColor){
+	public CompositedIcon(String basicIcon, List<IconType> layerIcons, String basicIconHtmlColor, String title){
 		this.basicIcon = basicIcon;
 		this.layerIcons = layerIcons;
 		this.basicIconHtmlColor = basicIconHtmlColor;
+		this.title = title;
 	}
 	
 	public String getBasicIcon() {
 		return basicIcon;
 	}
 	
-	public List<String> getLayerIcons() {
+	public List<IconType> getLayerIcons() {
 		return layerIcons;
 	}
 
@@ -61,5 +64,9 @@ public class CompositedIcon implements Serializable {
 
 	public boolean hasBasicIconHtmlColor() {
 		return StringUtils.isNotEmpty(getBasicIconHtmlColor());
+	}
+	
+	public String getTitle() {
+		return title;
 	}
 }

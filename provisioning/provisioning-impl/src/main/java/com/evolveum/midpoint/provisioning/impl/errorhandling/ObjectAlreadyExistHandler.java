@@ -128,38 +128,38 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 		
 		// TODO: this probably should NOT be a subresult of parentResult. We probably want new result (and maybe also task) here.
 		OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
+		try {
+			
+			ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable());
+			
+			final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
+			PrismObject<ShadowType> oldShadow = shadowManager.eliminateDeadShadows(conflictingRepoShadows, result);
+			if (oldShadow != null) {
+				shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
+			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ShadowUtil.shortDumpShadow(newShadow));
+			}
+			
+			final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
+			PrismObject<ShadowType> conflictingShadow = shadowManager.eliminateDeadShadows(conflictingResourceShadows, result);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow, conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDump(1));
+			}
+			
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadow(conflictingShadow));
+			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
+						newShadow.debugDump(1), 
+						oldShadow==null ? "  null" : oldShadow.debugDump(1),
+						conflictingShadow==null ? "  null" : conflictingShadow.debugDump(1));
+			}
 		
-		ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable());
-		
-		final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
-		PrismObject<ShadowType> oldShadow = shadowManager.eliminateDeadShadows(conflictingRepoShadows, result);
-		if (oldShadow != null) {
-			shadowCaretaker.applyAttributesDefinition(ctx, oldShadow);
-		}
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("DISCOVERY: looking for conflicting shadow for {}",  ShadowUtil.shortDumpShadow(newShadow));
-		}
-		
-		final List<PrismObject<ShadowType>> conflictingResourceShadows = findConflictingShadowsOnResource(query, task, result);
-		PrismObject<ShadowType> conflictingShadow = shadowManager.eliminateDeadShadows(conflictingResourceShadows, result);
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("DISCOVERY: found conflicting shadow for {}:\n{}", newShadow, conflictingShadow==null?"  no conflicting shadow":conflictingShadow.debugDump(1));
-		}
-		
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("DISCOVERY: discovered new shadow {}", ShadowUtil.shortDumpShadow(conflictingShadow));
-		}
-		
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Processing \"already exists\" error for shadow:\n{}\nConflicting repo shadow:\n{}\nConflicting resource shadow:\n{}",
-					newShadow.debugDump(1), 
-					oldShadow==null ? "  null" : oldShadow.debugDump(1),
-					conflictingShadow==null ? "  null" : conflictingShadow.debugDump(1));
-		}
-		
-		try{
 			if (conflictingShadow != null) {
 				// Original object and found object share the same object class, therefore they must
 				// also share a kind. We can use this short-cut.
@@ -170,13 +170,11 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 				change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
 				change.setOldShadow(oldShadow);
 				change.setCurrentShadow(conflictingShadow);
-				// TODO: task initialization
-//				Task task = taskManager.createTaskInstance();
 				changeNotificationDispatcher.notifyChange(change, task, result);
 			}
-			} finally {
-				result.computeStatus();
-			}
+		} finally {
+			result.computeStatus();
+		}
 	}
 	
 	// TODO: maybe move to ShadowManager?
@@ -214,11 +212,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	 */
 	private List<PrismObject<ShadowType>> findConflictingShadowsInRepo(ObjectQuery query, Task task, OperationResult parentResult)
 			throws SchemaException {
-		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
-		
-		repositoryService.searchObjectsIterative(ShadowType.class, query, (object,result) -> foundAccount.add(object), null, true, parentResult);
-		
-		return foundAccount;
+		return repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 	}
 	
 	/**
@@ -228,13 +222,9 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
 	private List<PrismObject<ShadowType>> findConflictingShadowsOnResource(ObjectQuery query, Task task, OperationResult parentResult)
 		throws ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException,
 				SecurityViolationException, ExpressionEvaluationException {
-		final List<PrismObject<ShadowType>> foundAccount = new ArrayList<>();
-		
 		// noDiscovery option to avoid calling notifyChange from ShadowManager (in case that new resource object is discovered)
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
-		provisioningService.searchObjectsIterative(ShadowType.class, query, options, (object,result) -> foundAccount.add(object), task, parentResult);
-		
-		return foundAccount;
+		return provisioningService.searchObjects(ShadowType.class, query, options, task, parentResult);
 	}
 	
 	@Override

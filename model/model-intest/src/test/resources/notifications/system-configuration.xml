@@ -217,6 +217,31 @@ Channel: $!event.channel</code>
             <expressionFilter>
                 <script>
                     <code>
+                        event.subtype == 'get-via-proxy'
+                    </code>
+                </script>
+            </expressionFilter>
+            <customNotifier>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            m = new NotificationMessageType()
+                            m.setFrom("+421999000999")
+                            m.getTo().add("+421905123456")
+                            m.setBody(String.valueOf(event.object))
+                            m
+                        </code>
+                    </script>
+                </expression>
+                <transport>sms:with-get-via-proxy</transport>
+            </customNotifier>
+        </handler>
+        <handler>
+            <category>customEvent</category>
+            <expressionFilter>
+                <script>
+                    <code>
                         event.subtype == 'post'
                     </code>
                 </script>
@@ -390,6 +415,21 @@ Channel: $!event.channel</code>
                         <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
                     </script>
                 </urlExpression>
+				<logToFile>target/sms.log</logToFile>
+            </gateway>
+        </sms>
+        <sms name="with-get-via-proxy">
+            <gateway>
+                <urlExpression>
+                    <script>
+                        <!-- $$port$$ is replaced by actual port on test class initialization -->
+                        <code>"http://127.0.0.1:$$port$$/send?number=" + encodedTo + "&amp;text=" + encodedMessageText</code>
+                    </script>
+                </urlExpression>
+                <proxyHost>127.0.0.1</proxyHost>
+                <proxyPort>$$port$$</proxyPort>
+                <proxyUsername>a9038321</proxyUsername>
+                <proxyPassword>5ecr3t</proxyPassword>
 				<logToFile>target/sms.log</logToFile>
             </gateway>
         </sms>

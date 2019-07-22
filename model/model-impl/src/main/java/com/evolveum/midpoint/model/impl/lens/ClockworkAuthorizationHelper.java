@@ -37,11 +37,11 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.enforcer.api.AccessDecision;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
@@ -245,9 +245,9 @@ public class ClockworkAuthorizationHelper {
 			LOGGER.trace("Security decision for {} items: {}", assignmentElementQName.getLocalPart(), assignmentItemDecision);
 			if (assignmentItemDecision == AccessDecision.ALLOW) {
 				// Nothing to do, operation is allowed for all values
-				LOGGER.debug("Allow assignment/unassignment to {} becasue access to {} container/properties is explicitly allowed", assignmentElementQName.getLocalPart(), object);
+				LOGGER.debug("Allow assignment/unassignment to {} because access to {} container/properties is explicitly allowed", assignmentElementQName.getLocalPart(), object);
 			} else if (assignmentItemDecision == AccessDecision.DENY) {
-				LOGGER.debug("Deny assignment/unassignment to {} becasue access to {} container/properties is explicitly denied", assignmentElementQName.getLocalPart(), object);
+				LOGGER.debug("Deny assignment/unassignment to {} because access to {} container/properties is explicitly denied", assignmentElementQName.getLocalPart(), object);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Denied request for element context {}: access to {} container/properties is explicitly denied", elementContext.getHumanReadableName(), assignmentElementQName.getLocalPart());
 				}

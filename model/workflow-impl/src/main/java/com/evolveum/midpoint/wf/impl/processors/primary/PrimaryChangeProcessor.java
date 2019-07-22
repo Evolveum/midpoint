@@ -18,49 +18,61 @@ package com.evolveum.midpoint.wf.impl.processors.primary;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
-import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.impl.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.impl.messages.TaskEvent;
-import com.evolveum.midpoint.wf.impl.processes.common.WfStageComputeHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseAuditHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseChangeProcessor;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.impl.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.api.request.OpenCaseRequest;
+import com.evolveum.midpoint.wf.impl.engine.EngineInvocationContext;
+import com.evolveum.midpoint.wf.impl.engine.WorkflowEngine;
+import com.evolveum.midpoint.wf.impl.engine.helpers.AuditHelper;
+import com.evolveum.midpoint.wf.impl.execution.CaseOperationExecutionTaskHandler;
+import com.evolveum.midpoint.wf.impl.execution.ExecutionHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.StageComputeHelper;
+import com.evolveum.midpoint.wf.impl.processors.*;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.wf.impl.tasks.WfTask;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskController;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskCreationInstruction;
-import com.evolveum.midpoint.wf.impl.tasks.WfTaskUtil;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.audit.api.AuditEventStage.REQUEST;
 import static com.evolveum.midpoint.model.api.context.ModelState.PRIMARY;
-import static com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor.ExecutionMode.*;
 
 /**
  * @author mederly
@@ -70,24 +82,26 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
-	@Autowired private BaseConfigurationHelper baseConfigurationHelper;
-	@Autowired private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
-	@Autowired private BaseAuditHelper baseAuditHelper;
-	@Autowired private WfTaskUtil wfTaskUtil;
-	@Autowired private WfTaskController wfTaskController;
-	@Autowired private WfStageComputeHelper stageComputeHelper;
+	@Autowired private ConfigurationHelper configurationHelper;
+	@Autowired private ModelHelper modelHelper;
+	@Autowired private AuditHelper auditHelper;
+	@Autowired private StageComputeHelper stageComputeHelper;
+	@Autowired private PcpGeneralHelper generalHelper;
+	@Autowired private MiscHelper miscHelper;
+	@Autowired private ExecutionHelper executionHelper;
+	@Autowired private TaskManager taskManager;
+	@Autowired
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
+	@Autowired private WorkflowEngine workflowEngine;
 
     private List<PrimaryChangeAspect> allChangeAspects = new ArrayList<>();
-
-    public enum ExecutionMode {
-        ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED
-    }
 
     //region Configuration
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        baseConfigurationHelper.registerProcessor(this);
+        configurationHelper.registerProcessor(this);
     }
     //endregion
 
@@ -95,108 +109,141 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Processing model invocation
 
 	// beware, may damage model context during execution
-	public List<PcpChildWfTaskCreationInstruction<?>> previewModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
-			@NotNull Task opTask, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		List<PcpChildWfTaskCreationInstruction<?>> rv = new ArrayList<>();
-		previewOrProcessModelInvocation(context, wfConfigurationType, true, rv, opTask, result);
+	public List<PcpStartInstruction> previewModelInvocation(@NotNull ModelInvocationContext<?> context,
+			@NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		List<PcpStartInstruction> rv = new ArrayList<>();
+		previewOrProcessModelInvocation(context, true, rv, result);
 		return rv;
 	}
 
     @Override
-    public HookOperationMode processModelInvocation(@NotNull ModelContext<?> context, WfConfigurationType wfConfigurationType,
-			@NotNull Task taskFromModel, @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	if (context.getState() != PRIMARY) {
+    public HookOperationMode processModelInvocation(@NotNull ModelInvocationContext<?> ctx, @NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+		    ConfigurationException, SecurityViolationException {
+	    if (ctx.modelContext.getState() == PRIMARY) {
+		    return previewOrProcessModelInvocation(ctx, false, null, result);
+	    } else {
     		return null;
 	    }
-	    return previewOrProcessModelInvocation(context, wfConfigurationType, false, null, taskFromModel, result);
     }
 
-    // quite a mess (code tangling) - will sort that out later
-    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelContext<O> context,
-		    WfConfigurationType wfConfigurationType,
-		    boolean previewOnly, List<PcpChildWfTaskCreationInstruction<?>> childTaskInstructionsHolder, @NotNull Task taskFromModel,
-		    @NotNull OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <O extends ObjectType> HookOperationMode previewOrProcessModelInvocation(@NotNull ModelInvocationContext<O> ctx,
+		    boolean previewOnly, List<PcpStartInstruction> startInstructionsHolder, @NotNull OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+		    ConfigurationException, SecurityViolationException {
 
-        if (context.getFocusContext() == null) {
+        if (ctx.modelContext.getFocusContext() == null) {
             return null;
         }
-		PrimaryChangeProcessorConfigurationType processorConfigurationType =
-				wfConfigurationType != null ? wfConfigurationType.getPrimaryChangeProcessor() : null;
 
-		if (processorConfigurationType != null && Boolean.FALSE.equals(processorConfigurationType.isEnabled())) {
+		PrimaryChangeProcessorConfigurationType processorConfig =
+				ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
+		if (processorConfig != null && Boolean.FALSE.equals(processorConfig.isEnabled())) {
 			LOGGER.debug("Primary change processor is disabled.");
 			return null;
 		}
 
-		ObjectTreeDeltas<O> objectTreeDeltas = baseModelInvocationProcessingHelper.extractTreeDeltasFromModelContext(context);
+		ObjectTreeDeltas<O> objectTreeDeltas = ctx.modelContext.getTreeDeltas();
         if (objectTreeDeltas.isEmpty()) {
             return null;
         }
 
         // examine the request using process aspects
-
         ObjectTreeDeltas<O> changesBeingDecomposed = objectTreeDeltas.clone();
-        ModelInvocationContext<O> ctx = new ModelInvocationContext<>(getPrismContext(), context, wfConfigurationType, taskFromModel);
-        List<PcpChildWfTaskCreationInstruction<?>> childTaskInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
+        List<PcpStartInstruction> startInstructions = gatherStartInstructions(changesBeingDecomposed, ctx, result);
 
         // start the process(es)
-        removeEmptyProcesses(childTaskInstructions, ctx, result);
-        if (childTaskInstructions.isEmpty()) {
+        removeEmptyProcesses(startInstructions, ctx, result);
+        if (startInstructions.isEmpty()) {
             LOGGER.debug("There are no workflow processes to be started, exiting.");
             return null;
         }
         if (previewOnly) {
-        	childTaskInstructionsHolder.addAll(childTaskInstructions);
+        	startInstructionsHolder.addAll(startInstructions);
         	return null;
         } else {
-	        return submitTasks(childTaskInstructions, context, changesBeingDecomposed, taskFromModel, wfConfigurationType, result);
+	        return executeStartInstructions(startInstructions, ctx, changesBeingDecomposed, result);
         }
     }
 
-    private void removeEmptyProcesses(List<PcpChildWfTaskCreationInstruction<?>> instructions, ModelInvocationContext ctx,
-            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
-		for (Iterator<PcpChildWfTaskCreationInstruction<?>> iterator = instructions.iterator(); iterator.hasNext(); ) {
-			PcpChildWfTaskCreationInstruction instruction = iterator.next();
-			instruction.createProcessorContent();		// brutal hack
+    private void removeEmptyProcesses(List<PcpStartInstruction> instructions, ModelInvocationContext ctx,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+		    CommunicationException, ConfigurationException, SecurityViolationException {
+		for (Iterator<PcpStartInstruction> iterator = instructions.iterator(); iterator.hasNext(); ) {
+			PcpStartInstruction instruction = iterator.next();
 			if (instruction.startsWorkflowProcess() &&
-					instruction.getProcessContent().checkEmpty(instruction, stageComputeHelper, ctx, result)) {
+					isEmpty(instruction, stageComputeHelper, ctx, result)) {
 				LOGGER.debug("Skipping empty processing instruction: {}", DebugUtil.debugDumpLazily(instruction));
 				iterator.remove();
 			}
 		}
     }
 
-    private <O extends ObjectType> List<PcpChildWfTaskCreationInstruction<?>> gatherStartInstructions(@NotNull ObjectTreeDeltas<O> changesBeingDecomposed,
-			ModelInvocationContext<O> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+	// skippability because of no approvers was already tested; see ApprovalSchemaHelper.shouldBeSkipped
+	public boolean isEmpty(PcpStartInstruction instruction,
+			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		ApprovalContextType actx = instruction.getApprovalContext();
+		if (actx == null) {
+			return true;
+		}
+		List<ApprovalStageDefinitionType> stages = ApprovalContextUtil.getStages(actx.getApprovalSchema());
+		// first pass: if there is any stage that is obviously not skippable, let's return false without checking the expressions
+		for (ApprovalStageDefinitionType stage : stages) {
+			if (stage.getAutomaticallyCompleted() == null) {
+				return false;
+			}
+		}
+		// second pass: check the conditions
+		for (ApprovalStageDefinitionType stage : stages) {
+			if (!SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(
+					evaluateAutoCompleteExpression(instruction.getCase(), stage, instruction, stageComputeHelper, ctx, result))) {
+				return false;
+			}
+		}
+		return true;
+	}
 
+	private String evaluateAutoCompleteExpression(CaseType aCase,
+			ApprovalStageDefinitionType stageDef, PcpStartInstruction instruction,
+			StageComputeHelper stageComputeHelper, ModelInvocationContext ctx, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+		ExpressionVariables variables = stageComputeHelper.getDefaultVariables(aCase, instruction.getApprovalContext(), ctx.task.getChannel(), result);
+		return stageComputeHelper.evaluateAutoCompleteExpression(stageDef, variables, ctx.task, result);
+	}
+
+
+	private <O extends ObjectType> List<PcpStartInstruction> gatherStartInstructions(
+    		@NotNull ObjectTreeDeltas<O> changesBeingDecomposed, @NotNull ModelInvocationContext<O> ctx,
+		    @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrimaryChangeProcessorConfigurationType processorConfigurationType =
                 ctx.wfConfiguration != null ? ctx.wfConfiguration.getPrimaryChangeProcessor() : null;
-
-        List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions = new ArrayList<>();
+        List<PcpStartInstruction> startProcessInstructions = new ArrayList<>();
         for (PrimaryChangeAspect aspect : getActiveChangeAspects(processorConfigurationType)) {
             if (changesBeingDecomposed.isEmpty()) {      // nothing left
                 break;
             }
-            List<PcpChildWfTaskCreationInstruction<?>> instructions = aspect.prepareTasks(changesBeingDecomposed, ctx, result);
+            List<PcpStartInstruction> instructions = aspect.getStartInstructions(changesBeingDecomposed, ctx, result);
             logAspectResult(aspect, instructions, changesBeingDecomposed);
             startProcessInstructions.addAll(instructions);
         }
         return startProcessInstructions;
     }
 
-	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType processorConfigurationType) {
-        return getAllChangeAspects().stream()
-				.filter(aspect -> aspect.isEnabled(processorConfigurationType)).collect(Collectors.toList());
+	private Collection<PrimaryChangeAspect> getActiveChangeAspects(PrimaryChangeProcessorConfigurationType configuration) {
+        return allChangeAspects.stream()
+				.filter(aspect -> aspect.isEnabled(configuration))
+		        .collect(Collectors.toList());
     }
 
-    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends WfTaskCreationInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
+    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends StartInstruction> instructions, ObjectTreeDeltas changesBeingDecomposed) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("\n---[ Aspect {} returned the following process start instructions (count: {}) ]---", aspect.getClass(), instructions == null ? "(null)" : instructions.size());
+            LOGGER.trace("\n---[ Aspect {} returned the following process start instructions (count: {}) ]---",
+		            aspect.getClass(), instructions == null ? "(null)" : instructions.size());
             if (instructions != null) {
-                for (WfTaskCreationInstruction instruction : instructions) {
+                for (StartInstruction instruction : instructions) {
                     LOGGER.trace(instruction.debugDump(0));
                 }
                 LOGGER.trace("Remaining delta(s):\n{}", changesBeingDecomposed.debugDump());
@@ -204,257 +251,302 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode submitTasks(List<PcpChildWfTaskCreationInstruction<?>> instructions, final ModelContext context,
-			final ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, WfConfigurationType wfConfigurationType, OperationResult result) {
-
+    private HookOperationMode executeStartInstructions(List<PcpStartInstruction> instructions, ModelInvocationContext<?> ctx,
+		    ObjectTreeDeltas<?> changesWithoutApproval, OperationResult result) {
         try {
+			// prepare root case and case0
+            CaseType rootCase = addRoot(ctx, result);
+	        PcpStartInstruction instruction0 = createInstruction0(ctx, changesWithoutApproval, rootCase);
+            CaseType case0 = instruction0 != null ? modelHelper.addCase(instruction0, ctx.task, result) : null;
 
-			ExecutionMode executionMode = determineExecutionMode(instructions);
+	        CaseType objectCreationCase = instruction0 != null && instruction0.isObjectCreationInstruction() ? case0 : null;
 
-			// prepare root task and task0
-            WfTask rootWfTask = submitRootTask(context, changesWithoutApproval, taskFromModel, executionMode, wfConfigurationType, result);
-            WfTask wfTask0 = submitTask0(context, changesWithoutApproval, rootWfTask, executionMode, wfConfigurationType, result);
+            List<CaseType> allSubcases = new ArrayList<>(instructions.size() + 1);
+	        CollectionUtils.addIgnoreNull(allSubcases, case0);
 
-	        WfTask objectCreationTask = null;
+	        List<String> casesToStart = new ArrayList<>();
 
-            // start the jobs
-            List<WfTask> wfTasks = new ArrayList<>(instructions.size());
-            for (PcpChildWfTaskCreationInstruction instruction : instructions) {
-				if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
-					// if we want to execute approved changes immediately in this instruction, we have to wait for
-					// task0 and/or object creation task
-					instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
-				}
-				WfTask wfTask = wfTaskController.submitWfTask(instruction, rootWfTask.getTask(), wfConfigurationType, null, result);
-                wfTasks.add(wfTask);
+	        // create the regular (approval) child cases
+            for (PcpStartInstruction instruction : instructions) {
+            	instruction.setParent(rootCase);
+				CaseType subCase = modelHelper.addCase(instruction, ctx.task, result);
+                allSubcases.add(subCase);
                 if (instruction.isObjectCreationInstruction()) {
-                	objectCreationTask = wfTask;
+	                if (objectCreationCase == null) {
+		                objectCreationCase = subCase;
+	                } else {
+                		throw new IllegalStateException("More than one case that creates the object: " +
+				                objectCreationCase + " and " + subCase);
+	                }
+                }
+                if (instruction.startsWorkflowProcess()) {
+                	casesToStart.add(subCase.getOid());
                 }
             }
 
-            // all jobs depend on job0 (if there is one)
-            if (wfTask0 != null) {
-                for (WfTask wfTask : wfTasks) {
-                    wfTask0.addDependent(wfTask);
-                }
-                wfTask0.commitChanges(result);
-            }
-	        // all jobs depend on object creation task (if there is one)
-            if (objectCreationTask != null) {
-	            for (WfTask wfTask : wfTasks) {
-	            	if (wfTask != objectCreationTask) {
-			            objectCreationTask.addDependent(wfTask);
-		            }
-	            }
-	            objectCreationTask.commitChanges(result);
-            }
+            // create dependencies
+	        for (CaseType subcase : allSubcases) {
+	        	List<CaseType> prerequisites = new ArrayList<>();
+		        if (objectCreationCase != null && objectCreationCase != subcase) {
+		        	prerequisites.add(objectCreationCase);
+		        }
+		        if (case0 != null && case0 != objectCreationCase && case0 != subcase) {
+		        	prerequisites.add(case0);
+		        }
+		        generalHelper.addPrerequisites(subcase, prerequisites, result);
+	        }
 
-            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootWfTask, result);
-            rootWfTask.startWaitingForSubtasks(result);
+	        modelHelper.logJobsBeforeStart(rootCase, ctx.task, result);
+
+	        if (case0 != null) {
+	        	if (ModelExecuteOptions.isExecuteImmediatelyAfterApproval(ctx.modelContext.getOptions())) {
+	        		submitExecutionTask(case0, false, result);
+		        } else {
+	        		executionHelper.closeCaseInRepository(case0, result);
+		        }
+	        }
+
+	        LOGGER.trace("Starting the cases: {}", casesToStart);
+	        for (String caseToStart : casesToStart) {
+	        	workflowEngine.executeRequest(new OpenCaseRequest(caseToStart), ctx.task, result);
+	        }
+
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|CommunicationException|ConfigurationException|RuntimeException|ExpressionEvaluationException e) {
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | SecurityViolationException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
 
-            // todo rollback - at least close open tasks, maybe stop workflow process instances
+            // todo rollback - e.g. delete already created cases
         }
     }
 
-    private WfTask submitRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, Task taskFromModel, ExecutionMode executionMode,
-			WfConfigurationType wfConfigurationType, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
-        LensContext lensContextForRootTask = determineLensContextForRootTask(context, changesWithoutApproval, executionMode);
-        WfTaskCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, lensContextForRootTask, result);
-		if (executionMode != ALL_IMMEDIATELY) {
-			instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
-		}
-		return baseModelInvocationProcessingHelper.submitRootTask(instructionForRoot, taskFromModel, wfConfigurationType, result);
+    private CaseType addRoot(ModelInvocationContext<?> ctx, OperationResult result)
+		    throws SchemaException, ObjectAlreadyExistsException {
+	    LensContext<?> contextForRoot = contextCopyWithNoDelta(ctx.modelContext);
+        StartInstruction instructionForRoot =
+		        modelHelper.createInstructionForRoot(this, ctx, contextForRoot, result);
+		return modelHelper.addRoot(instructionForRoot, ctx.task, result);
     }
 
-    // Child task0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
-    private WfTask submitTask0(ModelContext context, ObjectTreeDeltas changesWithoutApproval, WfTask rootWfTask, ExecutionMode executionMode,
-			WfConfigurationType wfConfigurationType, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty() && executionMode != ALL_AFTERWARDS) {
-            ModelContext task0context = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
-            WfTaskCreationInstruction<?, ?> instruction0 = WfTaskCreationInstruction.createModelOnly(rootWfTask.getChangeProcessor(), task0context);
-            instruction0.setTaskName("Executing changes that do not require approval");
-	        instruction0.setObjectRef(context, result);
-			return wfTaskController.submitWfTask(instruction0, rootWfTask, wfConfigurationType, result);
+    private PcpStartInstruction createInstruction0(ModelInvocationContext<?> ctx, ObjectTreeDeltas<?> changesWithoutApproval,
+		    CaseType rootCase) throws SchemaException {
+        if (changesWithoutApproval != null && !changesWithoutApproval.isEmpty()) {
+            PcpStartInstruction instruction0 = PcpStartInstruction.createEmpty(this, SystemObjectsType.ARCHETYPE_APPROVAL_CASE.value());
+            instruction0.setName("Changes that do not require approval");
+	        instruction0.setObjectRef(ctx);
+	        instruction0.setDeltasToApprove(changesWithoutApproval);
+	        instruction0.setResultingDeltas(changesWithoutApproval);
+	        instruction0.setParent(rootCase);
+	        instruction0.setExecuteApprovedChangeImmediately(ctx.modelContext);
+			return instruction0;
         } else {
             return null;
         }
     }
 
-    private LensContext determineLensContextForRootTask(ModelContext context, ObjectTreeDeltas changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
-        LensContext contextForRootTask;
-        if (executionMode == ALL_AFTERWARDS) {
-            contextForRootTask = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
-        } else if (executionMode == MIXED) {
-            contextForRootTask = contextCopyWithNoDelta(context);
-        } else {
-            contextForRootTask = null;
-        }
-        return contextForRootTask;
-    }
+//    private LensContext determineLensContextForRootCase(ModelContext context, ObjectTreeDeltas changesWithoutApproval, ExecutionMode executionMode) throws SchemaException {
+//        LensContext contextForRootTask;
+//        if (executionMode == ALL_AFTERWARDS) {
+//            contextForRootTask = contextCopyWithDeltasReplaced(context, changesWithoutApproval);
+//        } else if (executionMode == MIXED) {
+//            contextForRootTask = contextCopyWithNoDelta(context);
+//        } else {
+//            contextForRootTask = null;
+//        }
+//        return contextForRootTask;
+//    }
+//
+//    private LensContext contextCopyWithDeltasReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
+//        Validate.notNull(changes, "changes");
+//        LensContext contextCopy = ((LensContext) context).clone();
+//
+//        contextCopy.replacePrimaryFocusDelta(changes.getFocusChange());
+//        Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> changeMap = changes.getProjectionChangeMap();
+//        Collection<ModelProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
+//        for (ModelProjectionContext projectionContext : projectionContexts) {
+//            ObjectDelta<ShadowType> projectionDelta = changeMap.get(projectionContext.getResourceShadowDiscriminator());
+//            projectionContext.setPrimaryDelta(projectionDelta);
+//        }
+//	    contextCopy.deleteSecondaryDeltas();
+//        return contextCopy;
+//    }
 
-    private LensContext contextCopyWithDeltasReplaced(ModelContext context, ObjectTreeDeltas changes) throws SchemaException {
-        Validate.notNull(changes, "changes");
-        LensContext contextCopy = ((LensContext) context).clone();
-
-        contextCopy.replacePrimaryFocusDelta(changes.getFocusChange());
-        Map<ResourceShadowDiscriminator, ObjectDelta<ShadowType>> changeMap = changes.getProjectionChangeMap();
-        Collection<ModelProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
-        for (ModelProjectionContext projectionContext : projectionContexts) {
-            ObjectDelta<ShadowType> projectionDelta = changeMap.get(projectionContext.getResourceShadowDiscriminator());
-            projectionContext.setPrimaryDelta(projectionDelta);
-        }
-	    contextCopy.deleteSecondaryDeltas();
-        return contextCopy;
-    }
-
-    public LensContext contextCopyWithNoDelta(ModelContext context) {
-        LensContext contextCopy = ((LensContext) context).clone();
+    private LensContext contextCopyWithNoDelta(ModelContext<?> context) {
+        LensContext<?> contextCopy = ((LensContext<?>) context).clone();
         contextCopy.replacePrimaryFocusDelta(null);
         Collection<LensProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
-        for (ModelProjectionContext projectionContext : projectionContexts) {
-            projectionContext.setPrimaryDelta(null);
-        }
+	    for (Iterator<LensProjectionContext> iterator = projectionContexts.iterator(); iterator.hasNext(); ) {
+		    ModelProjectionContext projectionContext = iterator.next();
+		    if (projectionContext.getPrimaryDelta() == null && ObjectDelta.isEmpty(projectionContext.getSyncDelta())) {
+		    	iterator.remove();
+		    } else {
+			    projectionContext.setPrimaryDelta(null);
+		    }
+	    }
         contextCopy.deleteSecondaryDeltas();
         return contextCopy;
-    }
-
-    private ExecutionMode determineExecutionMode(List<PcpChildWfTaskCreationInstruction<?>> instructions) {
-        ExecutionMode executionMode;
-        if (shouldAllExecuteImmediately(instructions)) {
-            executionMode = ALL_IMMEDIATELY;
-        } else if (shouldAllExecuteAfterwards(instructions)) {
-            executionMode = ALL_AFTERWARDS;
-        } else {
-            executionMode = MIXED;
-        }
-        return executionMode;
-    }
-
-    private boolean shouldAllExecuteImmediately(List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions) {
-        for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
-            if (!instruction.isExecuteApprovedChangeImmediately()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean shouldAllExecuteAfterwards(List<PcpChildWfTaskCreationInstruction<?>> startProcessInstructions) {
-        for (PcpChildWfTaskCreationInstruction instruction : startProcessInstructions) {
-            if (instruction.isExecuteApprovedChangeImmediately()) {
-                return false;
-            }
-        }
-        return true;
     }
     //endregion
 
     //region Processing process finish event
-    @Override
-    public void onProcessEnd(ProcessEvent event, WfTask wfTask, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        PcpWfTask pcpJob = new PcpWfTask(wfTask);
-        PrimaryChangeAspect aspect = pcpJob.getChangeAspect();
 
-        pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
+	/**
+	 * This method is called OUTSIDE the workflow engine computation - i.e. changes are already committed into repository.
+	 */
+    @Override
+    public void onProcessEnd(EngineInvocationContext ctx, OperationResult result)
+		    throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, PreconditionViolationException {
+	    CaseType currentCase = ctx.getCurrentCase();
+
+	    ObjectTreeDeltas<?> deltas = prepareDeltaOut(currentCase);
+	    generalHelper.storeResultingDeltas(currentCase, deltas, result);
+	    // note: resulting deltas are not stored in currentCase object (these are in repo only)
+
+	    // here we should execute the deltas, if appropriate!
+
+	    CaseType rootCase = generalHelper.getRootCase(currentCase, result);
+	    if (CaseTypeUtil.isClosed(rootCase)) {
+	    	LOGGER.debug("Root case ({}) is already closed; not starting any execution tasks for {}", rootCase, currentCase);
+		    executionHelper.closeCaseInRepository(currentCase, result);
+	    } else {
+		    LensContextType modelContext = rootCase.getModelContext();
+		    if (modelContext == null) {
+			    throw new IllegalStateException("No model context in root case " + rootCase);
+		    }
+		    boolean immediately = modelContext.getOptions() != null &&
+				    Boolean.TRUE.equals(modelContext.getOptions().isExecuteImmediatelyAfterApproval());
+		    if (immediately) {
+			    if (deltas != null) {
+				    LOGGER.debug("Case {} is approved with immediate execution -- let's start the process", currentCase);
+				    boolean waiting;
+				    if (!currentCase.getPrerequisiteRef().isEmpty()) {
+					    ObjectQuery query = prismContext.queryFor(CaseType.class)
+							    .id(currentCase.getPrerequisiteRef().stream().map(ObjectReferenceType::getOid)
+									    .toArray(String[]::new))
+							    .and().not().item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
+							    .build();
+					    SearchResultList<PrismObject<CaseType>> openPrerequisites = repositoryService
+							    .searchObjects(CaseType.class, query, null, result);
+					    waiting = !openPrerequisites.isEmpty();
+					    if (waiting) {
+						    LOGGER.debug(
+								    "Case {} cannot be executed now because of the following open prerequisites: {} -- the execution task will be created in WAITING state",
+								    currentCase, openPrerequisites);
+					    }
+				    } else {
+					    waiting = false;
+				    }
+				    submitExecutionTask(currentCase, waiting, result);
+			    } else {
+				    LOGGER.debug("Case {} is rejected (with immediate execution) -- nothing to do here", currentCase);
+				    executionHelper.closeCaseInRepository(currentCase, result);
+				    executionHelper.checkDependentCases(currentCase.getParentRef().getOid(), result);
+			    }
+		    } else {
+			    LOGGER.debug("Case {} is completed; but execution is delayed so let's check other subcases of {}",
+					    currentCase, rootCase);
+			    executionHelper.closeCaseInRepository(currentCase, result);
+			    List<CaseType> subcases = miscHelper.getSubcases(rootCase, result);
+			    if (subcases.stream().allMatch(CaseTypeUtil::isClosed)) {
+				    LOGGER.debug("All subcases of {} are closed, so let's execute the deltas", rootCase);
+				    submitExecutionTask(rootCase, false, result);
+			    } else {
+				    LOGGER.debug("Some subcases of {} are not closed yet. Delta execution is therefore postponed.", rootCase);
+				    for (CaseType subcase : subcases) {
+					    LOGGER.debug(" - {}: state={} (isClosed={})", subcase, subcase.getState(),
+							    CaseTypeUtil.isClosed(subcase));
+				    }
+			    }
+		    }
+	    }
     }
-    //endregion
+
+	private void submitExecutionTask(CaseType aCase, boolean waiting, OperationResult result)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+
+    	// We must do this before the task is started, because as part of task completion we set state to CLOSED.
+		// So if we set state to EXECUTING after the task is started, the case might be already closed at that point.
+		// (If task is fast enough.)
+		executionHelper.setCaseStateInRepository(aCase, SchemaConstants.CASE_STATE_EXECUTING, result);
+
+		Task task = taskManager.createTaskInstance("execute");
+		task.setName("Execution of " + aCase.getName().getOrig());
+		task.setOwner(getExecutionTaskOwner(result));
+		task.setObjectRef(ObjectTypeUtil.createObjectRef(aCase, prismContext));
+		task.setHandlerUri(CaseOperationExecutionTaskHandler.HANDLER_URI);
+		if (waiting) {
+			task.setInitialExecutionStatus(TaskExecutionStatus.WAITING);
+		}
+		executionHelper.setExecutionConstraints(task, aCase, result);
+		taskManager.switchToBackground(task, result);
+	}
+
+	private PrismObject<UserType> getExecutionTaskOwner(OperationResult result) throws SchemaException, ObjectNotFoundException {
+		return repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result);
+	}
+
+	private ObjectTreeDeltas<?> prepareDeltaOut(CaseType aCase) throws SchemaException {
+		ObjectTreeDeltas<?> deltaIn = generalHelper.retrieveDeltasToApprove(aCase);
+		if (ApprovalUtils.isApprovedFromUri(aCase.getOutcome())) {
+			return deltaIn;
+		} else {
+			return null;
+		}
+	}
+
+
+	//endregion
 
     //region Auditing
     @Override
-    public AuditEventRecord prepareProcessInstanceAuditRecord(WfTask wfTask, AuditEventStage stage, Map<String, Object> variables, OperationResult result) {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(wfTask, stage, result);
-
-        ObjectTreeDeltas<?> deltas;
-        try {
-            if (stage == REQUEST) {
-                deltas = wfTaskUtil.retrieveDeltasToProcess(wfTask.getTask());
-            } else {
-                deltas = wfTaskUtil.retrieveResultingDeltas(wfTask.getTask());
-            }
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't retrieve delta(s) from task " + wfTask.getTask(), e);
-        }
-        if (deltas != null) {
-            List<ObjectDelta<? extends ObjectType>> deltaList = deltas.getDeltaList();
-            for (ObjectDelta<? extends ObjectType> delta : deltaList) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
-            }
-        }
-        return auditEventRecord;
+    public AuditEventRecord prepareProcessInstanceAuditRecord(CaseType aCase, AuditEventStage stage, ApprovalContextType wfContext, OperationResult result) {
+        AuditEventRecord auditEventRecord = auditHelper.prepareProcessInstanceAuditRecord(aCase, stage, result);
+	    addDeltaIfNeeded(auditEventRecord, stage == REQUEST, aCase);
+	    return auditEventRecord;
     }
 
-    @Override
-    public AuditEventRecord prepareWorkItemCreatedAuditRecord(WorkItemType workItem, TaskEvent taskEvent, WfTask wfTask,
-            OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemCreatedAuditRecord(workItem, wfTask, result);
-        try {
-            addDeltasToEventRecord(auditEventRecord,
-                    getWfTaskUtil().retrieveDeltasToProcess(wfTask.getTask()));
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
-        }
-		return auditEventRecord;
-    }
-
-    @Override
-    public AuditEventRecord prepareWorkItemDeletedAuditRecord(WorkItemType workItem, WorkItemEventCauseInformationType cause,
-			TaskEvent taskEvent, WfTask wfTask, OperationResult result) throws WorkflowException {
-        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, wfTask, result);
-        try {
-			AbstractWorkItemOutputType output = workItem.getOutput();
-        	// TODO - or merge with original deltas?
-        	if (output != null && ApprovalUtils.fromUri(output.getOutcome()) == WorkItemOutcomeType.APPROVE
-                    && output instanceof WorkItemResultType
-					&& ((WorkItemResultType) output).getAdditionalDeltas() != null) {
-				addDeltasToEventRecord(auditEventRecord,
-						ObjectTreeDeltas.fromObjectTreeDeltasType(((WorkItemResultType) output).getAdditionalDeltas(), getPrismContext()));
+	private void addDeltaIfNeeded(AuditEventRecord auditEventRecord, boolean toApprove, CaseType aCase) {
+		if (CaseTypeUtil.isApprovalCase(aCase)) {
+			ObjectTreeDeltas<?> deltas;
+			try {
+				if (toApprove) {
+					deltas = generalHelper.retrieveDeltasToApprove(aCase);
+				} else {
+					deltas = generalHelper.retrieveResultingDeltas(aCase);
+				}
+			} catch (SchemaException e) {
+				throw new SystemException("Couldn't retrieve delta(s) from case " + aCase, e);
 			}
-        } catch (SchemaException e) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve deltas to be put into audit record", e);
-        }
-		return auditEventRecord;
-    }
-
-    private void addDeltasToEventRecord(AuditEventRecord auditEventRecord, ObjectTreeDeltas<?> deltas) {
-        if (deltas != null) {
-			for (ObjectDelta<? extends ObjectType> delta : deltas.getDeltaList()) {
-				auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
+			if (deltas != null) {
+				List<ObjectDelta<? extends ObjectType>> deltaList = deltas.getDeltaList();
+				for (ObjectDelta<? extends ObjectType> delta : deltaList) {
+					auditEventRecord.addDelta(new ObjectDeltaOperation<>(delta));
+				}
 			}
 		}
+	}
+
+	@Override
+    public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase,
+		    OperationResult result) {
+        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemCreatedAuditRecord(workItem, aCase, result);
+        addDeltaIfNeeded(auditEventRecord, true, aCase);
+		return auditEventRecord;
     }
 
+    @Override
+    public AuditEventRecord prepareWorkItemDeletedAuditRecord(CaseWorkItemType workItem, WorkItemEventCauseInformationType cause,
+		    CaseType aCase, OperationResult result) {
+        AuditEventRecord auditEventRecord = auditHelper.prepareWorkItemDeletedAuditRecord(workItem, cause, aCase, result);
+	    addDeltaIfNeeded(auditEventRecord, true, aCase);
+		return auditEventRecord;
+    }
     //endregion
 
     //region Getters and setters
-    public Collection<PrimaryChangeAspect> getAllChangeAspects() {
-        return allChangeAspects;
-    }
 
-    PrimaryChangeAspect getChangeAspect(Map<String, Object> variables) {
-        String aspectClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_CHANGE_ASPECT);
-        return findPrimaryChangeAspect(aspectClassName);
-    }
-
-    public PrimaryChangeAspect findPrimaryChangeAspect(String name) {
-
-        // we can search either by bean name or by aspect class name (experience will show what is the better way)
-        if (getBeanFactory().containsBean(name)) {
-            return getBeanFactory().getBean(name, PrimaryChangeAspect.class);
-        }
-        for (PrimaryChangeAspect w : allChangeAspects) {
-            if (name.equals(w.getClass().getName())) {
-                return w;
-            }
-        }
-        throw new IllegalStateException("Aspect " + name + " is not registered.");
-    }
 
     public void registerChangeAspect(PrimaryChangeAspect changeAspect, boolean first) {
         LOGGER.trace("Registering aspect implemented by {}; first={}", changeAspect.getClass(), first);
@@ -465,8 +557,5 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 		}
     }
 
-    WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob
-        return wfTaskUtil;
-    }
     //endregion
 }

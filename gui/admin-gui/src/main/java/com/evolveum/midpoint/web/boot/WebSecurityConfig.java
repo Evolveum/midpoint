@@ -155,6 +155,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         http.headers().disable();
+        http.headers().frameOptions().sameOrigin();
 
         if (Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> p.equalsIgnoreCase("cas"))) {
             http.addFilterAt(casFilter(), CasAuthenticationFilter.class);

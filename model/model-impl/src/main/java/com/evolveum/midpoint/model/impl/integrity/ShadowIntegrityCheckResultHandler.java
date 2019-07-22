@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -109,7 +110,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     private Set<String> duplicateShadowsDetected = new HashSet<>();
     private Set<String> duplicateShadowsDeleted = new HashSet<>();
 
-    public ShadowIntegrityCheckResultHandler(Task coordinatorTask, String taskOperationPrefix, String processShortName,
+    public ShadowIntegrityCheckResultHandler(RunningTask coordinatorTask, String taskOperationPrefix, String processShortName,
             String contextDesc, TaskManager taskManager, PrismContext prismContext,
             ProvisioningService provisioningService, MatchingRuleRegistry matchingRuleRegistry,
             RepositoryService repositoryService, SynchronizationService synchronizationService,
@@ -130,7 +131,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             throw new UnsupportedOperationException("Unsupported number of worker threads: " + tasks + ". This task cannot be run with worker threads. Please remove workerThreads extension property or set its value to 0.");
         }
 
-        PrismProperty<String> diagnosePrismProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DIAGNOSE);
+        PrismProperty<String> diagnosePrismProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DIAGNOSE);
         if (diagnosePrismProperty == null || diagnosePrismProperty.isEmpty()) {
             checkIntents = true;
             checkUniqueness = true;
@@ -147,7 +148,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             checkExtraData = contains(diagnosePrismProperty, EXTRA_DATA);
             checkProperty(diagnosePrismProperty);
         }
-        PrismProperty<String> fixPrismProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_FIX);
+        PrismProperty<String> fixPrismProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_FIX);
         if (fixPrismProperty == null || fixPrismProperty.isEmpty()) {
             fixIntents = false;
             fixUniqueness = false;
@@ -177,7 +178,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         if (fixUniqueness) {
-            PrismProperty<String> duplicateShadowsResolverClass = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER);
+            PrismProperty<String> duplicateShadowsResolverClass = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DUPLICATE_SHADOWS_RESOLVER);
             String duplicateShadowsResolverClassName;
             if (duplicateShadowsResolverClass != null) {
                 duplicateShadowsResolverClassName = duplicateShadowsResolverClass.getRealValue();
@@ -191,7 +192,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
             }
         }
 
-        PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
+        PrismProperty<Boolean> checkDuplicatesOnPrimaryIdentifiersOnlyProperty = coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_CHECK_DUPLICATES_ON_PRIMARY_IDENTIFIERS_ONLY);
         if (checkDuplicatesOnPrimaryIdentifiersOnlyProperty != null && checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue() != null) {
             checkDuplicatesOnPrimaryIdentifiersOnly = checkDuplicatesOnPrimaryIdentifiersOnlyProperty.getRealValue();
         }
@@ -245,7 +246,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
     }
 
     @Override
-    protected boolean handleObject(PrismObject<ShadowType> shadow, Task workerTask, OperationResult parentResult) throws CommonException {
+    protected boolean handleObject(PrismObject<ShadowType> shadow, RunningTask workerTask, OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createMinorSubresult(CLASS_DOT + "handleObject");
         ShadowCheckResult checkResult = new ShadowCheckResult(shadow);
         try {

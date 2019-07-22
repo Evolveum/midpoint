@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
+import com.evolveum.midpoint.prism.util.PrismList;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
@@ -37,7 +38,7 @@ import java.util.*;
  *
  * @author lazyman
  */
-public class PropertyArrayList<T> extends AbstractList<T> implements Serializable {
+public class PropertyArrayList<T> extends AbstractList<T> implements Serializable, PrismList {
 
     private PrismProperty property;
 	private PrismContainerValue<?> parent;

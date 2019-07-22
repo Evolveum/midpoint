@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -28,7 +25,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.*;
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -48,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -56,10 +56,6 @@ import com.evolveum.midpoint.repo.api.OptimisticLockingRunner;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultMetadata;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -70,7 +66,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -134,6 +129,7 @@ public class ShadowManager {
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private Protector protector;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
@@ -154,6 +150,9 @@ public class ShadowManager {
 		
 	}
 	
+	
+
+	
 	/**
 	 * Locates the appropriate Shadow in repository that corresponds to the
 	 * provided resource object.
@@ -165,14 +164,14 @@ public class ShadowManager {
 			OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
-		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext,
-				parentResult);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter:\n{}", query.debugDump());
-		}
+		ObjectQuery query = createSearchShadowQueryByPrimaryIdentifier(ctx, resourceShadow, prismContext, parentResult);
+		LOGGER.trace("Searching for shadow by primary identifier (attributes) using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
 
-		 List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-		 MiscSchemaUtil.reduceSearchResult(foundShadows);
+		// Explicitly avoid all caches. We want to avoid shadow duplication.
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(0L));
+		
+		List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, options, parentResult);
+		MiscSchemaUtil.reduceSearchResult(foundShadows);
 
 		LOGGER.trace("lookupShadow found {} objects", foundShadows.size());
 		
@@ -199,6 +198,41 @@ public class ShadowManager {
 		return liveShadow;
 	}
 	
+	public PrismObject<ShadowType> lookupShadowByPrimaryIdentifierValue(ProvisioningContext ctx, String primaryIdentifierValue,
+			OperationResult parentResult) throws SchemaException {
+
+		ObjectQuery query;
+		try {
+			
+			query = prismContext.queryFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).eq(primaryIdentifierValue)
+					.and().item(ShadowType.F_OBJECT_CLASS).eq(ctx.getObjectClassDefinition().getTypeName())
+					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
+					.build();
+			
+		} catch (ExpressionEvaluationException | CommunicationException | ConfigurationException | ObjectNotFoundException e) {
+			// Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
+			throw new SystemException(e.getMessage(), e);
+		}
+		LOGGER.trace("Searching for shadow by primaryIdentifierValue using filter:\n{}", DebugUtil.debugDumpLazily(query, 1));
+
+		// Explicitly avoid all caches. We want to avoid shadow duplication.
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createStaleness(0L));
+		List<PrismObject<ShadowType>> foundShadows = repositoryService.searchObjects(ShadowType.class, query, options, parentResult);
+		MiscSchemaUtil.reduceSearchResult(foundShadows);
+		
+		if (foundShadows.isEmpty()) {
+			return null;
+		}
+		if (foundShadows.size() > 1) {
+			// This cannot happen, there is an unique constraint on primaryIdentifierValue
+			LOGGER.error("Impossible just happened, found {} shadows for primaryIdentifierValue {}: {}", foundShadows.size(), primaryIdentifierValue);
+			throw new SystemException("Impossible just happened, found "+foundShadows.size()+" shadows for primaryIdentifierValue "+primaryIdentifierValue);
+		}
+
+		return foundShadows.get(0);
+	}
+	
 	public PrismObject<ShadowType> eliminateDeadShadows(List<PrismObject<ShadowType>> shadows, OperationResult result) {
 		if (shadows == null || shadows.isEmpty()) {
 			return null;
@@ -206,8 +240,7 @@ public class ShadowManager {
 		
 		PrismObject<ShadowType> liveShadow = null;
 		for (PrismObject<ShadowType> shadow: shadows) {
-			ShadowType shadowType = shadow.asObjectable();
-			if (!ShadowUtil.isDead(shadowType)) {
+			if (!ShadowUtil.isDead(shadow)) {
 				if (liveShadow == null) {
 					liveShadow = shadow;
 				} else {
@@ -423,24 +456,26 @@ public class ShadowManager {
 		
 	}
 
-    // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
-	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
-			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+	/**
+	 * Returns null if there's no existing (relevant) shadow and the change is DELETE.
+	 */
+    PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
+		    OperationResult parentResult) throws SchemaException, CommunicationException,
+			ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(ctx, change, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchShadowByIdentifiers(ctx, change, parentResult);
 
 		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
 		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
 		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
 		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
-		PrismObject<ShadowType> foundShadow = eliminateDeadShadows(accountList, parentResult);
+		PrismObject<ShadowType> foundLiveShadow = eliminateDeadShadows(accountList, parentResult);
 
-		if (foundShadow == null) {
+		if (foundLiveShadow == null) {
 			// account was not found in the repository, create it now
 
-			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
+			if (change.isDelete()) {
 				if (accountList.isEmpty()) {
 					// Delete. No shadow is OK here.
 					return null;
@@ -451,133 +486,57 @@ public class ShadowManager {
 				
 			} else {
 
-				foundShadow = createNewShadowFromChange(ctx, change, parentResult);
+				foundLiveShadow = createNewShadowFromChange(ctx, change, parentResult);
 
 				try {
-					ConstraintsChecker.onShadowAddOperation(foundShadow.asObjectable());
-					String oid = repositoryService.addObject(foundShadow, null, parentResult);
-					foundShadow.setOid(oid);
+					ConstraintsChecker.onShadowAddOperation(foundLiveShadow.asObjectable());
+					String oid = repositoryService.addObject(foundLiveShadow, null, parentResult);
+					foundLiveShadow.setOid(oid);
 					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
 						change.getObjectDelta().setOid(oid);
 					}
 				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add " + foundShadow + " to the repository. Reason: " + e.getMessage(), e);
+					parentResult.recordFatalError("Can't add " + foundLiveShadow + " to the repository. Reason: " + e.getMessage(), e);
 					throw new IllegalStateException(e.getMessage(), e);
 				}
-				LOGGER.debug("Added new shadow (from change): {}", foundShadow);
+				LOGGER.debug("Added new shadow (from change): {}", foundLiveShadow);
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Added new shadow (from change):\n{}", foundShadow.debugDump(1));
+					LOGGER.trace("Added new shadow (from change):\n{}", foundLiveShadow.debugDump(1));
 				}
 			}
-
 		}
 
-		return foundShadow;
-	}
-	
-	// This is really invoked only for delete case. It is mostly copy&paste with findOrAddShadowFromChange.
-	// TODO: not very elegant, cleanup
-	public PrismObject<ShadowType> findOrAddShadowFromChangeGlobalContext(ProvisioningContext globalCtx, Change change,
-			OperationResult parentResult) throws SchemaException, CommunicationException,
-			ConfigurationException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
-
-		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchShadowByIdenifiers(globalCtx, change, parentResult);
-		
-		// We normally do not want dead shadows here. Normally we should not receive any change notifications about dead
-		// shadows anyway. And dead shadows may get into the way. E.g. account is deleted and then it is quickly re-created.
-		// In that case we will get ADD change notification and there is a dead shadow in repo. But we do not want to use that
-		// dead shadow. The notification is about a new (re-create) account. We want to create new shadow.
-		PrismObject<ShadowType> newShadow = eliminateDeadShadows(accountList, parentResult);
-		
-		if (newShadow == null) {
-			
-			if ((change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE)) {
-				if (accountList.isEmpty()) {
-					// Delete. No shadow is OK here.
-					return null;
-				} else {
-					// Delete of shadow that is already dead.
-					return accountList.get(0);
-				}
-				
-			} else {
-				// All situations except delete: create new shadow
-				newShadow = createNewShadowFromChange(globalCtx, change, parentResult);
-
-				try {
-					ConstraintsChecker.onShadowAddOperation(newShadow.asObjectable());
-					String oid = repositoryService.addObject(newShadow, null, parentResult);
-					newShadow.setOid(oid);
-					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-						change.getObjectDelta().setOid(oid);
-					}
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add " + SchemaDebugUtil.prettyPrint(newShadow)
-							+ " to the repository. Reason: " + e.getMessage(), e);
-					throw new IllegalStateException(e.getMessage(), e);
-				}
-				LOGGER.debug("Added new shadow (from global change): {}", newShadow);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Added new shadow (from global change):\n{}", newShadow.debugDump());
-				}
-			}
-
-		} else {
-			// Live shadow was found in repository
-			
-            if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-            		List<ItemDelta<?, ?>> deadDeltas = prismContext.deltaFor(ShadowType.class)
-            			.item(ShadowType.F_DEAD).replace(true)
-            			.item(ShadowType.F_EXISTS).replace(false)
-            			.asItemDeltas();
-					try {
-						ConstraintsChecker.onShadowModifyOperation(deadDeltas);
-						repositoryService.modifyObject(ShadowType.class, newShadow.getOid(), deadDeltas, parentResult);
-					} catch (ObjectAlreadyExistsException e) {
-						parentResult.recordFatalError(
-								"Can't add " + newShadow + " to the repository. Reason: " + e.getMessage(), e);
-						throw new IllegalStateException(e.getMessage(), e);
-					} catch (ObjectNotFoundException e) {
-						parentResult.recordWarning("Shadow " + newShadow + " was probably deleted from the repository in the meantime. Exception: "
-								+ e.getMessage(), e);
-						return null;
-					}
-					
-					ObjectDeltaUtil.applyTo(newShadow, deadDeltas);
-				} 
-		}
-
-		return newShadow;
+		return foundLiveShadow;
 	}
 	
 	private PrismObject<ShadowType> createNewShadowFromChange(ProvisioningContext ctx, Change change,
-			OperationResult parentResult) throws SchemaException,
-			CommunicationException, ConfigurationException,
-			SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+			ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
+
+		assert !change.isDelete();
 
 		PrismObject<ShadowType> shadow = change.getCurrentShadow();
 		
-		if (shadow == null){
-			//try to look in the delta, if there exists some account to be added
-			if (change.getObjectDelta() != null) {
-				if (change.getObjectDelta().isAdd()) {
-					shadow = (PrismObject<ShadowType>) change.getObjectDelta().getObjectToAdd();
-				} else if (change.getObjectDelta().isDelete()) {
-					// Sanity checks. We can remove them later when entire sync code is cleaned up.
-					ShadowType shadowType = shadow.asObjectable();
-					if (!ShadowUtil.isDead(shadowType)) {
-						throw new IllegalStateException("Deleted "+shadow+" not dead");
-					}
-					if (ShadowUtil.isExists(shadowType)) {
-						throw new IllegalStateException("Deleted "+shadow+" exists");
-					}
+		if (shadow == null) {
+			if (change.isAdd()) {
+				shadow = change.getObjectDelta().getObjectToAdd();
+				assert shadow != null;
+			} else if (change.getIdentifiers() != null && !change.getIdentifiers().isEmpty()) {
+				if (change.getObjectClassDefinition() == null) {
+					throw new IllegalStateException("Could not create shadow from change description. Object class is not specified.");
 				}
+				ShadowType newShadow = new ShadowType(prismContext);
+				newShadow.setObjectClass(change.getObjectClassDefinition().getTypeName());
+				ResourceAttributeContainer attributeContainer = change.getObjectClassDefinition()
+						.toResourceAttributeContainerDefinition().instantiate();
+				newShadow.asPrismObject().add(attributeContainer);
+				for (ResourceAttribute<?> identifier : change.getIdentifiers()) {
+					attributeContainer.add(identifier.clone());
+				}
+				shadow = newShadow.asPrismObject();
+			} else {
+				throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow, nor identifiers exists.");
 			}
-		}
-		
-		if (shadow == null){
-			throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow exits.");
 		}
 		
 		try {
@@ -593,13 +552,13 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchShadowByIdenifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> searchShadowByIdentifiers(ProvisioningContext ctx, Change change, OperationResult parentResult)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
 		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
 		ObjectQuery query = createSearchShadowQuery(ctx, identifiers, true, prismContext, parentResult);
 
-		List<PrismObject<ShadowType>> accountList = null;
+		List<PrismObject<ShadowType>> accountList;
 		try {
 			accountList = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
 		} catch (SchemaException ex) {
@@ -697,6 +656,17 @@ public class ShadowManager {
 		return repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, true, parentResult);
 	}
 
+	public SearchResultList<PrismObject<ShadowType>> searchObjectsRepository(
+			ProvisioningContext ctx, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
+
+		ObjectQuery repoQuery = query.clone();
+		processQueryMatchingRules(repoQuery, ctx.getObjectClassDefinition());
+
+		return repositoryService.searchObjects(ShadowType.class, repoQuery, options, parentResult);
+	}
+
 	/**
 	 * Visit the query and normalize values (or set matching rules) as needed
 	 */
@@ -761,7 +731,7 @@ public class ShadowManager {
 	public PrismObject<ShadowType> addDiscoveredRepositoryShadow(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ObjectAlreadyExistsException, ExpressionEvaluationException, EncryptionException {
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Adding new shadow from resource object: {}", resourceShadow.debugDump());
+			LOGGER.trace("Adding new shadow from resource object:\n{}", resourceShadow.debugDump(1));
 		}
 		PrismObject<ShadowType> repoShadow = createRepositoryShadow(ctx, resourceShadow);
 		ConstraintsChecker.onShadowAddOperation(repoShadow.asObjectable());
@@ -769,7 +739,7 @@ public class ShadowManager {
 		repoShadow.setOid(oid);
 		LOGGER.debug("Added new shadow (from resource object): {}", repoShadow);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump());
+			LOGGER.trace("Added new shadow (from resource object):\n{}", repoShadow.debugDump(1));
 		}
 		return repoShadow;
 	}
@@ -969,13 +939,23 @@ public class ShadowManager {
 		return shadowModifications;
 	}
 	
-	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) {
+	public void addDeadShadowDeltas(PrismObject<ShadowType> repoShadow, AsynchronousOperationResult asyncResult, List<ItemDelta> shadowModifications) throws SchemaException {
 		LOGGER.trace("Marking shadow {} as dead", repoShadow);
 		if (ShadowUtil.isExists(repoShadow.asObjectable())) {
 			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_EXISTS, Boolean.FALSE));
 		}
 		if (!ShadowUtil.isDead(repoShadow.asObjectable())) {
-			shadowModifications.add(createShadowPropertyReplaceDelta(repoShadow, ShadowType.F_DEAD, Boolean.TRUE));
+			shadowModifications.add(
+				prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_DEAD).replace(true)
+				.asItemDelta());
+		}
+		if (repoShadow.asObjectable().getPrimaryIdentifierValue() != null) {
+			// We need to free the identifier for further use by live shadows that may come later
+			shadowModifications.add(
+					prismContext.deltaFor(ShadowType.class)
+						.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+					.asItemDelta());
 		}
 	}
 	
@@ -1018,10 +998,12 @@ public class ShadowManager {
 		if (delta.isAdd()) {
 			// This means we have failed add operation here. We tried to add object,
 			// but we have failed. Which means that this shadow is now dead.
-			shadowChanges.add(
+			shadowChanges.addAll(
 				prismContext.deltaFor(ShadowType.class)
 					.item(ShadowType.F_DEAD).replace(true)
-				.asItemDelta()
+					// We need to free the identifier for further use by live shadows that may come later
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+				.asItemDeltas()
 			);
 		}
 		
@@ -1407,8 +1389,9 @@ public class ShadowManager {
 		
 		PrismObject<ShadowType> repoShadow = shadow.clone();
 		ShadowType repoShadowType = repoShadow.asObjectable();
-		ResourceAttributeContainer repoAttributesContainer = ShadowUtil
-				.getAttributesContainer(repoShadow);
+		
+		ResourceAttributeContainer repoAttributesContainer = ShadowUtil.getAttributesContainer(repoShadow);
+		repoShadowType.setPrimaryIdentifierValue(determinePrimaryIdentifierValue(ctx, shadow));
 
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		if (cachingStrategy == CachingStategyType.NONE) {
@@ -1499,6 +1482,102 @@ public class ShadowManager {
 		
 		normalizeAttributes(repoShadow, ctx.getObjectClassDefinition());
 
+		return repoShadow;
+	}
+	
+	public String determinePrimaryIdentifierValue(ProvisioningContext ctx, PrismObject<ShadowType> shadow) throws SchemaException {
+		if (ShadowUtil.isDead(shadow)) {
+			return null;
+		}
+		Collection<? extends ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		// Let's make this simple. We support single-attribute, single-value, string-only primary identifiers anyway
+		if (primaryIdentifiers.isEmpty()) {
+			// No primary identifiers. This can happen in sme cases, e.g. for proposed shadows.
+			// Therefore we should be tolerating this.
+			return null;
+		}
+		if (primaryIdentifiers.size() > 1) {
+			throw new SchemaException("Too many primary identifiers in "+shadow+", this is not supported yet");
+		}
+		ResourceAttribute<String> primaryIdentifier = (ResourceAttribute<String>) primaryIdentifiers.iterator().next();
+		RefinedAttributeDefinition<String> rDef;
+		try {
+			rDef = ctx.getObjectClassDefinition().findAttributeDefinition(primaryIdentifier.getElementName());
+		} catch (ConfigurationException | ObjectNotFoundException | CommunicationException
+				| ExpressionEvaluationException e) {
+			// Should not happen at this stage. And we do not want to pollute throws clauses all the way up.
+			throw new SystemException(e.getMessage(), e);
+		}
+		Collection<String> normalizedPrimaryIdentifierValues = getNormalizedAttributeValues(primaryIdentifier, rDef);
+		if (normalizedPrimaryIdentifierValues.isEmpty()) {
+			throw new SchemaException("No primary identifier values in "+shadow);
+		}
+		if (normalizedPrimaryIdentifierValues.size() > 1) {
+			throw new SchemaException("Too many primary identifier values in "+shadow+", this is not supported yet");
+		}
+		String primaryIdentifierValue = normalizedPrimaryIdentifierValues.iterator().next();
+//		LOGGER.info("III: --->>{}<<--- {}", primaryIdentifierValue, shadow);
+		return primaryIdentifierValue;
+	}
+	
+	public PrismObject<ShadowType> refreshProvisioningIndexes(ProvisioningContext ctx,
+			PrismObject<ShadowType> repoShadow, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		ShadowType shadowType = repoShadow.asObjectable();
+		String currentPrimaryIdentifierValue = shadowType.getPrimaryIdentifierValue();
+		
+		String expectedPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, repoShadow);
+		
+		if (Objects.equals(currentPrimaryIdentifierValue,expectedPrimaryIdentifierValue)) {
+			// Everything is all right
+			return repoShadow;
+		}
+		List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(ShadowType.class)
+			.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(expectedPrimaryIdentifierValue)
+			.asItemDeltas();
+		
+		LOGGER.trace("Correcting primaryIdentifierValue for {}: {} -> {}", repoShadow, currentPrimaryIdentifierValue, expectedPrimaryIdentifierValue);
+		try {
+		
+			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, parentResult);
+		
+		} catch (ObjectAlreadyExistsException e) {
+			// Boom! We have some kind of inconsistency here. There is not much we can do to fix it. But let's try to find offending object.
+			LOGGER.error("Error updating primaryIdentifierValue for "+repoShadow+" to value "+expectedPrimaryIdentifierValue+": "+e.getMessage(), e);
+			
+			PrismObject<ShadowType> potentialConflictingShadow = lookupShadowByPrimaryIdentifierValue(ctx, expectedPrimaryIdentifierValue, parentResult);
+			LOGGER.debug("REPO CONFLICT: potential conflicting repo shadow (by primaryIdentifierValue)\n{}", potentialConflictingShadow==null?null:potentialConflictingShadow.debugDump(1));
+			String conflictingShadowPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, potentialConflictingShadow);
+			
+			if (Objects.equals(conflictingShadowPrimaryIdentifierValue, potentialConflictingShadow.asObjectable().getPrimaryIdentifierValue())) {
+				// Whoohoo, the conflicting shadow has good identifier. And it is the same as ours. We really have two conflicting shadows here.
+				LOGGER.info("REPO CONFLICT: Found conflicting shadows that both claim the values of primaryIdentifierValue={}\nShadow with existing value:\n{}\nShadow that should have the same value:\n{}", 
+						expectedPrimaryIdentifierValue, potentialConflictingShadow, repoShadow);
+				throw new SystemException("Duplicate shadow conflict with "+potentialConflictingShadow);
+			}
+			
+			// The other shadow has wrong primaryIdentifierValue. Therefore let's reset it.
+			// Even though we do know the correct value of primaryIdentifierValue, do NOT try to set it here. It may conflict with
+			// another shadow and the we will end up in an endless loop of conflicts all the way down to hell. Resetting it to null
+			// is safe. And as that shadow has a wrong value, it obviously haven't been refreshed yet. It's turn will come later.
+			LOGGER.debug("Resetting primaryIdentifierValue in conflicting shadow {}", repoShadow);
+			List<ItemDelta<?, ?>> resetModifications = prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
+					.asItemDeltas();
+			try {
+				repositoryService.modifyObject(ShadowType.class, potentialConflictingShadow.getOid(), modifications, parentResult);
+			} catch (ObjectAlreadyExistsException ee) {
+				throw new SystemException("Attempt to reset primaryIdentifierValue on "+potentialConflictingShadow+" failed: "+ee.getMessage(), ee);
+			}
+			
+			// Now we should be free to set up correct identifier. Finally.
+			try {
+				repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), modifications, parentResult);
+			} catch (ObjectAlreadyExistsException ee) {
+				// Oh no! Not again!
+				throw new SystemException("Despite all our best efforts, attempt to refresh primaryIdentifierValue on "+repoShadow+" failed: "+ee.getMessage(), ee);
+			}
+		}
+		shadowType.setPrimaryIdentifierValue(expectedPrimaryIdentifierValue);
 		return repoShadow;
 	}
 	
@@ -1638,7 +1717,7 @@ public class ShadowManager {
 					PropertyDelta<PolyString> nameDelta = prismContext.deltaFactory().property().createReplaceDelta(shadow.getDefinition(), ShadowType.F_NAME, new PolyString(newName));
 					repoChanges.add(nameDelta);
 				}
-				if (!ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
+				if (!ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrName, cachingStrategy)) {
 					continue;
 				}
 			} else if (ShadowType.F_ACTIVATION.equivalent(itemDelta.getParentPath())) {
@@ -1728,7 +1807,7 @@ public class ShadowManager {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
-			if (ProvisioningUtil.shouldStoreAtributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
+			if (ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
 				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
 				PrismProperty<Object> repoAttr = repoShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
 				PropertyDelta attrDelta;
@@ -1750,87 +1829,147 @@ public class ShadowManager {
 				}
 			}
 		}
+		
+		String newPrimaryIdentifierValue = determinePrimaryIdentifierValue(ctx, resourceShadow);
+		String existingPrimaryIdentifierValue = repoShadow.asObjectable().getPrimaryIdentifierValue();
+		if (!Objects.equals(existingPrimaryIdentifierValue, newPrimaryIdentifierValue)) {
+			repoShadowChanges.add(
+				prismContext.deltaFor(ShadowType.class)
+					.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace(newPrimaryIdentifierValue)
+					.asItemDelta()
+				);
+		}
 
 		// TODO: reflect activation updates on cached shadow
 	}
 	
 	/**
-	 * Updates repository shadow based on shadow from resource. Handles rename cases,
-	 * change of auxiliary object classes, etc.
-	 * @returns repository shadow as it should look like after the update
+	 * Updates repository shadow based on shadow or delta from resource.
+	 * Handles rename cases, change of auxiliary object classes, etc.
+	 *
+	 * @return repository shadow as it should look like after the update
 	 */
-	@SuppressWarnings("unchecked")
-	public PrismObject<ShadowType> updateShadow(ProvisioningContext ctx, PrismObject<ShadowType> currentResourceShadow,
-			PrismObject<ShadowType> oldRepoShadow, ShadowState shadowState, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
-		
-		RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(currentResourceShadow);
-		ObjectDelta<ShadowType> shadowDelta = oldRepoShadow.createModifyDelta();
-		PrismContainer<Containerable> currentResourceAttributesContainer = currentResourceShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		PrismContainer<Containerable> oldRepoAttributesContainer = oldRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		ShadowType oldRepoShadowType = oldRepoShadow.asObjectable();
-		ShadowType currentResourceShadowType = currentResourceShadow.asObjectable();
+	@SuppressWarnings({ "unchecked", "WeakerAccess" })
+	public PrismObject<ShadowType> updateShadow(@NotNull ProvisioningContext ctx,
+			@NotNull PrismObject<ShadowType> resourceShadowNew,
+			@NotNull PrismObject<ShadowType> repoShadowOld, ShadowState shadowState, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
+
+		ObjectDelta<ShadowType> shadowDelta = computeShadowDelta(ctx, repoShadowOld, resourceShadowNew, shadowState);
+
+		if (!shadowDelta.isEmpty()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Updating repo shadow {} with delta:\n{}", repoShadowOld, shadowDelta.debugDump(1));
+			}
+			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
+			try {
+				repositoryService.modifyObject(ShadowType.class, repoShadowOld.getOid(), shadowDelta.getModifications(), parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new SystemException(e.getMessage(), e);       // This should not happen for shadows
+			}
+			PrismObject<ShadowType> repoShadowNew = repoShadowOld.clone();
+			shadowDelta.applyTo(repoShadowNew);
+			return repoShadowNew;
+		} else {
+			LOGGER.trace("No need to update repo shadow {} (empty delta)", repoShadowOld);
+			return repoShadowOld;
+		}		
+	}
+
+	private ObjectDelta<ShadowType> computeShadowDelta(@NotNull ProvisioningContext ctx,
+			@NotNull PrismObject<ShadowType> repoShadowOld,
+			PrismObject<ShadowType> resourceShadowNew, ShadowState shadowState)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		RefinedObjectClassDefinition ocDef = ctx.computeCompositeObjectClassDefinition(resourceShadowNew);
+		ObjectDelta<ShadowType> shadowDelta = repoShadowOld.createModifyDelta();
+		PrismContainer<Containerable> currentResourceAttributesContainer = resourceShadowNew.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer<Containerable> oldRepoAttributesContainer = repoShadowOld.findContainer(ShadowType.F_ATTRIBUTES);
+		ShadowType oldRepoShadowType = repoShadowOld.asObjectable();
 
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 
+		Collection<QName> incompleteCacheableItems = new HashSet<>();
+
 		for (Item<?, ?> currentResourceItem: currentResourceAttributesContainer.getValue().getItems()) {
 			if (currentResourceItem instanceof PrismProperty<?>) {
+				//noinspection unchecked
 				PrismProperty<Object> currentResourceAttrProperty = (PrismProperty<Object>) currentResourceItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(currentResourceAttrProperty.getElementName());
-				if (ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
-					MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
-					PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
-					if (oldRepoAttributeProperty == null) {
-						PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
-						for (PrismPropertyValue<?> pval: currentResourceAttrProperty.getValues()) {
-							attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
-						}
-						if (attrAddDelta.getDefinition().getTypeName() == null) {
-							throw new SchemaException("No definition in "+attrAddDelta);
-						}
-						shadowDelta.addModification(attrAddDelta);
-					} else {
-						if (attrDef.isSingleValue()) {
-							Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
-							Object currentResourceNormalizedRealValue;
-							currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
-							if (!currentResourceNormalizedRealValue.equals(oldRepoAttributeProperty.getRealValue())) {
-								PropertyDelta delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(), currentResourceNormalizedRealValue);
-								delta.setDefinition(currentResourceAttrProperty.getDefinition());
-								if (delta.getDefinition().getTypeName() == null) {
-									throw new SchemaException("No definition in "+delta);
-								}
+				if (attrDef == null) {
+					throw new SchemaException("No definition of " + currentResourceAttrProperty.getElementName() + " in " + ocDef);
+				}
+				if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
+					if (!currentResourceItem.isIncomplete()) {
+						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+						PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
+						if (oldRepoAttributeProperty == null) {
+							PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
+							for (PrismPropertyValue<?> pval : currentResourceAttrProperty.getValues()) {
+								//noinspection unchecked
+								attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
 							}
+							if (attrAddDelta.getDefinition().getTypeName() == null) {
+								throw new SchemaException("No definition in " + attrAddDelta);
+							}
+							shadowDelta.addModification(attrAddDelta);
 						} else {
-							PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
-							for (PrismPropertyValue pval: normalizedCurrentResourceAttrProperty.getValues()) {
-								Object normalizedRealValue = matchingRule.normalize(pval.getValue());
-								pval.setValue(normalizedRealValue);
-							}
-							PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
-//							LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
-//									oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
-//									normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
-//									attrDiff==null?null:attrDiff.debugDump(1));
-							if (attrDiff != null && !attrDiff.isEmpty()) {
-								attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
-								if (attrDiff.getDefinition().getTypeName() == null) {
-									throw new SchemaException("No definition in "+attrDiff);
+							if (attrDef.isSingleValue()) {
+								Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
+								//noinspection unchecked
+								Object currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
+								if (!Objects.equals(currentResourceNormalizedRealValue, oldRepoAttributeProperty.getRealValue())) {
+									PropertyDelta delta;
+									if (currentResourceNormalizedRealValue != null) {
+										delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath(),
+												currentResourceNormalizedRealValue);
+									} else {
+										delta = shadowDelta.addModificationReplaceProperty(currentResourceAttrProperty.getPath());
+									}
+									//noinspection unchecked
+									delta.setDefinition(currentResourceAttrProperty.getDefinition());
+									if (delta.getDefinition().getTypeName() == null) {
+										throw new SchemaException("No definition in " + delta);
+									}
 								}
-								shadowDelta.addModification(attrDiff);
+							} else {
+								PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
+								for (PrismPropertyValue pval : normalizedCurrentResourceAttrProperty.getValues()) {
+									//noinspection unchecked
+									Object normalizedRealValue = matchingRule.normalize(pval.getValue());
+									//noinspection unchecked
+									pval.setValue(normalizedRealValue);
+								}
+								PropertyDelta<Object> attrDiff = oldRepoAttributeProperty.diff(normalizedCurrentResourceAttrProperty);
+//							    LOGGER.trace("DIFF:\n{}\n-\n{}\n=:\n{}",
+//								    	oldRepoAttributeProperty==null?null:oldRepoAttributeProperty.debugDump(1),
+//									    normalizedCurrentResourceAttrProperty==null?null:normalizedCurrentResourceAttrProperty.debugDump(1),
+//									    attrDiff==null?null:attrDiff.debugDump(1));
+								if (attrDiff != null && !attrDiff.isEmpty()) {
+									attrDiff.setParentPath(ShadowType.F_ATTRIBUTES);
+									if (attrDiff.getDefinition().getTypeName() == null) {
+										throw new SchemaException("No definition in " + attrDiff);
+									}
+									shadowDelta.addModification(attrDiff);
+								}
 							}
-							
 						}
+					} else {
+						LOGGER.trace("Resource item {} is incomplete, will not update the shadow with its content",
+								currentResourceItem.getElementName());
+						incompleteCacheableItems.add(currentResourceItem.getElementName());
 					}
 				}
 			}
 		}
-		
+
 		for (Item<?, ?> oldRepoItem: oldRepoAttributesContainer.getValue().getItems()) {
 			if (oldRepoItem instanceof PrismProperty<?>) {
 				PrismProperty<?> oldRepoAttrProperty = (PrismProperty<?>)oldRepoItem;
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
 				PrismProperty<Object> currentAttribute = currentResourceAttributesContainer.findProperty(oldRepoAttrProperty.getElementName());
-				if (attrDef == null || !ProvisioningUtil.shouldStoreAtributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
+				// note: incomplete attributes with no values are not here: they are found in currentResourceAttributesContainer
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
 						currentAttribute == null) {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();
@@ -1842,22 +1981,22 @@ public class ShadowManager {
 				}
 			}
 		}
-				
-		PolyString currentShadowName = ShadowUtil.determineShadowName(currentResourceShadow);
-		PolyString oldRepoShadowName = oldRepoShadow.getName();
-		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {			
+
+		PolyString currentShadowName = ShadowUtil.determineShadowName(resourceShadowNew);
+		PolyString oldRepoShadowName = repoShadowOld.getName();
+		if (!currentShadowName.equalsOriginalValue(oldRepoShadowName)) {
 			PropertyDelta<?> shadowNameDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_NAME,
-					oldRepoShadow.getDefinition(),currentShadowName);
+					repoShadowOld.getDefinition(),currentShadowName);
 			shadowDelta.addModification(shadowNameDelta);
 		}
-		
-		PropertyDelta<QName> auxOcDelta = (PropertyDelta) ItemUtil.diff(
-				oldRepoShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
-				currentResourceShadow.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
+
+		PropertyDelta<QName> auxOcDelta = ItemUtil.diff(
+				repoShadowOld.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS),
+				resourceShadowNew.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS));
 		if (auxOcDelta != null) {
 			shadowDelta.addModification(auxOcDelta);
 		}
-		
+
 		// Resource object obviously exists in this case. However, we do not want to mess with isExists flag in some
 		// situations (e.g. in CORPSE state) as this existence may be just a quantum illusion.
 		if (shadowState == ShadowState.CONCEPTION || shadowState == ShadowState.GESTATION) {
@@ -1865,7 +2004,7 @@ public class ShadowManager {
 			existsDelta.setRealValuesToReplace(true);
 			shadowDelta.addModification(existsDelta);
 		}
-		
+
 		if (cachingStrategy == CachingStategyType.NONE) {
 			if (oldRepoShadowType.getCachingMetadata() != null) {
 				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA);
@@ -1873,43 +2012,23 @@ public class ShadowManager {
 
 		} else if (cachingStrategy == CachingStategyType.PASSIVE) {
 
-			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, currentResourceShadow, oldRepoShadow);
-			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, currentResourceShadow, oldRepoShadow);
-			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, currentResourceShadow, oldRepoShadow);
-			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, currentResourceShadow, oldRepoShadow);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, resourceShadowNew, repoShadowOld);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_FROM, resourceShadowNew, repoShadowOld);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_VALID_TO, resourceShadowNew, repoShadowOld);
+			compareUpdateProperty(shadowDelta, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, resourceShadowNew, repoShadowOld);
 
-			CachingMetadataType cachingMetadata = new CachingMetadataType();
-			cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
-
+			if (incompleteCacheableItems.isEmpty()) {
+				CachingMetadataType cachingMetadata = new CachingMetadataType();
+				cachingMetadata.setRetrievalTimestamp(clock.currentTimeXMLGregorianCalendar());
+				shadowDelta.addModificationReplaceProperty(ShadowType.F_CACHING_METADATA, cachingMetadata);
+			} else {
+				LOGGER.trace("Shadow has incomplete cacheable items; will not update caching timestamp: {}", incompleteCacheableItems);
+			}
 		} else {
 			throw new ConfigurationException("Unknown caching strategy "+cachingStrategy);
 		}
-		
-		if (!shadowDelta.isEmpty()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Updating repo shadow {} with delta:\n{}", oldRepoShadow, shadowDelta.debugDump(1));
-			}
-			ConstraintsChecker.onShadowModifyOperation(shadowDelta.getModifications());
-			try {
-				
-				repositoryService.modifyObject(ShadowType.class, oldRepoShadow.getOid(), shadowDelta.getModifications(), parentResult);
-				
-			} catch (ObjectAlreadyExistsException e) {
-				// This should not happen for shadows
-				throw new SystemException(e.getMessage(), e);
-			}
-
-			PrismObject<ShadowType> newRepoShadow = oldRepoShadow.clone();
-			shadowDelta.applyTo(newRepoShadow);
-			return newRepoShadow;
-			
-		} else {
-			LOGGER.trace("No need to update repo shadow {} (empty delta)", oldRepoShadow);
-			return oldRepoShadow;
-		}		
+		return shadowDelta;
 	}
-	
 
 	private <T> void compareUpdateProperty(ObjectDelta<ShadowType> shadowDelta,
 			ItemPath itemPath, PrismObject<ShadowType> currentResourceShadow, PrismObject<ShadowType> oldRepoShadow) {
@@ -1992,13 +2111,15 @@ public class ShadowManager {
 		List<ItemDelta<?, ?>> shadowChanges = prismContext.deltaFor(ShadowType.class)
 			.item(ShadowType.F_DEAD).replace(true)
 			.item(ShadowType.F_EXISTS).replace(false)
+			// We need to free the identifier for further use by live shadows that may come later
+			.item(ShadowType.F_PRIMARY_IDENTIFIER_VALUE).replace()
 		.asItemDeltas();
 		LOGGER.trace("Marking shadow {} as tombstone", repoShadow);
 		try {
 			repositoryService.modifyObject(ShadowType.class, repoShadow.getOid(), shadowChanges, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
 			// Should not happen, this is not a rename
-			new SystemException(e.getMessage(), e);
+			throw new SystemException(e.getMessage(), e);
 		} catch (ObjectNotFoundException e) {
 			// Cannot be more dead
 			LOGGER.trace("Attempt to mark shadow {} as tombstone found that no such shadow exists", repoShadow);
@@ -2018,7 +2139,7 @@ public class ShadowManager {
 		ProvisioningContext shadowCtx = ctx.spawn(currentRepoShadow);
 		RefinedObjectClassDefinition ocDef = shadowCtx.getObjectClassDefinition();
 		PrismContainer<Containerable> attributesContainer = currentRepoShadow.findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer != null && attributesContainer.getValue() != null) {
+		if (attributesContainer != null) {
 			ObjectDelta<ShadowType> shadowDelta = currentRepoShadow.createModifyDelta();
 			for (Item<?, ?> item: attributesContainer.getValue().getItems()) {
 				if (item instanceof PrismProperty<?>) {

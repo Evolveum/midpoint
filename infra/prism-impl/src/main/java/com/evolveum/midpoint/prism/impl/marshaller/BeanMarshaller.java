@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,8 @@ public class BeanMarshaller {
 		specialMarshallers.put(ProtectedStringType.class, this::marshalProtectedDataType);
 		specialMarshallers.put(ItemPathType.class, this::marshalItemPathType);
 		specialMarshallers.put(RawType.class, this::marshalRawType);
-//		add(PolyString.class, this::unmarshalPolyStringFromPrimitive, this::unmarshalPolyStringFromMap);
-//		add(PolyStringType.class, this::unmarshalPolyStringFromPrimitive, this::unmarshalPolyStringFromMap);
+		specialMarshallers.put(PolyString.class, this::marshalPolyString);
+		specialMarshallers.put(PolyStringType.class, this::marshalPolyString);
 	}
 
 	public BeanMarshaller(@NotNull PrismContext prismContext, @NotNull PrismBeanInspector inspector) {
@@ -85,13 +85,6 @@ public class BeanMarshaller {
 		Marshaller marshaller = specialMarshallers.get(bean.getClass());
 		if (marshaller != null) {
 			return marshaller.marshal(bean, ctx);
-		}
-
-		// avoiding chatty PolyString serializations (namespace declaration + orig + norm)
-		if (bean instanceof PolyString) {
-			bean = (T) ((PolyString) bean).getOrig();
-		} else if (bean instanceof PolyStringType) {
-			bean = (T) ((PolyStringType) bean).getOrig();
 		}
 
 		if (bean instanceof Containerable) {
@@ -468,7 +461,58 @@ public class BeanMarshaller {
         return (XNodeImpl) ((RawType) value).serializeToXNode();
 	}
 
-    private XNodeImpl marshalItemPathType(Object o, SerializationContext sc) {
+	private XNodeImpl marshalPolyString(Object value, SerializationContext sc) throws SchemaException {
+		if (value instanceof PolyString) {
+			return marshalPolyString((PolyString) value);
+		} else if (value instanceof PolyStringType) {
+			return marshalPolyString(((PolyStringType) value).toPolyString());
+		} else {
+			throw new IllegalArgumentException("Not a PolyString nor PolyStringType: " + value);
+		}
+	}
+
+	XNodeImpl marshalPolyString(PolyString realValue) throws SchemaException {
+		if (realValue.isSimple()) {
+			PrimitiveXNodeImpl<PolyString> xprim = new PrimitiveXNodeImpl<>();
+			xprim.setValue(realValue, PolyStringType.COMPLEX_TYPE);
+			return xprim;
+		} else {
+			MapXNodeImpl xmap = new MapXNodeImpl();
+
+			PrimitiveXNodeImpl<String> xorig = new PrimitiveXNodeImpl<>();
+			xorig.setValue(realValue.getOrig(), DOMUtil.XSD_STRING);
+			xmap.put(PolyString.F_ORIG, xorig);
+
+			PrimitiveXNodeImpl<String> xnorm = new PrimitiveXNodeImpl<>();
+			xnorm.setValue(realValue.getNorm(), DOMUtil.XSD_STRING);
+			xmap.put(PolyString.F_NORM, xnorm);
+
+			PolyStringTranslationType translation = realValue.getTranslation();
+			if (translation != null) {
+				XNodeImpl xTranslation = marshall(translation);
+				xmap.put(PolyString.F_TRANSLATION, xTranslation);
+			}
+
+			Map<String, String> lang = realValue.getLang();
+			if (lang != null && !lang.isEmpty()) {
+				XNodeImpl xTranslation = serializePolyStringLang(lang);
+				xmap.put(PolyString.F_LANG, xTranslation);
+			}
+
+			return xmap;
+		}
+	}
+
+	private XNodeImpl serializePolyStringLang(Map<String, String> lang) {
+		MapXNodeImpl xmap = new MapXNodeImpl();
+		for (Map.Entry<String, String> langEntry : lang.entrySet()) {
+			PrimitiveXNodeImpl<String> xPrim = new PrimitiveXNodeImpl<>(langEntry.getValue());
+			xmap.put(new QName(PolyString.F_LANG.getNamespaceURI(), langEntry.getKey()), xPrim);
+		}
+		return xmap;
+	}
+
+	private XNodeImpl marshalItemPathType(Object o, SerializationContext sc) {
 		ItemPathType itemPath = (ItemPathType) o;
         PrimitiveXNodeImpl<ItemPathType> xprim = new PrimitiveXNodeImpl<>();
         if (itemPath != null) {

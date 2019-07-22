@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -31,6 +32,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -72,7 +75,7 @@ public class ObjectIntegrityCheckTaskHandler extends AbstractSearchIterativeMode
     }
 
 	@Override
-	protected ObjectIntegrityCheckResultHandler createHandler(TaskRunResult runResult, Task coordinatorTask, OperationResult opResult) {
+	protected ObjectIntegrityCheckResultHandler createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask, OperationResult opResult) {
         return new ObjectIntegrityCheckResultHandler(coordinatorTask, ObjectIntegrityCheckTaskHandler.class.getName(),
 				"check object integrity", "check object integrity", taskManager, prismContext,
                 repositoryService, systemObjectCache, opResult);

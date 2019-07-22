@@ -15,8 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
-import java.util.Collection;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -24,23 +23,16 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
-import com.evolveum.midpoint.repo.common.CounterManager;
-import com.evolveum.midpoint.repo.common.CounterSepcification;
+import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.repo.api.CounterSpecification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
 /**
  * @author katka
@@ -52,57 +44,39 @@ public class PolicyRuleSuspendTaskExecutor {
 	private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleSuspendTaskExecutor.class);
 	
 	@Autowired private CounterManager counterManager;
-	@Autowired private TaskManager taskManager;
 	
 	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
 		ModelElementContext<O> focusCtx = context.getFocusContext();
-		CounterSepcification counterSpec = counterManager.getCounterSpec(task);
-
-		int counter = 1;
-		if (counterSpec != null) {
-			counter = counterSpec.getCount();
-		}
-		
-		LOGGER.info("counter: {}", counter);
-		
-		if (focusCtx == null || focusCtx.getPolicyRules() == null) {
+				
+		if (focusCtx == null) {
 			return;
 		}
-		
+
+		TaskType taskType = task.getUpdatedOrClonedTaskObject().asObjectable();
 		for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-			LOGGER.info("focus policy rules: {}", policyRule);
-			counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
-		}
-		
-		Collection<? extends ModelProjectionContext> projectionCtxs = context.getProjectionContexts();
-		for (ModelProjectionContext projectionCtx : projectionCtxs) {
-			Collection<EvaluatedPolicyRule> evaluatedPolicyRules = projectionCtx.getPolicyRules();
-			for (EvaluatedPolicyRule policyRule : evaluatedPolicyRules) {
-				LOGGER.info("projction policy rules: {}", policyRule);
-				counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
-			}
+			CounterSpecification counterSpec = counterManager.getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+			LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 			
+			int counter = 1;
+			if (counterSpec != null) {
+				counter = counterSpec.getCount();
+			}
+			counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
+			
+			if (counterSpec != null) {
+				LOGGER.trace("Setting new count = {} to counter spec", counter);
+				counterSpec.setCount(counter);
+			}
 		}
-	
-		LOGGER.info("counter after: {}", counter);
-		if (counterSpec != null) {
-			counterSpec.setCount(counter);
-		}
-		
+				
 	}
 	
 	private synchronized int checkEvaluatedPolicyRule(Task task, EvaluatedPolicyRule policyRule, int counter, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
-		for (PolicyActionType action : policyRule.getEnabledActions()) {
-			LOGGER.info("action: {}", action);
-		}
 		if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
-			LOGGER.info("counter increment: {}", policyRule);
 			counter++;
-//			SuspendTaskPolicyActionType stopAction = policyRule.getEnabledAction(SuspendTaskPolicyActionType.class);
-			
+			LOGGER.trace("Suspend task action enabled for {}, checking threshold settings", DebugUtil.debugDumpLazily(policyRule));
 			PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
 			if (isOverThreshold(thresholdSettings, counter)) {
-//				taskManager.suspendTask(task, 10, result);
 				throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
 			}
 		}
@@ -114,6 +88,7 @@ public class PolicyRuleSuspendTaskExecutor {
 		// TODO: better implementation that takes hight water mark into account
 		WaterMarkType lowWaterMark = thresholdSettings.getLowWaterMark();
 		if (lowWaterMark == null) {
+			LOGGER.trace("No low water mark defined.");
 			return true;
 		}
 		Integer lowWaterCount = lowWaterMark.getCount();

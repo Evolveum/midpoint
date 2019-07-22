@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.security.impl;
 
+import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -138,7 +140,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     }
     
     @Override
-    public void updateUser(MidPointPrincipal principal) {
+    public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
             save(principal, result);

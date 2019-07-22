@@ -63,10 +63,4 @@ public class SystemConfigurationTypeUtil {
             return sysconfig.getDefaultHostname();      // deprecated (legacy)
         }
     }
-
-    // TODO move to better place?
-    public static void applyOperationResultHandling(SystemConfigurationType config) {
-        Integer value = config != null && config.getInternals() != null ? config.getInternals().getSubresultStripThreshold() : null;
-        OperationResult.setSubresultStripThreshold(value);
-    }
 }

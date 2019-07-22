@@ -34,17 +34,35 @@
                 </label>
             </div>
         </div>
+        <div class="form-group" style="padding: 0px 5px 0px 20px;">
+            <input wicket:id="oidFilter" style="min-width: 240px;"
+                   wicket:message="placeholder:pageDebugList.oidFilter" class="form-control input-sm" type="text"/>
+            <a wicket:id="searchByOidButton" class="btn btn-sm btn-primary">
+                <i class="fa fa-search fa-lg"/>
+            </a>
+        </div>
 
         <form class="form-inline pull-right search-form" wicket:id="searchForm">
+
             <div class="form-group" style="float: left; padding-right: 5px;" wicket:id="choiceContainer">
                 <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
-                <select class="form-control input-sm" wicket:id="choice"/>
+                <div wicket:id="choice"/>
             </div>
 
             <wicket:enclosure child="resource">
-                <div class="form-group" style="float: left; padding-right: 5px;">
-                    <label class="sr-only"><wicket:message key="pageDebugList.resource"/></label>
-                    <select class="form-control input-sm" wicket:id="resource"/>
+                <div style="float: left; padding-right: 5px;">
+                    <div class="form-group">
+                        <label class="sr-only">
+                            <wicket:message key="pageDebugList.resource"/>
+                        </label>
+                        <div wicket:id="resource"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only">
+                            <wicket:message key="pageDebugList.objectClass"/>
+                        </label>
+                        <div wicket:id="objectClass"/>
+                    </div>
                 </div>
             </wicket:enclosure>
 

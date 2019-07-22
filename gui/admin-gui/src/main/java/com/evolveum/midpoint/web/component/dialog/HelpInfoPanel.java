@@ -21,26 +21,20 @@ public class HelpInfoPanel extends Panel implements Popupable{
         this(id, null);
     }
 
-    public HelpInfoPanel(String id, String messageKey){
+    public HelpInfoPanel(String id, IModel<String> messageModel){
         super (id);
-        initLayout(messageKey);
+        initLayout(messageModel);
     }
 
-    public void initLayout(final String messageKey){
+    public void initLayout(final IModel<String> messageModel){
         WebMarkupContainer content = new WebMarkupContainer(ID_CONTENT);
         add(content);
 
-        Label helpLabel = new Label(ID_HELP, new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString(messageKey);
-            }
-        });
+        Label helpLabel = new Label(ID_HELP, messageModel);
         helpLabel.setEscapeModelStrings(false);
         content.add(helpLabel);
 
-        AjaxLink ok = new AjaxLink(ID_BUTTON_OK) {
+        AjaxLink<Void> ok = new AjaxLink<Void>(ID_BUTTON_OK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

@@ -16,13 +16,13 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -41,7 +41,7 @@ import javax.annotation.PostConstruct;
  *
  */
 @Component
-public class AccessCertificationCampaignReiterationTriggerHandler implements TriggerHandler {
+public class AccessCertificationCampaignReiterationTriggerHandler implements SingleTriggerHandler {
 
 	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/reiterate-campaign/handler-3";
 
@@ -56,7 +56,7 @@ public class AccessCertificationCampaignReiterationTriggerHandler implements Tri
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> prismObject, TriggerType trigger, RunningTask task, OperationResult result) {
 		try {
 			ObjectType object = prismObject.asObjectable();
 			if (!(object instanceof AccessCertificationCampaignType)) {

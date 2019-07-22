@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ public class DummyAttributeDefinition {
 	private boolean isRequired;
 	private boolean isMulti;
 	private boolean isReturnedByDefault = true;
+	private boolean isReturnedAsIncomplete;
+	// setting to sensitive will cause this attr to be presented as GuardedString
+	private boolean sensitive;
 
 	public DummyAttributeDefinition(String attributeName, Class<?> attributeType) {
 		super();
@@ -84,4 +87,19 @@ public class DummyAttributeDefinition {
 		this.isReturnedByDefault = isReturnedByDefault;
 	}
 
+	public boolean isReturnedAsIncomplete() {
+		return isReturnedAsIncomplete;
+	}
+
+	public void setReturnedAsIncomplete(boolean returnedAsIncomplete) {
+		isReturnedAsIncomplete = returnedAsIncomplete;
+	}
+	
+	public boolean isSensitive() {
+		return sensitive;
+	}
+
+	public void setSensitive(boolean sensitive) {
+		this.sensitive = sensitive;
+	}
 }

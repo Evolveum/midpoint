@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import org.apache.commons.lang.StringUtils;
@@ -25,11 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Pavol Mederly
@@ -63,7 +60,7 @@ public class ActionsExecutedInformation {
         this(null);
     }
 
-    public ActionsExecutedInformationType getStartValue() {
+	public ActionsExecutedInformationType getStartValue() {
         return (ActionsExecutedInformationType) startValue;
     }
 
@@ -242,6 +239,33 @@ public class ActionsExecutedInformation {
             this.channel = channel;
             this.exception = exception;
             this.timestamp = timestamp;
+        }
+    }
+
+    public static String format(ActionsExecutedInformationType information) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("  All object actions:\n");
+        for (ObjectActionsExecutedEntryType a : information.getObjectActionsEntry()) {
+            formatActionExecuted(sb, a);
+        }
+        sb.append("  Resulting object actions:\n");
+        for (ObjectActionsExecutedEntryType a : information.getResultingObjectActionsEntry()) {
+            formatActionExecuted(sb, a);
+        }
+        return sb.toString();
+    }
+
+    private static void formatActionExecuted(StringBuilder sb, ObjectActionsExecutedEntryType a) {
+        sb.append(String.format("    %-10s %-30s %s\n", a.getOperation(), QNameUtil.getLocalPart(a.getObjectType()), a.getChannel()));
+        if (a.getTotalSuccessCount() > 0) {
+            sb.append(String.format(Locale.US, "      success: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalSuccessCount(),
+                    a.getLastSuccessObjectName(), a.getLastSuccessObjectDisplayName(), a.getLastSuccessObjectOid(),
+                    XmlTypeConverter.toDate(a.getLastSuccessTimestamp())));
+        }
+        if (a.getTotalFailureCount() > 0) {
+            sb.append(String.format(Locale.US, "      failure: %6d time(s), last: %s (%s, %s) on %tc\n", a.getTotalFailureCount(),
+                    a.getLastFailureObjectName(), a.getLastFailureObjectDisplayName(), a.getLastFailureObjectOid(),
+                    XmlTypeConverter.toDate(a.getLastFailureTimestamp())));
         }
     }
 }

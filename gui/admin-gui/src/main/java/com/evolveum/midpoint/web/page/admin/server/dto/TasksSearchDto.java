@@ -30,10 +30,12 @@ public class TasksSearchDto implements Serializable, DebugDumpable {
 	public static final String F_STATUS = "status";
     public static final String F_CATEGORY = "category";
     public static final String F_SHOW_SUBTASKS = "showSubtasks";
+    public static final String F_SHOW_PROGRESS = "showProgress";
 
     private TaskDtoExecutionStatusFilter status;
     private String category;
     private boolean showSubtasks;
+    private boolean showProgress;
 
     public boolean isShowSubtasks() {
         return showSubtasks;
@@ -43,7 +45,15 @@ public class TasksSearchDto implements Serializable, DebugDumpable {
         this.showSubtasks = showSubtasks;
     }
 
-    public String getCategory() {
+	public boolean isShowProgress() {
+		return showProgress;
+	}
+
+	public void setShowProgress(boolean showProgress) {
+		this.showProgress = showProgress;
+	}
+
+	public String getCategory() {
         return category;
     }
 
@@ -72,6 +82,7 @@ public class TasksSearchDto implements Serializable, DebugDumpable {
 		DebugUtil.debugDumpWithLabelLn(sb, "status", status==null?null:status.toString(), indent+1);
 		DebugUtil.debugDumpWithLabelLn(sb, "category", category, indent+1);
 		DebugUtil.debugDumpWithLabel(sb, "showSubtasks", showSubtasks, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "showProgress", showProgress, indent+1);
 		return sb.toString();
 	}
 }

@@ -79,7 +79,7 @@ public class PrismForm<T> extends Component<T> {
 
         ElementsCollection values = property.$$(By.className("prism-property-value"));
         if (values.size() == 1) {
-            values.first().$(By.className("form-control")).setValue(newValue);
+            values.first().$(By.className("form-control")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S).setValue(newValue);
         }
 
         // todo implement

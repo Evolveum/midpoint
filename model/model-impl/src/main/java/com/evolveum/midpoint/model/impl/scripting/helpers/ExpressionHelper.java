@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.scripting.helpers;
 
+import com.evolveum.midpoint.model.api.PipelineItem;
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -27,10 +28,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -134,6 +138,42 @@ public class ExpressionHelper {
 			return JavaTypeConverter.convert(clazz, value);
 		} catch (Throwable t) {
 			throw new ScriptExecutionException("Couldn't retrieve value of parameter '" + parameterName + "': " + t.getMessage(), t);
+		}
+	}
+
+	@NotNull
+	public <T> Collection<T> getArgumentValues(List<ActionParameterValueType> arguments, String parameterName, boolean required,
+			boolean requiredNonNull, String context, PipelineData input, ExecutionContext executionContext, Class<T> clazz, OperationResult result) throws ScriptExecutionException {
+		List<T> rv = new ArrayList<>();
+		for (ActionParameterValueType paramValue : arguments) {
+			if (parameterName.equals(paramValue.getName())) {
+				if (paramValue.getScriptingExpression() != null || paramValue.getValue() != null) {
+					if (paramValue != null) {
+						PipelineData paramData = evaluateParameter(paramValue, clazz, input, executionContext, result);
+						for (PipelineItem item : paramData.getData()) {
+							PrismValue prismValue = item.getValue();
+							if (!(prismValue instanceof PrismPropertyValue)) {
+								throw new ScriptExecutionException(
+										"A prism property value was expected in '" + parameterName + "' parameter. Got " + prismValue
+										.getClass().getName() + " instead.");
+							} else {
+								rv.add(JavaTypeConverter.convert(clazz, prismValue.getRealValue()));
+							}
+						}
+					}
+				} else {
+					if (requiredNonNull) {
+						throw new ScriptExecutionException("Required parameter " + parameterName + " is null in invocation of \"" + context + "\"");
+					} else {
+						return rv;
+					}
+				}
+			}
+		}
+		if (required) {
+			throw new ScriptExecutionException("Required parameter " + parameterName + " not present in invocation of \"" + context + "\"");
+		} else {
+			return rv;
 		}
 	}
 }

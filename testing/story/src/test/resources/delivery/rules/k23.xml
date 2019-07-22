@@ -61,7 +61,7 @@ Matches if the currently unassigned role is not assigned to any other user.
 								<script>
 									<code>
 										rulesLib.execute('computeApprovers', [
-											workflowContext : workflowContext,
+											approvalContext : approvalContext,
 											stageDefinition : stageDefinition
 										])
 									</code>

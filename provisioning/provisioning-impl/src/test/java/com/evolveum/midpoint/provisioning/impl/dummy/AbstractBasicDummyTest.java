@@ -114,6 +114,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsSimulateType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
@@ -180,9 +181,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull(connector);
 		display("Dummy Connector", connector);
 
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		// Check connector schema
 		IntegrationTestTools.assertConnectorSchemaSanity(connector, prismContext);
@@ -206,9 +205,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("searchObjects result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		assertFalse("No connector found", connectors.isEmpty());
 		for (PrismObject<ConnectorType> connPrism : connectors) {
@@ -296,6 +293,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 0);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 0);
 	}
@@ -314,6 +312,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		// GIVEN
 		Task task = createTask(TEST_NAME);
 		OperationResult result = task.getResult();
+		
+		dummyResource.assertNoConnections();
 
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
@@ -322,6 +322,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		rememberCounter(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT);
 		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
+		rememberCounter(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
 		rememberCounter(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
 		rememberResourceCacheStats();
 
@@ -377,9 +378,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
 		assertCounterIncrement(InternalCounters.CONNECTOR_CAPABILITIES_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT, 1);
 		// One increment for availablity status, the other for schema
 		assertResourceVersionIncrement(resourceRepoAfter, 2);
+		
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 
 	}
 
@@ -389,7 +394,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName() + "." + TEST_NAME);
-
+		
 		// WHEN
 		resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, null, result);
 		resourceType = resource.asObjectable();
@@ -411,7 +416,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
 		PrismContainerDefinition confPropsDef = confingurationPropertiesContainer.getDefinition();
 		assertNotNull("No configuration properties container definition", confPropsDef);
-		List<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
+		Collection<PrismProperty<?>> configurationProperties = confingurationPropertiesContainer.getValue().getItems();
 		assertFalse("No configuration properties", configurationProperties.isEmpty());
 		for (PrismProperty<?> confProp : configurationProperties) {
 			PrismPropertyDefinition confPropDef = confProp.getDefinition();
@@ -429,6 +434,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		rememberSchemaMetadata(resource);
 
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
 
 	protected <T> void assertConfigurationProperty(PrismProperty<T> confProp) {
@@ -461,6 +468,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 
 		rememberResourceSchema(returnedSchema);
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
 
 	@Test
@@ -543,6 +552,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertEquals("Unexpected number of schema definitions", getExpectedRefinedSchemaDefinitions(), refinedSchema.getDefinitions().size());
 
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
 
 	/**
@@ -615,6 +626,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
 		assertUpdateCapability(capUpdate);
 		
+		AddRemoveAttributeValuesCapabilityType capAddRemove = CapabilityUtil.getCapability(nativeCapabilitiesList, AddRemoveAttributeValuesCapabilityType.class);
+		assertAddRemoveAttributeValuesCapability(capAddRemove);
+		
 		RunAsCapabilityType capRunAs = CapabilityUtil.getCapability(nativeCapabilitiesList, RunAsCapabilityType.class);
 		assertRunAsCapability(capRunAs);
 		
@@ -651,13 +665,21 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		}
 
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
-	
+
 	protected void assertUpdateCapability(UpdateCapabilityType capUpdate) {
 		assertNotNull("native update capability not present", capUpdate);
 		assertNull("native update capability is manual", capUpdate.isManual());
-		assertNotNull("native update capability is null", capUpdate.isDelta());
+		assertNotNull("delta in native update capability is null", capUpdate.isDelta());
 		assertTrue("native update capability is NOT delta", capUpdate.isDelta());
+		assertNotNull("addRemoveAttributeValues in native update capability is null", capUpdate.isAddRemoveAttributeValues());
+		assertTrue("native update capability is NOT addRemoveAttributeValues", capUpdate.isAddRemoveAttributeValues());
+	}
+	
+	protected void assertAddRemoveAttributeValuesCapability(AddRemoveAttributeValuesCapabilityType capAddRemove) {
+		assertNull("Unexpected native AddRemoveAttributeValues capability", capAddRemove);
 	}
 	
 	protected void assertRunAsCapability(RunAsCapabilityType capRunAs) {
@@ -751,6 +773,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				capabilitiesCachingMetadataType.getSerialNumber(), repoCapabilitiesCachingMetadataType.getSerialNumber());
 
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
 
 	/**
@@ -773,10 +797,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		display("Test result", testResult);
 		assertSuccess(testResult);
 		
-		// Connector is re-initialized at this point. Test connection in previous test
+		// Connector is re-configured at this point. Test connection in previous test
 		// have updated resource availablility status, which have changed resource version
-		// which have forced connector re-inialization. But this is quite harmless.
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		// which have forced connector re-configuration. But this is quite harmless.
+		// However, connector is not re-initialized. The same connector instance is reused.
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
 		// Test connection is forcing schema and capabilities fetch again. But the schema is not used.
 		assertCounterIncrement(InternalCounters.RESOURCE_SCHEMA_FETCH_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT, 0);
@@ -790,6 +816,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		rememberConnectorInstance(resource);
 		
 		assertSteadyResource();
+		dummyResource.assertConnections(1);
+		assertDummyConnectorInstances(1);
 	}
 	
 	@Test
@@ -889,9 +917,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 				null, null, result);
 
 		// THEN
-		result.computeStatus();
-		display("getObject result", result);
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		ResourceType resourceTypeAgain = resourceAgain.asObjectable();
 		assertNotNull("No connector ref", resourceTypeAgain.getConnectorRef());
@@ -912,7 +938,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
 				resourceAgain, ReadCapabilityType.class, true, result);
 		assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
-		assertFalse("Connector instance was not refreshed", configuredConnectorInstance == configuredConnectorInstanceAgain);
+		// Connector instance should NOT be changed at this point. It should be only re-configured.
+		assertTrue("Connector instance was changed", configuredConnectorInstance == configuredConnectorInstanceAgain);
 
 		// Check if the connector still works
 		OperationResult testResult = new OperationResult(TestOpenDj.class.getName()
@@ -921,7 +948,8 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		testResult.computeStatus();
 		TestUtil.assertSuccess("Connector test failed", testResult);
 
-		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 1);
 		rememberConnectorInstance(configuredConnectorInstanceAgain);
 
 		assertSteadyResource();
@@ -1077,7 +1105,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = task.getResult();
 
-		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP);
+		ResourceShadowDiscriminator coords = new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, RESOURCE_DUMMY_INTENT_GROUP, null, false);
 		ProvisioningContext ctx = provisioningContextFactory.create(coords, task, result);
 
 		// WHEN
@@ -1108,8 +1136,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		List<ConnectorOperationalStatus> operationalStatuses = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
 
 		// THEN
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
 		display("Connector operational status", operationalStatuses);
 		assertNotNull("null operational status", operationalStatuses);
@@ -1243,6 +1270,13 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		display("Will account repo", accountRepo);
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		assertShadowName(accountRepo, ACCOUNT_WILL_USERNAME);
+		
+		if (isIcfNameUidSame()) {
+			assertPrimaryIdentifierValue(accountRepo, getWillRepoIcfName());
+		} else {
+			assertPrimaryIdentifierValue(accountRepo, getIcfUid(accountRepo));
+		}
+		
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
 		assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, getWillRepoIcfName());
 		if (isIcfNameUidSame() && !isProposedShadow(accountRepo)) {
@@ -1252,6 +1286,12 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertNumberOfAttributes(accountRepo, expectedNumberOfAttributes);
 
 		assertRepoCachingMetadata(accountRepo, start, end);
+	}
+
+	protected void assertPrimaryIdentifierValue(PrismObject<ShadowType> shadow, String expected) {
+		if (shadow.asObjectable().getLifecycleState() == null || shadow.asObjectable().getLifecycleState().equals(SchemaConstants.LIFECYCLE_ACTIVE)) {
+			assertEquals("Wrong primaryIdentifierValue in "+shadow, expected, shadow.asObjectable().getPrimaryIdentifierValue());
+		}
 	}
 
 	private boolean isProposedShadow(PrismObject<ShadowType> shadow) {

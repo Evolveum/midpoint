@@ -19,10 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -74,6 +76,12 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 		if (type.equals(FunctionLibraryType.class)) {
 			return;
 		}
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) {
 		throw new UnsupportedOperationException();
 	}
 

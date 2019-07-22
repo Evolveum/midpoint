@@ -148,6 +148,9 @@
 					<strength>strong</strength>
 					<target>
 						<path>organization</path>
+						<set>
+							<predefined>all</predefined>
+						</set>
 					</target>
 				</inbound>
 			</attribute>

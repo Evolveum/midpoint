@@ -68,9 +68,21 @@
 	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.hostIdentifierLabel" /></label>
                     	<div class="col-sm-9" wicket:id="hostIdentifierField" />
                    	</div>
+                    <div class="form-group">
+	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.requestIdentifier" /></label>
+                    	<div class="col-sm-9" wicket:id="requestIdentifierField" />
+                   	</div>
                     <div class="form-group" wicket:id="valueRefTargetNames">
 	                    <label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.valueRefTargetNamesLabel" /></label>
                     	<div class="col-sm-9" wicket:id="valueRefTargetNamesField" />
+                   	</div>
+                   	<div wicket:id="usedQueryContainer" class="form-group">
+						<label class="col-sm-3 control-label" ><wicket:message key="PageAuditLogViewer.usedQueryLabel" /></label>
+                    	<div class="col-sm-9" wicket:id="usedQueryField" />
+                   	</div>
+                   	<div wicket:id="usedIntervalContainer" class="form-group">
+						<label class="col-sm-3 control-label"><wicket:message key="PageAuditLogViewer.usedIntervalLabel" /></label>
+                    	<div class="col-sm-9" wicket:id="usedIntervalField" />
                    	</div>
                     <div  class="main-button-bar pull-right">
                     <!--<span class="btn-group" style="padding-top: 5px;">-->

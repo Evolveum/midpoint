@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -259,8 +260,10 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     private PasswordAccountDto createDefaultPasswordAccountDto(PrismObject<UserType> user) {
+        String customSystemName = WebComponentUtil.getMidpointCustomSystemName(PageAbstractSelfCredentials.this, "midpoint.default.system.name");
         return new PasswordAccountDto(user.getOid(), user.getName().getOrig(),
-                getString("PageSelfCredentials.resourceMidpoint"), WebComponentUtil.isActivationEnabled(user), true);
+                getString("PageSelfCredentials.resourceMidpoint", customSystemName),
+                WebComponentUtil.isActivationEnabled(user), true);
     }
 
     private PasswordAccountDto createPasswordAccountDto(PrismObject<ShadowType> account, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -399,33 +402,6 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
         redirectBack();
     }
 
-//    private List<ShadowType> loadShadowTypeList() {
-//        List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
-//        Task task = createSimpleTask(OPERATION_LOAD_SHADOW);
-//        List<ShadowType> shadowTypeList = new ArrayList<>();
-//
-//        for (ObjectReferenceType reference : references) {
-//            OperationResult subResult = new OperationResult(OPERATION_LOAD_SHADOW);
-//            try {
-//                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(ShadowType.F_RESOURCE,
-//                        GetOperationOptions.createResolve());
-//
-//                if (reference.getOid() == null) {
-//                    continue;
-//                }
-//                PrismObject<ShadowType> shadow = WebModelServiceUtils.loadObject(ShadowType.class, reference.getOid(), options, this, task, subResult);
-//                shadowTypeList.add(shadow.asObjectable());
-//            } catch (Exception ex) {
-//                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
-//                subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
-//            } finally {
-//                subResult.computeStatus();
-//            }
-//        }
-//        return shadowTypeList;
-//
-//    }
-
     private boolean getPasswordOutbound(PrismObject<ShadowType> shadow, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         try {
             RefinedObjectClassDefinition rOCDef = getModelInteractionService().getEditObjectClassDefinition(shadow,
@@ -444,7 +420,11 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
 
     private boolean hasPasswordCapability(PrismObject<ShadowType> shadow) {
 
-         return ResourceTypeUtil.isPasswordCapabilityEnabled(shadow.asObjectable().getResource());
+    	ShadowType shadowType = shadow.asObjectable();
+    	ResourceType resource = shadowType.getResource();
+    	ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+    	
+         return ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType);
 
     }
 

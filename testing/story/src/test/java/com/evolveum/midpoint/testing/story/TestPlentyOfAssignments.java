@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.internals.InternalOperationClasses;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -149,15 +150,11 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 									.beginOutbound()
 										.beginExpression()
 											.expressionEvaluator(evaluator);
-//					try {
-//						IntegrationTestTools.displayXml("RRRRRRRRR", role.asPrismObject());
-//					} catch (SchemaException e) {
-//						throw new SystemException(e);
-//					}
 				}, initResult);
 
 		inspector = new CountingInspector();
 		InternalMonitor.setInspector(inspector);
+//		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, true);
 	}
 
 	private String generateRoleOid(String format, int num) {
@@ -451,8 +448,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         display("Inspector", inspector);
 
-        // TODO: why *3 ???
-        inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS * 3);
+        inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
@@ -584,6 +580,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         display("User before", assignmentSummary(userBefore));
 
         inspector.reset();
+        rememberCounter(InternalCounters.PRISM_OBJECT_CLONE_COUNT);
         rememberCounter(InternalCounters.PRISM_OBJECT_COMPARE_COUNT);
         rememberCounter(InternalCounters.REPOSITORY_READ_COUNT);
         long startMillis = System.currentTimeMillis();
@@ -599,18 +596,18 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         assertSuccess(result);
 
         display("Added alice in "+(endMillis - startMillis)+"ms ("+((endMillis - startMillis)/NUMBER_OF_GENERATED_DUMMY_GROUPS)+"ms per assignment)");
-
+        
         PrismObject<UserType> userAfter = getUser(USER_ALICE_OID);
         display("User after", assignmentSummary(userAfter));
         assertAliceRoleMembershipRef(userAfter);
 
         display("Repo reads", InternalMonitor.getCount(InternalCounters.REPOSITORY_READ_COUNT));
         display("Object compares", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_COMPARE_COUNT));
+        display("Prism clones", InternalMonitor.getCount(InternalCounters.PRISM_OBJECT_CLONE_COUNT));
 
         display("Inspector", inspector);
 
-        // TODO: why *3 ???
-        inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS * 3);
+        inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
 //        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);

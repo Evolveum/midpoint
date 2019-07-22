@@ -25,6 +25,8 @@ public class TaskConstants {
 	public static final String WORKERS_RESTART_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/workers-restart/handler-3";
 	public static final String WORKERS_CREATION_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/workers-creation/handler-3";
 	public static final String GENERIC_PARTITIONING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/generic-partitioning/handler-3";
+	public static final String LIGHTWEIGTH_PARTITIONING_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/lightweigth-partitioning/handler-3";
+	
 
 	public static final String NOOP_TASK_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3";
 	public static final String NOOP_TASK_HANDLER_URI_1 = NOOP_TASK_HANDLER_URI + "#1";
@@ -35,6 +37,8 @@ public class TaskConstants {
 	public static final String JDBC_PING_HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/jdbc-ping/handler-3";
 
 	public static final String LIMIT_FOR_OTHER_GROUPS = "*";            // the same as Scheduler.LIMIT_FOR_OTHER_GROUPS
+	public static final String LIMIT_FOR_CURRENT_NODE = "#";            // valid only for statically-configured limits!
+	public static final String LIMIT_FOR_NULL_GROUP = "_";              // valid only for statically-configured limits!
 
 	public static final String GET_LOCAL_SCHEDULER_INFORMATION_REST_PATH = "/scheduler/information";
 	public static final String STOP_LOCAL_SCHEDULER_REST_PATH = "/scheduler/stop";

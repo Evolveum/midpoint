@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="ef2bc95b-76e0-59e2-86d6-9999cccccccc" version="15">
+    <name>Test CSV: username</name>
+    <description>Simple CSV resource that is using single identifier (username)</description>
+    <connectorRef xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" oid="031ace52-96e6-470c-829b-badda84c1800" type="tns:ConnectorType"/>
+    <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties xmlns:gen237="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+            <gen237:multivalueDelimiter>;</gen237:multivalueDelimiter>
+            <gen237:fieldDelimiter>,</gen237:fieldDelimiter>
+            <gen237:filePath>fake.csv</gen237:filePath>
+            <gen237:encoding>utf-8</gen237:encoding>
+            <gen237:passwordAttribute>password</gen237:passwordAttribute>
+            <gen237:uniqueAttribute>username</gen237:uniqueAttribute>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+    <schema>
+        <cachingMetadata>
+            <retrievalTimestamp>2019-03-08T13:41:24.186+01:00</retrievalTimestamp>
+            <serialNumber>977aedb1f8b1d269-1312bb8d78708bf8</serialNumber>
+        </cachingMetadata>
+        <definition>
+            <xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>ri:username</ra:identifier>
+                            <ra:displayNameAttribute>ri:username</ra:displayNameAttribute>
+                            <ra:namingAttribute>ri:username</ra:namingAttribute>
+                            <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                            <ra:kind>account</ra:kind>
+                            <ra:default>true</ra:default>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element minOccurs="0" name="disabled" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:processing>ignore</a:processing>
+                                    <a:displayOrder>120</a:displayOrder>
+                                    <ra:nativeAttributeName>disabled</ra:nativeAttributeName>
+                                    <ra:frameworkAttributeName>disabled</ra:frameworkAttributeName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="lastname" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>130</a:displayOrder>
+                                    <ra:nativeAttributeName>lastname</ra:nativeAttributeName>
+                                    <ra:frameworkAttributeName>lastname</ra:frameworkAttributeName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element minOccurs="0" name="firstname" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>140</a:displayOrder>
+                                    <ra:nativeAttributeName>firstname</ra:nativeAttributeName>
+                                    <ra:frameworkAttributeName>firstname</ra:frameworkAttributeName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="username" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:appinfo>
+                                    <a:displayOrder>100</a:displayOrder>
+                                    <ra:nativeAttributeName>username</ra:nativeAttributeName>
+                                    <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                                </xsd:appinfo>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
+    <schemaHandling>
+        <objectType id="1">
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <attribute id="2">
+                <c:ref>ri:username</c:ref>
+                <inbound id="5">
+                    <target>
+                        <c:path>$user/name</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute id="3">
+                <c:ref>ri:firstname</c:ref>
+                <outbound>
+                    <source>
+                        <c:path>$user/givenName</c:path>
+                    </source>
+                </outbound>
+                <inbound id="6">
+                    <target>
+                        <c:path>$user/givenName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute id="4">
+                <c:ref>ri:lastname</c:ref>
+                <inbound id="7">
+                    <target>
+                        <c:path>$user/familyName</c:path>
+                    </target>
+                </inbound>
+            </attribute>
+            <activation>
+                <administrativeStatus>
+                    <inbound id="8">
+                        <strength>weak</strength>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+            <credentials>
+                <password xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ResourcePasswordDefinitionType">
+                    <inbound>
+                        <strength>weak</strength>
+                        <expression>
+                            <generate xsi:type="c:GenerateExpressionEvaluatorType"/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+        </objectType>
+    </schemaHandling>
+    <capabilities>
+        <cachingMetadata>
+            <retrievalTimestamp>2019-03-08T13:41:24.184+01:00</retrievalTimestamp>
+            <serialNumber>93e81a59b8baa7b8-78517c4d1f12048</serialNumber>
+        </cachingMetadata>
+        <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
+            <cap:schema/>
+            <cap:liveSync/>
+            <cap:testConnection/>
+            <cap:create/>
+            <cap:update/>
+            <cap:delete/>
+            <cap:script>
+                <cap:host>
+                    <cap:type>resource</cap:type>
+                </cap:host>
+                <cap:host>
+                    <cap:type>connector</cap:type>
+                </cap:host>
+            </cap:script>
+            <cap:addRemoveAttributeValues/>
+            <cap:credentials>
+                <cap:password>
+                    <cap:readable>true</cap:readable>
+                </cap:password>
+            </cap:credentials>
+            <cap:read>
+                <cap:returnDefaultAttributesOption>false</cap:returnDefaultAttributesOption>
+            </cap:read>
+        </native>
+        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:CapabilityCollectionType">
+            <cap:activation>
+                <cap:status>
+                    <cap:attribute>ri:disabled</cap:attribute>
+                    <cap:enableValue>false</cap:enableValue>
+                    <cap:disableValue>true</cap:disableValue>
+                </cap:status>
+            </cap:activation>
+        </configured>
+    </capabilities>
+    <synchronization>
+        <objectSynchronization>
+            <objectClass>AccountObjectClass</objectClass>
+            <kind>account</kind>
+            <intent>default</intent>
+            <focusType>c:UserType</focusType>
+            <enabled>true</enabled>
+            <reconcile>false</reconcile>
+            <reaction>
+                <situation>linked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+                </action>
+            </reaction>
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

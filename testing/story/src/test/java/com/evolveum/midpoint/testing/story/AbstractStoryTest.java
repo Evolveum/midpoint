@@ -19,6 +19,8 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -72,6 +74,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR, "task-validity-scanner.xml");
 	protected static final String TASK_VALIDITY_SCANNER_OID = "00000000-0000-0000-0000-000000000006";
+	
+	protected static final String NS_PIRACY = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+	protected static final QName PIRACY_SHIP_QNAME = new QName(NS_PIRACY, "ship");
+	protected static final ItemPath PATH_EXTENSION_SHIP = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_SHIP_QNAME);
 
 	protected MatchingRule<String> caseIgnoreMatchingRule;
 
@@ -130,15 +136,15 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 
 	//region TODO deduplicate with AbstractWfTestPolicy
 
-	public void displayWorkItems(String title, List<WorkItemType> workItems) {
+	public void displayWorkItems(String title, List<CaseWorkItemType> workItems) {
 		workItems.forEach(wi -> display(title, wi));
 	}
 
-	protected WorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
-		SearchResultList<WorkItemType> itemsAll = getWorkItems(task, result);
+	protected CaseWorkItemType getWorkItem(Task task, OperationResult result) throws Exception {
+		SearchResultList<CaseWorkItemType> itemsAll = getWorkItems(task, result);
 		if (itemsAll.size() != 1) {
 			System.out.println("Unexpected # of work items: " + itemsAll.size());
-			for (WorkItemType workItem : itemsAll) {
+			for (CaseWorkItemType workItem : itemsAll) {
 				System.out.println(PrismUtil.serializeQuietly(prismContext, workItem));
 			}
 		}
@@ -146,8 +152,11 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		return itemsAll.get(0);
 	}
 
-	protected SearchResultList<WorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
-		return modelService.searchContainers(WorkItemType.class, null, null, task, result);
+	protected SearchResultList<CaseWorkItemType> getWorkItems(Task task, OperationResult result) throws Exception {
+		ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+				.item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+				.build();
+		return modelService.searchContainers(CaseWorkItemType.class, query, null, task, result);
 	}
 
 	protected ObjectReferenceType ort(String oid) {
@@ -172,8 +181,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		return ref(Collections.singletonList(ort));
 	}
 
-	protected Map<String, WorkItemType> sortByOriginalAssignee(Collection<WorkItemType> workItems) {
-		Map<String, WorkItemType> rv = new HashMap<>();
+	protected Map<String, CaseWorkItemType> sortByOriginalAssignee(Collection<CaseWorkItemType> workItems) {
+		Map<String, CaseWorkItemType> rv = new HashMap<>();
 		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
 		return rv;
 	}

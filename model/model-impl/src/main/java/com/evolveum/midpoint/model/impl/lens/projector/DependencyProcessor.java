@@ -190,7 +190,7 @@ public class DependencyProcessor {
 			// started, we checked at the beginning). Therefore this context must have been visited again.
 			// therefore there is a circular dependency. Therefore we need to create another context to split it.
 			ResourceShadowDiscriminator origDiscr = projectionContext.getResourceShadowDiscriminator();
-			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isTombstone());
+			ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.getTag(), origDiscr.isTombstone());
 			discr.setOrder(determinedOrder);
 			if (!projectionContext.compareResourceShadowDiscriminator(discr, true)){
 				resultAccountContext = createAnotherContext(context, projectionContext, discr);
@@ -384,7 +384,7 @@ public class DependencyProcessor {
 	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, LensProjectionContext origProjectionContext,
 			int determinedOrder) throws PolicyViolationException {
 		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isTombstone());
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.getTag(), origDiscr.isTombstone());
 		discr.setOrder(determinedOrder);
 		LensProjectionContext otherCtx = createAnotherContext(context, origProjectionContext, discr);
 		return otherCtx;

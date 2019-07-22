@@ -36,6 +36,8 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 
+import java.awt.*;
+
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -275,6 +277,11 @@ public class BasicPage {
         return new SystemPage().adminGuiTab();
     }
 
+    public RoleManagementTab roleManagement() {
+        clickConfigurationMenu("PageAdmin.menu.top.configuration.basic", "PageAdmin.menu.top.configuration.roleManagement");
+        return new SystemPage().roleManagementTab();
+    }
+
     public InternalsConfigurationPage internalsConfiguration() {
         clickConfigurationMenu("PageAdmin.menu.top.configuration.internals", null);
         return new InternalsConfigurationPage();
@@ -297,6 +304,11 @@ public class BasicPage {
         clickMenuItem("PageAdmin.menu.mainNavigation", mainMenuKey, menuItemKey);
     }
 
+    public String getAdministrationMenuItemIconClass(String mainMenuKey, String menuItemKey){
+        SelenideElement menuItem = getMenuItemElement("PageAdmin.menu.mainNavigation", mainMenuKey, menuItemKey);
+        return menuItem.parent().$(By.tagName("i")).getAttribute("class");
+    }
+
     private void clickConfigurationMenu(String mainMenuKey, String menuItemKey) {
         clickMenuItem("PageAdmin.menu.top.configuration", mainMenuKey, menuItemKey);
     }
@@ -308,6 +320,10 @@ public class BasicPage {
     }
 
     private void clickMenuItem(String topLevelMenuKey, String mainMenuKey, String menuItemKey) {
+        getMenuItemElement(topLevelMenuKey, mainMenuKey, menuItemKey).click();
+    }
+
+    private SelenideElement getMenuItemElement(String topLevelMenuKey, String mainMenuKey, String menuItemKey){
         SelenideElement topLevelMenu = $(Schrodinger.byDataResourceKey(topLevelMenuKey));
         topLevelMenu.shouldBe(Condition.visible);
 
@@ -321,7 +337,7 @@ public class BasicPage {
         mainMenu.shouldBe(Condition.visible);
         if (menuItemKey == null) {
             mainMenu.click();
-            return;
+            return mainMenu;
         }
 
         SelenideElement mainMenuLi = mainMenu.parent().parent();
@@ -333,6 +349,6 @@ public class BasicPage {
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
         menuItem.shouldBe(Condition.visible);
 
-        menuItem.click();
+        return menuItem;
     }
 }

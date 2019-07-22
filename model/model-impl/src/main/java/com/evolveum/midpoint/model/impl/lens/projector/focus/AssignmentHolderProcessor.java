@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
-import java.util.Collection;
 import java.util.Map;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEnforcer;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
@@ -32,32 +31,24 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.util.exception.NoFocusNameSchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
-import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -82,24 +73,18 @@ public class AssignmentHolderProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderProcessor.class);
 
-	private PrismContainerDefinition<ActivationType> activationDefinition;
-	private PrismPropertyDefinition<Integer> failedLoginsDefinition;
-
+	@Autowired private ContextLoader contextLoader;
 	@Autowired private InboundProcessor inboundProcessor;
 	@Autowired private AssignmentProcessor assignmentProcessor;
 	@Autowired private ObjectTemplateProcessor objectTemplateProcessor;
 	@Autowired private PrismContext prismContext;
-	@Autowired private CredentialsProcessor credentialsProcessor;
-	@Autowired private ModelObjectResolver modelObjectResolver;
-	@Autowired private ActivationComputer activationComputer;
 	@Autowired private ExpressionFactory expressionFactory;
-	@Autowired private MappingEvaluator mappingHelper;
-	@Autowired private OperationalDataManager metadataManager;
 	@Autowired private PolicyRuleProcessor policyRuleProcessor;
 	@Autowired private FocusLifecycleProcessor focusLifecycleProcessor;
 	@Autowired private ClockworkMedic medic;
 	@Autowired private PolicyRuleEnforcer policyRuleEnforcer;
-	
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
+
 	@Autowired private FocusProcessor focusProcessor;
 
 	@Autowired
@@ -121,11 +106,13 @@ public class AssignmentHolderProcessor {
     		LOGGER.trace("Skipping processing focus. Not assignment holder type, type {}", focusContext.getObjectTypeClass());
     		return;
     	}
-    		
-    	processFocusFocus((LensContext<AH>)context, activityDescription, now, task, result);
+
+		//noinspection unchecked
+		processFocusFocus((LensContext<AH>)context, activityDescription, now, task, result);
     	
 	}
 
+	@SuppressWarnings({ "unused", "RedundantThrows" })
 	private <O extends ObjectType> void processFocusNonFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
@@ -133,7 +120,6 @@ public class AssignmentHolderProcessor {
 		// This is somehow "future legacy" code. It will be removed later when we have better support for organizational structure
 		// membership in resources and tasks.
 		assignmentProcessor.computeTenantRefLegacy(context, task, result);
-		
 	}
 	
 	private <AH extends AssignmentHolderType> void processFocusFocus(LensContext<AH> context, String activityDescription,
@@ -145,11 +131,14 @@ public class AssignmentHolderProcessor {
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
 		boolean resetOnRename = true; // This is fixed now. TODO: make it configurable
-		int maxIterations = 0;
-		IterationSpecificationType iterationSpecificationType = null;
+		int maxIterations;
+		IterationSpecificationType iterationSpecificationType;
 		if (objectTemplate != null) {
 			iterationSpecificationType = objectTemplate.getIterationSpecification();
 			maxIterations = LensUtil.determineMaxIterations(iterationSpecificationType);
+		} else {
+			iterationSpecificationType = null;
+			maxIterations = 0;
 		}
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
@@ -166,11 +155,11 @@ public class AssignmentHolderProcessor {
 		
 		while (true) {
 
-			ObjectPolicyConfigurationType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
-			LensUtil.applyObjectPolicyConstraints(focusContext, objectPolicyConfigurationType, prismContext);
+			ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+			LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy, prismContext);
 
 			ExpressionVariables variablesPreIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
-					null, null, null, context.getSystemConfiguration(), focusContext);
+					null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext,
 						iterationSpecificationType, iteration, expressionFactory, variablesPreIteration, task, result);
@@ -201,37 +190,43 @@ public class AssignmentHolderProcessor {
 				if (consistencyChecks) context.checkConsistence();
 
 				medic.partialExecute("inbound",
-						() -> {
+						(result1) -> {
 							// Loop through the account changes, apply inbound expressions
-					        inboundProcessor.processInbound(context, now, task, result);
+					        inboundProcessor.processInbound(context, now, task, result1);
 					        if (consistencyChecks) context.checkConsistence();
 					        context.recomputeFocus();
+					        contextLoader.updateArchetypePolicy(context, task, result1);
+					        contextLoader.updateArchetype(context, task, result1);
 					        medic.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 					        if (consistencyChecks) context.checkConsistence();
 						},
-						partialProcessingOptions::getInbound);
+						partialProcessingOptions::getInbound,
+						Projector.class, context, result);
 
 
 		        // ACTIVATION
 
 				medic.partialExecute("focusActivation",
-						() -> focusProcessor.processActivationBeforeAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						(result1) -> focusProcessor.processActivationBeforeAssignments(context, now, result1),
+						partialProcessingOptions::getFocusActivation,
+						Projector.class, context, result);
 
 
 		        // OBJECT TEMPLATE (before assignments)
 
 				medic.partialExecute("objectTemplateBeforeAssignments",
-						() -> objectTemplateProcessor.processTemplate(context,
-								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result),
-						partialProcessingOptions::getObjectTemplateBeforeAssignments);
+						(result1) -> objectTemplateProcessor.processTemplate(context,
+								ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, now, task, result1),
+						partialProcessingOptions::getObjectTemplateBeforeAssignments,
+						Projector.class, context, result);
 
 
 		        // process activation again. Object template might have changed it.
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
-						() -> focusProcessor.processActivationAfterAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						(result1) -> focusProcessor.processActivationAfterAssignments(context, now, result1),
+						partialProcessingOptions::getFocusActivation,
+				        Projector.class, context, result);
 
 		        // ASSIGNMENTS
 
@@ -239,34 +234,40 @@ public class AssignmentHolderProcessor {
 				focusContext.clearPendingAssignmentPolicyStateModifications();
 
 				medic.partialExecute("assignments",
-						() -> assignmentProcessor.processAssignmentsProjections(context, now, task, result),
-						partialProcessingOptions::getAssignments);
+						(result1) -> assignmentProcessor.processAssignments(context, now, task, result1),
+						partialProcessingOptions::getAssignments,
+						Projector.class, context, result);
 
 				medic.partialExecute("assignmentsOrg",
-						() -> assignmentProcessor.processOrgAssignments(context, task, result),
-						partialProcessingOptions::getAssignmentsOrg);
+						(result1) -> assignmentProcessor.processOrgAssignments(context, task, result1),
+						partialProcessingOptions::getAssignmentsOrg,
+						Projector.class, context, result);
 
 
 				medic.partialExecute("assignmentsMembershipAndDelegate",
-						() -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result),
-						partialProcessingOptions::getAssignmentsMembershipAndDelegate);
+						(result1) -> assignmentProcessor.processMembershipAndDelegatedRefs(context, result1),
+						partialProcessingOptions::getAssignmentsMembershipAndDelegate,
+						Projector.class, context, result);
 
 		        context.recompute();
 
 		        medic.partialExecute("assignmentsConflicts",
-						() -> assignmentProcessor.checkForAssignmentConflicts(context, result),
-						partialProcessingOptions::getAssignmentsConflicts);
+						(result1) -> assignmentProcessor.checkForAssignmentConflicts(context, result1),
+						partialProcessingOptions::getAssignmentsConflicts,
+				        Projector.class, context, result);
 		        
 		        medic.partialExecute("focusLifecycle",
-						() -> focusLifecycleProcessor.processLifecycle(context, now, task, result),
-						partialProcessingOptions::getFocusLifecycle);
+						(result1) -> focusLifecycleProcessor.processLifecycle(context, now, task, result1),
+						partialProcessingOptions::getFocusLifecycle,
+				        Projector.class, context, result);
 
 		        // OBJECT TEMPLATE (after assignments)
 
 		        medic.partialExecute("objectTemplateAfterAssignments",
-						() -> objectTemplateProcessor.processTemplate(context,
-								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result),
-						partialProcessingOptions::getObjectTemplateBeforeAssignments);
+						(result1) -> objectTemplateProcessor.processTemplate(context,
+								ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS, now, task, result1),
+						partialProcessingOptions::getObjectTemplateBeforeAssignments,
+				        Projector.class, context, result);
 
 		        context.recompute();
 
@@ -274,21 +275,24 @@ public class AssignmentHolderProcessor {
 		        // We also need to apply assignment activation if needed
 		        context.recomputeFocus();
 		        medic.partialExecute("focusActivation",
-						() -> focusProcessor.processActivationAfterAssignments(context, now, result),
-						partialProcessingOptions::getFocusActivation);
+						(result1) -> focusProcessor.processActivationAfterAssignments(context, now, result1),
+						partialProcessingOptions::getFocusActivation,
+				        Projector.class, context, result);
 
 		        // CREDENTIALS (including PASSWORD POLICY)
 
 		        medic.partialExecute("focusCredentials",
-						() -> focusProcessor.processCredentials(context, now, task, result),
-						partialProcessingOptions::getFocusCredentials);
+						(result1) -> focusProcessor.processCredentials(context, now, task, result1),
+						partialProcessingOptions::getFocusCredentials,
+				        Projector.class, context, result);
 
 		        // We need to evaluate this as a last step. We need to make sure we have all the
 		        // focus deltas so we can properly trigger the rules.
 
 		        medic.partialExecute("focusPolicyRules",
-						() -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result),
-						partialProcessingOptions::getFocusPolicyRules);
+						(result1) -> policyRuleProcessor.evaluateObjectPolicyRules(context, activityDescription, now, task, result1),
+						partialProcessingOptions::getFocusPolicyRules,
+				        Projector.class, context, result);
 
 		        // to mimic operation of the original enforcer hook, we execute the following only in the initial state
 		        if (context.getState() == ModelState.INITIAL) {
@@ -299,6 +303,7 @@ public class AssignmentHolderProcessor {
 
 		        // Processing done, check for success
 
+				//noinspection ConstantConditions
 				if (resetOnRename && !wasResetIterationCounter && willResetIterationCounter(focusContext)) {
 					// Make sure this happens only the very first time during the first recompute.
 					// Otherwise it will always change the token (especially if the token expression has a random part)
@@ -312,6 +317,21 @@ public class AssignmentHolderProcessor {
 			    		continue;
 		        	}
 		        }
+
+				ConstraintsCheckingStrategyType strategy = context.getFocusConstraintsCheckingStrategy();
+				boolean skipWhenNoChange = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoChange());
+				boolean skipWhenNoIteration = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoIteration());
+
+				boolean checkConstraints;
+				if (skipWhenNoChange && !hasNameDelta(focusContext)) {
+					LOGGER.trace("Skipping constraints check because 'skipWhenNoChange' is true and there's no name delta");
+					checkConstraints = false;
+				} else if (skipWhenNoIteration && maxIterations == 0) {
+					LOGGER.trace("Skipping constraints check because 'skipWhenNoIteration' is true and there is no iteration defined");
+					checkConstraints = false;
+				} else {
+					checkConstraints = true;
+				}
 
 				PrismObject<AH> previewObjectNew = focusContext.getObjectNew();
 				if (previewObjectNew == null) {
@@ -331,11 +351,12 @@ public class AssignmentHolderProcessor {
 				checker.setPrismContext(prismContext);
 		        checker.setContext(context);
 		        checker.setRepositoryService(cacheRepositoryService);
-		        checker.check(previewObjectNew, result);
-		        if (checker.isSatisfiesConstraints()) {
+		        checker.setCacheConfigurationManager(cacheConfigurationManager);
+		        boolean satisfies = !checkConstraints || checker.check(previewObjectNew, result);
+				if (satisfies) {
 		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 		        	ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
-		        			null, null, null, context.getSystemConfiguration(), focusContext);
+		        			null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext,
 		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration,
 		        			task, result)) {
@@ -441,6 +462,15 @@ public class AssignmentHolderProcessor {
 			return false;
 		}
 		// Check for rename
+		return hasNameDelta(focusDelta);
+	}
+
+	private <AH extends AssignmentHolderType> boolean hasNameDelta(LensFocusContext<AH> focusContext) throws SchemaException {
+		ObjectDelta<AH> focusDelta = focusContext.getDelta();
+		return focusDelta != null && hasNameDelta(focusDelta);
+	}
+
+	private <AH extends AssignmentHolderType> boolean hasNameDelta(ObjectDelta<AH> focusDelta) {
 		PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
 		return nameDelta != null;
 	}

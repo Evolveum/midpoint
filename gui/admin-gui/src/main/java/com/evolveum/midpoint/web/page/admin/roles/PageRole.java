@@ -28,8 +28,12 @@ import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
 import com.evolveum.midpoint.web.page.admin.PageAdminAbstractRole;
 import com.evolveum.midpoint.web.page.admin.roles.component.RoleSummaryPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
@@ -49,27 +53,25 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 	private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);
 
 	public PageRole() {
-		initialize(null);
-	}
-
-	public PageRole(PrismObject<RoleType> roleToEdit) {
-		initialize(roleToEdit);
-	}
-
-	public PageRole(final PrismObject<RoleType> unitToEdit, boolean isNewObject)  {
-		initialize(unitToEdit, isNewObject);
-	}
-
-	public PageRole(PrismObject<RoleType> roleToEdit, boolean isNewObject, boolean isReadonly) {
-		initialize(roleToEdit, isNewObject, isReadonly);
+		super();
 	}
 
 	public PageRole(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		initialize(null);
+		super(parameters);
 	}
 
+	public PageRole(final PrismObject<RoleType> role) {
+		super(role);
+	}
 
+	public PageRole(final PrismObject<RoleType> userToEdit, boolean isNewObject) {
+		super(userToEdit, isNewObject);
+	}
+	
+	public PageRole(final PrismObject<RoleType> abstractRole, boolean isNewObject, boolean isReadonly) {
+		super(abstractRole, isNewObject, isReadonly);
+	}
+	
 	@Override
 	protected RoleType createNewObject() {
 		return new RoleType();
@@ -87,7 +89,7 @@ public class PageRole extends PageAdminAbstractRole<RoleType> implements Progres
 
 	@Override
 	protected FocusSummaryPanel<RoleType> createSummaryPanel() {
-    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new RoleSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
 	@Override

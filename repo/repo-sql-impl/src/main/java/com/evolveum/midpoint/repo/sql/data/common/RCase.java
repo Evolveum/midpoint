@@ -32,21 +32,24 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
 
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
 /**
- * TODO fill-in relevant data
- *
  * @author mederly
  */
 @Entity
 @ForeignKey(name = "fk_case")
-@Table(uniqueConstraints = @UniqueConstraint(name = "uc_case_name", columnNames = {"name_norm"}),
-        indexes = {
-                @Index(name = "iCaseNameOrig", columnList = "name_orig"),
-        }
+@Table(indexes = {
+        @Index(name = "iCaseNameOrig", columnList = "name_orig"),
+        @Index(name = "iCaseTypeObjectRefTargetOid", columnList = "objectRef_targetOid"),
+        @Index(name = "iCaseTypeTargetRefTargetOid", columnList = "targetRef_targetOid"),
+        @Index(name = "iCaseTypeParentRefTargetOid", columnList = "parentRef_targetOid"),
+        @Index(name = "iCaseTypeRequestorRefTargetOid", columnList = "requestorRef_targetOid"),
+        @Index(name = "iCaseTypeCloseTimestamp", columnList = "closeTimestamp")
+}
 )
 @Persister(impl = MidPointJoinedPersister.class)
 public class RCase extends RObject<CaseType> {
@@ -55,6 +58,12 @@ public class RCase extends RObject<CaseType> {
 
     private String state;
     private REmbeddedReference objectRef;
+    private REmbeddedReference targetRef;
+    private REmbeddedReference parentRef;
+    private REmbeddedReference requestorRef;
+
+    private XMLGregorianCalendar closeTimestamp;
+
     private Set<RCaseWorkItem> workItems = new HashSet<>();
 
     @JaxbName(localPart = "name")
@@ -89,6 +98,40 @@ public class RCase extends RObject<CaseType> {
         this.objectRef = objectRef;
     }
 
+    @Embedded
+    public REmbeddedReference getTargetRef() {
+        return targetRef;
+    }
+
+    public void setTargetRef(REmbeddedReference targetRef) {
+        this.targetRef = targetRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getParentRef() {
+        return parentRef;
+    }
+
+    public void setParentRef(REmbeddedReference value) {
+        this.parentRef = value;
+    }
+
+    public REmbeddedReference getRequestorRef() {
+        return requestorRef;
+    }
+
+    public void setRequestorRef(REmbeddedReference requestorRef) {
+        this.requestorRef = requestorRef;
+    }
+
+    public XMLGregorianCalendar getCloseTimestamp() {
+        return closeTimestamp;
+    }
+
+    public void setCloseTimestamp(XMLGregorianCalendar closeTimestamp) {
+        this.closeTimestamp = closeTimestamp;
+    }
+
     @JaxbName(localPart = "workItem")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @org.hibernate.annotations.ForeignKey(name = "none")
@@ -112,19 +155,26 @@ public class RCase extends RObject<CaseType> {
         RCase rCase = (RCase) o;
         return Objects.equals(nameCopy, rCase.nameCopy) &&
                 Objects.equals(objectRef, rCase.objectRef) &&
+                Objects.equals(targetRef, rCase.targetRef) &&
+                Objects.equals(parentRef, rCase.parentRef) &&
+                Objects.equals(requestorRef, rCase.requestorRef) &&
+                Objects.equals(closeTimestamp, rCase.closeTimestamp) &&
                 Objects.equals(workItems, rCase.workItems);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), nameCopy, objectRef, workItems);
+        return Objects.hash(super.hashCode(), nameCopy, objectRef, targetRef, parentRef, requestorRef,
+                closeTimestamp, workItems);
     }
 
     @Override
     public String toString() {
         return "RCase{" +
                 "name=" + nameCopy +
+                ", parentRef=" + parentRef +
                 ", objectRef=" + objectRef +
+                ", targetRef=" + targetRef +
                 '}';
     }
 
@@ -135,7 +185,11 @@ public class RCase extends RObject<CaseType> {
 
         repo.setNameCopy(RPolyString.copyFromJAXB(jaxb.getName()));
 
+        repo.setParentRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getParentRef(), context.relationRegistry));
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), context.relationRegistry));
+        repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), context.relationRegistry));
+        repo.setRequestorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getRequestorRef(), context.relationRegistry));
+        repo.setCloseTimestamp(jaxb.getCloseTimestamp());
         repo.setState(jaxb.getState());
         for (CaseWorkItemType workItem : jaxb.getWorkItem()) {
             repo.getWorkItems().add(RCaseWorkItem.toRepo(repo, workItem, context));

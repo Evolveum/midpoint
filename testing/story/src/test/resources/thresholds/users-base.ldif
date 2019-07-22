@@ -1,0 +1,35 @@
+dn: uid=user1,ou=People,dc=example,dc=com
+uid: user1
+cn: User First
+sn: First
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.first@example.com
+
+dn: uid=user2,ou=People,dc=example,dc=com
+uid: user2
+cn: User Second
+sn: Second
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.second@example.com
+
+dn: uid=user3,ou=People,dc=example,dc=com
+uid: user3
+cn: User Third
+sn: Third
+givenname: User
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: user.third@example.com

@@ -305,6 +305,24 @@ body .treeview-menu > li > span:hover {
 	color: #fff !important;
 }
 
+.object-access-bg {
+	background-color: @object-access-color !important;
+	color: #fff !important;
+}
+
+.object-failed-bg {
+	background-color: @object-failed-color !important;
+	color: #fff !important;
+}
+
+.object-access-only-bg {
+	background-color: @object-access-color !important;
+}
+
+.object-failed-only-bg {
+	background-color: @object-failed-color !important;
+}
+
 // Colored boxes for each object type
 
 #box-object(@color) {
@@ -821,21 +839,66 @@ body .treeview-menu > li > span:hover {
     margin-left: 15px; // aligning multivalue container with superior container
 }
 
-.top-level-prism-container{							// class for first showed container
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	padding-top:10px;								
+.top-level-prism-container {
+	border-top: 1px solid #ddd;
 }
 
-.top-level-prism-container > .prism-property > .container-fluid > .prism-properties > .container-wrapper { 
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -30px;								// aligning container on first level with superior container (singlevalue container)
-	padding-left: 15px;
+//top-level-prism-container is class for first showed container
+.top-level-prism-container > .container-wrapper > .prism-properties > div > 
+.prism-property > .prism-properties > div > .container-wrapper{
+  	border-top: 1px solid #ddd;	// line over area of container
+  	margin-left: -45px;			// aligning container on first level with superior container (multivalue container)
+  	padding-left: 15px;
 }
 
-.top-level-prism-container > .prism-properties > .container-wrapper {
-	border-top: 1px solid @table-divider-color;		// line over area of container
-	margin-left: -15px;								// aligning container on first level with superior container (multivalue container)
-	padding-left: 15px;
+/*.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property > 
+.prism-properties > div > .container-wrapper .multivalue-container {
+  padding-left: 30px;	//padding for multivalue containers
+}*/
+
+.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
+ .prism-properties > div > .container-wrapper .singlevalue-container {
+  margin-left: -60px;	//margin for value of singlevalue containers
+}
+
+.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
+ .prism-properties > div > .container-wrapper .prism-properties {
+  margin-left: 15px;
+}
+
+.top-level-prism-container .multivalue-container > .container-wrapper > .prism-properties > div {
+  padding-left: 15px;	//padding for value of multivalue containers
+}
+
+.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
+.prism-properties > div > .container-wrapper > .container-wrapper > .prism-properties > div >
+.singlevalue-container {
+  	margin-left: -60px; // aligning container on first level with superior container (singlevalue container)
+}
+
+.top-level-prism-container > .container-wrapper > .prism-properties > div >
+ .prism-property > .container-fluid {
+   	border-top: 1px solid #ddd; // line over area of container
+   	padding-top: 5px;
+}
+
+.top-level-prism-container > .container-wrapper > .prism-properties > div {
+	padding-left: 0px;
+}
+
+.top-level-prism-container .row {
+	margin-right: 0px; 
+    margin-left: 0px;
+}
+
+.top-level-prism-container .container-fluid {
+	padding-right: 0px;
+}
+
+.top-level-prism-container .prism-header {
+  margin-bottom: 0px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .prism-container {
@@ -879,7 +942,8 @@ body .treeview-menu > li > span:hover {
 }
 
 .prism-property-label { //padding because expand collapse button, which have 37px
-	padding-left: 37px;
+	padding-left: 20px;
+	word-wrap:break-word;
 }
 
 .prism-value { // DEPRECATED: rework the prism-value vs prism-property-value later
@@ -1369,7 +1433,7 @@ th.icon {
 	// WARNING: this means both the header and the table data
 	//          have just a single icon. No text.
 	// See com.evolveum.midpoint.web.component.data.column.IconColumn
-	width: 25px;
+	width: 30px;
 }
 
 th.check, td.check {
@@ -1464,4 +1528,61 @@ th.countLabel{
 
 .position-relative{
 	position: relative;
+}
+
+.small-box h3{
+	white-space: normal;
+	font-size: 28px;
+}
+
+.tbody-nth-of-type-even>tr:nth-of-type(even) {
+  background-color: #f9f9f9 !important;
+}
+.tbody-nth-of-type-even>tr:nth-of-type(odd) {
+  background-color: inherit !important;
+}    
+
+@media (min-width: 1550px){
+	.small-box h3 {
+		font-size: 35px;
+	}
+}
+
+.dashboard-widgets{
+	display: flex;
+	flex-flow: row wrap;
+}
+
+.dashboard-info-box > .small-box {
+	height:100%;
+}
+
+.dashboard-info-box > .small-box > .small-box-footer {
+	position: absolute;
+    bottom: 0px;
+    width: 100%;
+}
+
+.dashboard-info-box{
+	height: 100%;
+}
+
+.padding-bottom-20 {
+	padding-bottom: 20px;
+}
+.checkbox-without-margin-bottom .checkbox{
+	margin-bottom: 0px !important;
+	margin-top: 5px !important;
+}
+
+th > div > .sortableLabel .row {
+	margin: 0px;
+}
+
+td .prism-property-value {
+	width: 100% !important;
+}
+
+th.composited-icon {
+  width: 30px;
 }

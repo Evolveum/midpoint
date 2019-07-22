@@ -27,18 +27,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.model.PropertyWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -51,38 +51,38 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
-	private LoadableModel<ObjectWrapper<O>> objectWrapperModel;
-	protected PageBase pageBase;
-	private Form<ObjectWrapper<O>> mainForm;
+	private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
+//	protected PageBase pageBase;
+	private Form<PrismObjectWrapper<O>> mainForm;
 
-	public AbstractObjectTabPanel(String id, Form<ObjectWrapper<O>> mainForm, LoadableModel<ObjectWrapper<O>> objectWrapperModel, PageBase pageBase) {
+	public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
 		super(id);
 		this.objectWrapperModel = objectWrapperModel;
 		this.mainForm = mainForm;
-		this.pageBase = pageBase;
+//		this.pageBase = pageBase;
 	}
 
-	public LoadableModel<ObjectWrapper<O>> getObjectWrapperModel() {
+	public LoadableModel<PrismObjectWrapper<O>> getObjectWrapperModel() {
 		return objectWrapperModel;
 	}
 
-	public ObjectWrapper<O> getObjectWrapper() {
+	public PrismObjectWrapper<O> getObjectWrapper() {
 		return objectWrapperModel.getObject();
 	}
 
 	protected PrismContext getPrismContext() {
-		return pageBase.getPrismContext();
+		return getPageBase().getPrismContext();
 	}
 
 	protected PageParameters getPageParameters() {
-		return pageBase.getPageParameters();
+		return getPageBase().getPageParameters();
 	}
 
 	public PageBase getPageBase() {
-		return pageBase;
+		return (PageBase) getPage();
 	}
 
-	public Form<ObjectWrapper<O>> getMainForm() {
+	public Form<PrismObjectWrapper<O>> getMainForm() {
 		return mainForm;
 	}
 
@@ -100,22 +100,23 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 	}
 
 	protected void showResult(OperationResult result) {
-		pageBase.showResult(result);
+		getPageBase().showResult(result);
 	}
 
 	protected void showResult(OperationResult result, boolean showSuccess) {
-		pageBase.showResult(result, false);
+		getPageBase().showResult(result, false);
 	}
 
 
 	protected WebMarkupContainer getFeedbackPanel() {
-		return pageBase.getFeedbackPanel();
+		return getPageBase().getFeedbackPanel();
 	}
 
 	public Object findParam(String param, String oid, OperationResult result) {
 
 		Object object = null;
 
+		//TODO: FIXME get(PARAM_OID) returns collection
 		for (OperationResult subResult : result.getSubresults()) {
 			if (subResult != null && subResult.getParams() != null) {
 				if (subResult.getParams().get(param) != null
@@ -135,11 +136,18 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		target.add(getFeedbackPanel());
 	}
 
-	protected PrismPropertyPanel addPrismPropertyPanel(MarkupContainer parentComponent, String id, ItemPath propertyPath) {
-		PrismPropertyPanel panel = new PrismPropertyPanel(id,
-				new PropertyWrapperFromObjectWrapperModel<PolyString,O>(getObjectWrapperModel(), propertyPath),
-				mainForm, wrapper -> ItemVisibility.VISIBLE, pageBase);
-		parentComponent.add(panel);
-		return panel;
+	protected Panel addPrismPropertyPanel(MarkupContainer parentComponent, String id, QName typeName, ItemPath propertyPath) {
+		
+		try {
+			//FIXME : really always visible?
+			Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), wrapper -> ItemVisibility.VISIBLE);
+			parentComponent.add(panel);
+			return panel;
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel for {}", typeName, e);
+			getSession().error("Cannot create panel for " + typeName + ", reason: " + e.getMessage());
+		}
+		
+		return null;		
 	}
 }

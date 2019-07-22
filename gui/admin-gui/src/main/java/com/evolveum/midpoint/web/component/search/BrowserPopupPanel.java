@@ -45,8 +45,8 @@ public class BrowserPopupPanel<T extends Serializable> extends SearchPopupPanel<
         TextField input = new TextField(ID_BROWSER_INPUT, value);
         add(input);
 
-        AjaxLink browse = new AjaxLink(ID_BROWSE) {
-
+        AjaxLink<Void> browse = new AjaxLink<Void>(ID_BROWSE) {
+        	private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 browsePerformed(target);

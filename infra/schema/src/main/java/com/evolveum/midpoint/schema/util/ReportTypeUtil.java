@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,28 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.codec.binary.Base64;
+import org.jfree.data.gantt.Task;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -33,21 +54,6 @@ import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
 /**
  * @author lazyman
  */
@@ -57,10 +63,18 @@ public class ReportTypeUtil {
 	public static final String HEADER_USERAGENT = "mp-cluster-peer-client";
 	public static String URLENCODING = "UTF-8";
 	
+	public static final String REPORT_LANGUAGE = "midPoint";
 	
-	private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
-
-
+	
+	public static final String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+	public static final String PARAMETER_REPORT_OID = "midpointReportOid";
+	public static final String PARAMETER_REPORT_OBJECT = "midpointReportObject";
+	public static final String PARAMETER_TASK = "midpointTask";
+	public static final String PARAMETER_OPERATION_RESULT = "midpointOperationResult";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ReportTypeUtil.class);
+	
+	
 	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
 	    	try	 {
 	    	byte[] reportTemplate = Base64.decodeBase64(template);
@@ -74,50 +88,16 @@ public class ReportTypeUtil {
 	    	}
 	    }
 
-
-	public static JasperReport loadJasperReport(ReportType reportType) throws SchemaException{
-
-		if (reportType.getTemplate() == null) {
-			throw new IllegalStateException("Could not create report. No jasper template defined.");
-		}
-		try	 {
-//	    	 	byte[] reportTemplate = Base64.decodeBase64(reportType.getTemplate());
-//	    	
-//	    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
-	    	 	JasperDesign jasperDesign = loadJasperDesign(reportType.getTemplate());//JRXmlLoader.load(inputStreamJRXML);
-//	    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
-
-			 if (reportType.getTemplateStyle() != null){
-				JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
-				jasperDesign.addTemplate(templateStyle);
-				JRDesignParameter parameter = new JRDesignParameter();
-				parameter.setName(PARAMETER_TEMPLATE_STYLES);
-				parameter.setValueClass(JRTemplate.class);
-				parameter.setForPrompting(false);
-				jasperDesign.addParameter(parameter);
-			 }
-
-//			 if (StringUtils.isNotEmpty(finalQuery)){
-				 JRDesignParameter parameter = new JRDesignParameter();
-					parameter.setName("finalQuery");
-					parameter.setValueClass(Object.class);
-					parameter.setForPrompting(false);
-					jasperDesign.addParameter(parameter);
-//			 }
-			 JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-			 return jasperReport;
-		 } catch (JRException ex){
-//			 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
-			 throw new SchemaException(ex.getMessage(), ex.getCause());
-		 }
-
-
-}
-
     public static PrismSchema parseReportConfigurationSchema(PrismObject<ReportType> report, PrismContext context)
             throws SchemaException {
 
-        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	PrismContainer xmlSchema;
+    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+    	if (jasper != null) {
+    		xmlSchema = jasper.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	} else {
+    		xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+    	}
         Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
         if (xmlSchemaElement == null) {
             //no schema definition available
@@ -138,8 +118,14 @@ public class ReportTypeUtil {
 
     public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext)
             throws SchemaException {
-
-        PrismContainer<ReportConfigurationType> configuration = report.findContainer(ReportType.F_CONFIGURATION);
+    	
+    	PrismContainer<ReportConfigurationType> configuration;
+    	PrismContainer<JasperReportEngineConfigurationType> jasper = report.findContainer(ReportType.F_JASPER);
+    	if (jasper != null) {
+    		configuration = jasper.findContainer(ReportType.F_CONFIGURATION);
+    	} else {
+    		configuration = report.findContainer(ReportType.F_CONFIGURATION);
+    	}
         if (configuration == null) {
             //nothing to apply definitions on
             return;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,61 +19,47 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.query.RefFilter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
+import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -84,9 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
@@ -101,7 +85,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
@@ -131,21 +114,23 @@ public class UserProfileCompiler {
 	@Autowired private SystemObjectCache systemObjectCache;
 	@Autowired private RelationRegistry relationRegistry;
 	@Autowired private PrismContext prismContext;
-	@Autowired private MappingFactory mappingFactory;
-	@Autowired private MappingEvaluator mappingEvaluator;
-	@Autowired private ActivationComputer activationComputer;
-	@Autowired private Clock clock;
+	@Autowired private CollectionProcessor collectionProcessor;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
+	
+	@Autowired private AssignmentCollector assignmentCollector;
+	
+	
 	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 	
-	public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public void compileUserProfile(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
         principal.setApplicableSecurityPolicy(securityHelper.locateSecurityPolicy(principal.getUser().asPrismObject(), systemConfiguration, task, result));
 
-		Collection<Authorization> authorizations = principal.getAuthorities();
 		List<AdminGuiConfigurationType> adminGuiConfigurations = new ArrayList<>();
 		collect(adminGuiConfigurations, principal, systemConfiguration, authorizationTransformer, task, result);
 		
@@ -155,111 +140,29 @@ public class UserProfileCompiler {
 
 	private void collect(List<AdminGuiConfigurationType> adminGuiConfigurations, MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer, Task task, OperationResult result) throws SchemaException {
 		UserType userType = principal.getUser();
-		LensContext<UserType> lensContext = createAuthenticationLensContext(userType.asPrismObject(), systemConfiguration);
 		
-		Collection<AssignmentType> forcedAssignments = null;
-		try {
-			forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(), 
-					userType.getLifecycleState(), objectResolver, prismContext, task, result);
-		} catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-				| ExpressionEvaluationException e1) {
-			LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", userType.getLifecycleState(), e1);
+		Collection<EvaluatedAssignment<UserType>> evaluatedAssignments = assignmentCollector.collect(userType.asPrismObject(), systemConfiguration, true, task, result);
+		Collection<Authorization> authorizations = principal.getAuthorities();
+		for (EvaluatedAssignment<UserType> assignment : evaluatedAssignments) {
+			if (assignment.isValid()) {
+				addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
+				adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
+			}
+			for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
+				if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
+						&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
+					List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
+					principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
+							(UserType) target.getTarget().asObjectable(), limitations));
+				}
+			}
 		}
-		if (!userType.getAssignment().isEmpty() || forcedAssignments != null) {
-			
-			AssignmentEvaluator.Builder<UserType> builder =
-					new AssignmentEvaluator.Builder<UserType>()
-							.repository(repositoryService)
-							.focusOdo(new ObjectDeltaObject<>(userType.asPrismObject(), null, userType.asPrismObject()))
-							.channel(null)
-							.objectResolver(objectResolver)
-							.systemObjectCache(systemObjectCache)
-							.relationRegistry(relationRegistry)
-							.prismContext(prismContext)
-							.mappingFactory(mappingFactory)
-							.mappingEvaluator(mappingEvaluator)
-							.activationComputer(activationComputer)
-							.now(clock.currentTimeXMLGregorianCalendar())
-							// We do need only authorizations + gui config. Therefore we not need to evaluate
-							// constructions and the like, so switching it off makes the evaluation run faster.
-							// It also avoids nasty problems with resources being down,
-							// resource schema not available, etc.
-							.loginMode(true)
-							// We do not have real lens context here. But the push methods in ModelExpressionThreadLocalHolder
-							// will need something to push on the stack. So give them context placeholder.
-							.lensContext(lensContext);
-
-			AssignmentEvaluator<UserType> assignmentEvaluator = builder.build();
-
-			evaluateAssignments(userType.getAssignment(), false, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
-			
-			evaluateAssignments(forcedAssignments, true, assignmentEvaluator, principal, authorizationTransformer, adminGuiConfigurations, task, result);
-		}
+		
 		if (userType.getAdminGuiConfiguration() != null) {
 			// config from the user object should go last (to be applied as the last one)
 			adminGuiConfigurations.add(userType.getAdminGuiConfiguration());
 		}
 
-	}
-	
-	private void evaluateAssignments(Collection<AssignmentType> assignments, boolean virtual, AssignmentEvaluator<UserType> assignmentEvaluator, MidPointPrincipal principal, AuthorizationTransformer authorizationTransformer, Collection<AdminGuiConfigurationType> adminGuiConfigurations, Task task, OperationResult result) {
-		UserType userType = principal.getUser();
-
-		Collection<Authorization> authorizations = principal.getAuthorities();
-
-		
-		try {
-			RepositoryCache.enter();
-			for (AssignmentType assignmentType: assignments) {
-				try {
-					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = new ItemDeltaItem<>();
-					assignmentIdi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
-					assignmentIdi.recompute();
-					EvaluatedAssignment<UserType> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, userType, userType.toString(), virtual, task, result);
-					if (assignment.isValid()) {
-						addAuthorizations(authorizations, assignment.getAuthorizations(), authorizationTransformer);
-						adminGuiConfigurations.addAll(assignment.getAdminGuiConfigurations());
-					}
-					for (EvaluatedAssignmentTarget target : assignment.getRoles().getNonNegativeValues()) {
-						if (target.isValid() && target.getTarget() != null && target.getTarget().asObjectable() instanceof UserType
-								&& DeputyUtils.isDelegationPath(target.getAssignmentPath(), relationRegistry)) {
-							List<OtherPrivilegesLimitationType> limitations = DeputyUtils.extractLimitations(target.getAssignmentPath());
-							principal.addDelegatorWithOtherPrivilegesLimitations(new DelegatorWithOtherPrivilegesLimitations(
-									(UserType) target.getTarget().asObjectable(), limitations));
-						}
-					}
-				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {
-					LOGGER.error("Error while processing assignment of {}: {}; assignment: {}",
-							userType, e.getMessage(), assignmentType, e);
-				}
-			}
-		} finally {
-			RepositoryCache.exit();
-		}
-	}
-
-	private LensContext<UserType> createAuthenticationLensContext(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-		LensContext<UserType> lensContext = new LensContextPlaceholder<>(user, prismContext);
-		if (systemConfiguration != null) {
-			ObjectPolicyConfigurationType policyConfigurationType = determineObjectPolicyConfiguration(user, systemConfiguration);
-			lensContext.getFocusContext().setObjectPolicyConfigurationType(policyConfigurationType);
-		}
-		return lensContext;
-	}
-
-	private ObjectPolicyConfigurationType determineObjectPolicyConfiguration(PrismObject<UserType> user, PrismObject<SystemConfigurationType> systemConfiguration) throws SchemaException {
-		ObjectPolicyConfigurationType policyConfigurationType;
-		try {
-			policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(user, systemConfiguration.asObjectable());
-		} catch (ConfigurationException e) {
-			throw new SchemaException(e.getMessage(), e);
-		}
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Selected policy configuration from subtypes {}:\n{}", 
-					FocusTypeUtil.determineSubTypes(user), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
-		}
-		
-		return policyConfigurationType;
 	}
 	
 	private void addAuthorizations(Collection<Authorization> targetCollection, Collection<Authorization> sourceCollection, AuthorizationTransformer authorizationTransformer) {
@@ -279,7 +182,9 @@ public class UserProfileCompiler {
 	}
 	
 	public CompiledUserProfile compileUserProfile(@NotNull List<AdminGuiConfigurationType> adminGuiConfigurations,
-			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			PrismObject<SystemConfigurationType> systemConfiguration, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 
 		AdminGuiConfigurationType globalAdminGuiConfig = null;
 		if (systemConfiguration != null) {
@@ -300,7 +205,9 @@ public class UserProfileCompiler {
 		return composite;
 	}
 
-	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void applyAdminGuiConfiguration(CompiledUserProfile composite, AdminGuiConfigurationType adminGuiConfiguration, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		if (adminGuiConfiguration == null) {
 			return;
 		}
@@ -379,7 +286,9 @@ public class UserProfileCompiler {
 		}
 	}
 
-	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void applyViews(CompiledUserProfile composite, GuiObjectListViewsType viewsType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		if (viewsType == null) {
 			return;
 		}
@@ -400,9 +309,17 @@ public class UserProfileCompiler {
 		}
 	}
 	
-	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
-		compileView(existingView, objectListViewType, task, result);
+	private void applyView(CompiledUserProfile composite, GuiObjectListViewType objectListViewType, Task task, OperationResult result) {
+		try {
+			CompiledObjectCollectionView existingView = findOrCreateMatchingView(composite, objectListViewType);
+			compileView(existingView, objectListViewType, task, result);
+		} catch (Throwable e) {
+			// Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
+			// want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
+			// This is also handled somewhere up the call stack. But we want to handle it also here. Otherwise an error in one collection would
+			// mean that entire configuration processing will be stopped. We do not want that. We want to skip processing of just that one wrong view.
+			LOGGER.error("Error compiling user profile, view '{}': {}", determineViewIdentifier(objectListViewType), e.getMessage(), e);
+		}
 	}
 	
 	
@@ -438,13 +355,16 @@ public class UserProfileCompiler {
 		return collectionRef.getOid();
 	}
 
-	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileView(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		compileActions(existingView, objectListViewType);
 		compileAdditionalPanels(existingView, objectListViewType);
 		compileColumns(existingView, objectListViewType);
 		compileDisplay(existingView, objectListViewType);
 		compileDistinct(existingView, objectListViewType);
 		compileSorting(existingView, objectListViewType);
+		compileDisplayOrder(existingView, objectListViewType);
 		compileSearchBox(existingView, objectListViewType);
 		compileCollection(existingView, objectListViewType, task, result);
 	}
@@ -467,7 +387,9 @@ public class UserProfileCompiler {
 		existingView.setAdditionalPanels(newAdditionalPanels);
 	}
 
-	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private void compileCollection(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		CollectionRefSpecificationType collectionSpec = objectListViewType.getCollection();
 		if (collectionSpec == null) {
 			ObjectReferenceType collectionRef = objectListViewType.getCollectionRef();
@@ -485,100 +407,17 @@ public class UserProfileCompiler {
 		
 		compileCollection(existingView, collectionSpec, task, result);
 	}
-		
-	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
+	
+	private void compileCollection(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		QName targetObjectType = existingView.getObjectType();
 		Class<? extends ObjectType> targetTypeClass = ObjectType.class;
 		if (targetObjectType != null) {
 			targetTypeClass = ObjectTypes.getObjectTypeFromTypeQName(targetObjectType).getClassDefinition();
 		}
-		QName collectionRefType = collectionRef.getType();
-		
-		// TODO: support more cases
-		if (QNameUtil.match(ArchetypeType.COMPLEX_TYPE, collectionRefType)) {
-			RefFilter filter = null;
-			filter = (RefFilter) prismContext.queryFor(AssignmentHolderType.class)
-				.item(AssignmentHolderType.F_ARCHETYPE_REF).ref(collectionRef.getOid())
-				.buildFilter();
-			filter.setTargetTypeNullAsAny(true);
-			filter.setRelationNullAsAny(true);
-			existingView.setFilter(filter);
-			
-			try {
-				PrismObject<ArchetypeType> archetype = systemObjectCache.getArchetype(collectionRef.getOid(), result);
-				ArchetypePolicyType archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-				if (archetypePolicy != null) {
-					DisplayType archetypeDisplay = archetypePolicy.getDisplay();
-					if (archetypeDisplay != null) {
-						DisplayType viewDisplay = existingView.getDisplay();
-						if (viewDisplay == null) {
-							viewDisplay = new DisplayType();
-							existingView.setDisplay(viewDisplay);
-						}
-						mergeDisplay(viewDisplay, archetypeDisplay);
-					}
-				}
-			} catch (ObjectNotFoundException e) {
-				// We do not want to throw exception here. This code takes place at login time.
-				// We do not want to stop all logins because of missing archetype.
-				LOGGER.warn("Archetype {} referenced from view {} was not found", collectionRef.getOid(), existingView.getViewIdentifier());
-			}
-			
-			return;
-		}
-		
-		if (QNameUtil.match(ObjectCollectionType.COMPLEX_TYPE, collectionRefType)) {
-			ObjectCollectionType objectCollectionType;
-			try {
-				// TODO: caching?
-				objectCollectionType = objectResolver.resolve(collectionRef, ObjectCollectionType.class, null, "view "+existingView.getViewIdentifier(), task, result);
-			} catch (ObjectNotFoundException e) {
-				throw new ConfigurationException(e.getMessage(), e);
-			}
-			SearchFilterType collectionFilterType = objectCollectionType.getFilter();
-			ObjectFilter collectionFilter = null;
-			if (collectionFilterType != null) {
-				collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
-			}
-			CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
-			if (baseCollectionSpec == null) {
-				existingView.setFilter(collectionFilter);
-			} else {
-				compileCollection(existingView, baseCollectionSpec, task, result);
-				ObjectFilter baseFilter = existingView.getFilter();
-				ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, collectionFilter, prismContext);
-				existingView.setFilter(combinedFilter);
-			}
-			return;
-		}
-		
-		// TODO
-		throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
-	}
-	
-	private void mergeDisplay(DisplayType viewDisplay, DisplayType archetypeDisplay) {
-		if (viewDisplay.getLabel() == null) {
-			viewDisplay.setLabel(archetypeDisplay.getLabel());
-		}
-		if (viewDisplay.getPluralLabel() == null) {
-			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
-		}
-		IconType archetypeIcon = archetypeDisplay.getIcon();
-		if (archetypeIcon != null) {
-			IconType viewIcon = viewDisplay.getIcon();
-			if (viewIcon == null) {
-				viewIcon = new IconType();
-				viewDisplay.setIcon(viewIcon);
-			}
-			if (viewIcon.getCssClass() == null) {
-				viewIcon.setCssClass(archetypeIcon.getCssClass());
-			}
-			if (viewIcon.getColor() == null) {
-				viewIcon.setColor(archetypeIcon.getColor());
-			}
-		}
+		collectionProcessor.compileObjectCollectionView(existingView, collectionSpec, targetTypeClass, task, result);
 	}
 
 	private void compileColumns(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -602,7 +441,7 @@ public class UserProfileCompiler {
 		if (existingView.getDisplay() == null) {
 			existingView.setDisplay(newDisplay);
 		}
-		mergeDisplay(existingView.getDisplay(), newDisplay);
+		MiscSchemaUtil.mergeDisplay(existingView.getDisplay(), newDisplay);
 	}
 
 	private void compileDistinct(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType) {
@@ -617,6 +456,13 @@ public class UserProfileCompiler {
 		Boolean newDisableSorting = objectListViewType.isDisableSorting();
 		if (newDisableSorting != null) {
 			existingView.setDisableSorting(newDisableSorting);
+		}
+	}
+
+	private void compileDisplayOrder(CompiledObjectCollectionView existingView, GuiObjectListViewType objectListViewType){
+		Integer newDisplayOrder = objectListViewType.getDisplayOrder();
+		if (newDisplayOrder != null){
+			existingView.setDisplayOrder(newDisplayOrder);
 		}
 	}
 	

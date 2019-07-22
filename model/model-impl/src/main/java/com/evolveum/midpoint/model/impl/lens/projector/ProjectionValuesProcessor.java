@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
-import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationExpressionsEvaluator;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -66,13 +67,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -106,7 +100,7 @@ public class ProjectionValuesProcessor {
 	private PrismContext prismContext;
 
 	@Autowired
-	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	private SynchronizationExpressionsEvaluator correlationConfirmationEvaluator;
 
 	@Autowired
 	private SynchronizationService synchronizationService;
@@ -129,11 +123,8 @@ public class ProjectionValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
-    	processorResult.recordSuccessIfUnknown();
-    	processProjections((LensContext<? extends FocusType>) context, projectionContext,
-    			activityDescription, task, processorResult);
-
+		processProjections((LensContext<? extends FocusType>) context, projectionContext,
+				activityDescription, task, result);
 	}
 
 	private <F extends FocusType> void processProjections(LensContext<F> context,
@@ -144,7 +135,7 @@ public class ProjectionValuesProcessor {
 		checkSchemaAndPolicies(context, projContext, activityDescription, result);
 
 		SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
-		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
+		if (policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well
 			if (LOGGER.isTraceEnabled()) {
@@ -264,11 +255,17 @@ public class ProjectionValuesProcessor {
 		        boolean conflict = true;
 		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<>(projContext);
 
-		        if (skipUniquenessCheck) {
+				ConstraintsCheckingStrategyType strategy = context.getProjectionConstraintsCheckingStrategy();
+				boolean skipWhenNoIteration = strategy != null && Boolean.TRUE.equals(strategy.isSkipWhenNoIteration());
+				// skipWhenNoChange is applied by the uniqueness checker itself (in provisioning)
+
+				if (skipWhenNoIteration && maxIterations == 0) {
+					LOGGER.trace("Skipping uniqueness checking because 'skipWhenNoIteration' is true and there are no iterations defined");
+					conflict = false;
+				} else if (skipUniquenessCheck) {
 		        	skipUniquenessCheck = false;
 		        	conflict = false;
 		        } else {
-		
 			        checker.setPrismContext(prismContext);
 			        checker.setContext(context);
 			        checker.setProvisioningService(provisioningService);
@@ -418,7 +415,7 @@ public class ProjectionValuesProcessor {
 	    			} else {
 	    				conflictMessage = "post-iteration condition was false";
 	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
-	    						new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
+							    iteration, iterationToken, projContext.getHumanReadableName());
 	    			}
 				} else {
 					conflictMessage = checker.getMessages();
@@ -431,14 +428,10 @@ public class ProjectionValuesProcessor {
 
 			cleanupContext(projContext, null);
 	        if (consistencyChecks) context.checkConsistence();
-
 		}
 
 		addIterationTokenDeltas(projContext);
-		result.cleanupResult();
 		if (consistencyChecks) context.checkConsistence();
-
-
 	}
 
 	private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
@@ -512,7 +505,7 @@ public class ProjectionValuesProcessor {
 			LensProjectionContext projectionContext) {
 		return ModelImplUtils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), projectionContext.getObjectNew(),
 				projectionContext.getResourceShadowDiscriminator(), projectionContext.getResource().asPrismObject(),
-				context.getSystemConfiguration(), projectionContext);
+				context.getSystemConfiguration(), projectionContext, prismContext);
 	}
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context,
@@ -591,8 +584,8 @@ public class ProjectionValuesProcessor {
 					ItemDelta modification = iterator.next();
 					if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
 						if (fullConflictingShadow != null) {
-							if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS,modification.getElementName())) {
-								if (modification.isRedundant(fullConflictingShadow)) {
+							if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, modification.getElementName())) {
+								if (modification.isRedundant(fullConflictingShadow, false)) {
 									LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
 									iterator.remove();
 								}
@@ -671,11 +664,8 @@ public class ProjectionValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createMinorSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValuesPostRecon");
-    	processorResult.recordSuccessIfUnknown();
     	processProjectionsPostRecon((LensContext<? extends FocusType>) context, projectionContext,
-    			activityDescription, task, processorResult);
-
+    			activityDescription, task, result);
 	}
 	
 	private <F extends FocusType> void processProjectionsPostRecon(LensContext<F> context,

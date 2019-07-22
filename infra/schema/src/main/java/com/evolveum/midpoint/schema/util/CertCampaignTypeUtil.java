@@ -546,7 +546,7 @@ public class CertCampaignTypeUtil {
             return null;
         }
         AccessCertificationStageType stage = getCurrentStage(campaign);
-        return stage != null ? WfContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()) : null;
+        return stage != null ? ApprovalContextUtil.getEscalationLevelInfo(stage.getEscalationLevel()) : null;
     }
 
     // returns reviewers for non-closed work items

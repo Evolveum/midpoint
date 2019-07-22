@@ -61,12 +61,16 @@ import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
+import com.evolveum.midpoint.gui.impl.factory.TextAreaPanelFactory;
+import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.init.StartupConfiguration;
 import com.evolveum.midpoint.model.api.authentication.NodeAuthenticationEvaluator;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -103,69 +107,50 @@ import ro.isdc.wro.http.WroFilter;
         "classpath:ctx-init.xml",
         "classpath:ctx-webapp.xml"
 })
-@ImportAutoConfiguration(classes = {
-		EmbeddedTomcatAutoConfiguration.class,
-		DispatcherServletAutoConfiguration.class,
-		WebMvcAutoConfiguration.class,
-		HttpMessageConvertersAutoConfiguration.class,
-		PropertyPlaceholderAutoConfiguration.class,
-		SecurityFilterAutoConfiguration.class,
-		MultipartAutoConfiguration.class,
-        HttpEncodingAutoConfiguration.class,
-        EndpointAutoConfiguration.class,
-        WebEndpointAutoConfiguration.class,
-        WebMvcEndpointManagementContextConfiguration.class,
-        ServletManagementContextAutoConfiguration.class,
-        HealthEndpointAutoConfiguration.class,
-        HealthIndicatorAutoConfiguration.class
-})
+@Profile("!test")
 @SpringBootConfiguration
-public class MidPointSpringApplication extends SpringBootServletInitializer {
+@ComponentScan(basePackages = {"com.evolveum.midpoint.gui","com.evolveum.midpoint.gui.api"}, basePackageClasses = {TextAreaPanelFactory.class, GuiComponentRegistryImpl.class})
+public class MidPointSpringApplication extends AbstractSpringBootApplication {
 	
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(MidPointSpringApplication.class);
+	
+	private static ConfigurableApplicationContext applicationContext = null;
+	
+	 public static void main(String[] args) {
+	    	System.out.println("ClassPath: "+ System.getProperty("java.class.path"));
+	    	
+	        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
+	        String mode = args != null && args.length > 0 ? args[0] : null;
+	        
+	        if(LOGGER.isDebugEnabled()){
+	            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+	                    " Application mode:" + mode + " context:" + applicationContext);
+	        }
+	        
+	        if (applicationContext != null && mode != null && "stop".equals(mode)) {
+	            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
+	                
+	                @Override
+	                public int getExitCode() {
+	                    
+	                    return 0;
+	                }
+	            }));
+	            
+	        } else {
+	            
+	            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
+	            
+	            if (LOGGER.isDebugEnabled()) {
+	                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
+	                             " Application started context:" + applicationContext);
+	            }
+	            
+	        }
 
-    private static final String MIDPOINT_HOME_PROPERTY = "midpoint.home";
-    private static final String USER_HOME_PROPERTY_NAME = "user.home";
-    private static ConfigurableApplicationContext applicationContext = null;
-    
-    @Autowired StartupConfiguration startupConfiguration;
-    @Autowired NodeAuthenticationEvaluator nodeAuthenticator;
-    
-    public static void main(String[] args) {
-        System.setProperty("xml.catalog.className", "com.evolveum.midpoint.prism.impl.schema.CatalogImpl");
-        String mode = args != null && args.length > 0 ? args[0] : null;
-        
-        if(LOGGER.isDebugEnabled()){
-            LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-                    " Application mode:" + mode + " context:" + applicationContext);
-        }
-        
-        if (applicationContext != null && mode != null && "stop".equals(mode)) {
-            System.exit(SpringApplication.exit(applicationContext, new ExitCodeGenerator() {
-                
-                @Override
-                public int getExitCode() {
-                    
-                    return 0;
-                }
-            }));
-            
-        } else {
-            
-            applicationContext = configureApplication(new SpringApplicationBuilder()).run(args);
-            
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("PID:" + ManagementFactory.getRuntimeMXBean().getName() +
-                             " Application started context:" + applicationContext);
-            }
-            
-        }
-
-    }
-    
-    
-
-    @Override
+	    }
+	
+	@Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
         return configureApplication(application);
     }
@@ -189,67 +174,7 @@ public class MidPointSpringApplication extends SpringBootServletInitializer {
 
         return application.sources(MidPointSpringApplication.class);
     }
-    
-    @Bean
-    public ServletListenerRegistrationBean<RequestContextListener> requestContextListener() {
-        return new ServletListenerRegistrationBean<>(new RequestContextListener());
-    }
-
-    @Bean
-    public FilterRegistrationBean<MidPointProfilingServletFilter> midPointProfilingServletFilter() {
-        FilterRegistrationBean<MidPointProfilingServletFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new MidPointProfilingServletFilter());
-//        registration.setDispatcherTypes(EnumSet.allOf(DispatcherType.class));
-        registration.addUrlPatterns("/*");
-        return registration;
-    }
-
-    @Bean
-    public FilterRegistrationBean<WicketFilter> wicket() {
-        FilterRegistrationBean<WicketFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new WicketFilter());
-        registration.setDispatcherTypes(DispatcherType.ERROR, DispatcherType.REQUEST, DispatcherType.FORWARD);
-        registration.addUrlPatterns("/*");
-        registration.addInitParameter(WicketFilter.FILTER_MAPPING_PARAM, "/*");
-        registration.addInitParameter(Application.CONFIGURATION, "deployment");     // development
-        registration.addInitParameter("applicationBean", "midpointApplication");
-        registration.addInitParameter(WicketFilter.APP_FACT_PARAM, "org.apache.wicket.spring.SpringWebApplicationFactory");
-
-        return registration;
-    }
-    
-    @Bean
-    public FilterRegistrationBean<DelegatingFilterProxy> springSecurityFilterChain() {
-        FilterRegistrationBean<DelegatingFilterProxy> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new DelegatingFilterProxy());
-        registration.addUrlPatterns("/*");
-        return registration;
-    }
-    
-    @Bean
-    public FilterRegistrationBean<WroFilter> webResourceOptimizer(WroFilter wroFilter) {
-        FilterRegistrationBean<WroFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(wroFilter);
-        registration.addUrlPatterns("/wro/*");
-        return registration;
-    }
-    
-    @Bean
-    public ServletRegistrationBean<CXFServlet> cxfServlet() {
-        ServletRegistrationBean<CXFServlet> registration = new ServletRegistrationBean<>();
-        registration.setServlet(new CXFServlet());
-        registration.addInitParameter("service-list-path", "midpointservices");
-        registration.setLoadOnStartup(1);
-        registration.addUrlMappings("/model/*", "/ws/*");
-
-        return registration;
-    }
-
-    @Bean
-    public ErrorPageRegistrar errorPageRegistrar() {
-    	return new MidPointErrorPageRegistrar();
-    }
-
+	
     @Component
     public class ServerCustomization implements WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
     	

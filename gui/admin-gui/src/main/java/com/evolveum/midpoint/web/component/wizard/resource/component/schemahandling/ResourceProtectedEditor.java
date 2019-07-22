@@ -112,8 +112,10 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
                 });
                 linkCont.add(accountLabel);
 
-                AjaxLink delete = new AjaxLink(ID_BUTTON_DELETE) {
-
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_BUTTON_DELETE) {
+                	
+                	private static final long serialVersionUID = 1L;
+                	
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteProtectedAccountPerformed(target, item);
@@ -176,8 +178,9 @@ public class ResourceProtectedEditor extends BasePanel<List<ResourceObjectPatter
         repeater.setOutputMarkupId(true);
         container.add(repeater);
 
-        AjaxLink add = new AjaxLink(ID_BUTTON_ADD) {
-
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
+        	private static final long serialVersionUID = 1L;
+		
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addProtectedAccountPerformed(target);

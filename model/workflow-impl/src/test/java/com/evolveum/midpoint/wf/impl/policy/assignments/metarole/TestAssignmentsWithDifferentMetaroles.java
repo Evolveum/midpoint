@@ -293,7 +293,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			// ok
 			System.out.println("Got expected exception: " + e);
 		}
-		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
 		display("current work items", currentWorkItems);
 		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 	}
@@ -346,14 +346,14 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 		assignRole(userJackOid, roleRole26Oid, task, result);
 		String ref = result.findAsynchronousOperationReference();       // TODO use recompute + getAsync... when fixed
 		assertNotNull("No asynchronous operation reference", ref);
-		String taskOid = result.referenceToTaskOid(ref);
+		String caseOid = OperationResult.referenceToCaseOid(ref);
 
-		List<WorkItemType> currentWorkItems = modelService.searchContainers(WorkItemType.class, null, null, task, result);
+		List<CaseWorkItemType> currentWorkItems = modelService.searchContainers(CaseWorkItemType.class, getOpenItemsQuery(), null, task, result);
 		display("current work items", currentWorkItems);
 		assertEquals("Wrong # of current work items", 0, currentWorkItems.size());
 
-		assertNotNull("Missing task OID", taskOid);
-		waitForTaskFinish(taskOid, false);
+		assertNotNull("Missing task OID", caseOid);
+		waitForCaseClose(getCase(caseOid));
 
 		if (exception != null) {
 			System.err.println("Got unexpected exception");
@@ -452,7 +452,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
 				// todo
 				// e.g. check metadata
@@ -467,7 +467,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -477,7 +477,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+			protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 					OperationResult result) throws Exception {
 				// todo
 			}
@@ -573,7 +573,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 
 			@SuppressWarnings("Duplicates")
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
 				// todo
 				// e.g. check metadata
@@ -588,7 +588,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -598,7 +598,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+			protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 					OperationResult result) throws Exception {
 				// todo
 			}
@@ -702,7 +702,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
 				// todo
 				// e.g. check metadata
@@ -720,7 +720,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -730,7 +730,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+			protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 					OperationResult result) throws Exception {
 				// todo
 			}
@@ -817,7 +817,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
 				// todo
 				// e.g. check metadata
@@ -832,7 +832,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;
 			}
 
@@ -842,7 +842,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+			protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 					OperationResult result) throws Exception {
 				// todo
 			}
@@ -927,7 +927,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				System.out.println("assertDeltaExecuted for number = " + number + ", yes = " + yes);
 				// todo
 				// e.g. check metadata
@@ -945,7 +945,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return true;
 			}
 
@@ -955,7 +955,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void afterFirstClockworkRun(Task rootTask, List<Task> subtasks, List<WorkItemType> workItems,
+			protected void afterFirstClockworkRun(CaseType rootCase, List<CaseType> subcases, List<CaseWorkItemType> workItems,
 					OperationResult result) throws Exception {
 				// todo
 			}
@@ -1123,7 +1123,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				switch (number) {
 					case 0:
 						if (yes) {
@@ -1141,9 +1141,9 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 					case 3:
 						String[] oids = { roleRole21Oid, roleRole22Oid, roleRole23Oid };
 					if (yes) {
-						assertAssignedRole(userJackOid, oids[number-1], rootTask, result);
+						assertAssignedRole(userJackOid, oids[number-1], opTask, result);
 					} else {
-						assertNotAssignedRole(userJackOid, oids[number-1], rootTask, result);
+						assertNotAssignedRole(userJackOid, oids[number-1], opTask, result);
 					}
 					break;
 
@@ -1151,7 +1151,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;            // ignore this way of approving
 			}
 
@@ -1258,19 +1258,20 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			ExpectedStagePreview... expectedStagePreviews) {
 		ApprovalSchemaExecutionInformationType found = null;
 		for (ApprovalSchemaExecutionInformationType info : infos) {
-			assertNotNull("No taskRef", info.getTaskRef());
-			PrismObject object = info.getTaskRef().asReferenceValue().getObject();
-			assertNotNull("No task in taskRef", object);
-			WfContextType wfc = ((TaskType) object.asObjectable()).getWorkflowContext();
-			assertNotNull("No wf context in taskRef", wfc);
-			assertNotNull("No targetRef in taskRef", wfc.getTargetRef());
-			if (targetOid.equals(wfc.getTargetRef().getOid())) {
+			assertNotNull("No taskRef", info.getCaseRef());
+			PrismObject object = info.getCaseRef().asReferenceValue().getObject();
+			assertNotNull("No case in caseRef", object);
+			CaseType aCase = (CaseType) object.asObjectable();
+			ApprovalContextType wfc = aCase.getApprovalContext();
+			assertNotNull("No wf context in caseRef", wfc);
+			assertNotNull("No targetRef in caseRef", aCase.getTargetRef());
+			if (targetOid.equals(aCase.getTargetRef().getOid())) {
 				found = info;
 				break;
 			}
 		}
 		assertNotNull("No approval info for target '" + targetOid + "' found", found);
-		String taskName = getOrig(found.getTaskRef().getTargetName());
+		String taskName = getOrig(found.getCaseRef().getTargetName());
 		assertEquals("Wrong # of stage info in " + taskName, expectedStagePreviews.length, found.getStage().size());
 		for (int i = 0; i < expectedStagePreviews.length; i++) {
 			ExpectedStagePreview expectedStagePreview = expectedStagePreviews[i];
@@ -1384,7 +1385,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected void assertDeltaExecuted(int number, boolean yes, Task rootTask, OperationResult result) throws Exception {
+			protected void assertDeltaExecuted(int number, boolean yes, Task opTask, OperationResult result) throws Exception {
 				switch (number) {
 					case 0:
 						if (yes) {
@@ -1397,18 +1398,18 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 							}
 						}
 						if (yes || !has1and2) {
-							assertNotAssignedRole(userJackOid, roleRole21Oid, rootTask, result);
-							assertNotAssignedRole(userJackOid, roleRole22Oid, rootTask, result);
+							assertNotAssignedRole(userJackOid, roleRole21Oid, opTask, result);
+							assertNotAssignedRole(userJackOid, roleRole22Oid, opTask, result);
 						} else {
-							assertAssignedRole(userJackOid, roleRole21Oid, rootTask, result);
-							assertAssignedRole(userJackOid, roleRole22Oid, rootTask, result);
+							assertAssignedRole(userJackOid, roleRole21Oid, opTask, result);
+							assertAssignedRole(userJackOid, roleRole22Oid, opTask, result);
 						}
 						break;
 					case 1:
 						if (yes) {
-							assertNotAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
+							assertNotAssignedRole(userJackOid, roleRole23Oid, opTask, result);
 						} else {
-							assertAssignedRole(userJackOid, roleRole23Oid, rootTask, result);
+							assertAssignedRole(userJackOid, roleRole23Oid, opTask, result);
 						}
 						break;
 					default:
@@ -1417,7 +1418,7 @@ public class TestAssignmentsWithDifferentMetaroles extends AbstractWfTestPolicy 
 			}
 
 			@Override
-			protected Boolean decideOnApproval(String executionId, org.activiti.engine.task.Task task) throws Exception {
+			protected Boolean decideOnApproval(CaseWorkItemType caseWorkItem) throws Exception {
 				return null;            // ignore this way of approving
 			}
 

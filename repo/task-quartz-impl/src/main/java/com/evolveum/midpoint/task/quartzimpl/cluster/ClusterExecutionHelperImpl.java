@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.RestAuthenticationMethod;
 import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +65,12 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 
 		OperationResult result = parentResult.createSubresult(DOT_CLASS + "execute");
 		String nodeId = taskManager.getNodeId();
+
+		if (!taskManager.isClustered()) {
+			LOGGER.trace("Node is not part of a cluster, skipping remote code execution");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Node not in cluster");
+			return;
+		}
 
 		SearchResultList<PrismObject<NodeType>> otherClusterNodes;
 		try {
@@ -110,14 +118,16 @@ public class ClusterExecutionHelperImpl implements ClusterExecutionHelper{
 			String url = baseUrl + "/ws/cluster";
 			LOGGER.debug("Going to execute '{}' on '{}'", context, url);
 			WebClient client = WebClient.create(url);
-			if (node.getSecret() == null) {
-				throw new SchemaException("No secret known for target node " + node.getNodeIdentifier());
+			NodeType localNode = taskManager.getLocalNode();
+			ProtectedStringType protectedSecret = localNode != null ? localNode.getSecret() : null;
+			if (protectedSecret == null) {
+				throw new SchemaException("No secret is set for local node " + localNode);
 			}
 			String secret;
 			try {
-				secret = protector.decryptString(node.getSecret());
+				secret = protector.decryptString(protectedSecret);
 			} catch (EncryptionException e) {
-				throw new SystemException("Couldn't decrypt node secret: " + e.getMessage(), e);
+				throw new SystemException("Couldn't decrypt local node secret: " + e.getMessage(), e);
 			}
 			client.header("Authorization", RestAuthenticationMethod.CLUSTER.getMethod() + " " + Base64Utility.encode(secret.getBytes()));
 			code.accept(client, result);

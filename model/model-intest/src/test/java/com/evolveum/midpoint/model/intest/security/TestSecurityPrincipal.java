@@ -58,7 +58,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         // THEN
         display("Administrator principal", principal);
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
-        assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AuthorizationConstants.AUTZ_ALL_URL);
+        assertHasAuthorizationAllow(principal.getAuthorities().iterator().next(), AuthorizationConstants.AUTZ_ALL_URL);
 
         assertAuthorized(principal, AUTZ_LOOT_URL);
         assertAuthorized(principal, AUTZ_COMMAND_URL);
@@ -234,7 +234,7 @@ public class TestSecurityPrincipal extends AbstractSecurityTest {
         assertJack(principal);
 
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
-        assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
+        assertHasAuthorizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
 
         assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
         assertNotAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.REQUEST);

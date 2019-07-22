@@ -15,13 +15,12 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -32,23 +31,29 @@ import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstraintsCheckingStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -59,17 +64,20 @@ public class ConstraintsChecker {
 	private static final Trace LOGGER = TraceManager.getTrace(ConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
-	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
+	private static ConcurrentHashMap<Thread, Cache> cacheInstances = new ConcurrentHashMap<>();
 
 	private ProvisioningContext provisioningContext;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
+	private CacheConfigurationManager cacheConfigurationManager;
 	private ShadowCache shadowCache;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject<ShadowType> shadowObject;
+	private PrismObject<ShadowType> shadowObjectOld;
 	private String shadowOid;
 	private ConstraintViolationConfirmer constraintViolationConfirmer;
 	private boolean useCache = true;
+	private ConstraintsCheckingStrategyType strategy;
 
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -87,6 +95,10 @@ public class ConstraintsChecker {
 		this.repositoryService = repositoryService;
 	}
 
+	public void setCacheConfigurationManager(CacheConfigurationManager cacheConfigurationManager) {
+		this.cacheConfigurationManager = cacheConfigurationManager;
+	}
+
 	public ShadowCache getShadowCache() {
 		return shadowCache;
 	}
@@ -97,6 +109,11 @@ public class ConstraintsChecker {
 
 	public void setShadowObject(PrismObject<ShadowType> shadowObject) {
 		this.shadowObject = shadowObject;
+	}
+
+	public void setShadowObjectOld(
+			PrismObject<ShadowType> shadowObjectOld) {
+		this.shadowObjectOld = shadowObjectOld;
 	}
 
 	public void setShadowOid(String shadowOid) {
@@ -115,40 +132,66 @@ public class ConstraintsChecker {
 		this.useCache = useCache;
 	}
 
+	public void setStrategy(ConstraintsCheckingStrategyType strategy) {
+		this.strategy = strategy;
+	}
+
 	private ConstraintsCheckingResult constraintsCheckingResult;
 
-	public ConstraintsCheckingResult check(Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public ConstraintsCheckingResult check(Task task, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException {
+		OperationResult result = parentResult.subresult(ConstraintsChecker.class.getName() + ".check")
+				.setMinor()
+				.build();
+		try {
+			constraintsCheckingResult = new ConstraintsCheckingResult();
+			constraintsCheckingResult.setSatisfiesConstraints(true);
 
-		constraintsCheckingResult = new ConstraintsCheckingResult();
-		constraintsCheckingResult.setSatisfiesConstraints(true);
+			PrismContainer<?> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
+			if (attributesContainer == null) {
+				// No attributes no constraint violations
+				LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
+				return constraintsCheckingResult;
+			}
 
-		PrismContainer<?> attributesContainer = shadowObject.findContainer(ShadowType.F_ATTRIBUTES);
-		if (attributesContainer == null) {
-			// No attributes no constraint violations
-			LOGGER.trace("Current shadow does not contain attributes, skipping checking uniqueness.");
+			RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
+			Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = getUniqueAttributesDefinitions();
+			LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
+			for (ResourceAttributeDefinition attrDef : uniqueAttributeDefs) {
+				PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
+				LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
+				if (attr == null) {
+					continue;
+				}
+				constraintsCheckingResult.getCheckedAttributes().add(attr.getElementName());
+				boolean unique = checkAttributeUniqueness(attr, objectClassDefinition, provisioningContext.getResource(),
+						shadowOid, task, result);
+				if (!unique) {
+					LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr,
+							provisioningContext.getShadowCoordinates());
+					constraintsCheckingResult.getConflictingAttributes().add(attr.getElementName());
+					constraintsCheckingResult.setSatisfiesConstraints(false);
+				}
+			}
+			constraintsCheckingResult.setMessages(messageBuilder.toString());
 			return constraintsCheckingResult;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
+	}
 
+	@NotNull
+	public Collection<? extends RefinedAttributeDefinition<? extends Object>> getUniqueAttributesDefinitions()
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
-		Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = MiscUtil.unionExtends(objectClassDefinition.getPrimaryIdentifiers(),
+		//noinspection unchecked
+		return MiscUtil.unionExtends(objectClassDefinition.getPrimaryIdentifiers(),
 				objectClassDefinition.getSecondaryIdentifiers());
-		LOGGER.trace("Checking uniquenss of attributes: {}", uniqueAttributeDefs);
-		for (ResourceAttributeDefinition attrDef: uniqueAttributeDefs) {
-			PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
-			LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
-			if (attr == null) {
-				continue;
-			}
-			constraintsCheckingResult.getCheckedAttributes().add(attr.getElementName());
-			boolean unique = checkAttributeUniqueness(attr, objectClassDefinition, provisioningContext.getResource(), shadowOid, task, result);
-			if (!unique) {
-				LOGGER.debug("Attribute {} conflicts with existing object (in {})", attr, provisioningContext.getShadowCoordinates());
-				constraintsCheckingResult.getConflictingAttributes().add(attr.getElementName());
-				constraintsCheckingResult.setSatisfiesConstraints(false);
-			}
-		}
-		constraintsCheckingResult.setMessages(messageBuilder.toString());
-		return constraintsCheckingResult;
 	}
 
 	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
@@ -178,7 +221,7 @@ public class ConstraintsChecker {
 
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
 		ResourceType resourceType = provisioningContext.getResource();
-		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues())) {
+		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues(), cacheConfigurationManager)) {
 			return true;
 		}
 
@@ -187,7 +230,7 @@ public class ConstraintsChecker {
 		// because there could be a matching rule; see ShadowManager.processQueryMatchingRuleFilter.
 		// Besides that, now the constraint checking is cached at a higher level, so this is not a big issue any more.
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, true, task, result);
+		List<PrismObject<ShadowType>> foundObjects = shadowCache.searchObjects(query, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Uniqueness check of {} resulted in {} results:\n{}\nquery:\n{}",
 					identifier, foundObjects.size(), foundObjects, query.debugDump(1));
@@ -235,18 +278,18 @@ public class ConstraintsChecker {
 		messageBuilder.append(message);
 	}
 
-	public static void enterCache() {
-		Cache.enter(cacheThreadLocal, Cache.class, LOGGER);
+	public static void enterCache(CacheConfiguration configuration) {
+		Cache.enter(cacheInstances, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
-		Cache.exit(cacheThreadLocal, LOGGER);
+		Cache.exit(cacheInstances, LOGGER);
 	}
 
 	public static <T extends ShadowType> void onShadowAddOperation(T shadow) {
 		Cache cache = Cache.getCache();
 		if (cache != null) {
-			log("Clearing cache on shadow add operation");
+			log("Clearing cache on shadow add operation", false);
 			cache.conflictFreeSituations.clear();            // TODO fix this brute-force approach
 		}
 	}
@@ -262,10 +305,36 @@ public class ConstraintsChecker {
 		ItemPath attributesPath = ShadowType.F_ATTRIBUTES;
 		for (ItemDelta itemDelta : deltas) {
 			if (attributesPath.isSubPathOrEquivalent(itemDelta.getParentPath())) {
-				log("Clearing cache on shadow attribute modify operation");
+				log("Clearing cache on shadow attribute modify operation", false);
 				cache.conflictFreeSituations.clear();
 				return;
 			}
+		}
+	}
+
+	public boolean canSkipChecking()
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		if (shadowObjectOld == null) {
+			return false;
+		} else if (shadowObject == null) {
+			LOGGER.trace("Skipping uniqueness checking because objectNew is null");
+			return true;
+		} else if (strategy == null || !Boolean.TRUE.equals(strategy.isSkipWhenNoChange())) {
+			LOGGER.trace("Uniqueness checking will not be skipped because 'skipWhenNoChange' is not set");
+			return false;
+		} else {
+			for (RefinedAttributeDefinition<?> definition : getUniqueAttributesDefinitions()) {
+				Object oldItem = shadowObjectOld.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
+				Object newItem = shadowObject.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
+				if (!Objects.equals(oldItem, newItem)) {
+					LOGGER.trace("Uniqueness check will not be skipped because identifier {} values do not match: old={}, new={}",
+							definition.getName(), oldItem, newItem);
+					return false;
+				}
+			}
+			LOGGER.trace("Skipping uniqueness checking because old and new values for identifiers match");
+			return true;
 		}
 	}
 
@@ -325,30 +394,46 @@ public class ConstraintsChecker {
 		}
 	}
 
-	public static class Cache extends AbstractCache {
+	public static class Cache extends AbstractThreadLocalCache {
 
-		private Set<Situation> conflictFreeSituations = new HashSet<>();
+		private final Set<Situation> conflictFreeSituations = ConcurrentHashMap.newKeySet();
 
-		private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName, List attributeValues) {
-			return isOk(new Situation(resourceOid, knownShadowOid, objectClassName, attributeName, getRealValuesSet(attributeValues)));
+		private static boolean isOk(String resourceOid, String knownShadowOid, QName objectClassName, QName attributeName,
+				List attributeValues, CacheConfigurationManager cacheConfigurationManager) {
+			return isOk(new Situation(resourceOid, knownShadowOid, objectClassName, attributeName, getRealValuesSet(attributeValues)),
+					cacheConfigurationManager);
 		}
 
-		public static boolean isOk(Situation situation) {
+		private static boolean isOk(Situation situation,
+				CacheConfigurationManager cacheConfigurationManager) {
 			if (situation.attributeValues == null) {		// special case - problem - TODO implement better
 				return false;
 			}
 
+			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 			Cache cache = getCache();
+			CacheConfiguration configuration = cache != null ? cache.getConfiguration() :
+					cacheConfigurationManager.getConfiguration(CacheType.LOCAL_SHADOW_CONSTRAINT_CHECKER_CACHE);
+			CacheConfiguration.CacheObjectTypeConfiguration objectTypeConfiguration = configuration != null ?
+					configuration.getForObjectType(ShadowType.class) : null;
+			CacheConfiguration.StatisticsLevel statisticsLevel = CacheConfiguration.getStatisticsLevel(objectTypeConfiguration, configuration);
+			boolean traceMiss = CacheConfiguration.getTraceMiss(objectTypeConfiguration, configuration);
+
 			if (cache == null) {
-				log("Cache NULL for {}", situation);
+				log("Cache NULL for {}", false, situation);
+				collector.registerNotAvailable(Cache.class, ShadowType.class, statisticsLevel);
 				return false;
 			}
 
 			if (cache.conflictFreeSituations.contains(situation)) {
-				log("Cache HIT for {}", situation);
+				log("Cache HIT for {}", false, situation);
+				cache.registerHit();
+				collector.registerHit(Cache.class, ShadowType.class, statisticsLevel);
 				return true;
 			} else {
-				log("Cache MISS for {}", situation);
+				log("Cache MISS for {}", traceMiss, situation);
+				cache.registerMiss();
+				collector.registerMiss(Cache.class, ShadowType.class, statisticsLevel);
 				return false;
 			}
 		}
@@ -380,13 +465,13 @@ public class ConstraintsChecker {
 		}
 
 		private static Cache getCache() {
-			return cacheThreadLocal.get();
+			return cacheInstances.get(Thread.currentThread());
 		}
 
 		public static void remove(PolyStringType name) {
 			Cache cache = getCache();
 			if (name != null && cache != null) {
-				log("Cache REMOVE for {}", name);
+				log("Cache REMOVE for {}", false, name);
 				cache.conflictFreeSituations.remove(name.getOrig());
 			}
 		}
@@ -395,15 +480,14 @@ public class ConstraintsChecker {
 		public String description() {
 			return "conflict-free situations: " + conflictFreeSituations;
 		}
-	}
 
-	private static void log(String message, Object... params) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(message, params);
-		}
-		if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
-			PERFORMANCE_ADVISOR.trace(message, params);
+		@Override
+		protected int getSize() {
+			return conflictFreeSituations.size();
 		}
 	}
 
+	private static void log(String message, boolean info, Object... params) {
+		CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
+	}
 }

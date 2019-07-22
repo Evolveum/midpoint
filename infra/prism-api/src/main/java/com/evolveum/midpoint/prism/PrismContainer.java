@@ -81,6 +81,7 @@ public interface PrismContainer<C extends Containerable>
     @Override
 	Collection<C> getRealValues();
 
+	@NotNull
 	C getRealValue();
 
 	void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
@@ -91,6 +92,8 @@ public interface PrismContainer<C extends Containerable>
     PrismContainerValue<C> getValue(Long id);
 
 	<T> void setPropertyRealValue(QName propertyName, T realValue) throws SchemaException;
+
+	<C extends Containerable> void setContainerRealValue(QName containerName, C realValue) throws SchemaException;
 
 	<T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException;
 
@@ -156,16 +159,9 @@ public interface PrismContainer<C extends Containerable>
 
 	<T extends Containerable> PrismContainer<T> findContainer(ItemPath path);
 
-	<I extends Item<?,?>> List<I> getItems(Class<I> type);
-
-	@SuppressWarnings("unchecked")
-	List<PrismContainer<?>> getContainers();
-
 	<T> PrismProperty<T> findProperty(ItemPath path);
 
 	PrismReference findReference(ItemPath path);
-
-	PrismReference findReferenceByCompositeObjectElementName(QName elementName);
 
 	<IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(ItemPath containerPath,
 			Class<I> type) throws SchemaException;

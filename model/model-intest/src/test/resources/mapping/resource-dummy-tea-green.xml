@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
 	<name>Dummy Resource Tea Green</name>
+	
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -44,73 +45,15 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			</q:and>
 		</filter>
 	</connectorRef>
+	
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
-					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>tea-green</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
-
 	</connectorConfiguration>
-	
-	<schema>
-		<definition>
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
-            <xsd:complexType name="AccountObjectClass">
-               <xsd:annotation>
-                  <xsd:appinfo>
-                     <ra:resourceObject/>
-                     <ra:identifier>icfs:uid</ra:identifier>
-                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
-                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
-                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
-                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
-                     <ra:account/>
-                     <ra:default/>
-                  </xsd:appinfo>
-               </xsd:annotation>
-               <xsd:sequence>
-                  <xsd:element ref="icfs:uid" minOccurs="0">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF UID</a:displayName>
-                           <a:access>read</a:access>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-                  <xsd:element name="fullname" type="xsd:string"/>
-                  <xsd:element minOccurs="0" name="description" type="xsd:string"/>
-                  <xsd:element maxOccurs="unbounded" minOccurs="0" name="interests" type="xsd:string"/>
-                  <xsd:element ref="icfs:name">
-                     <xsd:annotation>
-                        <xsd:appinfo>
-                           <a:displayName>ICF NAME</a:displayName>
-                        </xsd:appinfo>
-                     </xsd:annotation>
-                  </xsd:element>
-                  <xsd:element name="title" type="xsd:string" maxOccurs="unbounded"/>
-                  <xsd:element name="ship" type="xsd:string"/>
-                  <xsd:element name="location" type="xsd:string"/>
-                  <xsd:element name="loot" type="xsd:int"/>
-                  <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                  <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-                  <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
-               </xsd:sequence>
-            </xsd:complexType>
-         </xsd:schema>
-		</definition>
-	</schema>
+
 
 	<schemaHandling>
 		<objectType>
@@ -135,8 +78,8 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 				<displayName>Full Name</displayName>
 				<tolerant>true</tolerant>
 				<inbound>
-					<strength>strong</strength>
 					<authoritative>true</authoritative>
+					<strength>strong</strength>
 					<target>
 						<path>fullName</path>
 					</target>
@@ -145,18 +88,6 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
-				<inbound>
-					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
-					</target>
-				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:ship</ref>
@@ -176,54 +107,33 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			<attribute>
 				<ref>ri:loot</ref>
 				<displayName>Loot</displayName>
-<!--
-				<outbound>
-					<channel>http://pirates.net/avast</channel>
-					<expression>
-						<value>10000</value>
-					</expression>
-				</outbound>
--->
 			</attribute>
 			<attribute>
 				<ref>ri:weapon</ref>
 				<displayName>Weapon</displayName>
-<!--
-				<outbound>
-					<strength>weak</strength>
-					<source>
-						<path>
-							$user/extension/piracy:weapon
-						</path>
-					</source>
-				</outbound>
--->
 			</attribute>
 			<attribute>
 				<ref>ri:drink</ref>
 				<displayName>Drink</displayName>
 				<tolerant>false</tolerant>
-<!--
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
-				</outbound>
--->
 			</attribute>
 			<attribute>
-				<ref>ri:quote</ref>
-				<displayName>Quote</displayName>
-				<tolerant>true</tolerant>
-<!--
-				<outbound>
+				<ref>ri:proof</ref>
+				<inbound>
 					<strength>strong</strength>
-					<expression>
-						<value>Arr!</value>
-					</expression>
-				</outbound>
--->
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:locker</ref>
+				<inbound>
+					<strength>strong</strength>
+					<target>
+						<path>extension/locker</path>
+					</target>
+				</inbound>
 			</attribute>
 			
 			<iteration>
@@ -239,50 +149,18 @@ An authoritative resource, used to test for MID-2100 (inbound mappings acting bo
 			
 			<activation>
             	<administrativeStatus>
-<!--
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
--->
             		<inbound/>
             	</administrativeStatus>
             	<validFrom>
-<!--
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
--->
             		<inbound/>
             	</validFrom>
             	<validTo>
-<!--
-            		<outbound>
-            			<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-            		</outbound>
--->
             		<inbound/>
             	</validTo>
             </activation>
 			
 			<credentials>
                 <password>
-<!--
-                    <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
--->
                     <inbound>
                     	<strength>weak</strength>
                         <expression>

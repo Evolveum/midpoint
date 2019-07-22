@@ -83,6 +83,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 	protected static final String ROLE_PRIZE_GOLD_SHIP = "Gold";
 	protected static final File ROLE_PRIZE_GOLD_ENFORCED_FILE = new File(TEST_DIR, "role-prize-gold-enforced.xml");
 	protected static final String ROLE_PRIZE_GOLD_ENFORCED_OID = "6bff06a9-51b7-4a19-9e77-ee0701c5bfe2";
+	protected static final File ROLE_PRIZE_GOLD_BY_MAPPING_FILE = new File(TEST_DIR, "role-prize-gold-by-mapping.xml");
+	protected static final String ROLE_PRIZE_GOLD_BY_MAPPING_OID = "01348e8c-1a77-4619-b375-0a3701564550";
 
 	protected static final File ROLE_PRIZE_SILVER_FILE = new File(TEST_DIR, "role-prize-silver.xml");
 	protected static final String ROLE_PRIZE_SILVER_OID = "dfb5fffe-df21-11e6-bb4f-ef02bdbc9d71";
@@ -169,6 +171,7 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		repoAddObjectFromFile(ROLE_PRIZE_GOLD_ENFORCED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_SILVER_ENFORCED_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PRIZE_BRONZE_ENFORCED_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PRIZE_GOLD_BY_MAPPING_FILE, initResult);
 
 		repoAddObjectFromFile(ROLE_META_COLOR_FILE, initResult);
 		repoAddObjectFromFile(ROLE_COLOR_RED_FILE, initResult);
@@ -2004,6 +2007,42 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 		unassignRole(USER_JACK_OID, ROLE_SELF_EXCLUSION_MANAGER_MEMBER_OID, SchemaConstants.ORG_DEFAULT, task, result);
 
 		assertAssignedNoRole(USER_JACK_OID, task, result);
+	}
+
+	// MID-5207
+	@Test
+	public void test960JimGoldByMapping() throws Exception {
+		final String TEST_NAME = "test960JimGoldByMapping";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// GIVEN
+
+		UserType jim = new UserType(prismContext)
+				.name("jim")
+				.beginAssignment()
+					.targetRef(ROLE_PRIZE_SILVER_OID, RoleType.COMPLEX_TYPE)
+				.end();
+		addObject(jim.asPrismObject());
+
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+
+		assignRole(jim.getOid(), ROLE_PRIZE_GOLD_BY_MAPPING_OID, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+
+		PrismObject<UserType> userAfter = getUser(jim.getOid());
+		display("User after", userAfter);
+		assertAssignedRole(userAfter, ROLE_PRIZE_GOLD_BY_MAPPING_OID);
+		assertAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
+		assertNotAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
+		assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
 	}
 
 	private PrismObject<UserType> assignRolePolicyFailure(String TEST_NAME, String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException {

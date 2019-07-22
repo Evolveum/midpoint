@@ -21,20 +21,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import org.jetbrains.annotations.NotNull;
@@ -234,7 +231,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(ShadowKindType kind, String intent) {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), kind, intent, null, false);
 		return ctx;
 	}
 
@@ -243,7 +240,7 @@ public class ProvisioningContext extends StateReporter {
 	 */
 	public ProvisioningContext spawn(QName objectClassQName) throws SchemaException {
 		ProvisioningContext ctx = spawnSameResource();
-		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null);
+		ctx.shadowCoordinates = new ResourceShadowDiscriminator(getResourceOid(), null, null, null, false);
 		ctx.shadowCoordinates.setObjectClass(objectClassQName);
 		return ctx;
 	}
@@ -301,28 +298,53 @@ public class ProvisioningContext extends StateReporter {
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		OperationResult connectorResult = parentResult.createMinorSubresult(ProvisioningContext.class.getName() + ".getConnectorInstance");
 		try {
-			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, parentResult);
+			ConnectorInstance connector = resourceManager.getConfiguredConnectorInstance(getResource().asPrismObject(), operationCapabilityClass, false, connectorResult);
 			connectorResult.recordSuccess();
 			return connector;
-		} catch (ObjectNotFoundException | SchemaException e){
+		} catch (ObjectNotFoundException | SchemaException e) {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			// Wrap those exceptions to a configuration exception. In the context of the provisioning operation we really cannot throw
 			// ObjectNotFoundException exception. If we do that then the consistency code will interpret that as if the resource object
 			// (shadow) is missing. But that's wrong. We do not have connector therefore we do not know anything about the shadow. We cannot
 			// throw ObjectNotFoundException here.
 			throw new ConfigurationException(e.getMessage(), e);
-		} catch (CommunicationException | ConfigurationException | SystemException e){
+		} catch (CommunicationException | ConfigurationException | RuntimeException e) {
 			connectorResult.recordPartialError("Could not get connector instance " + getDesc() + ": " +  e.getMessage(),  e);
 			throw e;
 		}
 	}
 	
-	public <T extends CapabilityType> T getResourceEffectiveCapability(Class<T> capabilityClass) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		return ResourceTypeUtil.getEffectiveCapability(getResource(), capabilityClass);
+
+	//check connector capabilities in this order :
+	// 1. take additional connector capabilieis if exist, if not, take resource capabilities
+	// 2. apply object class specific capabilities to the one selected in step 1.
+	// 3. in the returned capabilieties, check first configured capabilities and then native capabilities
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
+		if (capabilitiesType == null) {
+			return null;
+		}
+		return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
 	}
-	
-	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
-		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
+
+	public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
+		return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
+	}
+
+	public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
+		return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
+	}
+
+	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
 	}
 
 	@Override
@@ -337,5 +359,11 @@ public class ProvisioningContext extends StateReporter {
 
 	public ItemPath path(Object... components) {
 		return ItemPath.create(components);
+	}
+
+	public CachingStategyType getCachingStrategy()
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		return ProvisioningUtil.getCachingStrategy(this);
 	}
 }

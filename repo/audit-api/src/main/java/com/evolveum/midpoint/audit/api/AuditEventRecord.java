@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,8 +53,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class AuditEventRecord implements DebugDumpable {
 
-
+	/**
+	 * TODO: what is this?
+	 */
 	private Long repoId;
+	
 	/**
 	 * Timestamp when the event occured.
 	 * Timestamp in millis.
@@ -63,18 +66,58 @@ public class AuditEventRecord implements DebugDumpable {
 
 	/**
 	 * Unique identification of the event.
+	 * Every record should have unique event identifier.
 	 */
 	private String eventIdentifier;
 
 	/**
-	 * Identitification of (interactive) session in which the event occured.
+	 * <p>
+	 * Identifier of a request (operation). All the records that are result of
+	 * processing of a single request should have the same identifier.
+	 * In usual case there should be be a single request-stage record
+	 * and one or more execution-stage records with the same request
+	 * identifier.
+	 * </p>
+	 * <p>
+	 * Please note that this is quite different than task identifier.
+	 * A single task can make many requests. E.g. a typical reconciliation
+	 * task will make thousands of operations. All of the audit records from
+	 * all of those operations will have the same task identifier. But each
+	 * operation will have a separate request identifier.
+	 * </p>
+	 */
+	private String requestIdentifier;
+	
+	/**
+	 * Identification of (interactive) session in which the event occured.
 	 */
 	private String sessionIdentifier;
 
 	// channel???? (e.g. web gui, web service, ...)
 
-	// task ID (not OID!)
+	/**
+	 * <p>
+	 * Task identifier. Operations are executed in a context of a task.
+	 * This field is an identifier of the task. It is not (necessarily) an
+	 * OID of the task, as an operation may be executed in an non-persistent
+	 * (lightweight) task. This field should be populated for all audit records,
+	 * perhaps except very special system-level records that are executed outside
+	 * of a task.
+	 * </p>
+	 * <p>
+	 * Please note that this is quite different than request identifier.
+	 * A single task can make many requests. E.g. a typical reconciliation
+	 * task will make thousands of operations. All of the audit records from
+	 * all of those operations will have the same task identifier. But each
+	 * operation will have a separate request identifier.
+	 * </p>
+	 */
 	private String taskIdentifier;
+	
+	/**
+	 * Task OID. This field is used for records that are executed in the context
+	 * of a persistent task.
+	 */
 	private String taskOID;
 
 	private String hostIdentifier;		// local node name as obtained from the networking stack
@@ -133,12 +176,22 @@ public class AuditEventRecord implements DebugDumpable {
     private String parameter;
 
     private String message;
-
+    
+    /**
+	 *  Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+	 */
+    private Set<String> resourceOids = new HashSet<>();
+    
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private final Map<String, Set<String>> properties = new HashMap<>();
 
 	private final Map<String, Set<AuditReferenceValue>> references = new HashMap<>();
+	
+	private final Map<String, String> customColumnProperty = new HashMap<>();
+
+	// Just a hint for audit service proxy: these OID need not to be resolved, as they are known to not exist.
+	private final Set<String> nonExistingReferencedObjects = new HashSet<>();
 
 	public AuditEventRecord() {
 	}
@@ -178,6 +231,14 @@ public class AuditEventRecord implements DebugDumpable {
 
 	public void setSessionIdentifier(String sessionIdentifier) {
 		this.sessionIdentifier = sessionIdentifier;
+	}
+	
+	public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
+	
+	public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
 	}
 
 	public String getTaskIdentifier() {
@@ -370,7 +431,23 @@ public class AuditEventRecord implements DebugDumpable {
 	public Set<AuditReferenceValue> getReferenceValues(String name) {
 		return references.get(name);
 	}
-
+	
+	public Map<String, String> getCustomColumnProperty() {
+		return customColumnProperty;
+	}
+	
+	public Set<String> getResourceOids() {
+		return resourceOids;
+	}
+	
+	public void setResourceOids(Set<String> resourceOids) {
+		this.resourceOids = resourceOids;
+	}
+	
+	public void addResourceOid(String resourceOid) {
+		this.resourceOids.add(resourceOid);
+	}
+	
 	public void addPropertyValue(String key, String value) {
 		properties.computeIfAbsent(key, k -> new HashSet<>()).add(value);
 	}
@@ -442,8 +519,10 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setSessionIdentifier(sessionIdentifier);
     	auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner, true));
     	auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
+    	auditRecordType.setRequestIdentifier(requestIdentifier);
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
+    	auditRecordType.getResourceOid().addAll(resourceOids);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas) {
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
@@ -497,6 +576,7 @@ public class AuditEventRecord implements DebugDumpable {
 		clone.sessionIdentifier = this.sessionIdentifier;
 		clone.target = this.target;
 		clone.targetOwner = this.targetOwner;
+		clone.requestIdentifier = this.requestIdentifier;
 		clone.taskIdentifier = this.taskIdentifier;
 		clone.taskOID = this.taskOID;
 		clone.timestamp = this.timestamp;
@@ -505,19 +585,23 @@ public class AuditEventRecord implements DebugDumpable {
         clone.message = this.message;
         clone.properties.putAll(properties);		// TODO deep clone?
         clone.references.putAll(references);		// TODO deep clone?
+        clone.resourceOids.addAll(resourceOids);
+        clone.customColumnProperty.putAll(customColumnProperty);
 		return clone;
 	}
 
 	@Override
 	public String toString() {
 		return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
-				+ " sid=" + sessionIdentifier + ", tid=" + taskIdentifier
+				+ " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
 				+ " toid=" + taskOID + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
 				+ ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
+                + ", cuscolprop=" + customColumnProperty
                 + ", prop=" + properties
+                + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
 	}
 
@@ -576,6 +660,7 @@ public class AuditEventRecord implements DebugDumpable {
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Timestamp", formatTimestamp(timestamp), indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Identifier", eventIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Session Identifier", sessionIdentifier, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "Request Identifier", requestIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task Identifier", taskIdentifier, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Task OID", taskOID, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
@@ -593,7 +678,9 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Properties", properties, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Resource OIDs", resourceOids, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Custom column properties", customColumnProperty, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
 		if (deltas.isEmpty()) {
 			sb.append(" none");
@@ -646,5 +733,14 @@ public class AuditEventRecord implements DebugDumpable {
 			}
 		}
 		setParameter(parameter);
+	}
+
+	@NotNull
+	public Set<String> getNonExistingReferencedObjects() {
+		return nonExistingReferencedObjects;
+	}
+
+	public void addNonExistingReferencedObject(String oid) {
+		nonExistingReferencedObjects.add(oid);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
@@ -1009,6 +1011,10 @@ public interface MidpointFunctions {
 
 	Task getCurrentTask();
 
+	OperationResult getCurrentResult();
+
+	OperationResult getCurrentResult(String operationName);
+
 	ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
@@ -1072,6 +1078,13 @@ public interface MidpointFunctions {
 	 */
 	MidPointPrincipal getPrincipal() throws SecurityViolationException;
 
+	/**
+	 * Returns OID of the current principal. After login is complete, the returned OID is the same as
+	 * getPrincipal().getOid(). However, during login process, this method returns the OID of the user that is
+	 * being authenticated/logged-in.
+	 */
+	String getPrincipalOid();
+
 	String getChannel();
 
 	WorkflowService getWorkflowService();
@@ -1118,6 +1131,8 @@ public interface MidpointFunctions {
 	<F extends ObjectType> ModelElementContext<F> getFocusContext();
 
 	ModelProjectionContext getProjectionContext();
+	
+	<V extends PrismValue, D extends ItemDefinition> Mapping<V,D> getMapping();
 	
 	Object executeAdHocProvisioningScript(ResourceType resource, String language, String code) 
 			throws SchemaException, ObjectNotFoundException,
@@ -1167,4 +1182,24 @@ public interface MidpointFunctions {
 			ExpressionEvaluationException;
 
 	<C extends Containerable> S_ItemEntry deltaFor(Class<C> objectClass) throws SchemaException;
+
+	<O extends ObjectType> boolean hasArchetype(O object, String archetypeOid);
+	
+	/**
+	 * Assumes single archetype. May throw error if used on object that has more than one archetype.
+	 */
+	<O extends ObjectType> ArchetypeType getArchetype(O object) throws SchemaException, ConfigurationException;
+
+	/**
+	 * Assumes single archetype. May throw error if used on object that has more than one archetype.
+	 */
+	<O extends ObjectType> String getArchetypeOid(O object) throws SchemaException, ConfigurationException;
+
+	<O extends ObjectType> void addRecomputeTrigger(O object, Long timestamp)
+			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+
+	<O extends ObjectType> void addRecomputeTrigger(PrismObject<O> object, Long timestamp)
+			throws ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException;
+
+	RepositoryService getRepositoryService();
 }

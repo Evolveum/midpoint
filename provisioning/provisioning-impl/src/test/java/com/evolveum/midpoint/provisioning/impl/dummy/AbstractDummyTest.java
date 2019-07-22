@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
@@ -39,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.icf.dummy.resource.SchemaViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -54,12 +56,17 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -98,6 +105,10 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
 	protected static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
+	
+	protected static final String ACCOUNT_RELIC_USERNAME = "relic";
+	protected static final String ACCOUNT_RELIC_OID = "3689fda4-5c4c-11e9-b144-43a245ea74a9";
+	protected static final File ACCOUNT_RELIC_FILE = new File(TEST_DIR, "account-relic.xml");
 
 	protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 
@@ -425,5 +436,18 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 	}
 
+	protected void assertDummyConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		Task task = createTask(AbstractDummyTest.class.getName() + ".assertDummyConnectorInstances");
+		OperationResult result = task.getResult();
+		List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(RESOURCE_DUMMY_OID, task, result);
+		display("Resource connector stats", stats);
+		assertSuccess(result);
+
+		assertEquals("unexpected number of stats", 1, stats.size());
+		ConnectorOperationalStatus stat = stats.get(0);
+
+		assertEquals("Unexpected number of Dummy connector instances", expectedConnectorInstances,
+				stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
+	}
 
 }

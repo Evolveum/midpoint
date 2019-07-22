@@ -47,7 +47,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -155,9 +154,41 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		this.result = result;
 	}
 
-	public void reset() {
-		assignmentEvaluator.reset();
+	public void reset(boolean alsoMemberOfInvocations) {
+		assignmentEvaluator.reset(alsoMemberOfInvocations);
 	}
+	
+//	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> preProcessAssignments(PrismObject<TaskType> taskType) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+//
+////		LensFocusContext<AH> focusContext = context.getFocusContext();
+//
+//		SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
+//        
+////        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
+////        		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
+////        		prismContext, task, result);
+//                
+//        assignmentCollection.collectAssignmentsForPreprocessing(taskType.findContainer(TaskType.F_ASSIGNMENT), null);
+//        
+//
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDump(1));
+//		}
+//
+//		// Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
+//        // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
+//        // will be processed only once. Inside the loop we determine whether it was added, deleted or remains unchanged.
+//        // This is a first step of the processing. It takes all the account constructions regardless of the resource and
+//        // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
+//        // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
+//        // sorted out later.
+//        DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = prismContext.deltaFactory().createDeltaSetTriple();
+//        for (SmartAssignmentElement assignmentElement : assignmentCollection) {
+//        	processAssignment(evaluatedAssignmentTriple, null, null, assignmentElement);
+//        }
+//
+//        return evaluatedAssignmentTriple;
+//	}
 
 	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
@@ -176,12 +207,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
         		prismContext, task, result);
         
-        TaskType taskType = task.getTaskType();
-        LOGGER.trace("Task for process: {}", taskType.asPrismObject().debugDumpLazily());
-        AssignmentType taskAssignment = null;
-        if (CollectionUtils.isNotEmpty(taskType.getAssignment())) {
+        LOGGER.trace("Task for process: {}", task.debugDumpLazily());
+        AssignmentType taskAssignment;
+        if (task.hasAssignments()) {
         	taskAssignment = new AssignmentType(prismContext);
-        	taskAssignment.setTarget(taskType);
+        	taskAssignment.setTarget(task.getUpdatedOrClonedTaskObject().asObjectable());
+        } else {
+        	taskAssignment = null;
         }
         
         LOGGER.trace("Task assignment: {}", taskAssignment);
@@ -372,10 +404,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 	                	// The only thing that we need to worry about is assignment validity change. That is a cause
 	                	// of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
 	                	// not significant, i.e. reconciliation can handle them.
-	                	boolean isValidOld = LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
-	                			assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
-	                	boolean isValid = LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-	                			assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
+	                	boolean isValidOld = focusContext.getObjectOld() != null &&
+				                LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
+						                assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
+		                boolean isValid = focusContext.getObjectNew() != null &&
+				                LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
+						                assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
 						ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
 								createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
 	                	if (isValid == isValidOld) {
@@ -443,24 +477,24 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
-	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(
-			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
-		idi.recompute();
-		return idi;
+	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiNoChange(PrismContainerValue<AssignmentType> cval) throws SchemaException {
+		PrismContainerDefinition<AssignmentType> definition = cval.getDefinition();
+		if (definition == null) {
+			// TODO: optimize
+			definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+		}
+		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), definition);
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
 			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(null);
 		@SuppressWarnings({"unchecked", "raw"})
 		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
 				getDeltaItemFragment(cval)
 						.add(cval.asContainerable().clone())
 						.asItemDelta();
-		idi.setDelta(itemDelta);
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
+				null, itemDelta, null, cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -480,14 +514,14 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiDelete(
 			PrismContainerValue<AssignmentType> cval) throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
 		@SuppressWarnings({"unchecked", "raw"})
 		ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> itemDelta = (ItemDelta<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>>)
 				getDeltaItemFragment(cval)
 						.delete(cval.asContainerable().clone())
 						.asItemDelta();
-		idi.setDelta(itemDelta);
+
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
+				LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), itemDelta, null, cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -495,8 +529,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiInternalChange(
 			PrismContainerValue<AssignmentType> cval, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
 			throws SchemaException {
-		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-		idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()));
+		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = 
+				new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), cval.getDefinition());
 		idi.setSubItemDeltas(subItemDeltas);
 		idi.recompute();
 		return idi;
@@ -536,7 +570,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
+		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getName()+".evaluateAssignment");
 		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
@@ -573,10 +607,11 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         	}
         	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
         			FocusTypeUtil.determineConstructionKind(assignmentType),
-        			FocusTypeUtil.determineConstructionIntent(assignmentType));
-			LensProjectionContext accCtx = context.findProjectionContext(rad);
-			if (accCtx != null) {
-				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+        			FocusTypeUtil.determineConstructionIntent(assignmentType),
+        			null, false);
+			LensProjectionContext projCtx = context.findProjectionContext(rad);
+			if (projCtx != null) {
+				projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 			}
         	return null;
         } catch (ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException  e) {
@@ -616,4 +651,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		return focusContext.getObjectDefinition().findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 	}
 
+	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+		return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+	}
 }

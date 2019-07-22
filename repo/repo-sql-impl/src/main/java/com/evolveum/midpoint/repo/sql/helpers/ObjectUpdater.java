@@ -16,12 +16,35 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.PersistenceException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.repo.api.*;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
@@ -33,7 +56,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.SchemaHelper;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -43,21 +68,11 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.query.NativeQuery;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import java.lang.reflect.Method;
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author lazyman, mederly
@@ -176,6 +191,7 @@ public class ObjectUpdater {
         if (originalOid != null) {
             try {
                 oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
+                object.setUserData(RepositoryService.KEY_ORIGINAL_OBJECT, oldObject);
                 ObjectDelta<T> delta = oldObject.diff(object, EquivalenceStrategy.LITERAL);
                 modifications = delta.getModifications();
 
@@ -231,24 +247,23 @@ public class ObjectUpdater {
         LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        // Deep cloning for object transformation - we don't want to return object "changed" by save.
-        // Its' because we're removing some properties during save operation and if save fails,
-        // overwrite attempt (for example using object importer) might try to delete existing object
-        // and then try to save this object one more time.
-        String xml = prismContext.xmlSerializer().serialize(savedObject);
-        savedObject = prismContext.parseObject(xml);
-
-        if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
-        } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(LookupTableType.F_ROW);
-        } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
-        } else if (TaskType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(TaskType.F_RESULT);
+        List<ItemName> itemsToSkip = new ArrayList<>();
+        Class<T> compileTimeClass = savedObject.getCompileTimeClass();
+        assert compileTimeClass != null;
+        if (FocusType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(FocusType.F_JPEG_PHOTO);
+        } else if (LookupTableType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(LookupTableType.F_ROW);
+        } else if (AccessCertificationCampaignType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(AccessCertificationCampaignType.F_CASE);
+        } else if (TaskType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(TaskType.F_RESULT);
         }
 
-        xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
+        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                .itemsToSkip(itemsToSkip)
+                .options(SerializationOptions.createSerializeReferenceNamesForNullOids())
+                .serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
@@ -298,7 +313,7 @@ public class ObjectUpdater {
         return oid;
     }
 
-    public <T extends ObjectType> Object deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> DeleteObjectResult deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         LOGGER_PERFORMANCE.debug("> delete object {}, oid={}", type.getSimpleName(), oid);
         Session session = null;
@@ -332,30 +347,32 @@ public class ObjectUpdater {
             }
 
             session.getTransaction().commit();
+            return new DeleteObjectResult(RUtil.getXmlFromByteArray(object.getFullObject(), getConfiguration().isUseZip()),
+                    SqlRepositoryServiceImpl.DATA_LANGUAGE);
         } catch (ObjectNotFoundException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
+            throw new AssertionError("Should not get here");
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
         }
-        return null;            // just because of executeAttempts wrapper
     }
 
-    public <T extends ObjectType> void modifyObjectAttempt(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, ModificationPrecondition<T> precondition,
-			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(Class<T> type, String oid,
+			Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
+			RepoModifyOptions modifyOptions, int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
 		    throws ObjectNotFoundException,
 		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
-        modifications = CloneUtil.cloneCollectionMembers(modifications);
+        Collection<? extends ItemDelta> modifications = CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
-        LOGGER.debug("Modifying object '{}' with oid '{}'.", type.getSimpleName(), oid);
-        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
+        LOGGER.debug("Modifying object '{}' with oid '{}' (attempt {})", type.getSimpleName(), oid, attempt);
+        LOGGER_PERFORMANCE.debug("> modify object {}, oid={} (attempt {}), modifications={}", type.getSimpleName(), oid, attempt, modifications);
 	    LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         Session session = null;
@@ -367,6 +384,8 @@ public class ObjectUpdater {
 
             Collection<? extends ItemDelta> lookupTableModifications = lookupTableHelper.filterLookupTableModifications(type, modifications);
             Collection<? extends ItemDelta> campaignCaseModifications = caseHelper.filterCampaignCaseModifications(type, modifications);
+
+            ModifyObjectResult<T> rv;
 
             boolean reindex = RepoModifyOptions.isExecuteIfNoChanges(modifyOptions);
             if (!modifications.isEmpty() || reindex) {
@@ -402,10 +421,7 @@ public class ObjectUpdater {
 	            sqlRepositoryService.invokeConflictWatchers(w -> w.beforeModifyObject(prismObject));
                 // apply diff
 				LOGGER.trace("OBJECT before:\n{}", prismObject.debugDumpLazily());
-                PrismObject<T> originalObject = null;
-                if (closureManager.isEnabled()) {
-                    originalObject = prismObject.clone();
-                }
+                PrismObject<T> originalObject = prismObject.clone();
 
                 boolean shouldPhotoBeRemoved;
                 if (reindex) {
@@ -457,6 +473,9 @@ public class ObjectUpdater {
                     query.executeUpdate();
                     LOGGER.trace("Focus photo for {} was deleted", prismObject.getOid());
                 }
+                rv = new ModifyObjectResult<>(originalObject, prismObject, originalModifications);
+            } else {
+                rv = new ModifyObjectResult<>(originalModifications);
             }
 
             if (LookupTableType.class.isAssignableFrom(type)) {
@@ -468,7 +487,8 @@ public class ObjectUpdater {
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
-            LOGGER.trace("Committed!");
+            LOGGER.trace("Committed! (at attempt {})", attempt);
+            return rv;
         } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
@@ -485,9 +505,11 @@ public class ObjectUpdater {
 		        throw new ObjectAlreadyExistsException(constEx);
 	        } else {
 	            baseHelper.handleGeneralException(ex, session, result);
+	            throw new AssertionError("Shouldn't get here");
 	        }
         } catch (DtoTranslationException | RuntimeException ex) {
             baseHelper.handleGeneralException(ex, session, result);
+            throw new AssertionError("Shouldn't get here");
         } finally {
             cleanupClosureAndSessionAndResult(closureContext, session, result);
             LOGGER.trace("Session cleaned up.");

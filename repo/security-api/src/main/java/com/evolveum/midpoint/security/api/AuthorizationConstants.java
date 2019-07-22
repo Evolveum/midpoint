@@ -100,7 +100,7 @@ public class AuthorizationConstants {
 	public static final String AUTZ_UI_USERS_URL = NS_AUTHORIZATION_UI + "#users";
 
 	public static final QName AUTZ_UI_USERS_VIEW_QNAME = new QName(NS_AUTHORIZATION_UI, "usersView");
-	public static final String AUTZ_UI_USERS_VIEW_URL = NS_AUTHORIZATION_UI + "usersView";
+	public static final String AUTZ_UI_USERS_VIEW_URL = NS_AUTHORIZATION_UI + "#usersView";
 
     public static final QName AUTZ_UI_FIND_USERS_QNAME = new QName(NS_AUTHORIZATION_UI, "findUsers");
     public static final String AUTZ_UI_FIND_USERS_URL = NS_AUTHORIZATION_UI + "#findUsers";
@@ -149,6 +149,15 @@ public class AuthorizationConstants {
 
 	public static final QName AUTZ_UI_SERVICE_QNAME = new QName(NS_AUTHORIZATION_UI, "service");
 	public static final String AUTZ_UI_SERVICE_URL = NS_AUTHORIZATION_UI + "#service";
+	
+	public static final QName AUTZ_UI_ARCHETYPES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypesAll");
+	public static final String AUTZ_UI_ARCHETYPES_ALL_URL = NS_AUTHORIZATION_UI + "#archetypesAll";
+
+	public static final QName AUTZ_UI_ARCHETYPES_QNAME = new QName(NS_AUTHORIZATION_UI, "archetypes");
+	public static final String AUTZ_UI_ARCHETYPES_URL = NS_AUTHORIZATION_UI + "#archetypes";
+
+	public static final QName AUTZ_UI_ARCHETYPE_QNAME = new QName(NS_AUTHORIZATION_UI, "archetype");
+	public static final String AUTZ_UI_ARCHETYPE_URL = NS_AUTHORIZATION_UI + "#archetype";
 
 	public static final QName AUTZ_UI_VALUE_POLICIES_ALL_QNAME = new QName(NS_AUTHORIZATION_UI, "valuePoliciesAll");
 	public static final String AUTZ_UI_VALUE_POLICIES_ALL_URL = NS_AUTHORIZATION_UI + "#valuePoliciesAll";
@@ -466,6 +475,11 @@ public class AuthorizationConstants {
     
     public static final QName AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminOrgMakeRoot");
     public static final String AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ORG_MAKE_ROOT_ACTION_QNAME);
+    
+    //Archetype member
+    public static final QName AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminAssignArchetypeMember");
+	public static final String AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_URI = QNameUtil.qNameToUri(AUTZ_UI_ADMIN_ASSIGN_ARCHETYPE_MEMBER_ACTION_QNAME);
+
 
 	//ui authorization for CSV export button (will be applied everywhere over mp)
 	public static final QName AUTZ_UI_ADMIN_CSV_EXPORT_ACTION_QNAME = new QName(NS_AUTHORIZATION_UI, "adminCSVexport");

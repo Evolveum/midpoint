@@ -25,7 +25,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -128,6 +130,7 @@ public class PageTaskAdd extends PageAdminTasks {
     private static final String ID_MISFIRE_ACTION = "misfireAction";
     private static final String ID_RECURRING = "recurring";
     private static final String ID_CONTAINER = "container";
+    private static final String ID_TIME_CONTAINER = "timeContainer";
     private static final String ID_BOUND_CONTAINER = "boundContainer";
     private static final String ID_BOUND_HELP = "boundHelp";
     private static final String ID_BOUND = "bound";
@@ -221,15 +224,9 @@ public class PageTaskAdd extends PageAdminTasks {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_FORM_MAIN);
         add(mainForm);
 
-        final DropDownChoice resource = new DropDownChoice<>(ID_RESOURCE,
+        final DropDownChoicePanel resource = new DropDownChoicePanel<TaskAddResourcesDto>(ID_RESOURCE,
             new PropertyModel<>(model, TaskAddDto.F_RESOURCE),
-                new IModel<List<TaskAddResourcesDto>>() {
-
-                    @Override
-                    public List<TaskAddResourcesDto> getObject() {
-                        return createResourceList();
-                    }
-                }, new ChoiceableChoiceRenderer<>());
+                Model.ofList(createResourceList()), new ChoiceableChoiceRenderer<>());
         resource.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -241,7 +238,7 @@ public class PageTaskAdd extends PageAdminTasks {
                 return sync || recon || importAccounts;
             }
         });
-        resource.add(new AjaxFormComponentUpdatingBehavior("change") {
+        resource.getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("change") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -318,7 +315,8 @@ public class PageTaskAdd extends PageAdminTasks {
 
             @Override
             protected Iterator<String> getChoices(String input) {
-                return prepareObjectClassChoiceList(input);
+            	Iterator<String> ret = prepareObjectClassChoiceList(input);
+                return ret;
             }
         };
         objectClass.add(new VisibleEnableBehaviour(){
@@ -373,7 +371,14 @@ public class PageTaskAdd extends PageAdminTasks {
         List<String> choices = new ArrayList<>();
 
         if(model.getObject().getResource() == null){
-            return choices.iterator();
+        	List<TaskAddResourcesDto> resources = createResourceList();
+        	if(resources.isEmpty()) {
+        		return choices.iterator();
+        	} else {
+        		List<TaskAddResourcesDto> sortedResources = WebComponentUtil.sortDropDownChoices(Model.ofList(resources), new ChoiceableChoiceRenderer<>());
+        		model.getObject().setResource(sortedResources.get(0));
+        		loadResource();
+        	}
         }
 
         if(Strings.isEmpty(input)){
@@ -404,15 +409,7 @@ public class PageTaskAdd extends PageAdminTasks {
         if(resourcesDto != null){
             PrismObject<ResourceType> resource = WebModelServiceUtils.loadObject(ResourceType.class,
                     resourcesDto.getOid(), PageTaskAdd.this, task, result);
-
-            try {
-                ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, getPrismContext());
-                model.getObject().setObjectClassList(schema.getObjectClassList());
-            } catch (Exception e){
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object class list from resource.", e);
-                error("Couldn't load object class list from resource.");
-            }
-
+            model.getObject().setObjectClassList(WebComponentUtil.loadResourceObjectClassValues(resource.asObjectable(), PageTaskAdd.this));
         }
     }
 
@@ -460,11 +457,21 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.setOutputMarkupId(true);
         container.add(cronContainer);
 
+        final WebMarkupContainer timeContainer = new WebMarkupContainer(ID_TIME_CONTAINER);
+        timeContainer.setOutputMarkupId(true);
+        mainForm.add(timeContainer);
+        
         AjaxCheckBox recurring = new AjaxCheckBox(ID_RECURRING, recurringCheck) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 target.add(container);
+                if(recurringCheck.getObject()) {
+                	timeContainer.add(new AttributeModifier("class", ""));
+                } else {
+                    timeContainer.add(new AttributeModifier("class", "tbody-nth-of-type-even"));
+                }
+                target.add(timeContainer);
             }
         };
         mainForm.add(recurring);
@@ -507,7 +514,7 @@ public class PageTaskAdd extends PageAdminTasks {
             }
         };
         notStartBefore.setOutputMarkupId(true);
-        mainForm.add(notStartBefore);
+        timeContainer.add(notStartBefore);
 
         final DateTimeField notStartAfter = new DateTimeField(ID_NO_START_AFTER_FIELD, new PropertyModel<>(
             model, TaskAddDto.F_NOT_START_AFTER)) {
@@ -517,7 +524,7 @@ public class PageTaskAdd extends PageAdminTasks {
             }
         };
         notStartAfter.setOutputMarkupId(true);
-        mainForm.add(notStartAfter);
+        timeContainer.add(notStartAfter);
 
         mainForm.add(new StartEndDateValidator(notStartBefore, notStartAfter));
         mainForm.add(new ScheduleValidator(getTaskManager(), recurring, bound, interval, cron));

@@ -60,6 +60,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 	 * Change password back to the first password. This password was used before.
 	 * In admin mode (in superclass) this should go well. Admin can set password to anything.
 	 * But in self-service mode this should fail due to password history check.
+	 * MID-5242
 	 */
 	@Test
 	@Override
@@ -108,7 +109,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 		assertPartialError(result);
 		assertMessageContains(result.getMessage(), "CONSTRAINT_ATT_TYPE");
 		
-		assertBarbossaEnabled();
+		assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_3);
 		assertUserAfter(USER_BARBOSSA_OID)
 			.assertPassword(USER_BARBOSSA_PASSWORD_AD_3)
 			.singleLink()

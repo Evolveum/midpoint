@@ -8,6 +8,9 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 
+import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.screenshot;
+
 public class PostAuthenticationTests extends TestBase {
 
     private static final File SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE = new File("./src/test/resources/configuration/objects/systemconfig/system-configuration-post-auth-active.xml");
@@ -105,6 +108,9 @@ public class PostAuthenticationTests extends TestBase {
 
         midPoint.login()
                 .login(midPoint.getUsername(),midPoint.getPassword());
+
+        //todo midpoint opens the previous page before logout
+        open("/self/dashboard");
 
         importObject(SYSTEM_CONFIGURATION_POST_AUTH_ACTIVE_FILE,true);
 

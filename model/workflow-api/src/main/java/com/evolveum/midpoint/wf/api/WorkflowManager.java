@@ -18,22 +18,15 @@ package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,44 +37,36 @@ import java.util.List;
 
 public interface WorkflowManager {
 
-    /*
-     * Work items
-     * ==========
-     */
-
-	<T extends Containerable> Integer countContainers(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
-			OperationResult result)
-			throws SchemaException;
-
-	<T extends Containerable> SearchResultList<T> searchContainers(Class<T> type, ObjectQuery query,
-			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
-			throws SchemaException;
-
-    /*
-     * CHANGING THINGS
-     * ===============
-     */
-
+	//region Work items
 	/**
-	 * Approves or rejects a work item (without supplying any further information).
-	 * @param taskId       identifier of activiti task backing the work item
+	 * Approves or rejects a work item
 	 * @param decision     true = approve, false = reject
-	 * @param comment
-	 * @param additionalDelta
-	 * @param causeInformation
-	 * @param parentResult
 	 */
-	void completeWorkItem(String taskId, boolean decision, String comment, ObjectDelta additionalDelta,
-			WorkItemEventCauseInformationType causeInformation, OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	void completeWorkItem(WorkItemId workItemId, AbstractWorkItemOutputType output,
+			WorkItemEventCauseInformationType causeInformation, Task task,
+			OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-	void claimWorkItem(String workItemId, OperationResult result) throws ObjectNotFoundException, SecurityViolationException;
+	void claimWorkItem(WorkItemId workItemId, Task task, OperationResult result)
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	void releaseWorkItem(String workItemId, OperationResult result) throws SecurityViolationException, ObjectNotFoundException;
+	void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult result)
+			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-	void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+			Task task, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	//endregion
 
-	void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
+	//region Process instances (cases)
+
+	void cancelCase(String caseOid, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
+			CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+	//endregion
 
     /*
      * MISC
@@ -93,37 +78,19 @@ public interface WorkflowManager {
 	// TODO remove this
 	PrismContext getPrismContext();
 
-	void registerProcessListener(ProcessListener processListener);
+	void registerWorkflowListener(WorkflowListener workflowListener);
 
-	void registerWorkItemListener(WorkItemListener workItemListener);
+	boolean isCurrentUserAuthorizedToSubmit(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-	Collection<ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
+	boolean isCurrentUserAuthorizedToClaim(CaseWorkItemType workItem);
 
-	Collection<String> getApproverComments(Task task, OperationResult result) throws SchemaException;
+	boolean isCurrentUserAuthorizedToDelegate(CaseWorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-	boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
-
-	boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
-
-	boolean isCurrentUserAuthorizedToDelegate(WorkItemType workItem, Task task, OperationResult result) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
-
-	// doesn't throw any exceptions - these are logged and stored into the operation result
-	<T extends ObjectType> void augmentTaskObject(PrismObject<T> object, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result);
-
-	// doesn't throw any exceptions - these are logged and stored into the operation result
-	<T extends ObjectType> void augmentTaskObjectList(SearchResultList<PrismObject<T>> list,
-			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
-
-	ChangesByState getChangesByState(TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
+	ChangesByState getChangesByState(CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
 
-	ChangesByState getChangesByState(TaskType childTask, TaskType rootTask, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
+	ChangesByState getChangesByState(CaseType approvalCase, CaseType rootCase, ModelInteractionService modelInteractionService, PrismContext prismContext, OperationResult result)
 			throws SchemaException, ObjectNotFoundException;
-
-	void synchronizeWorkflowRequests(OperationResult parentResult);
-
-	void cleanupActivitiProcesses(OperationResult parentResult) throws SchemaException;
 
 	/**
 	 * Retrieves information about actual or expected execution of an approval schema.

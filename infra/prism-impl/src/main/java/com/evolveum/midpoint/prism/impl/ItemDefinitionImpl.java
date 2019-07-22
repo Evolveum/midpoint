@@ -322,7 +322,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
         		throw new IllegalArgumentException("Looking for definition of class " + clazz + " but found " + this);
         	}
         } else {
-            throw new IllegalArgumentException("No definition for path " + path + " in " + this);
+            return null;
         }
     }
     

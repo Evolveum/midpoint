@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
 import org.quartz.*;
 
 import com.evolveum.midpoint.task.api.Task;
@@ -79,7 +79,7 @@ public class TaskQuartzImplUtil {
         }
 
         // special case - recurrent task with no schedule (means "run on demand only")
-        if (task.isCycle() && (task.getSchedule() == null ||
+        if (task.isRecurring() && (task.getSchedule() == null ||
                 (task.getSchedule().getInterval() == null && task.getSchedule().getCronLikePattern() == null))) {
             return null;
         }
@@ -123,7 +123,7 @@ public class TaskQuartzImplUtil {
 
         boolean looselyBoundRecurrent;
 
-        if (task.isCycle() && task.isLooselyBound()) {
+        if (task.isRecurring() && task.isLooselyBound()) {
 
             looselyBoundRecurrent = true;
 
@@ -177,9 +177,9 @@ public class TaskQuartzImplUtil {
 	}
 
 	private static TriggerBuilder<Trigger> createBasicTriggerBuilderForTask(Task task) {
-		TaskType taskType = task.getTaskPrismObject().asObjectable();
-		String executionGroup = taskType.getExecutionConstraints() != null
-				? MiscUtil.nullIfEmpty(taskType.getExecutionConstraints().getGroup())
+		TaskExecutionConstraintsType executionConstraints = task.getExecutionConstraints();
+		String executionGroup = executionConstraints != null
+				? MiscUtil.nullIfEmpty(executionConstraints.getGroup())
 				: null;
 		return TriggerBuilder.newTrigger()
 				.forJob(createJobKeyForTask(task))

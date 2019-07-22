@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
+import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.util.MergeDeltas;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
@@ -42,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PolicyItemsDefini
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
@@ -350,7 +354,7 @@ public interface ModelInteractionService {
 	// Maybe a bit of hack: used to deduplicate processing of localizable message templates
 	@NotNull
 	LocalizableMessageType createLocalizableMessageType(LocalizableMessageTemplateType template,
-			Map<QName, Object> variables, Task task, OperationResult result)
+			VariablesMap variables, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
 			ConfigurationException, SecurityViolationException;
 	
@@ -392,7 +396,7 @@ public interface ModelInteractionService {
 	 * This method should be used when editing assignment holder (e.g. user) and looking for available assignment target.
 	 * The determineAssignmentHolderSpecification is a "reverse" version of this method.
 	 * 
-	 * This method is not used that often. It is used when an object is edited. But is should be quite efficient anyway.
+	 * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
 	 * It should use cached archetype information.
 	 */
 	<O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
@@ -400,12 +404,34 @@ public interface ModelInteractionService {
 	/**
 	 * Returns data structure that contains information about possible assignment holders for a particular target object.
 	 * 
-	 * This method should be used when editing assignment assignment target (role, org, service) and looking for object that
+	 * This method should be used when editing assignment target (role, org, service) and looking for object that
 	 * can be potential members. The determineAssignmentTargetSpecification is a "reverse" version of this method.
 	 * 
-	 * This method is not used that often. It is used when an object is edited. But is should be quite efficient anyway.
+	 * This method is not used that often. It is used when an object is edited. But it should be quite efficient anyway.
 	 * It should use cached archetype information.
 	 */
 	<O extends AbstractRoleType> AssignmentCandidatesSpecification determineAssignmentHolderSpecification(PrismObject<O> assignmentTarget, OperationResult result) throws SchemaException, ConfigurationException;
+	
+	/**
+	 * Returns all policy rules that apply to the collection.
+	 * Later, the policy rules are compiled from all the applicable sources (target, meta-roles, etc.).
+	 * But for now we support only policy rules that are directly placed in collection assignments.
+	 * EXPERIMENTAL. Quite likely to change later.
+	 */
+	@Experimental
+	@NotNull
+	Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable CompiledObjectCollectionView collectionView, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+	@Experimental
+	@NotNull
+	CompiledObjectCollectionView compileObjectCollectionView(@NotNull PrismObject<ObjectCollectionType> collection, @Nullable Class<? extends ObjectType> targetTypeClass, @NotNull Task task, @NotNull OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException;
+	
+	@Experimental
+	@NotNull
+	<O extends ObjectType> CollectionStats determineCollectionStats(@NotNull CompiledObjectCollectionView collectionView, @NotNull Task task, @NotNull OperationResult result) 
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException;
 	
 }

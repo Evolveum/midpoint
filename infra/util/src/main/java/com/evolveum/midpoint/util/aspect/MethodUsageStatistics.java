@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -169,16 +170,7 @@ public class MethodUsageStatistics {
     private static String formatExecutionTime(long est){
         StringBuilder sb = new StringBuilder();
 
-        sb.append((long) (est / 1000000));
-        sb.append('.');
-        long mikros = (long) (est / 1000) % 1000;
-        if (mikros < 100) {
-            sb.append('0');
-        }
-        if (mikros < 10) {
-            sb.append('0');
-        }
-        sb.append(mikros);
+        OperationInvocationRecord.formatExecutionTime(sb, est);
         sb.append(" ms.");
 
         return sb.toString();

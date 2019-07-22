@@ -30,8 +30,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -53,9 +55,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * TODO clean up
@@ -119,12 +124,42 @@ public class CustomTransport implements Transport {
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
         }
-        String file = configuration.getRedirectToFile();
-        if (file != null) {
-            writeToFile(message, file, result);
-            return;
+        
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
+        
+        List<String> allowedRecipientTo = new ArrayList<String>();
+    	List<String> forbiddenRecipientTo = new ArrayList<String>();
+    	List<String> allowedRecipientCc = new ArrayList<String>();
+    	List<String> forbiddenRecipientCc = new ArrayList<String>();
+    	List<String> allowedRecipientBcc = new ArrayList<String>();
+    	List<String> forbiddenRecipientBcc = new ArrayList<String>();
+    	
+    	String file = configuration.getRedirectToFile();
+        if (optionsForFilteringRecipient != 0) {
+        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	
+        	if (file != null) {
+        		if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+        			message.setTo(forbiddenRecipientTo);
+        			message.setCc(forbiddenRecipientCc);
+        			message.setBcc(forbiddenRecipientBcc);
+        			writeToFile(message, file, result);
+        		}
+            	message.setTo(allowedRecipientTo);
+            	message.setCc(allowedRecipientCc);
+            	message.setBcc(allowedRecipientBcc);
+            }
+        	
+        } else if (file != null) {
+        	writeToFile(message, file, result);
+           	return;
         }
-
+        
         try {
             evaluateExpression(configuration.getExpression(), getDefaultVariables(message, event),
                     "custom transport expression", task, result);
@@ -159,15 +194,15 @@ public class CustomTransport implements Transport {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, task, result);
+        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }
 
     protected ExpressionVariables getDefaultVariables(Message message, Event event) throws UnsupportedEncodingException {
     	ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
-        variables.addVariableDefinition(SchemaConstants.C_EVENT, event);
+        variables.put(ExpressionConstants.VAR_MESSAGE, message, Message.class);
+        variables.put(ExpressionConstants.VAR_EVENT, event, Event.class);
         return variables;
     }
 

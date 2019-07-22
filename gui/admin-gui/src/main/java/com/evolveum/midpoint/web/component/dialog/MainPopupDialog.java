@@ -41,65 +41,80 @@ public class MainPopupDialog extends ModalWindow {
         super(id);
     }
     
-    @Override
-    protected void onInitialize() {
-    	super.onInitialize();
-    	setCssClassName(ModalWindow.CSS_CLASS_GRAY);
-        showUnloadConfirmation(false);
-        setResizable(false);
-        setInitialWidth(350);
-        setInitialHeight(150);
-        setWidthUnit("px");
-
-        setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
-                return true;
-            }
-        });
-
-        setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-            public void onClose(AjaxRequestTarget target) {
-                MainPopupDialog.this.close(target);
-            }
-        });
-
-        WebMarkupContainer content = new WebMarkupContainer(getContentId());
-        setContent(content);
-    }
-
-    @Override
-    protected void onBeforeRender(){
-        super.onBeforeRender();
-
-        if(initialized){
-            return;
-        }
-
-        setBody(new Label(ID_MAIN_POPUP_BODY, new Model<>("Not initialized")));
-       initialized = true;
-    }
-
-    private void setBody(Component component){
-    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
-    	content.addOrReplace(component);
-    }
-
-    public void setBody(Popupable popupable){
-    	setTitle(popupable.getTitle());
-    	setInitialHeight(popupable.getHeight());
-    	setInitialWidth(popupable.getWidth());
-    	setHeightUnit(popupable.getHeightUnit());
-    	setWidthUnit(popupable.getWidthUnit());
-    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
-    	popupable.getComponent().setOutputMarkupId(true);
-    	content.addOrReplace(popupable.getComponent());
-    }
+//    @Override
+//    protected void onInitialize() {
+//    	super.onInitialize();
+//    	setCssClassName(ModalWindow.CSS_CLASS_GRAY);
+//        showUnloadConfirmation(false);
+//        setResizable(false);
+//        setInitialWidth(350);
+//        setInitialHeight(150);
+//        setWidthUnit("px");
+//
+//        setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//            public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+//                return true;
+//            }
+//        });
+//
+//        setWindowClosedCallback(new ModalWindow.WindowClosedCallback() {
+//			private static final long serialVersionUID = 1L;
+//
+//			@Override
+//            public void onClose(AjaxRequestTarget target) {
+//                MainPopupDialog.this.close(target);
+//            }
+//        });
+//
+//        WebMarkupContainer content = new WebMarkupContainer(getContentId());
+//        content.setOutputMarkupId(true);
+//        content.setOutputMarkupPlaceholderTag(true);
+//        setContent(content);
+//
+//        setOutputMarkupId(true);
+//    }
+//
+//    @Override
+//    protected void onBeforeRender(){
+//        super.onBeforeRender();
+//
+//        if(initialized){
+//            return;
+//        }
+//
+//        Label initLabel = new Label(ID_MAIN_POPUP_BODY, new Model<>("Not initialized"));
+//        initLabel.setOutputMarkupPlaceholderTag(true);
+//        initLabel.setOutputMarkupId(true);
+//        setBody(initLabel);
+//       initialized = true;
+//    }
+//
+//    private void setBody(Component component){
+//    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+//    	component.setOutputMarkupId(true);
+//    	component.setOutputMarkupPlaceholderTag(true);
+//        content.setOutputMarkupPlaceholderTag(true);
+//        content.setOutputMarkupId(true);
+//        content.addOrReplace(component);
+//    }
+//
+//    public void setBody(Popupable popupable){
+//    	setTitle(popupable.getTitle());
+//    	setInitialHeight(popupable.getHeight());
+//    	setInitialWidth(popupable.getWidth());
+//    	setHeightUnit(popupable.getHeightUnit());
+//    	setWidthUnit(popupable.getWidthUnit());
+//    	WebMarkupContainer content = (WebMarkupContainer) get(getContentId());
+//    	content.setOutputMarkupPlaceholderTag(true);
+//    	content.setOutputMarkupId(true);
+//    	Component component = popupable.getComponent();
+//    	component.setOutputMarkupId(true);
+//    	component.setOutputMarkupPlaceholderTag(true);
+//    	content.addOrReplace(component);
+//    }
 
 
 

@@ -2265,13 +2265,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
 
         // Preconditions
-        assertUsers(6);
+        assertUsers(7);
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNull("Unexpected user mancomb before import", userMancomb);
 
         // WHEN
         displayWhen(TEST_NAME);
-        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), "AccountObjectClass"), task, result);
+        modelService.importFromResource(RESOURCE_DUMMY_GREEN_OID, new QName(getDummyResourceController(RESOURCE_DUMMY_GREEN_NAME).getNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), task, result);
 
         // THEN
         displayThen(TEST_NAME);
@@ -2286,7 +2286,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No user mancomb after import", userMancomb);
         userMancombOid = userMancomb.getOid();
 
-        assertUsers(7);
+        assertUsers(8);
 
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);

@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 import com.evolveum.midpoint.wf.api.WorkflowManager;
@@ -54,6 +55,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * @author semancik
@@ -102,6 +105,11 @@ public class ModelObjectResolver implements ObjectResolver {
 	public <O extends ObjectType> PrismObject<O> resolve(PrismReferenceValue refVal, String string, GetOperationOptions options, Task task,
 			OperationResult result) throws ObjectNotFoundException {
 		String oid = refVal.getOid();
+		if (oid == null) {
+			// e.g. for targetName-only references
+			//noinspection unchecked
+			return refVal.getObject();
+		}
 		Class<?> typeClass = ObjectType.class;
 		QName typeQName = refVal.getTargetType();
 		if (typeQName == null && refVal.getParent() != null && refVal.getParent().getDefinition() != null) {
@@ -118,9 +126,7 @@ public class ModelObjectResolver implements ObjectResolver {
 			OperationResult result) throws ObjectNotFoundException {
 		try {
 			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
-		} catch (SystemException ex) {
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
+		} catch (SystemException | ObjectNotFoundException ex) {
 			throw ex;
 		} catch (CommonException ex) {
 			LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
@@ -134,12 +140,11 @@ public class ModelObjectResolver implements ObjectResolver {
 	@Override
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		T objectType = null;
+		T objectType;
 		try {
-			PrismObject<T> object = null;
+			PrismObject<T> object;
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
-			final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            switch (manager) {
+            switch (defaultIfNull(manager, ObjectTypes.ObjectManager.REPOSITORY)) {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
@@ -153,9 +158,6 @@ public class ModelObjectResolver implements ObjectResolver {
                         throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
                     }
-					if (workflowManager != null && TaskType.class.isAssignableFrom(clazz) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-						workflowManager.augmentTaskObject(object, options, task, result);
-					}
                     break;
                 default:
                     object = cacheRepositoryService.getObject(clazz, oid, options, result);
@@ -166,9 +168,9 @@ public class ModelObjectResolver implements ObjectResolver {
             }
 			objectType = object.asObjectable();
 			if (!clazz.isInstance(objectType)) {
-				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
-						+ "'. Expected '" + clazz + "', but was '"
-						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
+				throw new ObjectNotFoundException(
+						"Bad object type returned for referenced oid '" + oid + "'. Expected '" + clazz + "', but was '"
+								+ objectType.getClass() + "'.");
 			}
 
             if (hookRegistry != null) {
@@ -176,17 +178,10 @@ public class ModelObjectResolver implements ObjectResolver {
                     hook.invoke(object, options, task, result);
                 }
             }
-		} catch (SystemException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
 		} catch (RuntimeException | Error ex) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex,
-					oid, clazz);
+			LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex, oid, clazz);
 			throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
-		} finally {
-			result.computeStatus();
 		}
-
 		return objectType;
 	}
 
@@ -197,6 +192,16 @@ public class ModelObjectResolver implements ObjectResolver {
 			provisioning.searchObjectsIterative(type, query, options, handler, task, parentResult);
 		} else {
 			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, true, parentResult);		// TODO pull up into resolver interface
+		}
+	}
+
+	@Override
+	public <O extends ObjectType> SearchResultList<PrismObject<O>> searchObjects(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+		if (ObjectTypes.isClassManagedByProvisioning(type)) {
+			return provisioning.searchObjects(type, query, options, task, parentResult);
+		} else {
+			return cacheRepositoryService.searchObjects(type, query, options, parentResult);
 		}
 	}
 

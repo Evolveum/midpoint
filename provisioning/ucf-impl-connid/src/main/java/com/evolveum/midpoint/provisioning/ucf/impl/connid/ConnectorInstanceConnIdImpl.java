@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +25,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -39,36 +35,19 @@ import org.identityconnectors.framework.api.APIConfiguration;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
-import org.identityconnectors.framework.api.operations.APIOperation;
-import org.identityconnectors.framework.api.operations.CreateApiOp;
-import org.identityconnectors.framework.api.operations.DeleteApiOp;
-import org.identityconnectors.framework.api.operations.GetApiOp;
-import org.identityconnectors.framework.api.operations.SchemaApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
-import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
-import org.identityconnectors.framework.api.operations.SearchApiOp;
-import org.identityconnectors.framework.api.operations.SyncApiOp;
-import org.identityconnectors.framework.api.operations.TestApiOp;
-import org.identityconnectors.framework.api.operations.UpdateApiOp;
-import org.identityconnectors.framework.api.operations.UpdateDeltaApiOp;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.AttributeDelta;
-import org.identityconnectors.framework.common.objects.AttributeInfo;
-import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
-import org.identityconnectors.framework.common.objects.ObjectClassInfo;
-import org.identityconnectors.framework.common.objects.OperationOptionInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.PredefinedAttributes;
 import org.identityconnectors.framework.common.objects.QualifiedUid;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
-import org.identityconnectors.framework.common.objects.Schema;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SearchResult;
 import org.identityconnectors.framework.common.objects.SortKey;
@@ -124,50 +103,26 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CriticalityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AuxiliaryObjectClassesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.RunAsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Implementation of ConnectorInstance for ConnId connectors.
@@ -195,15 +150,26 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	Protector protector;
 	PrismContext prismContext;
-	private ConnIdNameMapper connIdNameMapper;
-	private ConnIdConvertor connIdConvertor;
+	private final ConnIdNameMapper connIdNameMapper;
+	private final ConnIdConvertor connIdConvertor;
+	
+	private List<QName> generateObjectClasses = null;
 
+	/**
+	 * Builder and holder object for parsed ConnId schema and capabilities. By using
+	 * this class the ConnectorInstace always has a consistent schema, even during
+	 * reconfigure and fetch operations.
+	 * There is either old schema or new schema, but there is no partially-parsed schema.
+	 */
+	private ConnIdCapabilitiesAndSchemaParser parsedCapabilitiesAndSchema;
+	
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
+	private Boolean legacySchema = null;
+	
 	private String description;
 	private String instanceName; // resource name
 	private boolean caseIgnoreAttributeNames = false;
-	private Boolean legacySchema = null;
 
 	ConnectorInstanceConnIdImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -216,7 +182,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		this.prismContext = prismContext;
 		connIdNameMapper = new ConnIdNameMapper(schemaNamespace);
 		connIdConvertor = new ConnIdConvertor(protector, resourceSchemaNamespace);
-		connIdConvertor.setIcfNameMapper(connIdNameMapper);
+		connIdConvertor.setConnIdNameMapper(connIdNameMapper);
 	}
 
 	/**
@@ -255,7 +221,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void configure(PrismContainerValue<?> configurationOriginal, OperationResult parentResult)
+	public synchronized void configure(PrismContainerValue<?> configurationOriginal, List<QName> generateObjectClasses, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_CONFIGURE);
@@ -265,6 +231,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		try {
+			this.generateObjectClasses = generateObjectClasses;
 			// Get default configuration for the connector. This is important,
 			// as it contains types of connector configuration properties.
 
@@ -292,8 +259,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			
 			apiConfig.setInstanceName(getInstanceName());
 
+			ConnectorFacade oldConnIdConnectorFacade = connIdConnectorFacade;
+			
 			// Create new connector instance using the transformed configuration
 			connIdConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
+			
+			if (oldConnIdConnectorFacade != null) {
+				// Make sure old connector instance is disposed. We do not want to waste resources.
+				// In case that old and new facade are the same, this will cause all existing
+				// ConnId connector instances to dispose (i.e. connector pool is emptied).
+				// But this is exactly what we want on reconfigure. We want the connections to
+				// be closed and re-opened.
+				LOGGER.debug("Disposing old ConnId ConnectorFacade for instance: {} (connector reconfiguration)", instanceName);
+				oldConnIdConnectorFacade.dispose();
+			}
 
 			result.recordSuccess();
 
@@ -340,26 +319,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return configContainerDef;
 	}
 
-	private QName icfAttributeInfoToMatchingRule(AttributeInfo attributeInfo) {
-		String icfSubtype = attributeInfo.getSubtype();
-		if (icfSubtype == null) {
-			return null;
-		}
-		if (AttributeInfo.Subtypes.STRING_CASE_IGNORE.toString().equals(icfSubtype)) {
-			return PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
-		}
-		if (AttributeInfo.Subtypes.STRING_LDAP_DN.toString().equals(icfSubtype)) {
-			return PrismConstants.DISTINGUISHED_NAME_MATCHING_RULE_NAME;
-		}
-		if (AttributeInfo.Subtypes.STRING_XML.toString().equals(icfSubtype)) {
-			return PrismConstants.XML_MATCHING_RULE_NAME;
-		}
-		if (AttributeInfo.Subtypes.STRING_UUID.toString().equals(icfSubtype)) {
-			return PrismConstants.UUID_MATCHING_RULE_NAME;
-		}
-		LOGGER.debug("Unknown subtype {} defined for attribute {}, ignoring (no matching rule definition)", icfSubtype, attributeInfo.getName());
-		return null;
-	}
+	
 
 	@Override
 	public ConnectorOperationalStatus getOperationalStatus() throws ObjectNotFoundException {
@@ -413,8 +373,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public void initialize(ResourceSchema resourceSchema, Collection<Object> capabilities, boolean caseIgnoreAttributeNames, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.OPERATION_INITIALIZE);
@@ -423,20 +383,19 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		validateConnectorFacade(parentResult);
 
-		setResourceSchema(resourceSchema);
+		updateSchema(resourceSchema);
 		this.capabilities = capabilities;
 		this.caseIgnoreAttributeNames = caseIgnoreAttributeNames;
 
-		if (resourceSchema != null && legacySchema == null) {
-			legacySchema = detectLegacySchema(resourceSchema);
-		}
-
 		if (resourceSchema == null || capabilities == null) {
 			try {
-				boolean supportsSchema = processOperationCapabilities(result);
-				if (supportsSchema) {
-					retrieveResourceSchema(null, result);
-				}
+				
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+				
+				this.legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
+				setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
+				this.capabilities = parsedCapabilitiesAndSchema.getCapabilities();
+				
 			} catch (CommunicationException ex) {
 				// This is in fact fatal. There is not schema. Not even the pre-cached one.
 				// The connector will not be able to work.
@@ -454,31 +413,40 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.recordSuccess();
 	}
 
+	public void updateSchema(ResourceSchema resourceSchema) {
+		setResourceSchema(resourceSchema);
+
+		if (resourceSchema != null && legacySchema == null) {
+			legacySchema = detectLegacySchema(resourceSchema);
+		}
+	}
+
+	private boolean detectLegacySchema(ResourceSchema resourceSchema) {
+		ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
+				new QName(resourceSchemaNamespace, SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+		return accountObjectClass != null;
+	}
+
 	@Override
-	public ResourceSchema fetchResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized ResourceSchema fetchResourceSchema(OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchResourceSchema");
 		result.addContext("connector", connectorType);
 
 		try {
-			boolean supportsSchema = processOperationCapabilities(result);
-			if (!supportsSchema) {
-				result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Connector does not support schema");
-				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
-				return null;
+			
+			if (parsedCapabilitiesAndSchema == null) {
+				retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
 			}
-			retrieveResourceSchema(generateObjectClasses, result);
-		} catch (CommunicationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError(ex);
-			throw ex;
+			
+			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
+			setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
+						
+		} catch (Throwable e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		if (resourceSchema == null) {
@@ -491,31 +459,27 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Collection<Object> fetchCapabilities(OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ConfigurationException {
+	public synchronized Collection<Object> fetchCapabilities(OperationResult parentResult) 
+		throws CommunicationException, GenericFrameworkException, ConfigurationException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchCapabilities");
 		result.addContext("connector", connectorType);
 
 		try {
-			boolean supportsSchema = processOperationCapabilities(result);
-			if (supportsSchema) {
-				LOGGER.trace("Connector instance {} does not support schema, skipping", this);
-				// we need to get schema to figure out all the capabilities
-				retrieveResourceSchema(null, result);
-			} else {
-				addBasicReadCapability();
-			}
-		} catch (CommunicationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ConfigurationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError(ex);
-			throw ex;
+			
+			// Always refresh capabilities and schema here, even if we have already parsed that before.
+			// This method is used in "test connection". We want to force fresh fetch here
+			// TODO: later: clean up this mess. Make fresh fetch somehow explicit?
+			retrieveAndParseResourceCapabilitiesAndSchema(generateObjectClasses, result);
+			
+			legacySchema = parsedCapabilitiesAndSchema.getLegacySchema();
+			setResourceSchema(parsedCapabilitiesAndSchema.getResourceSchema());
+			capabilities = parsedCapabilitiesAndSchema.getCapabilities();
+						
+		} catch (Throwable e) {
+			result.recordFatalError(e);
+			throw e;
 		}
 
 		result.recordSuccess();
@@ -523,545 +487,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return capabilities;
 	}
 
-	private boolean processOperationCapabilities(OperationResult parentResult) {
-		capabilities = new ArrayList<>();
 
-		// Create capabilities from supported connector operations
-
-		InternalMonitor.recordConnectorOperation("getSupportedOperations");
-		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
-
-		LOGGER.trace("Connector supported operations: {}", supportedOperations);
-
-		boolean supportsSchema = false;
-		if (supportedOperations.contains(SchemaApiOp.class)) {
-			SchemaCapabilityType capSchema = new SchemaCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createSchema(capSchema));
-			supportsSchema = true;
-		}
-
-		if (supportedOperations.contains(SyncApiOp.class)) {
-			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createLiveSync(capSync));
-		}
-
-		if (supportedOperations.contains(TestApiOp.class)) {
-			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createTestConnection(capTest));
-		}
-
-		if (supportedOperations.contains(CreateApiOp.class)){
-			CreateCapabilityType capCreate = new CreateCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCreate(capCreate));
-		}
-
-		// GetApiOp is processed later. We need supported options (from schema) to fully process it.
-
-		if (supportedOperations.contains(UpdateDeltaApiOp.class)) {
-			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
-			capUpdate.setDelta(true);
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
-		} else if (supportedOperations.contains(UpdateApiOp.class)) {
-			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createUpdate(capUpdate));
-		}
-
-		if (supportedOperations.contains(DeleteApiOp.class)){
-			DeleteCapabilityType capDelete = new DeleteCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createDelete(capDelete));
-		}
-
-		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
-				|| supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
-			ScriptCapabilityType capScript = new ScriptCapabilityType();
-			if (supportedOperations.contains(ScriptOnResourceApiOp.class)) {
-				Host host = new Host();
-				host.setType(ProvisioningScriptHostType.RESOURCE);
-				capScript.getHost().add(host);
-				// language is unknown here
-			}
-			if (supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
-				Host host = new Host();
-				host.setType(ProvisioningScriptHostType.CONNECTOR);
-				capScript.getHost().add(host);
-				// language is unknown here
-			}
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createScript(capScript));
-		}
-
-		return supportsSchema;
-	}
-
-	private void retrieveResourceSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException {
-		// Connector operation cannot create result for itself, so we need to
-		// create result for it
-		OperationResult icfResult = parentResult.createSubresult(ConnectorFacade.class.getName() + ".schema");
-		icfResult.addContext("connector", connIdConnectorFacade.getClass());
-
-		org.identityconnectors.framework.common.objects.Schema icfSchema = null;
-		try {
-
-			// Fetch the schema from the connector (which actually gets that
-			// from the resource).
-			InternalMonitor.recordConnectorOperation("schema");
-			// TODO have context present
-			//recordIcfOperationStart(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null);
-			icfSchema = connIdConnectorFacade.schema();
-			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null);
-
-			icfResult.recordSuccess();
-		} catch (UnsupportedOperationException ex) {
-			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
-			// The connector does no support schema() operation.
-			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, ex.getMessage());
-			resetResourceSchema();
-			addBasicReadCapability();
-			return;
-		} catch (Throwable ex) {
-			//recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_GET_SCHEMA, null, ex);
-			// conditions.
-			// Therefore this kind of heavy artillery is necessary.
-			// ICF interface does not specify exceptions or other error
-			// TODO maybe we can try to catch at least some specific exceptions
-			Throwable midpointEx = processConnIdException(ex, this, icfResult);
-
-			// Do some kind of acrobatics to do proper throwing of checked
-			// exception
-			if (midpointEx instanceof CommunicationException) {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw (CommunicationException) midpointEx;
-			} else if (midpointEx instanceof ConfigurationException) {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw (ConfigurationException) midpointEx;
-			} else if (midpointEx instanceof GenericFrameworkException) {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw (GenericFrameworkException) midpointEx;
-			} else if (midpointEx instanceof RuntimeException) {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw (RuntimeException) midpointEx;
-			} else if (midpointEx instanceof Error) {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw (Error) midpointEx;
-			} else {
-				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
-			}
-		}
-
-		if (icfSchema == null) {
-			icfResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Null schema returned");
-			resetResourceSchema();
-			addBasicReadCapability();
-			return;
-		}
-
-
-		parseResourceSchema(icfSchema, generateObjectClasses);
+	private void retrieveAndParseResourceCapabilitiesAndSchema(List<QName> generateObjectClasses, OperationResult parentResult) throws CommunicationException, ConfigurationException, GenericFrameworkException, SchemaException {
+		
+		ConnIdCapabilitiesAndSchemaParser parser = new ConnIdCapabilitiesAndSchemaParser();
+		parser.setConnectorHumanReadableName(getHumanReadableName());
+		parser.setConnIdConnectorFacade(connIdConnectorFacade);
+		parser.setConnIdNameMapper(connIdNameMapper);
+		parser.setPrismContext(prismContext);
+		parser.setResourceSchemaNamespace(resourceSchemaNamespace);
+		parser.setLegacySchema(legacySchema);
+		
+		LOGGER.debug("Retrieving and parsing schema and capabilities for {}", getHumanReadableName());
+		parser.retrieveResourceCapabilitiesAndSchema(generateObjectClasses, parentResult);
+		
+		parsedCapabilitiesAndSchema = parser;
 	}
 	
-	private void addBasicReadCapability() {
-		// Still need to add "read" capability. This capability would be added during schema processing,
-		// because it depends on schema options. But if there is no schema we need to add read capability
-		// anyway. We do not want to end up with non-readable resource.
-		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
-		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
-			ReadCapabilityType capRead = new ReadCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
-		}
-	}
-
-	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema connIdSchema, List<QName> generateObjectClasses) {
-
-		AttributeInfo passwordAttributeInfo = null;
-		AttributeInfo enableAttributeInfo = null;
-		AttributeInfo enableDateAttributeInfo = null;
-		AttributeInfo disableDateAttributeInfo = null;
-		AttributeInfo lockoutAttributeInfo = null;
-		AttributeInfo auxiliaryObjectClasseAttributeInfo = null;
-
-		// New instance of midPoint schema object
-		setResourceSchema(ObjectFactory.createResourceSchema(getSchemaNamespace(), prismContext));
-
-		if (legacySchema == null) {
-			legacySchema = detectLegacySchema(connIdSchema);
-		}
-		LOGGER.trace("Converting resource schema (legacy mode: {})", legacySchema);
-		LOGGER.trace("Generating object classes: {}", generateObjectClasses);
-
-		Set<ObjectClassInfo> objectClassInfoSet = connIdSchema.getObjectClassInfo();
-		// Let's convert every objectclass in the ConnId schema ...
-		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-
-			// "Flat" ConnId object class names needs to be mapped to QNames
-			QName objectClassXsdName = connIdNameMapper.objectClassToQname(new ObjectClass(objectClassInfo.getType()), getSchemaNamespace(), legacySchema);
-
-			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
-				LOGGER.trace("Skipping object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
-				continue;
-			}
-
-			LOGGER.trace("Converting object class {} ({})", objectClassInfo.getType(), objectClassXsdName);
-
-			// ResourceObjectDefinition is a midPpoint way how to represent an
-			// object class.
-			// The important thing here is the last "type" parameter
-			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			MutableObjectClassComplexTypeDefinition ocDef = resourceSchema.toMutable().createObjectClassDefinition(objectClassXsdName);
-
-			// The __ACCOUNT__ objectclass in ConnId is a default account
-			// objectclass. So mark it appropriately.
-			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				ocDef.setKind(ShadowKindType.ACCOUNT);
-				ocDef.setDefaultInAKind(true);
-			}
-
-			ResourceAttributeDefinition<String> uidDefinition = null;
-			ResourceAttributeDefinition<String> nameDefinition = null;
-			boolean hasUidDefinition = false;
-
-			int displayOrder = ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_START;
-			// Let's iterate over all attributes in this object class ...
-			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
-			for (AttributeInfo attributeInfo : attributeInfoSet) {
-				String icfName = attributeInfo.getName();
-
-				if (OperationalAttributes.PASSWORD_NAME.equals(icfName)) {
-					// This attribute will not go into the schema
-					// instead a "password" capability is used
-					passwordAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				if (OperationalAttributes.ENABLE_NAME.equals(icfName)) {
-					enableAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				if (OperationalAttributes.ENABLE_DATE_NAME.equals(icfName)) {
-					enableDateAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				if (OperationalAttributes.DISABLE_DATE_NAME.equals(icfName)) {
-					disableDateAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				if (OperationalAttributes.LOCK_OUT_NAME.equals(icfName)) {
-					lockoutAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				if (PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME.equals(icfName)) {
-					auxiliaryObjectClasseAttributeInfo = attributeInfo;
-					// Skip this attribute, capability is sufficient
-					continue;
-				}
-
-				String processedAttributeName = icfName;
-				if ((Name.NAME.equals(icfName) || Uid.NAME.equals(icfName)) && attributeInfo.getNativeName() != null ) {
-					processedAttributeName = attributeInfo.getNativeName();
-				}
-
-				QName attrXsdName = connIdNameMapper.convertAttributeNameToQName(processedAttributeName, ocDef);
-				QName attrXsdType = ConnIdUtil.icfTypeToXsdType(attributeInfo.getType(), false);
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("  attr conversion ConnId: {}({}) -> XSD: {}({})",
-							icfName, attributeInfo.getType().getSimpleName(),
-							PrettyPrinter.prettyPrint(attrXsdName), PrettyPrinter.prettyPrint(attrXsdType));
-				}
-
-				// Create ResourceObjectAttributeDefinition, which is midPoint
-				// way how to express attribute schema.
-				MutableResourceAttributeDefinition attrDef = ObjectFactory.createResourceAttributeDefinition(
-						attrXsdName, attrXsdType, prismContext);
-
-				attrDef.setMatchingRuleQName(icfAttributeInfoToMatchingRule(attributeInfo));
-
-				if (Name.NAME.equals(icfName)) {
-					nameDefinition = attrDef;
-					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
-						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-						uidDefinition = attrDef;
-						hasUidDefinition = true;
-					} else {
-						if (attributeInfo.getNativeName() == null) {
-							// Set a better display name for __NAME__. The "name" is s very
-							// overloaded term, so let's try to make things
-							// a bit clearer
-							attrDef.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_NAME_DISPLAY_NAME);
-						}
-						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_NAME_DISPLAY_ORDER);
-					}
-
-				} else if (Uid.NAME.equals(icfName)) {
-					// UID can be the same as other attribute
-					ResourceAttributeDefinition existingDefinition = ocDef.findAttributeDefinition(attrXsdName);
-					if (existingDefinition != null) {
-						hasUidDefinition = true;
-						existingDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-						uidDefinition = existingDefinition;
-						continue;
-					} else {
-						uidDefinition = attrDef;
-						if (attributeInfo.getNativeName() == null) {
-							attrDef.setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-						}
-						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-					}
-
-				} else {
-					// Check conflict with UID definition
-					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
-						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-						uidDefinition = attrDef;
-						hasUidDefinition = true;
-					} else {
-						attrDef.setDisplayOrder(displayOrder);
-						displayOrder += ConnectorFactoryConnIdImpl.ATTR_DISPLAY_ORDER_INCREMENT;
-					}
-				}
-
-				attrDef.setNativeAttributeName(attributeInfo.getNativeName());
-				attrDef.setFrameworkAttributeName(icfName);
-
-				// Now we are going to process flags such as optional and multi-valued
-				Set<Flags> flagsSet = attributeInfo.getFlags();
-
-				attrDef.setMinOccurs(0);
-				attrDef.setMaxOccurs(1);
-				boolean canCreate = true;
-				boolean canUpdate = true;
-				boolean canRead = true;
-
-				for (Flags flags : flagsSet) {
-					if (flags == Flags.REQUIRED) {
-						attrDef.setMinOccurs(1);
-					}
-					if (flags == Flags.MULTIVALUED) {
-						attrDef.setMaxOccurs(-1);
-					}
-					if (flags == Flags.NOT_CREATABLE) {
-						canCreate = false;
-					}
-					if (flags == Flags.NOT_READABLE) {
-						canRead = false;
-					}
-					if (flags == Flags.NOT_UPDATEABLE) {
-						canUpdate = false;
-					}
-					if (flags == Flags.NOT_RETURNED_BY_DEFAULT) {
-						attrDef.setReturnedByDefault(false);
-					}
-				}
-
-				attrDef.setCanAdd(canCreate);
-				attrDef.setCanModify(canUpdate);
-				attrDef.setCanRead(canRead);
-
-				if (!Uid.NAME.equals(icfName)) {
-					ocDef.add(attrDef);
-				}
-			}
-
-			if (uidDefinition == null) {
-				// Every object has UID in ConnId, therefore add a default definition if no other was specified
-				uidDefinition = ObjectFactory.createResourceAttributeDefinition(SchemaConstants.ICFS_UID, DOMUtil.XSD_STRING, prismContext);
-				// DO NOT make it mandatory. It must not be present on create hence it cannot be mandatory.
-				uidDefinition.toMutable().setMinOccurs(0);
-				uidDefinition.toMutable().setMaxOccurs(1);
-				// Make it read-only
-				uidDefinition.toMutable().setReadOnly();
-				// Set a default display name
-				uidDefinition.toMutable().setDisplayName(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_NAME);
-				uidDefinition.toMutable().setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
-				// Uid is a primary identifier of every object (this is the ConnId way)
-			}
-			if (!hasUidDefinition) {
-				ocDef.toMutable().add(uidDefinition);
-			}
-			ocDef.toMutable().addPrimaryIdentifier(uidDefinition);
-			if (uidDefinition != nameDefinition) {
-				ocDef.toMutable().addSecondaryIdentifier(nameDefinition);
-			}
-
-			// Add schema annotations
-			ocDef.toMutable().setNativeObjectClass(objectClassInfo.getType());
-			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getName());
-			ocDef.toMutable().setNamingAttribute(nameDefinition.getName());
-			ocDef.toMutable().setAuxiliary(objectClassInfo.isAuxiliary());
-
-			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);
-		}
-
-		// This is the default for all resources.
-		// (Currently there is no way how to obtain it from the connector.)
-		// It can be disabled manually.
-		AddRemoveAttributeValuesCapabilityType addRemove = new AddRemoveAttributeValuesCapabilityType();
-		capabilities.add(CAPABILITY_OBJECT_FACTORY.createAddRemoveAttributeValues(addRemove));
-
-		ActivationCapabilityType capAct = null;
-
-		if (enableAttributeInfo != null) {
-			if (capAct == null) {
-				capAct = new ActivationCapabilityType();
-			}
-			ActivationStatusCapabilityType capActStatus = new ActivationStatusCapabilityType();
-			capAct.setStatus(capActStatus);
-			if (!enableAttributeInfo.isReturnedByDefault()) {
-				capActStatus.setReturnedByDefault(false);
-			}
-		}
-
-		if (enableDateAttributeInfo != null) {
-			if (capAct == null) {
-				capAct = new ActivationCapabilityType();
-			}
-			ActivationValidityCapabilityType capValidFrom = new ActivationValidityCapabilityType();
-			capAct.setValidFrom(capValidFrom);
-			if (!enableDateAttributeInfo.isReturnedByDefault()) {
-				capValidFrom.setReturnedByDefault(false);
-			}
-		}
-
-		if (disableDateAttributeInfo != null) {
-			if (capAct == null) {
-				capAct = new ActivationCapabilityType();
-			}
-			ActivationValidityCapabilityType capValidTo = new ActivationValidityCapabilityType();
-			capAct.setValidTo(capValidTo);
-			if (!disableDateAttributeInfo.isReturnedByDefault()) {
-				capValidTo.setReturnedByDefault(false);
-			}
-		}
-
-		if (lockoutAttributeInfo != null) {
-			if (capAct == null) {
-				capAct = new ActivationCapabilityType();
-			}
-			ActivationLockoutStatusCapabilityType capActStatus = new ActivationLockoutStatusCapabilityType();
-			capAct.setLockoutStatus(capActStatus);
-			if (!lockoutAttributeInfo.isReturnedByDefault()) {
-				capActStatus.setReturnedByDefault(false);
-			}
-		}
-
-		if (capAct != null) {
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createActivation(capAct));
-		}
-
-		if (passwordAttributeInfo != null) {
-			CredentialsCapabilityType capCred = new CredentialsCapabilityType();
-			PasswordCapabilityType capPass = new PasswordCapabilityType();
-			if (!passwordAttributeInfo.isReturnedByDefault()) {
-				capPass.setReturnedByDefault(false);
-			}
-			if (passwordAttributeInfo.isReadable()) {
-				capPass.setReadable(true);
-			}
-			capCred.setPassword(capPass);
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createCredentials(capCred));
-		}
-
-		if (auxiliaryObjectClasseAttributeInfo != null) {
-			AuxiliaryObjectClassesCapabilityType capAux = new AuxiliaryObjectClassesCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createAuxiliaryObjectClasses(capAux));
-		}
-
-		boolean canPageSize = false;
-		boolean canPageOffset = false;
-		boolean canSort = false;
-		boolean supportsReturnDefaultAttributes = false;
-		for (OperationOptionInfo searchOption: connIdSchema.getSupportedOptionsByOperation(SearchApiOp.class)) {
-			switch (searchOption.getName()) {
-				case OperationOptions.OP_PAGE_SIZE:
-					canPageSize = true;
-					break;
-				case OperationOptions.OP_PAGED_RESULTS_OFFSET:
-					canPageOffset = true;
-					break;
-				case OperationOptions.OP_SORT_KEYS:
-					canSort = true;
-					break;
-				case OperationOptions.OP_RETURN_DEFAULT_ATTRIBUTES:
-					supportsReturnDefaultAttributes = true;
-					break;
-			}
-		}
-		if (canPageSize || canPageOffset || canSort) {
-			PagedSearchCapabilityType capPage = new PagedSearchCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createPagedSearch(capPage));
-		}
-		
-		Set<Class<? extends APIOperation>> supportedOperations = connIdConnectorFacade.getSupportedOperations();
-		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)) {
-			ReadCapabilityType capRead = new ReadCapabilityType();
-			capRead.setReturnDefaultAttributesOption(supportsReturnDefaultAttributes);
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRead(capRead));
-		}
-		if (supportedOperations.contains(UpdateDeltaApiOp.class)) {
-			processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateDeltaApiOp.class));
-		} else if (supportedOperations.contains(UpdateApiOp.class)) {
-			processUpdateOperationOptions(connIdSchema.getSupportedOptionsByOperation(UpdateApiOp.class));
-		}
-
-	}
-
-	private void processUpdateOperationOptions(Set<OperationOptionInfo> supportedOptions) {
-		boolean canRunAsUser = false;
-		for (OperationOptionInfo searchOption: supportedOptions) {
-			switch (searchOption.getName()) {
-				case OperationOptions.OP_RUN_AS_USER:
-					canRunAsUser = true;
-					break;
-				// TODO: run as password
-			}
-		}
-		if (canRunAsUser) {
-			RunAsCapabilityType capRunAs = new RunAsCapabilityType();
-			capabilities.add(CAPABILITY_OBJECT_FACTORY.createRunAs(capRunAs));
-		}
-	}
-
-	private boolean detectLegacySchema(Schema icfSchema) {
-		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-			if (objectClassInfo.is(ObjectClass.ACCOUNT_NAME) || objectClassInfo.is(ObjectClass.GROUP_NAME)) {
-				LOGGER.trace("This is legacy schema");
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean detectLegacySchema(ResourceSchema resourceSchema) {
-		ComplexTypeDefinition accountObjectClass = resourceSchema.findComplexTypeDefinition(
-				new QName(getSchemaNamespace(), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
-		return accountObjectClass != null;
-	}
-
-	private boolean shouldBeGenerated(List<QName> generateObjectClasses,
-			QName objectClassXsdName) {
-		if (generateObjectClasses == null || generateObjectClasses.isEmpty()){
-			return true;
-		}
-
-		for (QName objClassToGenerate : generateObjectClasses){
-			if (objClassToGenerate.equals(objectClassXsdName)){
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	 private <C extends CapabilityType> C getCapability(Class<C> capClass) {
+	 private synchronized <C extends CapabilityType> C getCapability(Class<C> capClass) {
 		if (capabilities == null) {
 			return null;
 		}
@@ -1306,7 +749,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		optionsBuilder.setAttributesToGet(icfAttrsToGet);
 	}
 
-	private boolean supportsReturnDefaultAttributes() {
+	private synchronized boolean supportsReturnDefaultAttributes() {
 		ReadCapabilityType capability = CapabilityUtil.getCapability(capabilities, ReadCapabilityType.class);
 		if (capability == null) {
 			return false;
@@ -1314,32 +757,32 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return Boolean.TRUE.equals(capability.isReturnDefaultAttributesOption());
 	}
 
-	private boolean passwordReturnedByDefault() {
+	private synchronized boolean passwordReturnedByDefault() {
 		CredentialsCapabilityType capability = CapabilityUtil.getCapability(capabilities, CredentialsCapabilityType.class);
 		return CapabilityUtil.isPasswordReturnedByDefault(capability);
 	}
 
-	private boolean enabledReturnedByDefault() {
+	private synchronized boolean enabledReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationStatusReturnedByDefault(capability);
 	}
 
-	private boolean lockoutReturnedByDefault() {
+	private synchronized boolean lockoutReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationLockoutStatusReturnedByDefault(capability);
 	}
 
-	private boolean validFromReturnedByDefault() {
+	private synchronized boolean validFromReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationValidFromReturnedByDefault(capability);
 	}
 
-	private boolean validToReturnedByDefault() {
+	private synchronized boolean validToReturnedByDefault() {
 		ActivationCapabilityType capability = CapabilityUtil.getCapability(capabilities, ActivationCapabilityType.class);
 		return CapabilityUtil.isActivationValidToReturnedByDefault(capability);
 	}
 	
-	private boolean supportsDeltaUpdateOp() {
+	private synchronized boolean supportsDeltaUpdateOp() {
 		UpdateCapabilityType capability = CapabilityUtil.getCapability(capabilities, UpdateCapabilityType.class);
 		if (capability == null) {
 			return false;
@@ -2223,10 +1666,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return property;
 	}
 
+	@NotNull
 	@Override
-	public List<Change>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, AttributesToReturn attrsToReturn, StateReporter reporter,
-																OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			SchemaException, ConfigurationException {
+	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".fetchChanges");
@@ -2234,7 +1678,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addArbitraryObjectAsParam("lastToken", lastToken);
 
 		// create sync token from the property last token
-		SyncToken syncToken = null;
+		SyncToken syncToken;
 		try {
 			syncToken = getSyncToken(lastToken);
 			LOGGER.trace("Sync token created from the property last token: {}", syncToken==null?null:syncToken.getValue());
@@ -2258,12 +1702,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 		OperationOptions options = optionsBuilder.build();
 
-		SyncResultsHandler syncHandler = new SyncResultsHandler() {
-			@Override
-			public boolean handle(SyncDelta delta) {
-				LOGGER.trace("Detected sync delta: {}", delta);
-				return syncDeltas.add(delta);
-			}
+		SyncResultsHandler syncHandler = delta -> {
+			LOGGER.trace("Detected sync delta: {}", delta);
+			syncDeltas.add(delta);
+			return canRun(reporter) && (maxChanges == null || maxChanges == 0 || syncDeltas.size() < maxChanges);
 		};
 
 		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
@@ -2276,8 +1718,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		try {
 			InternalMonitor.recordConnectorOperation("sync");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-			lastReceivedToken = connIdConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
-					options);
+			lastReceivedToken = connIdConnectorFacade.sync(icfObjectClass, syncToken, syncHandler, options);
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 			connIdResult.recordSuccess();
 			connIdResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
@@ -2285,8 +1726,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
 			Throwable midpointEx = processConnIdException(ex, this, connIdResult);
 			result.computeStatus();
-			// Do some kind of acrobatics to do proper throwing of checked
-			// exception
+			// Do some kind of acrobatics to do proper throwing of checked exception
 			if (midpointEx instanceof CommunicationException) {
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
@@ -2301,6 +1741,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
+		if (!canRun(reporter)) {
+			result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
+			return Collections.emptyList();
+		}
+
 		// convert changes from icf to midpoint Change
 		List<Change> changeList;
 		try {
@@ -2311,14 +1756,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		if (lastReceivedToken != null) {
-			Change lastChange = new Change((ObjectDelta)null, getToken(lastReceivedToken));
+			Change lastChange = new Change(null, getToken(lastReceivedToken));
 			LOGGER.trace("Adding last change: {}", lastChange);
 			changeList.add(lastChange);
 		}
 
 		result.recordSuccess();
-		result.addReturn(OperationResult.RETURN_COUNT, changeList == null ? 0 : changeList.size());
+		result.addReturn(OperationResult.RETURN_COUNT, changeList.size());
 		return changeList;
+	}
+
+	private boolean canRun(StateReporter reporter) {
+		RunningTask task = reporter != null && reporter.getTask() instanceof RunningTask
+				? ((RunningTask) reporter.getTask()) : null;
+		return task == null || task.canRun();
 	}
 
 	@Override
@@ -2391,8 +1842,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		ResultsHandler connIdHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
-				// Convert ConnId-specific connector object to a generic
-				// ResourceObject
+				// Convert ConnId-specific connector object to a generic ResourceObject
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SEARCH, objectClassDefinition);
                 int count = countHolder.getValue();
                 countHolder.setValue(count+1);
@@ -2424,9 +1874,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
-				if (!cont) {
-					result.recordWarning("Stopped on request from the handler");
-				}
+				/*
+				 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
+				 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
+				 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
+				 * This would also help when displaying operation result structure.
+				 */
 				recordResume();
 				return cont;
 			}
@@ -2480,18 +1933,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	        }
 	        if (searchHierarchyConstraints != null) {
 	        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-	        	// Only LDAP connector really supports base context. And this one will work better with
-	        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-	        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-	        	if (secondaryIdentifier == null) {
-	        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-	        		result.recordFatalError(e);
-	        		throw e;
+	        	if (baseContextIdentification != null) {
+		        	// Only LDAP connector really supports base context. And this one will work better with
+		        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+		        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+		        	if (secondaryIdentifier == null) {
+		        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+		        		result.recordFatalError(e);
+		        		throw e;
+		        	}
+		        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+		        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+		        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+					optionsBuilder.setContainer(containerQualifiedUid);
 	        	}
-	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-				optionsBuilder.setContainer(containerQualifiedUid);
+	        	SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
+	        	if (scope != null) {
+	        		optionsBuilder.setScope(scope.getScopeString());
+	        	}
 	        }
 
 		} catch (SchemaException e) {
@@ -2851,7 +2310,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return primaryIdentifier.getDefinition();
 	}
 
-	
+	@NotNull
 	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas,
 			PrismSchema schema, OperationResult parentResult)
 			throws SchemaException, GenericFrameworkException {
@@ -3148,7 +2607,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	@Override
 	public void dispose() {
 		if (connIdConnectorFacade != null) {
-			LOGGER.debug("Disposing ConnId ConnectorFacade for instance: {}", instanceName);
+			LOGGER.debug("Disposing ConnId ConnectorFacade for instance: {} (dispose explicitly invoked on ConnectorInstance)", instanceName);
 			connIdConnectorFacade.dispose();
 			connIdConnectorFacade = null;
 		}

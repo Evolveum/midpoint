@@ -24,6 +24,7 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -33,12 +34,15 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProtectedWorkItemId;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -167,8 +171,8 @@ public class WorkItemsPanel extends BasePanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected boolean isFooterVisible(long providerSize, int pageSize){
-				return WorkItemsPanel.this.isFooterVisible(providerSize, pageSize);
+			protected boolean hideFooterIfSinglePage(){
+				return WorkItemsPanel.this.hideFooterIfSinglePage();
 			}
 		};
 		workItemsTable.setAdditionalBoxCssClasses("without-box-header-top-border");
@@ -193,6 +197,9 @@ public class WorkItemsPanel extends BasePanel {
 				@Override
 				public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
 					PageParameters parameters = new PageParameters();
+					//todo mid-5291 fix is commented for a while
+//					parameters.add(OnePageParameterEncoder.PARAMETER,
+//							ProtectedWorkItemId.createExternalForm(rowModel.getObject().getWorkItem()));
 					parameters.add(OnePageParameterEncoder.PARAMETER, rowModel.getObject().getWorkItemId());
 					PageWorkItem page = Session.get().getPageFactory().newPage(PageWorkItem.class, parameters);
 					page.setPowerDonor(determinePowerDonor());
@@ -214,7 +221,7 @@ public class WorkItemsPanel extends BasePanel {
 		return new ReadOnlyModel<>(() -> {
 			WorkItemDto workItemDto = workItemDtoModel.getObject();
 			return defaultIfNull(
-					WfGuiUtil.getLocalizedProcessName(workItemDto.getWorkflowContext(), WorkItemsPanel.this),
+					WfGuiUtil.getLocalizedProcessName(workItemDto.getApprovalContext(), WorkItemsPanel.this),
 					workItemDto.getName());
 		});
 	}
@@ -321,13 +328,13 @@ public class WorkItemsPanel extends BasePanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected IModel<String> createIconModel(IModel<WorkItemDto> rowModel) {
+			protected DisplayType getIconDisplayType(IModel<WorkItemDto> rowModel) {
 				if (getObjectType(rowModel) == null) {
-					return null;
+					return WebComponentUtil.createDisplayType("");
 				}
 				ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(rowModel);
 				String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-				return new Model<>(icon);
+				return WebComponentUtil.createDisplayType(icon);
 			}
 
 			private ObjectTypeGuiDescriptor getObjectTypeDescriptor(IModel<WorkItemDto> rowModel) {
@@ -350,7 +357,7 @@ public class WorkItemsPanel extends BasePanel {
 		};
 	}
 
-	protected boolean isFooterVisible(long providerSize, int pageSize){
-		return true;
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 }

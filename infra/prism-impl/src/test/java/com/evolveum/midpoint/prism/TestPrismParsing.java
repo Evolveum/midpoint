@@ -24,13 +24,19 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.foo.AccountType;
 import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -122,7 +128,7 @@ public abstract class TestPrismParsing {
 		System.out.println(user.debugDump());
 		assertNotNull(user);
 
-		assertUserJack(user, true);
+		assertUserJack(user, true, false);
 	}
 
 	@Test
@@ -149,7 +155,7 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test200RoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_FILE_BASENAME));
+		roundTrip(getFile(USER_JACK_FILE_BASENAME), true);
 	}
 
 	@Test
@@ -157,7 +163,7 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test210RoundTripNoNs";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_NO_NS_BASENAME));
+		roundTrip(getFile(USER_JACK_NO_NS_BASENAME), true);
 	}
 
 	@Test
@@ -165,11 +171,11 @@ public abstract class TestPrismParsing {
 		final String TEST_NAME = "test220RoundTripObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
-		roundTrip(getFile(USER_JACK_OBJECT_BASENAME));
+		roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false);
 	}
 
 
-	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
+	private void roundTrip(File file, boolean expectFullPolyName) throws SchemaException, SAXException, IOException {
 
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -180,7 +186,7 @@ public abstract class TestPrismParsing {
 		assertNotNull(originalUser);
 
 		// precondition
-		assertUserJack(originalUser, true);
+		assertUserJack(originalUser, true, expectFullPolyName);
 
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
@@ -199,7 +205,7 @@ public abstract class TestPrismParsing {
 		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
-		assertUserJack(parsedUser, true);
+		assertUserJack(parsedUser, true, expectFullPolyName);
 
 		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
 		System.out.println("Diff:");
@@ -410,9 +416,40 @@ public abstract class TestPrismParsing {
 
 	}
 
+	// MID-5326
+	@Test
+	public void test600AccountBarbossa() throws Exception {
+		final String TEST_NAME = "test600AccountBarbossa";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
+
+		// GIVEN
+		PrismContext prismContext = constructInitializedPrismContext();
+
+		// WHEN
+		PrismObject<AccountType> account = prismContext.parseObject(getFile(ACCOUNT_BARBOSSA_FILE_BASENAME));
+
+		// THEN
+		assertNotNull(account);
+		System.out.println("Account:");
+		System.out.println(account.debugDump());
+
+		PrismContainer<?> attributes = account.findContainer(AccountType.F_ATTRIBUTES);
+		assertNotNull(attributes);
+		PrismContainerValue<?> attributesValue = attributes.getValue();
+		assertNotNull(attributesValue);
+		assertEquals("Wrong # of attributes", 3, attributesValue.size());
+		Set<ItemName> names = attributesValue.getItems().stream().map(a -> a.getElementName()).collect(Collectors.toSet());
+		assertEquals("Wrong attribute names", new HashSet<>(Arrays.asList(
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003", "uid"),
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
+				new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
+		)), names);
+	}
+
+
 	protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions) throws SchemaException {
 		user.checkConsistence();
-		assertUserJackContent(user, expectRawInConstructions);
+		assertUserJackContent(user, expectRawInConstructions, true);
 		assertUserExtensionAdhoc(user);
 		assertVisitor(user, 58);
 	}

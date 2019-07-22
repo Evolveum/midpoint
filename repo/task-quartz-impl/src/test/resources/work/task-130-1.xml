@@ -27,6 +27,7 @@
 	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<workManagement>
 		<taskKind>worker</taskKind>
+		<scavenger>true</scavenger>
 	</workManagement>
 	<recurrence>single</recurrence>
 </task>

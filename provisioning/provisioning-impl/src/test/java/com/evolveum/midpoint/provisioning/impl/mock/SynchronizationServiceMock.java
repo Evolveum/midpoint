@@ -178,11 +178,11 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 	    	
 	    	Validate.notNull(task, "Task must not be null.");
 	    	
-	    	if (task.getExtension() == null){
+	    	if (!task.hasExtension()) {
 	    		return false;
 	    	}
 			
-	    	PrismProperty<Boolean> item = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+	    	PrismProperty<Boolean> item = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
 			if (item == null || item.isEmpty()){
 				return false;
 			}
@@ -402,4 +402,14 @@ public class SynchronizationServiceMock implements ResourceObjectChangeListener,
 		return "synchronization service mock";
 	}
 
+	public void waitForNotifyChange(long timeout) throws InterruptedException {
+		long stop = System.currentTimeMillis() + timeout;
+		while (System.currentTimeMillis() < stop) {
+			if (wasCalledNotifyChange()) {
+				return;
+			}
+			Thread.sleep(100);
+		}
+		throw new AssertionError("notifyChange has not arrived within " + timeout + " ms");
+	}
 }

@@ -126,13 +126,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?,?>> configItems = configContainerValue.getItems();
+		Collection<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 2, configItems.size());
 
 		PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
-		List<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
+		Collection<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
 	}
 
@@ -201,7 +201,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		display("Configuration container", configContainer);
 
 		// WHEN
-		cc.configure(configContainer, result);
+		cc.configure(configContainer, ResourceTypeUtil.getSchemaGenerationConstraints(resourceType), result);
 
 		// THEN
 		result.computeStatus();
@@ -245,10 +245,11 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, result);
+		//ResourceTypeUtil.getSchemaGenerationConstraints(resourceType)
+		cc.configure(configContainer, null, result);
 
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(null, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 
 		// THEN
 		display("Generated resource schema", resourceSchema);
@@ -283,13 +284,15 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
 		PrismContainerValue<ConnectorConfigurationType> configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
 		display("Configuration container", configContainer);
-		cc.configure(configContainer, result);
-
 		List<QName> objectClassesToGenerate = new ArrayList<>();
 		QName accountObjectClass = new QName(resource.asObjectable().getNamespace(), "AccountObjectClass");
 		objectClassesToGenerate.add(accountObjectClass);
+		
+		cc.configure(configContainer, objectClassesToGenerate, result);
+
+		
 		// WHEN
-		resourceSchema = cc.fetchResourceSchema(objectClassesToGenerate, result);
+		resourceSchema = cc.fetchResourceSchema(result);
 
 		// THEN
 		display("Generated resource schema", resourceSchema);
@@ -414,7 +417,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -439,7 +442,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		dummyResource.addAccount(newAccount);
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

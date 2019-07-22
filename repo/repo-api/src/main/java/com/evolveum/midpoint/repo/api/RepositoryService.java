@@ -18,19 +18,40 @@ package com.evolveum.midpoint.repo.api;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.query.ObjectFilterExpressionEvaluator;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RepositoryDiag;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagRequest;
+import com.evolveum.midpoint.schema.RepositoryQueryDiagResponse;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SearchResultMetadata;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * <p>Identity Repository Interface.</p>
@@ -139,8 +160,27 @@ public interface RepositoryService {
 	String RETURN_UNUSED_VALUES_TO_SEQUENCE = CLASS_NAME_WITH_DOT + "returnUnusedValuesToSequence";
 	String EXECUTE_QUERY_DIAGNOSTICS = CLASS_NAME_WITH_DOT + "executeQueryDiagnostics";
 	String ADD_DIAGNOSTIC_INFORMATION = CLASS_NAME_WITH_DOT + "addDiagnosticInformation";
+	String HAS_CONFLICT = CLASS_NAME_WITH_DOT + "hasConflict";
 
 	String KEY_DIAG_DATA = "repositoryDiagData";			// see GetOperationOptions.attachDiagData
+	String KEY_ORIGINAL_OBJECT = "repositoryOriginalObject";
+
+	String OP_ADD_OBJECT = "addObject";
+	String OP_DELETE_OBJECT = "deleteObject";
+	String OP_COUNT_OBJECTS = "countObjects";
+	String OP_MODIFY_OBJECT = "modifyObject";
+	String OP_LIST_RESOURCE_OBJECT_SHADOWS = "listResourceObjectShadows";
+	String OP_GET_VERSION = "getVersion";
+	String OP_IS_ANY_SUBORDINATE = "isAnySubordinate";
+	String OP_ADVANCE_SEQUENCE = "advanceSequence";
+	String OP_RETURN_UNUSED_VALUES_TO_SEQUENCE = "returnUnusedValuesToSequence";
+	String OP_EXECUTE_QUERY_DIAGNOSTICS = "executeQueryDiagnostics";
+	String OP_GET_OBJECT = "getObject";
+	String OP_SEARCH_SHADOW_OWNER = "searchShadowOwner";
+	String OP_LIST_ACCOUNT_SHADOW_OWNER = "listAccountShadowOwner";
+	String OP_SEARCH_OBJECTS = "searchObjects";
+	String OP_SEARCH_OBJECTS_ITERATIVE = "searchObjectsIterative";
+	String OP_FETCH_EXT_ITEMS = "fetchExtItems";
 
 	/**
 	 * Returns object for provided OID.
@@ -407,13 +447,16 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
 
-	<T extends ObjectType> void modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+	@NotNull
+	<T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
 			ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException;
 
@@ -433,7 +476,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	@NotNull
+	<T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns the User object representing owner of specified account (account
@@ -643,4 +687,6 @@ public interface RepositoryService {
 	 */
 	<T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+	PerformanceMonitor getPerformanceMonitor();
 }

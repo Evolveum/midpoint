@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.model.intest.util;
 
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Radovan Semancik
  *
  */
-public class MockTriggerHandler implements TriggerHandler {
+public class MockTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.NS_MIDPOINT_TEST + "/mock-trigger-handler";
 
@@ -42,6 +42,7 @@ public class MockTriggerHandler implements TriggerHandler {
 	private AtomicInteger invocationCount = new AtomicInteger(0);
 	private long delay;
 	private boolean failOnNextInvocation;
+	private boolean idempotent;
 
 	public PrismObject<?> getLastObject() {
 		return lastObject;
@@ -71,7 +72,7 @@ public class MockTriggerHandler implements TriggerHandler {
 	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
 	 */
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
 		IntegrationTestTools.display("Mock trigger handler called with " + object);
 		lastObject = object.clone();
 		invocationCount.incrementAndGet();
@@ -88,11 +89,19 @@ public class MockTriggerHandler implements TriggerHandler {
 			throw new IllegalStateException("Failing as instructed");
 		}
 	}
-
 	public void reset() {
 		lastObject = null;
 		invocationCount.set(0);
 		delay = 0;
 		failOnNextInvocation = false;
+	}
+
+	@Override
+	public boolean isIdempotent() {
+		return idempotent;
+	}
+
+	public void setIdempotent(boolean idempotent) {
+		this.idempotent = idempotent;
 	}
 }

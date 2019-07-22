@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,26 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -52,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class SynchronizationContext<F extends FocusType> {
+public class SynchronizationContext<F extends FocusType> implements DebugDumpable {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationContext.class);
 
@@ -61,6 +66,7 @@ public class SynchronizationContext<F extends FocusType> {
 	private PrismObject<ResourceType> resource;
 	private PrismObject<SystemConfigurationType> systemConfiguration;
 	private String chanel;
+	private ExpressionProfile expressionProfile;
 	
 	private Task task;
 	private OperationResult result;
@@ -73,20 +79,26 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	private String intent;
 	
+	private String tag;
+	
 	private SynchronizationReactionType reaction;
 	
 	private boolean unrelatedChange = false;
 	
 	private boolean shadowExistsInRepo = true;
 	private boolean forceIntentChange;
+
+	private PrismContext prismContext;
 	
-	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, Task task, OperationResult result) {
+	public SynchronizationContext(PrismObject<ShadowType> applicableShadow, PrismObject<ShadowType> currentShadow, PrismObject<ResourceType> resource, String chanel, PrismContext prismContext, Task task, OperationResult result) {
 		this.applicableShadow = applicableShadow;
 		this.currentShadow = currentShadow;
 		this.resource = resource;
 		this.chanel = chanel;
 		this.task = task;
 		this.result = result;
+		this.prismContext = prismContext;
+		this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
 	}
 	
 	public boolean isSynchronizationEnabled() {
@@ -124,7 +136,7 @@ public class SynchronizationContext<F extends FocusType> {
 	
 	//TODO multi-threded tasks?
 	private <T> T getTaskPropertyValue(QName propertyName) {
-		PrismProperty<T> prop = task.getExtensionProperty(propertyName);
+		PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
 		if (prop == null || prop.isEmpty()) {
 			return null;
 		}
@@ -158,6 +170,14 @@ public class SynchronizationContext<F extends FocusType> {
 		return intent;
 	}
 	
+	public String getTag() {
+		return tag;
+	}
+
+	public void setTag(String tag) {
+		this.tag = tag;
+	}
+
 	public List<ConditionalSearchFilterType> getCorrelation() {
 		return objectSynchronization.getCorrelation();
 	}
@@ -300,6 +320,10 @@ public class SynchronizationContext<F extends FocusType> {
 	public F getCorrelatedOwner() {
 		return correlatedOwner;
 	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
 
 	public SynchronizationSituationType getSituation() {
 		return situation;
@@ -352,6 +376,14 @@ public class SynchronizationContext<F extends FocusType> {
 //		return reaction;
 //	}
 	
+	public ExpressionProfile getExpressionProfile() {
+		return expressionProfile;
+	}
+
+	public void setExpressionProfile(ExpressionProfile expressionProfile) {
+		this.expressionProfile = expressionProfile;
+	}
+
 	public void setReaction(SynchronizationReactionType reaction) {
 		this.reaction = reaction;
 	}
@@ -396,6 +428,12 @@ public class SynchronizationContext<F extends FocusType> {
 		this.forceIntentChange = forceIntentChange;
 	}
 	
+	public RefinedObjectClassDefinition findRefinedObjectClassDefinition() throws SchemaException {
+		RefinedResourceSchema refinedResourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		return refinedResourceSchema.getRefinedDefinition(getKind(), getIntent());
+	}
+
+	
 	@Override
 	public String toString() {
 		String policyDesc = null;
@@ -411,5 +449,28 @@ public class SynchronizationContext<F extends FocusType> {
 		
 		return policyDesc;
 	}
-	
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = DebugUtil.createTitleStringBuilderLn(SynchronizationContext.class, indent);
+		DebugUtil.debugDumpWithLabelLn(sb, "applicableShadow", applicableShadow, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "currentShadow", currentShadow, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "resource", resource, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "systemConfiguration", systemConfiguration, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "chanel", chanel, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "expressionProfile", expressionProfile, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "objectSynchronization", objectSynchronization, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "focusClass", focusClass, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "currentOwner", currentOwner, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "correlatedOwner", correlatedOwner, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "situation", situation, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "intent", intent, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "tag", tag, indent + 1);
+		DebugUtil.debugDumpWithLabelToStringLn(sb, "reaction", reaction, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "unrelatedChange", unrelatedChange, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "shadowExistsInRepo", shadowExistsInRepo, indent + 1);
+		DebugUtil.debugDumpWithLabel(sb, "forceIntentChange", forceIntentChange, indent + 1);
+		return sb.toString();
+	}
+
 }

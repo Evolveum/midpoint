@@ -247,7 +247,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 	}
 
 	private PrismObject<UserType> createUserWill() throws SchemaException {
-		PrismObject<UserType> user = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class).instantiate();
+		PrismObject<UserType> user = prismContext.createObject(UserType.class);
 		user.asObjectable()
 			.name(USER_WILL_NAME)
 			.givenName(USER_WILL_GIVEN_NAME)
@@ -701,6 +701,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		assignWillRoleOne("test100AssignWillRoleOne", USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTION_PENDING);
 		
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0, 1);
         assertSteadyResources();
 	}
 
@@ -782,6 +783,7 @@ public abstract class AbstractManualResourceTest extends AbstractConfiguredModel
 		
 		assertCounterIncrement(InternalCounters.CONNECTOR_MODIFICATION_COUNT, 1);
 		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT, 0, 1);
+		assertCounterIncrement(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT, 0, 1);
 		
 		assertAccountWillAfterAssign(TEST_NAME, USER_WILL_FULL_NAME, PendingOperationExecutionStatusType.EXECUTING);
 		

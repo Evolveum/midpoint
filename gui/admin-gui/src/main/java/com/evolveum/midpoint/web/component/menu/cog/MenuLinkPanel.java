@@ -72,7 +72,7 @@ public class MenuLinkPanel extends Panel {
                 }
             };
         } else {
-            a = new AjaxLink(ID_MENU_ITEM_LINK) {
+        	a = new AjaxLink<Void>(ID_MENU_ITEM_LINK) {
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -23,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +43,9 @@ import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -60,8 +64,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 /**
@@ -180,13 +186,13 @@ public class OutboundProcessor {
     }
 
     // TODO: unify with MappingEvaluator.evaluateOutboundMapping(...)
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName mappingQName,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> MappingImpl<V, D> evaluateMapping(final MappingImpl.Builder<V,D> mappingBuilder, QName attributeQName,
     		D targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
     		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, final Task task, OperationResult result)
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (!mappingBuilder.isApplicableToChannel(context.getChannel())) {
-			LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", mappingQName);
+			LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", attributeQName);
 			return null;
 		}
 
@@ -201,29 +207,58 @@ public class OutboundProcessor {
 //			LOGGER.trace("Skipping outbound mapping for {} because it is weak", mappingQName);
 //			return null;
 //		}
-
+		
+		ItemPath targetPath = ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName);
+		mappingBuilder.defaultTargetPath(targetPath);
 		mappingBuilder.defaultTargetDefinition(targetDefinition);
 		mappingBuilder.sourceContext(focusOdo);
-		mappingBuilder.mappingQName(mappingQName);
+		mappingBuilder.mappingQName(attributeQName);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projectionOdo);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
-		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), SystemConfigurationType.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION,
-				LensUtil.getIterationVariableValue(projCtx));
+				LensUtil.getIterationVariableValue(projCtx), Integer.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN,
-				LensUtil.getIterationTokenVariableValue(projCtx));
-		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
+				LensUtil.getIterationTokenVariableValue(projCtx), String.class);
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource(), ResourceType.class);
 		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
+		
+		mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_LEGAL, projCtx.isLegal());
+        mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNED, projCtx.isAssigned());
+        
 		if (assocTargetObjectClassDefinition != null) {
-			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+			mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
+					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
 		mappingBuilder.rootNode(focusOdo);
 		mappingBuilder.originType(OriginType.OUTBOUND);
 		mappingBuilder.refinedObjectClassDefinition(rOcDef);
-
+		
+		if (projCtx.isDelete()) {
+				mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+		} else if (projCtx.isAdd()) {
+			mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+		} else {
+			PrismObject<ShadowType> oldObject = projectionOdo.getOldObject();
+			if (oldObject != null) {
+				PrismProperty<Object> attributeOld = oldObject.findProperty(targetPath);
+				if (attributeOld == null) {
+					if (projCtx.hasFullShadow()) {
+						// We know that the attribute has no values
+						mappingBuilder.originalTargetValues(Collections.EMPTY_LIST);
+					} else {
+						// We do not have full shadow. Therefore we know nothing about attribute values.
+						// We cannot set originalTargetValues here.
+					}
+				} else {
+					mappingBuilder.originalTargetValues((Collection<V>) attributeOld.getValues());
+				}
+			}
+		}
+			
 		ValuePolicyResolver stringPolicyResolver = new ValuePolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;

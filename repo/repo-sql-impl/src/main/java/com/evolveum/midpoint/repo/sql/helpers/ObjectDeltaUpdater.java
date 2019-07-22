@@ -103,11 +103,16 @@ public class ObjectDeltaUpdater {
         PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
 
+//        // ugly hack to preserve removal of (non-existent) task result (MID-5280) - temporarily worked around by assumeMissingItems parameter
+//        List<ItemPath> fakeItemsAdded = new ArrayList<>();
+//        addIncompleteItemIfNeeded(prismObject, fakeItemsAdded, TaskType.class, TaskType.F_RESULT);
+
         // preprocess modifications
-        Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications((Collection<? extends ItemDelta<?, ?>>) modifications);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
-        }
+        Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications(
+                (Collection<? extends ItemDelta<?, ?>>) modifications, true);
+        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(processedModifications));
+
+//        removeIncompleteItemsAdded(prismObject, fakeItemsAdded);
 
         // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
@@ -210,6 +215,21 @@ public class ObjectDeltaUpdater {
 
         return object;
     }
+
+//    private <T extends ObjectType> void removeIncompleteItemsAdded(PrismObject<T> prismObject, List<ItemPath> fakeItemsAdded) {
+//        for (ItemPath path : fakeItemsAdded) {
+//            prismObject.removeProperty(path);
+//        }
+//    }
+//
+//    private <T extends ObjectType> void addIncompleteItemIfNeeded(PrismObject<T> prismObject, List<ItemPath> fakeItemsAdded,
+//            Class<TaskType> objectClass, ItemName propertyPath) throws SchemaException {
+//        Class<T> staticClass = prismObject.getCompileTimeClass();
+//        if (staticClass != null && objectClass.isAssignableFrom(staticClass) && !prismObject.containsItem(propertyPath, true)) {
+//            prismObject.findOrCreateProperty(propertyPath).setIncomplete(true);
+//            fakeItemsAdded.add(propertyPath);
+//        }
+//    }
 
     private boolean isFocusPhoto(ItemDelta delta) {
         return FocusType.F_JPEG_PHOTO.equivalent(delta.getPath());
@@ -671,8 +691,8 @@ public class ObjectDeltaUpdater {
             return;
         }
 
-        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
-        for (Item item : (List<Item>) extension.getItems()) {
+        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+        for (Item item : extension.getItems()) {
             ItemDelta itemDelta = item.createDelta();
             itemDelta.setValuesToReplace(item.getClonedValues());
 
@@ -698,8 +718,8 @@ public class ObjectDeltaUpdater {
             assignment.setExtension(ext);
         }
 
-        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
-        for (Item item : (List<Item>) extension.getItems()) {
+        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+        for (Item item : extension.getItems()) {
             ItemDelta itemDelta = item.createDelta();
             itemDelta.setValuesToReplace(item.getClonedValues());
 

@@ -23,6 +23,11 @@
 	            	<span class="col-xs-12 col-sm-6 col-md-8 col-lg-9 summary-text-box" style="padding: 0px;">
 		            	<span class="col-xs-12 info-box-number"  style="padding: 0px;">
 		            		<span class="summary-panel-display-name" wicket:id="summaryDisplayName"  style="padding: 0px;"/> <span class="summary-panel-identifier" wicket:id="summaryIdentifierPanel"  style="padding: 0px;">(<span wicket:id="summaryIdentifier"/>)</span>
+							<span>
+								<a wicket:id="navigateToObject" class="summary-panel-navigation-button">
+									<i class="fa fa-share"/>
+								</a>
+							</span>
 		            	</span>
 		            	<span wicket:id="summaryTitle" class="summary-panel-title">
 		            	</span>
@@ -33,8 +38,11 @@
 		            	<span wicket:id="summaryOrganization" class="summary-panel-organization">
 		            	</span>
 	            	</span>
-		            <span wicket:id="summaryTagBox" class="col-xs-12 col-sm-6 col-md-4 col-lg-3 summary-tag-box" style="max-width: 200px;">
-		            	<wicket:child />
+		            <span class="col-xs-12 col-sm-6 col-md-4 col-lg-3 summary-tag-box" style="max-width: 220px;">
+						<span wicket:id="summaryTagBox" >
+		            		<span wicket:id="summaryTag"/>
+						</span>
+						<wicket:child />
 		            </span>
 	            </span>
             </div>

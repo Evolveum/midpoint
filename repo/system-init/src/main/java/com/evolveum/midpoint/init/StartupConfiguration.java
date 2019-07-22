@@ -19,6 +19,8 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -51,6 +53,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String USER_HOME_SYSTEM_PROPERTY_NAME = "user.home";
     private static final String SAFE_MODE = "safeMode";
     private static final String PROFILING_ENABLED = "profilingEnabled";
+    private static final String PROFILING_MODE = "profilingMode";
 	private static final String FILE_INDIRECTION_SUFFIX = "fileIndirectionSuffix";
 
 	private static final String DEFAULT_FILE_INDIRECTION_SUFFIX = "_FILE";
@@ -348,10 +351,30 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
 	@Override
-    public boolean isProfilingEnabled() {
-        Configuration c = getRootConfiguration();
-	    return c != null && c.getBoolean(PROFILING_ENABLED, false);
-    }
+	public boolean isProfilingEnabled() {
+		return getProfilingMode() != ProfilingMode.OFF;
+	}
+
+	@NotNull
+	@Override
+	public ProfilingMode getProfilingMode() {
+		Configuration c = getRootConfiguration();
+		if (c == null) {
+			return ProfilingMode.OFF;
+		} else {
+			String profilingMode = c.getString(PROFILING_MODE, null);
+			if (profilingMode != null) {
+				return ProfilingMode.fromValue(profilingMode);
+			} else {
+				return c.getBoolean(PROFILING_ENABLED, false) ? ProfilingMode.ON : ProfilingMode.OFF;
+			}
+		}
+	}
+
+	@Override
+	public SystemConfigurationSection getSystemSection() {
+		return new SystemConfigurationSectionImpl(getConfiguration(SYSTEM_CONFIGURATION));
+	}
 
 	private String getFileIndirectionSuffix() {
 		Configuration c = getRootConfiguration();

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -174,6 +173,11 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
 	}
 
+	public PrismContainer<?> getOrCreateExtension() throws SchemaException {
+		//noinspection unchecked
+		return (PrismContainer<?>) getValue().findOrCreateItem(getExtensionContainerElementName(), PrismContainer.class);
+	}
+
 	public PrismContainerValue<?> getExtensionContainerValue() {
 		PrismContainer<?> extension = getExtension();
 		if (extension == null || extension.getValues().isEmpty()) {
@@ -246,14 +250,20 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 			prismContext.getMonitor().beforeObjectClone(this);
 		}
 
-		PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
-		copyValues(strategy, clone);
+//		MethodInvocationRecord record = MethodInvocationRecord.create(PrismObjectImpl.class.getName() + ".cloneComplex", new Object[] { strategy });
+//		try {
+			PrismObjectImpl<O> clone = new PrismObjectImpl<>(getElementName(), getDefinition(), prismContext);
+			copyValues(strategy, clone);
 
-		if (prismContext != null && prismContext.getMonitor() != null) {
-			prismContext.getMonitor().afterObjectClone(this, clone);
-		}
-
-		return clone;
+			if (prismContext != null && prismContext.getMonitor() != null) {
+				prismContext.getMonitor().afterObjectClone(this, clone);
+			}
+			return clone;
+//		} catch (RuntimeException t) {
+//			throw record.processException(t);
+//		} finally {
+//			record.afterCall();
+//		}
 	}
 
 	protected void copyValues(CloneStrategy strategy, PrismObjectImpl<O> clone) {
@@ -288,15 +298,16 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?,?>> modifications) {
+	public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+			boolean assumeMissingItems) {
 		if (modifications == null) {
     		return null;
     	}
     	Collection narrowedModifications = new ArrayList<>(modifications.size());
     	for (ItemDelta<?, ?> modification: modifications) {
-    		ItemDelta<?, ?> narrowedModifiacation = modification.narrow(this);
-    		if (narrowedModifiacation != null && !narrowedModifiacation.isEmpty()) {
-    			narrowedModifications.add(narrowedModifiacation);
+    		ItemDelta<?, ?> narrowedModification = modification.narrow(this, assumeMissingItems);
+    		if (narrowedModification != null && !narrowedModification.isEmpty()) {
+    			narrowedModifications.add(narrowedModification);
     		}
     	}
     	return narrowedModifications;

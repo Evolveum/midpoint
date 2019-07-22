@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,11 @@ public class ObjectCollectionViewAsserter<RA> extends AbstractAsserter<RA> {
 	
 	public ObjectCollectionViewAsserter<RA> assertFilter() {
 		assertNotNull("Null filter in "+desc(), view.getFilter());
+		return this;
+	}
+	
+	public ObjectCollectionViewAsserter<RA> assertDomainFilter() {
+		assertNotNull("Null domain filter in "+desc(), view.getDomainFilter());
 		return this;
 	}
 	

@@ -89,6 +89,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Unique identification of the event.
+			Every record should have unique event identifier.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -99,17 +100,52 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+	    <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+	 		Identifier of a request (operation). All the records that are result of
+	 		processing of a single request should have the same identifier.
+	 		In usual case there should be be a single request-stage record
+	 		and one or more execution-stage records with the same request
+	 		identifier.
+	 		</p>
+	 		<p>
+	 		Please note that this is quite different than task identifier.
+	 		A single task can make many requests. E.g. a typical reconciliation
+	 		task will make thousands of operations. All of the audit records from
+	 		all of those operations will have the same task identifier. But each
+	 		operation will have a separate request identifier.
+			</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        <p>
+	 		Task identifier. Operations are executed in a context of a task.
+	 		This field is an identifier of the task. It is not (necessarily) an
+	 		OID of the task, as an operation may be executed in an non-persistent
+	 		(lightweight) task. This field should be populated for all audit records,
+	 		perhaps except very special system-level records that are executed outside
+	 		of a task.
+	 		</p>
+	 		<p>
+	 		Please note that this is quite different than request identifier.
+	 		A single task can make many requests. E.g. a typical reconciliation
+	 		task will make thousands of operations. All of the audit records from
+	 		all of those operations will have the same task identifier. But each
+	 		operation will have a separate request identifier.
+	 		</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskOID" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Task OID. This field is used for records that are executed in the context
+	 		of a persistent task.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -254,6 +290,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+	    <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	    <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Field of custom column for audit resord table.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+			<a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="auditEventRecord" type="tns:AuditEventRecordType" />
@@ -270,6 +327,24 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="1" />
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuditEventRecordCustomColumnPropertyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Field of custom column for audit resord table.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AuditEventRecordItemType">
+				<xsd:sequence>
+					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordPropertyType">

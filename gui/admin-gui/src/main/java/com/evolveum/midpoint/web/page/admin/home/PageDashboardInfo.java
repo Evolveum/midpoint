@@ -17,6 +17,9 @@ package com.evolveum.midpoint.web.page.admin.home;
 
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import java.util.Arrays;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.component.IRequestablePage;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.box.BasicInfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxPanel;
 import com.evolveum.midpoint.web.component.box.InfoBoxType;
+import com.evolveum.midpoint.web.component.box.SmallInfoBoxPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.DashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.PersonalInfoPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.SystemInfoPanel;
@@ -112,11 +116,17 @@ public class PageDashboardInfo extends PageDashboard {
     }
 
     private Component createResourceInfoBoxPanel(OperationResult result, Task task) {
-		return new BasicInfoBoxPanel(ID_INFO_BOX_RESOURCES, getResourceInfoBoxTypeModel(result, task), PageResources.class);
+    	return new BasicInfoBoxPanel(ID_INFO_BOX_RESOURCES, getObjectInfoBoxTypeModel(ResourceType.class,
+    			Arrays.asList(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS),
+    			AvailabilityStatusType.UP, "object-resource-bg", GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON,
+    			"PageDashboard.infobox.resources", result, task), PageResources.class);
 	}
     
     private Component createTaskInfoBoxPanel(OperationResult result, Task task) {
-		return new BasicInfoBoxPanel(ID_INFO_BOX_TASKS, getTaskInfoBoxTypeModel(result, task), PageTasks.class);
+    	return new BasicInfoBoxPanel(ID_INFO_BOX_TASKS, getObjectInfoBoxTypeModel(TaskType.class,
+    			Arrays.asList(TaskType.F_EXECUTION_STATUS), TaskExecutionStatusType.RUNNABLE, "object-task-bg",
+    			GuiStyleConstants.CLASS_OBJECT_TASK_ICON, "PageDashboard.infobox.tasks", result, task),
+				PageTasks.class);
 	}
 
 
@@ -128,7 +138,7 @@ public class PageDashboardInfo extends PageDashboard {
 
             @Override
             protected Component getMainComponent(String componentId) {
-                return new PersonalInfoPanel(componentId, PageDashboardInfo.this);
+                return new PersonalInfoPanel(componentId);
             }
         };
         add(personalInfo);

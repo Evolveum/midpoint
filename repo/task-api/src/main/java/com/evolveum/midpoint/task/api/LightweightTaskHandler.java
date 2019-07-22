@@ -19,13 +19,13 @@ package com.evolveum.midpoint.task.api;
 /**
  * Handler for a lightweight task. These tasks execute in dedicated thread pool, being not managed by Quartz.
  *
- * @see https://wiki.evolveum.com/display/midPoint/Lightweight+asynchronous+tasks.
+ * See https://wiki.evolveum.com/display/midPoint/Lightweight+asynchronous+tasks.
  *
  * @author Pavol Mederly
  */
 @FunctionalInterface
 public interface LightweightTaskHandler {
 
-	public void run(Task task);
+	void run(RunningTask task);
 
 }

@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.gui.api.component.autocomplete;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.model.LookupPropertyModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -28,9 +32,12 @@ import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteR
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.StringAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
 import org.apache.wicket.util.time.Duration;
 
 import java.util.Iterator;
+import java.util.Locale;
 
 /**
  * Autocomplete field for Strings.
@@ -45,8 +52,17 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
 	private static final String ID_INPUT = "input";
 	
-	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+	private LookupTableType lookupTable = null;
+	private boolean strict;
+	
+//	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type) {
+//		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+//	}
+	
+	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, boolean strict, LookupTableType lookuptable) {
 		this(id, model, type, StringAutoCompleteRenderer.INSTANCE);
+		this.lookupTable = lookuptable;
+		this.strict = strict;
 	}
 	
 	public AutoCompleteTextPanel(String id, final IModel<T> model, Class<T> type, IAutoCompleteRenderer<T> renderer) {
@@ -68,6 +84,46 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
                 super.updateAjaxAttributes(attributes);
                 attributes.setThrottlingSettings(new ThrottlingSettings(Duration.ONE_SECOND, true));
             }
+            
+			@Override
+			public <C> IConverter<C> getConverter(Class<C> type) {
+				return new IConverter<C>() {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					public C convertToObject(String value, Locale arg1) throws ConversionException {
+						if (lookupTable == null) {
+							return (C) value;
+						}
+
+						for (LookupTableRowType row : lookupTable.getRow()) {
+							if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+								return (C) row.getKey();
+							}
+						}
+
+						if (strict) {
+							throw new ConversionException("Cannot convert " + value);
+						}
+
+						return (C) value;
+
+					}
+
+					@Override
+					public String convertToString(C key, Locale arg1) {
+						if (lookupTable != null) {
+							for (LookupTableRowType row : lookupTable.getRow()) {
+								if (key.equals(row.getKey())) {
+									return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
+								}
+							}
+						}
+						return (String) key;
+					}
+				};
+			}
         };
 
         input.setType(type);
@@ -142,5 +198,9 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
     protected void updateFeedbackPanel(AutoCompleteTextField input, boolean isError, AjaxRequestTarget target){
 
+  
     }
+    
+    
 }
+

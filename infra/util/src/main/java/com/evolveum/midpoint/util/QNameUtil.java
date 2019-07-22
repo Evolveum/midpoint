@@ -228,7 +228,7 @@ public class QNameUtil {
 		}
 		if (!caseInsensitive) {
 			// traditional comparison
-			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			if (StringUtils.isEmpty(a.getNamespaceURI()) || StringUtils.isEmpty(b.getNamespaceURI())) {
 				return a.getLocalPart().equals(b.getLocalPart());
 			} else {
 				return a.equals(b);
@@ -238,7 +238,7 @@ public class QNameUtil {
 			if (!a.getLocalPart().equalsIgnoreCase(b.getLocalPart())) {
 				return false;
 			}
-			if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			if (StringUtils.isEmpty(a.getNamespaceURI()) || StringUtils.isEmpty(b.getNamespaceURI())) {
 				return true;
 			} else {
 				return a.getNamespaceURI().equals(b.getNamespaceURI());
@@ -285,7 +285,7 @@ public class QNameUtil {
 		return found;
 	}
 
-	public static boolean matchAny(QName nameToFind, Collection<QName> names) {
+	public static boolean matchAny(QName nameToFind, Collection<? extends QName> names) {
 		// we no longer use resolveNs any more here, as the 'names' can contain duplicate qnames (resolveNs would complain on it)
 		if (names == null) {
 			return false;
@@ -307,7 +307,7 @@ public class QNameUtil {
 	}
 
     public static boolean isUnqualified(QName name) {
-        return StringUtils.isBlank(name.getNamespaceURI());
+        return StringUtils.isEmpty(name.getNamespaceURI());
     }
 
     public static boolean isQualified(QName name) {
@@ -362,7 +362,7 @@ public class QNameUtil {
         return name != null ? name.getLocalPart() : null;
     }
 
-	public static boolean contains(Collection<QName> col, QName qname) {
+	public static boolean contains(Collection<? extends QName> col, QName qname) {
 		return col != null && col.stream().anyMatch(e -> match(e, qname));
 	}
 	

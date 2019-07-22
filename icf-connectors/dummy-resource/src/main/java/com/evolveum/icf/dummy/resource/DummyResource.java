@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -90,7 +91,7 @@ public class DummyResource implements DebugDumpable {
 	private final Map<String,DummyObjectClass> auxiliaryObjectClassMap = new HashMap<>();
 	private DummySyncStyle syncStyle;
 	private List<DummyDelta> deltas;
-	private int latestSyncToken;
+	private final AtomicInteger latestSyncToken = new AtomicInteger(0);
 	private boolean tolerateDuplicateValues = false;
 	private boolean generateDefaultValues = false;
 	private boolean enforceUniqueName = true;
@@ -103,6 +104,7 @@ public class DummyResource implements DebugDumpable {
 	private Collection<String> forbiddenNames;
 	private int operationDelayOffset = 0;
 	private int operationDelayRange = 0;
+	private boolean syncSearchHandlerStart = false;
 
 	/**
 	 * There is a monster that loves to eat cookies.
@@ -148,22 +150,21 @@ public class DummyResource implements DebugDumpable {
 	private static Map<String, DummyResource> instances = new HashMap<>();
 
 	DummyResource() {
-		allObjects = Collections.synchronizedMap(new LinkedHashMap<String,DummyObject>());
-		accounts = Collections.synchronizedMap(new LinkedHashMap<String, DummyAccount>());
-		groups = Collections.synchronizedMap(new LinkedHashMap<String, DummyGroup>());
-		privileges = Collections.synchronizedMap(new LinkedHashMap<String, DummyPrivilege>());
-		orgs = Collections.synchronizedMap(new LinkedHashMap<String, DummyOrg>());
+		allObjects = Collections.synchronizedMap(new LinkedHashMap<>());
+		accounts = Collections.synchronizedMap(new LinkedHashMap<>());
+		groups = Collections.synchronizedMap(new LinkedHashMap<>());
+		privileges = Collections.synchronizedMap(new LinkedHashMap<>());
+		orgs = Collections.synchronizedMap(new LinkedHashMap<>());
 		scriptHistory = new ArrayList<>();
 		accountObjectClass = new DummyObjectClass();
 		groupObjectClass = new DummyObjectClass();
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
-		deltas = Collections.synchronizedList(new ArrayList<DummyDelta>());
-		latestSyncToken = 0;
+		deltas = Collections.synchronizedList(new ArrayList<>());
 	}
 
 	/**
-	 * Clears everything, just like the resouce was just created.
+	 * Clears everything, just like the resource was just created.
 	 */
 	public void reset() {
 		allObjects.clear();
@@ -177,10 +178,12 @@ public class DummyResource implements DebugDumpable {
 		privilegeObjectClass = new DummyObjectClass();
 		syncStyle = DummySyncStyle.NONE;
 		deltas.clear();
-		latestSyncToken = 0;
+		latestSyncToken.set(0);
 		writeOperationCount = 0;
 		operationDelayOffset = 0;
 		operationDelayRange = 0;
+		blockOperations = false;
+		syncSearchHandlerStart = false;
 		resetBreakMode();
 	}
 
@@ -377,6 +380,14 @@ public class DummyResource implements DebugDumpable {
 	public void setOperationDelayRange(int operationDelayRange) {
 		this.operationDelayRange = operationDelayRange;
 	}
+	
+	public boolean isSyncSearchHandlerStart() {
+		return syncSearchHandlerStart;
+	}
+
+	public void setSyncSearchHandlerStart(boolean syncSearchHandlerStart) {
+		this.syncSearchHandlerStart = syncSearchHandlerStart;
+	}
 
 	public boolean isMonsterization() {
 		return monsterization;
@@ -398,8 +409,12 @@ public class DummyResource implements DebugDumpable {
 		connectionCount--;
 	}
 
-	public void assertNoConnections() {
+	public synchronized void assertNoConnections() {
 		assert connectionCount == 0 : "Dummy resource: "+connectionCount+" connections still open";
+	}
+	
+	public synchronized void assertConnections(int expected) {
+		assert connectionCount == expected : "Dummy resource: unexpected number of connections, expected: "+expected+", but was "+connectionCount;
 	}
 
 	public synchronized void recordWriteOperation(String operation) {
@@ -800,11 +815,15 @@ public class DummyResource implements DebugDumpable {
 		renameObject(DummyOrg.class, orgs, id, oldName, newName);
 	}
 
-	void recordModify(DummyObject dObject) {
+	<T> void recordModify(DummyObject dObject, String attributeName, Collection<T> valuesAdded, Collection<T> valuesDeleted, Collection<T> valuesReplaced) {
 		recordWriteOperation("modify");
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
 			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
+			delta.setAttributeName(attributeName);
+			delta.setValuesAdded((Collection<Object>) valuesAdded);
+			delta.setValuesDeleted((Collection<Object>) valuesDeleted);
+			delta.setValuesReplaced((Collection<Object>) valuesReplaced);
 			deltas.add(delta);
 		}
 	}
@@ -875,11 +894,11 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	private synchronized int nextSyncToken() {
-		return ++latestSyncToken;
+		return latestSyncToken.incrementAndGet();
 	}
 
 	public int getLatestSyncToken() {
-		return latestSyncToken;
+		return latestSyncToken.get();
 	}
 
 	private String normalize(String id) {
@@ -899,6 +918,24 @@ public class DummyResource implements DebugDumpable {
 			}
 		}
 		return result;
+	}
+	
+	public List<DummyDelta> getDeltas() {
+		return deltas;
+	}
+
+	public void clearDeltas() {
+		deltas.clear();
+	}
+	
+	public String dumpDeltas() {
+		StringBuilder sb = new StringBuilder("Dummy resource ");
+		sb.append(instanceName).append(" deltas:");
+		for (DummyDelta delta: deltas) {
+			sb.append("\n  ");
+			delta.dump(sb);
+		}
+		return sb.toString();
 	}
 
 	void breakIt(BreakMode breakMode, String operation) throws ConnectException, FileNotFoundException, SchemaViolationException, ConflictException {
@@ -949,11 +986,11 @@ public class DummyResource implements DebugDumpable {
 	private synchronized void checkBlockOperations() {
 		if (blockOperations) {
 			try {
-				LOGGER.info("Thread {} blocked", Thread.currentThread().getName());
+				LOGGER.info("Thread {} blocked (operation)", Thread.currentThread().getName());
 				this.wait();
-				LOGGER.info("Thread {} unblocked", Thread.currentThread().getName());
+				LOGGER.info("Thread {} unblocked (operation)", Thread.currentThread().getName());
 			} catch (InterruptedException e) {
-				LOGGER.debug("Wait interrupted", e);
+				LOGGER.debug("Wait interrupted (operation)", e);
 			}
 		}
 	}
@@ -964,8 +1001,22 @@ public class DummyResource implements DebugDumpable {
 	}
 
 	public synchronized void unblockAll() {
+		syncSearchHandlerStart = false;
+		blockOperations = false;
 		LOGGER.info("Unblocking all");
 		this.notifyAll();
+	}
+	
+	public synchronized void searchHandlerSync() {
+		if (syncSearchHandlerStart) {
+			try {
+				LOGGER.info("Thread {} blocked (search handler sync)", Thread.currentThread().getName());
+				this.wait();
+				LOGGER.info("Thread {} unblocked (search handler sync)", Thread.currentThread().getName());
+			} catch (InterruptedException e) {
+				LOGGER.debug("Wait interrupted (search handler sync)", e);
+			}
+		}
 	}
 
 	private void traceOperation(String opName, long counter) {
@@ -1036,7 +1087,7 @@ public class DummyResource implements DebugDumpable {
 			sb.append("\n  ");
 			sb.append(delta);
 		}
-		sb.append("\nLatest token:").append(latestSyncToken);
+		sb.append("\nLatest token:").append(latestSyncToken.get());
 		return sb.toString();
 	}
 

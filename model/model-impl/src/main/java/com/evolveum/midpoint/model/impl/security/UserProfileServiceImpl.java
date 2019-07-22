@@ -22,6 +22,9 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.DebugUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,15 +42,12 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.authentication.MidPointUserProfilePrincipal;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.impl.UserComputer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.ItemDeltaItem;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -98,9 +97,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private UserComputer userComputer;
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
+	@Autowired private SecurityContextManager securityContextManager;
 
-        //optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
-        @Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
+	//optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
+	@Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
         
 	private MessageSourceAccessor messages;
 
@@ -147,14 +147,18 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         if (user == null) {
             return null;
         }
+	    securityContextManager.setTemporaryPrincipalOid(user.getOid());
+        try {
+	        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
+	        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
 
-        PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
-        LifecycleStateModelType lifecycleModel = getLifecycleModel(user, systemConfiguration);
-    	
-		userComputer.recompute(user, lifecycleModel);
-		MidPointUserProfilePrincipal principal = new MidPointUserProfilePrincipal(user.asObjectable());
-        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
-        return principal;
+	        userComputer.recompute(user, lifecycleModel);
+	        MidPointUserProfilePrincipal principal = new MidPointUserProfilePrincipal(user.asObjectable());
+	        initializePrincipalFromAssignments(principal, systemConfiguration, authorizationTransformer);
+	        return principal;
+        } finally {
+        	securityContextManager.clearTemporaryPrincipalOid();
+        }
     }
     
     private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
@@ -174,17 +178,17 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
     		return null;
     	}
 		try {
-			return ModelUtils.determineLifecycleModel(user, systemConfiguration.asObjectable());
+			return ArchetypeManager.determineLifecycleModel(user, systemConfiguration.asObjectable());
 		} catch (ConfigurationException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
     }
 
     @Override
-    public void updateUser(MidPointPrincipal principal) {
+    public void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas) {
     	OperationResult result = new OperationResult(OPERATION_UPDATE_USER);
         try {
-            save(principal, result);
+            save(principal, itemDeltas, result);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.", principal.getFullName(), principal.getOid(), ex.getMessage(), ex);
         }
@@ -206,24 +210,21 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	private void initializePrincipalFromAssignments(MidPointUserProfilePrincipal principal, PrismObject<SystemConfigurationType> systemConfiguration, AuthorizationTransformer authorizationTransformer) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		Task task = taskManager.createTaskInstance(UserProfileServiceImpl.class.getName() + ".initializePrincipalFromAssignments");
         OperationResult result = task.getResult();
-        userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+        try {
+        	userProfileCompiler.compileUserProfile(principal, systemConfiguration, authorizationTransformer, task, result);
+        } catch (Throwable e) {
+			// Do not let any error stop processing here. This code is used during user login. An error here can stop login procedure. We do not
+			// want that. E.g. wrong adminGuiConfig may prohibit login on administrator, therefore ruining any chance of fixing the situation.
+			LOGGER.error("Error compiling user profile for {}: {}", principal, e.getMessage(), e);
+			// Do NOT re-throw the exception here. Just go on.
+		}
 	}
 
-	private MidPointPrincipal save(MidPointPrincipal person, OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        UserType oldUserType = getUserByOid(person.getOid(), result);
-        PrismObject<UserType> oldUser = oldUserType.asPrismObject();
-
-        PrismObject<UserType> newUser = person.getUser().asPrismObject();
-
-        ObjectDelta<UserType> delta = oldUser.diff(newUser);
-        if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Updating user {} with delta:\n{}", newUser, delta.debugDump());
-        }
-        repositoryService.modifyObject(UserType.class, delta.getOid(), delta.getModifications(),
-                new OperationResult(OPERATION_UPDATE_USER));
-
-        return person;
-    }
+	private void save(MidPointPrincipal person, Collection<? extends ItemDelta<?, ?>> itemDeltas,
+			OperationResult result) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		LOGGER.trace("Updating user {} with deltas:\n{}", person.getUser(), DebugUtil.debugDumpLazily(itemDeltas));
+        repositoryService.modifyObject(UserType.class, person.getUser().getOid(), itemDeltas, result);
+	}
 
     private UserType getUserByOid(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
 	    return repositoryService.getObject(UserType.class, oid, null, result).asObjectable();

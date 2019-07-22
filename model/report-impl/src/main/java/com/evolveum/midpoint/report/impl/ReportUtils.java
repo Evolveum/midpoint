@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import com.evolveum.midpoint.audit.api.AuditEventStage;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -30,17 +32,23 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,6 +56,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceValueType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
@@ -55,11 +65,16 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import net.sf.jasperreports.engine.JRValueParameter;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.MissingResourceException;
 import java.util.stream.Collectors;
 import org.apache.commons.lang.WordUtils;
@@ -172,6 +187,15 @@ public class ReportUtils {
         return formatDate.format(createDate);
     }
 
+    public static ExportType getExport(ReportType report) {
+    	JasperReportEngineConfigurationType jasperConfig = report.getJasper();
+    	if (jasperConfig == null) {
+    		return report.getExport();
+    	} else {
+    		return jasperConfig.getExport();
+    	}
+    }
+    
     public static String getReportOutputFilePath(ReportType reportType) {
         File exportFolder = new File(EXPORT_DIR);
         if (!exportFolder.exists() || !exportFolder.isDirectory()) {
@@ -870,5 +894,43 @@ public class ReportUtils {
 		return property != null ? 
 					String.join(",", property)
 					: defaultValue;
+	}
+
+	public static Object dumpParams(Map<String, ? extends JRValueParameter> parametersMap, int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (Entry<String, ? extends JRValueParameter> entry : parametersMap.entrySet()) {
+			DebugUtil.debugDumpWithLabelToStringLn(sb, entry.getKey(), entry.getValue().getValue(), indent);
+		}
+		return sb.toString();
+	}
+
+	public static byte[] decodeIfNeeded(byte[] input) {
+		if (input == null || input.length == 0) {
+			return input;
+		}
+		if (input[0] == '<') {
+			return input;
+		}
+		return Base64.decodeBase64(input);
+	}
+	
+	public static Map<String, Object> jasperParamsToAuditParams(Map<String, ? extends Object> jasperParams) {
+		Map<String, Object> auditParams = new HashMap<>();
+        for (Entry<String, ? extends Object> jasperParam : jasperParams.entrySet()) {
+        	Object value;
+        	if(jasperParam.getValue() instanceof TypedValue) {
+        		value = ((TypedValue)jasperParam.getValue()).getValue();
+        	} else {
+        		value = jasperParam.getValue();
+        	}
+            if (value instanceof AuditEventTypeType) {
+                auditParams.put(jasperParam.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) value));
+            } else if (value instanceof AuditEventStageType) {
+                auditParams.put(jasperParam.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) value));
+            } else {
+                auditParams.put(jasperParam.getKey(), value);
+            }
+        }
+        return auditParams;
 	}
 }

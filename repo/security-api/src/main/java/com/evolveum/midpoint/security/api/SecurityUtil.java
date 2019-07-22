@@ -88,7 +88,7 @@ public class SecurityUtil {
 	 * May return null (means anonymous or unknown)
 	 */
 	public static String getSubjectDescription() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Authentication authentication = getAuthentication();
 		if (authentication == null) {
 			return null;
 		}
@@ -338,7 +338,7 @@ public class SecurityUtil {
 	 * Returns principal representing currently logged-in user. Returns null if the user is anonymous.
 	 */
 	public static MidPointPrincipal getPrincipal() throws SecurityViolationException {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		Authentication authentication = getAuthentication();
 		if (authentication == null) {
 			SecurityViolationException ex = new SecurityViolationException("No authentication");
 			LOGGER.error("No authentication", ex);
@@ -356,8 +356,20 @@ public class SecurityUtil {
 		return (MidPointPrincipal) principalObject;
 	}
 
+	public static String getPrincipalOidIfAuthenticated() {
+		Authentication authentication = getAuthentication();
+		if (authentication != null && authentication.getPrincipal() instanceof MidPointPrincipal) {
+			return ((MidPointPrincipal) authentication.getPrincipal()).getOid();
+		} else {
+			return null;
+		}
+	}
+
 	public static boolean isAuthenticated() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return (authentication != null);
+		return getAuthentication() != null;
+	}
+
+	public static Authentication getAuthentication() {
+		return SecurityContextHolder.getContext().getAuthentication();
 	}
 }

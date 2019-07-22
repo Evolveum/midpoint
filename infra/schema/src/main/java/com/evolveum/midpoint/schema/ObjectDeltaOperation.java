@@ -18,11 +18,11 @@ package com.evolveum.midpoint.schema;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -98,20 +98,21 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
 	}
 
 	public boolean containsDelta(ObjectDelta<O> delta) {
-		return objectDelta.equals(delta);
+		return objectDelta.equals(delta) ||
+				objectDelta.isModify() && delta.isModify() && objectDelta.containsAllModifications(delta.getModifications(), EquivalenceStrategy.IGNORE_METADATA);
 	}
 
-	public static <T extends ObjectType> boolean containsDelta(Collection<? extends ObjectDeltaOperation<T>> deltaOps, ObjectDelta<T> delta) {
-		if (deltaOps == null) {
-			return false;
-		}
-		for (ObjectDeltaOperation<T> deltaOp: deltaOps) {
-			if (deltaOp.containsDelta(delta)) {
-				return true;
-			}
-		}
-		return false;
-	}
+//	public static <T extends ObjectType> boolean containsDelta(Collection<? extends ObjectDeltaOperation<T>> deltaOps, ObjectDelta<T> delta) {
+//		if (deltaOps == null) {
+//			return false;
+//		}
+//		for (ObjectDeltaOperation<T> deltaOp: deltaOps) {
+//			if (deltaOp.containsDelta(delta)) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	public ObjectDeltaOperation<O> clone() {
 		ObjectDeltaOperation<O> clone = new ObjectDeltaOperation<>();

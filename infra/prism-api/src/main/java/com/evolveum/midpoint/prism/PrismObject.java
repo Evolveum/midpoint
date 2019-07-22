@@ -98,6 +98,8 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
 	PrismContainer<?> getExtension();
 
+	PrismContainer<?> getOrCreateExtension() throws SchemaException;
+
 	PrismContainerValue<?> getExtensionContainerValue();
 
 	<I extends Item> I findExtensionItem(String elementLocalName);
@@ -131,7 +133,8 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 	ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications);
+	Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+			boolean assumeMissingItems);
 
 	ObjectDelta<O> createDelta(ChangeType changeType);
 
@@ -206,7 +209,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 		return o != null ? o.asPrismObject() : null;
 	}
 
-	static Objectable asObjectable(PrismObject<?> object) {
+	static <T extends Objectable> T asObjectable(PrismObject<T> object) {
 		return object != null ? object.asObjectable() : null;
 	}
 }

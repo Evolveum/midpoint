@@ -77,7 +77,7 @@ public class TestFind {
 		PrismProperty<PolyString> nameProperty = findProperty(user, path);
 
 		// THEN
-		assertEquals("Wrong property value (path="+path+")", PrismTestUtil.createPolyString(USER_JACK_POLYNAME_ORIG), nameProperty.getRealValue());
+		PrismInternalTestUtil.asssertJackPolyName(nameProperty, user, true);
 		assertTrue("QName found something other", nameProperty == (PrismProperty) user.findProperty(UserType.F_POLY_NAME));
 	}
 

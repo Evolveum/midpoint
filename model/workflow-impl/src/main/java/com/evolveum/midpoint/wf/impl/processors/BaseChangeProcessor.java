@@ -4,7 +4,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
@@ -22,16 +22,12 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseChangeProcessor.class);
 
-    private Configuration processorConfiguration;
-
     private String beanName;
     private BeanFactory beanFactory;
 
-    @Autowired private MiscDataUtil miscDataUtil;
-	@Autowired private PrismContext prismContext;
+    @Autowired protected MiscHelper miscHelper;
+	@Autowired protected PrismContext prismContext;
     @Autowired private RelationRegistry relationRegistry;
-
-    private boolean enabled = false;
 
     public String getBeanName() {
         return beanName;
@@ -51,21 +47,10 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         this.beanFactory = beanFactory;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
+    @Override
+    public MiscHelper getMiscHelper() {
+        return miscHelper;
     }
-
-    public Configuration getProcessorConfiguration() {
-        return processorConfiguration;
-    }
-
-    protected void setProcessorConfiguration(Configuration c) {
-        processorConfiguration = c;
-    }
-
-	public MiscDataUtil getMiscDataUtil() {
-		return miscDataUtil;
-	}
 
     @Override
     public PrismContext getPrismContext() {
@@ -76,4 +61,6 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     public RelationRegistry getRelationRegistry() {
         return relationRegistry;
     }
+
+
 }

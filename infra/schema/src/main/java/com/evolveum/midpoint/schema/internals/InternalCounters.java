@@ -29,6 +29,8 @@ public enum InternalCounters {
 	RESOURCE_REPOSITORY_MODIFY_COUNT("resourceRepositoryModifyCount", "resource repository modify count", InternalOperationClasses.REPOSITORY_OPERATIONS),
 
 	CONNECTOR_INSTANCE_INITIALIZATION_COUNT("connectorInstanceInitializationCount", "connector instance initialization count", InternalOperationClasses.CONNECTOR_OPERATIONS),
+	
+	CONNECTOR_INSTANCE_CONFIGURATION_COUNT("connectorInstanceConfigurationCount", "connector instance configuration count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
 	CONNECTOR_SCHEMA_PARSE_COUNT("connectorSchemaParseCount", "connector schema parse count", InternalOperationClasses.CONNECTOR_OPERATIONS),
 
@@ -55,9 +57,9 @@ public enum InternalCounters {
 
 	REPOSITORY_READ_COUNT("repositoryReadCount", "repository read count", null),
 
-	PRISM_OBJECT_COMPARE_COUNT("prismObjectCompareCount", "prism object compare count", null),
+	PRISM_OBJECT_COMPARE_COUNT("prismObjectCompareCount", "prism object compare count", InternalOperationClasses.PRISM_OPERATIONS),
 
-	PRISM_OBJECT_CLONE_COUNT("prismObjectCloneCount", "prism object clone count", null),
+	PRISM_OBJECT_CLONE_COUNT("prismObjectCloneCount", "prism object clone count", InternalOperationClasses.PRISM_OPERATIONS),
 
 	ROLE_EVALUATION_COUNT("roleEvaluationCount", "role evaluation count", InternalOperationClasses.ROLE_EVALUATIONS),
 

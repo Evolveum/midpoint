@@ -34,6 +34,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import net.sf.ehcache.store.disk.ods.AATreeSet;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -274,6 +277,9 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 			@NotNull PrismContext prismContext) {
 		this.source = source;
 		this.sourceDescription = sourceDescription;
+		if (assignmentIdi.getDefinition() == null) {
+			throw new IllegalArgumentException("Attept to set segment assignment IDI withough a definition");
+		}
 		this.assignmentIdi = assignmentIdi;
 		this.isAssignment = isAssignment;
 		this.evaluatedForOld = evaluatedForOld;
@@ -281,7 +287,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		this.prismContext = prismContext;
 	}
 
-	AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
+	public AssignmentPathSegmentImpl(ObjectType source, String sourceDescription, AssignmentType assignment, boolean isAssignment,
 			RelationRegistry relationRegistry, PrismContext prismContext) {
 		this(source, sourceDescription, createAssignmentIdi(assignment), isAssignment, false, relationRegistry, prismContext);
 	}
@@ -289,10 +295,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 	private static ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdi(
 			AssignmentType assignment) {
 		try {
-			ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>();
-			idi.setItemOld(LensUtil.createAssignmentSingleValueContainerClone(assignment));
-			idi.recompute();
-			return idi;
+			return  new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignment), assignment.asPrismContainerValue().getDefinition());
 		} catch (SchemaException e) {
 			// should not really occur!
 			throw new SystemException("Couldn't create assignment IDI: " + e.getMessage(), e);
@@ -438,8 +441,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment {
 		return computeMatchingOrder(evaluationOrder, assignmentType.getOrder(), assignmentType.getOrderConstraint());
 	}
 
-	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder,
-			List<OrderConstraintsType> assignmentOrderConstraint) {
+	static boolean computeMatchingOrder(EvaluationOrder evaluationOrder, Integer assignmentOrder, List<OrderConstraintsType> assignmentOrderConstraint) {
 		boolean rv;
 		List<QName> extraRelations = new ArrayList<>(evaluationOrder.getExtraRelations());
 		if (assignmentOrder == null && assignmentOrderConstraint.isEmpty()) {

@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +67,8 @@ public class TaskManagerConfiguration {
     private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
     private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
     private static final String DATA_SOURCE_CONFIG_ENTRY = "dataSource";
+    private static final String USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY = "useRepositoryConnectionProvider";     // experimental
+
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
     private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
@@ -93,6 +96,8 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY = "workAllocationRetryExponentialThreshold";
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
+
+    private static final String TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY = "taskExecutionLimitations";
 
     @Deprecated private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
@@ -156,6 +161,8 @@ public class TaskManagerConfiguration {
     private long workAllocationInitialDelay;
     private long workAllocationDefaultFreeBucketWaitInterval;
 
+    private TaskExecutionLimitationsType taskExecutionLimitations;
+
     private boolean useJmx;
     // JMX credentials for connecting to remote nodes
     @Deprecated private String jmxUsername;
@@ -169,6 +176,7 @@ public class TaskManagerConfiguration {
     private String jdbcUser;
     private String jdbcPassword;
     private String dataSource;
+    private boolean useRepositoryConnectionProvider;
     private boolean createQuartzTables;
 
     private Database database;
@@ -202,6 +210,7 @@ public class TaskManagerConfiguration {
             JDBC_USER_CONFIG_ENTRY,
             JDBC_PASSWORD_CONFIG_ENTRY,
             DATA_SOURCE_CONFIG_ENTRY,
+            USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY,
             SQL_SCHEMA_FILE_CONFIG_ENTRY,
             CREATE_QUARTZ_TABLES_CONFIG_ENTRY,
             JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
@@ -226,7 +235,8 @@ public class TaskManagerConfiguration {
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
             WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
-            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
+            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
+            TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -338,6 +348,50 @@ public class TaskManagerConfiguration {
         workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
         workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
                 WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
+
+        if (c.containsKey(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY)) {
+            taskExecutionLimitations = parseExecutionLimitations(c.getString(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY));
+        }
+    }
+
+    // Examples:
+    //  - admin-node:2,sync-jobs:4      (2 threads for admin-node, 4 threads for sync-jobs, and the usual default settings)
+    //  - admin-node,sync-jobs          (unlimited threads for admin-node and sync-jobs; and the usual default settings)
+    //  - #,_,*:0                       (these are default settings: unlimited for the current node (marked as #) and for unlabeled tasks (marked as _), 0 for other tasks)
+    //  - admin-node:2,sync-jobs:4,#:0,_:0 (2 for admin-node, 4 for sync-jobs, and default settings are overridden - nothing for current node name, nothing for unlabeled tasks)
+    //
+    // We assume that no group name contains ':' or ',' characters.
+    //
+    // package-visible and static because of testing needs
+    static TaskExecutionLimitationsType parseExecutionLimitations(String limitations) throws TaskManagerConfigurationException {
+        if (limitations == null) {
+            return null;
+        } else {
+            TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
+            for (String limitation : StringUtils.splitPreserveAllTokens(limitations.trim(), ',')) {
+                String[] limitationParts = limitation.trim().split(":");
+                String groupName;
+                Integer groupLimit;
+                if (limitationParts.length == 1) {
+                    groupName = limitationParts[0].trim();
+                    groupLimit = null;
+                } else if (limitationParts.length == 2) {
+                    groupName = limitationParts[0].trim();
+                    try {
+                        String limitValue = limitationParts[1].trim();
+                        groupLimit = "*".equals(limitValue) ? null : Integer.parseInt(limitValue);
+                    } catch (NumberFormatException e) {
+                        throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations, e);
+                    }
+                } else {
+                    throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations);
+                }
+                rv.beginGroupLimitation()
+                        .groupName(groupName)
+                        .limit(groupLimit);
+            }
+            return rv;
+        }
     }
 
     private String provideNodeId(@NotNull String source) {
@@ -383,36 +437,6 @@ public class TaskManagerConfiguration {
 
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
-        jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
-
-        String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
-        if (explicitJdbcUrl == null) {
-            if (sqlConfig != null) {
-                if (sqlConfig.isEmbedded()) {
-                    jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
-                } else {
-                    jdbcUrl = sqlConfig.getJdbcUrl();
-                }
-            } else {
-                jdbcUrl = null;
-            }
-        } else {
-            jdbcUrl = explicitJdbcUrl;
-        }
-        dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
-        if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
-            dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
-        }
-
-        if (dataSource != null) {
-            LOGGER.info("Quartz database is at {} (a data source)", dataSource);
-        } else {
-            LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
-        }
-
-        jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
-        jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
-
         database = sqlConfig != null ? sqlConfig.getDatabase() : null;
 
         String defaultSqlSchemaFile = schemas.get(database);
@@ -423,6 +447,44 @@ public class TaskManagerConfiguration {
 
         createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
         databaseIsEmbedded = sqlConfig != null && sqlConfig.isEmbedded();
+
+        useRepositoryConnectionProvider = c.getBoolean(USE_REPOSITORY_CONNECTION_PROVIDER_CONFIG_ENTRY, false);
+        if (useRepositoryConnectionProvider) {
+            LOGGER.info("Using connection provider from repository (ignoring all the other database-related configuration)");
+            if (sqlConfig != null && sqlConfig.isUsingH2()) {
+                LOGGER.warn("This option is not supported for H2! Please change the task manager configuration.");
+            }
+        } else {
+            jdbcDriver = c.getString(JDBC_DRIVER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getDriverClassName() : null);
+
+            String explicitJdbcUrl = c.getString(JDBC_URL_CONFIG_ENTRY, null);
+            if (explicitJdbcUrl == null) {
+                if (sqlConfig != null) {
+                    if (sqlConfig.isEmbedded()) {
+                        jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
+                    } else {
+                        jdbcUrl = sqlConfig.getJdbcUrl();
+                    }
+                } else {
+                    jdbcUrl = null;
+                }
+            } else {
+                jdbcUrl = explicitJdbcUrl;
+            }
+            dataSource = c.getString(DATA_SOURCE_CONFIG_ENTRY, null);
+            if (dataSource == null && explicitJdbcUrl == null && sqlConfig != null) {
+                dataSource = sqlConfig.getDataSource();             // we want to use quartz-specific JDBC if there is one (i.e. we do not want to inherit data source from repo in such a case)
+            }
+
+            if (dataSource != null) {
+                LOGGER.info("Quartz database is at {} (a data source)", dataSource);
+            } else {
+                LOGGER.info("Quartz database is at {} (a JDBC URL)", jdbcUrl);
+            }
+
+            jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
+            jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+        }
     }
 
     /**
@@ -448,8 +510,7 @@ public class TaskManagerConfiguration {
     }
 
     void validateJdbcJobStoreInformation() throws TaskManagerConfigurationException {
-
-        if (StringUtils.isEmpty(dataSource)) {
+        if (!useRepositoryConnectionProvider && StringUtils.isEmpty(dataSource)) {
             notEmpty(jdbcDriver, "JDBC driver must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
             notEmpty(jdbcUrl, "JDBC URL must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
             notNull(jdbcUser, "JDBC user name must be specified (either explicitly or via data source; in task manager or in SQL repository configuration)");
@@ -625,6 +686,10 @@ public class TaskManagerConfiguration {
         this.createQuartzTables = createQuartzTables;
     }
 
+    public boolean isUseRepositoryConnectionProvider() {
+        return useRepositoryConnectionProvider;
+    }
+
     public String getDataSource() {
         return dataSource;
     }
@@ -661,5 +726,9 @@ public class TaskManagerConfiguration {
 
     public long getWorkAllocationDefaultFreeBucketWaitInterval() {
         return workAllocationDefaultFreeBucketWaitInterval;
+    }
+
+    public TaskExecutionLimitationsType getTaskExecutionLimitations() {
+        return taskExecutionLimitations;
     }
 }

@@ -33,6 +33,11 @@
     </scm>
     <dependencies>
     	<dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-api</artifactId>
+            <version>4.0-SNAPSHOT</version>
+        </dependency>
+    	<dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
             <version>4.0-SNAPSHOT</version>
@@ -169,6 +174,10 @@
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations-java5</artifactId>
         </dependency>
+        <dependency>
+    		<groupId>org.apache.httpcomponents</groupId>
+    		<artifactId>httpcore</artifactId>
+		</dependency>
                 
         <!-- Test -->
         <dependency>
@@ -266,5 +275,10 @@
 			<artifactId>spring-aop</artifactId>
 			<scope>test</scope> 
 		</dependency>
+		<dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>test-util</artifactId>
+            <version>4.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

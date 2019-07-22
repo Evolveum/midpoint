@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.PrimitiveType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -46,12 +47,15 @@ public class AdUtils {
 
 	public static final String ATTRIBUTE_OBJECT_GUID_NAME = "objectGUID";
 	public static final String ATTRIBUTE_OBJECT_SID_NAME = "objectSid";
+	public static final String ATTRIBUTE_OBJECT_CATEGORY_NAME = "objectCategory";
 	public static final String ATTRIBUTE_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
 	public static final String ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME = "userAccountControl";
 	public static final QName ATTRIBUTE_USER_ACCOUNT_CONTROL_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME);
 	public static final String ATTRIBUTE_UNICODE_PWD_NAME = "unicodePwd";
 	public static final String ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME = "msExchHideFromAddressLists";
 	public static final QName ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_QNAME = new QName(MidPointConstants.NS_RI, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME);
+	public static final String ATTRIBUTE_TITLE_NAME = "title";
+	public static final String ATTRIBUTE_PROXY_ADDRESSES_NAME = "proxyAddresses";
 
 	public static final QName OBJECT_CLASS_MS_EXCH_BASE_CLASS_QNAME = new QName(MidPointConstants.NS_RI, "msExchBaseClass");
 
@@ -171,31 +175,39 @@ public class AdUtils {
 
         ResourceAttributeDefinition<Long> isCriticalSystemObjectDef = accountObjectClassDefinition.findAttributeDefinition("isCriticalSystemObject");
         PrismAsserts.assertDefinition(isCriticalSystemObjectDef, new QName(MidPointConstants.NS_RI, "isCriticalSystemObject"),
-        		DOMUtil.XSD_BOOLEAN, 0, 1);
+        		PrimitiveType.XSD_BOOLEAN, 0, 1);
         assertTrue("isCriticalSystemObject read", isCriticalSystemObjectDef.canRead());
         assertTrue("isCriticalSystemObject modify", isCriticalSystemObjectDef.canModify());
         assertTrue("isCriticalSystemObject add", isCriticalSystemObjectDef.canAdd());
 
         ResourceAttributeDefinition<Long> nTSecurityDescriptorDef = accountObjectClassDefinition.findAttributeDefinition("nTSecurityDescriptor");
         PrismAsserts.assertDefinition(nTSecurityDescriptorDef, new QName(MidPointConstants.NS_RI, "nTSecurityDescriptor"),
-        		DOMUtil.XSD_BASE64BINARY, 0, 1);
+        		PrimitiveType.XSD_BASE64BINARY, 0, 1);
         assertTrue("nTSecurityDescriptor read", nTSecurityDescriptorDef.canRead());
         assertTrue("nTSecurityDescriptor modify", nTSecurityDescriptorDef.canModify());
         assertTrue("nTSecurityDescriptor add", nTSecurityDescriptorDef.canAdd());
         
         ResourceAttributeDefinition<Long> objectSidDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_OBJECT_SID_NAME);
         PrismAsserts.assertDefinition(objectSidDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_OBJECT_SID_NAME),
-        		DOMUtil.XSD_STRING, 0, 1);
+        		PrimitiveType.XSD_STRING, 0, 1);
         assertTrue("objectSid read", objectSidDef.canRead());
         assertFalse("objectSid modify", objectSidDef.canModify());
         assertFalse("objectSid add", objectSidDef.canAdd());
 
         ResourceAttributeDefinition<Long> lastLogonDef = accountObjectClassDefinition.findAttributeDefinition("lastLogon");
         PrismAsserts.assertDefinition(lastLogonDef, new QName(MidPointConstants.NS_RI, "lastLogon"),
-        		DOMUtil.XSD_LONG, 0, 1);
+        		PrimitiveType.XSD_LONG, 0, 1);
         assertTrue("lastLogonDef read", lastLogonDef.canRead());
         assertTrue("lastLogonDef modify", lastLogonDef.canModify());
         assertTrue("lastLogonDef add", lastLogonDef.canAdd());
+        
+        ResourceAttributeDefinition<Long> proxyAddressesDef = accountObjectClassDefinition.findAttributeDefinition(ATTRIBUTE_PROXY_ADDRESSES_NAME);
+        PrismAsserts.assertDefinition(proxyAddressesDef, new QName(MidPointConstants.NS_RI, ATTRIBUTE_PROXY_ADDRESSES_NAME),
+        		PrimitiveType.XSD_STRING, 0, -1);
+        assertTrue("proxyAddressesDef read", proxyAddressesDef.canRead());
+        assertTrue("proxyAddressesDef modify", proxyAddressesDef.canModify());
+        assertTrue("proxyAddressesDef add", proxyAddressesDef.canAdd());
+        // TODO: proxyAddressesDef.getMatchingRuleQName()
 
         return accountObjectClassDefinition;
 	}

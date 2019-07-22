@@ -56,11 +56,13 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
      * E.g. discovering that the object is missing, or a conflicting object already exists.
      *
      * It is expected that reactions to the unrelated changes will be lighter, faster,
-     * with lower overhead and without abmition to provide full synchronization.
+     * with lower overhead and without ambition to provide full synchronization.
      */
     private boolean unrelatedChange = false;
     
     private boolean simulate = false;
+
+    private boolean cleanDeadShadow = false;
 
     public ObjectDelta<ShadowType> getObjectDelta() {
         return objectDelta;
@@ -117,7 +119,15 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 	public void setSimulate(boolean simulate) {
 		this.simulate = simulate;
 	}
-	
+
+	public boolean isCleanDeadShadow() {
+		return cleanDeadShadow;
+	}
+
+	public void setCleanDeadShadow(boolean cleanDeadShadow) {
+		this.cleanDeadShadow = cleanDeadShadow;
+	}
+
 	public void checkConsistence() {
     	if (resource == null) {
     		throw new IllegalArgumentException("No resource in "+this.getClass().getSimpleName());
@@ -161,7 +171,7 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 	public String toString() {
 		return "ResourceObjectShadowChangeDescription(objectDelta=" + objectDelta + ", currentShadow="
 				+ SchemaDebugUtil.prettyPrint(currentShadow) + ", oldShadow=" + SchemaDebugUtil.prettyPrint(oldShadow) + ", sourceChannel=" + sourceChannel
-				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") + (simulate ? " SIMULATE" : "") +")";
+				+ ", resource=" + resource + (unrelatedChange ? " UNRELATED" : "") + (simulate ? " SIMULATE" : "") + (cleanDeadShadow ? " CLEAN DEAD SHADOW" : "") + ")";
 	}
 
 	/* (non-Javadoc)
@@ -230,6 +240,11 @@ public class ResourceObjectShadowChangeDescription implements DebugDumpable, Ser
 		sb.append("\n");
 		SchemaDebugUtil.indentDebugDump(sb, indent+1);
 		sb.append("simulate: ").append(simulate);
+
+		sb.append("\n");
+		SchemaDebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("cleanDeadShadow: ").append(cleanDeadShadow);
+
 
 		return sb.toString();
 	}

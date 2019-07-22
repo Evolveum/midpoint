@@ -16,11 +16,23 @@
 
 package com.evolveum.midpoint.web.page.admin.certification;
 
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.prism.PrismPropertyPanel;
-import com.evolveum.midpoint.web.component.prism.ReferenceWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.AccessCertificationReviewerDto;
 import com.evolveum.midpoint.web.page.admin.certification.dto.ManagerSearchDto;
@@ -28,15 +40,6 @@ import com.evolveum.midpoint.web.page.admin.certification.dto.StageDefinitionDto
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseOutcomeStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationResponseType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.List;
 
 /**
  * Created by Kate Honchar.
@@ -158,18 +161,19 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 		useObjectManagerDetails.add(allowSelf);
 		useObjectManagerDetails.add(WebComponentUtil.createHelp(ID_USE_OBJECT_MANAGER_ALLOW_SELF_HELP));
 
-		PrismPropertyPanel defaultOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_DEFAULT_REVIEWER_REF,
-                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS),
-                null, pageBase);
-        defaultOwnerRefPanel.setLabelContainerVisible(false);
-        add(defaultOwnerRefPanel);
-		add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
-
-		PrismPropertyPanel additionalOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_ADDITIONAL_REVIEWER_REF,
-                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS),
-                null, pageBase);
-        additionalOwnerRefPanel.setLabelContainerVisible(false);
-        add(additionalOwnerRefPanel);
+		//TODO TODO TODO
+//		PrismPropertyPanel defaultOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_DEFAULT_REVIEWER_REF,
+//                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS),
+//                null);
+//        defaultOwnerRefPanel.setLabelContainerVisible(false);
+//        add(defaultOwnerRefPanel);
+//		add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
+//
+//		PrismPropertyPanel additionalOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_ADDITIONAL_REVIEWER_REF,
+//                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS),
+//                null);
+//        additionalOwnerRefPanel.setLabelContainerVisible(false);
+//        add(additionalOwnerRefPanel);
 		add(WebComponentUtil.createHelp(ID_ADDITIONAL_REVIEWER_REF_HELP));
 
         DropDownChoice outcomeStrategy1 =
@@ -200,19 +204,19 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 	}
 
 
-	private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
-		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form, PageBase pageBase) {
-			super(id, propertyModel, form, null, pageBase);
-		}
-		// quite a hack, to get rid of col-md-offset-2 style
-		@Override
-		protected IModel<String> createStyleClassModel(IModel value) {
-			return new IModel<String>() {
-				@Override
-				public String getObject() {
-					return null;
-				}
-			};
-		}
-	}
+//	private static class NoOffsetPrismReferencePanel extends PrismPropertyPanel<ReferenceWrapper> {
+//		public NoOffsetPrismReferencePanel(String id, IModel<ReferenceWrapper> propertyModel, Form form) {
+//			super(id, propertyModel, form, null);
+//		}
+//		// quite a hack, to get rid of col-md-offset-2 style
+//		@Override
+//		protected IModel<String> createStyleClassModel(IModel value) {
+//			return new IModel<String>() {
+//				@Override
+//				public String getObject() {
+//					return null;
+//				}
+//			};
+//		}
+//	}
 }

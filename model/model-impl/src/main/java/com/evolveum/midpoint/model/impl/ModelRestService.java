@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2017 Evolveum
+ * Copyright (c) 2013-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -104,7 +105,7 @@ public class ModelRestService {
 	public static final String OPERATION_GENERATE_VALUE = CLASS_DOT +  "generateValue";
 	public static final String OPERATION_GENERATE_VALUE_RPC = CLASS_DOT +  "generateValueRpc";
 	public static final String OPERATION_EXECUTE_CREDENTIAL_RESET = CLASS_DOT + "executeCredentialReset";
-	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterEvent";
+	public static final String OPERATION_EXECUTE_CLUSTER_EVENT = CLASS_DOT + "executeClusterCacheInvalidationEvent";
 	public static final String OPERATION_GET_LOCAL_SCHEDULER_INFORMATION = CLASS_DOT + "getLocalSchedulerInformation";
 	public static final String OPERATION_STOP_LOCAL_SCHEDULER = CLASS_DOT + "stopScheduler";
 	public static final String OPERATION_START_LOCAL_SCHEDULER = CLASS_DOT + "startScheduler";
@@ -325,6 +326,7 @@ public class ModelRestService {
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
+			@QueryParam("resolveNames") List<String> resolveNames,
 			@Context MessageContext mc){
 		LOGGER.debug("model rest service for get operation start");
 
@@ -332,8 +334,8 @@ public class ModelRestService {
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_GET);
 
 		Class<? extends ObjectType> clazz = ObjectTypes.getClassFromRestType(type);
-		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-				prismContext);
+		Collection<SelectorOptions<GetOperationOptions>> getOptions = GetOperationOptions.fromRestOptions(options, include,
+				exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 		Response response;
 
 		try {
@@ -455,6 +457,7 @@ public class ModelRestService {
 	@Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
 	public <T extends ObjectType> Response searchObjectsByType(@PathParam("type") String type, @QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include, @QueryParam("exclude") List<String> exclude,
+			@QueryParam("resolveNames") List<String> resolveNames,
 			@Context UriInfo uriInfo, @Context MessageContext mc) {
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -464,8 +467,8 @@ public class ModelRestService {
 		Response response;
 		try {
 
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-					prismContext);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
+					exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 
 			List<PrismObject<T>> objects = modelService.searchObjects(clazz, null, searchOptions, task, parentResult);
 			ObjectListType listType = new ObjectListType();
@@ -575,7 +578,7 @@ public class ModelRestService {
 		Response response;
 		try {
 			if (clazz.isAssignableFrom(TaskType.class)) {
-				model.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
+				taskService.suspendAndDeleteTask(id, WAIT_FOR_TASK_STOP, true, task, parentResult);
 				parentResult.computeStatus();
 				finishRequest(task);
 				if (parentResult.isSuccess()) {
@@ -647,7 +650,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.notifyChange(changeDescription, parentResult, task);
+			modelService.notifyChange(changeDescription, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.OK, parentResult);
 //			return Response.ok().build();
 //			String oldShadowOid = changeDescription.getOldShadowOid();
@@ -679,7 +682,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			PrismObject<UserType> user = model.findShadowOwner(shadowOid, task, parentResult);
+			PrismObject<UserType> user = modelService.findShadowOwner(shadowOid, task, parentResult);
 //			response = Response.ok().entity(user).build();
 			response = RestServiceUtil.createResponse(Response.Status.OK, user, parentResult);
 		} catch (Exception ex) {
@@ -722,7 +725,8 @@ public class ModelRestService {
 			@QueryParam("options") List<String> options,
 			@QueryParam("include") List<String> include,
 			@QueryParam("exclude") List<String> exclude,
-			@Context MessageContext mc){
+			@QueryParam("resolveNames") List<String> resolveNames,
+			@Context MessageContext mc) {
 
 		Task task = RestServiceUtil.initRequest(mc);
 		OperationResult parentResult = task.getResult().createSubresult(OPERATION_SEARCH_OBJECTS);
@@ -731,8 +735,8 @@ public class ModelRestService {
 		Response response;
 		try {
 			ObjectQuery query = prismContext.getQueryConverter().createObjectQuery(clazz, queryType);
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include, exclude, DefinitionProcessingOption.ONLY_IF_EXISTS,
-					prismContext);
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions = GetOperationOptions.fromRestOptions(options, include,
+					exclude, resolveNames, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
 			List<PrismObject<? extends ObjectType>> objects = model.searchObjects(clazz, query, searchOptions, task, parentResult);
 
 			ObjectListType listType = new ObjectListType();
@@ -752,7 +756,7 @@ public class ModelRestService {
 		return response;
 	}
 
-	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) {
+	private void removeExcludes(PrismObject<? extends ObjectType> object, List<String> exclude) throws SchemaException {
 		object.getValue().removePaths(ItemPathCollectionsUtil.pathListFromStrings(exclude, prismContext));
 	}
 
@@ -769,7 +773,7 @@ public class ModelRestService {
 		QName objClass = new QName(MidPointConstants.NS_RI, objectClass);
 		Response response;
 		try {
-			model.importFromResource(resourceOid, objClass, task, parentResult);
+			modelService.importFromResource(resourceOid, objClass, task, parentResult);
 			response = RestServiceUtil.createResponse(Response.Status.SEE_OTHER, (uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
 					.build(ObjectTypes.TASK.getRestType(), task.getOid())), parentResult);
 //			response = Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject")
@@ -795,7 +799,7 @@ public class ModelRestService {
 		Response response;
 		OperationResult testResult = null;
 		try {
-			testResult = model.testResource(resourceOid, task);
+			testResult = modelService.testResource(resourceOid, task);
 			response = RestServiceUtil.createResponse(Response.Status.OK, testResult, parentResult);
 //			response = Response.ok(testResult).build();
 		} catch (Exception ex) {
@@ -819,7 +823,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
+			taskService.suspendTask(taskOid, WAIT_FOR_TASK_STOP, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, task, parentResult);
 		} catch (Exception ex) {
@@ -865,7 +869,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.resumeTask(taskOid, task, parentResult);
+			taskService.resumeTask(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.ACCEPTED, parentResult);
 		} catch (Exception ex) {
@@ -886,7 +890,7 @@ public class ModelRestService {
 
 		Response response;
 		try {
-			model.scheduleTaskNow(taskOid, task, parentResult);
+			taskService.scheduleTaskNow(taskOid, task, parentResult);
 			parentResult.computeStatus();
 			response = RestServiceUtil.createResponse(Response.Status.NO_CONTENT, parentResult);
 		} catch (Exception ex) {
@@ -925,7 +929,7 @@ public class ModelRestService {
 				URI resourceUri = uriInfo.getAbsolutePathBuilder().path(task.getOid()).build(task.getOid());
 				response = RestServiceUtil.createResponse(Response.Status.CREATED, resourceUri, result);
 			} else {
-				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, Collections.emptyMap(),
+				ScriptExecutionResult executionResult = scriptingService.evaluateExpression(command, VariablesMap.emptyMap(),
 						false, task, result);
 				ExecuteScriptResponseType responseData = new ExecuteScriptResponseType()
 						.result(result.createOperationResultType())

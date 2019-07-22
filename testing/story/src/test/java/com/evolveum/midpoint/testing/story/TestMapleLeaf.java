@@ -397,7 +397,7 @@ public class TestMapleLeaf extends AbstractStoryTest {
 		passwd = new ProtectedStringType();
 		passwd.setClearValue("somenewValue");
 		userDelta = createModifyUserReplaceDelta(USER_JACK_OID, SchemaConstants.PATH_PASSWORD_VALUE, passwd);
-		userDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD, PasswordType.F_FORCE_CHANGE, Boolean.TRUE);
+		userDelta.addModificationReplaceProperty(SchemaConstants.PATH_PASSWORD_FORCE_CHANGE, Boolean.TRUE);
 		
 		executeChanges(userDelta, null, task, result);
 		
@@ -481,8 +481,8 @@ public class TestMapleLeaf extends AbstractStoryTest {
 	}
 	
 	@Test
-	public void test201setUndefinedAdministrativeStatus() throws Exception {
-		final String TEST_NAME = "test201setUndefinedAdministrativeStatus";
+	public void test201SetUndefinedAdministrativeStatus() throws Exception {
+		final String TEST_NAME = "test201SetUndefinedAdministrativeStatus";
 		displayTestTitle(TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(TEST_NAME);

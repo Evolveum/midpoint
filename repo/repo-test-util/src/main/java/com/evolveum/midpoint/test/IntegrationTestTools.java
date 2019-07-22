@@ -114,6 +114,8 @@ public class IntegrationTestTools {
 	private static final String LOG_MESSAGE_PREFIX = "";
 	private static final String OBJECT_LIST_SEPARATOR = "---";
 	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 500;
+	
+	private static boolean silentConsole;
 
 	public static OperationResult assertSingleConnectorTestResult(OperationResult testResult) {
 		List<OperationResult> connectorSubresults = getConnectorSubresults(testResult);
@@ -390,12 +392,12 @@ public class IntegrationTestTools {
 	}
 	
 	public static void waitFor(String message, Checker checker, long startTime, long timeoutInterval, long sleepInterval) throws CommonException {
-		System.out.println(message);
+		println(message);
 		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		while (System.currentTimeMillis() < startTime + timeoutInterval) {
 			boolean done = checker.check();
 			if (done) {
-				System.out.println("... done");
+				println("... done");
 				LOGGER.trace(LOG_MESSAGE_PREFIX + "... done " + message);
 				return;
 			}
@@ -406,7 +408,7 @@ public class IntegrationTestTools {
 			}
 		}
 		// we have timeout
-		System.out.println("Timeout while "+message);
+		println("Timeout while "+message);
 		LOGGER.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
 		// Invoke callback
 		checker.timeout();
@@ -415,61 +417,66 @@ public class IntegrationTestTools {
 
 	public static void displayJaxb(String title, Object o, QName defaultElementName) throws SchemaException {
 		String serialized = o != null ? PrismTestUtil.serializeAnyData(o, defaultElementName) : "(null)";
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(serialized);
+		println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(serialized);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" + serialized);
 	}
 
 	public static void display(String message) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 	}
 
 	public static void display(String message, SearchResultEntry response) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		display(response);
 	}
 
 	public static void display(Entry response) {
-		System.out.println(response == null ? "null" : response.toLDIFString());
+		println(response == null ? "null" : response.toLDIFString());
 		LOGGER.debug(response == null ? "null" : response.toLDIFString());
 	}
 
 	public static void display(String message, Task task) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(task.debugDump());
+		println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(task.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message  + "\n"
 				+ task.debugDump());
 	}
 
 	public static void display(String message, ObjectType o) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(ObjectTypeUtil.dump(o));
+		println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(ObjectTypeUtil.dump(o));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n"
 				+ ObjectTypeUtil.dump(o));
 	}
 
 	public static void display(String message, Collection collection) {
-		String dump = DebugUtil.dump(collection);
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message + "\n" + dump);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" + dump);
+		String dump;
+		if (collection == null) {
+			dump = ": null";
+		} else {
+			dump = " (" + collection.size() + ")\n" + DebugUtil.dump(collection);
+		}
+		println(OBJECT_TITLE_OUT_PREFIX + message +  dump);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message +  dump);
 	}
 
 	public static void display(String title, Entry entry) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(OBJECT_TITLE_OUT_PREFIX + title);
 		String ldif = null;
 		if (entry != null) {
 			ldif = entry.toLDIFString();
 		}
-		System.out.println(ldif);
+		println(ldif);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
 				+ ldif);
 	}
 
 	public static void display(String message, PrismContainer<?> propertyContainer) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(propertyContainer == null ? "null" : propertyContainer.debugDump());
+		println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(propertyContainer == null ? "null" : propertyContainer.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n"
 				+ (propertyContainer == null ? "null" : propertyContainer.debugDump()));
 	}
@@ -479,9 +486,9 @@ public class IntegrationTestTools {
 	}
 
 	public static void display(String title, OperationResult result) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(OBJECT_TITLE_OUT_PREFIX + title);
 		String debugDump = result != null ? result.debugDump() : "(null)";
-		System.out.println(debugDump);
+		println(debugDump);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
 				+ debugDump);
 	}
@@ -491,44 +498,43 @@ public class IntegrationTestTools {
 	}
 
 	public static void display(String title, List<Element> elements) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(OBJECT_TITLE_OUT_PREFIX + title);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		for(Element e : elements) {
 			String s = DOMUtil.serializeDOMToString(e);
-			System.out.println(s);
+			println(s);
 			LOGGER.debug(s);
 		}
 	}
 
 	public static void display(String title, DebugDumpable dumpable) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(dumpable == null ? "null" : dumpable.debugDump(1));
+		println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(dumpable == null ? "null" : dumpable.debugDump(1));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n"
 				+ (dumpable == null ? "null" : dumpable.debugDump(1)));
 	}
 
 	public static void display(String title, String value) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(value);
+		println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(value);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
 				+ value);
 	}
 
 	public static void display(String title, Object value) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(SchemaDebugUtil.prettyPrint(value));
+		println(OBJECT_TITLE_OUT_PREFIX + title);
+		println(SchemaDebugUtil.prettyPrint(value));
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
 				+ SchemaDebugUtil.prettyPrint(value));
 	}
 
 	public static void display(String title, Containerable value) {
-		
 		if (value == null) {
-			System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": null");
+			println(OBJECT_TITLE_OUT_PREFIX + title + ": null");
 			LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + ": null");
 		} else {
-			System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-			System.out.println(SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
+			println(OBJECT_TITLE_OUT_PREFIX + title);
+			println(SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump()));
 			LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n"
 					+ SchemaDebugUtil.prettyPrint(value.asPrismContainerValue().debugDump(1)));
 		}
@@ -536,53 +542,53 @@ public class IntegrationTestTools {
 
 	public static void display(String title, Throwable e) {
 		String stackTrace = ExceptionUtils.getStackTrace(e);
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
-		System.out.println(stackTrace);
+		println(OBJECT_TITLE_OUT_PREFIX + title + ": "+e.getClass() + " " + e.getMessage());
+		println(stackTrace);
 		LOGGER.debug("{}{}: {} {}\n{}", OBJECT_TITLE_LOG_PREFIX, title, e.getClass(), e.getMessage(), stackTrace);
 	}
 
 	public static void displayPrismValuesCollection(String message, Collection<? extends PrismValue> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (PrismValue v : collection) {
-			System.out.println(DebugUtil.debugDump(v));
+			println(DebugUtil.debugDump(v));
 			LOGGER.debug("{}", DebugUtil.debugDump(v));
-			System.out.println(OBJECT_LIST_SEPARATOR);
+			println(OBJECT_LIST_SEPARATOR);
 			LOGGER.debug(OBJECT_LIST_SEPARATOR);
 		}
 	}
 
 	public static void displayContainerablesCollection(String message, Collection<? extends Containerable> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (Containerable c : CollectionUtils.emptyIfNull(collection)) {
 			String s = DebugUtil.debugDump(c.asPrismContainerValue());
-			System.out.println(s);
+			println(s);
 			LOGGER.debug("{}", s);
-			System.out.println(OBJECT_LIST_SEPARATOR);
+			println(OBJECT_LIST_SEPARATOR);
 			LOGGER.debug(OBJECT_LIST_SEPARATOR);
 		}
 	}
 
 	public static void displayCollection(String message, Collection<? extends DebugDumpable> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (DebugDumpable c : CollectionUtils.emptyIfNull(collection)) {
 			String s = DebugUtil.debugDump(c);
-			System.out.println(s);
+			println(s);
 			LOGGER.debug("{}", s);
-			System.out.println(OBJECT_LIST_SEPARATOR);
+			println(OBJECT_LIST_SEPARATOR);
 			LOGGER.debug(OBJECT_LIST_SEPARATOR);
 		}
 	}
 
 	public static void displayObjectTypeCollection(String message, Collection<? extends ObjectType> collection) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		println(OBJECT_TITLE_OUT_PREFIX + message);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (ObjectType o : CollectionUtils.emptyIfNull(collection)) {
-			System.out.println(ObjectTypeUtil.dump(o));
+			println(ObjectTypeUtil.dump(o));
 			LOGGER.debug(ObjectTypeUtil.dump(o));
-			System.out.println(OBJECT_LIST_SEPARATOR);
+			println(OBJECT_LIST_SEPARATOR);
 			LOGGER.debug(OBJECT_LIST_SEPARATOR);
 		}
 	}
@@ -936,6 +942,32 @@ public class IntegrationTestTools {
 				accountOid, ShadowType.F_ASSOCIATION, association);
 		return delta;
 	}
+	
+	public static ObjectDelta<ShadowType> createEntitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationAddContainer(ShadowType.class,
+				accountOid, ShadowType.F_ASSOCIATION, association);
+		PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
+		PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+		identifier.addRealValue(identifierValue);
+		identifiersContainerValue.add(identifier);
+		return delta;
+	}
+
+	public static ObjectDelta<ShadowType> createDetitleDeltaIdentifiers(String accountOid, QName associationName, QName identifierQname, String identifierValue, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationDeleteContainer(ShadowType.class,
+				accountOid, ShadowType.F_ASSOCIATION, association);
+		PrismContainer<ShadowIdentifiersType> identifiersContainer = association.asPrismContainerValue().findOrCreateContainer(ShadowAssociationType.F_IDENTIFIERS);
+		PrismContainerValue<ShadowIdentifiersType> identifiersContainerValue = identifiersContainer.createNewValue();
+		PrismProperty<String> identifier = prismContext.itemFactory().createProperty(identifierQname);
+		identifier.addRealValue(identifierValue);
+		identifiersContainerValue.add(identifier);
+		return delta;
+	}
 
 	public static void assertGroupMember(DummyGroup group, String accountId) {
 		assertGroupMember(group, accountId, false);
@@ -1057,7 +1089,7 @@ public class IntegrationTestTools {
 		RandomAccessFile file = new RandomAccessFile("target/test.log", "rw");
 		file.setLength(0);
 		file.close();
-		System.out.println("Log cleared.");
+		println("Log cleared.");
 	}
 
 	public static void assertProtectedString(String message, String expectedClearValue, ProtectedStringType actualValue, CredentialsStorageTypeType storageType, Protector protector) throws EncryptionException, SchemaException {
@@ -1082,7 +1114,7 @@ public class IntegrationTestTools {
 				ProtectedStringType expectedPs = new ProtectedStringType();
 				expectedPs.setClearValue(expectedClearValue);
 				assertTrue(message+": hash does not match, expected "+expectedClearValue+", but was "+actualValue,
-						protector.compare(actualValue, expectedPs));
+						protector.compareCleartext(actualValue, expectedPs));
 				assertFalse(message+": unexpected encrypted value: "+actualValue, actualValue.isEncrypted());
 				assertNull(message+": unexpected clear value: "+actualValue, actualValue.getClearValue());
 				break;
@@ -1090,6 +1122,19 @@ public class IntegrationTestTools {
 			default:
 				throw new IllegalArgumentException("Unknown storage "+storageType);
 		}
+	}
 
+	public static boolean isSilentConsole() {
+		return silentConsole;
+	}
+
+	public static void setSilentConsole(boolean silentConsole) {
+		IntegrationTestTools.silentConsole = silentConsole;
+	}
+
+	private static void println(String s) {
+		if (!silentConsole) {
+			System.out.println(s);
+		}
 	}
 }

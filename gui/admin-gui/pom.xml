@@ -159,13 +159,12 @@
    	 		<artifactId>spring-boot-actuator-autoconfigure</artifactId>
 		</dependency>
 
+		<!-- webjars -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>swagger-ui</artifactId>
-            <version>2.2.5</version>
             <scope>runtime</scope>
         </dependency>
-        <!-- webjars -->
         <dependency>
             <groupId>org.webjars.bower</groupId>
             <artifactId>adminlte</artifactId>
@@ -201,23 +200,19 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>less</artifactId>
-            <version>2.5.3</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-cas</artifactId>
-            <version>${spring.security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jasig.cas.client</groupId>
             <artifactId>cas-client-core</artifactId>
-            <version>3.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
-            <version>0.35</version>
         </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
@@ -436,10 +431,6 @@
                     <groupId>com.sun.xml.bind</groupId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>jaxb-api</artifactId>
-                    <groupId>javax.xml.bind</groupId>
-                </exclusion>
-                <exclusion>
                     <artifactId>jaxb-core</artifactId>
                     <groupId>com.sun.xml.bind</groupId>
                 </exclusion>
@@ -502,6 +493,12 @@
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-impl</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>ucf-impl-builtin</artifactId>
             <version>4.0-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
@@ -586,6 +583,12 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-ioc</artifactId>
+            <exclusions>
+            	<exclusion>
+            		<groupId>org.apache.ant</groupId>
+            		<artifactId>ant</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
@@ -643,12 +646,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpcore</artifactId>
             <scope>runtime</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.ocpsoft.prettytime</groupId>
-            <artifactId>prettytime</artifactId>
-            <version>4.0.0.Final</version>
         </dependency>
 
         <!-- Xtext DSL: IDE schema support (experimental) -->
@@ -735,8 +732,32 @@
             <artifactId>janino</artifactId>
             <scope>runtime</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <!-- TEST -->
+        
+        <dependency>  
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <exclusions>
+    	<exclusion>
+    	 <artifactId>asm</artifactId>
+    	 <groupId>org.ow2.asm</groupId>
+    	</exclusion>
+    </exclusions>
+    <scope>test</scope>
+</dependency>  
+
+        <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-util</artifactId>
+            <version>7.0</version>
+            <scope>test</scope>
+        </dependency>
+
 
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
@@ -778,6 +799,17 @@
             <artifactId>javax.annotation-api</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
         <dependency>
@@ -899,6 +931,13 @@
             <version>4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+		    <groupId>cglib</groupId>
+		    <artifactId>cglib-nodep</artifactId>
+		    <version>3.2.10</version>
+		    <scope>test</scope>
+		</dependency>
+
     </dependencies>
 
     <profiles>
@@ -934,7 +973,7 @@
                             <dependency>
                                 <groupId>com.evolveum.midpoint</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
-                                <version>${project.version}</version>
+                                <version>4.0-M2</version>
                             </dependency>
                         </dependencies>
                     </plugin>
@@ -956,6 +995,7 @@
                 <dependency>
                     <artifactId>jaxb-api</artifactId>
                     <groupId>javax.xml.bind</groupId>
+                    <scope>runtime</scope>
                 </dependency>
                 <dependency>
                     <artifactId>jaxb-core</artifactId>

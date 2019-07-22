@@ -36,11 +36,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,6 +48,13 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.SynchronizationUtils;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -65,6 +69,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -1223,4 +1228,93 @@ public class ModifyTest extends BaseSQLRepoTest {
         assertEquals("Wrong # of users found", 1, users.size());
     }
 
+    // Normally this would be in schema module but we don't have initialized protector there
+    @Test   // MID-5516
+    public void test400RemoveCoreProtectedStringValueInMemory() throws Exception {
+        ProtectedStringType passwordValue = protector.encryptString("hi");
+        UserType jack = new UserType(prismContext)
+                .name("jack")
+                .beginCredentials()
+                .beginPassword()
+                .value(passwordValue.clone())
+                .<CredentialsType>end()
+                .end();
+
+        PrismTestUtil.display("jack before", jack.asPrismObject());
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)
+                .delete(passwordValue.clone())
+                .asObjectDelta("");
+
+        delta.applyTo(jack.asPrismObject());
+
+        PrismTestUtil.display("jack after", jack.asPrismObject());
+
+        jack.asPrismObject().checkConsistence();
+    }
+
+    @Test   // MID-5516
+    public void test410RemoveExtensionProtectedStringValueInMemory() throws Exception {
+        ProtectedStringType protectedValue = protector.encryptString("hi");
+        UserType jack = new UserType(prismContext)
+                .name("jack");
+        PrismPropertyDefinition<ProtectedStringType> definition = jack.asPrismObject().getDefinition()
+                .findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, "protected"));
+        PrismProperty<ProtectedStringType> protectedProperty = definition.instantiate();
+        protectedProperty.setRealValue(protectedValue.clone());
+        jack.asPrismObject().addExtensionItem(protectedProperty);
+
+        PrismTestUtil.display("jack before", jack.asPrismObject());
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, "protected")
+                .delete(protectedValue.clone())
+                .asObjectDelta("");
+
+        delta.applyTo(jack.asPrismObject());
+
+        PrismTestUtil.display("jack after", jack.asPrismObject());
+
+        jack.asPrismObject().checkConsistence();
+    }
+
+    @Test   // MID-5516
+    public void test420RemoveExtensionProtectedStringValueInRepo() throws Exception {
+        final String TEST_NAME = "test420RemoveExtensionProtectedStringValueInRepo";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        ProtectedStringType protectedValue = protector.encryptString("hi");
+        UserType jack = new UserType(prismContext)
+                .name("jack");
+        PrismPropertyDefinition<ProtectedStringType> definition = jack.asPrismObject().getDefinition()
+                .findPropertyDefinition(ItemPath.create(UserType.F_EXTENSION, "protected"));
+        PrismProperty<ProtectedStringType> protectedProperty = definition.instantiate();
+        protectedProperty.setRealValue(protectedValue.clone());
+        jack.asPrismObject().addExtensionItem(protectedProperty);
+
+        repositoryService.addObject(jack.asPrismObject(), null, result);
+
+        PrismTestUtil.display("jack before", jack.asPrismObject());
+
+        // WHEN
+
+        ObjectDelta<UserType> delta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, "protected")
+                .delete(protectedValue.clone())
+                .asObjectDelta("");
+
+        repositoryService.modifyObject(UserType.class, jack.getOid(), delta.getModifications(), result);
+
+        // THEN
+
+        PrismObject<UserType> jackAfter = repositoryService.getObject(UserType.class, jack.getOid(), null, result);
+
+        PrismTestUtil.display("jack after", jackAfter);
+
+        jackAfter.checkConsistence();
+    }
 }

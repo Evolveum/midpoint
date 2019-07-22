@@ -94,8 +94,8 @@ public class WizardHelpDialog extends ModalWindow{
         helpLabel.setEscapeModelStrings(false);
         content.add(helpLabel);
 
-        AjaxLink ok = new AjaxLink(ID_BUTTON_OK) {
-
+        AjaxLink<Void> ok = new AjaxLink<Void>(ID_BUTTON_OK) {
+        	private static final long serialVersionUID = 1L;
             @Override
             public void onClick(AjaxRequestTarget target) {
                 closePerformed(target);

@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfiguratio
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 /**
@@ -87,8 +88,6 @@ public class PageReport extends PageAdmin {
                 return loadReport();
             }
         };
-
-        initLayout();
     }
 
     public PageReport(final ReportDto reportDto) {
@@ -99,14 +98,12 @@ public class PageReport extends PageAdmin {
     			// never called
     			return reportDto;
     		}
-
 		};
-		initLayout();
     }
 
     private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
+        
         Task task = createSimpleTask(OPERATION_LOAD_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> prismReport = WebModelServiceUtils.loadObject(ReportType.class, reportOid.toString(),
@@ -121,10 +118,17 @@ public class PageReport extends PageAdmin {
 
 //        return prismReport;
     }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
 
     private void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
+        ReportEngineSelectionType reportEngineType = model.getObject().getReportEngineType();
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageReport.basic")) {
@@ -136,27 +140,30 @@ public class PageReport extends PageAdmin {
                 return new ReportConfigurationPanel(panelId, model);
             }
         });
-        tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
+        if(!ReportEngineSelectionType.DASHBOARD.equals(reportEngineType)) {
+        	tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplate")) {
 
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-            	return new JasperReportConfigurationPanel(panelId, model);
-//                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
-//                IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
-//                return new AceEditorPanel(panelId, title, data);
-            }
-        });
-        tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
+            	private static final long serialVersionUID = 1L;
+                @Override
+                public WebMarkupContainer getPanel(String panelId) {
+                	return new JasperReportConfigurationPanel(panelId, model);
+//                    IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplate");
+//                    IModel<String> data = new Base64Model(new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
+//                    return new AceEditorPanel(panelId, title, data);
+                }
+            });
+        	tabs.add(new AbstractTab(createStringResource("PageReport.jasperTemplateStyle")) {
 
-        	private static final long serialVersionUID = 1L;
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
-                IModel<String> data = new Base64Model(new PropertyModel(model, "templateStyle"));
-                return new AceEditorPanel(panelId, title, data);
-            }
-        });
+            	private static final long serialVersionUID = 1L;
+                @Override
+                public WebMarkupContainer getPanel(String panelId) {
+                    IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
+                    IModel<String> data = new Base64Model(new PropertyModel(model, "templateStyle"));
+                    return new AceEditorPanel(panelId, title, data);
+                }
+            });
+        }
+        
 //        tabs.add(new AbstractTab(createStringResource("PageReport.fullXml")) {
 //
 //            @Override

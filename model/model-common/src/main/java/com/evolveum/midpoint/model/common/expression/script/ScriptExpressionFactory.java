@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,36 +18,46 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.repo.common.Cacheable;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionEvaluatorProfile;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+import com.evolveum.midpoint.schema.expression.ScriptExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
  * @author Radovan Semancik
  *
  */
-public class ScriptExpressionFactory implements Cacheable{
+public class ScriptExpressionFactory implements Cacheable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
 
@@ -67,6 +77,11 @@ public class ScriptExpressionFactory implements Cacheable{
 	@PostConstruct
 	public void register() {
 		cacheRegistry.registerCacheableService(this);
+	}
+
+	@PreDestroy
+	public void unregister() {
+		cacheRegistry.unregisterCacheableService(this);
 	}
 	
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
@@ -109,19 +124,55 @@ public class ScriptExpressionFactory implements Cacheable{
 		this.cacheRegistry = registry;
 	}
 
-	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition,
-			ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result) throws ExpressionSyntaxException {
+	public ScriptExpression createScriptExpression(ScriptExpressionEvaluatorType expressionType, ItemDefinition outputDefinition, 
+			ExpressionProfile expressionProfile, ExpressionFactory expressionFactory, String shortDesc, Task task, OperationResult result)
+					throws ExpressionSyntaxException, SecurityViolationException {
 
 		initializeCustomFunctionsLibraryCache(expressionFactory, task, result);
 		//cache cleanup method
 
-		ScriptExpression expression = new ScriptExpression(getEvaluator(getLanguage(expressionType), shortDesc), expressionType);
+		String language = getLanguage(expressionType);
+		ScriptExpression expression = new ScriptExpression(getEvaluator(language, shortDesc), expressionType);
 		expression.setOutputDefinition(outputDefinition);
 		expression.setObjectResolver(objectResolver);
 		Collection<FunctionLibrary> functionsToUse = new ArrayList<>(functions);
 		functionsToUse.addAll(customFunctionLibraryCache.values());
 		expression.setFunctions(functionsToUse);
+		
+		// It is not very elegant to process expression profile and script expression profile here.
+		// It is somehow redundant, as it was already pre-processed in the expression evaluator/factory
+		// We are throwing that out and we are processing it again. But maybe this is consequence of having
+		// the duality of Expression and ScriptExpression ... maybe the ScriptExpression is unnecessary abstraction
+		// and it should be removed.
+		expression.setExpressionProfile(expressionProfile);
+		expression.setScriptExpressionProfile(processScriptExpressionProfile(expressionProfile, language, shortDesc));
+		
 		return expression;
+	}
+
+	private ScriptExpressionProfile processScriptExpressionProfile(ExpressionProfile expressionProfile, String language, String shortDesc) throws SecurityViolationException {
+		if (expressionProfile == null) {
+			return null;
+		}
+		ExpressionEvaluatorProfile evaluatorProfile = expressionProfile.getEvaluatorProfile(ScriptExpressionEvaluatorFactory.ELEMENT_NAME);
+		if (evaluatorProfile == null) {
+			if (expressionProfile.getDecision() == AccessDecision.ALLOW) {
+				return null;
+			} else {
+				throw new SecurityViolationException("Access to script expression evaluator " +
+						" not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+			}
+		}
+		ScriptExpressionProfile scriptProfile = evaluatorProfile.getScriptExpressionProfile(language);
+		if (scriptProfile == null) {
+			if (evaluatorProfile.getDecision() == AccessDecision.ALLOW) {
+				return null;
+			} else {
+				throw new SecurityViolationException("Access to script language " + language +
+						" not allowed (expression profile: "+expressionProfile.getIdentifier()+") in "+shortDesc);
+			}
+		}
+		return scriptProfile;
 	}
 
 	// if performance becomes an issue, replace 'synchronized' with something more elaborate
@@ -137,12 +188,14 @@ public class ScriptExpressionFactory implements Cacheable{
 			return;
 		}
 		OperationResult subResult = result
-				.createMinorSubresult(ScriptExpressionUtil.class.getName() + ".searchCustomFunctions");
+				.createMinorSubresult(ScriptExpressionFactory.class.getName() + ".searchCustomFunctions");
 		ResultHandler<FunctionLibraryType> functionLibraryHandler = (object, parentResult) -> {
+			// TODO: determine profile from function library archetype
+			ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile(); 
 			FunctionLibrary customLibrary = new FunctionLibrary();
 			customLibrary.setVariableName(object.getName().getOrig());
-			customLibrary
-					.setGenericFunctions(new CustomFunctions(object.asObjectable(), expressionFactory, result, task));
+			customLibrary.setGenericFunctions(
+					new CustomFunctions(object.asObjectable(), expressionFactory, expressionProfile, result, task));
 			customLibrary.setNamespace(MidPointConstants.NS_FUNC_CUSTOM);
 			customFunctionLibraryCache.put(object.getName().getOrig(), customLibrary);
 			return true;
@@ -181,8 +234,19 @@ public class ScriptExpressionFactory implements Cacheable{
 	}
 
 	@Override
-	public void clearCache() {
-		customFunctionLibraryCache = null;		
+	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
+			// Currently we don't try to select entries to be cleared based on OID
+			customFunctionLibraryCache = null;
+		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+				.name(ScriptExpressionFactory.class.getName())
+				.size(customFunctionLibraryCache != null ? customFunctionLibraryCache.size() : 0));
 	}
 }
 

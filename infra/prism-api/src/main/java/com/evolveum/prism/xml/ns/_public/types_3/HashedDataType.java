@@ -15,6 +15,9 @@
  */
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
+
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -34,7 +37,7 @@ import javax.xml.bind.annotation.XmlType;
     "digestMethod",
     "digestValue"
 })
-public class HashedDataType implements Serializable, Cloneable {
+public class HashedDataType implements Serializable, Cloneable, JaxbVisitable {
 
 	@XmlElement(required = true)
     protected DigestMethodType digestMethod;
@@ -104,4 +107,12 @@ public class HashedDataType implements Serializable, Cloneable {
         cloned.setDigestValue(digestValue.clone());
         return cloned;
     }
+
+	@Override
+	public void accept(JaxbVisitor visitor) {
+		visitor.visit(this);
+		if (digestMethod != null) {
+			digestMethod.accept(visitor);
+		}
+	}
 }

@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -25,6 +25,12 @@
     	<extension>
     		<piracy:sea>The Seven Seas</piracy:sea>
     	</extension>
+    	<!-- This role is always assigned to users. Therefore this should not be needed.
+    	     But, there are some attempts in security tests to assign this role to another role.
+    	     This attempt fails on gossip attribute mapping not getting fullName. We do not want
+    	     that failure, we want to check whether security properly denies the operation.
+    	     Hence the focusType definition. -->
+    	<focusType>UserType</focusType>
     	<construction id="60004">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
@@ -73,7 +79,7 @@
                 	</source>
                 	<expression>
 						<script>
-							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code> 
+							<code>fullName + ' is the best pirate ' + ( locality == null ? 'the world' : locality ) + ' has ever seen'</code>
 						</script>
 					</expression>
 				</outbound>

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -41,7 +41,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  */
 @Component
-public class CompletedTaskCleanupTriggerHandler implements TriggerHandler {
+public class CompletedTaskCleanupTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = SchemaConstants.COMPLETED_TASK_CLEANUP_TRIGGER_HANDLER_URI;
 
@@ -57,7 +57,7 @@ public class CompletedTaskCleanupTriggerHandler implements TriggerHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
 		try {
 			// reload the task to minimize potential for race conflicts
 			// todo use repo preconditions to implement this

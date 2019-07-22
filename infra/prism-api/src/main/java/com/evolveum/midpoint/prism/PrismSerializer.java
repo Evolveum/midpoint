@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -50,8 +51,8 @@ public interface PrismSerializer<T> {
 	/**
 	 * Sets the item definition to be used during serialization.
 	 * (Not much used.)
-	 * @param itemDefinition
-	 * @return
+	 * @param itemDefinition Definition to be used.
+	 * @return Serializer with the definition set.
 	 */
 	@NotNull
 	PrismSerializer<T> definition(ItemDefinition itemDefinition);
@@ -73,6 +74,15 @@ public interface PrismSerializer<T> {
 	 */
 	@NotNull
 	PrismSerializer<T> options(@Nullable SerializationOptions options);
+
+	/**
+	 * These items will be skipped during serialization.
+	 *
+	 * @param itemNames Names of items to be skipped.
+	 * @return Serializer with the items to be skipped set.
+	 */
+	@NotNull
+	PrismSerializer<T> itemsToSkip(Collection<? extends QName> itemNames);
 
 	/**
 	 * Serializes given prism item.

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 /**
  * @author lazyman
@@ -59,26 +61,25 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 	private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
 
 	public PageOrgUnit() {
-		initialize(null);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
-		initialize(unitToEdit);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject)  {
-		initialize(unitToEdit, isNewObject);
-	}
-
-	public PageOrgUnit(final PrismObject<OrgType> unitToEdit, boolean isNewObject, boolean isReadonly) {
-		initialize(unitToEdit, isNewObject, isReadonly);
+		super();
 	}
 
 	public PageOrgUnit(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		initialize(null);
+		super(parameters);
 	}
 
+	public PageOrgUnit(final PrismObject<OrgType> role) {
+		super(role);
+	}
+
+	public PageOrgUnit(final PrismObject<OrgType> userToEdit, boolean isNewObject) {
+		super(userToEdit, isNewObject);
+	}
+	
+	public PageOrgUnit(final PrismObject<OrgType> abstractRole, boolean isNewObject, boolean isReadonly) {
+		super(abstractRole, isNewObject, isReadonly);
+	}
+	
 	@Override
 	protected OrgType createNewObject() {
 		return new OrgType();
@@ -96,7 +97,7 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 
 	@Override
 	protected FocusSummaryPanel<OrgType> createSummaryPanel() {
-    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new OrgSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
 	@Override
@@ -115,6 +116,42 @@ public class PageOrgUnit extends PageAdminAbstractRole<OrgType> implements Progr
 			protected void viewObjectHistoricalDataPerformed(AjaxRequestTarget target, PrismObject<OrgType> object, String date){
 				PageOrgUnit.this.navigateToNext(new PageOrgUnitHistory(object, date));
 			}
+
+			@Override
+			public OrgMemberPanel createMemberPanel(String panelId) {
+
+				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected List<QName> getSupportedRelations() {
+						return getSupportedMembersTabRelations();
+					}
+
+				};
+			}
+
+			@Override
+			public OrgMemberPanel createGovernancePanel(String panelId) {
+
+				return new OrgMemberPanel(panelId, new Model<>(getObject().asObjectable())) {
+
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected List<QName> getSupportedRelations() {
+						return getSupportedGovernanceTabRelations();
+					}
+
+					@Override
+					protected Map<String, String> getAuthorizations(QName complexType) {
+						return getGovernanceTabAuthorizations();
+					}
+
+				};
+			}
+
 
 		};
 	}

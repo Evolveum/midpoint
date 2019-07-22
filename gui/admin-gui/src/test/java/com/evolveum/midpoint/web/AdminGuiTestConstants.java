@@ -53,7 +53,7 @@ public class AdminGuiTestConstants {
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
     public static final String RESOURCE_DUMMY_NAMESPACE = MidPointConstants.NS_RI;
     public static final File RESOURCE_DUMMY_INITIALIZED_FILE = new File(COMMON_DIR, "resource-dummy-initialized.xml");
-    protected static final ItemName RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME = new ItemName(RESOURCE_DUMMY_NAMESPACE, "group");
+    public static final ItemName RESOURCE_DUMMY_ASSOCIATION_GROUP_QNAME = new ItemName(RESOURCE_DUMMY_NAMESPACE, "group");
 
     public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";

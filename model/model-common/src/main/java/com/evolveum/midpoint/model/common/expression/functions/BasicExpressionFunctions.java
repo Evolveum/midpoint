@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression.functions;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -82,7 +83,7 @@ import static java.util.Collections.emptyList;
 public class BasicExpressionFunctions {
 
     public static final String NAME_SEPARATOR = " ";
-    private final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+    private final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
     public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 

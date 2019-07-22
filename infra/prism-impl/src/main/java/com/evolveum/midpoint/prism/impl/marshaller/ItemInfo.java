@@ -217,11 +217,12 @@ public class ItemInfo<ID extends ItemDefinition> {
 			return definition;
 		}
 		@SuppressWarnings("unchecked")
-		List<ID> defFromClass = schemaRegistry.findItemDefinitionsByCompileTimeClass((Class) clazz, (Class) definitionClass);
-		if (defFromClass.size() != 1) {
+		List<ID> defFromClass = schemaRegistry.findItemDefinitionsByCompileTimeClass(clazz, (Class) definitionClass);
+		ID singleDef = DefinitionStoreUtils.getOne(defFromClass, false, null);
+		if (singleDef == null) {
 			return definition;
 		} else {
-			return schemaRegistry.selectMoreSpecific(definition, defFromClass.get(0));
+			return schemaRegistry.selectMoreSpecific(definition, singleDef);
 		}
 	}
 

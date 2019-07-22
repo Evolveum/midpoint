@@ -61,15 +61,16 @@ public class CapabilitiesDto implements Serializable {
 	private boolean runAs;
 
 	public CapabilitiesDto(ResourceType resource){
-		activation = ResourceTypeUtil.isActivationCapabilityEnabled(resource);
-		activationLockoutStatus = ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource);
-		activationStatus = ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource);
-		activationValidity = ResourceTypeUtil.isActivationValidityCapabilityEnabled(resource);
+		activation = ResourceTypeUtil.isActivationCapabilityEnabled(resource, null);
+		activationLockoutStatus = ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource, null);
+		activationStatus = ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource, null);
+		activationValidity = ResourceTypeUtil.isActivationValidityFromCapabilityEnabled(resource, null);
+		activationValidity = ResourceTypeUtil.isActivationValidityToCapabilityEnabled(resource, null);
 		auxiliaryObjectClasses = ResourceTypeUtil.isAuxiliaryObjectClassCapabilityEnabled(resource);
 		countObjects = ResourceTypeUtil.isCountObjectsCapabilityEnabled(resource);
 		pagedSearch = ResourceTypeUtil.isPagedSearchCapabilityEnabled(resource);
-		password = ResourceTypeUtil.isPasswordCapabilityEnabled(resource);
-		credentials = ResourceTypeUtil.isCredentialsCapabilityEnabled(resource);
+		password = ResourceTypeUtil.isPasswordCapabilityEnabled(resource, null);
+		credentials = ResourceTypeUtil.isCredentialsCapabilityEnabled(resource, null);
 		liveSync = ResourceTypeUtil.isLiveSyncCapabilityEnabled(resource);
 		testConnection = ResourceTypeUtil.isTestConnectionCapabilityEnabled(resource);
 		create = ResourceTypeUtil.isCreateCapabilityEnabled(resource);

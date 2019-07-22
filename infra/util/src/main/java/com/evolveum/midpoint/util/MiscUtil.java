@@ -18,6 +18,7 @@ package com.evolveum.midpoint.util;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,12 +38,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author semancik
@@ -518,6 +523,15 @@ public class MiscUtil {
 		}
 		return bytes;
 	}
+	
+	public static String hexToUtf8String(String hex) {
+		try {
+			return new String(MiscUtil.hexToBinary(hex), "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// Should never happen
+			throw new RuntimeException(e.getMessage(), e);
+		}
+	}
 
 	public static <T> void addAllIfNotPresent(List<T> receivingList, List<T> supplyingList) {
 		if (supplyingList == null) {
@@ -763,4 +777,55 @@ public class MiscUtil {
 		return dump.toString();
 	}
 
+	public static <K,V> Map<K, V> paramsToMap(Object[] params) {
+		Map<K, V> map = new HashMap<>();
+		for (int i=0; i < params.length; i+=2) {
+			map.put((K)params[i], (V)params[i+1]);
+		}
+		return map;
+	}
+
+	public static void writeZipFile(File file, String entryName, String content, Charset charset) throws IOException {
+		try (ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(file))) {
+			ZipEntry zipEntry = new ZipEntry(entryName);
+			zipOut.putNextEntry(zipEntry);
+			zipOut.write(content.getBytes(charset));
+		}
+	}
+
+	// More serious would be to read XML directly from the input stream -- fixme some day
+	// We should probably implement reading from ZIP file directly in PrismContext
+	@SuppressWarnings("unused")     // used externally
+	public static String readZipFile(File file, Charset charset) throws IOException {
+		try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
+			ZipEntry zipEntry = zis.getNextEntry();
+			if (zipEntry != null) {
+				return String.join("\n", IOUtils.readLines(zis, charset));
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public static String expandProperties(String value) {
+		StringBuilder sb = new StringBuilder();
+		int pointer = 0;
+		for (;;) {
+			int i = value.indexOf("${", pointer);
+			if (i < 0) {
+				sb.append(value.substring(pointer));
+				return sb.toString();
+			}
+			int j = value.indexOf("}", i);
+			if (j < 0) {
+				LOGGER.warn("Missing closing '}' in {}", value);
+				sb.append(value.substring(pointer));
+				return sb.toString();
+			}
+			sb.append(value, pointer, i);
+			String propertyName = value.substring(i+2, j);
+			sb.append(System.getProperty(propertyName));
+			pointer = j+1;
+		}
+	}
 }

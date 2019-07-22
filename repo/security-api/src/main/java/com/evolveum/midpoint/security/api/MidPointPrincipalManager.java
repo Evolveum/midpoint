@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import java.util.Collection;
 
 /**
  * Service that exposes security functions for internal use inside midPoint and for other
@@ -52,6 +54,6 @@ public interface MidPointPrincipalManager extends OwnerResolver {
     
     MidPointPrincipal getPrincipal(PrismObject<UserType> user, AuthorizationTransformer authorizationTransformer, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException;
 
-    void updateUser(MidPointPrincipal principal);
+    void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
     
 }

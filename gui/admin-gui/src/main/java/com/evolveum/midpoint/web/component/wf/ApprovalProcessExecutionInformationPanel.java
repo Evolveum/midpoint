@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -211,7 +211,7 @@ public class ApprovalProcessExecutionInformationPanel extends BasePanel<Approval
 		sb.append(getString("ApprovalProcessExecutionInformationPanel.stage"));
 		if (stage.getStageName() != null || stage.getStageDisplayName() != null) {
 			sb.append(": ");
-			sb.append(WfContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
+			sb.append(ApprovalContextUtil.getStageInfo(stageNumber, numberOfStages, stage.getStageName(), stage.getStageDisplayName()));
 			return sb.toString();
 		} else {
 			sb.append(" ").append(stageNumber).append("/").append(numberOfStages);

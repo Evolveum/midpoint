@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -56,7 +57,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
-	transient private ObjectPolicyConfigurationType objectPolicyConfigurationType;
+	transient private ArchetypePolicyType archetypePolicyType;
+	transient private ArchetypeType archetype;
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
@@ -74,19 +76,27 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return getLensContext().getProjectionWave();
 	}
 
-	public ObjectPolicyConfigurationType getObjectPolicyConfigurationType() {
-		return objectPolicyConfigurationType;
+	public ArchetypePolicyType getArchetypePolicyType() {
+		return archetypePolicyType;
 	}
 	
-	public void setObjectPolicyConfigurationType(ObjectPolicyConfigurationType objectPolicyConfigurationType) {
-		this.objectPolicyConfigurationType = objectPolicyConfigurationType;
+	public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
+		this.archetypePolicyType = objectPolicyConfigurationType;
+	}
+	
+	public ArchetypeType getArchetype() {
+		return archetype;
+	}
+	
+	public void setArchetype(ArchetypeType archetype) {
+		this.archetype = archetype;
 	}
 	
 	public LifecycleStateModelType getLifecycleModel() {
-		if (objectPolicyConfigurationType == null) {
+		if (archetypePolicyType == null) {
 			return null;
 		}
-		return objectPolicyConfigurationType.getLifecycleStateModel();
+		return archetypePolicyType.getLifecycleStateModel();
 	}
 
 	@Override
@@ -161,7 +171,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	@Override
 	public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException {
-		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew());
+		return new ObjectDeltaObject<>(getObjectOld(), getDelta(), getObjectNew(), getObjectDefinition());
 	}
 
 	@Override
@@ -192,7 +202,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDelta.swallow(propDelta);
 	}
 
-    public void swallowToSecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
+	// TODO is this method ever needed?
+    @SuppressWarnings("unused")
+    public void swallowToWave0SecondaryDelta(ItemDelta<?,?> propDelta) throws SchemaException {
       	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
       	if (secondaryDelta == null) {
             secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
@@ -203,6 +215,11 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
       	}
 
         secondaryDelta.swallow(propDelta);
+	}
+
+	@Override
+	public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
+		swallowToProjectionWaveSecondaryDelta(itemDelta);
 	}
 
 	public boolean alreadyHasDelta(ItemDelta<?,?> itemDelta) {
@@ -292,29 +309,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 //			secondaryDeltas.remove(getWave());
 //		}
 	}
-    
-
-	@Override
-	public void recompute() throws SchemaException, ConfigurationException {
-		super.recompute();
-		updateObjectPolicy();
-	}
-
-	private void updateObjectPolicy() throws ConfigurationException {
-		PrismObject<SystemConfigurationType> systemConfiguration = getLensContext().getSystemConfiguration();
-		if (systemConfiguration == null) {
-			return;
-		}
-		PrismObject<O> object = getObjectAny();
-		ObjectPolicyConfigurationType policyConfigurationType = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
-		if (policyConfigurationType != getObjectPolicyConfigurationType()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Changed policy configuration because of changed subtypes {}:\n{}", 
-						FocusTypeUtil.determineSubTypes(object), policyConfigurationType==null?null:policyConfigurationType.asPrismContainerValue().debugDump(1));
-			}
-			setObjectPolicyConfigurationType(policyConfigurationType);
-		}
-	}
+  
 
 	@Override
 	public void normalize() {
@@ -512,10 +507,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return sb.toString();
 	}
 
-    void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer, boolean reduced) throws SchemaException {
-        LensFocusContextType lensFocusContextType = lensFocusContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensFocusContextType, reduced);
-        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+    public LensFocusContextType toLensFocusContextType(PrismContext prismContext, LensContext.ExportType exportType) throws SchemaException {
+	    LensFocusContextType rv = new LensFocusContextType(prismContext);
+	    super.storeIntoLensElementContextType(rv, exportType);
+	    if (exportType != LensContext.ExportType.MINIMAL) {
+		    rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+	    }
+	    return rv;
     }
 
     public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {

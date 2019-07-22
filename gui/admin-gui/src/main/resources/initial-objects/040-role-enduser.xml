@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,15 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>End user</name>
     <description>Role authorizing end users to log in, change their passwords and review assigned accounts. Note: This role definition is just an example. It should be tailored for each specific deployment.</description>
+    <!-- 
+    	End user role is NOT archetyped as system role - by purpose.
+    	Firstly, this role is almost always customized. We do not want to create an impression that
+    	this role is finished and ready for production use.
+    	Secondly, it is not really a system role. It is perhaps closer to business role. We cannot
+    	clearly decide where it belongs as this depends on how the role hierarchy is structured.
+    	Therefore we have chosen not to mark it with any archetype to avoid risk of creating
+    	a confusing situation.
+    -->
     <authorization>
     	<name>gui-self-service-access</name>
     	<description>
@@ -202,18 +211,18 @@
         <!-- Note: for production use you should consider limiting the items that can be read. -->
     </authorization>
     <authorization>
-    	<name>assignment-target-read-task</name>
+    	<name>assignment-target-read-case</name>
     	<description>
-    		Authorization that allows to read workflow status of tasks. This is used to display requests
+    		Authorization that allows to read approval status of cases. This is used to display requests
     		to the end users, especially in the "My Requests" box in user dashboard.
     		This authorization is a temporary solution. It will be replaced by a finer-grained
     		permissions in the future.
     	</description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>TaskType</type>
+            <type>CaseType</type>
         </object>
-        <item>workflowContext</item>
+        <item>approvalContext</item>
     </authorization>
     <authorization>
     	<name>self-owned-task-read</name>

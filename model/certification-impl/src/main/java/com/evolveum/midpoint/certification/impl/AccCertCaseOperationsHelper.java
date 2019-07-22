@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.task.api.Task;
@@ -170,9 +170,10 @@ public class AccCertCaseOperationsHelper {
 			WorkItemDelegationMethodType method = getDelegationMethod(delegateAction);
 			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
+			ApprovalContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
 			//noinspection ConstantConditions
-			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation);
+			WorkItemDelegationEventType event = ApprovalContextUtil
+					.createDelegationEvent(null, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);
 			event.setAttorneyRef(attorney);
@@ -253,7 +254,7 @@ public class AccCertCaseOperationsHelper {
 			}
 			List<ObjectReferenceType> delegates = computeDelegateTo(escalateAction, workItem, aCase, workItemCampaign, task, result);
 
-			int escalationLevel = WfContextUtil.getEscalationLevelNumber(workItem);
+			int escalationLevel = ApprovalContextUtil.getEscalationLevelNumber(workItem);
 			if (escalationLevel + 1 != newStageEscalationLevelNumber) {
 				throw new IllegalStateException("Different escalation level numbers for certification cases: work item level ("
 						+ newEscalationLevel + ") is different from the stage level (" + newStageEscalationLevelNumber + ")");
@@ -264,8 +265,9 @@ public class AccCertCaseOperationsHelper {
 			WorkItemDelegationMethodType method = getDelegationMethod(escalateAction);
 			List<ObjectReferenceType> newAssignees = new ArrayList<>();
 			List<ObjectReferenceType> delegatedTo = new ArrayList<>();
-			WfContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem);
-			WorkItemDelegationEventType event = WfContextUtil.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation);
+			ApprovalContextUtil.computeAssignees(newAssignees, delegatedTo, delegates, method, workItem.getAssigneeRef());
+			WorkItemDelegationEventType event = ApprovalContextUtil
+					.createDelegationEvent(newEscalationLevel, assigneesBefore, delegatedTo, method, causeInformation, prismContext);
 			event.setTimestamp(now);
 			event.setInitiatorRef(initiator);
 			event.setAttorneyRef(attorney);
@@ -323,9 +325,9 @@ public class AccCertCaseOperationsHelper {
 		List<ObjectReferenceType> rv = CloneUtil.cloneCollectionMembers(delegateAction.getApproverRef());
 		if (!delegateAction.getApproverExpression().isEmpty()) {
 			ExpressionVariables variables = new ExpressionVariables();
-			variables.addVariableDefinition(ExpressionConstants.VAR_WORK_ITEM, workItem);
-			variables.addVariableDefinition(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase);
-			variables.addVariableDefinition(ExpressionConstants.VAR_CAMPAIGN, campaign);
+			variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, AccessCertificationWorkItemType.class);
+			variables.put(ExpressionConstants.VAR_CERTIFICATION_CASE, aCase, aCase.asPrismContainerValue().getDefinition());
+			variables.putObject(ExpressionConstants.VAR_CAMPAIGN, campaign, AccessCertificationCampaignType.class);
 			for (ExpressionType expression : delegateAction.getApproverExpression()) {
 				rv.addAll(expressionHelper.evaluateRefExpressionChecked(expression, variables, "computing delegates", task, result));
 			}

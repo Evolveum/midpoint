@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,9 +25,13 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
@@ -50,25 +54,38 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	public static final ItemName F_ORIG = new ItemName(PrismConstants.NS_TYPES, "orig");
 	public static final ItemName F_NORM = new ItemName(PrismConstants.NS_TYPES, "norm");
+	public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
+	public static final ItemName F_LANG = new ItemName(PrismConstants.NS_TYPES, "lang");
 
 	private final String orig;
 	private String norm = null;
+	private PolyStringTranslationType translation;
+	private Map<String,String> lang;
 
 	public PolyString(String orig) {
-		super();
-		if (orig == null) {
-			throw new IllegalArgumentException("Cannot create PolyString with null orig");
-		}
-		this.orig = orig;
+		this(orig, null);
 	}
 
 	public PolyString(String orig, String norm) {
+		this(orig, norm, null);
+	}
+	
+	// TODO: we may need a builder for this ... hopefully I do not expect that there will be
+	// any more properties in a near future
+	
+	public PolyString(String orig, String norm, PolyStringTranslationType translation) {
+		this(orig, norm, translation, null);
+	}
+
+	public PolyString(String orig, String norm, PolyStringTranslationType translation, Map<String,String> lang) {
 		super();
-		if (orig == null) {
-			throw new IllegalArgumentException("Cannot create PolyString with null orig");
-		}
 		this.orig = orig;
 		this.norm = norm;
+		this.translation = translation;
+		this.lang = lang;
+		if (isNull()) {
+			throw new IllegalArgumentException("Cannot create PolyString with all null attribute values");
+		}
 	}
 
 	public String getOrig() {
@@ -79,11 +96,50 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return norm;
 	}
 
+	public PolyStringTranslationType getTranslation() {
+		return translation;
+	}
+
+	public Map<String, String> getLang() {
+		return lang;
+	}
+
+	/**
+	 * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
+	 * make PolyString really immutable.
+	 */
+	@Experimental
+	public void setTranslation(PolyStringTranslationType translation) {
+		this.translation = translation;
+	}
+	
+	/**
+	 * Do NOT rely on this method too much. It may disappear later, e.g. when we align PolyString and PolyString type and
+	 * make PolyString really immutable.
+	 */
+	@Experimental
+	public void setLang(Map<String, String> lang) {
+		this.lang = lang;
+	}
+
 	public boolean isEmpty() {
-		if (orig == null) {
-			return true;
-		}
-		return orig.isEmpty();
+		return isOrigEmpty() && isLocalizationKeyEmpty() && isLanguageMapEmpty();
+	}
+
+	public boolean isNull() {
+		return orig == null && norm == null && (translation == null || translation.getKey() == null) && lang == null;
+	}
+
+	private boolean isOrigEmpty(){
+		return StringUtils.isEmpty(orig);
+	}
+
+	private boolean isLocalizationKeyEmpty(){
+		return translation == null || StringUtils.isEmpty(translation.getKey());
+	}
+
+	private boolean isLanguageMapEmpty(){
+		return lang == null || lang.isEmpty();
 	}
 
 	public void recompute(PolyStringNormalizer normalizer) {
@@ -111,6 +167,10 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			return orig;
 		} else if (QNameUtil.match(F_NORM, itemName)) {
 			return norm;
+		} else if (QNameUtil.match(F_TRANSLATION, itemName)) {
+			return translation;
+		} else if (QNameUtil.match(F_LANG, itemName)) {
+			return lang;
 		} else {
 			throw new IllegalArgumentException("Unknown path segment "+itemName);
 		}
@@ -178,34 +238,59 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return this.orig.endsWith(value);
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((lang == null || lang.isEmpty()) ? 0 : lang.hashCode());
 		result = prime * result + ((norm == null) ? 0 : norm.hashCode());
 		result = prime * result + ((orig == null) ? 0 : orig.hashCode());
+		result = prime * result + ((translation == null) ? 0 : translation.hashCode());
 		return result;
 	}
 
+	// Do NOT auto-generate this: there are manual changes!
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		PolyString other = (PolyString) obj;
+		if (lang == null || lang.isEmpty()) {
+			if (other.lang != null && !other.lang.isEmpty()) {
+				return false;
+			}
+		} else if (!lang.equals(other.lang)) {
+			return false;
+		}
 		if (norm == null) {
-			if (other.norm != null)
+			if (other.norm != null) {
 				return false;
-		} else if (!norm.equals(other.norm))
+			}
+		} else if (!norm.equals(other.norm)) {
 			return false;
+		}
 		if (orig == null) {
-			if (other.orig != null)
+			if (other.orig != null) {
 				return false;
-		} else if (!orig.equals(other.orig))
+			}
+		} else if (!orig.equals(other.orig)) {
 			return false;
+		}
+		if (translation == null) {
+			if (other.translation != null) {
+				return false;
+			}
+		} else if (!translation.equals(other.translation)) {
+			return false;
+		}
 		return true;
 	}
 
@@ -240,6 +325,14 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		if (norm != null) {
 			sb.append(",");
 			sb.append(norm);
+		}
+		if (translation != null) {
+			sb.append(";translation=");
+			sb.append(translation.getKey());
+		}
+		if (lang != null) {
+			sb.append(";lang=");
+			sb.append(lang);
 		}
 		sb.append(")");
 		return sb.toString();
@@ -278,6 +371,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
 	}
 
+	/**
+	 * Returns true if the PolyString form contains only simple string.
+	 * I.e. returns true if the polystring can be serialized in a simplified form of a single string.
+	 * Returns true in case that there are language mutations, translation, etc.
+	 */
+	public boolean isSimple() {
+		return translation == null && lang == null;
+	}
+
 	@Override
 	public void checkConsistence() {
 		if (orig == null) {
@@ -299,4 +401,5 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public static PolyString fromOrig(String orig) {
 		return new PolyString(orig);
 	}
+
 }

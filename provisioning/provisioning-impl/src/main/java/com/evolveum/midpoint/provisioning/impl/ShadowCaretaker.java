@@ -113,7 +113,7 @@ public class ShadowCaretaker {
 		PrismContainerValue<ShadowAttributesType> pcv = (PrismContainerValue<ShadowAttributesType>) value;
 		for (Item item : pcv.getItems()) {
 			ItemDefinition itemDef = item.getDefinition();
-			if (itemDef == null || !(itemDef instanceof ResourceAttributeDefinition)) {
+			if (!(itemDef instanceof ResourceAttributeDefinition)) {
 				QName attributeName = item.getElementName();
 				ResourceAttributeDefinition attributeDefinition = ctx.getObjectClassDefinition()
 						.findAttributeDefinition(attributeName);
@@ -309,6 +309,7 @@ public class ShadowCaretaker {
 			if (pendingDelta.isDelete()) {
 				resultShadowType.setDead(true);
 				resultShadowType.setExists(false);
+				resultShadowType.setPrimaryIdentifierValue(null);
 			}
 		}
 		// TODO: check schema, remove non-readable attributes, activation, password, etc.

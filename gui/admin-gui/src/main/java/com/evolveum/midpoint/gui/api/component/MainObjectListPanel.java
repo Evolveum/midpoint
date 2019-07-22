@@ -19,7 +19,10 @@ import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -125,8 +128,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
 
     protected List<Component> createToolbarButtonsList(String buttonId){
         List<Component> buttonsList = new ArrayList<>();
-        MultifunctionalButton<S> createNewObjectButton =
-                new MultifunctionalButton<S>(buttonId){
+        MultifunctionalButton<S> createNewObjectButton = new MultifunctionalButton<S>(buttonId){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -145,6 +147,16 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
 
             @Override
+            protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
+                CompositedIconBuilder builder = MainObjectListPanel.this.getNewObjectButtonAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+                if (builder == null){
+                    return super.getAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
+                } else {
+                    return builder;
+                }
+            }
+
+            @Override
             protected DisplayType getDefaultObjectButtonDisplayType(){
                 return getNewObjectButtonSpecialDisplayType();
             }
@@ -154,6 +166,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonAdditionalDisplayType(buttonObject);
             }
         };
+        createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
@@ -249,6 +262,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return false;
     }
 
+    protected boolean isCreateNewObjectEnabled(){
+        return true;
+    }
+
     protected List<S> getNewObjectInfluencesList(){
         return new ArrayList<>();
     }
@@ -274,6 +291,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     }
 
     protected DisplayType getNewObjectButtonAdditionalDisplayType(S buttonObject){
+        return null;
+    }
+
+    protected CompositedIconBuilder getNewObjectButtonAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
         return null;
     }
 

@@ -17,8 +17,6 @@ package com.evolveum.midpoint.schema;
 
 import java.io.File;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
@@ -41,6 +39,7 @@ public class TestConstants {
     public static final ItemName EXTENSION_USER_REF_ELEMENT = new ItemName(NS_EXTENSION, "userRef");
 
     public static final String USER_FILE_BASENAME = "user-jack";
+    public static final String USER_JACK_POLYSTRING_FILE_BASENAME = "user-jack-polystring";
 	public static final File USER_FILE = new File(COMMON_DIR, "user-jack.xml");
 
 	public static final Long USER_ASSIGNMENT_1_ID = 111L;

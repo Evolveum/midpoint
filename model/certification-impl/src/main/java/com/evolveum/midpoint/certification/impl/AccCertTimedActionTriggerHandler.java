@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.OutcomeUtils;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -25,7 +25,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,7 +44,7 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class AccCertTimedActionTriggerHandler implements TriggerHandler {
+public class AccCertTimedActionTriggerHandler implements SingleTriggerHandler {
 
 	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/timed-action/handler-3";
 
@@ -61,7 +62,7 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	}
 
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task triggerScannerTask, OperationResult parentResult) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask triggerScannerTask, OperationResult parentResult) {
 		if (!(object.asObjectable() instanceof AccessCertificationCampaignType)) {
 			throw new IllegalArgumentException("Unexpected object type: should be AccessCertificationCampaignType: " + object);
 		}
@@ -96,14 +97,14 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 	@SuppressWarnings("unused")
 	private void executeNotifications(Duration timeBeforeAction, AbstractWorkItemActionType action, AccessCertificationCampaignType campaign,
 			Task wfTask, OperationResult result) {
-		WorkItemOperationKindType operationKind = WfContextUtil.getOperationKind(action);
-		WorkItemEventCauseInformationType cause = WfContextUtil.createCause(action);
+		WorkItemOperationKindType operationKind = ApprovalContextUtil.getOperationKind(action);
+		WorkItemEventCauseInformationType cause = ApprovalContextUtil.createCause(action);
 		// TODO notifications before
 		throw new UnsupportedOperationException("Custom notifications are not implemented yet.");
 //		WorkItemAllocationChangeOperationInfo operationInfo =
 //				new WorkItemAllocationChangeOperationInfo(operationKind, workItem.getAssigneeRef(), null);
 //		WorkItemOperationSourceInfo sourceInfo = new WorkItemOperationSourceInfo(null, cause, action);
-//		wfTaskController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
+//		caseController.notifyWorkItemAllocationChangeCurrentActors(workItem, operationInfo, sourceInfo, timeBeforeAction, wfTask, result);
 	}
 
 	private void executeActions(WorkItemActionsType actions, AccessCertificationCampaignType campaign, Task triggerScannerTask,
@@ -166,10 +167,10 @@ public class AccCertTimedActionTriggerHandler implements TriggerHandler {
 //		WorkItemEventCauseInformationType cause = createCauseInformation(notificationAction);
 //		if (BooleanUtils.isNotFalse(notificationAction.isPerAssignee())) {
 //			for (ObjectReferenceType assignee : campaign.getAssigneeRef()) {
-//				wfTaskController.notifyWorkItemCustom(assignee, campaign, cause, wfTask, notificationAction, result);
+//				caseController.notifyWorkItemCustom(assignee, campaign, cause, wfTask, notificationAction, result);
 //			}
 //		} else {
-//			wfTaskController.notifyWorkItemCustom(null, campaign, cause, wfTask, notificationAction, result);
+//			caseController.notifyWorkItemCustom(null, campaign, cause, wfTask, notificationAction, result);
 //		}
 		// TODO implement
 		throw new UnsupportedOperationException("Not implemented yet.");

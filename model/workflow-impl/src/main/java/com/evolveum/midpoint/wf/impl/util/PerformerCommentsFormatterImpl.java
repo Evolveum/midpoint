@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processes.common.WfExpressionEvaluationHelper;
+import com.evolveum.midpoint.wf.impl.processes.common.ExpressionEvaluationHelper;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
@@ -44,12 +44,12 @@ public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatte
 
 	@Nullable private final PerformerCommentsFormattingType formatting;
 	@NotNull private final RepositoryService repositoryService;
-	@NotNull private final WfExpressionEvaluationHelper expressionEvaluationHelper;
+	@NotNull private final ExpressionEvaluationHelper expressionEvaluationHelper;
 
 	private final Map<String, ObjectType> performersCache = new HashMap<>();
 
 	public PerformerCommentsFormatterImpl(@Nullable PerformerCommentsFormattingType formatting,
-			@NotNull RepositoryService repositoryService, @NotNull WfExpressionEvaluationHelper expressionEvaluationHelper) {
+			@NotNull RepositoryService repositoryService, @NotNull ExpressionEvaluationHelper expressionEvaluationHelper) {
 		this.formatting = formatting;
 		this.repositoryService = repositoryService;
 		this.expressionEvaluationHelper = expressionEvaluationHelper;
@@ -72,10 +72,10 @@ public class PerformerCommentsFormatterImpl implements PerformerCommentsFormatte
 		}
 		ObjectType performer = getPerformer(performerRef, result);
 		ExpressionVariables variables = new ExpressionVariables();
-		variables.addVariableDefinition(ExpressionConstants.VAR_PERFORMER, performer);
-		variables.addVariableDefinition(ExpressionConstants.VAR_OUTPUT, output);
-		variables.addVariableDefinition(ExpressionConstants.VAR_WORK_ITEM, workItem);
-		variables.addVariableDefinition(ExpressionConstants.VAR_EVENT, event);
+		variables.put(ExpressionConstants.VAR_PERFORMER, performer, performer.asPrismObject().getDefinition());
+		variables.put(ExpressionConstants.VAR_OUTPUT, output, AbstractWorkItemOutputType.class);
+		variables.put(ExpressionConstants.VAR_WORK_ITEM, workItem, AbstractWorkItemType.class);
+		variables.put(ExpressionConstants.VAR_EVENT, event, WorkItemCompletionEventType.class);
 		if (formatting.getCondition() != null) {
 			try {
 				boolean condition = expressionEvaluationHelper.evaluateBooleanExpression(formatting.getCondition(), variables,

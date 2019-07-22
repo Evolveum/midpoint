@@ -93,20 +93,23 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
             return new TextField(ID_TEXT_INPUT, new PropertyModel(getModel(), SearchValue.F_VALUE));
         }
 
-        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
-
-        	private static final long serialVersionUID = 1L;
-
-			@Override
-        	public boolean isSupportsDisplayName() {
-        		return true;
-        	}
-        };
+        //TODO: displayName
+//        LookupPropertyModel<String> lookupPropertyModel = new LookupPropertyModel<String>(getModel(), SearchValue.F_VALUE, lookup.asObjectable()) {
+//
+//        	private static final long serialVersionUID = 1L;
+//
+//			@Override
+//        	public boolean isSupportsDisplayName() {
+//        		return true;
+//        	}
+//        };
 
         AutoCompleteSettings settings = new AutoCompleteSettings();
         settings.setShowListOnEmptyInput(true);
 
-        return new AutoCompleteTextField<String>(ID_TEXT_INPUT, lookupPropertyModel, settings) {
+        
+        //TODO: converter
+        return new AutoCompleteTextField<String>(ID_TEXT_INPUT, new PropertyModel<>(getModel(), SearchValue.F_VALUE), settings) {
 
         	private static final long serialVersionUID = 1L;
             @Override

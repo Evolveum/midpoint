@@ -91,8 +91,10 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
 		return previous;
 	}
 
-	public Entry putReturningEntry(QName key, XNodeImpl value) {
-		removeEntry(key);
+	public Entry putReturningEntry(QName key, XNodeImpl value, boolean doNotRemovePrevious) {
+		if (!doNotRemovePrevious) {
+			removeEntry(key);
+		}
 		Entry e = new Entry(key, value);
 		subnodes.add(e);
 		return e;
@@ -115,6 +117,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
 		subnodes.clear();
 	}
 
+	@NotNull
 	public Set<QName> keySet() {
 		Set<QName> keySet = new HashSet<>();
 		for (Entry entry: subnodes) {
@@ -123,6 +126,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
 		return keySet;
 	}
 
+	@NotNull
 	public Collection<XNodeImpl> values() {
 		Collection<XNodeImpl> values = new ArrayList<>(subnodes.size());
 		for (Entry entry: subnodes) {
@@ -488,6 +492,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         }
     }
 
+	@NotNull
 	@Override
 	public MapXNodeImpl clone() {
 		return (MapXNodeImpl) super.clone();        // fixme brutal hack

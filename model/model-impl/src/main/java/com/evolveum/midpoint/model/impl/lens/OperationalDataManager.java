@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
 
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.EQUIVALENT;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult.SUPERPATH;
@@ -53,10 +53,6 @@ public class OperationalDataManager {
 
 	@Autowired(required = false)
 	private ActivationComputer activationComputer;
-
-	// for inserting workflow-related metadata to changed object
-	@Autowired(required = false)
-	private WorkflowManager workflowManager;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -97,7 +93,7 @@ public class OperationalDataManager {
 		T objectType = objectToAdd.asObjectable();
 		MetadataType metadataType = objectType.getMetadata();
 		if (metadataType == null) {
-			metadataType = new MetadataType();
+			metadataType = new MetadataType(prismContext);
 			objectType.setMetadata(metadataType);
 		}
 
@@ -105,10 +101,8 @@ public class OperationalDataManager {
 
 		applyCreateMetadata(context, metadataType, now, task);
 
-		if (workflowManager != null) {
-			metadataType.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
-			metadataType.getCreateApprovalComment().addAll(workflowManager.getApproverComments(task, result));
-		}
+		metadataType.getCreateApproverRef().addAll(CloneUtil.cloneCollectionMembers(context.getOperationApprovedBy()));
+		metadataType.getCreateApprovalComment().addAll(context.getOperationApproverComments());
 
 		if (objectToAdd.canRepresent(FocusType.class)) {
 			applyAssignmentMetadataObject((LensContext<? extends FocusType>) context, objectToAdd, now, task, result);
@@ -124,17 +118,13 @@ public class OperationalDataManager {
 				createModifyMetadataDeltas(context, ObjectType.F_METADATA, objectTypeClass, now, task));
 
 		List<PrismReferenceValue> approverReferenceValues = new ArrayList<>();
-		List<String> approverComments = new ArrayList<>();
-		if (workflowManager != null) {
-			for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
-				approverReferenceValues.add(prismContext.itemFactory().createReferenceValue(approverRef.getOid()));
-			}
-			approverComments.addAll(workflowManager.getApproverComments(task, result));
+		for (ObjectReferenceType approverRef : context.getOperationApprovedBy()) {
+			approverReferenceValues.add(approverRef.asReferenceValue().clone());
 		}
 		ItemDeltaCollectionsUtil.mergeAll(objectDelta.getModifications(),
 				prismContext.deltaFor(objectTypeClass)
 						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVER_REF).replace(approverReferenceValues)
-						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(approverComments)
+						.item(ObjectType.F_METADATA, MetadataType.F_MODIFY_APPROVAL_COMMENT).replaceRealValues(context.getOperationApproverComments())
 						.asItemDeltas());
 		if (FocusType.class.isAssignableFrom(objectTypeClass)) {
 			applyAssignmentMetadataDelta((LensContext) context,
@@ -235,7 +225,7 @@ public class OperationalDataManager {
 	}
 
 	public <F extends ObjectType> MetadataType createCreateMetadata(LensContext<F> context, XMLGregorianCalendar now, Task task) {
-		MetadataType metaData = new MetadataType();
+		MetadataType metaData = new MetadataType(prismContext);
 		applyCreateMetadata(context, metaData, now, task);
 		return metaData;
 	}
@@ -247,7 +237,7 @@ public class OperationalDataManager {
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(createObjectRef(task.getOwner(), prismContext));
 		}
-		metaData.setCreateTaskRef(task.getOid() != null ? createObjectRef(task.getTaskPrismObject(), prismContext) : null);
+		metaData.setCreateTaskRef(task.getOid() != null ? task.getSelfReference() : null);
 	}
 
 	public <F extends ObjectType, T extends ObjectType> Collection<ItemDelta<?,?>> createModifyMetadataDeltas(LensContext<F> context,
@@ -257,7 +247,7 @@ public class OperationalDataManager {
 				.item(metadataPath.append(MetadataType.F_MODIFY_TIMESTAMP)).replace(now)
 				.item(metadataPath.append(MetadataType.F_MODIFIER_REF)).replace(createObjectRef(task.getOwner(), prismContext))
 				.item(metadataPath.append(MetadataType.F_MODIFY_TASK_REF)).replaceRealValues(
-						task.getOid() != null ? singleton(createObjectRef(task.getTaskPrismObject(), prismContext)) : emptySet())
+						task.getOid() != null ? singleton(task.getSelfReference()) : emptySet())
 				.asItemDeltas();
 	}
 

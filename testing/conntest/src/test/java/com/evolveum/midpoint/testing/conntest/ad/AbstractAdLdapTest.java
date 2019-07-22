@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2016 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -115,7 +117,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 	private static final String GROUP_PIRATES_NAME = "pirates";
 	private static final String GROUP_MELEE_ISLAND_NAME = "Mêlée Island";
 
-	protected static final int NUMBER_OF_ACCOUNTS = 23;
+	protected static final int NUMBER_OF_ACCOUNTS = 12;
 	private static final String ASSOCIATION_GROUP_NAME = "group";
 
 	private static final String NS_EXTENSION = "http://whatever.com/my";
@@ -262,7 +264,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		final String TEST_NAME = "test020Schema";
         displayTestTitle(TEST_NAME);
 
-        accountObjectClassDefinition = AdUtils.assertAdResourceSchemaLongTimestamp(resource, getAccountObjectClass(), prismContext);
+        accountObjectClassDefinition = AdUtils.assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
 
         assertLdapConnectorInstances(1);
 	}
@@ -284,7 +286,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
 		// THEN
@@ -325,7 +327,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
 		SearchResultList<PrismObject<ShadowType>> shadows = modelService.searchObjects(ShadowType.class, query, null, task, result);
 
 		// THEN
@@ -362,7 +364,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, jackAccountOid, null, task, result);
 
 		// THEN
@@ -410,7 +412,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         		NUMBER_OF_ACCOUNTS, task, result);
 
         // TODO: why 11? should be 1
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 11);
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 9);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -604,8 +606,8 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
 		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
 
-        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
-        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(0), "CN=Administrator,CN=Users,DC=win,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(1), "CN=Chuck LeChuck,CN=Users,DC=win,DC=evolveum,DC=com");
 
         assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
@@ -629,13 +631,12 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         long tsStart = System.currentTimeMillis();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignAccountToUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         long tsEnd = System.currentTimeMillis();
 
@@ -659,11 +660,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
-        ResourceAttribute<Long> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
+        ResourceAttribute<XMLGregorianCalendar> createTimestampAttribute = ShadowUtil.getAttribute(shadow, new QName(MidPointConstants.NS_RI, "createTimeStamp"));
         assertNotNull("No createTimestamp in "+shadow, createTimestampAttribute);
-        Long createTimestamp = createTimestampAttribute.getRealValue();
+        XMLGregorianCalendar createTimestamp = createTimestampAttribute.getRealValue();
         // LDAP server may be on a different host. Allow for some clock offset.
-        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, createTimestamp);
+        TestUtil.assertBetween("Wrong createTimestamp in "+shadow, roundTsDown(tsStart)-120000, roundTsUp(tsEnd)+120000, XmlTypeConverter.toMillis(createTimestamp));
 
         assertLdapConnectorInstances(2);
 	}
@@ -686,11 +687,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -723,11 +724,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -764,14 +765,13 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         delta.addModification(attrDelta);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, ItemPath.create(UserType.F_EXTENSION, EXTENSION_SHOW_IN_ADVANCED_VIEW_ONLY_QNAME),
         		task, result, Boolean.FALSE);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "showInAdvancedViewOnly", "FALSE");
@@ -794,20 +794,54 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         ProtectedStringType userPasswordPs = new ProtectedStringType();
-        userPasswordPs.setClearValue("here.There.Be.Monsters");
+        userPasswordPs.setClearValue(USER_BARBOSSA_PASSWORD_2);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
-        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_2);
+        assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
+
+        PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
+        String shadowOid = getSingleLinkOid(user);
+        assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
+
+        assertLdapConnectorInstances(2);
+	}
+	
+	/**
+	 * MID-5242
+	 */
+	@Test
+    public void test222ModifyUserBarbossaPasswordNational() throws Exception {
+		final String TEST_NAME = "test222ModifyUserBarbossaPasswordNational";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ProtectedStringType userPasswordPs = new ProtectedStringType();
+        userPasswordPs.setClearValue(USER_BARBOSSA_PASSWORD_AD_1);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        modifyUserReplace(USER_BARBOSSA_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
+
+        // THEN
+        displayThen(TEST_NAME);
+        assertSuccess(result);
+
+        Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
+        assertAttribute(entry, "title", "Captain");
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
@@ -825,15 +859,17 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        // precondition
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         assertLdapConnectorInstances(2);
 
@@ -848,7 +884,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountDisabled(shadow);
 
         try {
-        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, "here.There.Be.Monsters");
+        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
         	AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
         	// this is expected
@@ -867,13 +903,12 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_BARBOSSA_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -903,13 +938,12 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.DISABLED);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
@@ -941,11 +975,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         userPasswordPs.setClearValue("wanna.be.a.123");
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_CREDENTIALS_PASSWORD_VALUE, task, result, userPasswordPs);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -972,11 +1006,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modifyUserReplace(USER_GUYBRUSH_OID, PATH_ACTIVATION_ADMINISTRATIVE_STATUS, task, result, ActivationStatusType.ENABLED);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1005,11 +1039,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1046,11 +1080,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         modelService.executeChanges(deltas, null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1086,11 +1120,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignRole(USER_BARBOSSA_OID, ROLE_PIRATES_OID, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1120,11 +1154,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         unassignAccountFromUser(USER_BARBOSSA_OID, getResourceOid(), null, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1157,11 +1191,11 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 		orgType.getAssignment().add(metaroleAssignment);
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(org, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
         result.computeStatus();
         TestUtil.assertSuccess(result);
 
@@ -1186,13 +1220,12 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         OperationResult result = task.getResult();
 
         // WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         assignOrg(USER_GUYBRUSH_OID, orgMeleeIslandOid, task, result);
 
         // THEN
-        TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        displayThen(TEST_NAME);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
 
@@ -1317,7 +1350,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 			SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
 		Task task = taskManager.getTask(syncTaskOid, result);
-		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 		assertNotNull("No sync token", syncTokenProperty);
 		assertNotNull("No sync token value", syncTokenProperty.getRealValue());
 		assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));

@@ -75,11 +75,6 @@ public class PageValuePolicies extends PageAdminObjectList<ValuePolicyType> {
     }
 
     @Override
-    protected void newObjectActionPerformed(AjaxRequestTarget target, CompiledObjectCollectionView collectionView) {
-        navigateToNext(PageValuePolicy.class);
-    }
-
-    @Override
     protected List<IColumn<SelectableBean<ValuePolicyType>, String>> initColumns() {
         return PageValuePolicies.this.initValuePoliciesColumns();
     }

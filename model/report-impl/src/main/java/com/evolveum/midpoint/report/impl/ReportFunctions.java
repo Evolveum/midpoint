@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -220,24 +221,13 @@ public class ReportFunctions {
         return resolvedAssignments;
     }
 
-    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> params) {
+    public List<AuditEventRecord> searchAuditRecords(String query, Map<String, Object> jasperParams) {
 
         if (StringUtils.isBlank(query)) {
             return new ArrayList<>();
         }
 
-        Map<String, Object> resultSet = new HashMap<>();
-        Set<Entry<String, Object>> paramSet = params.entrySet();
-        for (Entry<String, Object> p : paramSet) {
-            if (p.getValue() instanceof AuditEventTypeType) {
-                resultSet.put(p.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) p.getValue()));
-            } else if (p.getValue() instanceof AuditEventStageType) {
-                resultSet.put(p.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) p.getValue()));
-            } else {
-                resultSet.put(p.getKey(), p.getValue());
-            }
-        }
-        return auditService.listRecords(query, resultSet);
+        return auditService.listRecords(query, ReportUtils.jasperParamsToAuditParams(jasperParams));
     }
 
     public List<AuditEventRecord> searchAuditRecordsAsWorkflows(String query, Map<String, Object> params) {
@@ -336,7 +326,7 @@ public class ReportFunctions {
 //    Object parseObjectFromXML (String xml) throws SchemaException {
 //        return prismContext.parserFor(xml).xml().parseAnyData();
 //    }
-    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems()
+    public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems()
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         return searchApprovalWorkItems(0, null);
@@ -346,7 +336,7 @@ public class ReportFunctions {
      * @param days - return only workitems with createTimestamp older than (now-days), 0 to return all
      * @sortColumn - optionally AbstractWorkItemType QName to asc sort results (e.g. AbstractWorkItemType.F_CREATE_TIMESTAMP)
     */
-    public List<PrismContainerValue<WorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
+    public List<PrismContainerValue<CaseWorkItemType>> searchApprovalWorkItems(int days, QName sortColumn)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException, DatatypeConfigurationException {
         Task task = taskManager.createTaskInstance();
@@ -367,11 +357,11 @@ public class ReportFunctions {
                         .asc(sortColumn)
                         .buildFilter());
         }
-	    Object[] itemsToResolve = { WorkItemType.F_ASSIGNEE_REF,
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_OBJECT_REF),
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_TARGET_REF),
-                ItemPath.create(PrismConstants.T_PARENT, WfContextType.F_REQUESTER_REF) };
-	    SearchResultList<WorkItemType> workItems = model.searchContainers(WorkItemType.class, query,
+	    Object[] itemsToResolve = { CaseWorkItemType.F_ASSIGNEE_REF,
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_TARGET_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_REQUESTOR_REF) };
+	    SearchResultList<CaseWorkItemType> workItems = model.searchContainers(CaseWorkItemType.class, query,
 		        schemaHelper.getOperationOptionsBuilder().items(itemsToResolve).resolve().build(), task, result);
         return PrismContainerValue.toPcvList(workItems);
     }

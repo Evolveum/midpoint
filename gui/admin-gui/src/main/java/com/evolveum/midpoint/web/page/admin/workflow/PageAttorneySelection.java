@@ -20,8 +20,10 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -33,10 +35,13 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.data.column.ObjectNameColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.cases.PageCaseWorkItems;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -67,12 +72,14 @@ import java.util.List;
                         description = "PageAttorneySelection.auth.workItems.attorney.description")
         })
 public class PageAttorneySelection extends PageBase {
+    private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
 
     private static final String DOT_CLASS = PageUsers.class.getName() + ".";
 
     private static final String OPERATION_GET_DONOR_FILTER = DOT_CLASS + "getDonorFilter";
+    public static final String PARAMETER_DONOR_OID = "donorOid";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -132,7 +139,7 @@ public class PageAttorneySelection extends PageBase {
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                 if (query == null) {
-                    query = getPrismContext().queryFactory().createQuery();
+                    query = PageAttorneySelection.this.getPrismContext().queryFactory().createQuery();
                 }
 
                 ModelInteractionService service = getModelInteractionService();
@@ -186,7 +193,8 @@ public class PageAttorneySelection extends PageBase {
 
     private void selectUserPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        navigateToNext(PageWorkItemsAttorney.class, parameters);
+        parameters.add(PARAMETER_DONOR_OID, oid);
+        PageCaseWorkItems workItemsPage = new PageCaseWorkItems(parameters);
+        navigateToNext(workItemsPage);
     }
 }

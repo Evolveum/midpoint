@@ -25,8 +25,10 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -38,8 +40,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.primary.ModelInvocationContext;
-import com.evolveum.midpoint.wf.impl.processors.primary.PcpChildWfTaskCreationInstruction;
+import com.evolveum.midpoint.wf.impl.processors.ModelInvocationContext;
+import com.evolveum.midpoint.wf.impl.processors.primary.PcpStartInstruction;
 import com.evolveum.midpoint.wf.impl.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.tuple.Pair;
@@ -55,7 +57,6 @@ import java.util.stream.Collectors;
 import static com.evolveum.midpoint.prism.PrismObject.asPrismObject;
 import static com.evolveum.midpoint.schema.util.LocalizationUtil.createLocalizableMessageType;
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createDisplayInformation;
-import static com.evolveum.midpoint.wf.impl.util.MiscDataUtil.getFocusObjectNewOrOld;
 
 /**
  *
@@ -88,12 +89,12 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 
 	@NotNull
 	@Override
-    public <T extends ObjectType> List<PcpChildWfTaskCreationInstruction<?>> prepareTasks(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
-			ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public <T extends ObjectType> List<PcpStartInstruction> getStartInstructions(@NotNull ObjectTreeDeltas<T> objectTreeDeltas,
+			@NotNull ModelInvocationContext<T> ctx, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException {
 
-		List<PcpChildWfTaskCreationInstruction<?>> instructions = new ArrayList<>();
+		List<PcpStartInstruction> instructions = new ArrayList<>();
 		if (objectTreeDeltas.getFocusChange() != null) {
-			PrismObject<UserType> requester = baseModelInvocationProcessingHelper.getRequester(ctx.taskFromModel, result);
+			PrismObject<UserType> requester = ctx.getRequestor(result);
 			assignmentPolicyAspectPart.extractAssignmentBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
 			objectPolicyAspectPart.extractObjectBasedInstructions(objectTreeDeltas, requester, instructions, ctx, result);
 		}
@@ -142,24 +143,32 @@ public class PolicyRuleBasedAspect extends BasePrimaryChangeAspect {
 		if (schemaBuilderResult.approvalDisplayName == null) {
 			return null;
 		}
-		Map<QName, Object> variables = new HashMap<>();
-		variables.put(ExpressionConstants.VAR_OBJECT, getFocusObjectNewOrOld(ctx.modelContext));
-		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(asPrismObject(getFocusObjectNewOrOld(ctx.modelContext)), false)));
+		ExpressionVariables variables = new ExpressionVariables();
+		ObjectType focusType = ctx.getFocusObjectNewOrOld();
+		variables.put(ExpressionConstants.VAR_OBJECT, focusType, focusType.asPrismObject().getDefinition());
+		variables.put(ExpressionConstants.VAR_OBJECT_DISPLAY_INFORMATION,
+				createLocalizableMessageType(createDisplayInformation(asPrismObject(focusType), false)),
+				LocalizableMessageType.class);
 		if (evaluatedAssignment != null) {
-			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget());
-			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)));
-			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment);
-			variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType());
+			variables.put(ExpressionConstants.VAR_TARGET, evaluatedAssignment.getTarget(), evaluatedAssignment.getTarget().getDefinition());
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION,
+					createLocalizableMessageType(createDisplayInformation(evaluatedAssignment.getTarget(), false)),
+					LocalizableMessageType.class);
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment.getAssignmentType(), AssignmentType.class);
 		} else {
-			variables.put(ExpressionConstants.VAR_TARGET, null);
-			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null);
-			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null);
-			variables.put(ExpressionConstants.VAR_ASSIGNMENT, null);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_TARGET, null, ObjectType.class);
+			variables.put(ExpressionConstants.VAR_TARGET_DISPLAY_INFORMATION, null, LocalizableMessageType.class);
+			variables.put(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, null, EvaluatedAssignment.class);
+			// Wrong ... but this will get reworked in 4.0 anyway.
+			variables.put(ExpressionConstants.VAR_ASSIGNMENT, null, AssignmentType.class);
 		}
 		LocalizableMessageType localizableMessageType;
 		try {
 			localizableMessageType = modelInteractionService
-					.createLocalizableMessageType(schemaBuilderResult.approvalDisplayName, variables, ctx.taskFromModel, result);
+					.createLocalizableMessageType(schemaBuilderResult.approvalDisplayName, variables, ctx.task, result);
 		} catch (CommonException|RuntimeException e) {
 			throw new SystemException("Couldn't create localizable message for approval display name: " + e.getMessage(), e);
 		}

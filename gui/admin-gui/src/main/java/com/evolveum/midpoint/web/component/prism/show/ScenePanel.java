@@ -71,9 +71,14 @@ public class ScenePanel extends BasePanel<SceneDto> {
 
     public ScenePanel(String id, @NotNull IModel<SceneDto> model) {
         super(id, model);
-        setOutputMarkupId(true);
-        initLayout();
     }
+
+    @Override
+	protected void onInitialize(){
+    	super.onInitialize();
+		setOutputMarkupId(true);
+    	initLayout();
+	}
 
     private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<SceneDto> model) {
         return new AjaxEventBehavior("click") {

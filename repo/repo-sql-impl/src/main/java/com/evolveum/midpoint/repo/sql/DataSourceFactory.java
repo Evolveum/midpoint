@@ -39,6 +39,7 @@ public class DataSourceFactory {
 
     private SqlRepositoryConfiguration configuration;
 
+    private DataSource internalDataSource;
     private DataSource dataSource;
 
     public SqlRepositoryConfiguration getConfiguration() {
@@ -57,24 +58,27 @@ public class DataSourceFactory {
 
         try {
             if (StringUtils.isNotEmpty(configuration.getDataSource())) {
-                LOGGER.info("JDNI datasource present in configuration, looking for '{}'.",
-                        new Object[]{configuration.getDataSource()});
-                return createJNDIDataSource();
+                LOGGER.info("JNDI datasource present in configuration, looking for '{}'.", configuration.getDataSource());
+                dataSource = createJNDIDataSource();
+            } else {
+                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
+                internalDataSource = createDataSourceInternal();
+                dataSource = internalDataSource;
             }
-
-            LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
-            dataSource = createDataSourceInternal();
             return dataSource;
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException("Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
         }
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
     private DataSource createJNDIDataSource() throws IllegalArgumentException, NamingException {
         JndiObjectFactoryBean factory = new JndiObjectFactoryBean();
         factory.setJndiName(configuration.getDataSource());
         factory.afterPropertiesSet();
-
         return (DataSource) factory.getObject();
     }
 
@@ -90,6 +94,14 @@ public class DataSourceFactory {
 
         config.setMinimumIdle(configuration.getMinPoolSize());
         config.setMaximumPoolSize(configuration.getMaxPoolSize());
+
+        if (configuration.getMaxLifetime() != null) {
+        	config.setMaxLifetime(configuration.getMaxLifetime());
+        } 
+        
+        if (configuration.getIdleTimeout() != null) {
+        	config.setIdleTimeout(configuration.getIdleTimeout());
+        }
 
         config.setIsolateInternalQueries(true);
 //        config.setAutoCommit(false);
@@ -127,8 +139,8 @@ public class DataSourceFactory {
 
     @PreDestroy
     public void destroy() throws IOException {
-        if (dataSource instanceof Closeable) {
-            ((Closeable) dataSource).close();
+        if (internalDataSource instanceof Closeable) {
+            ((Closeable) internalDataSource).close();
         }
     }
 }

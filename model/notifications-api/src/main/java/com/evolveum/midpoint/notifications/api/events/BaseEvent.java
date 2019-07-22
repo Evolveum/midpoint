@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.*;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -32,11 +34,10 @@ import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -53,6 +54,7 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 	protected final EventHandlerType adHocHandler;
 
 	private transient NotificationFunctions notificationFunctions;	// needs not be set when creating an event ... it is set in NotificationManager
+	private transient PrismContext prismContext;
 
     // about who is this operation (null if unknown);
     // - for model notifications, this is the focus, (usually a user but may be e.g. role or other kind of object)
@@ -175,36 +177,55 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         return requestee.getOid();
     }
 
-	public ObjectType getRequesteeObject() {
-		if (requestee == null) {
+	@Nullable
+	private ObjectType resolveObject(SimpleObjectRef ref) {
+		if (ref == null) {
 			return null;
 		}
-		return requestee.resolveObjectType(new OperationResult(BaseEvent.class + ".getRequesteeObject"), true);
+		return ref.resolveObjectType(new OperationResult(BaseEvent.class + ".resolveObject"), true);
+	}
+
+	public ObjectType getRequesteeObject() {
+		return resolveObject(requestee);
+	}
+
+	public ObjectType getRequesterObject() {
+		return resolveObject(requester);
 	}
 
 	public PolyStringType getRequesteeDisplayName() {
-		if (requestee == null) {
+		return getDisplayName(getRequesteeObject());
+	}
+
+	public PolyStringType getRequesterDisplayName() {
+		return getDisplayName(getRequesterObject());
+	}
+
+	@Nullable
+	private PolyStringType getDisplayName(ObjectType object) {
+		if (object == null) {
 			return null;
 		}
-		ObjectType requesteeObject = getRequesteeObject();
-		if (requesteeObject == null) {
-			return null;
-		}
-		if (requesteeObject instanceof UserType) {
-			return ((UserType) requesteeObject).getFullName();
-		} else if (requesteeObject instanceof AbstractRoleType) {
-			return ((AbstractRoleType) requesteeObject).getDisplayName();
+		if (object instanceof UserType) {
+			return ((UserType) object).getFullName();
+		} else if (object instanceof AbstractRoleType) {
+			return ((AbstractRoleType) object).getDisplayName();
 		} else {
-			return requesteeObject.getName();
+			return object.getName();
 		}
 	}
 
+	@Nullable
+	private PolyStringType getName(ObjectType object) {
+		return object != null ? object.getName() : null;
+	}
+
 	public PolyStringType getRequesteeName() {
-		if (requestee == null) {
-			return null;
-		}
-		ObjectType requesteeObject = getRequesteeObject();
-		return requesteeObject != null ? requesteeObject.getName() : null;
+		return getName(getRequesteeObject());
+	}
+
+	public PolyStringType getRequesterName() {
+		return getName(getRequesterObject());
 	}
 
     public void setRequestee(SimpleObjectRef requestee) {
@@ -220,13 +241,23 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
         }
     }
 
-    public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
-        variables.put(SchemaConstants.C_EVENT, this);
-        variables.put(SchemaConstants.C_REQUESTER, requester != null ? requester.resolveObjectType(result, false) : null);
-        variables.put(SchemaConstants.C_REQUESTEE, requestee != null ? requestee.resolveObjectType(result, true) : null);
+    public void createExpressionVariables(VariablesMap variables, OperationResult result) {
+        variables.put(ExpressionConstants.VAR_EVENT, this, Event.class);
+        variables.put(ExpressionConstants.VAR_REQUESTER, resolveTypedObject(requester, false, result));
+        variables.put(ExpressionConstants.VAR_REQUESTEE, resolveTypedObject(requestee, true, result));
     }
 
-    // Finding items in deltas/objects
+    TypedValue<ObjectType> resolveTypedObject(SimpleObjectRef ref, boolean allowNotFound, OperationResult result) {
+	    ObjectType resolved = ref != null ? ref.resolveObjectType(result, allowNotFound) : null;
+	    if (resolved != null) {
+		    return new TypedValue<>(resolved, resolved.asPrismObject().getDefinition());
+	    } else {
+		    PrismObjectDefinition<ObjectType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ObjectType.class);
+		    return new TypedValue<>(null, def);
+	    }
+    }
+
+	// Finding items in deltas/objects
     // this is similar to delta.hasItemDelta but much, much more relaxed (we completely ignore ID path segments and we take subpaths into account)
     //
     // Very experimental implementation. Needs a bit of time to clean up and test adequately.
@@ -352,6 +383,14 @@ public abstract class BaseEvent implements Event, DebugDumpable, ShortDumpable {
 
 	public void setNotificationFunctions(NotificationFunctions notificationFunctions) {
 		this.notificationFunctions = notificationFunctions;
+	}
+
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
 	}
 
 	public String getStatusAsText() {

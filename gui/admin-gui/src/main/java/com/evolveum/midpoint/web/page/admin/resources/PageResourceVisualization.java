@@ -124,7 +124,7 @@ public class PageResourceVisualization extends PageAdmin {
 		renderer += " -Tsvg";
 		StringBuilder output = new StringBuilder();
 		try {
-			SystemUtil.executeCommand(renderer, dot, output);
+			SystemUtil.executeCommand(renderer, dot, output, -1);
 			return new ResourceVisualizationDto(dot, output.toString(), null);
 		} catch (IOException|RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute SVG renderer command: {}", e, renderer);

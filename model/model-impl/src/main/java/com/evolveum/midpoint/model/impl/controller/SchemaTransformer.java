@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.impl.controller;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.util.ModelUtils;
+import com.evolveum.midpoint.model.common.ArchetypeManager;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -50,10 +50,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.namespace.QName;
 import java.util.*;
 
 /**
@@ -67,15 +69,10 @@ public class SchemaTransformer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
-	@Autowired(required = true)
-	@Qualifier("cacheRepositoryService")
-	private transient RepositoryService cacheRepositoryService;
-
-	@Autowired(required = true)
-	private SecurityEnforcer securityEnforcer;
-
-	@Autowired(required = true)
-	private SystemObjectCache systemObjectCache;
+	@Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+	@Autowired private SecurityEnforcer securityEnforcer;
+	@Autowired private SystemObjectCache systemObjectCache;
+	@Autowired private ArchetypeManager archetypeManager;
 
 	@Autowired
 	private PrismContext prismContext;
@@ -148,7 +145,7 @@ public class SchemaTransformer {
 
 	private <T extends ObjectType> void applySchemaAndSecurityToObject(PrismObject<T> object, GetOperationOptions rootOptions,
 			Collection<SelectorOptions<GetOperationOptions>> options, AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException {
-		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObjects");
+		OperationResult subresult = new OperationResult(SchemaTransformer.class.getName()+".applySchemasAndSecurityToObject");
 		try {
             applySchemasAndSecurity(object, rootOptions, options, phase, task, subresult);
         } catch (IllegalArgumentException | IllegalStateException | SchemaException |ConfigurationException |ObjectNotFoundException | ExpressionEvaluationException | CommunicationException e) {
@@ -264,14 +261,12 @@ public class SchemaTransformer {
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
 	
 			focusContext.forEachObject(focusObject -> 
-				applySecurityConstraints(focusObject.getValue().getItems(), securityConstraints, globalReadDecision,
+				applySecurityConstraints(focusObject.getValue(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase));
 	
 			AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
 			if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
-				}
+				LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
 				result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
 				context.setEvaluatedAssignmentTriple(null);
 			}
@@ -309,7 +304,7 @@ public class SchemaTransformer {
 
 			AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
+			applySecurityConstraints(object.getValue(), securityConstraints, globalReadDecision,
 					globalAddDecision, globalModifyDecision, phase);
 			if (object.isEmpty()) {
 				// let's make it explicit
@@ -341,17 +336,17 @@ public class SchemaTransformer {
 		}
 	}
 
-	public void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
+	private void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
+			AuthorizationDecisionType defaultModifyDecision,
 			AuthorizationPhaseType phase) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
-		if (items == null) {
+				pcv.getItems(), phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		if (pcv.hasNoItems()) {
 			return;
 		}
-		Iterator<Item<?,?>> iterator = items.iterator();
-		while (iterator.hasNext()) {
-			Item<?,?> item = iterator.next();
+		List<Item> itemsToRemove = new ArrayList<>();
+		for (Item<?, ?> item : pcv.getItems()) {
 			ItemPath itemPath = item.getPath();
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null && itemDef.isElaborate()) {
@@ -378,7 +373,7 @@ public class SchemaTransformer {
 			if (item instanceof PrismContainer<?>) {
 				if (itemReadDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
-					iterator.remove();
+					itemsToRemove.add(item);
 				} else {
 					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
 					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
@@ -386,28 +381,34 @@ public class SchemaTransformer {
 						// This means allow to all subitems unless otherwise denied.
 						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
 					}
-					boolean itemWasEmpty = item.isEmpty();		// to prevent removal of originally empty items
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
 					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
 					while (vi.hasNext()) {
 						PrismContainerValue<?> cval = vi.next();
-						List<Item<?,?>> subitems = cval.getItems();
-						if (subitems != null && !subitems.isEmpty()) {	// second condition is to prevent removal of originally empty values
-							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
-							if (subitems.isEmpty()) {
-								vi.remove();
-							}
+						applySecurityConstraints(cval, securityConstraints, subDefaultReadDecision, itemAddDecision,
+								itemModifyDecision, phase);
+						if (cval.hasNoItems() && itemReadDecision == null) {
+							// We have removed all the content, if there was any. So, in the default case, there's nothing that
+							// we are interested in inside this PCV. Therefore let's just remove it.
+							// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+							vi.remove();
 						}
 					}
-					if (!itemWasEmpty && item.isEmpty()) {
-						iterator.remove();
+					if (item.hasNoValues() && itemReadDecision == null) {
+						// We have removed all the content, if there was any. So, in the default case, there's nothing that
+						// we are interested in inside this item. Therefore let's just remove it.
+						// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+						itemsToRemove.add(item);
 					}
 				}
 			} else {
-				if (itemReadDecision == AuthorizationDecisionType.DENY || (itemReadDecision == null && defaultReadDecision == null)) {
-					iterator.remove();
+				if (itemReadDecision == AuthorizationDecisionType.DENY || itemReadDecision == null) {
+					itemsToRemove.add(item);
 				}
 			}
+		}
+		for (Item itemToRemove : itemsToRemove) {
+			pcv.remove(itemToRemove);
 		}
 	}
 
@@ -495,6 +496,7 @@ public class SchemaTransformer {
 		}
 	}
 
+	@Contract("_, _, _, !null, _ -> !null")
     public AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath nameOnlyItemPath, String[] actionUrls,
 			AuthorizationDecisionType defaultDecision, AuthorizationPhaseType phase) {
     	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(nameOnlyItemPath, actionUrls, phase);
@@ -507,15 +509,11 @@ public class SchemaTransformer {
 	}
 
     public <O extends ObjectType> ObjectTemplateType determineObjectTemplate(PrismObject<O> object, AuthorizationPhaseType phase, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException {
-    	PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(result);
-    	if (systemConfiguration == null) {
+    	ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(object, result);
+    	if (archetypePolicy == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(object, systemConfiguration.asObjectable());
-    	if (objectPolicyConfiguration == null) {
-    		return null;
-    	}
-    	ObjectReferenceType objectTemplateRef = objectPolicyConfiguration.getObjectTemplateRef();
+    	ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
     	if (objectTemplateRef == null) {
     		return null;
     	}
@@ -528,7 +526,7 @@ public class SchemaTransformer {
     	if (systemConfiguration == null) {
     		return null;
     	}
-    	ObjectPolicyConfigurationType objectPolicyConfiguration = ModelUtils.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
+    	ObjectPolicyConfigurationType objectPolicyConfiguration = ArchetypeManager.determineObjectPolicyConfiguration(objectClass, null, systemConfiguration.asObjectable());
     	if (objectPolicyConfiguration == null) {
     		return null;
     	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.api.WorkItemOperationInfo;
@@ -25,21 +26,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.Map;
-
 /**
  * @author mederly
  */
 public class WorkItemLifecycleEvent extends WorkItemEvent {
 
     public WorkItemLifecycleEvent(@NotNull LightweightIdentifierGenerator lightweightIdentifierGenerator, @NotNull ChangeType changeType,
-			@NotNull WorkItemType workItem,
+			@NotNull CaseWorkItemType workItem,
 			@Nullable SimpleObjectRef assignee, @Nullable SimpleObjectRef initiator,
 			@Nullable WorkItemOperationInfo operationInfo, @Nullable WorkItemOperationSourceInfo sourceInfo,
-			@NotNull WfContextType workflowContext, @NotNull TaskType workflowTask) {
+			@Nullable ApprovalContextType approvalContext, @NotNull CaseType aCase) {
         super(lightweightIdentifierGenerator, changeType, workItem, assignee, initiator,
-				operationInfo, sourceInfo, workflowContext, workflowTask, null, null);
+				operationInfo, sourceInfo, approvalContext, aCase, null, null);
     }
 
 	@Override
@@ -50,7 +48,7 @@ public class WorkItemLifecycleEvent extends WorkItemEvent {
     }
 
 	@Override
-    public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
+    public void createExpressionVariables(VariablesMap variables, OperationResult result) {
         super.createExpressionVariables(variables, result);
     }
 

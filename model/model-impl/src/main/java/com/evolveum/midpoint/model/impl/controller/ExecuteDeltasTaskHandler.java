@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -57,15 +58,14 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 	@Autowired private ModelService modelService;
 
 	@Override
-	public TaskRunResult run(Task task) {
-
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		OperationResult result = task.getResult().createSubresult(DOT_CLASS + "run");
 		TaskRunResult runResult = new TaskRunResult();
 
 		Collection<ObjectDeltaType> deltas;
-		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
+		PrismProperty<ObjectDeltaType> deltasProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTAS);
 		if (deltasProperty == null || deltasProperty.isEmpty()) {
-			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
+			PrismProperty<ObjectDeltaType> deltaProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_DELTA);
 			if (deltaProperty == null || deltaProperty.isEmpty()) {
 				throw new IllegalArgumentException("No deltas to execute");
 			} else {
@@ -74,7 +74,7 @@ public class ExecuteDeltasTaskHandler implements TaskHandler {
 		} else {
 			deltas = deltasProperty.getRealValues();
 		}
-		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+		PrismProperty<ModelExecuteOptionsType> optionsProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
 		ModelExecuteOptions options = optionsProperty != null ?
 				ModelExecuteOptions.fromModelExecutionOptionsType(optionsProperty.getRealValue()) : null;
 

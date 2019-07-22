@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -29,9 +31,11 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.GlobalPolicyRuleTabPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.LoggingConfigurationTabPanel;
@@ -41,7 +45,10 @@ import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.Profili
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ContainerOfSystemConfigurationPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.SystemConfigurationSummaryPanel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerPanel;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -57,6 +64,7 @@ import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 
 /**
  * @author lazyman
@@ -82,6 +90,9 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 	public static final String SELECTED_SERVER_INDEX = "mailServerIndex";
 	public static final String SERVER_LIST_SIZE = "mailServerListSize";
 
+	private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
+	private static final String OPERATION_LOAD_SYSTEM_CONFIG = DOT_CLASS + "load";
+	
 	public static final int CONFIGURATION_TAB_BASIC = 0;
 	public static final int CONFIGURATION_TAB_OBJECT_POLICY = 1;
 	public static final int CONFIGURATION_TAB_GLOBAL_POLICY_RULE = 2;
@@ -124,7 +135,9 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 	
 	@Override
 	protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
-		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsObjectWrapper(this).getObject(), false, isReadonly);
+		Task task = createSimpleTask(OPERATION_LOAD_SYSTEM_CONFIG);
+		OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIG);
+		super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(this, task, result), false, isReadonly);
     }
 	
 	private List<ITab> getTabs(){
@@ -145,9 +158,8 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<ObjectPolicyConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
-						SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
-				return new ObjectPolicyConfigurationTabPanel(panelId, model);
+				PrismContainerWrapperModel<SystemConfigurationType, ObjectPolicyConfigurationType> model = createModel(getObjectModel(), SystemConfigurationType.F_DEFAULT_OBJECT_POLICY_CONFIGURATION);
+				return new ObjectPolicyConfigurationTabPanel<>(panelId, model);
 			}
 		});
 		
@@ -157,9 +169,9 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<GlobalPolicyRuleType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+				PrismContainerWrapperModel<SystemConfigurationType, GlobalPolicyRuleType> model = createModel(getObjectModel(), 
 						SystemConfigurationType.F_GLOBAL_POLICY_RULE);
-				return new GlobalPolicyRuleTabPanel(panelId, model);
+				return new GlobalPolicyRuleTabPanel<>(panelId, model);
 			}
 		});
 		
@@ -169,7 +181,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<ProjectionPolicyType>(panelId, getObjectModel(), SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS, ProjectionPolicyType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -179,7 +191,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<CleanupPoliciesType>(panelId, getObjectModel(), SystemConfigurationType.F_CLEANUP_POLICY);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_CLEANUP_POLICY, CleanupPoliciesType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -189,7 +201,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<NotificationConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+				PrismContainerWrapperModel<SystemConfigurationType, NotificationConfigurationType> model = createModel(getObjectModel(), 
 						SystemConfigurationType.F_NOTIFICATION_CONFIGURATION);
 				return new NotificationConfigTabPanel(panelId, model);
 			}
@@ -201,9 +213,8 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> model = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
-						SystemConfigurationType.F_LOGGING);
-				return new LoggingConfigurationTabPanel(panelId, model);
+				PrismContainerWrapperModel<SystemConfigurationType, LoggingConfigurationType> model = createModel(getObjectModel(), SystemConfigurationType.F_LOGGING);
+				return new LoggingConfigurationTabPanel<>(panelId, model);
 			}
 		});
 
@@ -213,9 +224,8 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				ContainerWrapperFromObjectWrapperModel<ProfilingConfigurationType, SystemConfigurationType> profilingModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
-						SystemConfigurationType.F_PROFILING_CONFIGURATION);
-				ContainerWrapperFromObjectWrapperModel<LoggingConfigurationType, SystemConfigurationType> loggingModel = new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), 
+				PrismContainerWrapperModel<SystemConfigurationType, ProfilingConfigurationType> profilingModel = createModel(getObjectModel(), SystemConfigurationType.F_PROFILING_CONFIGURATION);
+				PrismContainerWrapperModel<SystemConfigurationType, LoggingConfigurationType> loggingModel = createModel(getObjectModel(), 
 						SystemConfigurationType.F_LOGGING);
 				return new ProfilingConfigurationTabPanel(panelId, profilingModel, loggingModel);
 			}
@@ -227,7 +237,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<AdminGuiConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_ADMIN_GUI_CONFIGURATION, AdminGuiConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -237,7 +247,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<WfConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_WORKFLOW_CONFIGURATION);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_WORKFLOW_CONFIGURATION, WfConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -247,7 +257,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<RoleManagementConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ROLE_MANAGEMENT);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_ROLE_MANAGEMENT, RoleManagementConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -257,7 +267,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<InternalsConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_INTERNALS);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_INTERNALS, InternalsConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -267,7 +277,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<DeploymentInformationType>(panelId, getObjectModel(), SystemConfigurationType.F_DEPLOYMENT_INFORMATION);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_DEPLOYMENT_INFORMATION, DeploymentInformationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -277,7 +287,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<AccessCertificationConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_ACCESS_CERTIFICATION);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_ACCESS_CERTIFICATION, AccessCertificationConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -287,7 +297,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<InfrastructureConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_INFRASTRUCTURE);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_INFRASTRUCTURE, InfrastructureConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -297,7 +307,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new ContainerOfSystemConfigurationPanel<FullTextSearchConfigurationType>(panelId, getObjectModel(), SystemConfigurationType.F_FULL_TEXT_SEARCH);
+				return createContainerPanel(panelId, getObjectModel(), SystemConfigurationType.F_FULL_TEXT_SEARCH, FullTextSearchConfigurationType.COMPLEX_TYPE);
 			}
 		});
 		
@@ -305,6 +315,14 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 		return tabs;
 	}
 	
+	private <C extends Containerable> ContainerOfSystemConfigurationPanel<C> createContainerPanel(String panelId, IModel<PrismObjectWrapper<SystemConfigurationType>> objectModel, ItemName propertyName, QName propertyType) {
+		return new ContainerOfSystemConfigurationPanel<C>(panelId, createModel(objectModel, propertyName), propertyType);
+	}
+	
+	private <C extends Containerable> PrismContainerWrapperModel<SystemConfigurationType, C> createModel(IModel<PrismObjectWrapper<SystemConfigurationType>> model, ItemName itemName) {
+		return PrismContainerWrapperModel.fromContainerWrapper(model, itemName);
+	}
+ 	
 	@Override
 	public void finishProcessing(AjaxRequestTarget target, OperationResult result, boolean returningFromAsync) {
 		
@@ -322,7 +340,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 
 	@Override
 	protected ObjectSummaryPanel<SystemConfigurationType> createSummaryPanel() {
-		return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject()), this);
+		return new SystemConfigurationSummaryPanel(ID_SUMM_PANEL, SystemConfigurationType.class, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
 	}
 
 	@Override

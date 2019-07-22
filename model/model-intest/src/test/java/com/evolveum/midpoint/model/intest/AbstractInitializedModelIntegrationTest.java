@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
 
@@ -37,9 +38,11 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -68,7 +71,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 
-	private static final int NUMBER_OF_IMPORTED_USERS = 4;
+	private static final int NUMBER_OF_IMPORTED_USERS = 5;
 	private static final int NUMBER_OF_IMPORTED_ROLES = 16;
 
 	@Autowired protected MappingFactory mappingFactory;
@@ -82,6 +85,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeBarbossa;
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
+	protected UserType userTypeWill;
 
 	protected DummyResourceContoller dummyResourceCtl;
 
@@ -230,6 +234,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILE, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILE, UserType.class, initResult).asObjectable();
 		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILE, UserType.class, initResult).asObjectable();
+		userTypeWill = repoAddObjectFromFile(USER_WILL_FILE, UserType.class, true, initResult).asObjectable();
 
 		// Roles
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, initResult);
@@ -353,6 +358,11 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) throws SchemaException {
 		assertDummyAccountShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
+	}
+	
+	protected void assertClassType(String message, Object object,
+			Class<?> type) {
+		assertTrue(type.isInstance(object), message);
 	}
 
 	protected void setDefaultUserTemplate(String userTemplateOid)

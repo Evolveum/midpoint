@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,8 +47,10 @@ import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -97,6 +99,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 
 	private ObjectType orderOneObject;
 	private ResourceType resource;
+	private ExpressionProfile expressionProfile;
 	private MappingFactory mappingFactory;
 	private MappingEvaluator mappingEvaluator;
 	private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings;
@@ -111,6 +114,8 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 	public Construction(ConstructionType constructionType, ObjectType source) {
 		super(constructionType, source);
 		this.attributeMappings = null;
+		// TODO: this is wrong. It should be set up during the evaluation process.
+		this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
 	}
 
 	public ObjectType getOrderOneObject() {
@@ -236,18 +241,18 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		// SearchFilterType filter = targetRef.getFilter();
 		ExpressionVariables variables = ModelImplUtils
-				.getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null);
+				.getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
 		if (assignmentPathVariables == null) {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
 		}
-		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables);
+		ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
 		LOGGER.info("Expression variables for filter evaluation: {}", variables);
 
 		ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
 				ResourceType.class);
 		LOGGER.info("Orig filter {}", origFilter);
 		ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-				getMappingFactory().getExpressionFactory(), getPrismContext(),
+				expressionProfile, getMappingFactory().getExpressionFactory(), getPrismContext(),
 				" evaluating resource filter expression ", task, result);
 		LOGGER.info("evaluatedFilter filter {}", evaluatedFilter);
 
@@ -322,7 +327,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 	public void evaluate(Task task, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
 		// Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
-		// AssignmentProcessor.processAssignmentsProjections. Otherwise partial error won't be propagated properly.
+		// AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
 		OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
 		try {
 			assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
@@ -387,7 +392,7 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 			auxiliaryObjectClassDefinitions.add(auxOcDef);
 		}
 		
-		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent());
+		ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, getConstructionType().getIntent(), null, false);
 		projectionContext = getLensContext().findProjectionContext(rat);
 		// projection context may not exist yet (existence might not be yet decided)
 	}
@@ -449,11 +454,38 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getSource());
 
-		MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping = evaluateMapping(
-				builder, attrName, outputDefinition, null, task, result);
+		MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping;
+		
+		try {
+		
+			evaluatedMapping = evaluateMapping(builder, attrName, outputDefinition, null, task, result);
+			
+		} catch (SchemaException e) {
+			throw new SchemaException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (ExpressionEvaluationException e) {
+			// No need to specially handle this here. It was already handled in the expression-processing
+			// code and it has proper description.
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			throw new ObjectNotFoundException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (SecurityViolationException e) {
+			throw new SecurityViolationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (ConfigurationException e) {
+			throw new ConfigurationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		} catch (CommunicationException e) {
+			throw new CommunicationException(getAttributeEvaluationErrorMesssage(attrName, e), e);
+		}
 
 		LOGGER.trace("Evaluated mapping for attribute " + attrName + ": " + evaluatedMapping);
 		return evaluatedMapping;
+	}
+
+	private String getAttributeEvaluationErrorMesssage(QName attrName, Exception e) {
+		return "Error evaluating mapping for attribute "+PrettyPrinter.prettyPrint(attrName)+" in "+getHumanReadableConstructionDescription()+": "+e.getMessage();
+	}
+
+	private String getHumanReadableConstructionDescription() {
+		return "construction for ("+resource+"/"+getKind()+"/"+getIntent()+") in "+getSource();
 	}
 
 	public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
@@ -565,18 +597,18 @@ public class Construction<AH extends AssignmentHolderType> extends AbstractConst
 				.rootNode(getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdo())
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdo())
-				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource())
-				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource())
-				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
+				.addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
+				.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject, ObjectType.class);
 
 		if (assocTargetObjectClassDefinition != null) {
 			builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
-					assocTargetObjectClassDefinition);
+					assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
 		}
-		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables);
+		builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
+		builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, getPrismContext());
 		if (getSystemConfiguration() != null) {
-			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration());
+			builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
 		}
 		// TODO: other variables ?
 

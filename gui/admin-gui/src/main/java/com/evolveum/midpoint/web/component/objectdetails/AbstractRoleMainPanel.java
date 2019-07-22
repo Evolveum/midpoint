@@ -20,10 +20,6 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.model.ContainerWrapperFromObjectWrapperModel;
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -37,22 +33,26 @@ import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
 import com.evolveum.midpoint.gui.api.util.FocusTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel;
@@ -61,13 +61,11 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.page.self.PageAssignmentShoppingCart;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -88,8 +86,8 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     private static final String ID_SHOPPING_CART_BUTTONS_PANEL = "shoppingCartButtonsPanel";
     private static final String ID_ADD_TO_CART_BUTTON = "addToCartButton";
 
-	public AbstractRoleMainPanel(String id, LoadableModel<ObjectWrapper<R>> objectModel,
-			LoadableModel<List<FocusSubwrapperDto<ShadowType>>> projectionModel,
+	public AbstractRoleMainPanel(String id, LoadableModel<PrismObjectWrapper<R>> objectModel,
+			LoadableModel<List<ShadowWrapper>> projectionModel,
 			PageAdminFocus<R> parentPage) {
 		super(id, objectModel, projectionModel, parentPage);
 	}
@@ -161,46 +159,27 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 	protected List<ITab> createTabs(final PageAdminObjectDetails<R> parentPage) {
 		List<ITab> tabs = super.createTabs(parentPage);
 
-		FocusTabVisibleBehavior<R> authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_POLICY_RULES_URL, false, isFocusHistoryPage(), parentPage);
-		//TODO remove after "switch assignment type" style is totally approved
-//		tabs.add(
-//				new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.policyRules"), authorization) {
-//
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public WebMarkupContainer createPanel(String panelId) {
-//						return createFocusPolicyRulesTabPanel(panelId, parentPage);
-//					}
-//
-//					@Override
-//					public String getCount() {
-//						return Integer.toString(countPolicyRules());
-//					}
-//				});
-
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(), ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, isFocusHistoryPage(), parentPage);
 		tabs.add(
-				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"), authorization) {
+				new PanelTab(parentPage.createStringResource("pageAdminFocus.applicablePolicies"),
+						getTabVisibility( ComponentConstants.UI_FOCUS_TAB_APPLICABLE_POLICIES_URL, false, parentPage)) {
 
 					private static final long serialVersionUID = 1L;
 
 					@Override
 					public WebMarkupContainer createPanel(String panelId) {
-						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
+						return new FocusApplicablePoliciesTabPanel<>(panelId, getMainForm(), getObjectModel());
 					}
 				});
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"), authorization) {
+		tabs.add(new CountablePanelTab(parentPage.createStringResource("FocusType.inducement"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_INDUCEMENTS_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			public WebMarkupContainer createPanel(String panelId) {
 				SwitchAssignmentTypePanel panel = new SwitchAssignmentTypePanel(panelId,
-						new ContainerWrapperFromObjectWrapperModel<>(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
+						PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), AbstractRoleType.F_INDUCEMENT)){
 					private static final long serialVersionUID = 1L;
 
 					@Override
@@ -218,28 +197,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			}
 
 		});
-		//TODO remove after "switch assignment type" style is totally approved
-//		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-//				ComponentConstants.UI_ROLE_TAB_INDUCED_ENTITLEMENTS_URL, false, isFocusHistoryPage(), parentPage);
-//		tabs.add(new CountablePanelTab(parentPage.createStringResource("AbstractRoleMainPanel.inducedEntitlements"), authorization) {
-//
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			public WebMarkupContainer createPanel(String panelId) {
-//				return new InducedEntitlementsTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-//			}
-//
-//			@Override
-//			public String getCount(){
-//				return getInducedEntitlementsCount();
-//			}
-//
-//		});
 
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, isFocusHistoryPage(), parentPage);
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.members"), authorization) {
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.members"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_MEMBERS_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -251,15 +211,13 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			@Override
 			public boolean isVisible() {
 				return super.isVisible() &&
-						getObjectWrapper().getStatus() != ContainerStatus.ADDING &&
+						getObjectWrapper().getStatus() != ItemStatus.ADDED &&
 						isAllowedToReadRoleMembership(getObjectWrapper().getOid(), parentPage);
 			}
 		});
 		
-		authorization = new FocusTabVisibleBehavior<>(unwrapModel(),
-				ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, isFocusHistoryPage(), parentPage);
-
-		tabs.add(new PanelTab<R>(parentPage.createStringResource("pageRole.governance"), authorization) {
+		tabs.add(new PanelTab(parentPage.createStringResource("pageRole.governance"),
+				getTabVisibility( ComponentConstants.UI_FOCUS_TAB_GOVERNANCE_URL, false, parentPage)) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -270,7 +228,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			public boolean isVisible() {
-				return super.isVisible() && getObjectWrapper().getStatus() != ContainerStatus.ADDING;
+				return super.isVisible() && getObjectWrapper().getStatus() != ItemStatus.ADDED;
 			}
 		});
 		
@@ -286,10 +244,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
-				List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
-				governance.forEach(r -> relations.remove(r));
-				return relations;
+				return getSupportedMembersTabRelations();
 			}
 			
 		};
@@ -304,15 +259,30 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
 			@Override
 			protected List<QName> getSupportedRelations() {
-				return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+				return getSupportedGovernanceTabRelations();
 			}
 			
 			@Override
 			protected Map<String, String> getAuthorizations(QName complexType) {
-				return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
+				return getGovernanceTabAuthorizations();
 			}
 		
 		};
+	}
+
+	protected List<QName> getSupportedMembersTabRelations(){
+		List<QName> relations =  WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ADMINISTRATION, getDetailsPage());
+		List<QName> governance = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+		governance.forEach(r -> relations.remove(r));
+		return relations;
+	}
+
+	protected List<QName> getSupportedGovernanceTabRelations(){
+		return WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage());
+	}
+
+	protected Map<String, String> getGovernanceTabAuthorizations(){
+		return GuiAuthorizationConstants.GOVERNANCE_MEMBERS_AUTHORIZATIONS;
 	}
 	
 	private boolean isAllowedToReadRoleMembership(String abstractRoleOid, PageBase parentPage){
@@ -337,11 +307,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
         return isAllowed;
     }
 
-	
-//	private WebMarkupContainer createFocusPolicyRulesTabPanel(String panelId, PageAdminObjectDetails<R> parentPage) {
-//		return new FocusPolicyRulesTabPanel<>(panelId, getMainForm(), getObjectModel(), parentPage);
-//	}
-
 	private String getInducementsCount(){
 			PrismObject<R> focus = getObjectModel().getObject().getObject();
 			List<AssignmentType> inducements = focus.asObjectable().getInducement();
@@ -351,37 +316,17 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 			return Integer.toString(inducements.size());
 	}
 
-	private String getInducedEntitlementsCount(){
-			PrismObject<R> focus = getObjectModel().getObject().getObject();
-			List<AssignmentType> inducements = focus.asObjectable().getInducement();
-			if (inducements == null){
-				return "";
-			}
-			int count = 0;
-			//TODO the whole tab will be removed
-//			for (AssignmentType inducement : inducements){
-//				if (inducement.getConstruction() == null){
-//					continue;
-//				}
-//				if (inducement.getConstruction().getAssociation() == null || inducement.getConstruction().getAssociation().size() == 0){
-//					continue;
-//				}
-//				for (ResourceObjectAssociationType association : inducement.getConstruction().getAssociation()){
-//					if (association.getOutbound() != null && association.getOutbound().getExpression() != null
-//							&& ExpressionUtil.getShadowRefValue(association.getOutbound().getExpression()) != null){
-//						count++;
-//						break;
-//					}
-//				}
-//			}
-			return Integer.toString(count);
-	}
 
+	//TODO what? why? when?
 	@Override
 	protected boolean areSavePreviewButtonsEnabled(){
-		ObjectWrapper<R> focusWrapper = getObjectModel().getObject();
-		ContainerWrapper<AssignmentType> assignmentsWrapper =
-				focusWrapper.findContainerWrapper(AbstractRoleType.F_INDUCEMENT);
+		PrismObjectWrapper<R> focusWrapper = getObjectModel().getObject();
+		PrismContainerWrapper<AssignmentType> assignmentsWrapper;
+		try {
+			assignmentsWrapper = focusWrapper.findContainer(AbstractRoleType.F_INDUCEMENT);
+		} catch (SchemaException e) {
+			return false;
+		}
 		return super.areSavePreviewButtonsEnabled()  || isAssignmentsModelChanged(assignmentsWrapper);
 	}
 }

@@ -141,11 +141,10 @@ public class AssignmentProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
     /**
-     * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
-     * Generic method for all projection types (theoretically).
+     * Processing all the assignments.
      */
     @SuppressWarnings("unchecked")
-	public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
+	public <O extends ObjectType, AH extends AssignmentHolderType> void processAssignments(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -153,7 +152,7 @@ public class AssignmentProcessor {
     		return;
     	}
     	if (!AssignmentHolderType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		// We can do this only for AssignmentHolerType.
+    		// We can do this only for AssignmentHolderType.
     		return;
     	}
 //    	if (ModelExecuteOptions.isLimitPropagation(context.getOptions()) && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))){
@@ -161,33 +160,38 @@ public class AssignmentProcessor {
 //    		return;
 //    	}
 
-    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignmentsProjections");
+    	OperationResult result = parentResult.createSubresult(AssignmentProcessor.class.getName() + ".processAssignments");
+		try {
+			try {
+				processAssignmentsProjectionsWithFocus((LensContext<AH>) context, now, task, result);
+			} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
+					CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
+				result.recordFatalError(e);
+				throw e;
+			}
 
-    	try {
-    		processAssignmentsProjectionsWithFocus((LensContext<AH>)context, now, task, result);
-    	} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException |
-    			CommunicationException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
-    		result.recordFatalError(e);
-    		throw e;
-    	}
-
-    	OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
-    	String message = null;
-    	int errors = 0;
-    	for (OperationResult subresult: result.getSubresults()) {
-    		if (subresult.isError()) {
-    			errors++;
-    			if (message == null) {
-    				message = subresult.getMessage();
-    			} else {
-    				message = errors + " errors";
-    			}
-    			finalStatus = OperationResultStatus.PARTIAL_ERROR;
-    		}
-    	}
-		result.setStatus(finalStatus);
-		result.setMessage(message);
-		result.cleanupResult();
+			OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
+			String message = null;
+			int errors = 0;
+			for (OperationResult subresult : result.getSubresults()) {
+				if (subresult.isError()) {
+					errors++;
+					if (message == null) {
+						message = subresult.getMessage();
+					} else {
+						message = errors + " errors";
+					}
+					finalStatus = OperationResultStatus.PARTIAL_ERROR;
+				}
+			}
+			result.recordEnd();
+			result.setStatus(finalStatus);
+			result.setMessage(message);
+			result.cleanupResult();
+		} catch (Throwable t) {      // shouldn't occur -- just in case
+			result.recordFatalError(t);
+			throw t;
+		}
     }
 
     /**
@@ -235,6 +239,11 @@ public class AssignmentProcessor {
         // Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
         // This is where most of the assignment-level action happens.
         DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        if (assignmentTripleEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple)) {
+	        LOGGER.debug("Re-evaluating assignments because isMemberOf invocation result has changed");
+	        assignmentTripleEvaluator.reset(false);
+	        evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
+        }
         policyRuleProcessor.addGlobalPolicyRulesToAssignments(context, evaluatedAssignmentTriple, task, result);
         context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
@@ -250,7 +259,7 @@ public class AssignmentProcessor {
         if (needToReevaluateAssignments) {
         	LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
 
-        	assignmentTripleEvaluator.reset();
+        	assignmentTripleEvaluator.reset(true);
         	evaluatedAssignmentTriple = assignmentTripleEvaluator.processAllAssignments();
 			context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
 
@@ -488,7 +497,7 @@ public class AssignmentProcessor {
         ShadowKindType kind = construction.getKind();
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent, null, false);
         return rat;
 	}
 
@@ -578,7 +587,8 @@ public class AssignmentProcessor {
             	}
             	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid,
             			FocusTypeUtil.determineConstructionKind(evaluatedAssignment.getAssignmentType()),
-            			FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()));
+            			FocusTypeUtil.determineConstructionIntent(evaluatedAssignment.getAssignmentType()),
+            			null, false);
     			LensProjectionContext accCtx = context.findProjectionContext(rad);
     			if (accCtx != null) {
     				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
@@ -1033,6 +1043,7 @@ public class AssignmentProcessor {
 		if (evaluatedAssignmentTriple == null) {
 			return;	// could be if the "assignments" step is skipped
 		}
+		// Similar code is in AssignmentEvaluator.isMemberOfInvocationResultChanged -- check that if changing the business logic
 		for (EvaluatedAssignmentImpl<?> evalAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
 			if (evalAssignment.isValid()) {
 				addReferences(shouldBeRoleRefs, evalAssignment.getMembershipRefVals());

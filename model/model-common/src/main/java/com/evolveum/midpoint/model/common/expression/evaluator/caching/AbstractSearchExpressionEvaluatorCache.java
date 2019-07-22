@@ -21,15 +21,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSearchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Cache for search expression-based evaluators.
@@ -46,7 +46,8 @@ import java.util.Map;
  *
  * @author Pavol Mederly
  */
-public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends AbstractCache {
+public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValue, RV extends PrismObject, QK extends QueryKey, QR extends QueryResult> extends
+		AbstractThreadLocalCache {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractSearchExpressionEvaluatorCache.class);
 
@@ -62,7 +63,9 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
         this.clientContextInformation = clientContextInformation;
     }
 
-    protected Map<QK, QR> queries = new HashMap<>();
+    // We need thread-safety here e.g. because of size determination, see getSize() method.
+    // Also probably because of MID-5355, although it's a bit unclear.
+    Map<QK, QR> queries = new ConcurrentHashMap<>();
 
     public List<V> getQueryResult(Class<? extends ObjectType> type, ObjectQuery query, ObjectSearchStrategyType searchStrategy, ExpressionEvaluationContext params, PrismContext prismContext) {
         QK queryKey = createQueryKey(type, query, searchStrategy, params, prismContext);
@@ -93,5 +96,10 @@ public abstract class AbstractSearchExpressionEvaluatorCache<V extends PrismValu
     @Override
     public String description() {
         return "Q:"+queries.size();
+    }
+
+    @Override
+    protected int getSize() {
+        return queries.size();
     }
 }

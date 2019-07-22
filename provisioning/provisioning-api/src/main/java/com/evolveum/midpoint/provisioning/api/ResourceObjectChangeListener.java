@@ -25,10 +25,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  */
 public interface ResourceObjectChangeListener extends ProvisioningListener {
 
-	String CLASS_NAME_WITH_DOT = ResourceObjectChangeListener.class.getName() + ".";
-	String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
-	String CHECK_SITUATION = CLASS_NAME_WITH_DOT + "checkSituation";
-
 	/**
 	 * Submits notification about a specific change that happened on the
 	 * resource.
@@ -47,6 +43,6 @@ public interface ResourceObjectChangeListener extends ProvisioningListener {
 	 * @param change
 	 *            change description
 	 */
-	public <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
+	 <F extends FocusType> void notifyChange(ResourceObjectShadowChangeDescription change, Task task, OperationResult parentResult);
 
 }

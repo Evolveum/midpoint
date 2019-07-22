@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.intest.util.MockMultipleTriggersHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.test.IntegrationTestTools;
@@ -59,6 +60,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 	private static final XMLGregorianCalendar LONG_LONG_TIME_AGO = XmlTypeConverter.createXMLGregorianCalendar(1111, 1, 1, 12, 00, 00);
 
 	private MockTriggerHandler testTriggerHandler;
+	private MockMultipleTriggersHandler testMultipleTriggersHandler;
 
 	private XMLGregorianCalendar drakeValidFrom;
 	private XMLGregorianCalendar drakeValidTo;
@@ -78,8 +80,10 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 
 		testTriggerHandler = new MockTriggerHandler();
-
 		triggerHandlerRegistry.register(MockTriggerHandler.HANDLER_URI, testTriggerHandler);
+
+		testMultipleTriggersHandler = new MockMultipleTriggersHandler();
+		triggerHandlerRegistry.register(MockMultipleTriggersHandler.HANDLER_URI, testMultipleTriggersHandler);
 	}
 
 	@Test
@@ -188,7 +192,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
-		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI);
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
 		/// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -207,6 +211,170 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		assertNoTrigger(UserType.class, USER_JACK_OID);
 
 		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
+	@Test
+	public void test130TwoTriggersSame() throws Exception {
+		final String TEST_NAME = "test130TwoTriggersSame";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockTriggerHandler.HANDLER_URI, true);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 2, testTriggerHandler.getInvocationCount());
+		assertNoTrigger(UserType.class, USER_JACK_OID);
+
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
+	@Test
+	public void test135TwoTriggersSamePlusOne() throws Exception {
+		final String TEST_NAME = "test135TwoTriggersSamePlusOne";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, true);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 3, testTriggerHandler.getInvocationCount());
+		assertNoTrigger(UserType.class, USER_JACK_OID);
+
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
+	@Test
+	public void test140TwoTriggersSameAggregable() throws Exception {
+		final String TEST_NAME = "test140TwoTriggersSameAggregable";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal), MockMultipleTriggersHandler.HANDLER_URI, true);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testMultipleTriggersHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 1, testMultipleTriggersHandler.getInvocationCount());
+		assertEquals("Wrong # of triggers last executed", 2, testMultipleTriggersHandler.getLastTriggers().size());
+		assertNoTrigger(UserType.class, USER_JACK_OID);
+
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
+	@Test
+	public void test145TwoTriggersSamePlusOneAggregable() throws Exception {
+		final String TEST_NAME = "test145TwoTriggersSamePlusOneAggregable";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testMultipleTriggersHandler.reset();
+
+		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCal, startCalPlus5ms), MockMultipleTriggersHandler.HANDLER_URI,
+				true);
+
+		/// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+
+		// THEN
+		XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+		assertNotNull("Trigger was not called", testMultipleTriggersHandler.getLastObject());
+		assertEquals("Trigger was called wrong number of times", 2, testMultipleTriggersHandler.getInvocationCount());
+		assertEquals("Wrong # of triggers last executed", 1, testMultipleTriggersHandler.getLastTriggers().size());
+		assertNoTrigger(UserType.class, USER_JACK_OID);
+
+		assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+	}
+
+	@Test
+	public void test147TwoTriggersIdempotent() throws Exception {
+		final String TEST_NAME = "test147TwoTriggersIdempotent";
+		TestUtil.displayTestTitle(this, TEST_NAME);
+
+		// GIVEN
+		Task task = createTask(TestTriggerTask.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		testTriggerHandler.reset();
+		testTriggerHandler.setIdempotent(true);
+
+		try {
+			XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
+			XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
+			startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
+			addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
+
+			/// WHEN
+			TestUtil.displayWhen(TEST_NAME);
+			waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+			// THEN
+			TestUtil.displayThen(TEST_NAME);
+
+			// THEN
+			XMLGregorianCalendar endCal = clock.currentTimeXMLGregorianCalendar();
+
+			assertNotNull("Trigger was not called", testTriggerHandler.getLastObject());
+			assertEquals("Trigger was called wrong number of times", 1, testTriggerHandler.getInvocationCount());
+			assertNoTrigger(UserType.class, USER_JACK_OID);
+
+			assertLastScanTimestamp(TASK_TRIGGER_SCANNER_OID, startCal, endCal);
+		} finally {
+			testTriggerHandler.setIdempotent(false);
+		}
 	}
 
 	@Test
@@ -251,7 +419,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 		XMLGregorianCalendar startCalPlus5ms = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 		startCalPlus5ms.add(XmlTypeConverter.createDuration(5L));
-		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI);
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5ms), MockTriggerHandler.HANDLER_URI, false);
 
 		testTriggerHandler.setFailOnNextInvocation(true);
 
@@ -308,7 +476,7 @@ public class TestTriggerTask extends AbstractInitializedModelIntegrationTest {
 		XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 		XMLGregorianCalendar startCalPlus5days = XmlTypeConverter.createXMLGregorianCalendar(startCal);
 		startCalPlus5days.add(XmlTypeConverter.createDuration("P5D"));
-		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI);
+		addTriggers(USER_JACK_OID, Arrays.asList(startCal, startCalPlus5days), MockTriggerHandler.HANDLER_URI, false);
 
 		/// WHEN
 		TestUtil.displayWhen(TEST_NAME);

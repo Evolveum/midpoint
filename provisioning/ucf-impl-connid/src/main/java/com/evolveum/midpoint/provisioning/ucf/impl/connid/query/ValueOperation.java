@@ -88,7 +88,16 @@ public class ValueOperation extends Operation {
                             throw new IllegalArgumentException("Substring filter with multiple values makes no sense");
                             //maybe it does, through OR clauses
                         }
-                        return FilterBuilder.contains(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+
+                        if (substring.isAnchorStart() && !substring.isAnchorEnd()) {
+							return FilterBuilder.startsWith(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+						} else if (!substring.isAnchorStart() && substring.isAnchorEnd()) {
+							return FilterBuilder.endsWith(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+						} else if (!substring.isAnchorStart() && !substring.isAnchorEnd()) {
+							return FilterBuilder.contains(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+						} else {
+							return FilterBuilder.equalTo(AttributeBuilder.build(icfName, convertedValues.iterator().next()));
+						}
                     }
 				} else if (objectFilter instanceof ComparativeFilter) {
 					ComparativeFilter comparativeFilter = (ComparativeFilter) objectFilter;
@@ -165,7 +174,7 @@ public class ValueOperation extends Operation {
     	}
         Collection<Object> convertedValues = new ArrayList<>();
         for (PrismValue value : values) {
-            Object converted = ConnIdUtil.convertValueToIcf(value, null, propName);
+            Object converted = ConnIdUtil.convertValueToConnId(value, null, propName);
             convertedValues.add(converted);
         }
 

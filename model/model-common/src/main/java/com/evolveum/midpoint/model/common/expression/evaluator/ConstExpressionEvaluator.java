@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Evolveum
+ * Copyright (c) 2017-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.common.expression.evaluator;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.model.common.ConstantsManager;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -23,31 +25,25 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstExpressionEvaluatorType;
 
 /**
  * @author semancik
  *
  */
-public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
-		implements ExpressionEvaluator<V, D> {
+public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefinition> extends AbstractExpressionEvaluator<V, D, ConstExpressionEvaluatorType> {
 
-	private ConstExpressionEvaluatorType constEvaluatorType;
-	private D outputDefinition;
-	private Protector protector;
 	private ConstantsManager constantsManager;
-	private PrismContext prismContext;
 
-	ConstExpressionEvaluator(ConstExpressionEvaluatorType evaluatorType, D outputDefinition,
+	ConstExpressionEvaluator(QName elementName, ConstExpressionEvaluatorType evaluatorType, D outputDefinition,
 			Protector protector, ConstantsManager constantsManager, PrismContext prismContext) {
-		this.constEvaluatorType = evaluatorType;
-		this.outputDefinition = outputDefinition;
-		this.protector = protector;
+		super(elementName, evaluatorType, outputDefinition, protector, prismContext);
 		this.constantsManager = constantsManager;
-		this.prismContext = prismContext;
 	}
 
 	/*
@@ -60,9 +56,10 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 	 */
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context)
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException {
+		checkEvaluatorProfile(context);
 
-		String constName = constEvaluatorType.getValue();
+		String constName = getExpressionEvaluatorType().getValue();
 		String stringValue = constantsManager.getConstantValue(constName);
 
 		Item<V, D> output = outputDefinition.instantiate();
@@ -87,7 +84,7 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
 	 */
 	@Override
 	public String shortDebugDump() {
-		return "const:"+constEvaluatorType.getValue();
+		return "const:"+getExpressionEvaluatorType().getValue();
 	}
 
 

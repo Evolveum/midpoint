@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -40,7 +41,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Task handler for "Import objects from file" task.
@@ -121,7 +121,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         	PrismProperty filenameProp = filenamePropertyDefinition.instantiate();
         	filenameProp.setRealValue(input.getAbsolutePath());
         	task.setExtensionProperty(filenameProp);
-        	task.savePendingModifications(result);
+        	task.flushPendingModifications(result);
 //            task.modify(modifications, result);
         } catch (ObjectNotFoundException e) {
             LOGGER.error("Task object not found, expecting it to exist (task {})", task, e);
@@ -150,8 +150,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
      * The body of the task. This will start the import "loop".
      */
     @Override
-    public TaskRunResult run(Task task) {
-
+    public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
+    
         LOGGER.debug("Import objects from file run (task {})", task);
 
         // This is an operation result for the entire import task. Therefore use the constant for
@@ -162,7 +162,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty<String> filenameProperty = task.getExtensionProperty(ModelConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = task.getExtensionPropertyOrClone(ModelConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

@@ -22,15 +22,14 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SchemaHelper;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.api.SecurityUtil;
@@ -38,8 +37,6 @@ import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
@@ -50,6 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.*;
+
+import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
 
 /**
  * @author lazyman
@@ -185,77 +184,27 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 		if (record.getDeltas() != null) {
 			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
 				ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
-				final Map<String, PolyString> resolvedOids = new HashMap<>();
-				Visitor namesResolver = new Visitor() {
-					@Override
-					public void visit(Visitable visitable) {
-						if (visitable instanceof PrismReferenceValue) {
-							PrismReferenceValue refVal = ((PrismReferenceValue) visitable);
-							String oid = refVal.getOid();
-							if (oid == null) { // sanity check; should not
-												// happen
-								return;
-							}
-							if (refVal.getTargetName() != null) {
-								resolvedOids.put(oid, refVal.getTargetName());
-								return;
-							}
-							if (resolvedOids.containsKey(oid)) {
-								PolyString resolvedName = resolvedOids.get(oid); // may
-																					// be
-																					// null
-								refVal.setTargetName(resolvedName);
-								return;
-							}
-							if (refVal.getObject() != null) {
-								PolyString name = refVal.getObject().getName();
-								refVal.setTargetName(name);
-								resolvedOids.put(oid, name);
-								return;
-							}
-							if (repositoryService == null) {
-								LOGGER.warn("No repository, no OID resolution (for {})", oid);
-								return;
-							}
-							PrismObjectDefinition<? extends ObjectType> objectDefinition = null;
-							if (refVal.getTargetType() != null) {
-								objectDefinition = prismContext.getSchemaRegistry()
-										.findObjectDefinitionByType(refVal.getTargetType());
-							}
-							Class<? extends ObjectType> objectClass = null;
-							if (objectDefinition != null) {
-								objectClass = objectDefinition.getCompileTimeClass();
-							}
-							if (objectClass == null) {
-								objectClass = ObjectType.class; // the default
-																// (shouldn't be
-																// needed)
-							}
-							// currently this does not work as expected (retrieves all default items)
-							Collection<SelectorOptions<GetOperationOptions>> nameOnly = schemaHelper.getOperationOptionsBuilder()
-									.item(ObjectType.F_NAME).retrieve()
-									.build();
-							try {
-								PrismObject<? extends ObjectType> object = repositoryService.getObject(
-										objectClass, oid, nameOnly, new OperationResult("dummy"));
-								PolyString name = object.getName();
-								refVal.setTargetName(name);
-								resolvedOids.put(oid, name);
-								LOGGER.trace("Resolved {}: {} to {}", objectClass, oid, name);
-							} catch (ObjectNotFoundException e) {
-								LOGGER.trace("Couldn't determine the name for {}: {} as it does not exist",
-										objectClass, oid, e);
-								resolvedOids.put(oid, null);
-							} catch (SchemaException | RuntimeException e) {
-								LOGGER.trace(
-										"Couldn't determine the name for {}: {} because of unexpected exception",
-										objectClass, oid, e);
-								resolvedOids.put(oid, null);
-							}
-						}
+
+				// currently this does not work as expected (retrieves all default items)
+				Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaHelper.getOperationOptionsBuilder()
+						.item(ObjectType.F_NAME).retrieve()
+						.build();
+				ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
+					if (record.getNonExistingReferencedObjects().contains(oid)) {
+						return null;    // save a useless getObject call plus associated warning (MID-5378)
 					}
+					if (repositoryService == null) {
+						LOGGER.warn("No repository, no OID resolution (for {})", oid);
+						return null;
+					}
+					LOGGER.warn("Unresolved object reference in delta being audited (for {}: {}) -- this might indicate "
+							+ "a performance problem, as these references are normally resolved using repository cache",
+							objectClass.getSimpleName(), oid);
+					PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, nameOnlyOptions,
+							new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
+					return object.getName();
 				};
-				delta.accept(namesResolver);
+				resolveNames(delta, nameResolver, prismContext);
 			}
 		}
 	}

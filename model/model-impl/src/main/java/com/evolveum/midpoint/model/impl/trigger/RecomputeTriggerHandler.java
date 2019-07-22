@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.trigger;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +28,9 @@ import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @Component
-public class RecomputeTriggerHandler implements TriggerHandler {
+public class RecomputeTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
 
@@ -63,7 +61,7 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 	 * @see com.evolveum.midpoint.model.trigger.TriggerHandler#handle(com.evolveum.midpoint.prism.PrismObject)
 	 */
 	@Override
-	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, Task task, OperationResult result) {
+	public <O extends ObjectType> void handle(PrismObject<O> object, TriggerType trigger, RunningTask task, OperationResult result) {
 		try {
 
 			LOGGER.trace("Recomputing {}", object);
@@ -82,4 +80,8 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 
 	}
 
+	@Override
+	public boolean isIdempotent() {
+		return true;
+	}
 }

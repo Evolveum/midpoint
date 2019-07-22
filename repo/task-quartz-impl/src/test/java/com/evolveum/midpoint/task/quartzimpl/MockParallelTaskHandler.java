@@ -15,10 +15,20 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightTaskHandler;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -26,14 +36,8 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
-import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author Pavol Mederly
@@ -42,15 +46,15 @@ import static org.testng.AssertJUnit.assertTrue;
 public class MockParallelTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockParallelTaskHandler.class);
-    public static final int NUM_SUBTASKS = 5;
+    public static final int NUM_SUBTASKS = 500;
 	public static String NS_EXT = "http://myself.me/schemas/whatever";
-	public static QName DURATION_QNAME = new QName(NS_EXT, "duration", "m");
+	public static ItemName DURATION_QNAME = new ItemName(NS_EXT, "duration", "m");
 	private final PrismPropertyDefinition durationDefinition;
 
 	private TaskManagerQuartzImpl taskManager;
 
 	// a bit of hack - to reach in-memory version of last task executed
-	private Task lastTaskExecuted;
+	private RunningTask lastTaskExecuted;
 
 	private String id;
 
@@ -66,29 +70,39 @@ public class MockParallelTaskHandler implements TaskHandler {
 	public class MyLightweightTaskHandler implements LightweightTaskHandler {
 		private boolean hasRun = false;
 		private boolean hasExited = false;
-		private Integer duration;
+		private long duration;
+		private static final long STEP = 100;
 
 		public MyLightweightTaskHandler(Integer duration) {
-			this.duration = duration;
+			this.duration = duration != null ? duration : 86400L * 1000L * 365000L; // 1000 years
 		}
 
 		@Override
-		public void run(Task task) {
+		public void run(RunningTask task) {
 			LOGGER.trace("Handler for task {} running", task);
 			hasRun = true;
-			try {
-				if (duration == null) {
-					for (; ; ) {
-						Thread.sleep(3600000L);
+			long end = System.currentTimeMillis() + duration;
+			RunningTask parentTask = task.getParentForLightweightAsynchronousTask();
+			parentTask.setOperationStatsUpdateInterval(1000L);
+			while (System.currentTimeMillis() < end) {
+				// hoping to get ConcurrentModificationException when setting operation result here (MID-5113)
+				task.getParentForLightweightAsynchronousTask().getUpdatedOrClonedTaskObject();
+				long started = System.currentTimeMillis();
+				task.recordIterativeOperationStart("o1", null, UserType.COMPLEX_TYPE, "oid1");
+				try {
+					Thread.sleep(STEP);
+					task.recordIterativeOperationEnd("o1", null, UserType.COMPLEX_TYPE, "oid1", started, null);
+					//noinspection SynchronizationOnLocalVariableOrMethodParameter
+					synchronized (parentTask) {
+						parentTask.incrementProgressAndStoreStatsIfNeeded();
 					}
-				} else {
-					Thread.sleep(duration);
+				} catch (InterruptedException e) {
+					LOGGER.trace("Handler for task {} interrupted", task);
+					task.recordIterativeOperationEnd("o1", null, UserType.COMPLEX_TYPE, "oid1", started, e);
+					break;
 				}
-			} catch (InterruptedException e) {
-				LOGGER.trace("Handler for tash {} interrupted", task);
-			} finally {
-				hasExited = true;
 			}
+			hasExited = true;
 		}
 
 		public boolean hasRun() {
@@ -100,23 +114,25 @@ public class MockParallelTaskHandler implements TaskHandler {
 	}
 
 	@Override
-	public TaskRunResult run(Task task) {
+	public TaskRunResult run(RunningTask task, TaskPartitionDefinitionType partition) {
 		LOGGER.info("MockParallelTaskHandler.run starting (id = " + id + ")");
 
 		OperationResult opResult = new OperationResult(MockParallelTaskHandler.class.getName()+".run");
 		TaskRunResult runResult = new TaskRunResult();
 
-		PrismProperty<Integer> duration = task.getExtensionProperty(DURATION_QNAME);
+		PrismProperty<Integer> duration = task.getExtensionPropertyOrClone(DURATION_QNAME);
 		Integer durationValue = null;
 		if (duration != null) {
 			durationValue = duration.getRealValue();
 		}
 		LOGGER.info("Duration value = {}", durationValue);
+		System.out.println("task result is " + task.getResult());
 
         // we create and start some subtasks
         for (int i = 0; i < NUM_SUBTASKS; i++) {
 			MyLightweightTaskHandler handler = new MyLightweightTaskHandler(durationValue);
-            TaskQuartzImpl subtask = (TaskQuartzImpl) task.createSubtask(handler);
+            RunningTaskQuartzImpl subtask = (RunningTaskQuartzImpl) task.createSubtask(handler);
+	        subtask.resetIterativeTaskInformation(null);
 			assertTrue("Subtask is not transient", subtask.isTransient());
 			assertTrue("Subtask is not asynchronous", subtask.isAsynchronous());
 			assertTrue("Subtask is not a LAT", subtask.isLightweightAsynchronousTask());
@@ -172,7 +188,13 @@ public class MockParallelTaskHandler implements TaskHandler {
         this.taskManager = taskManager;
     }
 
-	public Task getLastTaskExecuted() {
+	public RunningTask getLastTaskExecuted() {
 		return lastTaskExecuted;
+	}
+
+	@NotNull
+	@Override
+	public StatisticsCollectionStrategy getStatisticsCollectionStrategy() {
+		return new StatisticsCollectionStrategy().maintainIterationStatistics().fromZero();
 	}
 }

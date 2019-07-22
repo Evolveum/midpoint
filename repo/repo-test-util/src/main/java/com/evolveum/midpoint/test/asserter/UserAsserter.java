@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -195,6 +196,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return asserter;
 	}
 
+	public PolyStringAsserter<UserAsserter<RA>> fullName() {
+		PolyStringAsserter<UserAsserter<RA>> asserter = new PolyStringAsserter<>(getPolyStringPropertyValue(UserType.F_FULL_NAME), this, "fullName in "+desc());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
 	public UserAsserter<RA> assertFullName(String expectedOrig) {
 		assertPolyStringProperty(UserType.F_FULL_NAME, expectedOrig);
 		return this;
@@ -235,8 +242,25 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 		return this;
 	}
 	
-	public UserAsserter<RA> assertLocality(String expectedOrig) {
-		assertPolyStringProperty(UserType.F_LOCALITY, expectedOrig);
+	public UserAsserter<RA> assertEmployeeNumber(String expected) {
+		assertEquals("Wrong employeeNumber in "+desc(), expected, getObject().asObjectable().getEmployeeNumber());
+		return this;
+	}
+	
+	public UserAsserter<RA> assertEmployeeNumber() {
+		assertNotNull("Missing employeeNumber in "+desc(), getObject().asObjectable().getEmployeeNumber());
+		return this;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertLocality(String expected) {
+		super.assertLocality(expected);
+		return this;
+	}
+
+	@Override
+	public UserAsserter<RA> assertCostCenter(String expected) {
+		super.assertCostCenter(expected);
 		return this;
 	}
 	

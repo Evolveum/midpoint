@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
+import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
@@ -55,8 +57,9 @@ import com.evolveum.midpoint.util.QNameUtil;
     ProtectedByteArrayType.class,
     ProtectedStringType.class
 })
-public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable {
-
+public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable, JaxbVisitable {
+	private static final long serialVersionUID = 1L;
+	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedDataType");
 	public final static QName F_ENCRYPTED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
 	public final static QName F_HASHED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "hashedData");
@@ -278,7 +281,24 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		result = prime * result + ((hashedDataType == null) ? 0 : hashedDataType.hashCode());
 		return result;
 	}
-
+	
+	/**
+	 * Indicates whether some other object is "equal to" this one.
+	 * This is standard Java equality comparison. I.e. it will return true if
+	 * the Java objects contain the same data. This means that both object must
+	 * use the same protection mechanism (enctyption,hash), same keys must be used,
+	 * ciphertext or hashes must be the same and so on. If this method returns true
+	 * then obviously also the cleartext data are the same. However, if this method
+	 * returns false then no information about the cleartext data can be inferred.
+	 * Cleartext data may still be the same in both objects. Therefore this method
+	 * is not suitable for almost any practical purpose. It is here mostly just to keep
+	 * the Java interface contract.
+	 * 
+	 * See the methods of Protector for a more practical comparison algorithms.
+	 * 
+	 *  @see Protector#compareCleartext(ProtectedStringType, ProtectedStringType)
+	 *  @see Protector#areEquivalent(ProtectedStringType, ProtectedStringType)
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -314,7 +334,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		}
 		return true;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder(getClass().getSimpleName());
@@ -343,7 +363,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         // content is virtual, there is no point in copying it
     }
 
-    class ContentList implements List<Object>, Serializable {
+	class ContentList implements List<Object>, Serializable {
 
 		@Override
 		public int size() {

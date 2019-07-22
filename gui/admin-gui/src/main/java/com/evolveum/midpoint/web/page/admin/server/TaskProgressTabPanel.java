@@ -15,24 +15,28 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.currentState.*;
-import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.currentState.ActionsExecutedInformationPanel;
+import com.evolveum.midpoint.web.page.admin.server.currentState.IterativeInformationPanel;
+import com.evolveum.midpoint.web.page.admin.server.currentState.SynchronizationInformationPanel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDto;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskCurrentStateDtoModel;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author semancik
@@ -52,17 +56,25 @@ public class TaskProgressTabPanel extends AbstractObjectTabPanel<TaskType> imple
 	private SynchronizationInformationPanel synchronizationInformationPanelAfter;
 	private ActionsExecutedInformationPanel actionsExecutedInformationPanel;
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	public TaskProgressTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-		super(id, mainForm, taskWrapperModel, pageBase);
-		initLayout(taskDtoModel, pageBase);
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
+			IModel<TaskDto> taskDtoModel) {
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+	private void initLayout() {
 		final TaskCurrentStateDtoModel model = new TaskCurrentStateDtoModel(taskDtoModel);
-		iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, pageBase);
+		iterativeInformationPanel = new IterativeInformationPanel(ID_ITERATIVE_INFORMATION_PANEL, model, getPageBase());
 		iterativeInformationPanel.add(new VisibleEnableBehaviour() {
 			@Override
 			public boolean isVisible() {

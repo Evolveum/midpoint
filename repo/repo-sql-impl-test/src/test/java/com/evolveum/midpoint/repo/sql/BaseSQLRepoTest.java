@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -46,6 +47,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
@@ -70,6 +72,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
+    @Autowired
+    @Qualifier("sqlRepositoryServiceImpl")
+    protected SqlRepositoryServiceImpl sqlRepositoryService;
     @Autowired protected RepositoryService repositoryService;
 	@Autowired protected BaseHelper baseHelper;
     @Autowired protected AuditService auditService;
@@ -78,6 +83,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired protected RelationRegistry relationRegistry;
     @Autowired protected SessionFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
+    @Autowired protected Protector protector;
 
     protected static Set<Class> initializedClasses = new HashSet<>();
 

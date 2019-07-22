@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2017-2018 Evolveum
+  ~ Copyright (c) 2017-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
       xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Approver</name>
     <description>Role authorizing users to make approval decisions on work items.</description>
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000320" type="ArchetypeType"/> <!-- System role -->
+    </assignment>
     <authorization>
     	<name>gui-approver-access</name>
     	<description>
@@ -52,18 +55,18 @@
         </object>
     </authorization> -->
     <authorization>
-        <name>tasks-read</name>
+        <name>cases-read</name>
         <description>
             Allow to see the requester of the operation that is being approved and the current delta.
             In order for the approver to see other properties (e.g. history of the approvals) please allow read access
-            to other items as well, e.g. to the whole workflowContext.
+            to other items as well.
         </description>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
         <object>
-            <type>TaskType</type>
+            <type>CaseType</type>
         </object>
-        <item>workflowContext/requesterRef</item>
-        <item>workflowContext/processorSpecificState</item>
+        <item>requesterRef</item>
+        <item>approvalContext</item>
     </authorization>
     <authorization>
     	<name>users-read</name>

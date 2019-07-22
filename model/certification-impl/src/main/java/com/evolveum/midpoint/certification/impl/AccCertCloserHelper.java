@@ -194,7 +194,7 @@ public class AccCertCloserHelper {
 							.item(F_CASE, caseId, F_CURRENT_STAGE_OUTCOME).replace(newStageOutcomeUri)
 							.item(F_CASE, caseId, F_OUTCOME).replace(newOverallOutcomeUri)
 							.item(F_CASE, caseId, F_EVENT).add(
-									new StageCompletionEventType()
+									new StageCompletionEventType(prismContext)
 											.timestamp(clock.currentTimeXMLGregorianCalendar())
 											.stageNumber(campaign.getStageNumber())
 											.iteration(campaign.getIteration())

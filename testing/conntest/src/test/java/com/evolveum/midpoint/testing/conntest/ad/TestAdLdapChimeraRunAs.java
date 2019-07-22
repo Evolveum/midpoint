@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2015-2017 Evolveum
+ * Copyright (c) 2015-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Listeners;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -36,13 +37,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 
 	@Override
-	protected String getResourceOid() {
-		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-	}
-
-	@Override
 	protected File getResourceFile() {
 		return new File(getBaseDir(), "resource-chimera-runas.xml");
+	}
+
+	protected String getResourceOid() {
+		return "eced6d24-73e3-11e5-8457-93eff15a6b85";
 	}
 
 	@Override
@@ -54,6 +54,16 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 	protected int getLdapServerPort() {
 		return 636;
 	}
+	
+	@Override
+	protected File getReconciliationTaskFile() {
+		return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
+	}
+	
+	@Override
+	protected String getReconciliationTaskOid() {
+		return "6e2689dc-88fa-11e9-a382-0baf927677fd";
+	}
 
 	@Override
 	protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
@@ -64,5 +74,4 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
 	protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
 		assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
 	}
-
 }

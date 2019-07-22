@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -26,12 +27,19 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.PrismValueCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.caching.AbstractCache;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.caching.AbstractThreadLocalCache;
+import com.evolveum.midpoint.util.caching.CacheConfiguration;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
+import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -46,7 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 
-	private static ThreadLocal<Cache> cacheThreadLocal = new ThreadLocal<>();
+	private static ConcurrentHashMap<Thread, Cache> cacheInstances = new ConcurrentHashMap<>();
 
 	private static final Trace LOGGER = TraceManager.getTrace(FocusConstraintsChecker.class);
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
@@ -54,12 +62,10 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	private LensContext<AH> context;
 	private PrismContext prismContext;
 	private RepositoryService repositoryService;
+	private CacheConfigurationManager cacheConfigurationManager;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject<AH> conflictingObject;
-
-	public FocusConstraintsChecker() {
-	}
 
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -85,6 +91,10 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		this.repositoryService = repositoryService;
 	}
 
+	public void setCacheConfigurationManager(CacheConfigurationManager cacheConfigurationManager) {
+		this.cacheConfigurationManager = cacheConfigurationManager;
+	}
+
 	public boolean isSatisfiesConstraints() {
 		return satisfiesConstraints;
 	}
@@ -96,24 +106,34 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 	public PrismObject<AH> getConflictingObject() {
 		return conflictingObject;
 	}
-	public void check(PrismObject<AH> objectNew, OperationResult result) throws SchemaException {
+	public boolean check(PrismObject<AH> objectNew, OperationResult parentResult) throws SchemaException {
 
-		if (objectNew == null) {
-			// This must be delete
-			LOGGER.trace("No new object. Therefore it satisfies constraints");
-			satisfiesConstraints = true;
-			return;
-		}
-
-		// Hardcode to name ... for now
-		PolyStringType name = objectNew.asObjectable().getName();
-		if (Cache.isOk(name)) {
-			satisfiesConstraints = true;
-		} else {
-			satisfiesConstraints = checkPropertyUniqueness(objectNew, ObjectType.F_NAME, context, result);
-			if (satisfiesConstraints) {
-				Cache.setOk(name);
+		OperationResult result = parentResult.subresult(FocusConstraintsChecker.class.getName() + ".check")
+				.setMinor()
+				.build();
+		try {
+			if (objectNew == null) {
+				// This must be delete
+				LOGGER.trace("No new object. Therefore it satisfies constraints");
+				satisfiesConstraints = true;
+			} else {
+				// Hardcode to name ... for now
+				PolyStringType name = objectNew.asObjectable().getName();
+				if (Cache.isOk(name, cacheConfigurationManager)) {
+					satisfiesConstraints = true;
+				} else {
+					satisfiesConstraints = checkPropertyUniqueness(objectNew, ObjectType.F_NAME, context, result);
+					if (satisfiesConstraints) {
+						Cache.setOk(name);
+					}
+				}
 			}
+			return satisfiesConstraints;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 
@@ -125,9 +145,23 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 		String oid = objectNew.getOid();
 
-		ObjectQuery query = prismContext.queryFor(objectNew.getCompileTimeClass())
+		ObjectQuery query;
+		if (property.getDefinition() != null && QNameUtil.match(PolyStringType.COMPLEX_TYPE, property.getDefinition().getTypeName())) {
+			List<PrismPropertyValue<T>> clonedValues = (List<PrismPropertyValue<T>>) PrismValueCollectionsUtil.cloneCollection(property.getValues());
+			query = prismContext.queryFor(objectNew.getCompileTimeClass())
+						.item(property.getPath())
+						.eq(clonedValues)
+						.matchingOrig()
+					.or()
+						.item(property.getPath())
+						.eq(clonedValues)
+						.matchingNorm()
+					.build();
+		} else {
+			query = prismContext.queryFor(objectNew.getCompileTimeClass())
 				.itemAs(property)
 				.build();
+		}
 
 		List<PrismObject<AH>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {
@@ -166,12 +200,12 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		messageBuilder.append(message);
 	}
 
-	public static void enterCache() {
-		Cache.enter(cacheThreadLocal, Cache.class, LOGGER);
+	public static void enterCache(CacheConfiguration configuration) {
+		Cache.enter(cacheInstances, Cache.class, configuration, LOGGER);
 	}
 
 	public static void exitCache() {
-		Cache.exit(cacheThreadLocal, LOGGER);
+		Cache.exit(cacheInstances, LOGGER);
 	}
 
 	public static <T extends ObjectType> void clearCacheFor(PolyStringType name) {
@@ -204,27 +238,40 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 	}
 
-	public static class Cache extends AbstractCache {
+	public static class Cache extends AbstractThreadLocalCache {
 
-		private Set<String> conflictFreeNames = new HashSet<>();
+		private final Set<String> conflictFreeNames = ConcurrentHashMap.newKeySet();
 
-		public static boolean isOk(PolyStringType name) {
+		static boolean isOk(PolyStringType name, CacheConfigurationManager cacheConfigurationManager) {
 			if (name == null) {
-				log("Null name");
+				log("Null name", false);
 				return false;			// strange case
 			}
 
+			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 			Cache cache = getCache();
+			CacheConfiguration configuration = cache != null ? cache.getConfiguration() :
+					cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE);
+			CacheConfiguration.CacheObjectTypeConfiguration objectTypeConfiguration = configuration != null ?
+					configuration.getForObjectType(FocusType.class) : null;
+			CacheConfiguration.StatisticsLevel statisticsLevel = CacheConfiguration.getStatisticsLevel(objectTypeConfiguration, configuration);
+			boolean traceMiss = CacheConfiguration.getTraceMiss(objectTypeConfiguration, configuration);
+
 			if (cache == null) {
-				log("Cache NULL for {}", name);
+				log("Cache NULL for {}", false, name);
+				collector.registerNotAvailable(Cache.class, FocusType.class, statisticsLevel);
 				return false;
 			}
 
 			if (cache.conflictFreeNames.contains(name.getOrig())) {
-				log("Cache HIT for {}", name);
+				log("Cache HIT for {}", false, name);
+				cache.registerHit();
+				collector.registerHit(Cache.class, FocusType.class, statisticsLevel);
 				return true;
 			} else {
-				log("Cache MISS for {}", name);
+				log("Cache MISS for {}", traceMiss, name);
+				cache.registerMiss();
+				collector.registerMiss(Cache.class, FocusType.class, statisticsLevel);
 				return false;
 			}
 		}
@@ -237,13 +284,13 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 		}
 
 		private static Cache getCache() {
-			return cacheThreadLocal.get();
+			return cacheInstances.get(Thread.currentThread());
 		}
 
 		public static void remove(PolyStringType name) {
 			Cache cache = getCache();
 			if (name != null && cache != null) {
-				log("Cache REMOVE for {}", name);
+				log("Cache REMOVE for {}", false, name);
 				cache.conflictFreeNames.remove(name.getOrig());
 			}
 		}
@@ -253,14 +300,13 @@ public class FocusConstraintsChecker<AH extends AssignmentHolderType> {
 			return "conflict-free names: " + conflictFreeNames;
 		}
 
-		private static void log(String message, Object... params) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(message, params);
-			}
-			if (PERFORMANCE_ADVISOR.isTraceEnabled()) {
-				PERFORMANCE_ADVISOR.trace(message, params);
-			}
+		@Override
+		protected int getSize() {
+			return conflictFreeNames.size();
 		}
 
+		private static void log(String message, boolean info, Object... params) {
+			CacheUtil.log(LOGGER, PERFORMANCE_ADVISOR, message, info, params);
+		}
 	}
 }

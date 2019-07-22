@@ -17,41 +17,62 @@ package com.evolveum.midpoint.repo.common.task;
 
 import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.FilterUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
-import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.FilterUtil;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.CounterManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
+import com.evolveum.midpoint.task.api.ExitWorkBucketHandlerException;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.task.api.StatisticsCollectionStrategy;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.task.api.TaskWorkBucketProcessingResult;
+import com.evolveum.midpoint.task.api.WorkBucketAwareTaskHandler;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IterationMethodType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
@@ -92,8 +113,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     @Autowired
 	protected PrismContext prismContext;
-    
-    @Autowired private CounterManager counterManager;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeTaskHandler.class);
 
@@ -170,12 +189,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	@Override
-	public TaskWorkBucketProcessingResult run(Task localCoordinatorTask, WorkBucketType workBucket,
-			TaskWorkBucketProcessingResult previousRunResult) {
+	public TaskWorkBucketProcessingResult run(RunningTask localCoordinatorTask, WorkBucketType workBucket,
+			TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult previousRunResult) {
 	    LOGGER.trace("{} run starting: local coordinator task {}, bucket {}, previous run result {}", taskName,
 			    localCoordinatorTask, workBucket, previousRunResult);
 	    
-	    counterManager.registerCounter(localCoordinatorTask, false);
+//	    counterManager.registerCounter(localCoordinatorTask, false);
 
 		if (localCoordinatorTask.getOid() == null) {
 			throw new IllegalArgumentException(
@@ -207,7 +226,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		}
 
 		try {
-			H resultHandler = setupHandler(runResult, localCoordinatorTask, opResult);
+			H resultHandler = setupHandler(partition, runResult, localCoordinatorTask, opResult);
 
 			boolean cont = initializeRun(resultHandler, runResult, localCoordinatorTask, opResult);
 			if (!cont) {
@@ -244,7 +263,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 					localCoordinatorTask.setExpectedTotal(expectedTotal);
 				}
 				try {
-					localCoordinatorTask.savePendingModifications(opResult);
+					localCoordinatorTask.flushPendingModifications(opResult);
 				} catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
 					throw new IllegalStateException(
 							"Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
@@ -256,7 +275,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
 					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
 				} else {
-
 					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
 				}
 				resultHandler.completeProcessing(localCoordinatorTask, opResult);
@@ -347,7 +365,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	}
 
 	private Collection<SelectorOptions<GetOperationOptions>> updateSearchOptionsWithIterationMethod(
-			Collection<SelectorOptions<GetOperationOptions>> searchOptions, Task localCoordinatorTask) {
+			Collection<SelectorOptions<GetOperationOptions>> searchOptions, RunningTask localCoordinatorTask) {
 		Collection<SelectorOptions<GetOperationOptions>> rv;
 		IterationMethodType iterationMethod = getIterationMethodFromTask(localCoordinatorTask);
 		if (iterationMethod != null) {
@@ -433,10 +451,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		return query;
 	}
 
-	private H setupHandler(TaskWorkBucketProcessingResult runResult, Task localCoordinatorTask, OperationResult opResult)
+	private H setupHandler(TaskPartitionDefinitionType partition, TaskWorkBucketProcessingResult runResult, RunningTask localCoordinatorTask, OperationResult opResult)
 			throws ExitWorkBucketHandlerException {
 		try {
-			H resultHandler = createHandler(runResult, localCoordinatorTask, opResult);
+			H resultHandler = createHandler(partition, runResult, localCoordinatorTask, opResult);
 			if (resultHandler == null) {
 				throw new ExitWorkBucketHandlerException(runResult);       // the error should already be in the runResult
 			}
@@ -491,7 +509,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	}
 
-	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected void finish(H handler, TaskRunResult runResult, RunningTask task, OperationResult opResult) throws SchemaException {
 	}
 
 	private H getHandler(Task task) {
@@ -535,7 +553,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
     protected abstract Class<? extends ObjectType> getType(Task task);
 
-    protected abstract  H createHandler(TaskRunResult runResult, Task coordinatorTask,
+    protected abstract  H createHandler(TaskPartitionDefinitionType partition, TaskRunResult runResult, RunningTask coordinatorTask,
 			OperationResult opResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
 	/**
@@ -558,13 +576,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,
 			Task coordinatorTask, OperationResult opResult) {
-		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
+		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
 		return MiscSchemaUtil.optionsTypeToOptions(opts, prismContext);
 	}
 
 	protected Boolean getUseRepositoryDirectlyFromTask(H resultHandler, TaskRunResult runResult,
 			Task coordinatorTask, OperationResult opResult) {
-		return getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY));
+		return getRealValue(coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY));
 	}
 
 	protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
@@ -592,7 +610,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
     
     protected QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {
-    	ObjectReferenceType objectRef = task.getObjectRef();
+    	ObjectReferenceType objectRef = task.getObjectRefOrClone();
     	if (objectRef == null) {
     		return null;
     	}
@@ -606,16 +624,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
     
     protected QueryType getObjectQueryTypeFromTaskExtension(Task task) {
-    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+    	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
     }
 
     protected IterationMethodType getIterationMethodFromTask(Task task) {
-    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));
+    	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));
     }
 
     protected Class<? extends ObjectType> getTypeFromTask(Task task, Class<? extends ObjectType> defaultType) {
         Class<? extends ObjectType> objectClass;
-        PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> objectTypePrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
             objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
         } else {
@@ -632,5 +650,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				logger.warn("Last work bucket finished with status other than SUCCESS in {}:\n{}", task, previousOpResult.debugDump());
 			}
 		}
+	}
+	
+	protected ExpressionProfile getExpressionProfile() {
+		// TODO Determine from task object archetype
+		return MiscSchemaUtil.getExpressionProfile();
 	}
 }

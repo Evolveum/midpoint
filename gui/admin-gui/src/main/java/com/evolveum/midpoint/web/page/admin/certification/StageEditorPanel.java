@@ -46,8 +46,10 @@ public class StageEditorPanel extends BasePanel<StageDefinitionDto> {
     }
 
     private void initPanelLayout() {
-        AjaxLink name = new AjaxLink(ID_NAME) {
-
+    	AjaxLink<Void> name = new AjaxLink<Void>(ID_NAME) {
+		
+        	private static final long serialVersionUID = 1L;
+        	
             @Override
             public void onClick(AjaxRequestTarget target) {
                 nameClickPerformed(target);

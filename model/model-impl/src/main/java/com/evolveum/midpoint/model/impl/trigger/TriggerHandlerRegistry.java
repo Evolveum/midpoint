@@ -27,7 +27,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TriggerHandlerRegistry {
 
-	private Map<String,TriggerHandler> triggerHandlerMap = new HashMap<>();
+	private Map<String, TriggerHandler> triggerHandlerMap = new HashMap<>();
 
 	public void register(String uri, TriggerHandler handler) {
 		triggerHandlerMap.put(uri, handler);

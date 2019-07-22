@@ -1,0 +1,29 @@
+<objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="00000000-0000-0000-0000-000000000344" version="5">
+    <name>My cases</name>
+    <type>CaseType</type>
+    <filter>
+        <q:and>
+            <q:ref>
+                <q:path>requestorRef</q:path>
+                <expression>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.*
+                            new ObjectReferenceType().oid(midpoint.principalOid)
+                        </code>
+                    </script>
+                </expression>
+            </q:ref>
+            <q:not>
+                <q:equal>
+                    <q:path>state</q:path>
+                    <q:value>closed</q:value>
+                </q:equal>
+            </q:not>
+        </q:and>
+    </filter>
+    <baseCollection>
+        <collectionRef oid="00000000-0000-0000-0000-000000000341" relation="org:default" type="c:ArchetypeType">
+        </collectionRef>
+    </baseCollection>
+</objectCollection>

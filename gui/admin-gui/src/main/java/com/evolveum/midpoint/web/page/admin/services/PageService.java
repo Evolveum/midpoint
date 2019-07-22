@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 @PageDescriptor(url = "/admin/service", encoder = OnePageParameterEncoder.class, action = {
@@ -53,26 +54,25 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 	private static final long serialVersionUID = 1L;
 
 	public PageService() {
-		initialize(null);
-	}
-
-	public PageService(final PrismObject<ServiceType> unitToEdit) {
-		initialize(unitToEdit);
-	}
-
-	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isNewObject)  {
-		initialize(unitToEdit, isNewObject);
-	}
-
-	public PageService(final PrismObject<ServiceType> unitToEdit, boolean isNewObject, boolean isReadonly) {
-		initialize(unitToEdit, isNewObject, isReadonly);
+		super();
 	}
 
 	public PageService(PageParameters parameters) {
-		getPageParameters().overwriteWith(parameters);
-		initialize(null);
+		super(parameters);
 	}
 
+	public PageService(final PrismObject<ServiceType> role) {
+		super(role);
+	}
+
+	public PageService(final PrismObject<ServiceType> userToEdit, boolean isNewObject) {
+		super(userToEdit, isNewObject);
+	}
+	
+	public PageService(final PrismObject<ServiceType> abstractRole, boolean isNewObject, boolean isReadonly) {
+		super(abstractRole, isNewObject, isReadonly);
+	}
+	
 	@Override
 	protected ServiceType createNewObject() {
 		return new ServiceType();
@@ -90,7 +90,7 @@ public class PageService extends PageAdminAbstractRole<ServiceType> implements P
 
 	@Override
 	protected FocusSummaryPanel<ServiceType> createSummaryPanel() {
-    	return new ServiceSummaryPanel(ID_SUMMARY_PANEL, getObjectModel(), this);
+    	return new ServiceSummaryPanel(ID_SUMMARY_PANEL, Model.of(getObjectModel().getObject().getObject().asObjectable()), this);
     }
 
 	@Override

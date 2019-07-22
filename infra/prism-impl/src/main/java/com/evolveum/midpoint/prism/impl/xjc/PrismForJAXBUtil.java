@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.namespace.QName;
 
@@ -38,10 +39,13 @@ import java.util.List;
 
 /**
  * @author lazyman
+ * @author semancik
  */
 public final class PrismForJAXBUtil {
 
-    private PrismForJAXBUtil() {
+    private static final Object JAXB_CLASS_MANGLED = "clazz";
+
+	private PrismForJAXBUtil() {
     }
 
     public static <T> T getPropertyValue(PrismContainerValue container, QName name, Class<T> clazz) {
@@ -163,6 +167,11 @@ public final class PrismForJAXBUtil {
     public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue parentValue, QName name) {
         Validate.notNull(parentValue, "Parent container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
+        
+        // This is how JAXB compiler handles elements of name "class".
+        if (JAXB_CLASS_MANGLED.equals(name.getLocalPart())) {
+        	name = new QName(name.getNamespaceURI(), "class");
+        }
 
         try {
 			PrismContainer container = parentValue.findContainer(name);
@@ -373,6 +382,18 @@ public final class PrismForJAXBUtil {
         } else {
         	rval.setTargetName(name.toPolyString());
         }
+    }
+
+    public static void accept(Object object, JaxbVisitor visitor) {
+    	if (object instanceof JaxbVisitable) {
+    		((JaxbVisitable) object).accept(visitor);
+	    } else if (object instanceof Collection) {
+		    for (Object item : ((Collection) object)) {
+			    accept(item, visitor);
+		    }
+	    } else if (object instanceof JAXBElement) {
+		    accept(((JAXBElement) object).getValue(), visitor);
+	    }
     }
 
 }

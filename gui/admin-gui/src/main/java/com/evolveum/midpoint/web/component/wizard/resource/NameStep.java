@@ -216,7 +216,15 @@ public class NameStep extends WizardStep {
 
                     @Override
                     public String getIdValue(PrismObject<ConnectorType> object, int index) {
-                        return Integer.toString(index);
+                		if (index < 0){
+                			List<PrismObject<ConnectorType>> connectors = (List<PrismObject<ConnectorType>> ) getConnectorDropDown().getInput().getChoices();
+                			for (PrismObject<ConnectorType> connector : connectors){
+                				if (connector.getOid().equals(selectedConnectorModel.getObject().getOid())){
+                					return Integer.toString(connectors.indexOf(connector));
+								}
+							}
+						}
+						return Integer.toString(index);
                     }
                 }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-6", true) {
 
@@ -250,7 +258,7 @@ public class NameStep extends WizardStep {
 		}
 
 		PrismContainer<?> configuration = ResourceTypeUtil.getConfigurationContainer(resourceModelRaw.getObject());
-		if (configuration == null || configuration.isEmpty() || configuration.getValue() == null || isEmpty(configuration.getValue().getItems())) {
+		if (configuration == null || configuration.isEmpty() || configuration.getValue().hasNoItems()) {
 			return true;			// no config -> no loss
 		}
 

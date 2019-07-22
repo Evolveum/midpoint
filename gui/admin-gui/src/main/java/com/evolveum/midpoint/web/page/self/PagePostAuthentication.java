@@ -19,15 +19,20 @@ package com.evolveum.midpoint.web.page.self;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -36,7 +41,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.MidPointPrincipalManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -52,15 +56,13 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapperFactory;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
+import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @PageDescriptor(urls = {@Url(mountUrl = "/self/postAuthentication", matchUrlForSecurity="/self/postAuthentication")}, 
@@ -80,9 +82,12 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	
 	private static final String OPERATION_LOAD_WRAPPER = DOT_CLASS + "loadWrapper";
 	private static final String ID_WRAPPER_CONTENT = "wrapperContent";
+	private static final String ID_MAIN_PANEL = "main";
+	private static final String ID_PASSWORD_PANEL = "password";
+	
 
 	private IModel<UserType> userModel;
-	private ObjectWrapper<UserType> objectWrapper;
+	private PrismObjectWrapper<UserType> objectWrapper;
 	
 	public PagePostAuthentication(PageParameters pageParameters) {
 		super(pageParameters);
@@ -131,12 +136,34 @@ public class PagePostAuthentication extends PageAbstractFlow {
 	@Override
 	protected WebMarkupContainer initStaticLayout() {
 		Task task = createSimpleTask(OPERATION_LOAD_WRAPPER);
-		ObjectWrapperFactory owf = new ObjectWrapperFactory(PagePostAuthentication.this);
-		objectWrapper = owf.createObjectWrapper("Details", "User Details", userModel.getObject().asPrismObject(), ContainerStatus.MODIFYING, task);
+		OperationResult result = new OperationResult(OPERATION_LOAD_WRAPPER);
+		PrismObjectWrapperFactory<UserType> factory = findObjectWrapperFactory(userModel.getObject().asPrismObject().getDefinition());
 		
-		Form<?> form = getMainForm();
-		PrismPanel<UserType> prismPanel = new PrismPanel<>(ID_WRAPPER_CONTENT, new ContainerWrapperListFromObjectWrapperModel(Model.of(objectWrapper), getVisibleContainers()), new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), form, null, this);
-		return prismPanel;
+		WrapperContext context = new WrapperContext(task, result);
+		try {
+			objectWrapper = factory.createObjectWrapper(userModel.getObject().asPrismObject(), ItemStatus.NOT_CHANGED, context);
+		} catch (SchemaException e) {
+			result.recordFatalError("Could not perform post authentication. Please, contact system administrator."); //TODO localization
+			showResult(result);
+			throw new RestartResponseException(PageLogin.class);
+		}
+		
+		WebMarkupContainer wrappers = new WebMarkupContainer(ID_WRAPPER_CONTENT);
+		
+		try {
+			Panel main = initItemPanel(ID_MAIN_PANEL, UserType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.EMPTY_PATH), null);
+			wrappers.add(main);
+			
+			Panel password = initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(Model.of(objectWrapper), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
+			wrappers.add(password);
+			
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot create panel, {}", e.getMessage(), e);
+			getSession().error("Unexected error occured. Please contact system administrator.");
+			throw new RestartResponseException(PageLogin.class);
+		}
+		
+		return wrappers;
 	}
 
 	private List<ItemPath> getVisibleContainers() {

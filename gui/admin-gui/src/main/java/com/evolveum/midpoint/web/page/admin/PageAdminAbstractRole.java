@@ -16,15 +16,40 @@
 
 package com.evolveum.midpoint.web.page.admin;
 
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
 
 public abstract class PageAdminAbstractRole<T extends AbstractRoleType> extends PageAdminFocus<T> {
 	private static final long serialVersionUID = 1L;
+	
+	public PageAdminAbstractRole() {
+		super();
+	}
+
+	public PageAdminAbstractRole(PageParameters parameters) {
+		super(parameters);
+	}
+
+	public PageAdminAbstractRole(final PrismObject<T> abstractRole) {
+		super(abstractRole);
+	}
+	
+	public PageAdminAbstractRole(final PrismObject<T> userToEdit, boolean isNewObject) {
+		super(userToEdit, isNewObject);
+	}
+	
+	
+	public PageAdminAbstractRole(final PrismObject<T> abstractRole, boolean isNewObject, boolean isReadonly) {
+		initialize(abstractRole, isNewObject, isReadonly);
+	}
 
 	@Override
 	protected void prepareObjectDeltaForModify(ObjectDelta<T> focusDelta) throws SchemaException {

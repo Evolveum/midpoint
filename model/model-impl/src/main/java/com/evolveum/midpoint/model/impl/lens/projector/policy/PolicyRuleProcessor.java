@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
@@ -277,7 +278,7 @@ public class PolicyRuleProcessor {
 
 	private <AH extends AssignmentHolderType> Collection<? extends PolicyRuleType> getAllGlobalRules(LensContext<AH> context) {
 		return context.getSystemConfiguration() != null
-				? context.getSystemConfiguration().asObjectable().getGlobalPolicyRule()
+				? CloneUtil.clone(context.getSystemConfiguration().asObjectable().getGlobalPolicyRule())
 				: Collections.emptyList();
 	}
 
@@ -319,7 +320,7 @@ public class PolicyRuleProcessor {
 			ObjectSelectorType focusSelector = globalPolicyRule.getFocusSelector();
 			if (repositoryService.selectorMatches(focusSelector, focus, null, LOGGER, "Global policy rule "+globalPolicyRule.getName()+": ")) {
 				if (isRuleConditionTrue(globalPolicyRule, focus, null, context, task, result)) {
-					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule, null, prismContext));
+					rules.add(new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), null, prismContext));
 					globalRulesFound++;
 				} else {
 					LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
@@ -362,34 +363,46 @@ public class PolicyRuleProcessor {
 	/**
 	 * Evaluates given policy rule in a given context.
 	 */
-	private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult result)
+	private <AH extends AssignmentHolderType> void evaluateRule(PolicyRuleEvaluationContext<AH> ctx, OperationResult parentResult)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
-		}
-		PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
-		JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
-		EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
-		LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
-		if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
-			List<EvaluatedPolicyRuleTrigger<?>> triggers;
-			// TODO reconsider this
-			if (constraints.getName() == null && constraints.getPresentation() == null) {
-				triggers = new ArrayList<>(trigger.getInnerTriggers());
-			} else {
-				triggers = Collections.singletonList(trigger);
+		OperationResult result = parentResult.subresult(PolicyRuleProcessor.class.getName() + ".evaluateRule")
+				.addParam("policyRule", ctx.policyRule.toShortString())
+				.addContext("context", ctx.getShortDescription())
+				.build();
+		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Evaluating policy rule {} in {}", ctx.policyRule.toShortString(), ctx.getShortDescription());
 			}
-			ctx.triggerRule(triggers);
-		}
-		LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
-		if (ctx.policyRule.isTriggered()) {
-			LOGGER.trace("Start to compute actions");
-			((EvaluatedPolicyRuleImpl) ctx.policyRule).computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
-			if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
-				ctx.record();
+			PolicyConstraintsType constraints = ctx.policyRule.getPolicyConstraints();
+			JAXBElement<PolicyConstraintsType> conjunction = new JAXBElement<>(F_AND, PolicyConstraintsType.class, constraints);
+			EvaluatedCompositeTrigger trigger = compositeConstraintEvaluator.evaluate(conjunction, ctx, result);
+			LOGGER.trace("Evaluated composite trigger {} for ctx {}", trigger, ctx);
+			if (trigger != null && !trigger.getInnerTriggers().isEmpty()) {
+				List<EvaluatedPolicyRuleTrigger<?>> triggers;
+				// TODO reconsider this
+				if (constraints.getName() == null && constraints.getPresentation() == null) {
+					triggers = new ArrayList<>(trigger.getInnerTriggers());
+				} else {
+					triggers = Collections.singletonList(trigger);
+				}
+				ctx.triggerRule(triggers);
 			}
+			LOGGER.trace("Policy rule triggered: {}", ctx.policyRule.isTriggered());
+			if (ctx.policyRule.isTriggered()) {
+				LOGGER.trace("Start to compute actions");
+				((EvaluatedPolicyRuleImpl) ctx.policyRule)
+						.computeEnabledActions(ctx, ctx.getObject(), expressionFactory, prismContext, ctx.task, result);
+				if (ctx.policyRule.containsEnabledAction(RecordPolicyActionType.class)) {
+					ctx.record();
+				}
+			}
+			traceRuleEvaluationResult(ctx.policyRule, ctx);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		traceRuleEvaluationResult(ctx.policyRule, ctx);
 	}
 
 	// returns non-empty list if the constraints evaluated to true (if allMustApply, all of the constraints must apply; otherwise, at least one must apply)
@@ -529,11 +542,13 @@ public class PolicyRuleProcessor {
 						);
 						enforceOverride = true;
 					} else {
+						//noinspection unchecked
 						PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
 								.asPrismContainerValue().clone();
 						PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
 						ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
 								.createDelta(FocusType.F_ASSIGNMENT, focusDef);
+						//noinspection unchecked
 						assignmentDelta.addValuesToDelete(assignmentValueToRemove);
 						context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
 					}
@@ -593,7 +608,7 @@ public class PolicyRuleProcessor {
 						LOGGER.trace("Skipping global policy rule {} because the condition evaluated to false: {}", globalPolicyRule.getName(), globalPolicyRule);
 						continue;
 					}
-					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule, target.getAssignmentPath().clone(), prismContext);
+					EvaluatedPolicyRule evaluatedRule = new EvaluatedPolicyRuleImpl(globalPolicyRule.clone(), target.getAssignmentPath().clone(), prismContext);
 					boolean direct = target.isDirectlyAssigned();
 					if (direct) {
 						evaluatedAssignment.addThisTargetPolicyRule(evaluatedRule);
@@ -617,7 +632,7 @@ public class PolicyRuleProcessor {
 
 		MappingImpl.Builder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder = mappingFactory
 				.createMappingBuilder();
-		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus);
+		ObjectDeltaObject<AH> focusOdo = new ObjectDeltaObject<>(focus, null, focus, focus.getDefinition());
 		builder = builder.mappingType(condition)
 				.contextDescription("condition in global policy rule " + globalPolicyRule.getName())
 				.sourceContext(focusOdo)
@@ -625,9 +640,9 @@ public class PolicyRuleProcessor {
 						prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
 				.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
 				.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
-				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null)
-				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment)
-				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null)
+				.addVariableDefinition(ExpressionConstants.VAR_TARGET, evaluatedAssignment != null ? evaluatedAssignment.getTarget() : null, EvaluatedAssignment.class)
+				.addVariableDefinition(ExpressionConstants.VAR_EVALUATED_ASSIGNMENT, evaluatedAssignment, EvaluatedAssignment.class)
+				.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, evaluatedAssignment != null ? evaluatedAssignment.getAssignmentType() : null, AssignmentType.class)
 				.rootNode(focusOdo);
 
 		MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();

@@ -11,6 +11,7 @@ public class GuiAuthorizationConstants {
 	public static final Map<String, String> SERVICE_MEMBERS_AUTHORIZATIONS = new HashMap<>();
 	public static final Map<String, String> ORG_MEMBERS_AUTHORIZATIONS = new HashMap<>();
 	public static final Map<String, String> GOVERNANCE_MEMBERS_AUTHORIZATIONS = new HashMap<>();
+	public static final Map<String, String> ARCHETYPE_MEMBERS_AUTHORIZATIONS = new HashMap<String, String>();
 	
 	public static final String MEMBER_OPERATION_ASSIGN = "assign";
 	public static final String MEMBER_OPERATION_UNASSIGN = "unassign";
@@ -40,6 +41,12 @@ public class GuiAuthorizationConstants {
 		ORG_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_RECOMPUTE, AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI);
 		ORG_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_CREATE, AuthorizationConstants.AUTZ_UI_ADMIN_ADD_ORG_MEMBER_ACTION_URI);
 		ORG_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_DELETE, AuthorizationConstants.AUTZ_UI_ADMIN_DELETE_ORG_MEMBER_ACTION_URI);
+	}
+	
+	static {
+		ARCHETYPE_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_ASSIGN, AuthorizationConstants.AUTZ_UI_ADMIN_ASSIGN_ORG_MEMBER_ACTION_URI);
+		ARCHETYPE_MEMBERS_AUTHORIZATIONS.put(MEMBER_OPERATION_RECOMPUTE, AuthorizationConstants.AUTZ_UI_ADMIN_RECOMPUTE_ORG_MEMBER_ACTION_URI);
+
 	}
 	
 	static {

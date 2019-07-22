@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.OrgClosureManager;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -284,6 +285,8 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_USE_ZIP = "useZip";
     public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
     public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
+    public static final String PROPERTY_MAX_LIFETIME = "maxLifetime";
+    public static final String PROPERTY_IDLE_TIMEOUT = "idleTimeout";
 
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
@@ -350,6 +353,8 @@ public class SqlRepositoryConfiguration {
     private final String dataSource;
     private final int minPoolSize;
     private final int maxPoolSize;
+    private final Long maxLifetime;
+    private final Long idleTimeout;
     private final boolean useZip;
 
     private TransactionIsolation defaultTransactionIsolation;
@@ -456,6 +461,9 @@ public class SqlRepositoryConfiguration {
         dropIfExists = configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, false);
         minPoolSize = configuration.getInt(PROPERTY_MIN_POOL_SIZE, DEFAULT_MIN_POOL_SIZE);
         maxPoolSize = configuration.getInt(PROPERTY_MAX_POOL_SIZE, DEFAULT_MAX_POOL_SIZE);
+        maxLifetime = configuration.getLong(PROPERTY_MAX_LIFETIME, null);
+        idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
+
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
 
         // requires asServer, baseDir, fileName, port
@@ -471,7 +479,7 @@ public class SqlRepositoryConfiguration {
         useReadOnlyTransactions = configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, defaultUseReadOnlyTransactions);
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
-        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, 0);
+        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
 
         computeDefaultIterativeSearchParameters();
         iterativeSearchByPaging = configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, defaultIterativeSearchByPaging);
@@ -547,7 +555,7 @@ public class SqlRepositoryConfiguration {
 
 	/**
 	 * Prepares a prefix (first part) of JDBC URL for embedded database. Used also by configurator of tasks (quartz)
-	 * and workflow (activiti) modules; they add their own db names and parameters to this string.
+	 * module; it adds its own db names and parameters to this string.
 	 *
 	 * @return prefix of JDBC URL like jdbc:h2:file:d:\midpoint\midpoint
 	 */
@@ -614,7 +622,7 @@ public class SqlRepositoryConfiguration {
         if (isUsingH2()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
-            defaultLockForUpdateViaSql = false;
+            defaultLockForUpdateViaSql = true;
             defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
         } else if (isUsingMySqlCompatible()) {
 	        defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
@@ -865,7 +873,15 @@ public class SqlRepositoryConfiguration {
         return maxPoolSize;
     }
 
-    public boolean isUseZip() {
+	public Long getMaxLifetime() {
+		return maxLifetime;
+	}
+
+	public Long getIdleTimeout() {
+		return idleTimeout;
+	}
+
+	public boolean isUseZip() {
         return useZip;
     }
 

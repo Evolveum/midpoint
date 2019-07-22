@@ -167,7 +167,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 		// WHEN
 		provisioningService.synchronize(coords,
-				syncTask, result);
+				syncTask, null, result);
 		
 		// THEN
 		SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;
@@ -229,7 +229,7 @@ public class TestSynchronization extends AbstractIntegrationTest {
 
 		// WHEN
 		provisioningService.synchronize(coords,
-				syncTask, result);
+				syncTask, null, result);
 		
 		// THEN
 		SynchronizationServiceMock mock = (SynchronizationServiceMock) syncServiceMock;

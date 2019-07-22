@@ -41,7 +41,9 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class that statically instantiates the prism contexts and provides convenient static version of the PrismContext
@@ -257,6 +259,15 @@ public class PrismTestUtil {
 				+ PrettyPrinter.prettyPrint(value));
 	}
 	
+	public static void displayCollection(String title, Collection<?> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title + " (" + collection.size() + ")");
+		for (Object object : collection) {
+			System.out.println(" - " + PrettyPrinter.prettyPrint(object));
+		}
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + " (" + collection.size() + ")" + "\n" +
+				collection.stream().map(object -> PrettyPrinter.prettyPrint(object)).collect(Collectors.joining("\n")));
+	}
+
 	public static void displayQuery(ObjectQuery query) {
 		LOGGER.trace("object query:\n{}\n", query);
 		System.out.println("object query:\n" + query + "\n");

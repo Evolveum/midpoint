@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandle
 import com.evolveum.midpoint.web.page.admin.certification.handlers.CertGuiHandlerRegistry;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -57,10 +59,10 @@ public class CertDecisionHelper implements Serializable {
         IColumn column;
         column = new IconColumn<CertCaseOrWorkItemDto>(page.createStringResource("")) {
             @Override
-            protected IModel<String> createIconModel(IModel<CertCaseOrWorkItemDto> rowModel) {
+            protected DisplayType getIconDisplayType(IModel<CertCaseOrWorkItemDto> rowModel) {
                 ObjectTypeGuiDescriptor guiDescriptor = getObjectTypeDescriptor(which, rowModel);
                 String icon = guiDescriptor != null ? guiDescriptor.getBlackIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
-                return new Model<>(icon);
+                return WebComponentUtil.createDisplayType(icon);
             }
 
             private ObjectTypeGuiDescriptor getObjectTypeDescriptor(WhichObject which, IModel<CertCaseOrWorkItemDto> rowModel) {
@@ -118,13 +120,8 @@ public class CertDecisionHelper implements Serializable {
         column = new IconColumn<CertCaseOrWorkItemDto>(page.createStringResource("")) {
 
             @Override
-            protected IModel<String> createIconModel(final IModel<CertCaseOrWorkItemDto> rowModel) {
-                return new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return "fa fa-fw fa-info-circle text-info";
-                    }
-                };
+            protected DisplayType getIconDisplayType(final IModel<CertCaseOrWorkItemDto> rowModel) {
+                return WebComponentUtil.createDisplayType("fa fa-fw fa-info-circle text-info");
             }
 
             @Override

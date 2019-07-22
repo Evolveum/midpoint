@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,12 +143,12 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
         }
         ExpressionType selectionExpression = scope.getItemSelectionExpression();
         ExpressionVariables variables = new ExpressionVariables();
-        variables.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignment);
+        variables.put(ExpressionConstants.VAR_ASSIGNMENT, assignment, AssignmentType.class);
         if (object instanceof FocusType) {
-            variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, object);
+            variables.putObject(ExpressionConstants.VAR_FOCUS, (FocusType)object, FocusType.class);
         }
         if (object instanceof UserType) {
-            variables.addVariableDefinition(ExpressionConstants.VAR_USER, object);
+            variables.putObject(ExpressionConstants.VAR_USER, (UserType)object, UserType.class);
         }
         return expressionHelper.evaluateBooleanExpression(selectionExpression, variables,
                 "item selection for assignment " + ObjectTypeUtil.toShortString(assignment), task, result);

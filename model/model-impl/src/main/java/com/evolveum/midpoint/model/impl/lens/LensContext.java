@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,23 @@ import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -38,7 +46,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -46,7 +53,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
-
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -60,6 +66,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private static final String DOT_CLASS = LensContext.class.getName() + ".";
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
+
+	public enum ExportType {
+		MINIMAL, REDUCED, OPERATIONAL, TRACE
+	}
+
+	/**
+	 * Unique identifier of a request (operation).
+	 * Used to correlate request and execution audit records of a single operation.
+	 * Note: taskId cannot be used for that, as task can have many operations (e.g. reconciliation task).
+	 */
+	private String requestIdentifier = null;
 
 	private ModelState state = ModelState.INITIAL;
 
@@ -193,6 +210,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
 
+	@NotNull transient private final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
+	@NotNull transient private final List<String> operationApproverComments = new ArrayList<>();
+
 	public LensContext(Class<F> focusClass, PrismContext prismContext,
 			ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
@@ -230,6 +250,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public String getTriggeredResourceOid() {
 		return triggeredResourceOid;
+	}
+
+	@Override
+	public String getRequestIdentifier() {
+		return requestIdentifier;
+	}
+
+	public void setRequestIdentifier(String requestIdentifier) {
+		this.requestIdentifier = requestIdentifier;
+	}
+
+	public void generateRequestIdentifierIfNeeded() {
+		if (requestIdentifier != null) {
+			return;
+		}
+		requestIdentifier = ModelImplUtils.generateRequestIdentifier();
 	}
 
 	@Override
@@ -336,6 +372,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return systemConfiguration;
 	}
 
+	public SystemConfigurationType getSystemConfigurationType() {
+		return systemConfiguration != null ? systemConfiguration.asObjectable() : null;
+	}
+
+	public InternalsConfigurationType getInternalsConfiguration() {
+		return systemConfiguration != null ? systemConfiguration.asObjectable().getInternals() : null;
+	}
+
 	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
 		this.systemConfiguration = systemConfiguration;
 	}
@@ -358,9 +402,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void incrementProjectionWave() {
 		projectionWave++;
+		LOGGER.trace("Incrementing projection wave to {}", projectionWave);
 	}
 
 	public void resetProjectionWave() {
+		LOGGER.trace("Resetting projection wave from {} to {}", projectionWave, executionWave);
 		projectionWave = executionWave;
 	}
 
@@ -374,6 +420,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void incrementExecutionWave() {
 		executionWave++;
+		LOGGER.trace("Incrementing lens context execution wave to {}", executionWave);
 	}
 
 	public int getMaxWave() {
@@ -1106,12 +1153,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	}
 
 	public LensContextType toLensContextType() throws SchemaException {
-		return toLensContextType(false);
+		return toLensContextType(ExportType.OPERATIONAL);
 	}
 
 	/**
 	 * 'reduced' means
-	 * - no projection contexts except those with primary or sync deltas
 	 * - no full object values (focus, shadow).
 	 *
 	 * This mode is to be used for re-starting operation after primary-stage approval (here all data are re-loaded; maybe
@@ -1119,45 +1165,46 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	 *
 	 * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
 	 */
-	public LensContextType toLensContextType(boolean reduced) throws SchemaException {
+	public LensContextType toLensContextType(ExportType exportType) throws SchemaException {
 
 		PrismContainer<LensContextType> lensContextTypeContainer = PrismContainer
 				.newInstance(getPrismContext(), LensContextType.COMPLEX_TYPE);
 		LensContextType lensContextType = lensContextTypeContainer.createNewValue().asContainerable();
 
 		lensContextType.setState(state != null ? state.toModelStateType() : null);
-		lensContextType.setChannel(channel);
+		if (exportType != ExportType.MINIMAL) {
+			lensContextType.setRequestIdentifier(requestIdentifier);
+			lensContextType.setChannel(channel);
+		}
 
 		if (focusContext != null) {
-			PrismContainer<LensFocusContextType> lensFocusContextTypeContainer = lensContextTypeContainer
-					.findOrCreateContainer(LensContextType.F_FOCUS_CONTEXT);
-			focusContext.addToPrismContainer(lensFocusContextTypeContainer, reduced);
+			lensContextType.setFocusContext(focusContext.toLensFocusContextType(prismContext, exportType));
 		}
 
 		PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer = lensContextTypeContainer
 				.findOrCreateContainer(LensContextType.F_PROJECTION_CONTEXT);
 		for (LensProjectionContext lensProjectionContext : projectionContexts) {
-			// primary delta can be null because of delta reduction algorithm (when approving associations)
-			if (!reduced || lensProjectionContext.getPrimaryDelta() != null || !ObjectDelta.isEmpty(lensProjectionContext.getSyncDelta())) {
-				lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, reduced);
-			}
+			lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer, exportType);
 		}
-		lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
-		lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
-		lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
 		lensContextType.setProjectionWave(projectionWave);
 		lensContextType.setExecutionWave(executionWave);
-		lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
-		lensContextType.setLazyAuditRequest(lazyAuditRequest);
-		lensContextType.setRequestAudited(requestAudited);
-		lensContextType.setExecutionAudited(executionAudited);
-		lensContextType.setRequestAuthorized(isRequestAuthorized);
-		lensContextType.setStats(stats);
-		lensContextType.setRequestMetadata(requestMetadata);
-		lensContextType.setOwnerOid(ownerOid);
+		if (exportType != ExportType.MINIMAL) {
+			lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
+			lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
+			lensContextType.setExecutionPhaseOnly(executionPhaseOnly);
+			lensContextType.setOptions(options != null ? options.toModelExecutionOptionsType() : null);
+			lensContextType.setLazyAuditRequest(lazyAuditRequest);
+			lensContextType.setRequestAudited(requestAudited);
+			lensContextType.setExecutionAudited(executionAudited);
+			lensContextType.setRequestAuthorized(isRequestAuthorized);
+			lensContextType.setStats(stats);
+			lensContextType.setRequestMetadata(requestMetadata);
+			lensContextType.setOwnerOid(ownerOid);
 
-		for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
-			lensContextType.getRottenExecutedDeltas().add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+			for (LensObjectDeltaOperation<?> executedDelta : rottenExecutedDeltas) {
+				lensContextType.getRottenExecutedDeltas()
+						.add(simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+			}
 		}
 
 		return lensContextType;
@@ -1191,6 +1238,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 					e);
 		}
 
+		lensContext.setRequestIdentifier(lensContextType.getRequestIdentifier());
 		lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
 		lensContext.setChannel(lensContextType.getChannel());
 		lensContext.setFocusContext(LensFocusContext
@@ -1464,5 +1512,62 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		for (LensProjectionContext projectionContext : projectionContexts) {
 			projectionContext.finishBuild();
 		}
+	}
+
+	@NotNull
+	public List<ObjectReferenceType> getOperationApprovedBy() {
+		return operationApprovedBy;
+	}
+
+	@NotNull
+	public List<String> getOperationApproverComments() {
+		return operationApproverComments;
+	}
+
+	@Override
+	@NotNull
+	public ObjectTreeDeltas<F> getTreeDeltas() {
+		ObjectTreeDeltas<F> objectTreeDeltas = new ObjectTreeDeltas<>(getPrismContext());
+		if (getFocusContext() != null && getFocusContext().getPrimaryDelta() != null) {
+			objectTreeDeltas.setFocusChange(getFocusContext().getPrimaryDelta().clone());
+		}
+		for (ModelProjectionContext projectionContext : getProjectionContexts()) {
+			if (projectionContext.getPrimaryDelta() != null) {
+				objectTreeDeltas.addProjectionChange(projectionContext.getResourceShadowDiscriminator(), projectionContext.getPrimaryDelta());
+			}
+		}
+		return objectTreeDeltas;
+	}
+
+	/**
+	 * Expression profile to use for "privileged" operations, such as scripting hooks.
+	 */
+	public ExpressionProfile getPrivilegedExpressionProfile() {
+		// TODO: determine from system configuration.
+		return MiscSchemaUtil.getExpressionProfile();
+	}
+
+	public ConstraintsCheckingStrategyType getFocusConstraintsCheckingStrategy() {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration();
+		if (systemConfiguration != null) {
+			InternalsConfigurationType internals = systemConfiguration.asObjectable().getInternals();
+			return internals != null ? internals.getFocusConstraintsChecking() : null;
+		} else {
+			return null;
+		}
+	}
+
+	public ConstraintsCheckingStrategyType getProjectionConstraintsCheckingStrategy() {
+		PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration();
+		if (systemConfiguration != null) {
+			InternalsConfigurationType internals = systemConfiguration.asObjectable().getInternals();
+			return internals != null ? internals.getProjectionConstraintsChecking() : null;
+		} else {
+			return null;
+		}
+	}
+
+	public String getOperationQualifier() {
+		return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
 	}
 }

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,15 +27,18 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -44,8 +48,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.repo.common.Cacheable;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -68,7 +72,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Class that manages the ConnectorType objects in repository.
@@ -96,20 +99,25 @@ public class ConnectorManager implements Cacheable {
 	public void register() {
 		cacheRegistry.registerCacheableService(this);
 	}
-	
+
+	@PreDestroy
+	public void unregister() {
+		cacheRegistry.unregisterCacheableService(this);
+	}
+
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
+	private static final String CONNECTOR_INSTANCE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorInstanceCache";
+	private static final String CONNECTOR_TYPE_CACHE_NAME = ConnectorManager.class.getName() + ".connectorTypeCache";
+
 	private Collection<ConnectorFactory> connectorFactories;
-	private Map<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new ConcurrentHashMap<>();
-	private Map<String, ConnectorType> connectorTypeCache = new ConcurrentHashMap<>();
+	@NotNull private Map<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new ConcurrentHashMap<>();
+	@NotNull private Map<String, ConnectorType> connectorTypeCache = new ConcurrentHashMap<>();
 
 	public Collection<ConnectorFactory> getConnectorFactories() {
 		if (connectorFactories == null) {
 			String[] connectorFactoryBeanNames = springContext.getBeanNamesForType(ConnectorFactory.class);
 			LOGGER.debug("Connector factories bean names: {}", Arrays.toString(connectorFactoryBeanNames));
-			if (connectorFactoryBeanNames == null) {
-				return null;
-			}
 			connectorFactories = new ArrayList<>(connectorFactoryBeanNames.length);
 			for (String connectorFactoryBeanName: connectorFactoryBeanNames) {
 				Object bean = springContext.getBean(connectorFactoryBeanName);
@@ -141,104 +149,116 @@ public class ConnectorManager implements Cacheable {
 
 	public ConnectorInstance getConfiguredConnectorInstance(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		
+		ConfiguredConnectorInstanceEntry connectorCacheEntry = getConnectorInstanceCacheEntry(connectorSpec, result);
+		ConnectorInstance connectorInstance = connectorCacheEntry.getConnectorInstance();
+		
+		if (forceFresh && connectorCacheEntry.isConfigured()) {
+			LOGGER.debug("FORCE in connector cache: reconfiguring cached connector {}", connectorSpec);
+			configureConnector(connectorInstance, connectorSpec, result);
+			// Connector is cached already. No need to put it into cache.
+			return connectorInstance;
+		}
+		
+		if (connectorCacheEntry.isConfigured() && !isFresh(connectorCacheEntry, connectorSpec)) {
+			LOGGER.trace("Reconfiguring connector {} because the configuration is not fresh", connectorSpec);
+			configureConnector(connectorInstance, connectorSpec, result);
+			// Connector is cached already. No need to put it into cache. We just need to update the configuration.
+			connectorCacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
+			return connectorInstance;
+		}
+
+		if (!connectorCacheEntry.isConfigured()) {
+			LOGGER.trace("Configuring new connector {}", connectorSpec);
+			configureConnector(connectorInstance, connectorSpec, result);
+			cacheConfiguredConnector(connectorCacheEntry, connectorSpec);
+		}
+		
+		return connectorInstance;
+	}
+	
+	/**
+	 * Returns connector cache entry with connector instance. The entry may come from the cache or it may be just
+	 * created and not yet cached. In the latter case the connector instance is not yet configured. This is indicated
+	 * by cacheEntry.configuration == null.
+	 * 
+	 * No attempt is made to configure the connector instance here. Therefore un-configured or miss-configured
+	 * connector may be returned.
+	 * This is exposed mostly to allow proper handling of errors in the testConnection methods of ResourceManager.
+	 */
+	ConfiguredConnectorInstanceEntry getConnectorInstanceCacheEntry(ConnectorSpec connectorSpec, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
-		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
-		if (configuredConnectorInstanceEntry != null) {
-			// Check if the instance can be reused
-
-			if (!forceFresh && isFresh(configuredConnectorInstanceEntry, connectorSpec)) {
-
-				// We found entry that matches
-				LOGGER.trace(
-						"HIT in connector cache: returning configured connector {} from cache", connectorSpec);
-				return configuredConnectorInstanceEntry.connectorInstance;
-
-			} else {
-				// There is an entry but it does not match. We assume that the
-				// resource configuration has changed
-				// and the old entry is useless now. So remove it.
-				// It is important that the connector instance is disposed before we try to create new one.
-				// E.g. ConnId connector instances are efficiently singletons.
-				configuredConnectorInstanceEntry.connectorInstance.dispose();
+		ConfiguredConnectorInstanceEntry connectorInstanceCacheEntry = connectorInstanceCache.get(cacheKey);
+		
+		if (connectorInstanceCacheEntry != null) {
+			
+			if (!connectorSpec.getConnectorOid().equals(connectorInstanceCacheEntry.getConnectorOid())) {
+				// This is the case that connectorRef in resource has changed. In this case we can do quite a destructive
+				// changes. The operations in progress may be affected.
+				LOGGER.debug("CRITICAL MISS in connector cache: found entry, but connector does not match. Disposing of old connector: {}", connectorInstanceCacheEntry);
 				connectorInstanceCache.remove(cacheKey);
+				connectorInstanceCacheEntry.getConnectorInstance().dispose();
+				
+			} else {
+				LOGGER.trace("HIT in connector cache: returning configured connector {} from cache", connectorSpec);
+				return connectorInstanceCacheEntry;
 			}
-
 		}
-		if (forceFresh) {
-			LOGGER.debug("FORCE in connector cache: creating configured connector {}", connectorSpec);
-		} else {
-			LOGGER.debug("MISS in connector cache: creating configured connector {}", connectorSpec);
-		}
-
+		
+		LOGGER.debug("MISS in connector cache: creating new connector {}", connectorSpec);
+		
 		// No usable connector in cache. Let's create it.
-		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(connectorSpec, result);
+		ConnectorInstance connectorInstance = createConnectorInstance(connectorSpec, result);
+		
+		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
+		cacheEntry.setConnectorOid(connectorSpec.getConnectorOid());
+		
+		// Do NOT set up configuration to cache entry here. The connector is not yet configured.
+		cacheEntry.setConnectorInstance(connectorInstance);
 
-		cacheConfiguredConnector(connectorSpec, configuredConnectorInstance);
-
-		return configuredConnectorInstance;
+		return cacheEntry;
+		
 	}
 	
 	// Used by the tests. Does not change anything.
-	public ConnectorInstance getConfiguredConnectorInstanceFromCache(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	public ConnectorInstance getConfiguredConnectorInstanceFromCache(ConnectorSpec connectorSpec, boolean forceFresh, OperationResult result) {
 		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
 		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
 		if (configuredConnectorInstanceEntry == null) {
 			return null;
 		}
-		return configuredConnectorInstanceEntry.connectorInstance;
+		return configuredConnectorInstanceEntry.getConnectorInstance();
 	}
 
 	private boolean isFresh(ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry, ConnectorSpec connectorSpec) {
-		if (!configuredConnectorInstanceEntry.connectorOid.equals(connectorSpec.getConnectorOid())) {
+		if (!configuredConnectorInstanceEntry.getConnectorOid().equals(connectorSpec.getConnectorOid())) {
 			return false;
 		}
-		if (!configuredConnectorInstanceEntry.configuration.equivalent(connectorSpec.getConnectorConfiguration())) {
+		if (!configuredConnectorInstanceEntry.getConfiguration().equivalent(connectorSpec.getConnectorConfiguration())) {
 			return false;
 		}
 		return true;
 	}
 
 	// should only be used by this class and testConnection in Resource manager
-	void cacheConfiguredConnector(ConnectorSpec connectorSpec, ConnectorInstance configuredConnectorInstance) {
-		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
-		cacheEntry.connectorOid = connectorSpec.getConnectorOid();
-		
-		String resourceVersion = connectorSpec.getResource().getVersion();
-		if (resourceVersion == null) {
-			throw new IllegalArgumentException("Resource version is null, cannot cache connector for "+ connectorSpec.getResource());
-		}
-		
-		cacheEntry.configuration = connectorSpec.getConnectorConfiguration();
-		cacheEntry.connectorInstance = configuredConnectorInstance;
+	void cacheConfiguredConnector(ConfiguredConnectorInstanceEntry cacheEntry, ConnectorSpec connectorSpec) {
+		// OID should be there already. Just to make sure ...
+		cacheEntry.setConnectorOid(connectorSpec.getConnectorOid());
+		cacheEntry.setConfiguration(connectorSpec.getConnectorConfiguration());
+		// Connector instance should be already present in the entry.
+		LOGGER.trace("Caching connector entry: {}", cacheEntry);
 		connectorInstanceCache.put(connectorSpec.getCacheKey(), cacheEntry);
-	}
-
-	/**
-	 * Returns fresh, unconfigured and uncached connector instance. NOT SUITABLE FOR GENERAL USE.
-	 * Should only be used by testConnection in Resource manager.
-	 */
-	ConnectorInstance createFreshConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-		ConfiguredConnectorCacheKey cacheKey = connectorSpec.getCacheKey();
-		ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(cacheKey);
-		if (configuredConnectorInstanceEntry != null) {
-			// This may seem redundant. But we want to make sure that old connector instance is disposed
-			// before we try to create new connector instance.
-			configuredConnectorInstanceEntry.connectorInstance.dispose();
-			connectorInstanceCache.remove(cacheKey);
-		}
-		return createConnectorInstance(connectorSpec, result);
 	}
 	
 	private ConnectorInstance createConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+			throws ObjectNotFoundException, SchemaException {
 
 		ConnectorType connectorType = getConnectorTypeReadOnly(connectorSpec, result);
 
 		ConnectorFactory connectorFactory = determineConnectorFactory(connectorType);
 
-		ConnectorInstance connector = null;
+		ConnectorInstance connector;
 		try {
 
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_INITIALIZATION_COUNT);
@@ -263,11 +283,8 @@ public class ConnectorManager implements Cacheable {
 
 	}
 
-	private ConnectorInstance createConfiguredConnectorInstance(ConnectorSpec connectorSpec, OperationResult result)
-			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
-
-		ConnectorInstance connector = createConnectorInstance(connectorSpec, result);
-
+	private void configureConnector(ConnectorInstance connector, ConnectorSpec connectorSpec, OperationResult result) 
+			throws SchemaException, CommunicationException, ConfigurationException {
 		PrismContainerValue<ConnectorConfigurationType> connectorConfigurationVal = connectorSpec.getConnectorConfiguration() != null ?
 				connectorSpec.getConnectorConfiguration().getValue() : null;
 		if (connectorConfigurationVal == null) {
@@ -276,26 +293,24 @@ public class ConnectorManager implements Cacheable {
 			throw e;
 		}
 		try {
-			connector.configure(connectorConfigurationVal, result);
+			
+			InternalMonitor.recordCount(InternalCounters.CONNECTOR_INSTANCE_CONFIGURATION_COUNT);
+			
+			connector.configure(connectorConfigurationVal, ResourceTypeUtil.getSchemaGenerationConstraints(connectorSpec.getResource()), result);
 
 			ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(connectorSpec.getResource(), prismContext);
 			Collection<Object> capabilities = ResourceTypeUtil.getNativeCapabilitiesCollection(connectorSpec.getResource().asObjectable());
 
 			connector.initialize(resourceSchema, capabilities, ResourceTypeUtil.isCaseIgnoreAttributeNames(connectorSpec.getResource().asObjectable()), result);
-
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
 			result.recordFatalError("Generic provisioning framework error", e);
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
-		} catch (CommunicationException e) {
-			result.recordFatalError(e);
-			throw e;
-		} catch (ConfigurationException e) {
+		} catch (CommunicationException | ConfigurationException e) {
 			result.recordFatalError(e);
 			throw e;
 		}
 
-		return connector;
 	}
 
 	public ConnectorType getConnectorTypeReadOnly(ConnectorSpec connectorSpec, OperationResult result)
@@ -335,7 +350,7 @@ public class ConnectorManager implements Cacheable {
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
+			connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema));
 		}
 		return connectorType;
 	}
@@ -350,7 +365,7 @@ public class ConnectorManager implements Cacheable {
 			if (connectorSchema == null) {
 				throw new SchemaException("No connector schema in "+connectorType);
 			}
-			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);
+			connector.modifyUnfrozen(c -> c.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema));
 		} else {
 			if (userDataEntry instanceof PrismSchema) {
 				connectorSchema = (PrismSchema)userDataEntry;
@@ -382,7 +397,6 @@ public class ConnectorManager implements Cacheable {
 	 * present on a different node, manual upgrade may be needed etc.
 	 *
 	 * @return set of discovered connectors (new connectors found)
-	 * @throws CommunicationException
 	 */
 //	@SuppressWarnings("unchecked")
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
@@ -425,19 +439,10 @@ public class ConnectorManager implements Cacheable {
 
 				LOGGER.trace("Examining connector {}", foundConnector);
 
-				boolean inRepo = true;
-				try {
-					inRepo = isInRepo(foundConnector, hostType, result);
-				} catch (SchemaException e1) {
-					LOGGER.error(
-							"Unexpected schema problem while checking existence of {}", foundConnector, e1);
-					result.recordPartialError(
-							"Unexpected schema problem while checking existence of " + foundConnector, e1);
-					// But continue otherwise ...
-				}
+				boolean inRepo = isInRepo(foundConnector, hostType, result);
 				if (inRepo) {
 					LOGGER.trace("Connector {} is in the repository, skipping", foundConnector);
-					
+
 				} else {
 					LOGGER.trace("Connector {} not in the repository, adding", foundConnector);
 
@@ -490,7 +495,7 @@ public class ConnectorManager implements Cacheable {
 		return discoveredConnectors;
 	}
 
-	private boolean isInRepo(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) throws SchemaException {
+	private boolean isInRepo(ConnectorType connectorType, ConnectorHostType hostType, OperationResult result) {
 		ObjectQuery query;
 		if (hostType == null) {
 			query = prismContext.queryFor(ConnectorType.class)
@@ -592,12 +597,6 @@ public class ConnectorManager implements Cacheable {
         return connectorFactory.getFrameworkVersion();
     }
 
-    private static class ConfiguredConnectorInstanceEntry {
-		public String connectorOid;
-		public PrismContainer<ConnectorConfigurationType> configuration;
-		public ConnectorInstance connectorInstance;
-	}
-
 	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
 		for (ConnectorFactory connectorFactory: getConnectorFactories()) {
 				connectorFactory.selfTest(parentTestResult);
@@ -605,8 +604,12 @@ public class ConnectorManager implements Cacheable {
 	}
 
 	public void dispose() {
-		for (Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry: connectorInstanceCache.entrySet()) {
-			connectorInstanceCacheEntry.getValue().connectorInstance.dispose();
+		Iterator<Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry>> i = connectorInstanceCache.entrySet().iterator();
+		while (i.hasNext()) {
+			Entry<ConfiguredConnectorCacheKey, ConfiguredConnectorInstanceEntry> connectorInstanceCacheEntry = i.next();
+			ConnectorInstance connectorInstance = connectorInstanceCacheEntry.getValue().getConnectorInstance();
+			i.remove();
+			connectorInstance.dispose();
 		}
 	}
 	
@@ -629,14 +632,28 @@ public class ConnectorManager implements Cacheable {
 	}
 
 	@Override
-	public void clearCache() {
-		dispose();
-		connectorInstanceCache = new ConcurrentHashMap<>();
-		connectorTypeCache = new ConcurrentHashMap<>();
+	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (type == null || ConnectorType.class.isAssignableFrom(type)) {
+			if (StringUtils.isEmpty(oid)) {
+				dispose();
+				connectorInstanceCache = new ConcurrentHashMap<>();
+				connectorTypeCache = new ConcurrentHashMap<>();
+			} else {
+				LOGGER.trace("Skipping invalidation request for specific OID={}; selective invalidation is not yet supported", oid);
+			}
+		}
 	}
 
+	@NotNull
 	@Override
-	public <O extends ObjectType> boolean supports(Class<O> type, String oid) {
-		return ConnectorType.class.equals(type) && StringUtils.isBlank(oid);
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Arrays.asList(
+				new SingleCacheStateInformationType(prismContext)
+						.name(CONNECTOR_INSTANCE_CACHE_NAME)
+						.size(connectorInstanceCache.size()),
+				new SingleCacheStateInformationType(prismContext)
+						.name(CONNECTOR_TYPE_CACHE_NAME)
+						.size(connectorTypeCache.size())
+		);
 	}
 }

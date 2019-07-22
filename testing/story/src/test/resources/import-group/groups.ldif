@@ -1,0 +1,35 @@
+dn: ou=org1,dc=example,dc=com
+ou: org1
+telephoneNumber: +421111111
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=org2,dc=example,dc=com
+ou: org2
+telephoneNumber: +421222222
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=org3,dc=example,dc=com
+ou: org3
+telephoneNumber: +421333333
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=org4,dc=example,dc=com
+ou: org4
+telephoneNumber: +421444444
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=org5,dc=example,dc=com
+ou: org5
+telephoneNumber: +421555555
+objectclass: top
+objectclass: organizationalUnit
+
+dn: ou=org6,dc=example,dc=com
+ou: org6
+telephoneNumber: +421666666
+objectclass: top
+objectclass: organizationalUnit

@@ -31,7 +31,9 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -46,6 +48,8 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 import static org.testng.AssertJUnit.*;
@@ -141,7 +145,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, task, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid,
-        		ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType));
+        		ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType), null, false);
         LensProjectionContext accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
 		accountSyncContext.setLoadedObject(account);
@@ -346,5 +350,14 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 		display("Input context", context);
 		assertFocusModificationSanity(context);
 		return context;
+	}
+
+	protected List<CaseWorkItemType> getWorkItemsForCase(String caseOid,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+		// TODO use simple getObject(CaseType)
+		return repositoryService.searchContainers(CaseWorkItemType.class,
+				prismContext.queryFor(CaseWorkItemType.class).ownerId(caseOid).build(),
+				options, result);
+
 	}
 }

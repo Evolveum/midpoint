@@ -25,7 +25,11 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -84,14 +88,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Implementation of provisioning service.
@@ -114,6 +110,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired ConnectorManager connectorManager;
 	@Autowired ProvisioningContextFactory ctxFactory;
 	@Autowired PrismContext prismContext;
+	@Autowired CacheConfigurationManager cacheConfigurationManager;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -320,8 +317,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (ProvisioningOperationOptions.isOverwrite(options)){
 				addOptions = RepoAddOptions.createOverwrite();
 			}
-			oid = cacheRepositoryService.addObject(object, addOptions, result);
-			result.computeStatus();
+			try {
+				oid = cacheRepositoryService.addObject(object, addOptions, result);
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
+			}
 		}
 
 		result.cleanupResult();
@@ -330,8 +333,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@SuppressWarnings("rawtypes")
 	@Override
-	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
 		Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
 		String resourceOid = shadowCoordinates.getResourceOid();
@@ -343,75 +346,137 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-		int processedChanges = 0;
+		SynchronizationOperationResult liveSyncResult;
 
 		try {
 			// Resolve resource
 			PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
 			ResourceType resourceType = resource.asObjectable();
-
+ 
 			LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
 			// getting token form task
 			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got token property: {} from the task extension.",
-						SchemaDebugUtil.prettyPrint(tokenProperty));
+				LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, result);
-			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
+			liveSyncResult = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
+			LOGGER.debug("Synchronization of {} done, token at start {}, result: {}", resource, tokenProperty, liveSyncResult);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw e;
-		} catch (ObjectAlreadyExistsException | EncryptionException e) {
+		} catch (ObjectAlreadyExistsException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
 			throw new SystemException(e);
 		} catch (GenericFrameworkException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result,
 					"Synchronization error: generic connector framework error: " + e.getMessage(), e);
+			result.summarize(true);
 			throw new GenericConnectorException(e.getMessage(), e);
+		} 
+
+		if (liveSyncResult.isHaltingErrorEncountered()) {
+			// TODO MID-5514
+			result.recordPartialError("Object could not be processed and 'retryLiveSyncErrors' is true");
+		} else if (liveSyncResult.getErrors() > 0) {
+			result.recordPartialError("Errors while processing: " + liveSyncResult.getErrors() + " out of " + liveSyncResult.getChangesProcessed());
+		} else {
+			result.recordSuccess();
 		}
-
-		result.recordSuccess();
 		result.cleanupResult();
-		return processedChanges;
-
+		return liveSyncResult.getChangesProcessed();
 	}
 
-	@SuppressWarnings("rawtypes")
-	private PrismProperty getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty tokenProperty = null;
-		if (task.getExtension() != null) {
-			tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
-		}
+	@Override
+	public String startListeningForAsyncUpdates(@NotNull ResourceShadowDiscriminator shadowCoordinates, @NotNull Task task,
+			@NotNull OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			ExpressionEvaluationException {
+		String resourceOid = shadowCoordinates.getResourceOid();
+		Validate.notNull(resourceOid, "Resource oid must not be null.");
 
-		if (tokenProperty != null && (tokenProperty.getAnyRealValue() == null)) {
-			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".startListeningForAsyncUpdates");
+		result.addParam(OperationResult.PARAM_OID, resourceOid);
+		result.addParam(OperationResult.PARAM_TASK, task.toString());
+
+		String listeningActivityHandle;
+		try {
+			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
+			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.addReturn("listeningActivityHandle", listeningActivityHandle);
+		result.recordSuccess();
+		result.cleanupResult();
+		return listeningActivityHandle;
+	}
+
+	@Override
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".stopListeningForAsyncUpdates");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
+			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+		result.recordSuccess();
+		result.cleanupResult();
+	}
+
+	@Override
+	public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getAsyncUpdatesListeningActivityInformation");
+		result.addParam("listeningActivityHandle", listeningActivityHandle);
+
+		try {
+			AsyncUpdateListeningActivityInformationType rv = shadowCache.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
+			result.recordSuccess();
+			result.cleanupResult();
+			return rv;
+		} catch (RuntimeException | Error e) {
+			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
+			result.summarize(true);
+			throw e;
+		}
+	}
+
+	private PrismProperty<?> getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
+			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
+		PrismProperty<?> taskTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
+
+		if (taskTokenProperty != null) {
+			if (taskTokenProperty.getAnyRealValue() != null) {
+				return taskTokenProperty;
+			} else {
+				LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
+				LOGGER.trace("Empty sync token property:\n{}", taskTokenProperty.debugDumpLazily());
 			}
-			tokenProperty = null;
 		}
 
 		// if the token is not specified in the task, get the latest token
-		if (tokenProperty == null) {
-			tokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
-			if (tokenProperty == null || tokenProperty.getValue() == null
-					|| tokenProperty.getValue().getValue() == null) {
-				LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Empty current sync token property.");
-				}
-				return null;
-			}
-
+		PrismProperty<?> resourceTokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
+		if (resourceTokenProperty != null && resourceTokenProperty.getValue() != null &&
+				resourceTokenProperty.getValue().getValue() != null) {
+			return resourceTokenProperty;
+		} else {
+			LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
+			return null;
 		}
-		return tokenProperty;
 	}
 
+	@NotNull
 	@Override
 	public <T extends ObjectType> SearchResultList<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
@@ -423,41 +488,59 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		final SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<PrismObject<T>>());
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Start of (non-iterative) search objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
+		}
 
-		SearchResultMetadata metadata;
-		try {
-			if (!ShadowType.class.isAssignableFrom(type)) {
-				SearchResultList<PrismObject<T>> objects = searchRepoObjects(type, query, options, task, result);
-				result.computeStatus();
-				result.recordSuccessIfUnknown();
-				result.cleanupResult();
-//				validateObjects(objects);
-				return objects;
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
+
+		if (InternalsConfig.consistencyChecks && filter != null) {
+			// We may not have all the definitions here. We will apply the definitions later
+			filter.checkConsistence(false);
+		}
+
+		if (filter instanceof NoneFilter) {
+			result.recordSuccessIfUnknown();
+			result.cleanupResult();
+			SearchResultMetadata metadata = new SearchResultMetadata();
+			metadata.setApproxNumberOfAllResults(0);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Finished searching. Nothing to do. Filter is NONE. Metadata: {}", metadata.shortDump());
 			}
+			SearchResultList<PrismObject<T>> objListType = new SearchResultList<>(new ArrayList<>());
+			objListType.setMetadata(metadata);
+			return objListType;
+		}
 
-			final ResultHandler<T> handler = (object, parentResult1) -> objListType.add(object);
-
-			metadata = searchObjectsIterative(type, query, options, handler, task, result);
-
-		} catch (ConfigurationException | SecurityViolationException | CommunicationException | ObjectNotFoundException |  SchemaException | ExpressionEvaluationException | RuntimeException | Error e) {
-			ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
-			throw e;
+		SearchResultList<PrismObject<T>> objects;
+		if (ShadowType.class.isAssignableFrom(type)) {
+			try {
+				//noinspection unchecked
+				objects = (SearchResultList) shadowCache.searchObjects(query, options, task, result);
+			} catch (Throwable e) {
+				ProvisioningUtil.recordFatalError(LOGGER, result, "Could not search objects: " + e.getMessage(), e);
+				throw e;
+			}
+		} else {
+			objects = searchRepoObjects(type, query, options, task, result);
 		}
 
 		result.computeStatus();
 		result.cleanupResult();
-//		validateObjects(objListType);
-		objListType.setMetadata(metadata);
-		return objListType;
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Finished searching. Metadata: {}", DebugUtil.shortDump(objects.getMetadata()));
+		}
+		// validateObjects(objListType);
+		return objects;
 	}
 
-
+	@NotNull
 	@SuppressWarnings("unchecked")
 	private <T extends ObjectType> SearchResultList<PrismObject<T>> searchRepoObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException {
 
-		List<PrismObject<T>> repoObjects = null;
+		List<PrismObject<T>> repoObjects;
 
 		// TODO: should searching connectors trigger rediscovery?
 
@@ -480,13 +563,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
                     completeResource.asObjectable().setFetchResult(objResult.createOperationResultType());      // necessary e.g. to skip validation for resources that had issues when checked
                     result.addSubresult(objResult);
                 }
-                newObjListType.add((PrismObject<T>) completeResource);
+                newObjListType.add(completeResource);
 
 				// TODO: what else do to with objResult??
 
 			} catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", new Object[] {
-						repoObject, e.getMessage(), e });
+				LOGGER.error("Error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
 				newObjListType.add(repoObject);
@@ -501,8 +583,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				// ICF exceptions are still translated to system exceptions.
 				// So this provides
 				// a better robustness now.
-				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", new Object[] {
-						repoObject, e.getMessage(), e });
+				LOGGER.error("System error while completing {}: {}-{}. Using non-complete object.", repoObject, e.getMessage(), e);
 				objResult.recordFatalError(e);
 				repoObject.asObjectable().setFetchResult(objResult.createOperationResultType());
 				newObjListType.add(repoObject);
@@ -544,13 +625,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ObjectFilter filter = null;
-		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-			query = query.cloneEmpty();
-			query.setFilter(filter);
-		}
-		
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
+
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start of counting objects. Query:\n{}", query != null ? query.debugDump(1) : "  (null)");
 		}
@@ -626,14 +703,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// getting object to modify
 		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
-		}
+		LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
 		try {
 
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
+				//noinspection unchecked
 				oid = shadowCache.modifyShadow((PrismObject<ShadowType>)repoShadow, modifications, scripts, options, task,
 					result);
 			} else {
@@ -791,7 +867,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		testResult.addParam("resourceOid", resourceOid);
 		testResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		PrismObject<ResourceType> resource = null;
+		PrismObject<ResourceType> resource;
 
 		try {
 			resource = getRepoObject(ResourceType.class, resourceOid, null, testResult);
@@ -802,7 +878,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		testResult.computeStatus("Test resource has failed");
 
-		LOGGER.trace("Finished testing {}, result: {} ", resource,
+		LOGGER.debug("Finished testing {}, result: {} ", resource,
 				testResult.getStatus());
 		return testResult;
 	}
@@ -938,12 +1014,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("query", query);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		ObjectFilter filter = null;
-		if (query != null) {
-			filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
-			query = query.cloneEmpty();
-			query.setFilter(filter);
-		}
+		query = simplifyQueryFilter(query);
+		ObjectFilter filter = query != null ? query.getFilter() : null;
 
 		if (InternalsConfig.consistencyChecks && filter != null) {
 			// We may not have all the definitions here. We will apply the definitions later
@@ -1007,6 +1079,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return metadata;
 
 
+	}
+
+	private ObjectQuery simplifyQueryFilter(ObjectQuery query) {
+		if (query != null) {
+			ObjectFilter filter = ObjectQueryUtil.simplify(query.getFilter(), prismContext);
+			ObjectQuery clone = query.cloneEmpty();
+			clone.setFilter(filter);
+			return clone;
+		} else {
+			return null;
+		}
 	}
 
 	@Override
@@ -1144,6 +1227,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 
 			if (ObjectQueryUtil.hasAllDefinitions(query)) {
+				result.recordNotApplicableIfUnknown();
 				return;
 			}
 
@@ -1213,39 +1297,46 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
-													  PrismObject<ShadowType> shadowObject,
-													  ResourceType resourceType,
-													  String shadowOid,
-													  ResourceShadowDiscriminator resourceShadowDiscriminator,
-													  ConstraintViolationConfirmer constraintViolationConfirmer,
-													  Task task, OperationResult parentResult)
-					  throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+			PrismObject<ShadowType> shadowObject,
+			PrismObject<ShadowType> shadowObjectOld,
+			ResourceType resourceType, String shadowOid,
+			ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer,
+			ConstraintsCheckingStrategyType strategy,
+			Task task, OperationResult parentResult) throws CommunicationException, SchemaException,
+			SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
-		ConstraintsChecker checker = new ConstraintsChecker();
-		checker.setRepositoryService(cacheRepositoryService);
-		checker.setShadowCache(shadowCache);
-		checker.setPrismContext(prismContext);
-		ProvisioningContext ctx = ctxFactory.create(shadowObject, task, parentResult);
-		ctx.setObjectClassDefinition(shadowDefinition);
-		ctx.setResource(resourceType);
-		ctx.setShadowCoordinates(resourceShadowDiscriminator);
-		checker.setProvisioningContext(ctx);
-		checker.setShadowObject(shadowObject);
-		checker.setShadowOid(shadowOid);
-		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
 		try {
-			ConstraintsCheckingResult retval = checker.check(task, result);
-			result.computeStatus();
-			return retval;
-		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-			result.recordFatalError(e.getMessage(), e);
-			throw e;
+			ConstraintsChecker checker = new ConstraintsChecker();
+			checker.setRepositoryService(cacheRepositoryService);
+			checker.setCacheConfigurationManager(cacheConfigurationManager);
+			checker.setShadowCache(shadowCache);
+			checker.setShadowObjectOld(shadowObjectOld);
+			checker.setPrismContext(prismContext);
+			ProvisioningContext ctx = ctxFactory.create(shadowObject, task, result);
+			ctx.setObjectClassDefinition(shadowDefinition);
+			ctx.setResource(resourceType);
+			ctx.setShadowCoordinates(resourceShadowDiscriminator);
+			checker.setProvisioningContext(ctx);
+			checker.setShadowObject(shadowObject);
+			checker.setShadowOid(shadowOid);
+			checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
+			checker.setStrategy(strategy);
+			if (checker.canSkipChecking()) {
+				return ConstraintsCheckingResult.createOk();
+			} else {
+				return checker.check(task, result);
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 
 	@Override
 	public void enterConstraintsCheckerCache() {
-		ConstraintsChecker.enterCache();
+		ConstraintsChecker.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_SHADOW_CONSTRAINT_CHECKER_CACHE));
 	}
 
 	@Override

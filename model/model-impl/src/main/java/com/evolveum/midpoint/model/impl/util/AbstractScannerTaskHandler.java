@@ -19,6 +19,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.RunningTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,7 +63,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 		}
 
 		XMLGregorianCalendar lastScanTimestamp = null;
-    	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
+    	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         if (lastScanTimestampProperty != null) {
             lastScanTimestamp = lastScanTimestampProperty.getValue().getValue();
         }
@@ -74,7 +75,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 	}
 
     @Override
-	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected void finish(H handler, TaskRunResult runResult, RunningTask task, OperationResult opResult) throws SchemaException {
 		super.finish(handler, runResult, task, opResult);
 
 		if (task.canRun()) {

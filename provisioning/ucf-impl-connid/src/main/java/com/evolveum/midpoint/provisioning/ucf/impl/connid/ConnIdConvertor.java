@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2017 Evolveum
+ * Copyright (c) 2014-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,18 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -56,6 +61,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
@@ -67,7 +75,7 @@ public class ConnIdConvertor {
 
 	private String resourceSchemaNamespace;
 	private Protector protector;
-	private ConnIdNameMapper icfNameMapper;
+	private ConnIdNameMapper connIdNameMapper;
 
 	public ConnIdConvertor(Protector protector, String resourceSchemaNamespace) {
 		super();
@@ -75,12 +83,12 @@ public class ConnIdConvertor {
 		this.resourceSchemaNamespace = resourceSchemaNamespace;
 	}
 
-	public ConnIdNameMapper getIcfNameMapper() {
-		return icfNameMapper;
+	public ConnIdNameMapper getConnIdNameMapper() {
+		return connIdNameMapper;
 	}
 
-	public void setIcfNameMapper(ConnIdNameMapper icfNameMapper) {
-		this.icfNameMapper = icfNameMapper;
+	public void setConnIdNameMapper(ConnIdNameMapper icfNameMapper) {
+		this.connIdNameMapper = icfNameMapper;
 	}
 
 	/**
@@ -137,9 +145,9 @@ public class ConnIdConvertor {
 			if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
 				List<QName> auxiliaryObjectClasses = shadow.getAuxiliaryObjectClass();
 				for (Object auxiliaryIcfObjectClass: icfAttr.getValue()) {
-					QName auxiliaryObjectClassQname = icfNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, legacySchema);
+					QName auxiliaryObjectClassQname = connIdNameMapper.objectClassToQname(new ObjectClass((String)auxiliaryIcfObjectClass), resourceSchemaNamespace, legacySchema);
 					auxiliaryObjectClasses.add(auxiliaryObjectClassQname);
-					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = icfNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
+					ObjectClassComplexTypeDefinition auxiliaryObjectClassDefinition = connIdNameMapper.getResourceSchema().findObjectClassDefinition(auxiliaryObjectClassQname);
 					if (auxiliaryObjectClassDefinition == null) {
 						throw new SchemaException("Resource object "+co+" refers to auxiliary object class "+auxiliaryObjectClassQname+" which is not in the schema");
 					}
@@ -150,8 +158,9 @@ public class ConnIdConvertor {
 		}
 		
 		for (Attribute connIdAttr : co.getAttributes()) {
+			@NotNull List<Object> values = emptyIfNull(connIdAttr.getValue());
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), connIdAttr.getValue());
+				LOGGER.trace("Reading ICF attribute {}: {}", connIdAttr.getName(), values);
 			}
 			if (connIdAttr.getName().equals(Uid.NAME)) {
 				// UID is handled specially (see above)
@@ -235,7 +244,7 @@ public class ConnIdConvertor {
 				continue;
 			}
 
-			ItemName qname = ItemName.fromQName(icfNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
+			ItemName qname = ItemName.fromQName(connIdNameMapper.convertAttributeNameToQName(connIdAttr.getName(), attributesContainerDefinition));
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname, caseIgnoreAttributeNames);
 
 			if (attributeDefinition == null) {
@@ -258,17 +267,15 @@ public class ConnIdConvertor {
 
 			ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
 
+			resourceAttribute.setIncomplete(connIdAttr.getAttributeValueCompleteness() == AttributeValueCompleteness.INCOMPLETE);
+
 			// if true, we need to convert whole connector object to the
 			// resource object also with the null-values attributes
 			if (full) {
-				if (connIdAttr.getValue() != null) {
-					// Convert the values. While most values do not need
-					// conversions, some
-					// of them may need it (e.g. GuardedString)
-					for (Object connIdValue : connIdAttr.getValue()) {
-						Object value = convertValueFromIcf(connIdValue, qname);
-						resourceAttribute.addRealValue(value);
-					}
+				// Convert the values. While most values do not need conversions, some of them may need it (e.g. GuardedString)
+				for (Object connIdValue : values) {
+					Object value = convertValueFromConnId(connIdValue, qname);
+					resourceAttribute.addRealValue(value);
 				}
 
 				LOGGER.trace("Converted attribute {}", resourceAttribute);
@@ -277,23 +284,18 @@ public class ConnIdConvertor {
 				// in this case when false, we need only the attributes with the
 				// non-null values.
 			} else {
-				if (connIdAttr.getValue() != null && !connIdAttr.getValue().isEmpty()) {
-					// Convert the values. While most values do not need
-					// conversions, some of them may need it (e.g. GuardedString)
-					boolean empty = true;
-					for (Object connIdValue : connIdAttr.getValue()) {
-						if (connIdValue != null) {
-							Object value = convertValueFromIcf(connIdValue, qname);
-							empty = false;
-							resourceAttribute.addRealValue(value);
-						}
+				// Convert the values. While most values do not need
+				// conversions, some of them may need it (e.g. GuardedString)
+				for (Object connIdValue : values) {
+					if (connIdValue != null) {
+						Object value = convertValueFromConnId(connIdValue, qname);
+						resourceAttribute.addRealValue(value);
 					}
+				}
 
-					if (!empty) {
-						LOGGER.trace("Converted attribute {}", resourceAttribute);
-						attributesContainer.getValue().add(resourceAttribute);
-					}
-
+				if (!resourceAttribute.getValues().isEmpty() || resourceAttribute.isIncomplete()) {
+					LOGGER.trace("Converted attribute {}", resourceAttribute);
+					attributesContainer.getValue().add(resourceAttribute);
 				}
 			}
 
@@ -344,11 +346,11 @@ public class ConnIdConvertor {
 			throw new SchemaException("ICF UID explicitly specified in attributes");
 		}
 
-		String connIdAttrName = icfNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
+		String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
 
 		Set<Object> connIdAttributeValues = new HashSet<>();
 		for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
-			connIdAttributeValues.add(ConnIdUtil.convertValueToIcf(pval, protector, mpAttribute.getElementName()));
+			connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, protector, mpAttribute.getElementName()));
 		}
 
 		try {
@@ -365,7 +367,7 @@ public class ConnIdConvertor {
 			if (values.size() > 1) {
 				throw new SchemaException("Expected single value for " + icfAttr.getName());
 			}
-			Object val = convertValueFromIcf(values.get(0), null);
+			Object val = convertValueFromConnId(values.get(0), null);
 			if (val == null) {
 				return null;
 			}
@@ -381,17 +383,21 @@ public class ConnIdConvertor {
 
 	}
 
-	private Object convertValueFromIcf(Object icfValue, QName propName) {
-		if (icfValue == null) {
+	private Object convertValueFromConnId(Object connIdValue, QName propName) {
+		if (connIdValue == null) {
 			return null;
 		}
-		if (icfValue instanceof ZonedDateTime) {
-			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)icfValue);
+		if (connIdValue instanceof ZonedDateTime) {
+			return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)connIdValue);
 		}
-		if (icfValue instanceof GuardedString) {
-			return fromGuardedString((GuardedString) icfValue);
+		if (connIdValue instanceof GuardedString) {
+			return fromGuardedString((GuardedString) connIdValue);
 		}
-		return icfValue;
+		if (connIdValue instanceof Map) {
+			// TODO: check type that this is really PolyString
+			return polyStringFromConnIdMap((Map)connIdValue);
+		}
+		return connIdValue;
 	}
 
 	private ProtectedStringType fromGuardedString(GuardedString icfValue) {
@@ -408,5 +414,27 @@ public class ConnIdConvertor {
 			}
 		});
 		return ps;
+	}
+	
+	private Object polyStringFromConnIdMap(Map<String,String> connIdMap) {
+		String orig = null;
+		Map<String,String> lang = null;
+		for (Entry<String, String> connIdMapEntry : connIdMap.entrySet()) {
+			String key = connIdMapEntry.getKey();
+			if (ConnIdUtil.POLYSTRING_ORIG_KEY.equals(key)) {
+				orig = connIdMapEntry.getValue();
+			} else {
+				if (lang == null) {
+					lang = new HashMap<>();
+				}
+				lang.put(key, connIdMapEntry.getValue());
+			}
+		}
+		if (orig == null) {
+			return null;
+		}
+		PolyString polyString = new PolyString(orig);
+		polyString.setLang(lang);
+		return polyString;
 	}
 }
