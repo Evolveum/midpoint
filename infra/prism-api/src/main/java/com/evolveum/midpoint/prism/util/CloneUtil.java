@@ -160,7 +160,8 @@ public class CloneUtil {
 		if (orig == null){
 			return null;
 		}
-		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation(), orig.getLang());
+		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation() != null ?
+				orig.getTranslation().clone() : null, orig.getLang());
 	}
 
 	private static <T> T cloneArray(T orig) {
