@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabili
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
