@@ -147,6 +147,11 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
 
             @Override
+            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+                return getNewObjectButtonLayerIconStyleMap();
+            }
+
+            @Override
             protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
                 CompositedIconBuilder builder = MainObjectListPanel.this.getNewObjectButtonAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
                 if (builder == null){
@@ -277,6 +282,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 sb.toString());
+    }
+
+    protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
+        return null;
     }
 
     protected DisplayType getNewObjectButtonSpecialDisplayType(){

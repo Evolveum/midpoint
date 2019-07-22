@@ -34,6 +34,7 @@ import org.apache.wicket.model.Model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by honchar
@@ -64,9 +65,15 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         if (StringUtils.isEmpty(mainButtonDisplayType.getIcon().getCssClass())){
             mainButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
         }
-        CompositedIconBuilder builder = new CompositedIconBuilder();
+        final CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(mainButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(mainButtonDisplayType));
+        final Map<IconCssStyle, IconType> layerIcons = getMainButtonLayerIcons();
+        if (layerIcons != null) {
+            layerIcons.entrySet().forEach(layerIconStyle -> {
+                builder.appendLayerIcon(layerIconStyle.getValue(), layerIconStyle.getKey());
+            });
+        }
 
         AjaxCompositedIconButton mainButton = new AjaxCompositedIconButton(ID_MAIN_BUTTON, builder.build(),
                 Model.of(WebComponentUtil.getDisplayTypeTitle(mainButtonDisplayType))) {
@@ -179,5 +186,8 @@ public abstract class MultifunctionalButton<S extends Serializable> extends Base
         return new ArrayList<>();
     }
 
+    protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+        return null;
+    }
 
 }
