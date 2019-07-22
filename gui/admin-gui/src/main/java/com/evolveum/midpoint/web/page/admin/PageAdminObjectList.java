@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -132,6 +133,16 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                     return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(getCollectionViewObject(), PageAdminObjectList.this);
                 }
                 return super.getNewObjectButtonStandardDisplayType();
+            }
+
+            @Override
+            protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
+                if (!isCollectionViewPage()){
+                    return null;
+                }
+                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+                return layerIconMap;
             }
 
             @Override
