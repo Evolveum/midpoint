@@ -93,7 +93,7 @@ public abstract class PrismValueWrapperImpl<T, V extends PrismValue> implements 
 	}
 	
 	
-	private boolean isChanged() {
+	protected boolean isChanged() {
 		return !oldValue.equals(newValue, EquivalenceStrategy.REAL_VALUE);
 	}
 	

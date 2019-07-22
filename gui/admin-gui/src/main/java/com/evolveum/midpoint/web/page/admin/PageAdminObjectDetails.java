@@ -678,8 +678,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		Collection<SimpleValidationError> errors = null;
 
 		if (object == null) {
-			if (getObjectWrapper() != null && getObjectWrapper().getObject() != null) {
-				object = getObjectWrapper().getObject().clone();		// otherwise original object could get corrupted e.g. by applying the delta below
+			if (getObjectWrapper() != null && getObjectWrapper().getObjectOld() != null) {
+				object = getObjectWrapper().getObjectOld().clone();		// otherwise original object could get corrupted e.g. by applying the delta below
 
 				for (ObjectDelta delta : deltas) {
 					// because among deltas there can be also ShadowType deltas
