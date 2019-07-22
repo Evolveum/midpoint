@@ -109,7 +109,7 @@ public class PageImportObject extends PageAdminConfiguration {
 				return MiscSchemaUtil.getDefaultImportOptions();
 			}
 		};
-		fullProcessingModel = Model.of(Boolean.FALSE);
+		fullProcessingModel = Model.of(Boolean.TRUE);
 		xmlEditorModel = new Model<>(null);
 
 		initLayout();
