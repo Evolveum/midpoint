@@ -73,12 +73,12 @@ public class EnumPanelFactory<T extends Enum<?>> extends AbstractGuiComponentFac
 		Class<T> clazz = panelCtx.getTypeClass();
 
 		if (clazz != null) {
-			return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), (IModel<T>) panelCtx.getRealValueModel(),
+			return WebComponentUtil.createEnumPanel(clazz, panelCtx.getComponentId(), panelCtx.getRealValueModel(),
 					panelCtx.getParentComponent());
 		}
 
-		return WebComponentUtil.createEnumPanel(panelCtx.getAllowedValues(), panelCtx.getComponentId(),
-				panelCtx.getRealValueModel(), panelCtx.getParentComponent());
+		return WebComponentUtil.createEnumPanel(panelCtx.unwrapWrapperModel(), panelCtx.getComponentId(),
+				panelCtx.getRealValueModel());
 
 	}
 
