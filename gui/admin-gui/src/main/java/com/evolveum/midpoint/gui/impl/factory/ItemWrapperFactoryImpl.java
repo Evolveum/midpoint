@@ -146,11 +146,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	}
 	
 	private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
-		if (SearchFilterType.COMPLEX_TYPE.equals(def.getTypeName())) {
-			LOGGER.trace("Skipping creating wrapper for search filter: {}", def.getName());
-			return false;
-		}
-
 		if (ItemProcessing.IGNORE == def.getProcessing()) {
 			LOGGER.trace("Skip creating wrapper for {}, because item processig is set to IGNORE.", def);
 			return false;
