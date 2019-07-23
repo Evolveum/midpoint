@@ -1013,13 +1013,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 		dto.setAssignmentParent(assignmentPath);
 		if (assignment != null) {
 			if (assignment.getTenantRef() != null) {
-				dto.setTenantName(nameFromReference(assignment.getTenantRef(),
-						task, result));
+				dto.setTenantName(WebModelServiceUtils.resolveReferenceName(assignment.getTenantRef(), PageAdminFocus.this));
 				dto.setTenantRef(assignment.getTenantRef());
 			}
 			if (assignment.getOrgRef() != null) {
-				dto.setOrgRefName(
-						nameFromReference(assignment.getOrgRef(), task, result));
+				dto.setOrgRefName(WebModelServiceUtils.resolveReferenceName(assignment.getOrgRef(), PageAdminFocus.this));
 				dto.setOrgRef(assignment.getOrgRef());
 			}
 			if (assignment.getTargetRef() != null){
@@ -1037,30 +1035,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			}
 		}
 		return PolyString.getOrig(target.asObjectable().getName());
-	}
-
-	//TODO: unify with WebComponentUtil getName vs. getEffectiveName (duplicate)
-	private String nameFromReference(ObjectReferenceType reference, Task task, OperationResult result) {
-		String oid = reference.getOid();
-		QName type = reference.getType();
-		Class<? extends ObjectType> clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(type);
-		PrismObject<? extends ObjectType> prismObject;
-		try {
-			prismObject = getModelService().getObject(clazz, oid,
-					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
-		} catch (ObjectNotFoundException | SchemaException | SecurityViolationException
-				| CommunicationException | ConfigurationException | ExpressionEvaluationException
-				| RuntimeException | Error e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve name for {}: {}", e,
-					clazz.getSimpleName(), oid);
-			return "Couldn't retrieve name for " + oid;
-		}
-		ObjectType object = prismObject.asObjectable();
-		if (object instanceof AbstractRoleType) {
-			return getNameToDisplay((PrismObject<? extends FocusType>) object.asPrismObject());
-		} else {
-			return PolyString.getOrig(object.getName());
-		}
 	}
 
 	private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
