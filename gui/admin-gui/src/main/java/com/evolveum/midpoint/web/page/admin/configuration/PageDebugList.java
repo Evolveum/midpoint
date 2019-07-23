@@ -1175,6 +1175,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 					List<ObjectTypes> choices = new ArrayList<>();
 
 					Collections.addAll(choices, ObjectTypes.values());
+					choices.remove(ObjectTypes.ASSIGNMENT_HOLDER_TYPE);
 					choices.remove(ObjectTypes.OBJECT);
 
 					return choices;
