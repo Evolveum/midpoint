@@ -69,7 +69,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
-        super(id, type, tableId, options, parentPage);
+        super(id, type, tableId, options);
     }
 
     @Override

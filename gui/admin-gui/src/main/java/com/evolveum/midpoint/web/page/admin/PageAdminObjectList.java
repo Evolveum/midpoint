@@ -66,14 +66,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     public PageAdminObjectList(PageParameters parameters) {
         super(parameters);
-    }
-
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
         initLayout();
     }
-
+    
     protected void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
@@ -189,7 +184,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 StringValue collectionName = getCollectionNameParameterValue();
                 String collectionNameValue = collectionName != null ? collectionName.toString() : "";
                 String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
-                        WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+                        super.getStorageKey();
+//WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName()
                 return key;
             }
         };
