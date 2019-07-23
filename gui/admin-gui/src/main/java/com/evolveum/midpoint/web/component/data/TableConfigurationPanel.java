@@ -80,7 +80,7 @@ public class TableConfigurationPanel extends BasePanel {
         pageSize.setOutputMarkupId(true);
         cogButton.add(pageSize);
 
-        AjaxLink tableColumns = new AjaxLink(ID_TABLE_COLUMNS) {
+        AjaxLink<Void> tableColumns = new AjaxLink<Void>(ID_TABLE_COLUMNS) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

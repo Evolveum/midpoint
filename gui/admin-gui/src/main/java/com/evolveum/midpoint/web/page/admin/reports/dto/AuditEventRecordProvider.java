@@ -17,17 +17,15 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.xml.datatype.Duration;
-
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -36,8 +34,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -46,14 +42,12 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by honchar.
@@ -82,13 +76,19 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	@Nullable private final IModel<ObjectCollectionType> objectCollectionModel;
 	@NotNull private final SerializableSupplier<Map<String, Object>> parametersSupplier;
 
-	private static final String AUDIT_RECORDS_QUERY_CORE = "from RAuditEventRecord as aer";
-	private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join aer.changedItems as item";
-	private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join aer.referenceValues as rv";
+	private static final String AUDIT_RECORDS_QUERY_SELECT = "select * ";
+	private static final String AUDIT_RECORDS_QUERY_CORE = " from m_audit_event as aer";
+	private static final String AUDIT_RECORDS_QUERY_ITEMS_CHANGED = " right join m_audit_item as item on item.record_id=aer.id ";
+	private static final String AUDIT_RECORDS_QUERY_REF_VALUES = " left outer join m_audit_ref_value as rv on rv.record_id=aer.id ";
 	private static final String AUDIT_RECORDS_QUERY_COUNT = "select count(*) ";
-	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestamp desc";
+	private static final String AUDIT_RECORDS_ORDER_BY = " order by aer.timestampValue desc";
 	private static final String SET_FIRST_RESULT_PARAMETER = "setFirstResult";
 	private static final String SET_MAX_RESULTS_PARAMETER = "setMaxResults";
+
+	private static final String DOT_CLASS = AuditEventRecordProvider.class.getName() + ".";
+	private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
+	private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
+
 //	private static final String TIMESTAMP_VALUE_NAME = "aer.timestamp";
 
 	public AuditEventRecordProvider(Component component, @Nullable IModel<ObjectCollectionType> objectCollectionModel, @NotNull SerializableSupplier<Map<String, Object>> parametersSupplier) {
@@ -115,13 +115,19 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters = parametersSupplier.get();
 			query = generateFullQuery(parameters, false, true);
 		}
+		int count = 0;
+		Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
+		OperationResult result = task.getResult();
 		try {
-			Task task = getPage().createSimpleTask("internalSize");
-			return (int) getAuditService().countObjects(query, parameters, task, task.getResult());
-		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
-			// TODO: proper error handling (MID-3536)
-			throw new SystemException(e.getMessage(), e);
+			count = (int) getAuditService().countObjects(query, parameters, task, result);
+		} catch (Exception e) {
+			result.recordFatalError("Cannot count audit records: " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Cannot count audit records: " + e.getMessage(), e);
 		}
+
+		result.computeStatusIfUnknown();
+		getPage().showResult(result, false);
+		return count;
  	}
 
 	private List<AuditEventRecordType> listRecords(boolean ordered, long first, long count) {
@@ -139,13 +145,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         parameters.put(SET_FIRST_RESULT_PARAMETER, (int) first);
         parameters.put(SET_MAX_RESULTS_PARAMETER, (int) count);
 
-        List<AuditEventRecord> auditRecords;
+        List<AuditEventRecord> auditRecords = null;
+		Task task = getPage().createSimpleTask(OPERATION_SEARCH_OBJECTS);
+		OperationResult result = task.getResult();
 		try {
-			Task task = getPage().createSimpleTask("listRecords");
-			auditRecords = getAuditService().listRecords(query, parameters, task, task.getResult());
-		} catch (SecurityViolationException | SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException | ConfigurationException e) {
-			// TODO: proper error handling (MID-3536)
-			throw new SystemException(e.getMessage(), e);
+			auditRecords = getAuditService().listRecords(query, parameters, task, result);
+		} catch (Exception e) {
+			result.recordFatalError("Cannot search audit records: " + e.getMessage(), e);
+			LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
 		}
 		if (auditRecords == null) {
 			auditRecords = new ArrayList<>();
@@ -154,6 +161,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		for (AuditEventRecord record : auditRecords){
 			auditRecordList.add(record.createAuditEventRecordType());
 		}
+
+		result.computeStatusIfUnknown();
+		getPage().showResult(result, false);
 		return auditRecordList;
 	}
 	
@@ -171,12 +181,12 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		boolean filteredOnValueRefTargetNames = filteredOnValueRefTargetNames(parameters);
 		List<String> conditions = new ArrayList<>();
 		if (parameters.get(PARAMETER_FROM) != null) {
-			conditions.add("aer.timestamp >= :from");
+			conditions.add("aer.timestampValue >= :from");
 		} else {
 			parameters.remove(PARAMETER_FROM);
 		}
 		if (parameters.get(PARAMETER_TO) != null) {
-			conditions.add("aer.timestamp <= :to");
+			conditions.add("aer.timestampValue <= :to");
 		} else {
 			parameters.remove(PARAMETER_TO);
 		}
@@ -243,7 +253,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 			parameters.remove(PARAMETER_CHANGED_ITEM);
 		}
 		if (filteredOnValueRefTargetNames) {
-			conditions.add("rv.targetName.orig in ( :valueRefTargetNames )");
+			conditions.add("rv.targetName_orig in ( :valueRefTargetNames )");
 		} else {
 			parameters.remove(PARAMETER_VALUE_REF_TARGET_NAMES);
 		}
@@ -266,6 +276,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		}
 		if (isCount) {
 			query = AUDIT_RECORDS_QUERY_COUNT + query;
+		} else {
+			query = AUDIT_RECORDS_QUERY_SELECT + query;
 		}
 		query += conditions.stream().collect(Collectors.joining(" and "));
 		if (ordered) {
@@ -277,7 +289,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 	private String generateFullQuery(String origQuery, boolean ordered, boolean isCount) {
 		String query = origQuery;
 		if (isCount) {
-			query = AUDIT_RECORDS_QUERY_COUNT + query;
+			int index = query.toLowerCase().indexOf("from");
+			query = AUDIT_RECORDS_QUERY_COUNT + query.substring(index);
 		}
 		if (ordered) {
 			query += AUDIT_RECORDS_ORDER_BY;

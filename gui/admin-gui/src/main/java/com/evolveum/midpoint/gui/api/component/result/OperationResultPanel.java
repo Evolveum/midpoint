@@ -527,7 +527,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 		errorStackTrace.setOutputMarkupId(true);
 		operationPanel.add(errorStackTrace);
 
-		AjaxLink errorStackTraceLink = new AjaxLink("errorStackTraceLink") {
+		AjaxLink<Void> errorStackTraceLink = new AjaxLink<Void>("errorStackTraceLink") {
 			private static final long serialVersionUID = 1L;
 
 			@Override

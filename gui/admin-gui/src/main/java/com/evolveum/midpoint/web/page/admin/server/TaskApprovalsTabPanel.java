@@ -15,20 +15,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * @author semancik
@@ -44,18 +45,25 @@ public class TaskApprovalsTabPanel extends AbstractObjectTabPanel<TaskType> impl
 	private TaskWfChildPanel childPanel;
 	private TaskWfParentPanel parentPanel;
 
+	private IModel<TaskDto> taskDtoModel = null;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(TaskApprovalsTabPanel.class);
 
 	public TaskApprovalsTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel, parentPage);
-		this.parentPage = parentPage;
-		initLayout(taskDtoModel);
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
+			IModel<TaskDto> taskDtoModel) {
+		super(id, mainForm, taskWrapperModel);
+		this.taskDtoModel = taskDtoModel;
 		setOutputMarkupId(true);
 	}
 
-	private void initLayout(final IModel<TaskDto> taskDtoModel) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
+	
+	private void initLayout() {
 
 		childPanel = new TaskWfChildPanel(ID_WORKFLOW_CHILD_PANEL, taskDtoModel, parentPage);
 		childPanel.add(new VisibleEnableBehaviour() {

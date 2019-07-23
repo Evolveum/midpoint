@@ -29,13 +29,9 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
+import static java.util.Collections.*;
 
 /**
  * @author lazyman
@@ -210,7 +206,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public ObjectReferenceType getObjectRef() {
+    public ObjectReferenceType getObjectRefOrClone() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -290,7 +286,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItem(ItemName propertyName) {
+    public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getExtensionItemOrClone(ItemName propertyName) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
@@ -363,13 +359,15 @@ public class SimpleTaskAdapter implements Task {
     public void setProgressTransient(Long value) {
     }
 
+    @NotNull
     @Override
-    public PrismObject<TaskType> getTaskPrismObject() {
+    public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @NotNull
     @Override
-    public TaskType getTaskType() {
+    public PrismObject<TaskType> getUpdatedTaskObject() {
         return null;
     }
 
@@ -444,8 +442,14 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public PrismContainer<? extends ExtensionType> getExtension() {
+    public PrismContainer<? extends ExtensionType> getExtensionOrClone() {
         return null;
+    }
+
+    @NotNull
+    @Override
+    public PrismContainer<? extends ExtensionType> getOrCreateExtension() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -459,7 +463,7 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T> PrismProperty<T> getExtensionProperty(ItemName propertyName) {
+    public <T> PrismProperty<T> getExtensionPropertyOrClone(ItemName propertyName) {
         return null;
     }
 
@@ -469,12 +473,12 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public <T extends Containerable> T getExtensionContainerRealValue(ItemName containerName) {
+    public <T extends Containerable> T getExtensionContainerRealValueOrClone(ItemName containerName) {
         return null;
     }
 
     @Override
-    public PrismReference getExtensionReference(ItemName name) {
+    public PrismReference getExtensionReferenceOrClone(ItemName name) {
         return null;
     }
 
@@ -729,11 +733,7 @@ public class SimpleTaskAdapter implements Task {
         return null;
     }
 
-    @Override
-    public void initializeWorkflowContextImmediate(String processInstanceId, OperationResult result) {
-    }
-
-    @Override public void modify(ItemDelta<?, ?> delta) {
+	@Override public void modify(ItemDelta<?, ?> delta) {
     }
 
     @Override public void modify(Collection<ItemDelta<?, ?>> deltas) {
@@ -741,14 +741,6 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override public void modifyAndFlush(ItemDelta<?, ?> delta, OperationResult parentResult) {
-    }
-
-    @Override
-    public WfContextType getWorkflowContext() {
-        return null;
-    }
-
-    @Override public void setWorkflowContext(WfContextType context) {
     }
 
     @Override
@@ -852,5 +844,60 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public Collection<String> getCachingProfiles() {
         return emptySet();
+    }
+
+    @Override
+    public String getOperationResultHandlingStrategyName() {
+        return null;
+    }
+
+    @Override
+    public void setExecutionConstraints(TaskExecutionConstraintsType value) {
+    }
+
+    @Override
+    public TaskExecutionEnvironmentType getExecutionEnvironment() {
+        return null;
+    }
+
+    @Override
+    public void setExecutionEnvironment(TaskExecutionEnvironmentType value) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentImmediate(TaskExecutionEnvironmentType value, OperationResult parentResult) {
+    }
+
+    @Override
+    public void setExecutionEnvironmentTransient(TaskExecutionEnvironmentType value) {
+    }
+
+    @Override
+    public boolean isScavenger() {
+        return false;
+    }
+
+    @NotNull
+    @Override
+    public Set<TracingRootType> getTracingRequestedFor() {
+        return emptySet();
+    }
+
+    @Override
+    public void addTracingRequest(TracingRootType point) {
+    }
+
+	@Override
+	public void removeTracingRequests() {
+
+	}
+
+	@Override
+    public TracingProfileType getTracingProfile() {
+        return null;
+    }
+
+    @Override
+    public void setTracingProfile(TracingProfileType tracingProfile) {
     }
 }

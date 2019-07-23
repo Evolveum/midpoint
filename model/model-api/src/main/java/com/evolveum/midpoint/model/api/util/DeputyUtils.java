@@ -18,9 +18,9 @@ package com.evolveum.midpoint.model.api.util;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.AssignmentPathSegment;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -82,19 +82,8 @@ public class DeputyUtils {
 		return rv;
 	}
 
-	public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName) {
-		for (OtherPrivilegesLimitationType limitation : limitations) {
-			@SuppressWarnings({ "unchecked", "raw" })
-			PrismContainer<WorkItemSelectorType> selector = limitation.asPrismContainerValue().findContainer(itemName);
-			if (selector == null || selector.isEmpty() || !selector.getRealValue().isAll()) {
-				return false;
-			}
-		}
-		return true;
-	}
-
 	public static boolean limitationsAllow(List<OtherPrivilegesLimitationType> limitations, QName itemName,
 			AbstractWorkItemType workItem) {
-		return limitationsAllow(limitations, itemName);			// temporary solution; we do not use work items selectors yet
+		return SchemaDeputyUtil.limitationsAllow(limitations, itemName);			// temporary solution; we do not use work items selectors yet
 	}
 }

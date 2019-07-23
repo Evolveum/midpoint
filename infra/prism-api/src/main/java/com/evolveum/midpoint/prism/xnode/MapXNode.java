@@ -36,6 +36,7 @@ public interface MapXNode extends XNode, Serializable, DebugDumpable {
 
 	boolean isEmpty();
 
+	@NotNull
 	MapXNode clone();
 
 	int size();

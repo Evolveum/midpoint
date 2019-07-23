@@ -859,6 +859,9 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         // GIVEN
         Task task = taskManager.createTaskInstance(this.getClass().getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
+        
+        // precondition
+        assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
 
         // WHEN
         displayWhen(TEST_NAME);
@@ -881,7 +884,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         assertAccountDisabled(shadow);
 
         try {
-        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
+        	assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_1);
         	AssertJUnit.fail("Password authentication works, but it should fail");
         } catch (SecurityException e) {
         	// this is expected
@@ -905,8 +908,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.ENABLED);
@@ -941,8 +943,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 
         // THEN
         displayThen(TEST_NAME);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         Entry entry = assertLdapAccount(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
         display("Entry", entry);
@@ -1349,7 +1350,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
 			SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertSyncToken");
 		Task task = taskManager.getTask(syncTaskOid, result);
-		PrismProperty<String> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 		assertNotNull("No sync token", syncTokenProperty);
 		assertNotNull("No sync token value", syncTokenProperty.getRealValue());
 		assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));

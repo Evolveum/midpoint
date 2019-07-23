@@ -45,10 +45,12 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_CASES,
         TABLE_USERS,
         TABLE_SERVICES,
+        TABLE_ARCHETYPES,
         TABLE_RESOURCES,
         TABLE_VALUE_POLICIES,
         ROLE_MEMEBER_PANEL,
         ORG_MEMEBER_PANEL,
+        ARCHETYPE_MEMEBER_PANEL,
         SERVICE_MEMEBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
@@ -93,7 +95,12 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         LOGGING_TAB_APPENDER_TABLE,
         NOTIFICATION_TAB_MAIL_SERVER_TABLE,
         COLLECTION_VIEW_TABLE,
-        USERS_VIEW_TABLE
+        USERS_VIEW_TABLE,
+        FOCUS_PROJECTION_TABLE,
+        SELF_DASHBOAR_CASES_PANEL,
+        PAGE_CASE_WORKITEMS_TAB,
+        PAGE_CASE_CHILD_CASES_TAB,
+        PAGE_CASE_EVENTS_TAB
     }
 
     private Map<String, Integer> tables = new HashMap<>();

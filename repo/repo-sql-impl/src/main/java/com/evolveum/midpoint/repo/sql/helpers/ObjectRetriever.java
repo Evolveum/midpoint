@@ -109,7 +109,7 @@ public class ObjectRetriever {
         } catch (ObjectNotFoundException ex) {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             baseHelper.rollbackTransaction(session, ex, result, !GetOperationOptions.isAllowNotFound(rootOptions));
-            throw ex;
+	        throw ex;
         } catch (SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, "Schema error while getting object with oid: "
                     + oid + ". Reason: " + ex.getMessage(), result, true);
@@ -315,6 +315,7 @@ public class ObjectRetriever {
 
             session = baseHelper.beginReadOnlyTransaction();
             Number longCount;
+            query = refineAssignmentHolderQuery(type, query);
             if (query == null || query.getFilter() == null) {
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
@@ -339,6 +340,23 @@ public class ObjectRetriever {
         }
 
         return count;
+    }
+
+
+    //TODO copied from QueryInterpreter, remove if full support for searching AssignmentHolderType is implemented MID-5579
+    /**
+     * Both ObjectType and AssignmentHolderType are mapped to RObject. So when searching for AssignmentHolderType it is not sufficient to
+     * query this table. This method hacks this situation a bit by introducing explicit type filter for AssignmentHolderType.
+     */
+    private ObjectQuery refineAssignmentHolderQuery(Class<? extends Containerable> type, ObjectQuery query) {
+        if (!type.equals(AssignmentHolderType.class)) {
+            return query;
+        }
+        if (query == null) {
+            query = prismContext.queryFactory().createQuery();
+        }
+        query.setFilter(prismContext.queryFactory().createType(AssignmentHolderType.COMPLEX_TYPE, query.getFilter()));
+        return query;
     }
 
     public <C extends Containerable> int countContainersAttempt(Class<C> type, ObjectQuery query,

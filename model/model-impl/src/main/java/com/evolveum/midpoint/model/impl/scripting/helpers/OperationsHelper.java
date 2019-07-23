@@ -172,7 +172,7 @@ public class OperationsHelper {
             ExecutionContext context) {
         result.computeStatusIfUnknown();
         // TODO make this configurable
-        result.getSubresults().forEach(s -> s.setMinor(true));
+        result.getSubresults().forEach(s -> s.setMinor());
         result.cleanupResult();
         globalResult.addSubresult(result.clone());
     }

@@ -42,16 +42,14 @@ import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
@@ -74,6 +73,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -89,11 +89,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.*;
 import java.util.*;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
 
 /**
@@ -114,7 +114,7 @@ import static java.util.Collections.singleton;
  * Use its interfaces instead.
  */
 @Component
-public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService, CaseManagementService {
+public class ModelController implements ModelService, TaskService, WorkflowService, ScriptingService, AccessCertificationService {
 
 	// Constants for OperationResult
 	public static final String CLASS_NAME_WITH_DOT = ModelController.class.getName() + ".";
@@ -196,15 +196,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		enterModelMethod();
 
 		PrismObject<T> object;
-		OperationResult result = parentResult.createMinorSubresult(GET_OBJECT);
-        result.addParam("oid", oid);
-        result.addArbitraryObjectCollectionAsParam("options", rawOptions);
-        result.addParam("class", clazz);
-        
+
         OP_LOGGER.trace("MODEL OP enter getObject({},{},{})", clazz.getSimpleName(), oid, rawOptions);
 
         GetOperationOptions rootOptions = null;
 
+		OperationResult result = parentResult.subresult(GET_OBJECT)
+				.setMinor()
+				.addParam("oid", oid)
+				.addArbitraryObjectCollectionAsParam("options", rawOptions)
+				.addParam("class", clazz)
+				.build();
 		try {
 			Collection<SelectorOptions<GetOperationOptions>> options = preProcessOptionsSecurity(rawOptions, task, parentResult);
 	        rootOptions = SelectorOptions.findRootOptions(options);
@@ -243,6 +245,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			}
 			throw e;
 		} finally {
+			result.computeStatusIfUnknown();
             QNameUtil.setTemporarilyTolerateUndeclaredPrefixes(false);
             exitModelMethod();
 		}
@@ -327,10 +330,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		try {
 			PrismObject<O> refObject;
 			refObject = objectResolver.resolve(refVal, containerable.toString(), option.getOptions(), task, result);
-			refObject = refObject.cloneIfImmutable();
-			schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
-					SelectorOptions.createCollection(option.getOptions()), null, task, result);
-			refVal.setObject(refObject);
+			if (refObject != null) {
+				refObject = refObject.cloneIfImmutable();
+				schemaTransformer.applySchemasAndSecurity(refObject, option.getOptions(),
+						SelectorOptions.createCollection(option.getOptions()), null, task, result);
+				refVal.setObject(refObject);
+			}
 			return refObject;
 		} catch (CommonException e) {
 			result.recordWarning("Couldn't resolve reference to " + ObjectTypeUtil.toShortString(refVal) + ": " + e.getMessage(), e);
@@ -408,7 +413,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
 				// we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
-				auditHelper.audit(auditRecord, task);
+				auditHelper.audit(auditRecord, task, result);
 				try {
 					for (ObjectDelta<? extends ObjectType> delta : deltas) {
 						OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
@@ -536,7 +541,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					auditRecord.setEventStage(AuditEventStage.EXECUTION);
 					auditRecord.getDeltas().clear();
 					auditRecord.getDeltas().addAll(executedDeltas);
-					auditHelper.audit(auditRecord, task);
+					auditHelper.audit(auditRecord, task, result);
 
 					task.markObjectActionExecutedBoundary();
 				}
@@ -600,7 +605,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				}
 			}
 
-			invalidateCaches(executedDeltas);
+			// Note: caches are invalidated automatically via RepositoryCache.invalidateCacheEntries method
 
 		} catch (RuntimeException e) {		// just for sure (TODO split this method into two: raw and non-raw case)
 			ModelImplUtils.recordFatalError(result, e);
@@ -618,26 +623,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (partialProcessing != null) {
 			PrismObject<? extends ObjectType> object = context.getFocusContext().getObjectAny();
 			securityEnforcer.authorize(ModelAuthorizationAction.PARTIAL_EXECUTION.getUrl(), null, AuthorizationParameters.Builder.buildObject(object), null, task, result);
-		}
-	}
-
-	private void invalidateCaches(Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas) {
-		if (executedDeltas == null) {
-			return;
-		}
-		for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
-			ObjectDelta<? extends ObjectType> objectDelta = executedDelta.getObjectDelta();
-			if (objectDelta != null) {
-				if (objectDelta.getObjectTypeClass() == SystemConfigurationType.class) {
-					systemObjectCache.invalidateCaches();
-				}
-			}
-			
-			//TODO do we still need this?
-			if (objectDelta.getObjectTypeClass() == FunctionLibraryType.class) {
-				cacheRegistry.clearAllCaches(FunctionLibraryType.class, "");
-			}
-
 		}
 	}
 
@@ -817,9 +802,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     	break;
                     case TASK_MANAGER:
 						list = taskManager.searchObjects(type, processedQuery, options, result);
-						if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-							workflowManager.augmentTaskObjectList(list, options, task, result);
-						}
 						break;
                     default:
                     	throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -890,7 +872,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	private class ContainerOperationContext<T extends Containerable> {
 		final boolean isCertCase;
 		final boolean isCaseMgmtWorkItem;
-		final boolean isWorkItem;
 		final ObjectTypes.ObjectManager manager;
 		final ObjectQuery refinedQuery;
 
@@ -898,18 +879,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		ContainerOperationContext(Class<T> type, ObjectQuery query, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 			isCertCase = AccessCertificationCaseType.class.equals(type);
 			isCaseMgmtWorkItem = CaseWorkItemType.class.equals(type);
-			isWorkItem = WorkItemType.class.equals(type);
 
-		if (!isCertCase && !isWorkItem && !isCaseMgmtWorkItem) {
-			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType, WorkItemType and CaseWorkItemType classes");
+		if (!isCertCase && !isCaseMgmtWorkItem) {
+			throw new UnsupportedOperationException("searchContainers/countContainers methods are currently supported only for AccessCertificationCaseType and CaseWorkItemType classes");
 		}
 
 		if (isCertCase) {
 			refinedQuery = preProcessSubobjectQuerySecurity(AccessCertificationCaseType.class, AccessCertificationCampaignType.class, query, task, result);
 			manager = ObjectTypes.ObjectManager.REPOSITORY;
-		} else if (isWorkItem) {
-			refinedQuery = preProcessWorkItemSecurity(query);
-			manager = ObjectTypes.ObjectManager.WORKFLOW;
 		} else //noinspection ConstantConditions
 			if (isCaseMgmtWorkItem) {
 				refinedQuery = query;           // TODO
@@ -958,7 +935,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 				switch (ctx.manager) {
 					case EMULATED: list = emulatedSearchProvider.searchContainers(type, query, options, result); break;
 					case REPOSITORY: list = cacheRepositoryService.searchContainers(type, query, options, result); break;
-					case WORKFLOW: list = workflowManager.searchContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
@@ -988,8 +964,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		if (ctx.isCertCase) {
 			list = schemaTransformer.applySchemasAndSecurityToContainers(list, AccessCertificationCampaignType.class,
 					AccessCertificationCampaignType.F_CASE, rootOptions, options, null, task, result);
-		} else if (ctx.isWorkItem || ctx.isCaseMgmtWorkItem) {
-			// TODO implement security post processing for WorkItems and CaseWorkItems
+		} else if (ctx.isCaseMgmtWorkItem) {
+			// TODO implement security post processing for CaseWorkItems
 		} else {
 			throw new IllegalStateException();
 		}
@@ -1005,7 +981,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		Validate.notNull(type, "Container value type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
 
-		final OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
+		final OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS);
 		result.addParam(OperationResult.PARAM_TYPE, type);
 		result.addParam(OperationResult.PARAM_QUERY, query);
 
@@ -1027,14 +1003,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			logQuery(query);
 
 			try {
+				//noinspection SwitchStatementWithTooFewBranches
 				switch (ctx.manager) {
 					case REPOSITORY: count = cacheRepositoryService.countContainers(type, query, options, result); break;
-					case WORKFLOW: count = workflowManager.countContainers(type, query, options, result); break;
 					default: throw new IllegalStateException();
 				}
 				result.computeStatus();
 				result.cleanupResult();
-			} catch (SchemaException|RuntimeException e) {
+			} catch (RuntimeException e) {
 				processSearchException(e, rootOptions, ctx.manager, result);
 				throw e;
 			} finally {
@@ -1072,9 +1048,9 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 //		ObjectFilter filter = query != null ? query.getFilter() : null;
 //		UserType currentUser = securityEnforcer.getPrincipal().getUser();
 //
-//		ObjectFilter secFilter = QueryBuilder.queryFor(WorkItemType.class, getPrismContext())
-//				.item(WorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser))
-//				.or().item(WorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(currentUser).asReferenceValue())
+//		ObjectFilter secFilter = QueryBuilder.queryFor(CaseWorkItemType.class, getPrismContext())
+//				.item(CaseWorkItemType.F_CANDIDATE_ROLES_REF).ref(getGroupsForUser(currentUser))
+//				.or().item(CaseWorkItemType.F_ASSIGNEE_REF).ref(ObjectTypeUtil.createObjectRef(currentUser).asReferenceValue())
 //				.buildFilter();
 //
 //		return updateObjectQuery(query,
@@ -1145,9 +1121,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 					for (ReadHook hook : hookRegistry.getAllReadHooks()) {
 						hook.invoke(object, options, task, result);     // TODO result or parentResult??? [med]
 					}
-				}
-				if (workflowManager != null && TaskType.class.isAssignableFrom(type) && !GetOperationOptions.isRaw(rootOptions) && !GetOperationOptions.isNoFetch(rootOptions)) {
-					workflowManager.augmentTaskObject(object, options, task, result);
 				}
 				executeResolveOptions(object.asObjectable(), options, task, result);
 				schemaTransformer.applySchemasAndSecurity(object, rootOptions, options, null, task, parentResult1);
@@ -1974,12 +1947,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     }
 
 	@Override
-	public void synchronizeWorkflowRequests(Task operationTask, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.SYNCHRONIZE_WORKFLOW_REQUESTS.getUrl(), null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		workflowManager.synchronizeWorkflowRequests(parentResult);
-	}
-
-	@Override
 	public void reconcileWorkers(String oid, Task opTask, OperationResult result)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
 			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
@@ -1988,11 +1955,12 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	@Override
-	public void deleteWorkersAndWorkState(String coordinatorOid, long subtasksWaitTime, Task operationTask, OperationResult parentResult)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime, Task operationTask,
+			OperationResult parentResult)
 			throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException {
 		securityEnforcer.authorize(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, operationTask, parentResult);
-		taskManager.deleteWorkersAndWorkState(coordinatorOid, subtasksWaitTime, parentResult);
+		taskManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, parentResult);
 	}
 
 	@Override
@@ -2041,51 +2009,59 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 
     //region Workflow-related operations
     @Override
-    public void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult)
+    public void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, ObjectDelta additionalDelta,
+		    Task task, OperationResult parentResult)
 			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().completeWorkItem(workItemId, decision, comment, additionalDelta, null, parentResult);
-    }
+	    AbstractWorkItemOutputType outputToUse;
+		if (additionalDelta != null && ApprovalUtils.isApproved(output)) {
+			//noinspection unchecked
+			ObjectDeltaType additionalDeltaBean = DeltaConvertor.toObjectDeltaType(additionalDelta);
+			ObjectTreeDeltasType treeDeltas = new ObjectTreeDeltasType();
+			treeDeltas.setFocusPrimaryDelta(additionalDeltaBean);
 
-    @Override
-    public void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		if (!securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL, null, AuthorizationParameters.EMPTY, null, task, parentResult)) {
-			ObjectQuery query = prismContext.queryFor(TaskType.class)
-					.item(TaskType.F_WORKFLOW_CONTEXT, WfContextType.F_PROCESS_INSTANCE_ID).eq(instanceId)
-					.build();
-			List<PrismObject<TaskType>> tasks = cacheRepositoryService.searchObjects(TaskType.class, query, GetOperationOptions.createRawCollection(), parentResult);
-			if (tasks.size() > 1) {
-				throw new IllegalStateException("More than one task for process instance ID " + instanceId);
-			} else if (tasks.size() == 0) {
-				throw new ObjectNotFoundException("No task for process instance ID " + instanceId, instanceId);
-			}
-			securityEnforcer.authorize(ModelAuthorizationAction.STOP_APPROVAL_PROCESS_INSTANCE.getUrl(), null, AuthorizationParameters.Builder.buildObject(tasks.get(0)), null, task, parentResult);
+			WorkItemResultType newOutput = new WorkItemResultType(prismContext);
+			//noinspection unchecked
+			newOutput.asPrismContainerValue().mergeContent(output.asPrismContainerValue(), emptyList());
+			newOutput.setAdditionalDeltas(treeDeltas);
+			outputToUse = newOutput;
+		} else {
+			outputToUse = output;
 		}
-        getWorkflowManagerChecked().stopProcessInstance(instanceId, username, parentResult);
+	    getWorkflowManagerChecked().completeWorkItem(workItemId, outputToUse, null, task, parentResult);
     }
 
     @Override
-    public void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException {
-        getWorkflowManagerChecked().claimWorkItem(workItemId, parentResult);
-    }
-
-    @Override
-    public void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException {
-        getWorkflowManagerChecked().releaseWorkItem(workItemId, parentResult);
-    }
-
-    @Override
-    public void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, parentResult);
+    public void completeWorkItem(@NotNull WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getWorkflowManagerChecked().completeWorkItem(workItemId, output, null, task, parentResult);
     }
 
 	@Override
-	public void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
-		securityEnforcer.authorize(ModelAuthorizationAction.CLEANUP_PROCESS_INSTANCES.getUrl(), null, AuthorizationParameters.EMPTY, null, task, parentResult);
-		getWorkflowManagerChecked().cleanupActivitiProcesses(parentResult);
-	}
+    public void cancelCase(String caseOid, Task task, OperationResult parentResult) throws SchemaException,
+		    ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException,
+		    ConfigurationException, ObjectAlreadyExistsException {
+        getWorkflowManagerChecked().cancelCase(caseOid, task, parentResult);
+    }
+
+    @Override
+    public void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        getWorkflowManagerChecked().claimWorkItem(workItemId, task, parentResult);
+    }
+
+    @Override
+    public void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        getWorkflowManagerChecked().releaseWorkItem(workItemId, task, parentResult);
+    }
+
+    @Override
+    public void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        getWorkflowManagerChecked().delegateWorkItem(workItemId, delegates, method, task, parentResult);
+    }
 
 	//endregion
 
@@ -2247,48 +2223,6 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	}
 
 	//region Case Management
-
-	// temporary implementation
-	// TODO move to (not yet existing) case manager
-	// TODO add event processing
-	// TODO some authorizations
-	@Override
-	public void completeWorkItem(@NotNull String caseOid, long workItemId, AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
-			throws SecurityViolationException, SchemaException, ObjectNotFoundException, CommunicationException,
-			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException {
-
-		OperationResult result = parentResult.createSubresult(COMPLETE_WORK_ITEM);
-		try {
-			PrismObject<CaseType> aCase = getObject(CaseType.class, caseOid, null, task, result);
-			PrismContainer<Containerable> workItems = aCase.findContainer(CaseType.F_WORK_ITEM);
-			PrismContainerValue<Containerable> workItemPcv = workItems.findValue(workItemId);
-			if (workItemPcv == null) {
-				throw new ObjectNotFoundException("Work item with ID " + workItemId + " was not found in " + aCase);
-			}
-			XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-			ObjectDelta<CaseType> delta = prismContext.deltaFor(CaseType.class)
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_OUTCOME).replace(output.getOutcome())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_COMMENT).replace(output.getComment())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE).replace(output.getEvidence())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_CONTENT_TYPE).replace(output.getEvidenceContentType())
-					.item(CaseType.F_WORK_ITEM, workItemId, WorkItemType.F_OUTPUT, AbstractWorkItemOutputType.F_EVIDENCE_FILENAME).replace(output.getEvidenceFilename())
-					.item(CaseType.F_STATE).replace(SchemaConstants.CASE_STATE_CLOSED)
-					.item(CaseType.F_OUTCOME).replace(output != null ? output.getOutcome() : null)
-					.item(CaseType.F_CLOSE_TIMESTAMP).replace(now)
-					.asObjectDeltaCast(caseOid);
-			for (CaseWorkItemType workItem : aCase.asObjectable().getWorkItem()) {
-				delta.swallow(
-						prismContext.deltaFor(CaseType.class)
-								.item(CaseType.F_WORK_ITEM, workItem.getId(), WorkItemType.F_CLOSE_TIMESTAMP).replace(now)
-								.asItemDelta());
-			}
-			executeChanges(singleton(delta), null, task, result);
-			result.computeStatus();
-		} catch (Throwable t) {
-			result.recordFatalError("Couldn't complete work item: " + t.getMessage(), t);
-			throw t;
-		}
-	}
 
 	@Override
 	public String getThreadsDump(@NotNull Task task, @NotNull OperationResult parentResult)

@@ -20,7 +20,11 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -32,7 +36,6 @@ import com.evolveum.midpoint.model.api.context.EvaluatedCollectionStatsTrigger;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.common.ArchetypeManager;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedPolicyRuleImpl;
@@ -93,7 +96,8 @@ public class CollectionProcessor {
 	@Autowired private ModelService modelService;
 	@Autowired @Qualifier("modelObjectResolver") private ObjectResolver objectResolver;
 	@Autowired private ArchetypeManager archetypeManager;
-	
+	@Autowired private ExpressionFactory expressionFactory;
+
 	public Collection<EvaluatedPolicyRule> evaluateCollectionPolicyRules(PrismObject<ObjectCollectionType> collection, CompiledObjectCollectionView collectionView, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (collectionView == null) {
 			collectionView = compileObjectCollectionView(collection, targetTypeClass, task, result);
@@ -226,14 +230,18 @@ public class CollectionProcessor {
 	}
 
 	public CompiledObjectCollectionView compileObjectCollectionView(PrismObject<ObjectCollectionType> collection, 
-			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		CompiledObjectCollectionView view = new CompiledObjectCollectionView();
 		compileObjectCollectionView(view, collection.asObjectable(), targetTypeClass, task, result);
 		return view;
 	}
 	
 	public void compileObjectCollectionView(CompiledObjectCollectionView existingView, CollectionRefSpecificationType collectionSpec,
-			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException {
 		
 		ObjectReferenceType collectionRef = collectionSpec.getCollectionRef();
 		if (collectionRef == null) {
@@ -292,7 +300,9 @@ public class CollectionProcessor {
 	}
 	
 	private void compileObjectCollectionView(CompiledObjectCollectionView existingView, ObjectCollectionType objectCollectionType, 
-			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+			Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result) throws SchemaException,
+			CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException,
+			ObjectNotFoundException {
 		
 		if (targetTypeClass == null) {
 			if (existingView.getObjectType() == null) {
@@ -326,9 +336,12 @@ public class CollectionProcessor {
 		}
 		
 		SearchFilterType collectionFilterType = objectCollectionType.getFilter();
-		ObjectFilter collectionFilter = null;
+		ObjectFilter collectionFilter;
 		if (collectionFilterType != null) {
-			collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
+			ObjectFilter filterRaw = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
+			collectionFilter = evaluateExpressionsInFilter(filterRaw, result, task);
+		} else {
+			collectionFilter = null;
 		}
 		CollectionRefSpecificationType baseCollectionSpec = objectCollectionType.getBaseCollection();
 		if (baseCollectionSpec == null) {
@@ -340,6 +353,15 @@ public class CollectionProcessor {
 			existingView.setFilter(combinedFilter);
 		}
 		
+	}
+
+	@Nullable
+	private ObjectFilter evaluateExpressionsInFilter(ObjectFilter filterRaw, OperationResult result, Task task)
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		ExpressionVariables variables = new ExpressionVariables();      // do we want to put any variables here?
+		return ExpressionUtil.evaluateFilterExpressions(filterRaw, variables, MiscSchemaUtil.getExpressionProfile(),
+				expressionFactory, prismContext, "collection filter", task, result);
 	}
 
 }

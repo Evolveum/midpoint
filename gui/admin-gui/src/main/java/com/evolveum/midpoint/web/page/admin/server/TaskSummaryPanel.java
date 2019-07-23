@@ -19,16 +19,13 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshDto;
 import com.evolveum.midpoint.web.component.refresh.AutoRefreshPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
-import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -193,7 +190,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 	}
 
 	private String getStageInfo() {
-		return WfContextUtil.getStageInfo(parentPage.getTaskDto().getWorkflowContext());
+//		return WfContextUtil.getStageInfo(parentPage.getTaskDto().getApprovalContext());
+		// TODO determine from Case
+		return null;
 	}
 
 	public String getRequestedOn() {
@@ -205,9 +204,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
 		return new ReadOnlyModel<>(() -> {
 			// temporary code
 			TaskDto taskDto = parentPage.getTaskDto();
-			String name = WfGuiUtil.getLocalizedProcessName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
+			String name = WfGuiUtil.getLocalizedProcessName(taskDto.getApprovalContext(), TaskSummaryPanel.this);
 			if (name == null) {
-				name = WfGuiUtil.getLocalizedTaskName(taskDto.getWorkflowContext(), TaskSummaryPanel.this);
+				name = WfGuiUtil.getLocalizedTaskName(taskDto.getApprovalContext(), TaskSummaryPanel.this);
 			}
 			if (name == null) {
 				name = taskDto.getName();

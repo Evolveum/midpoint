@@ -17,17 +17,25 @@ package com.evolveum.midpoint.security.enforcer.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.AccessDecision;
 import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.schema.util.*;
+import com.evolveum.midpoint.security.api.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
@@ -52,14 +60,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.security.api.Authorization;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.OwnerResolver;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.security.enforcer.api.AuthorizationParameters;
 import com.evolveum.midpoint.security.enforcer.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.enforcer.api.ObjectSecurityConstraints;
@@ -77,28 +77,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgRelationObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OwnedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleRelationObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SpecialObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SubjectedObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TenantSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import static com.evolveum.midpoint.prism.PrismObjectValue.asObjectable;
+import static java.util.Collections.emptySet;
 
 /**
  * @author Radovan Semancik
@@ -406,9 +389,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private AccessDecision determineContainerDecision(PrismContainerValue<?> cval, ItemDecisionFunction itemDecisionFunction, boolean removingContainer, String decisionContextDesc) {
-		List<Item<?,?>> items = cval.getItems();
+		Collection<Item<?,?>> items = cval.getItems();
 		// Note: cval.isEmpty() will also check for id. We do not care about that.
-		if (items == null || items.isEmpty()) {
+		if (items.isEmpty()) {
 			// TODO: problem with empty containers such as
 			//  orderConstraint in assignment. Skip all
 			//  empty items ... for now.
@@ -589,7 +572,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				return false;
 			}
 			for (OwnedObjectSelectorType autzObject: objectSpecTypes) {
-				if (isApplicable(autzObject, object, midPointPrincipal, ownerResolver, desc, autzHumanReadableDesc, task, result)) {
+				if (isApplicable(autzObject, object, midPointPrincipal, emptySet(), ownerResolver, desc, autzHumanReadableDesc, task, result)) {
 					return true;
 				}
 			}
@@ -600,8 +583,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 
+	/**
+	 *
+	 * @param otherSelfOids Which OIDs should match "self" in addition to the current principal OID. Usually these could be
+	 *                      some or all of delegators' OIDs, i.e. people that delegated privileges to the current principal.
+	 *                      The reason is that if we want to match assignee or requestor (probably targetObject and owner as well)
+	 *                      we want to give appropriate privileges also to assignee/requestor delegates.
+	 */
 	private <O extends ObjectType> boolean isApplicable(SubjectedObjectSelectorType objectSelector, PrismObject<O> object,
-			MidPointPrincipal principal, OwnerResolver ownerResolver, String desc, String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+			MidPointPrincipal principal, Collection<String> otherSelfOids, OwnerResolver ownerResolver, String desc,
+			String autzHumanReadableDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException,
+			ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 		ObjectFilterExpressionEvaluator filterExpressionEvaluator = createFilterEvaluator(principal, desc, autzHumanReadableDesc, task, result);
 		if (!repositoryService.selectorMatches(objectSelector, object, filterExpressionEvaluator, LOGGER, "    " + autzHumanReadableDesc + " not applicable for " + desc + " because of")) {
 			// No need to log inapplicability here. It should be logged inside repositoryService.selectorMatches()
@@ -626,11 +618,16 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						// or during initial import. Therefore we are not going to die here. Just ignore it.
 					} else {
 						if (principalOid.equals(object.getOid())) {
-							LOGGER.trace("    {}: 'self' authorization applicable for {}", autzHumanReadableDesc, desc);
+							LOGGER.trace("    {}: 'self' authorization applicable for {} - match on principal OID ({})",
+									autzHumanReadableDesc, desc, principalOid);
+							return true;
+						} else if (otherSelfOids != null && otherSelfOids.contains(object.getOid())) {
+							LOGGER.trace("    {}: 'self' authorization applicable for {} - match on other 'self OID' ({})",
+									autzHumanReadableDesc, desc, object.getOid());
 							return true;
 						} else {
-							LOGGER.trace("    {}: 'self' authorization not applicable for {}, principal OID: {}, {} OID {}",
-									autzHumanReadableDesc, desc, principalOid, desc, object.getOid());
+							LOGGER.trace("    {}: 'self' authorization not applicable for {}, principal OID: {} (other accepted self OIDs: {}), {} OID {}",
+									autzHumanReadableDesc, desc, principalOid, otherSelfOids, desc, object.getOid());
 						}
 					}
 				} else {
@@ -705,8 +702,10 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		if (objectSelector instanceof OwnedObjectSelectorType) {
+			OwnedObjectSelectorType ownedObjectSelector = (OwnedObjectSelectorType) objectSelector;
+
 			// Owner
-			SubjectedObjectSelectorType ownerSpec = ((OwnedObjectSelectorType)objectSelector).getOwner();
+			SubjectedObjectSelectorType ownerSpec = ownedObjectSelector.getOwner();
 			if (ownerSpec != null) {
 				if (ownerResolver == null) {
 					ownerResolver = securityContextManager.getUserProfileService();
@@ -722,7 +721,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							autzHumanReadableDesc, desc, object.getOid());
 					return false;
 				}
-				boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc, autzHumanReadableDesc, task, result);
+				boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, emptySet(), ownerResolver,
+						"owner of "+desc, autzHumanReadableDesc, task, result);
 				if (!ownerApplicable) {
 					LOGGER.trace("    {}: owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
 							autzHumanReadableDesc, desc, object.getOid(), owner);
@@ -731,7 +731,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 
 			// Delegator
-			SubjectedObjectSelectorType delegatorSpec = ((OwnedObjectSelectorType)objectSelector).getDelegator();
+			SubjectedObjectSelectorType delegatorSpec = ownedObjectSelector.getDelegator();
 			if (delegatorSpec != null) {
 				if (!isSelf(delegatorSpec)) {
 					throw new SchemaException("Unsupported non-self delegator clause");
@@ -771,9 +771,70 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					}
 				}
 			}
-				
+
+			// Requestor
+			SubjectedObjectSelectorType requestorSpec = ownedObjectSelector.getRequester();
+			if (requestorSpec != null) {
+				PrismObject<? extends ObjectType> requestor = getRequestor(object, result);
+				if (requestor == null) {
+					LOGGER.trace("    {}: requester object spec not applicable for {}, object OID {} because it has no requestor",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
+				}
+				boolean requestorApplicable = isApplicable(requestorSpec, requestor, principal, getDelegatorsForRequestor(principal),
+						ownerResolver, "requestor of "+desc, autzHumanReadableDesc, task, result);
+				if (!requestorApplicable) {
+					LOGGER.trace("    {}: requester object spec not applicable for {}, object OID {} because requestor does not match (requestor={})",
+							autzHumanReadableDesc, desc, object.getOid(), requestor);
+					return false;
+				}
+			}
+
+			// Requestor
+			SubjectedObjectSelectorType relatedObjectSpec = ownedObjectSelector.getRelatedObject();
+			if (relatedObjectSpec != null) {
+				PrismObject<? extends ObjectType> relatedObject = getRelatedObject(object, result);
+				if (relatedObject == null) {
+					LOGGER.trace("    {}: related object spec not applicable for {}, object OID {} because it has no related object",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
+				}
+				boolean relatedObjectApplicable = isApplicable(relatedObjectSpec, relatedObject, principal, getDelegatorsForRelatedObjects(principal),
+						ownerResolver, "related object of "+desc, autzHumanReadableDesc, task, result);
+				if (!relatedObjectApplicable) {
+					LOGGER.trace("    {}: related object spec not applicable for {}, object OID {} because related object does not match (related object={})",
+							autzHumanReadableDesc, desc, object.getOid(), relatedObject);
+					return false;
+				}
+			}
+
+			// Assignee
+			SubjectedObjectSelectorType assigneeSpec = ownedObjectSelector.getAssignee();
+			if (assigneeSpec != null) {
+				List<PrismObject<? extends ObjectType>> assignees = getAssignees(object, result);
+				if (assignees.isEmpty()) {
+					LOGGER.trace("    {}: assignee spec not applicable for {}, object OID {} because it has no assignees",
+							autzHumanReadableDesc, desc, object.getOid());
+					return false;
+				}
+				Collection<String> relevantDelegators = getDelegatorsForAssignee(principal);
+				boolean assigneeApplicable = false;
+				for (PrismObject<? extends ObjectType> assignee : assignees) {
+					if (isApplicable(assigneeSpec, assignee, principal, relevantDelegators,
+							ownerResolver, "assignee of "+desc, autzHumanReadableDesc, task, result)) {
+						assigneeApplicable = true;
+						break;
+					}
+				}
+				if (!assigneeApplicable) {
+					LOGGER.trace("    {}: assignee spec not applicable for {}, object OID {} because none of the assignees match (assignees={})",
+							autzHumanReadableDesc, desc, object.getOid(), assignees);
+					return false;
+				}
+			}
+
 			// Tenant
-			TenantSelectorType tenantSpec = ((OwnedObjectSelectorType)objectSelector).getTenant();
+			TenantSelectorType tenantSpec = ownedObjectSelector.getTenant();
 			if (tenantSpec != null) {
 				if (BooleanUtils.isTrue(tenantSpec.isSameAsSubject())) {
 					ObjectReferenceType subjectTenantRef = principal.getUser().getTenantRef();
@@ -815,18 +876,95 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return true;
 	}
 
+	private Collection<String> getDelegatorsForRequestor(MidPointPrincipal principal) {
+		return getDelegators(principal, OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS);
+	}
+
+	@SuppressWarnings("unused")
+	private Collection<String> getDelegatorsForRelatedObjects(MidPointPrincipal principal) {
+		// Beware: This is called for both tasks and cases.
+		// We do not allow delegators here. Each user should see only cases and tasks related to him (personally).
+		return emptySet();
+	}
+
+	private Collection<String> getDelegatorsForAssignee(MidPointPrincipal principal) {
+		return getDelegators(principal, OtherPrivilegesLimitationType.F_CASE_MANAGEMENT_WORK_ITEMS);
+	}
+
+	private Collection<String> getDelegators(MidPointPrincipal principal, ItemName... limitationItemNames) {
+		Collection<String> rv = new HashSet<>();
+		for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
+			for (ItemName limitationItemName : limitationItemNames) {
+				if (SchemaDeputyUtil.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
+					rv.add(delegator.getDelegator().getOid());
+					break;
+				}
+			}
+		}
+		return rv;
+	}
+
+	private <O extends ObjectType> PrismObject<? extends ObjectType> getRequestor(PrismObject<O> object,
+			OperationResult result) {
+		O objectBean = asObjectable(object);
+		if (objectBean instanceof CaseType) {
+			return resolveReference(((CaseType) objectBean).getRequestorRef(), object, "requestor", result);
+		} else {
+			return null;
+		}
+	}
+
+	private <O extends ObjectType> PrismObject<? extends ObjectType> getRelatedObject(PrismObject<O> object,
+			OperationResult result) {
+		O objectBean = asObjectable(object);
+		if (objectBean instanceof CaseType) {
+			return resolveReference(((CaseType) objectBean).getObjectRef(), object, "related object", result);
+		} else if (objectBean instanceof TaskType) {
+			return resolveReference(((TaskType) objectBean).getObjectRef(), object, "related object", result);
+		} else {
+			return null;
+		}
+	}
+
+	@NotNull
+	private <O extends ObjectType> List<PrismObject<? extends ObjectType>> getAssignees(PrismObject<O> object,
+			OperationResult result) {
+		List<PrismObject<? extends ObjectType>> rv = new ArrayList<>();
+		O objectBean = asObjectable(object);
+		if (objectBean instanceof CaseType) {
+			List<ObjectReferenceType> assignees = CaseTypeUtil.getAllCurrentAssignees(((CaseType) objectBean));
+			for (ObjectReferenceType assignee : assignees) {
+				CollectionUtils.addIgnoreNull(rv, resolveReference(assignee, object, "assignee", result));
+			}
+		}
+		return rv;
+	}
+
+	private <O extends ObjectType> PrismObject<? extends ObjectType> resolveReference(ObjectReferenceType ref,
+			PrismObject<O> object, String referenceName, OperationResult result) {
+		if (ref != null && ref.getOid() != null) {
+			Class<? extends ObjectType> type = ref.getType() != null ?
+					prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()) : UserType.class;
+			try {
+				return repositoryService.getObject(type, ref.getOid(), null, result);
+			} catch (ObjectNotFoundException | SchemaException e) {
+				LoggingUtils.logExceptionAsWarning(LOGGER, "Couldn't resolve {} of {}", e, referenceName, object);
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
 	private ObjectFilterExpressionEvaluator createFilterEvaluator(MidPointPrincipal principal, String objectTargetDesc, String autzHumanReadableDesc, Task task, OperationResult result) {
 		return filter -> {
 			if (filter == null) {
 				return null;
 			}
 			ExpressionVariables variables = new ExpressionVariables();
-			PrismObject<UserType> subject = null;
-			if (principal != null) {
-				subject = principal.getUser().asPrismObject();
-			}
+			PrismObject<UserType> subject = principal != null ? principal.getUser().asPrismObject() : null;
 			PrismObjectDefinition<UserType> def;
-			if (subject == null) {
+			if (subject != null) {
 				def = subject.getDefinition();
 			} else {
 				def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
@@ -1313,6 +1451,36 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									objSpecSecurityFilter = applyOwnerFilterOwnerRef(TaskType.F_OWNER_REF, objSpecSecurityFilter,  principal, objectDefinition);
 								} else {
 									LOGGER.trace("      Authorization not applicable for object because it has owner specification (this is not applicable for search)");
+									continue;
+								}
+							}
+
+							// Requestor
+							if (objectSpecType.getRequester() != null) {
+								if (CaseType.class.isAssignableFrom(objectType)) {
+									objSpecSecurityFilter = applyRequestorFilter(objSpecSecurityFilter, principal);
+								} else {
+									LOGGER.trace("      Authorization not applicable for object because it has requester specification (this is not applicable for search for objects other than CaseType)");
+									continue;
+								}
+							}
+
+							// Related object
+							if (objectSpecType.getRelatedObject() != null) {
+								if (CaseType.class.isAssignableFrom(objectType) || TaskType.class.isAssignableFrom(objectType)) {
+									objSpecSecurityFilter = applyRelatedObjectFilter(objectType, objSpecSecurityFilter, principal);
+								} else {
+									LOGGER.trace("      Authorization not applicable for object because it has related object specification (this is not applicable for search for objects other than CaseType and TaskType)");
+									continue;
+								}
+							}
+
+							// Assignee
+							if (objectSpecType.getAssignee() != null) {
+								if (CaseType.class.isAssignableFrom(objectType)) {
+									objSpecSecurityFilter = applyAssigneeFilter(objSpecSecurityFilter, principal);
+								} else {
+									LOGGER.trace("      Authorization not applicable for object because it has assignee specification (this is not applicable for search for objects other than CaseType)");
 									continue;
 								}
 							}
@@ -1843,6 +2011,49 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return objSpecSecurityFilter;
 	}
 
+	private ObjectFilter applyRequestorFilter(ObjectFilter objSpecSecurityFilter,
+			MidPointPrincipal principal) {
+		ObjectFilter filter = prismContext.queryFor(CaseType.class)
+				.item(CaseType.F_REQUESTOR_REF).ref(getSelfAndOtherOids(principal, getDelegatorsForRequestor(principal)))
+				.buildFilter();
+		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, filter, prismContext);
+		LOGGER.trace("  applying requestor filter {}", filter);
+		return objSpecSecurityFilter;
+	}
+
+	private ObjectFilter applyRelatedObjectFilter(Class<? extends ObjectType> objectType, ObjectFilter objSpecSecurityFilter,
+			MidPointPrincipal principal) {
+		// we assume CaseType.F_OBJECT_REF == TaskType.F_OBJECT_REF here
+		ObjectFilter filter = prismContext.queryFor(objectType)
+				.item(CaseType.F_OBJECT_REF).ref(getSelfAndOtherOids(principal, getDelegatorsForRelatedObjects(principal)))
+				.buildFilter();
+		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, filter, prismContext);
+		LOGGER.trace("  applying related object filter {}", filter);
+		return objSpecSecurityFilter;
+	}
+
+	private ObjectFilter applyAssigneeFilter(ObjectFilter objSpecSecurityFilter,
+			MidPointPrincipal principal) {
+		ObjectFilter filter = prismContext.queryFor(CaseType.class)
+				.exists(CaseType.F_WORK_ITEM)
+				.block()
+					.item(CaseWorkItemType.F_CLOSE_TIMESTAMP).isNull()
+					.and().item(CaseWorkItemType.F_ASSIGNEE_REF)
+						.ref(getSelfAndOtherOids(principal, getDelegatorsForAssignee(principal)))
+				.endBlock()
+				.buildFilter();
+		objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, filter, prismContext);
+		LOGGER.trace("  applying assignee filter {}", filter);
+		return objSpecSecurityFilter;
+	}
+
+	private String[] getSelfAndOtherOids(MidPointPrincipal principal, Collection<String> otherOids) {
+		List<String> rv = new ArrayList<>(otherOids.size()+1);
+		CollectionUtils.addIgnoreNull(rv, principal.getOid());
+		rv.addAll(otherOids);
+		return rv.toArray(new String[0]);
+	}
+
 	private void traceFilter(String message, Object forObj, ObjectFilter filter) {
 		if (FILTER_TRACE_ENABLED) {
 			LOGGER.trace("FILTER {} for {}:\n{}", message, forObj, filter==null?null:filter.debugDump(1));
@@ -1886,7 +2097,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 
 		ItemSecurityConstraintsImpl itemConstraints = new ItemSecurityConstraintsImpl();
 
-		for(Authorization autz: getAuthorities(midPointPrincipal)) {
+		for (Authorization autz: getAuthorities(midPointPrincipal)) {
 			String autzHumanReadableDesc = autz.getHumanReadableDesc();
 			LOGGER.trace("  Evaluating {}", autzHumanReadableDesc);
 

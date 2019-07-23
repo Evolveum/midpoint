@@ -280,6 +280,7 @@ CREATE TABLE m_audit_event (
   outcome           INTEGER,
   parameter         VARCHAR(255),
   remoteHostAddress VARCHAR(255),
+  requestIdentifier VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
   targetName        VARCHAR(255),
@@ -288,7 +289,6 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
   targetOwnerType   INTEGER,
   targetType        INTEGER,
-  requestIdentifier VARCHAR(255),
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255) CHARSET utf8 COLLATE utf8_bin ,
   timestampValue    DATETIME(6),
@@ -328,6 +328,15 @@ CREATE TABLE m_audit_ref_value (
   DEFAULT CHARACTER SET utf8mb4
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
+CREATE TABLE m_audit_resource (
+  resourceOid 	  VARCHAR(255) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  record_id       BIGINT       NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
+
 CREATE TABLE m_case_wi (
   id                            INTEGER     NOT NULL,
   owner_oid                     VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
@@ -576,7 +585,6 @@ CREATE TABLE m_shadow (
   ENGINE = InnoDB;
 CREATE TABLE m_task (
   binding                  INTEGER,
-  canRunOnNode             VARCHAR(255),
   category                 VARCHAR(255),
   completionTimestamp      DATETIME(6),
   executionStatus          INTEGER,
@@ -599,18 +607,6 @@ CREATE TABLE m_task (
   taskIdentifier           VARCHAR(191),
   threadStopAction         INTEGER,
   waitingReason            INTEGER,
-  wfEndTimestamp           DATETIME(6),
-  wfObjectRef_relation     VARCHAR(157),
-  wfObjectRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfObjectRef_type         INTEGER,
-  wfProcessInstanceId      VARCHAR(191),
-  wfRequesterRef_relation  VARCHAR(157),
-  wfRequesterRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfRequesterRef_type      INTEGER,
-  wfStartTimestamp         DATETIME(6),
-  wfTargetRef_relation     VARCHAR(157),
-  wfTargetRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  wfTargetRef_type         INTEGER,
   oid                      VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -674,13 +670,23 @@ CREATE TABLE m_archetype (
   COLLATE utf8mb4_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case (
-  name_norm           VARCHAR(191),
-  name_orig           VARCHAR(191),
-  objectRef_relation  VARCHAR(157),
-  objectRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
-  objectRef_type      INTEGER,
-  state               VARCHAR(255),
-  oid                 VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  closeTimestamp         DATETIME(6),
+  name_norm              VARCHAR(191),
+  name_orig              VARCHAR(191),
+  objectRef_relation     VARCHAR(157),
+  objectRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  objectRef_type         INTEGER,
+  parentRef_relation     VARCHAR(157),
+  parentRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  parentRef_type         INTEGER,
+  requestorRef_relation  VARCHAR(157),
+  requestorRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  requestorRef_type      INTEGER,
+  state                  VARCHAR(255),
+  targetRef_relation     VARCHAR(157),
+  targetRef_targetOid    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  targetRef_type         INTEGER,
+  oid                    VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8mb4
@@ -707,6 +713,15 @@ CREATE TABLE m_connector_host (
   name_norm VARCHAR(191),
   name_orig VARCHAR(191),
   port      VARCHAR(255),
+  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (oid)
+)
+  DEFAULT CHARACTER SET utf8mb4
+  COLLATE utf8mb4_bin
+  ENGINE = InnoDB;
+CREATE TABLE m_dashboard (
+  name_norm VARCHAR(191),
+  name_orig VARCHAR(191),
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -811,15 +826,6 @@ CREATE TABLE m_object_collection (
   name_norm VARCHAR(191),
   name_orig VARCHAR(191),
   oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin  NOT NULL,
-  PRIMARY KEY (oid)
-)
-  DEFAULT CHARACTER SET utf8mb4
-  COLLATE utf8mb4_bin
-  ENGINE = InnoDB;
-CREATE TABLE m_dashboard (
-  name_norm VARCHAR(191),
-  name_orig VARCHAR(191),
-  oid       VARCHAR(36)  CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8mb4
@@ -1037,6 +1043,10 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid);
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
@@ -1102,18 +1112,7 @@ ALTER TABLE m_shadow
     ADD CONSTRAINT iPrimaryIdentifierValueWithOC UNIQUE (primaryIdentifierValue, objectClass, resourceRef_targetOid);
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -1127,8 +1126,11 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -1137,6 +1139,10 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -1173,10 +1179,6 @@ CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1290,6 +1292,8 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event (id);
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case (oid);
 ALTER TABLE m_case_wi_reference
@@ -1365,6 +1369,8 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object (oid);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_form
@@ -1381,8 +1387,6 @@ ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object (oid);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object (oid);
 ALTER TABLE m_org

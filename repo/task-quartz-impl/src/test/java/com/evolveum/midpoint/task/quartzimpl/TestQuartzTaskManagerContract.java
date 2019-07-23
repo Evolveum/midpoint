@@ -54,7 +54,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -176,7 +175,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
-        PrismProperty<String> bigString001 = task001.getExtensionProperty(bigStringQName);
+        PrismProperty<String> bigString001 = task001.getExtensionPropertyOrClone(bigStringQName);
         assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
 
         // second round
@@ -185,7 +184,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         task001.setExtensionProperty(bigStringProperty);
 
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
-        task001.getExtensionProperty(bigStringQName).getDefinition().toMutable().setIndexed(false);
+        task001.getExtensionPropertyOrClone(bigStringQName).getDefinition().toMutable().setIndexed(false);
 
         System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.flushPendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
@@ -193,7 +192,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task002 = getTask(taskOid(TEST_NAME), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
-        PrismProperty<String> bigString002 = task002.getExtensionProperty(bigStringQName);
+        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(bigStringQName);
         assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -237,7 +236,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task001 = getTask(taskOid(TEST_NAME), result);
         System.out.println("1st round: Task from repo: " + task001.debugDump());
 
-        PrismProperty<String> shipState001 = task001.getExtensionProperty(shipStateQName);
+        PrismProperty<String> shipState001 = task001.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
 
         // second round
@@ -251,7 +250,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         Task task002 = getTask(taskOid(TEST_NAME), result);
         System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
-        PrismProperty<String> bigString002 = task002.getExtensionProperty(shipStateQName);
+        PrismProperty<String> bigString002 = task002.getExtensionPropertyOrClone(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
     }
 
@@ -263,7 +262,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
-        System.out.println("Task extension = " + task.getExtension());
+        System.out.println("Task extension = " + task.getExtensionOrClone());
 
         //PrismObject<UserType> requestee = task.getOwner();
         //task.setRequesteeRef(requestee);
@@ -286,7 +285,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         TaskQuartzImpl task = getTask(taskOid(TEST_NAME), result);
 
-        System.out.println("Task extension = " + task.getExtension());
+        System.out.println("Task extension = " + task.getExtensionOrClone());
 
         PrismPropertyDefinition delayDefinition = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.NOOP_DELAY_QNAME, DOMUtil.XSD_INT);
         System.out.println("property definition = " + delayDefinition);
@@ -395,7 +394,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertNotNull(r001);
         //AssertJUnit.assertEquals("Owner OID is not correct", TASK_OWNER2_OID, task001.getOwner().getOid());
 
-        PrismProperty<?> d = task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<?> d = task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertNotNull("delay extension property was not found", d);
         AssertJUnit.assertEquals("delay extension property has wrong value", (Integer) 100, d.getRealValue(Integer.class));
 
@@ -408,8 +407,8 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
         //AssertJUnit.assertEquals("RequesteeOid was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeOid());
 
-        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRef().getOid());
-        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRef().getType());
+        AssertJUnit.assertEquals("ObjectRef OID was not stored/retrieved correctly", objectReferenceType.getOid(), task001.getObjectRefOrClone().getOid());
+        AssertJUnit.assertEquals("ObjectRef ObjectType was not stored/retrieved correctly", objectReferenceType.getType(), task001.getObjectRefOrClone().getType());
 
         // now pop the handlers
 
@@ -419,7 +418,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("Schedule after first POP is not correct", st1, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after first POP is not correct", TaskBinding.TIGHT, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after first POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after first POP", (Integer) 2, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         task001.finishHandler(result);
         task001.refresh(result);
@@ -427,7 +426,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals("Schedule after second POP is not correct", st0, task001.getSchedule());
         AssertJUnit.assertEquals("Binding after second POP is not correct", TaskBinding.LOOSE, task001.getBinding());
         AssertJUnit.assertNotSame("Task state after second POP should not be CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
-        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
+        AssertJUnit.assertEquals("Extension element value is not correct after second POP", (Integer) 1, task001.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME).getRealValue(Integer.class));
 
         task001.finishHandler(result);
         task001.refresh(result);
@@ -481,7 +480,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
 
         assertNotNull(task1.getCompletionTimestamp());
-        List<TriggerType> triggers = task1.getTaskPrismObject().asObjectable().getTrigger();
+        List<TriggerType> triggers = task1.getUpdatedTaskObject().asObjectable().getTrigger();
         assertEquals(1, triggers.size());
         TriggerType trigger = triggers.get(0);
         long delta = XmlTypeConverter.toMillis(trigger.getTimestamp()) - task1.getCompletionTimestamp();
@@ -817,7 +816,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
         // check if we can read the extension (xsi:type issue)
 
         Task taskTemp = getTask(taskOid(TEST_NAME), result);
-        PrismProperty delay = taskTemp.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty delay = taskTemp.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 2000, delay.getRealValue());
 
         waitForTaskProgress(taskOid(TEST_NAME), result, 10000, 2000, 1);
@@ -865,7 +864,7 @@ public class TestQuartzTaskManagerContract extends AbstractTaskManagerTest {
 
         // check if we can read the extension (xsi:type issue)
 
-        PrismProperty delay = task.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty delay = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
         AssertJUnit.assertEquals("Delay was not read correctly", 1000, delay.getRealValue());
 
         // let us resume (i.e. start the task)

@@ -57,7 +57,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -318,8 +317,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			if (ProvisioningOperationOptions.isOverwrite(options)){
 				addOptions = RepoAddOptions.createOverwrite();
 			}
-			oid = cacheRepositoryService.addObject(object, addOptions, result);
-			result.computeStatus();
+			try {
+				oid = cacheRepositoryService.addObject(object, addOptions, result);
+			} catch (Throwable t) {
+				result.recordFatalError(t);
+				throw t;
+			} finally {
+				result.computeStatusIfUnknown();
+			}
 		}
 
 		result.cleanupResult();
@@ -329,7 +334,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public int synchronize(ResourceShadowDiscriminator shadowCoordinates, Task task, TaskPartitionDefinitionType taskPartition, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException, PreconditionViolationException {
+			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, PolicyViolationException {
 
 		Validate.notNull(shadowCoordinates, "Coordinates oid must not be null.");
 		String resourceOid = shadowCoordinates.getResourceOid();
@@ -341,7 +346,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task.toString());
 
-		int processedChanges = 0;
+		SynchronizationOperationResult liveSyncResult;
 
 		try {
 			// Resolve resource
@@ -353,18 +358,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// getting token form task
 			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got token property: {} from the task extension.",
-						SchemaDebugUtil.prettyPrint(tokenProperty));
+				LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrint(tokenProperty));
 			}
 
-			processedChanges = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
-			LOGGER.debug("Synchronization of {} done, token {}, {} changes", resource, tokenProperty, processedChanges);
+			liveSyncResult = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
+			LOGGER.debug("Synchronization of {} done, token at start {}, result: {}", resource, tokenProperty, liveSyncResult);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw e;
-		} catch (ObjectAlreadyExistsException | EncryptionException e) {
+		} catch (ObjectAlreadyExistsException e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
 			throw new SystemException(e);
@@ -375,10 +379,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new GenericConnectorException(e.getMessage(), e);
 		} 
 
-		result.recordSuccess();
+		if (liveSyncResult.isHaltingErrorEncountered()) {
+			// TODO MID-5514
+			result.recordPartialError("Object could not be processed and 'retryLiveSyncErrors' is true");
+		} else if (liveSyncResult.getErrors() > 0) {
+			result.recordPartialError("Errors while processing: " + liveSyncResult.getErrors() + " out of " + liveSyncResult.getChangesProcessed());
+		} else {
+			result.recordSuccess();
+		}
 		result.cleanupResult();
-		return processedChanges;
-
+		return liveSyncResult.getChangesProcessed();
 	}
 
 	@Override
@@ -442,33 +452,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
-	private PrismProperty getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
+	private PrismProperty<?> getTokenProperty(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, ExpressionEvaluationException {
-		PrismProperty tokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		PrismProperty<?> taskTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
 
-		if (tokenProperty != null && tokenProperty.getAnyRealValue() == null) {
-			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());
+		if (taskTokenProperty != null) {
+			if (taskTokenProperty.getAnyRealValue() != null) {
+				return taskTokenProperty;
+			} else {
+				LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
+				LOGGER.trace("Empty sync token property:\n{}", taskTokenProperty.debugDumpLazily());
 			}
-			tokenProperty = null;
 		}
 
 		// if the token is not specified in the task, get the latest token
-		if (tokenProperty == null) {
-			tokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
-			if (tokenProperty == null || tokenProperty.getValue() == null
-					|| tokenProperty.getValue().getValue() == null) {
-				LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Empty current sync token property.");
-				}
-				return null;
-			}
-
+		PrismProperty<?> resourceTokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
+		if (resourceTokenProperty != null && resourceTokenProperty.getValue() != null &&
+				resourceTokenProperty.getValue().getValue() != null) {
+			return resourceTokenProperty;
+		} else {
+			LOGGER.warn("Empty current sync token provided by {}", shadowCoordinates);
+			return null;
 		}
-		return tokenProperty;
 	}
 
 	@NotNull
@@ -698,14 +703,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// getting object to modify
 		PrismObject<T> repoShadow = getRepoObject(type, oid, null, result);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDump());
-		}
+		LOGGER.trace("modifyObject: object to modify (repository):\n{}.", repoShadow.debugDumpLazily());
 
 		try {
 
 			if (ShadowType.class.isAssignableFrom(type)) {
 				// calling shadow cache to modify object
+				//noinspection unchecked
 				oid = shadowCache.modifyShadow((PrismObject<ShadowType>)repoShadow, modifications, scripts, options, task,
 					result);
 			} else {
@@ -1293,34 +1297,40 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ConstraintsCheckingResult checkConstraints(RefinedObjectClassDefinition shadowDefinition,
-													  PrismObject<ShadowType> shadowObject,
-													  ResourceType resourceType,
-													  String shadowOid,
-													  ResourceShadowDiscriminator resourceShadowDiscriminator,
-													  ConstraintViolationConfirmer constraintViolationConfirmer,
-													  Task task, OperationResult parentResult)
-					  throws CommunicationException, ObjectAlreadyExistsException, SchemaException, SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
+			PrismObject<ShadowType> shadowObject,
+			PrismObject<ShadowType> shadowObjectOld,
+			ResourceType resourceType, String shadowOid,
+			ResourceShadowDiscriminator resourceShadowDiscriminator, ConstraintViolationConfirmer constraintViolationConfirmer,
+			ConstraintsCheckingStrategyType strategy,
+			Task task, OperationResult parentResult) throws CommunicationException, SchemaException,
+			SecurityViolationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".checkConstraints");
-		ConstraintsChecker checker = new ConstraintsChecker();
-		checker.setRepositoryService(cacheRepositoryService);
-		checker.setCacheConfigurationManager(cacheConfigurationManager);
-		checker.setShadowCache(shadowCache);
-		checker.setPrismContext(prismContext);
-		ProvisioningContext ctx = ctxFactory.create(shadowObject, task, parentResult);
-		ctx.setObjectClassDefinition(shadowDefinition);
-		ctx.setResource(resourceType);
-		ctx.setShadowCoordinates(resourceShadowDiscriminator);
-		checker.setProvisioningContext(ctx);
-		checker.setShadowObject(shadowObject);
-		checker.setShadowOid(shadowOid);
-		checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
 		try {
-			ConstraintsCheckingResult retval = checker.check(task, result);
-			result.computeStatus();
-			return retval;
-		} catch (CommunicationException|ObjectAlreadyExistsException|SchemaException|SecurityViolationException|ConfigurationException|ObjectNotFoundException|RuntimeException e) {
-			result.recordFatalError(e.getMessage(), e);
-			throw e;
+			ConstraintsChecker checker = new ConstraintsChecker();
+			checker.setRepositoryService(cacheRepositoryService);
+			checker.setCacheConfigurationManager(cacheConfigurationManager);
+			checker.setShadowCache(shadowCache);
+			checker.setShadowObjectOld(shadowObjectOld);
+			checker.setPrismContext(prismContext);
+			ProvisioningContext ctx = ctxFactory.create(shadowObject, task, result);
+			ctx.setObjectClassDefinition(shadowDefinition);
+			ctx.setResource(resourceType);
+			ctx.setShadowCoordinates(resourceShadowDiscriminator);
+			checker.setProvisioningContext(ctx);
+			checker.setShadowObject(shadowObject);
+			checker.setShadowOid(shadowOid);
+			checker.setConstraintViolationConfirmer(constraintViolationConfirmer);
+			checker.setStrategy(strategy);
+			if (checker.canSkipChecking()) {
+				return ConstraintsCheckingResult.createOk();
+			} else {
+				return checker.check(task, result);
+			}
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
 	}
 

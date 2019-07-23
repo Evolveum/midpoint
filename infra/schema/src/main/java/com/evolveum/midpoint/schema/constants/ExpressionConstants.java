@@ -40,6 +40,7 @@ public class ExpressionConstants {
 	public static final String VAR_PROJECTION = "projection";
 	public static final String VAR_SOURCE = "source";
 	public static final String VAR_ASSIGNMENT = "assignment";
+	public static final String VAR_ASSIGNMENT_EVALUATOR = "assignmentEvaluator";
 	public static final String VAR_EVALUATED_ASSIGNMENT = "evaluatedAssignment";
 	public static final String VAR_ASSIGNMENT_PATH = "assignmentPath";
 	public static final String VAR_IMMEDIATE_ASSIGNMENT = "immediateAssignment";
@@ -123,7 +124,7 @@ public class ExpressionConstants {
 	public static final String VAR_REVIEWER_SPECIFICATION = "reviewerSpecification";
 
 	public static final String VAR_CHANNEL = "channel";
-	public static final String VAR_WORKFLOW_CONTEXT = "workflowContext";
+	public static final String VAR_APPROVAL_CONTEXT = "approvalContext";
 	public static final String VAR_TASK = "task";
 	public static final String VAR_RULE_EVALUATION_CONTEXT = "ruleEvaluationContext";
 	public static final String VAR_STAGE_DEFINITION = "stageDefinition";
@@ -158,6 +159,8 @@ public class ExpressionConstants {
 	public static final String VAR_MESSAGE = "message";
 	public static final String VAR_TEXT_FORMATTER = "textFormatter";
 	public static final String VAR_NOTIFICATION_FUNCTIONS = "notificationFunctions";
+	
+	public static final String VAR_AUDIT_RECORD = "auditRecord";
 	
 	// Do we need those?
 	public static final String VAR_OBJECT_DELTA = "objectDelta";

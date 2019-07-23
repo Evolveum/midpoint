@@ -118,8 +118,9 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
                 Label linkLabel = new Label(ID_DEPENDENCY_LINK_NAME, createDependencyLabelModel(item));
                 linkContainer.add(linkLabel);
 
-                AjaxLink delete = new AjaxLink(ID_DELETE_BUTTON) {
-
+                AjaxLink<Void> delete = new AjaxLink<Void>(ID_DELETE_BUTTON) {
+                	private static final long serialVersionUID = 1L;
+               
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         deleteDependencyPerformed(target, item);
@@ -214,8 +215,9 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
         repeater.setOutputMarkupId(true);
         container.add(repeater);
 
-        AjaxLink add = new AjaxLink(ID_ADD_BUTTON) {
-
+        AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD_BUTTON) {
+        	private static final long serialVersionUID = 1L;
+		
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addDependencyPerformed(target);

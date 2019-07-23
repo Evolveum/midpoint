@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.web.component.menu;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -37,7 +37,7 @@ import java.util.Map;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
+public class SideBarMenuPanel extends BasePanel<List<SideBarMenuItem>> {
 	private static final long serialVersionUID = 1L;
 	
 	private static final String ID_SIDEBAR = "sidebar";
@@ -52,8 +52,13 @@ public class SideBarMenuPanel extends SimplePanel<List<SideBarMenuItem>> {
 
         setOutputMarkupId(true);
     }
-
+    
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+
     protected void initLayout() {
         WebMarkupContainer sidebar = new WebMarkupContainer(ID_SIDEBAR);
         sidebar.setOutputMarkupId(true);

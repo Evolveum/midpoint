@@ -168,7 +168,7 @@ public class TestBasicPerformance extends AbstractSchemaPerformanceTest {
 		PrismObject<UserType> jack = getJack();
 		String string = getPrismContext().yamlSerializer().serialize(jack);
 		measure("parse YAML (" + string.length() + " chars)", () -> getPrismContext().parserFor(string).yaml().parse());
-		measure("parse YAML to XNode (" + string.length() + " chars)", () -> getPrismContext().parserFor(string).yaml().parse());
+		measure("parse YAML to XNode (" + string.length() + " chars)", () -> getPrismContext().parserFor(string).yaml().parseToXNode());
 	}
 
 	@Test
@@ -219,7 +219,7 @@ public class TestBasicPerformance extends AbstractSchemaPerformanceTest {
 
 		SchemaRegistry schemaRegistry = getPrismContext().getSchemaRegistry();
 		PrismObjectDefinition<UserType> userDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
-		measure("userDefinition.findItemDefinition(UserType.F_NAME)", () -> userDefinition.findItemDefinition(UserType.F_ADMIN_GUI_CONFIGURATION));
+		measure("userDefinition.findItemDefinition(UserType.F_ADMIN_GUI_CONFIGURATION)", () -> userDefinition.findItemDefinition(UserType.F_ADMIN_GUI_CONFIGURATION));
 	}
 
 	@Test

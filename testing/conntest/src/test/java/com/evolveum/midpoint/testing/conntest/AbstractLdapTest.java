@@ -55,6 +55,7 @@ import org.testng.annotations.Test;
 import org.apache.directory.api.ldap.codec.api.DefaultConfigurableBinaryAttributeDetector;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.CursorLdapReferralException;
+import org.apache.directory.api.ldap.model.cursor.EntryCursor;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
 import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.DefaultEntry;
@@ -794,7 +795,21 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 		LdapNetworkConnection conn = ldapConnect(config, entry.getDn().toString(), password);
 		assertTrue("Not connected", conn.isConnected());
 		assertTrue("Not authenticated", conn.isAuthenticated());
+		// AD sometimes pretends to bind successfuly. Even though success is indicated, the bind in fact fails silently.
+		// Therefore try to read my own entry.
+		EntryCursor cursor = conn.search(entry.getDn(), "(objectclass=*)", SearchScope.OBJECT, "*");
+		int foundEntries = 0;
+		while (cursor.next()) {
+			Entry entryFound = cursor.get();
+			LOGGER.trace("Search-after-auth found: {}", entryFound);
+			foundEntries++;
+		}
+		cursor.close();
+		LOGGER.debug("Search-after-auth found {} entries", foundEntries);
 		ldapDisconnect(conn);
+		if (foundEntries != 1) {
+			throw new SecurityException("Cannot read my own entry ("+entry.getDn()+")");
+		}
 	}
 
 	protected Entry addLdapAccount(String uid, String cn, String givenName, String sn) throws LdapException, IOException, CursorException {

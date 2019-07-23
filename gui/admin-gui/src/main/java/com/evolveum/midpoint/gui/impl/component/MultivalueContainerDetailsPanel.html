@@ -17,9 +17,12 @@
       xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div wicket:id="displayName"/>
-    <div class="container-fluid prism-object top-level-prism-container" wicket:id="basicPanel" />
-    <div wicket:id="specificContainersPanel" />
+	<div style="border-bottom: 2px solid #ddd; padding-top: 20px;">
+    	<wicket:child />
+    	<div wicket:id="displayName"/>
+    	<div class="container-fluid prism-object top-level-prism-container" wicket:id="basicPanel" />
+    	<div wicket:id="specificContainersPanel" />
+ 	</div>
  </wicket:panel>
 </body>
 </html>

@@ -30,8 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinit
 
 import org.apache.commons.lang.Validate;
 
-import javax.xml.namespace.QName;
-
 import java.util.ArrayList;
 
 import static com.evolveum.midpoint.task.quartzimpl.TaskTestUtil.createExtensionDelta;
@@ -90,7 +88,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 		executions++;
 
         if ("L1".equals(id)) {
-            PrismProperty<Boolean> l1flag = task.getExtensionProperty(L1_FLAG_QNAME);
+            PrismProperty<Boolean> l1flag = task.getExtensionPropertyOrClone(L1_FLAG_QNAME);
 
             if (l1flag == null || !l1flag.getRealValue()) {
 
@@ -132,7 +130,7 @@ public class MockSingleTaskHandler implements TaskHandler {
             LOGGER.info("L3 handler, simply exiting. Progress = " + task.getProgress());
         } else if ("WFS".equals(id)) {
 
-            PrismProperty<Boolean> wfsFlag = task.getExtensionProperty(WFS_FLAG_QNAME);
+            PrismProperty<Boolean> wfsFlag = task.getExtensionPropertyOrClone(WFS_FLAG_QNAME);
 
             if (wfsFlag == null || !wfsFlag.getRealValue()) {
 

@@ -17,15 +17,13 @@ package com.evolveum.midpoint.model.api;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemDelegationMethodType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -34,26 +32,42 @@ import java.util.List;
  */
 public interface WorkflowService {
 
-    /**
-     * Approves or rejects a work item (without supplying any further information).
-	 * @param taskId identifier of activiti task backing the work item
-	 * @param decision true = approve, false = reject
-	 * @param comment
-	 * @param additionalDelta
-	 * @param parentResult
+	//region Work items
+	/**
+	 * Approves or rejects a work item
 	 */
-    void completeWorkItem(String workItemId, boolean decision, String comment, ObjectDelta additionalDelta,
-			OperationResult parentResult) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	void completeWorkItem(@NotNull WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, @NotNull Task task, @NotNull OperationResult parentResult)
+			throws SecurityViolationException, SchemaException, ObjectNotFoundException, CommunicationException,
+			ConfigurationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PolicyViolationException;
 
-    void stopProcessInstance(String instanceId, String username, Task task, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+	/**
+	 * Approves or rejects a work item.
+	 * Additional delta is here present in "prism" form (not as ObjectDeltaType), to simplify the life for clients.
+	 * It is applied only if the output signals that work item is approved.
+	 */
+	void completeWorkItem(WorkItemId workItemId, @NotNull AbstractWorkItemOutputType output, ObjectDelta additionalDelta,
+			Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException,
+			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    void claimWorkItem(String workItemId, OperationResult parentResult) throws SecurityViolationException, ObjectNotFoundException;
+	void claimWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws SecurityViolationException, ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    void releaseWorkItem(String workItemId, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException;
+    void releaseWorkItem(WorkItemId workItemId, Task task, OperationResult parentResult)
+		    throws ObjectNotFoundException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException,
+		    CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    void delegateWorkItem(String workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
-			OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    void delegateWorkItem(WorkItemId workItemId, List<ObjectReferenceType> delegates, WorkItemDelegationMethodType method,
+		    Task task, OperationResult parentResult) throws ObjectNotFoundException, SecurityViolationException,
+		    SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
 
-    void cleanupActivitiProcesses(Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    //endregion
+
+	//region Cases
+	void cancelCase(String caseOid, Task task, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, ObjectAlreadyExistsException;
+	//endregion
+
+
 }

@@ -260,7 +260,7 @@ public class MultiValueChoosePanel<T extends ObjectType> extends BasePanel<List<
         WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP); {
 	        buttonGroup.setOutputMarkupId(true);
 
-	        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+	        AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
 
 	            @Override
 	            public void onClick(AjaxRequestTarget target) {

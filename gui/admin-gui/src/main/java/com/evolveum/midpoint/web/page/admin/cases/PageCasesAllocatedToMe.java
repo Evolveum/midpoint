@@ -19,9 +19,12 @@ import com.evolveum.midpoint.web.application.Url;
                 label = "PageCases.auth.casesAllocatedToMe.label",
                 description = "PageCases.auth.casesAllocatedToMe.description")
 })
-public class PageCasesAllocatedToMe extends PageCases {
+public class PageCasesAllocatedToMe {
+    //TODO !!! most probably we don't need this class any more. some specific case opbjects
+    // list pages will be implemented via object collection configuration
+//        extends PageCases {
 
     public PageCasesAllocatedToMe() {
-        super(false);
+//        super(false);
     }
 }

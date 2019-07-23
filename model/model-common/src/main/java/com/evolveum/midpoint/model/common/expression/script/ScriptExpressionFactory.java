@@ -18,15 +18,17 @@ package com.evolveum.midpoint.model.common.expression.script;
 import java.util.*;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.functions.CustomFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.CacheRegistry;
-import com.evolveum.midpoint.repo.common.Cacheable;
+import com.evolveum.midpoint.repo.cache.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
@@ -47,13 +49,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FunctionLibraryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
+import org.jetbrains.annotations.NotNull;
 
 /**
  *
  * @author Radovan Semancik
  *
  */
-public class ScriptExpressionFactory implements Cacheable{
+public class ScriptExpressionFactory implements Cacheable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionFactory.class);
 
@@ -73,6 +77,11 @@ public class ScriptExpressionFactory implements Cacheable{
 	@PostConstruct
 	public void register() {
 		cacheRegistry.registerCacheableService(this);
+	}
+
+	@PreDestroy
+	public void unregister() {
+		cacheRegistry.unregisterCacheableService(this);
 	}
 	
 	public ScriptExpressionFactory(PrismContext prismContext, Protector protector, RepositoryService repositoryService) {
@@ -225,8 +234,19 @@ public class ScriptExpressionFactory implements Cacheable{
 	}
 
 	@Override
-	public void clearCache() {
-		customFunctionLibraryCache = null;		
+	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+		if (type == null || FunctionLibraryType.class.isAssignableFrom(type)) {
+			// Currently we don't try to select entries to be cleared based on OID
+			customFunctionLibraryCache = null;
+		}
+	}
+
+	@NotNull
+	@Override
+	public Collection<SingleCacheStateInformationType> getStateInformation() {
+		return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+				.name(ScriptExpressionFactory.class.getName())
+				.size(customFunctionLibraryCache != null ? customFunctionLibraryCache.size() : 0));
 	}
 }
 

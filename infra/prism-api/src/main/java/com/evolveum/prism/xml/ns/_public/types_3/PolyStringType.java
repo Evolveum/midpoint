@@ -581,8 +581,8 @@ public class PolyStringType implements DebugDumpable, Serializable, Cloneable, J
 		} else if (!any.equals(other.any)) {
 			return false;
 		}
-		if (lang == null) {
-			if (other.lang != null) {
+		if (lang == null || lang.isEmpty()) {
+			if (other.lang != null && !other.lang.isEmpty()) {
 				return false;
 			}
 		} else if (!lang.equals(other.lang)) {

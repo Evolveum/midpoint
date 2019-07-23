@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.impl.processors.general;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.activiti.ActivitiEngine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,9 +32,4 @@ public class GcpExternalizationHelper {
 
     @Autowired
     private PrismContext prismContext;
-
-    @Autowired
-    private ActivitiEngine activitiEngine;
-
-
 }

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.function.Supplier;
 
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingTypeType;
+
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 /**
  * @author semancik
@@ -152,16 +155,34 @@ public class ClockworkMedic {
 		}
 	}
 	
-	public void partialExecute(String componentName, ProjectorComponentRunnable runnable, Supplier<PartialProcessingTypeType> optionSupplier)
+	public void partialExecute(String componentName, ProjectorComponentRunnable runnable,
+			Supplier<PartialProcessingTypeType> optionSupplier,
+			Class<?> executingClass, LensContext<?> context, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
-		partialExecute(componentName, runnable, optionSupplier, null);
+		partialExecute(componentName, runnable, optionSupplier, executingClass, context, null, parentResult);
 	}
 
-	public void partialExecute(String componentName, ProjectorComponentRunnable runnable,
-			Supplier<PartialProcessingTypeType> optionSupplier, OperationResult result)
+	public void partialExecute(String baseComponentName, ProjectorComponentRunnable runnable,
+			Supplier<PartialProcessingTypeType> optionSupplier,
+			Class<?> executingClass, LensContext<?> context, LensProjectionContext projectionContext, OperationResult initialParentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
 			PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException {
+
+		OperationResult parentResult;
+		if (initialParentResult == null) {
+			LOGGER.warn("No parentResult in ClockworkMedic.partialExecute! Creating dummy one");
+			parentResult = new OperationResult(ClockworkMedic.class.getName() + ".partialExecute");
+		} else {
+			parentResult = initialParentResult;
+		}
+
+		String componentName;
+		if (projectionContext != null) {
+			componentName = baseComponentName + " " + projectionContext.getHumanReadableName();
+		} else {
+			componentName = baseComponentName;
+		}
 		ClockworkInspector clockworkInspector = getClockworkInspector();
 		PartialProcessingTypeType option = optionSupplier.get();
 		if (option == PartialProcessingTypeType.SKIP) {
@@ -170,26 +191,45 @@ public class ClockworkMedic {
 				clockworkInspector.projectorComponentSkip(componentName);
 			}
 		} else {
-			LOGGER.trace("Projector component started: {}", componentName);
-			if (clockworkInspector != null) {
-				clockworkInspector.projectorComponentStart(componentName);
+			String operationName = executingClass.getName() + "." + baseComponentName;
+			String qualifier = context.getOperationQualifier();
+			if (projectionContext != null) {
+				qualifier += "." + projectionContext.getResourceOid() + "." +
+						projectionContext.getResourceShadowDiscriminator().getKind() + "." +
+						projectionContext.getResourceShadowDiscriminator().getIntent();
+			}
+			OperationResult result = parentResult.subresult(operationName)
+					.addQualifier(qualifier)
+					.build();
+			ProjectorComponentTraceType trace;
+			if (result.isTraced()) {
+				trace = new ProjectorComponentTraceType();
+				trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+				result.addTrace(trace);
+			} else {
+				trace = null;
 			}
 			try {
-				runnable.run();
+				LOGGER.trace("Projector component started: {}", componentName);
+				if (clockworkInspector != null) {
+					clockworkInspector.projectorComponentStart(componentName);
+				}
+				runnable.run(result);
 				LOGGER.trace("Projector component finished: {}", componentName);
 			} catch (SchemaException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
 					| PolicyViolationException | ExpressionEvaluationException | ObjectAlreadyExistsException | PreconditionViolationException | RuntimeException | Error e) {
 				LOGGER.trace("Projector component error: {}: {}: {}", componentName, e.getClass().getSimpleName(), e.getMessage());
-				if (result != null) {
-					result.recordFatalError(e);
-				}
+				result.recordFatalError(e);
 				throw e;
 			} finally {
+				result.computeStatusIfUnknown();
+				if (trace != null) {
+					trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+				}
 				if (clockworkInspector != null) {
 					clockworkInspector.projectorComponentFinish(componentName);
 				}
 			}
-
 		}
 	}
 	

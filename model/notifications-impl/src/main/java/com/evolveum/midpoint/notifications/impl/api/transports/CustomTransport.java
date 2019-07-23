@@ -55,9 +55,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * TODO clean up
@@ -121,12 +124,42 @@ public class CustomTransport implements Transport {
         if (logToFile != null) {
             TransportUtil.logToFile(logToFile, TransportUtil.formatToFileNew(message, transportName), LOGGER);
         }
-        String file = configuration.getRedirectToFile();
-        if (file != null) {
-            writeToFile(message, file, result);
-            return;
+        
+        int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
+        
+        List<String> allowedRecipientTo = new ArrayList<String>();
+    	List<String> forbiddenRecipientTo = new ArrayList<String>();
+    	List<String> allowedRecipientCc = new ArrayList<String>();
+    	List<String> forbiddenRecipientCc = new ArrayList<String>();
+    	List<String> allowedRecipientBcc = new ArrayList<String>();
+    	List<String> forbiddenRecipientBcc = new ArrayList<String>();
+    	
+    	String file = configuration.getRedirectToFile();
+        if (optionsForFilteringRecipient != 0) {
+        	TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientCc, forbiddenRecipientCc, message.getCc(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	TransportUtil.validateRecipient(allowedRecipientBcc, forbiddenRecipientBcc, message.getBcc(), configuration, task, result,
+        			expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
+        	
+        	if (file != null) {
+        		if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+        			message.setTo(forbiddenRecipientTo);
+        			message.setCc(forbiddenRecipientCc);
+        			message.setBcc(forbiddenRecipientBcc);
+        			writeToFile(message, file, result);
+        		}
+            	message.setTo(allowedRecipientTo);
+            	message.setCc(allowedRecipientCc);
+            	message.setBcc(allowedRecipientBcc);
+            }
+        	
+        } else if (file != null) {
+        	writeToFile(message, file, result);
+           	return;
         }
-
+        
         try {
             evaluateExpression(configuration.getExpression(), getDefaultVariables(message, event),
                     "custom transport expression", task, result);

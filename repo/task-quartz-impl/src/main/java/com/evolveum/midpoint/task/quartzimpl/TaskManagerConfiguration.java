@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -96,6 +97,8 @@ public class TaskManagerConfiguration {
     private static final String WORK_ALLOCATION_INITIAL_DELAY_ENTRY = "workAllocationInitialDelay";
     private static final String WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY = "workAllocationDefaultFreeBucketWaitInterval";
 
+    private static final String TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY = "taskExecutionLimitations";
+
     @Deprecated private static final String JMX_PORT_PROPERTY = "com.sun.management.jmxremote.port";
     private static final String SUREFIRE_PRESENCE_PROPERTY = "surefire.real.class.path";
 
@@ -157,6 +160,8 @@ public class TaskManagerConfiguration {
     private int workAllocationRetryExponentialThreshold;
     private long workAllocationInitialDelay;
     private long workAllocationDefaultFreeBucketWaitInterval;
+
+    private TaskExecutionLimitationsType taskExecutionLimitations;
 
     private boolean useJmx;
     // JMX credentials for connecting to remote nodes
@@ -230,7 +235,8 @@ public class TaskManagerConfiguration {
             WORK_ALLOCATION_RETRY_INTERVAL_LIMIT_ENTRY,
             WORK_ALLOCATION_INITIAL_DELAY_ENTRY,
             WORK_ALLOCATION_RETRY_EXPONENTIAL_THRESHOLD_ENTRY,
-            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY
+            WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
+            TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY
     );
 
     void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
@@ -342,6 +348,50 @@ public class TaskManagerConfiguration {
         workAllocationInitialDelay = c.getLong(WORK_ALLOCATION_INITIAL_DELAY_ENTRY, WORK_ALLOCATION_INITIAL_DELAY_DEFAULT);
         workAllocationDefaultFreeBucketWaitInterval = c.getLong(WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_ENTRY,
                 WORK_ALLOCATION_DEFAULT_FREE_BUCKET_WAIT_INTERVAL_DEFAULT);
+
+        if (c.containsKey(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY)) {
+            taskExecutionLimitations = parseExecutionLimitations(c.getString(TASK_EXECUTION_LIMITATIONS_CONFIG_ENTRY));
+        }
+    }
+
+    // Examples:
+    //  - admin-node:2,sync-jobs:4      (2 threads for admin-node, 4 threads for sync-jobs, and the usual default settings)
+    //  - admin-node,sync-jobs          (unlimited threads for admin-node and sync-jobs; and the usual default settings)
+    //  - #,_,*:0                       (these are default settings: unlimited for the current node (marked as #) and for unlabeled tasks (marked as _), 0 for other tasks)
+    //  - admin-node:2,sync-jobs:4,#:0,_:0 (2 for admin-node, 4 for sync-jobs, and default settings are overridden - nothing for current node name, nothing for unlabeled tasks)
+    //
+    // We assume that no group name contains ':' or ',' characters.
+    //
+    // package-visible and static because of testing needs
+    static TaskExecutionLimitationsType parseExecutionLimitations(String limitations) throws TaskManagerConfigurationException {
+        if (limitations == null) {
+            return null;
+        } else {
+            TaskExecutionLimitationsType rv = new TaskExecutionLimitationsType();
+            for (String limitation : StringUtils.splitPreserveAllTokens(limitations.trim(), ',')) {
+                String[] limitationParts = limitation.trim().split(":");
+                String groupName;
+                Integer groupLimit;
+                if (limitationParts.length == 1) {
+                    groupName = limitationParts[0].trim();
+                    groupLimit = null;
+                } else if (limitationParts.length == 2) {
+                    groupName = limitationParts[0].trim();
+                    try {
+                        String limitValue = limitationParts[1].trim();
+                        groupLimit = "*".equals(limitValue) ? null : Integer.parseInt(limitValue);
+                    } catch (NumberFormatException e) {
+                        throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations, e);
+                    }
+                } else {
+                    throw new TaskManagerConfigurationException("Couldn't parse limitation '" + limitation + "' in limitations specification '" + limitations);
+                }
+                rv.beginGroupLimitation()
+                        .groupName(groupName)
+                        .limit(groupLimit);
+            }
+            return rv;
+        }
     }
 
     private String provideNodeId(@NotNull String source) {
@@ -676,5 +726,9 @@ public class TaskManagerConfiguration {
 
     public long getWorkAllocationDefaultFreeBucketWaitInterval() {
         return workAllocationDefaultFreeBucketWaitInterval;
+    }
+
+    public TaskExecutionLimitationsType getTaskExecutionLimitations() {
+        return taskExecutionLimitations;
     }
 }

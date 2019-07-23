@@ -16,11 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -51,11 +49,13 @@ public class ProtectedWorkItemId {
 		return new ProtectedWorkItemId(externalForm.substring(0, i), externalForm.substring(i+1));
 	}
 
-	private static String createWorkItemHash(WorkItemType workItem) {
+	private static String createWorkItemHash(CaseWorkItemType workItem) {
 		try {
-			String valueToHash = workItem.getExternalId() + ":" +
-					WfContextUtil.getTaskOid(workItem) + ":" +
-					XmlTypeConverter.toMillis(workItem.getCreateTimestamp());
+			String valueToHash = "";
+			//TODO fix!!!
+//			workItem.getExternalId() + ":" +
+//					WfContextUtil.getTaskOid(workItem) + ":" +
+//					XmlTypeConverter.toMillis(workItem.getCreateTimestamp());
 			byte[] hashBytes = MessageDigest.getInstance("SHA-256").digest(valueToHash.getBytes(StandardCharsets.UTF_8));
 			return MiscUtil.binaryToHex(hashBytes);
 		} catch (NoSuchAlgorithmException e) {
@@ -63,11 +63,11 @@ public class ProtectedWorkItemId {
 		}
 	}
 
-	public static String createExternalForm(WorkItemType workItem) {
-		return workItem.getExternalId() + ":" + createWorkItemHash(workItem);
+	public static String createExternalForm(CaseWorkItemType workItem) {
+		return ""; // TODO fix!!!  workItem.getExternalId() + ":" + createWorkItemHash(workItem);
 	}
 
-	public boolean isCorrect(WorkItemType workItem) {
+	public boolean isCorrect(CaseWorkItemType workItem) {
 		return hash.equals(createWorkItemHash(workItem));
     }
 }

@@ -146,6 +146,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 		return realValues;
 	}
 
+	@NotNull
 	@Override
 	public C getRealValue() {
 		return getValue().getRealValue();
@@ -250,6 +251,17 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     	property.setRealValue(realValue);
     }
     
+    public <X extends Containerable> void setContainerRealValue(QName itemName, X realValue) throws SchemaException {
+		checkMutability();
+	    if (realValue != null) {
+		    PrismContainer<Containerable> container = findOrCreateContainer(ItemName.fromQName(itemName));
+		    //noinspection unchecked
+		    container.setValue(realValue.asPrismContainerValue());
+	    } else {
+	    	removeContainer(ItemName.fromQName(itemName));
+	    }
+    }
+
     public <T> void setPropertyRealValues(QName propertyName, T... realValues) throws SchemaException {
 		checkMutability();
     	PrismProperty<T> property = findOrCreateProperty(ItemName.fromQName(propertyName));
@@ -522,15 +534,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
         return findItem(containerName, PrismContainer.class);
     }
 
-    public <I extends Item<?,?>> List<I> getItems(Class<I> type) {
-		return this.getValue().getItems(type);
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<PrismContainer<?>> getContainers() {
-	    return (List) getItems(PrismContainer.class);
-    }
-
     @Override
     public <T> PrismProperty<T> findProperty(ItemPath path) {
         return findItem(path, PrismProperty.class);
@@ -538,10 +541,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
 
     public PrismReference findReference(ItemPath path) {
         return findItem(path, PrismReference.class);
-    }
-
-    public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
-    	return this.getValue().findReferenceByCompositeObjectElementName(elementName);
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> I findOrCreateItem(

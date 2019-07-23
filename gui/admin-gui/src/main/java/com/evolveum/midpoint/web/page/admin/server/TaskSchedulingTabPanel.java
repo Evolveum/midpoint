@@ -15,28 +15,10 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.DateInput;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
-import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,9 +33,28 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionConstraintsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
 /**
  * @author semancik
@@ -112,9 +113,9 @@ public class TaskSchedulingTabPanel extends AbstractObjectTabPanel<TaskType> imp
 	private IModel<TaskDto> taskDtoModel;
 
 	public TaskSchedulingTabPanel(String id, Form mainForm,
-			LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
+			LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
 			IModel<TaskDto> taskDtoModel, PageTaskEdit parentPage) {
-		super(id, mainForm, taskWrapperModel, parentPage);
+		super(id, mainForm, taskWrapperModel);
 		this.taskDtoModel = taskDtoModel;
 		this.parentPage = parentPage;
 		initLayoutForInfoPanel();

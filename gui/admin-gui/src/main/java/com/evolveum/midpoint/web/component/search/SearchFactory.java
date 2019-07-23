@@ -24,13 +24,7 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -44,31 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectPolicyConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -161,7 +131,25 @@ public class SearchFactory {
                 ItemPath.create(AssignmentType.F_TENANT_REF),
                 ItemPath.create(AssignmentType.F_ORG_REF)
         ));
-        
+
+        SEARCHABLE_OBJECTS.put(CaseWorkItemType.class, Arrays.asList(
+                ItemPath.create(CaseWorkItemType.F_ASSIGNEE_REF),
+                ItemPath.create(CaseWorkItemType.F_ORIGINAL_ASSIGNEE_REF),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_STATE),
+                ItemPath.create(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF),
+                ItemPath.create(CaseWorkItemType.F_PERFORMER_REF)
+        ));
+
+        SEARCHABLE_OBJECTS.put(CaseType.class, Arrays.asList(
+                ItemPath.create(CaseType.F_STATE),
+                ItemPath.create(CaseType.F_STAGE_NUMBER),
+                ItemPath.create(CaseType.F_PARENT_REF),
+                ItemPath.create(CaseType.F_REQUESTOR_REF),
+                ItemPath.create(CaseType.F_TARGET_REF),
+                ItemPath.create(CaseType.F_TASK_REF),
+                ItemPath.create(CaseType.F_OBJECT_REF)
+        ));
+
         SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
                 ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
                 ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)

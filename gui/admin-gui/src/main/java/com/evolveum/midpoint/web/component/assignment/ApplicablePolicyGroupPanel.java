@@ -15,21 +15,10 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -37,9 +26,27 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar.
@@ -56,9 +63,9 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     private static final String ID_POLICIES_CONTAINER = "policiesContainer";
     private static final String ID_POLICY_CHECK_BOX = "policyCheckBox";
     private LoadableModel<List<PrismObject<AbstractRoleType>>> policiesListModel;
-    IModel<ContainerWrapper<AssignmentType>> assignmentsModel;
+    IModel<PrismContainerWrapper<AssignmentType>> assignmentsModel;
 
-    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<ContainerWrapper<AssignmentType>> assignmentsModel){
+    public ApplicablePolicyGroupPanel(String id, IModel<ObjectReferenceType> model, IModel<PrismContainerWrapper<AssignmentType>> assignmentsModel){
         super(id, model);
         this.assignmentsModel = assignmentsModel;
     }
@@ -132,8 +139,8 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private boolean isAssignmentAlreadyInList(String policyRoleOid){
-        for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-            ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+        for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+            ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
                 return true;
             }
@@ -142,8 +149,8 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
     }
 
     private ValueStatus getExistingAssignmentStatus(String policyRoleOid){
-        for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-            ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+        for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+            ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
             if (targetRef != null && targetRef.getOid().equals(policyRoleOid)){
                 return assignment.getStatus();
             }
@@ -153,9 +160,9 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
 
     private void onPolicyAddedOrRemoved(PrismObject<AbstractRoleType> assignmentTargetObject, boolean added){
         if (isAssignmentAlreadyInList(assignmentTargetObject.getOid())){
-            ContainerValueWrapper<AssignmentType> assignmentToRemove = null;
-            for (ContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
-                ObjectReferenceType targetRef = assignment.getContainerValue().getValue().getTargetRef();
+        	PrismContainerValueWrapper<AssignmentType> assignmentToRemove = null;
+            for (PrismContainerValueWrapper<AssignmentType> assignment : assignmentsModel.getObject().getValues()){
+                ObjectReferenceType targetRef = assignment.getRealValue().getTargetRef();
                 if (targetRef != null && targetRef.getOid().equals(assignmentTargetObject.getOid())){
                     if (added && assignment.getStatus() == ValueStatus.DELETED){
                         assignment.setStatus(ValueStatus.NOT_CHANGED);
@@ -175,11 +182,18 @@ public class ApplicablePolicyGroupPanel extends BasePanel<ObjectReferenceType>{
                 AssignmentType assignmentType = newAssignment.asContainerable();
                 assignmentType.setTargetRef(ref);
                 Task task = getPageBase().createSimpleTask("Creating new applicable policy");
-                ContainerWrapperFactory factory = new ContainerWrapperFactory(getPageBase());
-                ContainerValueWrapper<AssignmentType> valueWrapper = factory.createContainerValueWrapper(assignmentsModel.getObject(), newAssignment,
-                        assignmentsModel.getObject().getObjectStatus(), ValueStatus.ADDED, assignmentsModel.getObject().getPath(), task);
-                valueWrapper.setShowEmpty(true, false);
-                assignmentsModel.getObject().getValues().add(valueWrapper);
+                
+                WrapperContext context = new WrapperContext(task, null);
+                PrismContainerValueWrapper<AssignmentType> valueWrapper;
+				try {
+					valueWrapper = (PrismContainerValueWrapper<AssignmentType>) getPageBase().createValueWrapper(assignmentsModel.getObject(), newAssignment, ValueStatus.ADDED, context);
+					assignmentsModel.getObject().getValues().add(valueWrapper);
+				} catch (SchemaException e) {
+					//TOTO error handling
+				}
+//                
+//                valueWrapper.setShowEmpty(true, false);
+             
             }
         }
     }

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -29,19 +28,13 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskEditableState;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstances;
-import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.ObjectUtils;
@@ -233,11 +226,9 @@ public class PageTaskController implements Serializable {
 		Task task = parentPage.createSimpleTask(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
 		OperationResult result = task.getResult();
 		try {
-			parentPage.getWorkflowService().stopProcessInstance(instanceId,
-					WebComponentUtil.getOrigStringFromPoly(SecurityUtils.getPrincipalUser().getName()),
-					task, result);
+			parentPage.getWorkflowService().cancelCase(instanceId, task, result);
 			result.computeStatusIfUnknown();
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
+		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
 			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
 		}

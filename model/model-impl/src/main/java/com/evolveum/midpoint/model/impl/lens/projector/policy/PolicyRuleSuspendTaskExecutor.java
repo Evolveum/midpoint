@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.policy;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -23,21 +24,15 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.repo.api.CounterManager;
-import com.evolveum.midpoint.repo.api.CounterSepcification;
-import com.evolveum.midpoint.repo.cache.CacheCounterManager;
+import com.evolveum.midpoint.repo.api.CounterSpecification;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.ThresholdPolicyViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyThresholdType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SuspendTaskPolicyActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WaterMarkType;
 
 /**
  * @author katka
@@ -53,12 +48,13 @@ public class PolicyRuleSuspendTaskExecutor {
 	public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, Task task, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
 		ModelElementContext<O> focusCtx = context.getFocusContext();
 				
-		if (focusCtx == null || focusCtx.getPolicyRules() == null) {
+		if (focusCtx == null) {
 			return;
 		}
-		
+
+		TaskType taskType = task.getUpdatedOrClonedTaskObject().asObjectable();
 		for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-			CounterSepcification counterSpec = counterManager.getCounterSpec(task.getTaskType(), policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+			CounterSpecification counterSpec = counterManager.getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
 			LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 			
 			int counter = 1;

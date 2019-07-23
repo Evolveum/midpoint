@@ -32,12 +32,14 @@ public class CompositedIcon implements Serializable {
 	private String basicIcon;
 	private List<IconType> layerIcons;
 	private String basicIconHtmlColor = "";
+	private String title = "";
 	
 	
-	public CompositedIcon(String basicIcon, List<IconType> layerIcons, String basicIconHtmlColor){
+	public CompositedIcon(String basicIcon, List<IconType> layerIcons, String basicIconHtmlColor, String title){
 		this.basicIcon = basicIcon;
 		this.layerIcons = layerIcons;
 		this.basicIconHtmlColor = basicIconHtmlColor;
+		this.title = title;
 	}
 	
 	public String getBasicIcon() {
@@ -62,5 +64,9 @@ public class CompositedIcon implements Serializable {
 
 	public boolean hasBasicIconHtmlColor() {
 		return StringUtils.isNotEmpty(getBasicIconHtmlColor());
+	}
+	
+	public String getTitle() {
+		return title;
 	}
 }

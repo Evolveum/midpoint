@@ -26,8 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
@@ -35,6 +34,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDtoProvider;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -202,19 +203,23 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
+        Task task = createSimpleTask(OPERATION_APPROVE_OR_REJECT_ITEMS);
         List<WorkItemDto> workItemDtoList = getWorkItemsPanel().getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
 
-	    OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
+	    OperationResult mainResult = task.getResult();
         try {
 	        assumePowerOfAttorneyIfRequested(mainResult);
 	        WorkflowService workflowService = getWorkflowService();
             for (WorkItemDto workItemDto : workItemDtoList) {
                 OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
                 try {
-                    workflowService.completeWorkItem(workItemDto.getWorkItemId(), approve, null, null, result);
+                    workflowService.completeWorkItem(workItemDto.getWorkItemId(),
+                            new AbstractWorkItemOutputType(getPrismContext())
+                                    .outcome(ApprovalUtils.toUri(approve)),
+                            task, result);
                     result.computeStatus();
                 } catch (Exception e) {
                     result.recordPartialError(createStringResource("pageWorkItems.message.partialError.approved").getString(), e);
@@ -257,14 +262,15 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
             return;
         }
 
-        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
+        Task task = createSimpleTask(OPERATION_CLAIM_ITEMS);
+        OperationResult mainResult = task.getResult();
         WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
             try {
-                workflowService.claimWorkItem(workItemDto.getWorkItemId(), result);
+                workflowService.claimWorkItem(workItemDto.getWorkItemId(), task, result);
                 result.computeStatusIfUnknown();
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
             }
         }
@@ -290,17 +296,18 @@ public abstract class PageWorkItems extends PageAdminWorkItems {
         }
 
         int applicable = 0;
-        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
+        Task task = createSimpleTask(OPERATION_RELEASE_ITEMS);
+        OperationResult mainResult = task.getResult();
         WorkflowService workflowService = getWorkflowService();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
             try {
-                workflowService.releaseWorkItem(workItemDto.getWorkItemId(), result);
+                workflowService.releaseWorkItem(workItemDto.getWorkItemId(), task, result);
                 result.computeStatusIfUnknown();
                 if (!result.isNotApplicable()) {
                     applicable++;
                 }
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException e) {
+            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
                 result.recordPartialError(createStringResource("pageWorkItems.message.partialError.released").getString(), e);
             }
         }

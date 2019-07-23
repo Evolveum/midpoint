@@ -30,12 +30,10 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -138,7 +136,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
 	
 	//TODO multi-threded tasks?
 	private <T> T getTaskPropertyValue(QName propertyName) {
-		PrismProperty<T> prop = task.getExtensionProperty(ItemName.fromQName(propertyName));
+		PrismProperty<T> prop = task.getExtensionPropertyOrClone(ItemName.fromQName(propertyName));
 		if (prop == null || prop.isEmpty()) {
 			return null;
 		}

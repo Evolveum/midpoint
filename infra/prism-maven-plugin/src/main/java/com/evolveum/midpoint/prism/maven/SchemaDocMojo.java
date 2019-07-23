@@ -31,10 +31,17 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.jetbrains.annotations.NotNull;
@@ -42,12 +49,8 @@ import org.xml.sax.SAXException;
 
 import java.io.*;
 
-/**
- * @goal schemadoc
- * @requiresDependencyResolution compile
- * @phase package
- */
-//@Mojo(name="schemadoc")
+@Mojo(name="schemadoc", requiresDependencyResolution = ResolutionScope.COMPILE)
+@Execute(goal="schemadoc", phase = LifecyclePhase.PACKAGE)
 public class SchemaDocMojo extends AbstractMojo {
 
     private static final String VELOCITY_CONTEXT_VAR_PRISM_CONTEXT = "prismContext";
@@ -62,51 +65,37 @@ public class SchemaDocMojo extends AbstractMojo {
     private static final String TEMPLATE_OBJECT_DEFINITION_NAME = "object-definition.vm";
     private static final String TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME = "complex-type-definition.vm";
 
-    /**
-	 * @parameter
-	 */
+    @Parameter
 	private File[] schemaFiles;
 
-	/**
-	 * @parameter
-     */
+    @Parameter
     private File[] catalogFiles;
 
-    /**
-     * @parameter default-value="${project.build.directory}" required=true
-     */
+    @Parameter(defaultValue="${project.build.directory}", required=true)
     private File buildDir;
 
-	/**
-	 * @parameter default-value="${project.build.directory}/schemadoc" required=true
-	 */
+	@Parameter(defaultValue="${project.build.directory}/schemadoc", required=true)
     private File destDir;
 
-    /**
-     * @parameter default-value="src/main/schemadoc/templates" required=true
-     */
+    @Parameter(defaultValue="src/main/schemadoc/templates", required=true)
     private File templateDir;
 
-    /**
-     * @parameter default-value="src/main/schemadoc/resources"
-     */
+    @Parameter(defaultValue="src/main/schemadoc/resources")
     private File resourcesDir;
 
-    /** @parameter default-value="${project}" */
+    @Parameter(defaultValue="${project}")
     private org.apache.maven.project.MavenProject project;
 
-    /** @parameter */
+    @Parameter
     private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
 
-    /** @parameter default-value="${project.build.finalName}" */
+    @Parameter(defaultValue="${project.build.finalName}")
     private String finalName;
 
-    /**
-     * @component
-     */
+    @Component
     private MavenProjectHelper projectHelper;
 
-    /** @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" */
+    @Component(role=Archiver.class, hint="zip")
     private ZipArchiver zipArchiver;
 
     private String getTemplateDirName() {

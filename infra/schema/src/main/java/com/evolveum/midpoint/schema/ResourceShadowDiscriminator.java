@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * Aggregate bean containing resource OID, intent and tombstone flag.
@@ -112,9 +113,9 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
 	}
 
 	public void setIntent(String intent) {
-		if (intent == null) {
-			intent = SchemaConstants.INTENT_DEFAULT;
-		}
+//		if (intent == null) {
+//			intent = SchemaConstants.INTENT_DEFAULT;
+//		}
 		this.intent = intent;
 	}
 	
@@ -172,21 +173,20 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
         return rsdt;
     }
 
-    public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(ShadowDiscriminatorType resourceShadowDiscriminatorType) {
+    public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(
+		    ShadowDiscriminatorType resourceShadowDiscriminatorType, boolean provideDefaultIntent) {
         if (resourceShadowDiscriminatorType == null) {
             return null;
         }
 
         // For compatibility. Otherwise the kind should be explicitly serialized.
-        ShadowKindType kind = resourceShadowDiscriminatorType.getKind();
-        if (kind == null) {
-        	kind = ShadowKindType.ACCOUNT;
-        }
+        ShadowKindType kind = ObjectUtils.defaultIfNull(resourceShadowDiscriminatorType.getKind(), ShadowKindType.ACCOUNT);
+        String intent = resourceShadowDiscriminatorType.getIntent() != null || !provideDefaultIntent ?
+		        resourceShadowDiscriminatorType.getIntent() : SchemaConstants.INTENT_DEFAULT;
 
         return new ResourceShadowDiscriminator(
                 resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
-                kind,
-                resourceShadowDiscriminatorType.getIntent(),
+                kind, intent,
                 resourceShadowDiscriminatorType.getTag(),
                 false);
     }

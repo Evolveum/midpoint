@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemOutputType;
@@ -48,6 +49,10 @@ public class ApprovalUtils {
 		return result != null ? approvalBooleanValue(fromUri(result.getOutcome())) : null;
 	}
 
+	public static Boolean approvalBooleanValue(String uri) {
+		return uri != null ? approvalBooleanValue(fromUri(uri)) : null;
+	}
+
 	private static Boolean approvalBooleanValue(WorkItemOutcomeType outcome) {
 		if (outcome == null) {
 			return null;
@@ -65,6 +70,10 @@ public class ApprovalUtils {
 
 	private static boolean isApproved(WorkItemOutcomeType outcome) {
 		return BooleanUtils.isTrue(approvalBooleanValue(outcome));
+	}
+
+	public static boolean isApproved(String result) {
+		return BooleanUtils.isTrue(approvalBooleanValue(result));
 	}
 
 	public static String toUri(WorkItemOutcomeType workItemOutcomeType) {
@@ -141,4 +150,8 @@ public class ApprovalUtils {
 		return isApproved(fromUri(uri));
 	}
 
+	public static AbstractWorkItemOutputType createApproveOutput(PrismContext prismContext) {
+		return new AbstractWorkItemOutputType(prismContext)
+				.outcome(SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE);
+	}
 }

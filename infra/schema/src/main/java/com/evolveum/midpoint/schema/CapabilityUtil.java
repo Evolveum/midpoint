@@ -93,7 +93,7 @@ public class CapabilityUtil {
 		return capability.isEnabled();
 	}
 
-	public static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
+	public static Object getCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
 		if (capabilities == null) {
 			return false;
 		}
@@ -101,10 +101,14 @@ public class CapabilityUtil {
 		for (Object cap: capabilities) {
 			QName capElementName = JAXBUtil.getElementQName(cap);
 			if (capabilityElementName.equals(capElementName)) {
-				return true;
+				return cap;
 			}
 		}
-		return false;
+		return null;
+	}
+
+	public static boolean containsCapabilityWithSameElementName(List<Object> capabilities, Object capability) {
+		return getCapabilityWithSameElementName(capabilities, capability) != null;
 	}
 
 	public static String getCapabilityDisplayName(Object capability) {
@@ -328,5 +332,16 @@ public class CapabilityUtil {
 			return false;
 		}
 		return getCapability(nativeCaps.getAny(), capabilityClass) != null;
+	}
+
+	public static <T extends CapabilityType>  boolean hasConfiguredCapability(CapabilitiesType capabilities, Class<T> capabilityClass) {
+		if (capabilities == null) {
+			return false;
+		}
+		CapabilityCollectionType configuredCaps = capabilities.getConfigured();
+		if (configuredCaps == null) {
+			return false;
+		}
+		return getCapability(configuredCaps.getAny(), capabilityClass) != null;
 	}
 }

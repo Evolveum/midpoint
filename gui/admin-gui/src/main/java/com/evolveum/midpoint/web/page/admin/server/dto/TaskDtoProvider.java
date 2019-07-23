@@ -49,16 +49,16 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
     private static final String OPERATION_COUNT_TASKS = DOT_CLASS + "countTasks";
 
     private TaskDtoProviderOptions options;
-    private Component component;
+    private PageBase pagebase;
 
-    public TaskDtoProvider(Component component, TaskDtoProviderOptions options) {
-        super(component);
+    public TaskDtoProvider(PageBase pagebase, TaskDtoProviderOptions options) {
+        super(pagebase);
         this.options = options;
-        this.component = component;
+        this.pagebase = pagebase;
     }
 
-    public TaskDtoProvider(Component component) {
-        this(component, TaskDtoProviderOptions.fullOptions());
+    public TaskDtoProvider(PageBase pagebase) {
+        this(pagebase, TaskDtoProviderOptions.fullOptions());
     }
 
     @Override
@@ -132,7 +132,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
         return new TaskDto(task.asObjectable(), null, getModel(), getTaskService(),
-                getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, subtasksLoaded, opTask, result, (PageBase)component);
+                getModelInteractionService(), getTaskManager(), getWorkflowManager(), options, subtasksLoaded, opTask, result, pagebase);
     }
 
     @Override

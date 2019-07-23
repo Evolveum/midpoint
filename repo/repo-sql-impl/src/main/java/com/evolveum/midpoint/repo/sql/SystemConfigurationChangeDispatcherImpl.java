@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 
 /**
@@ -184,7 +185,13 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
 	private void applyOperationResultHandlingConfiguration(SystemConfigurationType configuration) {
 		try {
-			SystemConfigurationTypeUtil.applyOperationResultHandling(configuration);
+			if (configuration != null && configuration.getInternals() != null) {
+				OperationResult.applyOperationResultHandlingStrategy(
+						configuration.getInternals().getOperationResultHandlingStrategy(),
+						configuration.getInternals().getSubresultStripThreshold());
+			} else {
+				OperationResult.applyOperationResultHandlingStrategy(Collections.emptyList(), null);
+			}
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply operation result handling configuration", t);
 			lastVersionApplied = null;

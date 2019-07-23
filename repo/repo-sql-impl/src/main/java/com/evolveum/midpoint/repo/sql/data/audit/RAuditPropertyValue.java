@@ -17,11 +17,16 @@
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 
 import javax.persistence.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLUMN_RECORD_ID;
@@ -35,6 +40,9 @@ public class RAuditPropertyValue implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_prop_value";
 	public static final String COLUMN_RECORD_ID = "record_id";
+	
+	public static final String NAME_COLUMN_NAME = "name";
+	public static final String VALUE_COLUMN_NAME = "value";
 
 	private Boolean trans;
 
@@ -118,6 +126,14 @@ public class RAuditPropertyValue implements EntityState {
     	property.setValue(value);
     	return property;
     }
+	
+	public static SingleSqlQuery toRepo(Long recordId, String name, String value) {
+		InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+		queryBuilder.addParameter(COLUMN_RECORD_ID, recordId);
+		queryBuilder.addParameter(NAME_COLUMN_NAME, name);
+		queryBuilder.addParameter(VALUE_COLUMN_NAME, value);
+    	return queryBuilder.build();
+    }
 
 	@Override
 	public boolean equals(Object o) {
@@ -146,4 +162,5 @@ public class RAuditPropertyValue implements EntityState {
 				", value='" + value + '\'' +
 				'}';
 	}
+	
 }

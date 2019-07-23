@@ -33,12 +33,14 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 
     public static final String F_TYPE = "type";
     public static final String F_RESOURCE = "resource";
+    public static final String F_OID_FILTER = "oidFilter";
     public static final String F_OBJECT_CLASS = "objectClass";
     public static final String F_SEARCH = "search";
 
     private ObjectTypes type;
     private ObjectViewDto resource;
     private Search search;
+    private String oidFilter;
     private QName objectClass;
 
     public ObjectTypes getType() {
@@ -74,6 +76,14 @@ public class DebugSearchDto implements Serializable, DebugDumpable {
 
     public void setObjectClass(QName objectClass) {
         this.objectClass = objectClass;
+    }
+
+    public String getOidFilter() {
+        return oidFilter;
+    }
+
+    public void setOidFilter(String oidFilter) {
+        this.oidFilter = oidFilter;
     }
 
     @Override

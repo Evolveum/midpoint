@@ -35,6 +35,7 @@
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapDependency"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapSyncMassive"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapPolyString"/>
+            <class name="com.evolveum.midpoint.testing.story.ldap.TestLdapMutilated"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapFlat"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapNested"/>
             <class name="com.evolveum.midpoint.testing.story.ldap.hierarchy.TestLdapHierarchical"/>
@@ -64,6 +65,9 @@
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsReconFull"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncSimulate"/>
             <class name="com.evolveum.midpoint.testing.story.TestThresholdsLiveSyncFull"/>
+            <class name="com.evolveum.midpoint.testing.story.TestMappingMadness"/>
+            <class name="com.evolveum.midpoint.testing.story.TestConfiguredCapabilitiesActivation"/>
+            <class name="com.evolveum.midpoint.testing.story.TestImportGroups"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestPrivacy"/>
             <class name="com.evolveum.midpoint.testing.story.security.TestRoleMembers"/>
         </classes>

@@ -159,7 +159,9 @@ public class PageAccountActivation extends PageBase {
 		Form<?> form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
 		activationContainer.add(form);
 
-		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label", new PropertyModel<>(userModel, "name.orig")));
+		Label usernamePanel = new Label(ID_NAME, createStringResource("PageAccountActivation.activate.accounts.label",
+				userModel != null && userModel.getObject() != null && userModel.getObject().getName() != null ?
+						WebComponentUtil.getLocalizedOrOriginPolyStringValue(userModel.getObject().getName().toPolyString()) : ""));
 		usernamePanel.add(new VisibleEnableBehaviour() {
 			private static final long serialVersionUID = 1L;
 
@@ -280,7 +282,7 @@ public class PageAccountActivation extends PageBase {
 			ObjectDelta<ShadowType> shadowDelta = getPrismContext().deltaFactory().object()
 					.createModificationReplaceProperty(ShadowType.class, shadow.getOid(), SchemaConstants.PATH_PASSWORD_VALUE,
 							passwordValue);
-			shadowDelta.addModificationReplaceProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
+			shadowDelta.addModificationDeleteProperty(ShadowType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_PROPOSED);
 			passwordDeltas.add(shadowDelta);
 		}
 

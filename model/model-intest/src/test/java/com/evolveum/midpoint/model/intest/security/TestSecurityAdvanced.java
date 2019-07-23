@@ -2788,7 +2788,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
 		PrismAsserts.assertNoItem(userJack, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, ActivationStatusType.ENABLED);
-		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AGEAD);
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AHEAD);
 		assertAssignments(userJack, 1);
 
 		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
@@ -2912,7 +2912,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		PrismObject<UserType> userJack = assertAlmostFullJackRead(2);
 		// read of administrativeStatus is not allowed be either role
 		PrismAsserts.assertNoItem(userJack, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AGEAD);
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AHEAD);
 
 		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
 		display("Jack's edit schema", userJackEditSchema);
@@ -2974,7 +2974,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, createPolyString(USER_JACK_GIVEN_NAME));
 		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
 		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS, ActivationStatusType.ENABLED);
-		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AGEAD);
+		PrismAsserts.assertPropertyValue(userJack, SchemaConstants.PATH_ACTIVATION_VALID_TO, JACK_VALID_TO_LONG_AHEAD);
 		assertAssignments(userJack, 2);
 
 		PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
@@ -3272,7 +3272,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		// THEN
 		display("resource", resource);
 		assertNull("schemaHandling is present although it should not be", resource.asObjectable().getSchemaHandling());
-		assertEquals("Wrong # of items in resource read", 1, resource.getItems(Item.class).size());
+		assertEquals("Wrong # of items in resource read", 1, resource.getValue().size());
 	}
 
 	/**
@@ -3315,7 +3315,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     private void modifyJackValidTo() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
     	Task task = createTask("modifyJackValidTo");
     	OperationResult result = task.getResult();
-		modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result, JACK_VALID_TO_LONG_AGEAD);
+		modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result, JACK_VALID_TO_LONG_AHEAD);
 		assertSuccess(result);
 	}
 

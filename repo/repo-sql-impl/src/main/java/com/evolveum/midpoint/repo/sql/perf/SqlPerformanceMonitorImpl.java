@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.perf;
 import com.evolveum.midpoint.repo.api.perf.OperationRecord;
 import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsClassificationType;
@@ -106,6 +107,8 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         threadLocalPerformanceInformation.remove();         // at least for this thread; other threads have to do their own homework
         this.sqlRepositoryFactory = sqlRepositoryFactory;
         this.level = this.initialLevel = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
+
+        OperationsPerformanceMonitorImpl.INSTANCE.initialize();        // fixme put to better place
         LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
     }
 
@@ -123,6 +126,7 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         if (level >= LEVEL_GLOBAL_STATISTICS) {
             LOGGER.info("Global performance information:\n{}", globalPerformanceInformation.debugDump());
         }
+        OperationsPerformanceMonitorImpl.INSTANCE.shutdown();
     }
 
     public long registerOperationStart(String kind, Class<?> objectType) {
@@ -233,7 +237,8 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
             }
         }
         if (newLevel != level) {
-            LOGGER.info("Changing collection level to {} (configured as {})", newLevel, collection);
+            LOGGER.info("Changing collection level from {} to {} (configured as {})", level, newLevel, collection);
+            level = newLevel;
         }
         perObjectType = classification == RepositoryStatisticsClassificationType.PER_OPERATION_AND_OBJECT_TYPE;
     }

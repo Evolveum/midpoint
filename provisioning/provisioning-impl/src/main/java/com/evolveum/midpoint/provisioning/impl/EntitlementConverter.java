@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -239,17 +239,7 @@ class EntitlementConverter {
 
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
 
-		SearchHierarchyConstraints searchHierarchyConstraints = null;
-		ResourceObjectReferenceType baseContextRef = entitlementDef.getBaseContext();
-		if (baseContextRef != null) {
-			// TODO: this should be done once per search. Not in every run of postProcessEntitlementEntitlementToSubject
-			// this has to go outside of this method
-			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(subjectCtx, baseContextRef,
-					null, "base context specification in "+entitlementDef, parentResult);
-			RefinedObjectClassDefinition baseContextObjectClassDefinition = subjectCtx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-			ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-			searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-		}
+		SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
 		ShadowResultHandler handler = new ShadowResultHandler() {
 			@Override
@@ -452,15 +442,7 @@ class EntitlementConverter {
 
 				AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementCtx);
 
-				SearchHierarchyConstraints searchHierarchyConstraints = null;
-				ResourceObjectReferenceType baseContextRef = entitlementOcDef.getBaseContext();
-				if (baseContextRef != null) {
-					PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(subjectCtx,
-							baseContextRef, null, "base context specification in "+entitlementOcDef, parentResult);
-					RefinedObjectClassDefinition baseContextObjectClassDefinition = subjectCtx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
-					ResourceObjectIdentification baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
-					searchHierarchyConstraints = new SearchHierarchyConstraints(baseContextIdentification, null);
-				}
+				SearchHierarchyConstraints searchHierarchyConstraints = determineSearchHierarchyConstraints(entitlementCtx, parentResult);
 
 				ShadowResultHandler handler = new ShadowResultHandler() {
 					@Override
@@ -781,5 +763,26 @@ class EntitlementConverter {
 		return attributesContainer;
 	}
 
-
+	// This is perhaps not the best place for this method. It has nothing to do with entitlements.
+	// But given class dependencies this is a very convenient place. Let's leave it here for now.
+	public SearchHierarchyConstraints determineSearchHierarchyConstraints(final ProvisioningContext ctx, OperationResult parentResult) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException, SecurityViolationException {
+		RefinedObjectClassDefinition objectClassDef = ctx.getObjectClassDefinition();
+		SearchHierarchyConstraints searchHierarchyConstraints = null;
+		ResourceObjectReferenceType baseContextRef = objectClassDef.getBaseContext();
+		ResourceObjectIdentification baseContextIdentification = null;
+		if (baseContextRef != null) {
+			PrismObject<ShadowType> baseContextShadow = resourceObjectReferenceResolver.resolve(ctx, baseContextRef, null, "base context specification in "+objectClassDef, parentResult);
+			if (baseContextShadow == null) {
+				throw new ObjectNotFoundException("Base context not found for "+objectClassDef+", specified as "+baseContextRef);
+			}
+			RefinedObjectClassDefinition baseContextObjectClassDefinition = ctx.getRefinedSchema().determineCompositeObjectClassDefinition(baseContextShadow);
+			baseContextIdentification =  ShadowUtil.getResourceObjectIdentification(baseContextShadow, baseContextObjectClassDefinition);
+		}
+		
+		SearchHierarchyScope scope = objectClassDef.getSearchHierarchyScope();
+		if (baseContextIdentification == null && scope == null) {
+			return null;
+		}
+		return new SearchHierarchyConstraints(baseContextIdentification, scope);
+	}
 }

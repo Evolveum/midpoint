@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.Transformer;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author semancik
@@ -144,6 +146,7 @@ public abstract class XNodeImpl implements XNode {
 
 	public abstract void accept(Visitor visitor);
 
+	@NotNull
     public XNodeImpl clone() {
         return cloneTransformKeys(null);
     }
@@ -152,6 +155,7 @@ public abstract class XNodeImpl implements XNode {
 		return cloneTransformKeys(keyTransformer, this);
 	}
 
+	@Contract("_, null -> null; _, !null -> !null")
 	private static <X extends XNodeImpl> X cloneTransformKeys(Transformer<QName,QName> keyTransformer, X xnode) {
 		XNodeImpl xclone;
 		if (xnode == null) {

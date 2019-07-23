@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  *
  */
 @Component
-public class RecomputeTriggerHandler implements TriggerHandler {
+public class RecomputeTriggerHandler implements SingleTriggerHandler {
 
 	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
 
@@ -80,4 +80,8 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 
 	}
 
+	@Override
+	public boolean isIdempotent() {
+		return true;
+	}
 }

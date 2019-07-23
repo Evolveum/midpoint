@@ -164,8 +164,8 @@ public class SchemaListPanel extends BasePanel<PrismObject<ResourceType>> {
 
             @Override
             protected void populateItem(final Item<ObjectClassDto> item) {
-                AjaxLink link = new AjaxLink(ID_CLASS_LINK) {
-
+            	AjaxLink<Void> link = new AjaxLink<Void>(ID_CLASS_LINK) {
+            		private static final long serialVersionUID = 1L;
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         objectClassClickPerformed(target, item.getModelObject());

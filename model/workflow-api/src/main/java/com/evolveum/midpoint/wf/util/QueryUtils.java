@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.util;
 
-import com.evolveum.midpoint.model.api.util.DeputyUtils;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -24,15 +24,16 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterExit;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDeputyUtil;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -56,14 +57,28 @@ public class QueryUtils {
 		if (principal == null) {
 			return q.none();
 		} else {
-			return q.item(WorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
+			return q.item(CaseWorkItemType.F_ASSIGNEE_REF).ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry));
+		}
+	}
+
+	public static S_AtomicFilterExit filterForNotClosedStateAndAssignees(S_FilterEntryOrEmpty q, MidPointPrincipal principal,
+			QName limitationItemName, RelationRegistry relationRegistry) {
+		if (principal == null) {
+			return q.none();
+		} else {
+			return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
+					.ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry))
+					.and()
+					.not()
+					.item(PrismConstants.T_PARENT, CaseType.F_STATE)
+					.eq(SchemaConstants.CASE_STATE_CLOSED);
 		}
 	}
 
 	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService,
 			RelationRegistry relationRegistry, OperationResult result)
 			throws SchemaException {
-		return q.item(WorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
+		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
@@ -73,7 +88,7 @@ public class QueryUtils {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		rv.add(ObjectTypeUtil.createObjectRef(principal.getOid(), ObjectTypes.USER).relation(defaultRelation).asReferenceValue());
 		for (DelegatorWithOtherPrivilegesLimitations delegator : principal.getDelegatorWithOtherPrivilegesLimitationsCollection()) {
-			if (DeputyUtils.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
+			if (SchemaDeputyUtil.limitationsAllow(delegator.getLimitations(), limitationItemName)) {
 				rv.add(ObjectTypeUtil.createObjectRef(delegator.getDelegator(), defaultRelation).asReferenceValue());
 			}
 		}
@@ -99,4 +114,16 @@ public class QueryUtils {
 		return rv;
 	}
 
+	public static S_AtomicFilterExit filterForMyRequests(S_FilterEntryOrEmpty q, String principalUserOid){
+		return q
+				.item(CaseType.F_REQUESTOR_REF)
+				.ref(principalUserOid)
+				.and()
+				.item(CaseType.F_ARCHETYPE_REF)
+				.ref(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value())
+				.and()
+				.not()
+				.item(CaseType.F_STATE)
+				.eq(SchemaConstants.CASE_STATE_CLOSED);
+	}
 }

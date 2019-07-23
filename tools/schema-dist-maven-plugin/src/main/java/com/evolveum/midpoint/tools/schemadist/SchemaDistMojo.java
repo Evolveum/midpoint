@@ -47,6 +47,12 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.Execute;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
@@ -60,75 +66,50 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
 
-/**
- * @goal schemadist
- * @requiresDependencyResolution compile
- * @phase package
- */
+@Mojo( name = "schemadist", requiresDependencyResolution = ResolutionScope.COMPILE)
+@Execute( goal = "schemadist", phase = LifecyclePhase.PACKAGE)
 public class SchemaDistMojo extends AbstractMojo {
 
-    /**
-	 * @parameter
-	 */
+    @Parameter
 	private String includes;
 
-    /**
-     * @parameter
-     */
-	private String excludes;
+    @Parameter
+    private String excludes;
 
-	/**
-	 * @parameter default-value="${project.build.directory}/schemadist" required=true
-	 */
+	@Parameter(defaultValue="${project.build.directory}/schemadist", required=true)
     private File outputDirectory;
 
-	/**
-	 * @parameter default-value="${project.build.directory}/schemadist-work" required=true
-	 */
+	@Parameter(defaultValue="${project.build.directory}/schemadist-work", required=true)
     private File workDirectory;
 
-    /**
-     * @parameter
-     */
-    private List<ArtifactItem> artifactItems;
+    @Parameter
+	private List<ArtifactItem> artifactItems;
 
-    /**
-	 * @parameter default-value="true" required=true
-	 */
+    @Parameter(defaultValue="true", required=true)
     private boolean translateSchemaLocation;
 
-    /**
-     * @parameter default-value="src/main/schemadoc/resources"
-     */
+    @Parameter(defaultValue="src/main/schemadoc/resources")
     private File resourcesDir;
 
-    /** @parameter default-value="${project}" */
+    @Parameter(defaultValue="${project}")
     private org.apache.maven.project.MavenProject project;
 
-    /** @parameter default-value="${localRepository}" */
+    @Parameter(defaultValue="${localRepository}")
     private ArtifactRepository local;
 
-    /** @parameter default-value="${project.remoteArtifactRepositories}" */
+    @Parameter(defaultValue="${project.remoteArtifactRepositories}")
     protected List<ArtifactRepository> remoteRepos;
 
-    /**
-     * @component
-     */
+    @Component
     private ArtifactFactory factory;
 
-    /**
-     * @component
-     */
+    @Component
     private ArtifactResolver resolver;
 
-    /**
-     * @component
-     */
+    @Component
     private ArchiverManager archiverManager;
 
-    /**
-     * @component
-     */
+    @Component
     private MavenProjectHelper projectHelper;
 
     private void processArtifactItems() throws MojoExecutionException, InvalidVersionSpecificationException {

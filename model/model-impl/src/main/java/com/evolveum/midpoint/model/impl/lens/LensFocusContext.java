@@ -58,6 +58,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
 	transient private ArchetypePolicyType archetypePolicyType;
+	transient private ArchetypeType archetype;
 
 	// extracted from the template(s)
 	// this is not to be serialized into XML, but let's not mark it as transient
@@ -81,6 +82,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	
 	public void setArchetypePolicyType(ArchetypePolicyType objectPolicyConfigurationType) {
 		this.archetypePolicyType = objectPolicyConfigurationType;
+	}
+	
+	public ArchetypeType getArchetype() {
+		return archetype;
+	}
+	
+	public void setArchetype(ArchetypeType archetype) {
+		this.archetype = archetype;
 	}
 	
 	public LifecycleStateModelType getLifecycleModel() {
@@ -498,10 +507,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return sb.toString();
 	}
 
-    void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer, boolean reduced) throws SchemaException {
-        LensFocusContextType lensFocusContextType = lensFocusContextTypeContainer.createNewValue().asContainerable();
-        super.storeIntoLensElementContextType(lensFocusContextType, reduced);
-        lensFocusContextType.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+    public LensFocusContextType toLensFocusContextType(PrismContext prismContext, LensContext.ExportType exportType) throws SchemaException {
+	    LensFocusContextType rv = new LensFocusContextType(prismContext);
+	    super.storeIntoLensElementContextType(rv, exportType);
+	    if (exportType != LensContext.ExportType.MINIMAL) {
+		    rv.setSecondaryDeltas(secondaryDeltas.toObjectDeltaWavesType());
+	    }
+	    return rv;
     }
 
     public static LensFocusContext fromLensFocusContextType(LensFocusContextType focusContextType, LensContext lensContext, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {

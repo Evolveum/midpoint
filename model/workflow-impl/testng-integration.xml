@@ -17,17 +17,7 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
     <!--<class name="com.evolveum.midpoint.wf.impl.general.TestGeneralChangeProcessor"/>-->
-    <test name="Legacy (WITHOUT policy rule based aspect)" preserve-order="true" parallel="false" verbose="10" enabled="true">
-        <parameter name="enablePolicyRuleBasedAspect" value="false"/>
-        <classes>
-            <class name="com.evolveum.midpoint.wf.impl.legacy.TestUserChangeApprovalLegacy"/>
-            <class name="com.evolveum.midpoint.wf.impl.legacy.TestCreateModifyUserLegacy"/>
-            <class name="com.evolveum.midpoint.wf.impl.legacy.TestCreateOrgLegacy"/>
-            <class name="com.evolveum.midpoint.wf.impl.legacy.TestAddAssociationLegacy"/>
-        </classes>
-    </test>
-    <test name="Legacy (with policy rule based aspect)" preserve-order="true" parallel="false" verbose="10" enabled="true">
-        <parameter name="enablePolicyRuleBasedAspect" value="true"/>
+    <test name="Legacy" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestUserChangeApprovalLegacy"/>
             <class name="com.evolveum.midpoint.wf.impl.legacy.TestCreateModifyUserLegacy"/>
@@ -54,9 +44,13 @@
             <class name="com.evolveum.midpoint.wf.impl.policy.assignments.metarole.TestAssignmentsWithDifferentMetaroles"/>
         </classes>
     </test>
+    <test name="Manual" preserve-order="true" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.wf.impl.manual.ManualResourceTest"/>
+        </classes>
+    </test>
     <test name="Other" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.wf.impl.policy.other.TestActivitiQuery"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestMiscellaneous"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestDelegation"/>
             <class name="com.evolveum.midpoint.wf.impl.policy.other.TestEscalation"/>

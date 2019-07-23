@@ -18,6 +18,8 @@ package com.evolveum.midpoint.schema.cache;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -138,7 +140,7 @@ public class CacheConfigurationManager {
 		}
 	}
 
-	class ThreadLocalConfiguration {
+	class ThreadLocalConfiguration implements DebugDumpable {
 		Map<CacheType, CacheConfiguration> preparedConfigurations;
 		CachingConfigurationType configurationsPreparedFrom;
 		@NotNull final Collection<String> profiles;
@@ -159,6 +161,17 @@ public class CacheConfigurationManager {
 			}
 			return preparedConfigurations.get(type);
 		}
+
+		@Override
+		public String debugDump(int indent) {
+			StringBuilder sb = new StringBuilder();
+			DebugUtil.debugDumpWithLabelLn(sb, "profiles", profiles, indent);
+			if (preparedConfigurations != null) {
+				preparedConfigurations.forEach((type, config) ->
+						DebugUtil.debugDumpWithLabelLn(sb, "config for " + type, config, indent));
+			}
+			return sb.toString();
+		}
 	}
 
 	public void setThreadLocalProfiles(@NotNull Collection<String> profiles) {
@@ -167,6 +180,7 @@ public class CacheConfigurationManager {
 		}
 		validateProfiles(profiles);
 		threadLocalConfiguration.set(new ThreadLocalConfiguration(profiles));
+		LOGGER.trace("Thread local configuration profiles were set to {}", profiles);
 	}
 
 	private void validateProfiles(Collection<String> profiles) {
@@ -188,6 +202,7 @@ public class CacheConfigurationManager {
 
 	public void unsetThreadLocalProfiles() {
 		threadLocalConfiguration.remove();
+		LOGGER.trace("Thread local configuration profiles were removed");
 	}
 
 	@NotNull
@@ -200,7 +215,7 @@ public class CacheConfigurationManager {
 				addProfile(rv, profile);
 			}
 			if (configuration != null && Boolean.TRUE.equals(configuration.isTraceConfiguration())) {
-				LOGGER.info("Compiled configurations:");
+				LOGGER.info("Compiled configurations (profiles = {}):", profiles);
 				for (Map.Entry<CacheType, CacheConfiguration> entry : rv.entrySet()) {
 					LOGGER.info("  {}:\n{}", entry.getKey(), entry.getValue().debugDump(2));
 				}
@@ -281,6 +296,15 @@ public class CacheConfigurationManager {
 		if (increment.isTracePass() != null) {
 			configuration.setTracePass(increment.isTracePass());
 		}
+		CacheInvalidationConfigurationType invalidation = increment.getInvalidation();
+		if (invalidation != null) {
+			if (invalidation.isClusterwide() != null) {
+				configuration.setClusterwideInvalidation(invalidation.isClusterwide());
+			}
+			if (invalidation.getApproximation() != null) {
+				configuration.setSafeRemoteInvalidation(invalidation.getApproximation() != CacheInvalidationApproximationType.MINIMAL);
+			}
+		}
 		Map<Class<?>, CacheObjectTypeConfiguration> targetMap = configuration.getObjectTypes();
 		for (CacheObjectTypeSettingsType objectTypeSetting : increment.getObjectTypeSettings()) {
 			// empty object type list means "apply to all currently supported types"
@@ -312,6 +336,15 @@ public class CacheConfigurationManager {
 		}
 		if (increment.isTracePass() != null) {
 			rv.setTracePass(increment.isTracePass());
+		}
+		CacheInvalidationConfigurationType invalidation = increment.getInvalidation();
+		if (invalidation != null) {
+			if (invalidation.isClusterwide() != null) {
+				rv.setClusterwideInvalidation(invalidation.isClusterwide());
+			}
+			if (invalidation.getApproximation() != null) {
+				rv.setSafeRemoteInvalidation(invalidation.getApproximation() != CacheInvalidationApproximationType.MINIMAL);
+			}
 		}
 		return rv;
 	}
@@ -364,5 +397,21 @@ public class CacheConfigurationManager {
 			throw new IllegalStateException("Some thread-local caching profile names are unknown: local: " + localProfileNames + ", known: " + profileNamesSeen);
 		}
 		return rv;
+	}
+
+	@Nullable
+	public String dumpThreadLocalConfiguration(boolean full) {
+		ThreadLocalConfiguration localConfig = threadLocalConfiguration.get();
+		if (localConfig != null) {
+			if (full) {
+				// just to compile configurations
+				Arrays.stream(CacheType.values()).forEach(localConfig::get);
+				return localConfig.debugDump();
+			} else {
+				return "Profiles: " + localConfig.profiles;
+			}
+		} else {
+			return null;
+		}
 	}
 }

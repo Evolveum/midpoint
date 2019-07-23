@@ -15,10 +15,17 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -33,15 +40,9 @@ import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author honchar
@@ -56,9 +57,8 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
-                                 PageBase page) {
-        super(id, mainForm, focusModel, page);
+    public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+        super(id, mainForm, focusModel);
     }
 
     @Override
@@ -188,7 +188,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                     QueryFactory factory = getPrismContext().queryFactory();
                     ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));
                     OperationResult result = new OperationResult(OPERATION_SEARCH_PERSONAS_OBJECTS);
-                    personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, pageBase);
+                    personasList = WebModelServiceUtils.searchObjects(FocusType.class, query, result, getPageBase());
 
                 }
                 return personasList == null ? new ArrayList<>() : personasList;

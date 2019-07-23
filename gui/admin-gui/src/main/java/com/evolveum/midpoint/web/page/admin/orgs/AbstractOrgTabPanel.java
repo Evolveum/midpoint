@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.session.OrgStructurePanelStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -91,7 +92,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
                             		private static final long serialVersionUID = 1L;
 
                                     protected void onEvent(final AjaxRequestTarget target) {
-                                        UsersStorage usersStorage = getUsersSessionStorage();
+                                        OrgStructurePanelStorage usersStorage = getOrgStructurePanelStorage();
                                         if (usersStorage != null) {
                                             usersStorage.setSelectedTabId(tabId);
                                         }
@@ -114,12 +115,12 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
         };
 
         List<ITab> tabsList = tabModel.getObject();
-        UsersStorage usersStorage = getUsersSessionStorage();
+        OrgStructurePanelStorage orgStructurePanelStorage = getOrgStructurePanelStorage();
         int selectedTab = 0;
-        if (usersStorage != null) {
-            selectedTab = usersStorage.getSelectedTabId() == -1 ? 0 : usersStorage.getSelectedTabId();
+        if (orgStructurePanelStorage != null) {
+            selectedTab = orgStructurePanelStorage.getSelectedTabId() == -1 ? 0 : orgStructurePanelStorage.getSelectedTabId();
             if (tabsList == null || (selectedTab > tabsList.size() - 1)) {
-                usersStorage.setSelectedTabId(0);
+                orgStructurePanelStorage.setSelectedTabId(0);
             }
         }
         AjaxTabbedPanel<ITab> tabbedPanel = new AjaxTabbedPanel<ITab>(ID_TABS, tabModel.getObject(), new Model<>(selectedTab), null){
@@ -210,19 +211,19 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
 
     protected void changeTabPerformed(int index){
         if (roots != null && index >= 0 && index <= roots.size()){
-            UsersStorage usersStorage = getUsersSessionStorage();
-            if (usersStorage != null) {
-                SelectableBean<OrgType> selected = new SelectableBean<>();
-                selected.setValue(roots.get(index).asObjectable());
-                usersStorage.setSelectedItem(selected);
-                usersStorage.setSelectedTabId(index);
-                usersStorage.setInverse(false);
+            OrgStructurePanelStorage orgStructureStorage = getOrgStructurePanelStorage();
+            if (orgStructureStorage != null) {
+                orgStructureStorage.setSelectedTabId(index);
+//                SelectableBean<OrgType> selected = new SelectableBean<>();
+//                selected.setValue(roots.get(index).asObjectable());
+//                orgStructureStorage.setSelectedItem(selected);
+//                orgStructureStorage.setInverse(false);
             }
         }
     }
 
-    protected UsersStorage getUsersSessionStorage(){
-        return getPageBase().getSessionStorage().getUsers();
+    protected OrgStructurePanelStorage getOrgStructurePanelStorage(){
+        return getPageBase().getSessionStorage().getOrgStructurePanelStorage();
     }
 
 }

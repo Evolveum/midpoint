@@ -23,14 +23,14 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.server.TaskDtoTablePanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -50,14 +50,19 @@ public class FocusTasksTabPanel<F extends FocusType>
 
 	private TaskDtoProvider taskDtoProvider;
 
-	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<ObjectWrapper<F>> focusModel,
-			TaskDtoProvider taskDtoProvider, PageBase page) {
-		super(id, mainForm, focusModel, page);
+	public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel,
+			TaskDtoProvider taskDtoProvider) {
+		super(id, mainForm, focusModel);
 		this.taskDtoProvider = taskDtoProvider;
-		initLayout(page);
 	}
 
-	private void initLayout(final PageBase page) {
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
+		initLayout();
+	}
+	
+	private void initLayout() {
 
 		Label label = new Label(ID_LABEL, new IModel<String>() {
 			private static final long serialVersionUID = 1L;
@@ -88,10 +93,10 @@ public class FocusTasksTabPanel<F extends FocusType>
 	private List<IColumn<TaskDto, String>> initTaskColumns() {
 		List<IColumn<TaskDto, String>> columns = new ArrayList<>();
 
-		columns.add(PageTasks.createTaskNameColumn(this, "pageAdminFocus.task.name"));
-		columns.add(PageTasks.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
-		columns.add(PageTasks.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
-		columns.add(PageTasks.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
+		columns.add(TaskDtoTablePanel.createTaskNameColumn(this, "pageAdminFocus.task.name"));
+		columns.add(TaskDtoTablePanel.createTaskCategoryColumn(this, "pageAdminFocus.task.category"));
+		columns.add(TaskDtoTablePanel.createTaskExecutionStatusColumn(this, "pageAdminFocus.task.execution"));
+		columns.add(TaskDtoTablePanel.createTaskResultStatusColumn(this, "pageAdminFocus.task.status"));
 		return columns;
 	}
 

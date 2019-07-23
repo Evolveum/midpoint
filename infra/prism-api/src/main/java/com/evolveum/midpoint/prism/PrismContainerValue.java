@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,37 +49,30 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	PrismContext getPrismContextLocal();
 
 	/**
-     * Returns a set of items that the property container contains. The items may be properties or inner property containers.
+     * Returns a collection of items that the property container contains.
+	 * The items may be properties or inner property containers.
      * <p>
-     * The set may be null. In case there are no properties an empty set is
-     * returned.
-     * <p>
-     * Returned set is mutable. Live object is returned.
+     * Returned collection is mutable, but the caller should NOT modify it.
+	 * Instead - e.g. if it needs to remove values - it should call remove() method.
      *
-     * @return set of items that the property container contains.
+     * @return collection of items that the property container contains.
      */
-
-	List<Item<?,?>> getItems();
-
-	@SuppressWarnings("unchecked")
-	<I extends Item<?,?>> List<I> getItems(Class<I> type);
+	@NotNull
+	@Contract(pure = true)
+	Collection<Item<?,?>> getItems();
 
 	int size();
-
-	Item<?,?> getNextItem(Item<?, ?> referenceItem);
-
-	Item<?,?> getPreviousItem(Item<?, ?> referenceItem);
 
 	/**
      * Returns a set of properties that the property container contains.
      * <p>
-     * The set must not be null. In case there are no properties an empty set is
-     * returned.
-     * <p>
      * Returned set is immutable! Any change to it will be ignored.
      *
      * @return set of properties that the property container contains.
+	 *
+	 * This method costs a bit, as the set of properties needs to be created. Consider using other methods if possible.
      */
+	@NotNull
 	Set<PrismProperty<?>> getProperties();
 
 	Long getId();
@@ -97,7 +91,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	// For compatibility with other PrismValue types
 	C getValue();
 
-	@SuppressWarnings("unchecked")
+	@NotNull
 	C asContainerable();
 
 	Class<C> getCompileTimeClass();
@@ -107,9 +101,10 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	// returned class must be of type 'requiredClass' (or any of its subtypes)
 	C asContainerable(Class<C> requiredClass);
 
-	Collection<QName> getPropertyNames();
+	@NotNull
+	Collection<QName> getItemNames();
 
-	<IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV, ID> item) throws SchemaException;
+	<IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV, ID> item) throws SchemaException;
 
 	/**
      * Adds an item to a property container.
@@ -118,7 +113,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
      * @throws SchemaException
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
-	<IV extends PrismValue,ID extends ItemDefinition> boolean add(Item<IV, ID> item, boolean checkUniqueness) throws SchemaException;
+	<IV extends PrismValue,ID extends ItemDefinition> void add(Item<IV, ID> item, boolean checkUniqueness) throws SchemaException;
 
 	/**
      * Merges the provided item into this item. The values are joined together.
@@ -163,6 +158,8 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
 	void clear();
 
+	// Avoid using because of performance penalty (it is faster to search by item name).
+	// ... or reimplement ;)
 	boolean contains(Item item);
 
 	boolean contains(ItemName itemName);
@@ -353,8 +350,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	@Override
 	Class<?> getRealClass();
 
-	@SuppressWarnings("unchecked")
-	@Nullable
+	@NotNull
 	@Override
 	<T> T getRealValue();
 
@@ -368,7 +364,7 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	// EXPERIMENTAL. TODO write some tests
 	// BEWARE, it expects that definitions for items are present. Otherwise definition-less single valued items will get overwritten.
 	@SuppressWarnings("unchecked")
-	void mergeContent(PrismContainerValue<?> other, List<QName> overwrite) throws SchemaException;
+	void mergeContent(@NotNull PrismContainerValue<?> other, @NotNull List<QName> overwrite) throws SchemaException;
 
 	@Override
 	PrismContainerValue<?> getRootValue();
@@ -391,10 +387,10 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	void setOriginTypeRecursive(final OriginType originType);
 
 	// TODO optimize a bit + test thoroughly
-	void keepPaths(List<? extends ItemPath> keep);
+	void keepPaths(List<? extends ItemPath> keep) throws SchemaException;
 
 	// TODO optimize a bit + test thoroughly
-	void removePaths(List<? extends ItemPath> remove);
+	void removePaths(List<? extends ItemPath> remove) throws SchemaException;
 
 	@NotNull
 	@Override
@@ -407,4 +403,9 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 	PrismContainerDefinition<C> getDefinition();
 
 	void acceptParentVisitor(Visitor visitor);
+
+	/**
+	 * Like isEmpty but ignores presence of container value ID.
+	 */
+	boolean hasNoItems();
 }

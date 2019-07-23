@@ -126,13 +126,13 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
-		List<Item<?,?>> configItems = configContainerValue.getItems();
+		Collection<Item<?,?>> configItems = configContainerValue.getItems();
 		assertEquals("Wrong number of config items", 2, configItems.size());
 
 		PrismContainer<?> dummyConfigPropertiesContainer = configurationContainer.findContainer(
 				SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME);
 		assertNotNull("No icfc:configurationProperties container", dummyConfigPropertiesContainer);
-		List<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
+		Collection<Item<?,?>> dummyConfigPropItems = dummyConfigPropertiesContainer.getValue().getItems();
 		assertEquals("Wrong number of dummy ConfigPropItems items", 4, dummyConfigPropItems.size());
 	}
 
@@ -417,7 +417,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -442,7 +442,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		dummyResource.addAccount(newAccount);
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
 
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

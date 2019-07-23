@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.impl.processors.BaseConfigurationHelper;
+import com.evolveum.midpoint.wf.impl.processors.ConfigurationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,7 +33,7 @@ public class GcpConfigurationHelper {
     private static final Trace LOGGER = TraceManager.getTrace(GcpConfigurationHelper.class);
 
     @Autowired
-    private BaseConfigurationHelper baseConfigurationHelper;
+    private ConfigurationHelper configurationHelper;
 
     @Autowired
     private MidpointConfiguration midpointConfiguration;

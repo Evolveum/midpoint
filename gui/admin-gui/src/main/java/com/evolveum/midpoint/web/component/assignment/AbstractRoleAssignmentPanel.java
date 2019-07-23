@@ -16,47 +16,48 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxIconButton;
-import com.evolveum.midpoint.web.component.MultifunctionalButton;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
-import com.evolveum.midpoint.web.component.prism.PropertyOrReferenceWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueWrapper;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.PageAdminFocus;
-import com.evolveum.midpoint.web.page.admin.users.component.AllAssignmentsPreviewDialog;
-import com.evolveum.midpoint.web.page.admin.users.component.AssignmentInfoDto;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-import java.util.Collection;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchItemDefinition;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RelationKindType;
 
 /**
  * Created by honchar.
@@ -70,7 +71,7 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
     protected static final String DOT_CLASS = AbstractRoleAssignmentPanel.class.getName() + ".";
     private static final String OPERATION_LOAD_TARGET_REF_OBJECT = DOT_CLASS + "loadAssignmentTargetRefObject";
 
-    public AbstractRoleAssignmentPanel(String id, IModel<ContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
+    public AbstractRoleAssignmentPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentContainerWrapperModel){
         super(id, assignmentContainerWrapperModel);
     }
 
@@ -103,44 +104,28 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
 //        return searchContainer;
 //    }
 
-    protected List<IColumn<ContainerValueWrapper<AssignmentType>, String>> initColumns() {
-        List<IColumn<ContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
-
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(
+    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
+        List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> columns = new ArrayList<>();
+        
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(
                 createStringResource("AbstractRoleAssignmentPanel.relationLabel")) {
             @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<ContainerValueWrapper<AssignmentType>> assignmentModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId, IModel<PrismContainerValueWrapper<AssignmentType>> assignmentModel) {
                 item.add(new Label(componentId, getRelationLabelValue(assignmentModel.getObject())));
             }
         });
 
         if (!OrgType.COMPLEX_TYPE.equals(getAssignmentType())) {
-            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.tenant")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-
-                    item.add(new Label(componentId, getTenantLabelModel(rowModel.getObject())));
-                }
-            });
-            columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AssignmentType.orgReferenceShorten")) {
-                private static final long serialVersionUID = 1L;
-
-                @Override
-                public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                         final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
-                    item.add(new Label(componentId, getOrgRefLabelModel(rowModel.getObject())));
-                }
-            });
+        	columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_TENANT_REF, ColumnType.STRING, getPageBase()));
+        	columns.add(new PrismReferenceWrapperColumn<AssignmentType, ObjectReferenceType>(getModel(), AssignmentType.F_ORG_REF, ColumnType.STRING, getPageBase()));
         }
-        columns.add(new AbstractColumn<ContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
+        
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("AbstractRoleAssignmentPanel.identifierLabel")){
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void populateItem(Item<ICellPopulator<ContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<ContainerValueWrapper<AssignmentType>> rowModel) {
+            public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
+                                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
                 item.add(new Label(componentId, getIdentifierLabelModel(rowModel.getObject())));
             }
         });
@@ -148,13 +133,13 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return columns;
     }
 
-    private String getRelationLabelValue(ContainerValueWrapper<AssignmentType> assignmentWrapper){
-        if (assignmentWrapper == null || assignmentWrapper.getContainerValue() == null || assignmentWrapper.getContainerValue().getValue() == null
-                || assignmentWrapper.getContainerValue().getValue().getTargetRef() == null
-                || assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation() == null){
+    private String getRelationLabelValue(PrismContainerValueWrapper<AssignmentType> assignmentWrapper){
+        if (assignmentWrapper == null || assignmentWrapper.getRealValue() == null  
+                || assignmentWrapper.getRealValue().getTargetRef() == null
+                || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
             return "";
         }
-        return assignmentWrapper.getContainerValue().getValue().getTargetRef().getRelation().getLocalPart();
+        return assignmentWrapper.getRealValue().getTargetRef().getRelation().getLocalPart();
     }
 
 
@@ -202,29 +187,11 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
         return AbstractRoleType.COMPLEX_TYPE;
     }
 
-    private IModel<String> getTenantLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
+    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(PrismContainerValueWrapper<AssignmentType> assignmentContainer){
+        if (assignmentContainer == null || assignmentContainer.getRealValue() == null){
             return Model.of("");
         }
-        PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(
-			    ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_TENANT_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
-    }
-
-    private IModel<String> getOrgRefLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
-            return Model.of("");
-        }
-        PropertyOrReferenceWrapper policyRuleWrapper = assignmentContainer.findPropertyWrapper(ItemPath.create(assignmentContainer.getPath(), AssignmentType.F_ORG_REF));
-        return Model.of(WebComponentUtil.getReferencedObjectDisplayNamesAndNames((Referencable) ((ValueWrapper<Referencable>)policyRuleWrapper.getValues().get(0)).getValue().getRealValue(), false));
-
-    }
-
-    private <O extends ObjectType> IModel<String> getIdentifierLabelModel(ContainerValueWrapper<AssignmentType> assignmentContainer){
-        if (assignmentContainer == null || assignmentContainer.getContainerValue() == null){
-            return Model.of("");
-        }
-        AssignmentType assignment = assignmentContainer.getContainerValue().asContainerable();
+        AssignmentType assignment = assignmentContainer.getRealValue();
         if (assignment.getTargetRef() == null){
             return Model.of("");
         }

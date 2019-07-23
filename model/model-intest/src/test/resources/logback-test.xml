@@ -22,6 +22,13 @@
 			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
 		</encoder>
 	</appender>
+	<appender name="TracingAppender" class="com.evolveum.midpoint.util.logging.TracingAppender">
+		<layout>
+			<pattern>%date [%thread] %-5level \(%logger{46}\): %message%n</pattern>
+		</layout>
+	</appender>
+	<turboFilter class="com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter"/>
+
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="OFF"/>
     <logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="OFF"/>
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
@@ -41,6 +48,7 @@
 		
 	<logger name="PROFILING" level="OFF" />
 	<logger name="com.evolveum.midpoint.audit.log" level="TRACE" />
+	<logger name="com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl" level="DEBUG" />	<!-- to show final statistics -->
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
@@ -137,6 +145,7 @@
 
 	<root level="INFO">
 		<appender-ref ref="X" />
+		<appender-ref ref="TracingAppender" />
 	</root>
 </configuration>
 

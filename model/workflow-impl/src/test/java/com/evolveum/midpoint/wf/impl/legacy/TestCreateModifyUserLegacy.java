@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.impl.legacy;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -26,7 +25,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.impl.WorkflowResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalContextType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -36,8 +38,6 @@ import javax.xml.bind.JAXBException;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * @author mederly
@@ -49,7 +49,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
     protected static final Trace LOGGER = TraceManager.getTrace(TestCreateModifyUserLegacy.class);
 
     private static final File REQ_USER_ELISABETH_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR,
-            "user-elisabeth-modify-add-assignment-role3.xml");
+            "user-elisabeth-modify-add-assignment-role1.xml");
 
     public TestCreateModifyUserLegacy() throws JAXBException {
 		super();
@@ -62,7 +62,7 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
     public void test010CreateElisabeth() throws Exception {
         TestUtil.displayTestTitle(this, "test010CreateElisabeth");
        	executeTest("test010CreateElisabeth", USER_ELISABETH_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+            @Override int subcasesCount() { return 2; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
             @Override boolean removeAssignmentsBeforeTest() { return false; }
@@ -75,23 +75,27 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNoObject(UserType.class, USER_ELISABETH_OID, task, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, task, result);
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
+                assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, opTask, result);
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApproversForCreate(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(CaseType subcase,
+                    ApprovalContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
         });
 	}
@@ -99,11 +103,11 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
     /**
      * Add another assignment to user elisabeth (with sensitive role)
      */
-    @Test(enabled = true)
-    public void test020ModifyElisabethAssignRole3() throws Exception {
-        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole3");
-        executeTest("test020ModifyElisabethAssignRole3", USER_ELISABETH_OID, new TestDetails() {
-            @Override int subtaskCount() { return 1; }
+    @Test
+    public void test020ModifyElisabethAssignRole1() throws Exception {
+        TestUtil.displayTestTitle(this, "test020ModifyElisabethAssignRole1");
+        executeTest("test020ModifyElisabethAssignRole1", USER_ELISABETH_OID, new TestDetails() {
+            @Override int subcasesCount() { return 1; }
             @Override boolean immediate() { return false; }
             @Override boolean checkObjectOnSubtasks() { return true; }
             @Override boolean removeAssignmentsBeforeTest() { return false; }
@@ -117,24 +121,28 @@ public class TestCreateModifyUserLegacy extends AbstractWfTestLegacy {
             }
 
             @Override
-            public void assertsAfterClockworkRun(Task rootTask, List<Task> wfSubtasks, OperationResult result) throws Exception {
-                ModelContext taskModelContext = wfTaskUtil.getModelContext(rootTask, result);
-                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
+            public void assertsAfterClockworkRun(CaseType rootCase,
+                    CaseType case0, List<CaseType> subcases,
+                    Task opTask, OperationResult result) throws Exception {
+//                ModelContext taskModelContext = temporaryHelper.getModelContext(rootCase, opTask, result);
+//                assertEquals("There are modifications left in primary focus delta", 0, taskModelContext.getFocusContext().getPrimaryDelta().getModifications().size());
                 //assertNotAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
             }
 
             @Override
-            void assertsRootTaskFinishes(Task task, List<Task> subtasks, OperationResult result) throws Exception {
-                //assertAssignedRole(USER_ELISABETH_OID, ROLE_R3_OID, task, result);
-                //checkDummyTransportMessages("simpleUserNotifier", 1);
-                //checkWorkItemAuditRecords(createResultMap(ROLE_R3_OID, WorkflowResult.APPROVED));
+            void assertsRootCaseFinishes(CaseType aCase, List<CaseType> subcases, Task opTask,
+                    OperationResult result) throws Exception {
+                assertAssignedRole(USER_ELISABETH_OID, ROLE_R1_OID, opTask, result);
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                checkAuditRecords(createResultMap(ROLE_R1_OID, WorkflowResult.APPROVED));
                 checkUserApprovers(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);
                 checkUserApproversForCreate(USER_ELISABETH_OID, Arrays.asList(R1BOSS_OID), result);   // this one should remain from test010
             }
 
             @Override
-            boolean decideOnApproval(String executionId) throws Exception {
-                return decideOnRoleApproval(executionId);
+            boolean decideOnApproval(CaseType subcase,
+                    ApprovalContextType wfContext) throws Exception {
+                return decideOnRoleApproval(subcase, wfContext);
             }
         });
     }

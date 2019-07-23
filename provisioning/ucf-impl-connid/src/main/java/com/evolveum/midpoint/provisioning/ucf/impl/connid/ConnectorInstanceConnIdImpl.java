@@ -17,13 +17,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +25,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.task.api.RunningTask;
+import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -110,14 +106,6 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
@@ -1681,7 +1669,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	@NotNull
 	@Override
 	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult)
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1690,7 +1678,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		result.addArbitraryObjectAsParam("lastToken", lastToken);
 
 		// create sync token from the property last token
-		SyncToken syncToken = null;
+		SyncToken syncToken;
 		try {
 			syncToken = getSyncToken(lastToken);
 			LOGGER.trace("Sync token created from the property last token: {}", syncToken==null?null:syncToken.getValue());
@@ -1714,12 +1702,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 		OperationOptions options = optionsBuilder.build();
 
-		SyncResultsHandler syncHandler = new SyncResultsHandler() {
-			@Override
-			public boolean handle(SyncDelta delta) {
-				LOGGER.trace("Detected sync delta: {}", delta);
-				return syncDeltas.add(delta);
-			}
+		SyncResultsHandler syncHandler = delta -> {
+			LOGGER.trace("Detected sync delta: {}", delta);
+			syncDeltas.add(delta);
+			return canRun(reporter) && (maxChanges == null || maxChanges == 0 || syncDeltas.size() < maxChanges);
 		};
 
 		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
@@ -1732,8 +1718,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		try {
 			InternalMonitor.recordConnectorOperation("sync");
 			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-			lastReceivedToken = connIdConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
-					options);
+			lastReceivedToken = connIdConnectorFacade.sync(icfObjectClass, syncToken, syncHandler, options);
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 			connIdResult.recordSuccess();
 			connIdResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
@@ -1741,8 +1726,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
 			Throwable midpointEx = processConnIdException(ex, this, connIdResult);
 			result.computeStatus();
-			// Do some kind of acrobatics to do proper throwing of checked
-			// exception
+			// Do some kind of acrobatics to do proper throwing of checked exception
 			if (midpointEx instanceof CommunicationException) {
 				throw (CommunicationException) midpointEx;
 			} else if (midpointEx instanceof GenericFrameworkException) {
@@ -1757,6 +1741,11 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
 			}
 		}
+		if (!canRun(reporter)) {
+			result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
+			return Collections.emptyList();
+		}
+
 		// convert changes from icf to midpoint Change
 		List<Change> changeList;
 		try {
@@ -1767,14 +1756,20 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		if (lastReceivedToken != null) {
-			Change lastChange = new Change((ObjectDelta)null, getToken(lastReceivedToken));
+			Change lastChange = new Change(null, getToken(lastReceivedToken));
 			LOGGER.trace("Adding last change: {}", lastChange);
 			changeList.add(lastChange);
 		}
 
 		result.recordSuccess();
-		result.addReturn(OperationResult.RETURN_COUNT, changeList == null ? 0 : changeList.size());
+		result.addReturn(OperationResult.RETURN_COUNT, changeList.size());
 		return changeList;
+	}
+
+	private boolean canRun(StateReporter reporter) {
+		RunningTask task = reporter != null && reporter.getTask() instanceof RunningTask
+				? ((RunningTask) reporter.getTask()) : null;
+		return task == null || task.canRun();
 	}
 
 	@Override
@@ -1879,9 +1874,12 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
-				if (!cont) {
-					result.recordWarning("Stopped on request from the handler");
-				}
+				/*
+				 * When iterative search on resource was stopped, we used to record WARNING into OperationResult (originally
+				 * there was even PARTIAL_ERROR). But this is not quite correct. The operation as such is successful.
+				 * (Maybe we should provide OperationResult to handler so that it can put something to it.)
+				 * This would also help when displaying operation result structure.
+				 */
 				recordResume();
 				return cont;
 			}
@@ -1935,18 +1933,24 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	        }
 	        if (searchHierarchyConstraints != null) {
 	        	ResourceObjectIdentification baseContextIdentification = searchHierarchyConstraints.getBaseContext();
-	        	// Only LDAP connector really supports base context. And this one will work better with
-	        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
-	        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
-	        	if (secondaryIdentifier == null) {
-	        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
-	        		result.recordFatalError(e);
-	        		throw e;
+	        	if (baseContextIdentification != null) {
+		        	// Only LDAP connector really supports base context. And this one will work better with
+		        	// DN. And DN is secondary identifier (__NAME__). This is ugly, but practical. It works around ConnId problems.
+		        	ResourceAttribute<?> secondaryIdentifier = baseContextIdentification.getSecondaryIdentifier();
+		        	if (secondaryIdentifier == null) {
+		        		SchemaException e = new SchemaException("No secondary identifier in base context identification "+baseContextIdentification);
+		        		result.recordFatalError(e);
+		        		throw e;
+		        	}
+		        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
+		        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
+		        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
+					optionsBuilder.setContainer(containerQualifiedUid);
 	        	}
-	        	String secondaryIdentifierValue = secondaryIdentifier.getRealValue(String.class);
-	        	ObjectClass baseContextIcfObjectClass = connIdNameMapper.objectClassToConnId(baseContextIdentification.getObjectClassDefinition(), getSchemaNamespace(), connectorType, legacySchema);
-	        	QualifiedUid containerQualifiedUid = new QualifiedUid(baseContextIcfObjectClass, new Uid(secondaryIdentifierValue));
-				optionsBuilder.setContainer(containerQualifiedUid);
+	        	SearchHierarchyScope scope = searchHierarchyConstraints.getScope();
+	        	if (scope != null) {
+	        		optionsBuilder.setScope(scope.getScopeString());
+	        	}
 	        }
 
 		} catch (SchemaException e) {

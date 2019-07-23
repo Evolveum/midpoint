@@ -170,7 +170,7 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 				results = searchObjects(query, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
 				return createDataSourceFromObjects(results);
 			} else {
-				if (script.contains("AuditEventRecord")){
+				if (isAuditReport()) {
 					Collection<AuditEventRecord> audtiEventRecords = searchAuditRecords(script, getPromptingParameters());
 					Collection<AuditEventRecordType> auditEventRecordsType = new ArrayList<>();
 					for (AuditEventRecord aer : audtiEventRecords){
@@ -190,6 +190,8 @@ public abstract class MidPointQueryExecutor extends JRAbstractQueryExecuter {
 			throw new JRException(e);
 		}
 	}
+	
+	protected abstract boolean isAuditReport();
 
 	@Override
 	public void close() {

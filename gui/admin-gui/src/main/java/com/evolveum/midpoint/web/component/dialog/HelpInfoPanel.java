@@ -34,7 +34,7 @@ public class HelpInfoPanel extends Panel implements Popupable{
         helpLabel.setEscapeModelStrings(false);
         content.add(helpLabel);
 
-        AjaxLink ok = new AjaxLink(ID_BUTTON_OK) {
+        AjaxLink<Void> ok = new AjaxLink<Void>(ID_BUTTON_OK) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

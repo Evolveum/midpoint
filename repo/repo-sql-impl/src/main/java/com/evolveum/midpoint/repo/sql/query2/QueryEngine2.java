@@ -74,7 +74,7 @@ public class QueryEngine2 {
         return new RQueryImpl(hqlQuery, hibernateQuery);
     }
 
-    /**
+    /** MID-5579
      * Both ObjectType and AssignmentHolderType are mapped to RObject. So when searching for AssignmentHolderType it is not sufficient to
      * query this table. This method hacks this situation a bit by introducing explicit type filter for AssignmentHolderType.
      */

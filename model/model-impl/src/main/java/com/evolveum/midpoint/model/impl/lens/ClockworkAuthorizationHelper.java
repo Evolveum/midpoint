@@ -245,9 +245,9 @@ public class ClockworkAuthorizationHelper {
 			LOGGER.trace("Security decision for {} items: {}", assignmentElementQName.getLocalPart(), assignmentItemDecision);
 			if (assignmentItemDecision == AccessDecision.ALLOW) {
 				// Nothing to do, operation is allowed for all values
-				LOGGER.debug("Allow assignment/unassignment to {} becasue access to {} container/properties is explicitly allowed", assignmentElementQName.getLocalPart(), object);
+				LOGGER.debug("Allow assignment/unassignment to {} because access to {} container/properties is explicitly allowed", assignmentElementQName.getLocalPart(), object);
 			} else if (assignmentItemDecision == AccessDecision.DENY) {
-				LOGGER.debug("Deny assignment/unassignment to {} becasue access to {} container/properties is explicitly denied", assignmentElementQName.getLocalPart(), object);
+				LOGGER.debug("Deny assignment/unassignment to {} because access to {} container/properties is explicitly denied", assignmentElementQName.getLocalPart(), object);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Denied request for element context {}: access to {} container/properties is explicitly denied", elementContext.getHumanReadableName(), assignmentElementQName.getLocalPart());
 				}

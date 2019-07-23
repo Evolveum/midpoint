@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.caching.CacheConfiguration;
 import com.evolveum.midpoint.util.caching.CacheConfiguration.CacheObjectTypeConfiguration;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.cache2k.expiry.Expiry;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -35,6 +37,7 @@ public abstract class AbstractGlobalCache {
 	static final int DEFAULT_TIME_TO_LIVE = 60;                     // see also default-caching-profile.xml in resources
 
 	@Autowired protected CacheConfigurationManager configurationManager;
+	@Autowired protected PrismContext prismContext;
 
 	boolean supportsObjectType(Class<?> type) {
 		CacheType cacheType = getCacheType();
@@ -80,4 +83,15 @@ public abstract class AbstractGlobalCache {
 
 	protected abstract CacheType getCacheType();
 
+	<T extends ObjectType> boolean isClusterwideInvalidation(Class<T> type) {
+		CacheConfiguration configuration = getConfiguration();
+		return configuration != null && configuration.isClusterwideInvalidation(type);
+	}
+
+	<T extends ObjectType> boolean isSafeRemoteInvalidation(Class<T> type) {
+		CacheConfiguration configuration = getConfiguration();
+		return configuration != null && configuration.isSafeRemoteInvalidation(type);
+	}
+
+	public abstract void clear();
 }

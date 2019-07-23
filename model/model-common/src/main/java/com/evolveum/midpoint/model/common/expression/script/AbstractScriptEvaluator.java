@@ -110,7 +110,7 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
 					continue;
 				}
 				String variableName = variableEntry.getKey();
-				TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, context.getObjectResolver(), context.getContextDescription(), prismContext, context.getTask(), context.getResult());
+				TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, context.getObjectResolver(), context.getContextDescription(), context.getExpressionType().getObjectVariableMode(), prismContext, context.getTask(), context.getResult());
 				scriptVariableMap.put(variableName, variableTypedValue.getValue());
 			}
 		}

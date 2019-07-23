@@ -84,7 +84,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	private static final String OPERATION_LOAD_CUSTOM_MENU_ITEMS = DOT_CLASS + "loadCustomMenuItems";
 
 	private ObjectTypes type;
-	private PageBase parentPage;
 
 	private LoadableModel<Search> searchModel;
 
@@ -103,26 +102,30 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-			PageBase parentPage) {
-		this(id, defaultType, tableId, options, false, parentPage);
+	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
+		this(id, defaultType, tableId, options, false);
 	}
 
 	/**
 	 * @param defaultType specifies type of the object that will be selected by default. It can be changed.
 	 */
-	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect, PageBase parentPage) {
-		this(id, defaultType, tableId, null, multiselect, parentPage);
+	ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect) {
+		this(id, defaultType, tableId, null, multiselect);
 	}
 
 	public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-						   boolean multiselect, PageBase parentPage) {
+						   boolean multiselect) {
 		super(id);
 		this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
-		this.parentPage = parentPage;
 		this.options = options;
 		this.multiselect = multiselect;
 		this.tableId = tableId;
+
+	}
+
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 	}
 
@@ -182,7 +185,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected Search createSearch() {
-		return SearchFactory.createSearch(type.getClassDefinition(), parentPage);
+		return SearchFactory.createSearch(type.getClassDefinition(), getPageBase());
 	}
 
 	private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -200,7 +203,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		addCustomActions(menuItems, () -> getSelectedObjects());
 
 		if (!menuItems.isEmpty()) {
-			InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, parentPage);
+			InlineMenuButtonColumn<SelectableBean<O>> actionsColumn = new InlineMenuButtonColumn<>(menuItems, getPageBase());
 			columns.add(actionsColumn);
 		}
 
@@ -208,7 +211,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 
 		BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
-				columns, tableId, tableId == null ? 10 : parentPage.getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
+				columns, tableId, tableId == null ? 10 : getPageBase().getSessionStorage().getUserProfile().getPagingSize(getTableIdKeyValue())) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -226,6 +229,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 				WebMarkupContainer bar = ObjectListPanel.this.createTableButtonToolbar(id);
 
 				return bar != null ? bar : super.createButtonToolbar(id);
+			}
+
+			@Override
+			protected boolean hideFooterIfSinglePage(){
+				return ObjectListPanel.this.hideFooterIfSinglePage();
 			}
 
 		};
@@ -278,7 +286,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			}
 			ItemPath columnPath = customColumn.getPath().getItemPath();
 			// TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
-			ItemDefinition itemDefinition = parentPage.getPrismContext().getSchemaRegistry()
+			ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
 					.findObjectDefinitionByCompileTimeClass(type.getClassDefinition())
 					.findItemDefinition(columnPath);
 			if (itemDefinition == null) {
@@ -368,7 +376,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			columns.add(checkboxColumn);
 		}
 
-		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(parentPage);
+		IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(getPageBase());
 		columns.add(iconColumn);
 
 		IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null);
@@ -383,7 +391,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
 		List<O> preSelectedObjectList = getPreselectedObjectList();
 		SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
-				parentPage, (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
+				getPageBase(), (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -500,7 +508,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	protected String getStorageKey() {
-		String storageKey =  WebComponentUtil.getStorageKeyForPage(parentPage.getClass());
+		String storageKey =  WebComponentUtil.getStorageKeyForPage(getPageBase().getClass());
 		if (storageKey == null) {
 			storageKey = WebComponentUtil.getStorageKeyForTableId(tableId);
 		}
@@ -565,7 +573,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		Table table = getTable();
 		table.setCurrentPage(null);
 		target.add((Component) table);
-		target.add(parentPage.getFeedbackPanel());
+		target.add(getPageBase().getFeedbackPanel());
 
 	}
 
@@ -590,7 +598,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		}
 
 		target.add((Component) table);
-		target.add(parentPage.getFeedbackPanel());
+		target.add(getPageBase().getFeedbackPanel());
 
 	}
 
@@ -627,7 +635,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
 	protected ObjectQuery createContentQuery() {
 		Search search = searchModel.getObject();
-		ObjectQuery query = search.createObjectQuery(parentPage.getPrismContext());
+		ObjectQuery query = search.createObjectQuery(getPageBase().getPrismContext());
 		query = addFilterToContentQuery(query);
 		return query;
 	}
@@ -643,7 +651,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
 
 	protected IColumn<SelectableBean<O>, String> createIconColumn(){
-		return (IColumn) ColumnUtils.createIconColumn(parentPage);
+		return (IColumn) ColumnUtils.createIconColumn(getPageBase());
 	}
 
 	protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath);
@@ -656,12 +664,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		CompiledObjectCollectionView guiObjectListViewType = getGuiObjectListViewType();
 		if (guiObjectListViewType != null && !guiObjectListViewType.getActions().isEmpty()) {
 			actionsList.addAll(WebComponentUtil.createMenuItemsFromActions(guiObjectListViewType.getActions(),
-					OPERATION_LOAD_CUSTOM_MENU_ITEMS, parentPage, objectsSupplier));
+					OPERATION_LOAD_CUSTOM_MENU_ITEMS, getPageBase(), objectsSupplier));
 		}
 	}
 
 	public void addPerformed(AjaxRequestTarget target, List<O> selected) {
-		parentPage.hideMainPopup(target);
+		getPageBase().hideMainPopup(target);
 	}
 
 	private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
@@ -670,7 +678,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private CompiledObjectCollectionView getGuiObjectListViewType(){
-		return parentPage.getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
+		return getPageBase().getCompiledUserProfile().findObjectCollectionView(type.getTypeQName(), null);
 	}
 
 	private boolean isCustomColumnsListConfigured(){
@@ -679,7 +687,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 	}
 
 	private String getItemDisplayName(GuiObjectColumnType column){
-		ItemDefinition itemDefinition = parentPage.getPrismContext().getSchemaRegistry()
+		ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath());
 		return itemDefinition == null ? "" : itemDefinition.getDisplayName();
 	}
@@ -694,5 +702,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 			return null;
 		}
 		return storage.getPaging();
+	}
+
+	protected boolean hideFooterIfSinglePage(){
+		return false;
 	}
 }

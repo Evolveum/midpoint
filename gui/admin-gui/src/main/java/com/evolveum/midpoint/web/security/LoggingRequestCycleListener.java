@@ -16,25 +16,26 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.error.PageError;
 import org.apache.wicket.Application;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.component.IRequestablePage;
-import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
+import org.apache.wicket.request.cycle.IRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.settings.RequestLoggerSettings;
+
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.error.PageError;
 
 /**
  * @author Viliam Repan (lazyman)
  */
-public class LoggingRequestCycleListener extends AbstractRequestCycleListener {
+public class LoggingRequestCycleListener implements IRequestCycleListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(LoggingRequestCycleListener.class);
 
@@ -78,7 +79,7 @@ public class LoggingRequestCycleListener extends AbstractRequestCycleListener {
                         WebComponentUtil.debugHandler(handler));
             }
         }
-        super.onRequestHandlerScheduled(cycle, handler);
+//        super.onRequestHandlerScheduled(cycle, handler);
     }
 
     @Override
@@ -96,7 +97,7 @@ public class LoggingRequestCycleListener extends AbstractRequestCycleListener {
                     cycle.getRequest().getOriginalUrl(),
                     WebComponentUtil.debugHandler(cycle.getActiveRequestHandler()));
         }
-        super.onBeginRequest(cycle);
+//        super.onBeginRequest(cycle);
     }
 
     @Override
@@ -106,7 +107,7 @@ public class LoggingRequestCycleListener extends AbstractRequestCycleListener {
                     cycle.getRequest().getOriginalUrl(),
                     WebComponentUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
         }
-        super.onBeginRequest(cycle);
+//        super.onBeginRequest(cycle);
     }
 
     @Override
@@ -117,7 +118,7 @@ public class LoggingRequestCycleListener extends AbstractRequestCycleListener {
                     WebComponentUtil.debugHandler(cycle.getRequestHandlerScheduledAfterCurrent()));
 
         }
-        super.onBeginRequest(cycle);
+//        super.onBeginRequest(cycle);
     }
 
     @Override

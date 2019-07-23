@@ -18,7 +18,6 @@ package com.evolveum.midpoint.task.quartzimpl.execution;
 import java.util.List;
 
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -56,12 +55,11 @@ public class HandlerExecutor {
 
 	@NotNull
 	public TaskRunResult executeHandler(RunningTaskQuartzImpl task, TaskPartitionDefinitionType partition, TaskHandler handler, OperationResult executionResult) {
-
 		if (handler instanceof WorkBucketAwareTaskHandler) {
 			return executeWorkBucketAwareTaskHandler(task, partition, (WorkBucketAwareTaskHandler) handler, executionResult);
+		} else {
+			return executePlainTaskHandler(task, partition, handler);
 		}
-		
-		return executePlainTaskHandler(task, partition, handler);
 	}
 
 	@NotNull
@@ -69,7 +67,9 @@ public class HandlerExecutor {
 		TaskRunResult runResult;
 		try {
 			LOGGER.trace("Executing handler {}", handler.getClass().getName());
+			task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
 			runResult = handler.run(task, partition);
+			task.storeOperationStatsDeferred();
 			if (runResult == null) {				// Obviously an error in task handler
 				LOGGER.error("Unable to record run finish: task returned null result");
 				runResult = createFailureTaskRunResult(task, "Unable to record run finish: task returned null result", null);
@@ -97,13 +97,15 @@ public class HandlerExecutor {
 			}
 		}
 
-		boolean initialBucket = true;
+		task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), true);
+
 		TaskWorkBucketProcessingResult runResult = null;
-		for (;;) {
+		for (boolean initialBucket = true; ; initialBucket = false) {
 			WorkBucketType bucket;
 			try {
 				try {
-					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, () -> task.canRun(), initialBucket, executionResult);
+					bucket = workStateManager.getWorkBucket(task.getOid(), FREE_BUCKET_WAIT_TIME, task::canRun, initialBucket,
+							task.getWorkBucketStatisticsCollector(), executionResult);
 				} catch (InterruptedException e) {
 					LOGGER.trace("InterruptedExecution in getWorkBucket for {}", task);
 					if (task.canRun()) {
@@ -116,16 +118,20 @@ public class HandlerExecutor {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't allocate a work bucket for task {} (coordinator {})", t, task, null);
 				return createFailureTaskRunResult(task, "Couldn't allocate a work bucket for task: " + t.getMessage(), t);
 			}
-			initialBucket = false;
 			if (bucket == null) {
 				LOGGER.trace("No (next) work bucket within {}, exiting", task);
 				runResult = handler.onNoMoreBuckets(task, runResult);
 				return runResult != null ? runResult : createSuccessTaskRunResult(task);
 			}
 			try {
+				if (!initialBucket) {
+					task.startCollectingOperationStats(handler.getStatisticsCollectionStrategy(), false);
+				}
 				LOGGER.trace("Executing handler {} with work bucket of {} for {}", handler.getClass().getName(), bucket, task);
 				runResult = handler.run(task, bucket, taskPartition, runResult);
 				LOGGER.trace("runResult is {} for {}", runResult, task);
+				task.storeOperationStatsDeferred();
+
 				if (runResult == null) {                // Obviously an error in task handler
 					LOGGER.error("Unable to record run finish: task returned null result");
 					//releaseWorkBucketChecked(bucket, executionResult);
@@ -140,7 +146,8 @@ public class HandlerExecutor {
 				return runResult;
 			}
 			try {
-				((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(), executionResult);
+				((WorkStateManager) taskManager.getWorkStateManager()).completeWorkBucket(task.getOid(), bucket.getSequentialNumber(),
+						task.getWorkBucketStatisticsCollector(), executionResult);
 			} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException | RuntimeException e) {
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't complete work bucket for task {}", e, task);
 				return createFailureTaskRunResult(task, "Couldn't complete work bucket: " + e.getMessage(), e);

@@ -2497,7 +2497,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+        assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
@@ -2552,7 +2552,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+		assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_CRIMSON_NAME).resetBreakMode();
 
@@ -2595,7 +2595,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+		assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
 		PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
 		display("User after", userAfter);
@@ -2958,7 +2958,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+		assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 
@@ -3013,7 +3013,7 @@ public class TestMapping extends AbstractMappingTest {
 
 		// THEN
         displayThen(TEST_NAME);
-        assertSuccess(result);
+		assertSuccess(result, 1);           // there's hidden PARTIAL_ERROR deep inside
 
         getDummyResource(RESOURCE_DUMMY_LIGHT_CRIMSON_NAME).resetBreakMode();
 

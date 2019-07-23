@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.casemgmt.api.CaseManager;
-import com.evolveum.midpoint.casemgmt.api.CaseManagerAware;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcher;
+import com.evolveum.midpoint.casemgmt.api.CaseEventDispatcherAware;
 import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
@@ -78,7 +78,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 	
 	@Autowired private PrismContext prismContext;
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
-	@Autowired private CaseManager caseManager;
+	@Autowired private CaseEventDispatcher caseManager;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private UcfExpressionEvaluator ucfExpressionEvaluator;
@@ -251,8 +251,8 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 		if (connectorInstance instanceof RepositoryAware) {
 			((RepositoryAware)connectorInstance).setRepositoryService(repositoryService);
 		}
-		if (connectorInstance instanceof CaseManagerAware) {
-			((CaseManagerAware)connectorInstance).setCaseManager(caseManager);
+		if (connectorInstance instanceof CaseEventDispatcherAware) {
+			((CaseEventDispatcherAware)connectorInstance).setDispatcher(caseManager);
 		}
 		if (connectorInstance instanceof TaskManagerAware) {
 			((TaskManagerAware)connectorInstance).setTaskManager(taskManager);

@@ -23,7 +23,6 @@ import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.EvaluatedAssignmentImpl;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -156,8 +154,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		this.result = result;
 	}
 
-	public void reset() {
-		assignmentEvaluator.reset();
+	public void reset(boolean alsoMemberOfInvocations) {
+		assignmentEvaluator.reset(alsoMemberOfInvocations);
 	}
 	
 //	public DeltaSetTriple<EvaluatedAssignmentImpl<AH>> preProcessAssignments(PrismObject<TaskType> taskType) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -209,12 +207,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         		getNewObjectLifecycleState(focusContext), assignmentEvaluator.getObjectResolver(), 
         		prismContext, task, result);
         
-        TaskType taskType = task.getTaskType();
-        LOGGER.trace("Task for process: {}", taskType.asPrismObject().debugDumpLazily());
-        AssignmentType taskAssignment = null;
-        if (CollectionUtils.isNotEmpty(taskType.getAssignment())) {
+        LOGGER.trace("Task for process: {}", task.debugDumpLazily());
+        AssignmentType taskAssignment;
+        if (task.hasAssignments()) {
         	taskAssignment = new AssignmentType(prismContext);
-        	taskAssignment.setTarget(taskType);
+        	taskAssignment.setTarget(task.getUpdatedOrClonedTaskObject().asObjectable());
+        } else {
+        	taskAssignment = null;
         }
         
         LOGGER.trace("Task assignment: {}", taskAssignment);
@@ -571,7 +570,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getSimpleName()+".evaluateAssignment");
+		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getName()+".evaluateAssignment");
 		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
@@ -652,4 +651,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 		return focusContext.getObjectDefinition().findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 	}
 
+	boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
+		return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+	}
 }

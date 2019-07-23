@@ -52,7 +52,6 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.util.exception.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -606,7 +605,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		assertNotNull("No configuration container in "+resource+" from "+source, configurationContainer);
 		PrismContainer<Containerable> configPropsContainer = configurationContainer.findContainer(SchemaTestConstants.ICFC_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configuration properties container in "+resource+" from "+source, configPropsContainer);
-		List<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
+		Collection<? extends Item<?,?>> configProps = configPropsContainer.getValue().getItems();
 		assertEquals("Wrong number of config properties in "+resource+" from "+source, numConfigProps, configProps.size());
 		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new ItemName(connectorNamespace,credentialsPropertyName));
 		if (credentialsProp == null) {
@@ -922,10 +921,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		} catch (FaultMessage ex) {
 			LOGGER.info("fault {}", ex.getFaultInfo());
 			LOGGER.info("fault {}", ex.getCause());
-			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){
+			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType) {
 			// this is OK, we expect this
 			} else{
-				fail("Expected object already exists exception, but haven't got one.");
+				fail("Expected object already exists exception, but got: " + ex.getFaultInfo());
 			}
 
 		}
@@ -2841,7 +2840,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Test for extension. This will also roughly test extension processor
         // and schema processor
-        PrismContainer<?> taskExtension = task.getExtension();
+        PrismContainer<?> taskExtension = task.getExtensionOrClone();
         AssertJUnit.assertNotNull(taskExtension);
         display("Task extension", taskExtension);
         PrismProperty<String> shipStateProp = taskExtension.findProperty(MY_SHIP_STATE);
@@ -3077,7 +3076,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private Object findSyncTokenObject(Task syncCycle) {
         Object token = null;
-        PrismProperty<?> tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+        PrismProperty<?> tokenProperty = syncCycle.getExtensionOrClone().findProperty(SchemaConstants.SYNC_TOKEN);
         if (tokenProperty != null) {
         	Collection<?> values = tokenProperty.getRealValues();
         	if (values.size() > 1) {

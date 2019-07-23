@@ -24,7 +24,10 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -34,6 +37,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -53,9 +58,12 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -66,24 +74,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyExceptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -128,7 +118,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-
 	@Test
     public void test202AutzJackReadonlyRole() throws Exception {
 		final String TEST_NAME = "test202AutzJackReadonlyRole";
@@ -146,6 +135,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
 
 		assertReadCertCasesAllow();
+		assertReadCasesAllow();
 
         assertGlobalStateUntouched();
 
@@ -266,6 +256,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_SELF_OID);
+        assignRole(USER_JACK_OID, ROLE_CASES_REQUESTOR_SELF_OID);
 		assignRole(USER_JACK_OID, ROLE_READ_JACKS_CAMPAIGNS_OID);		// we cannot specify "own campaigns" yet
         login(USER_JACK_USERNAME);
 
@@ -281,7 +272,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSearch(RoleType.class, null, 0);
         // The search with ObjectClass is important. It is a very different case
         // than searching just for UserType
-        assertSearch(ObjectType.class, null, 2);		// user + campaign
+        assertSearch(ObjectType.class, null, 2);		// user + campaign (case1 is skipped)
 
         assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
         assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
@@ -303,9 +294,252 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
 
+        assertGetAllow(CaseType.class, CASE1_OID);
+        assertGetDeny(CaseType.class, CASE2_OID);
+        assertGetDeny(CaseType.class, CASE3_OID);
+        assertGetDeny(CaseType.class, CASE4_OID);
 		assertReadCertCases(2);
+		assertReadCases(CASE1_OID);
 
         assertGlobalStateUntouched();
+	}
+
+	@Test
+    public void test204aAutzJackCaseObjectSelfRole() throws Exception {
+		final String TEST_NAME = "test204aAutzJackCaseObjectSelfRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_SELF_OID);
+        assignRole(USER_JACK_OID, ROLE_CASES_OBJECT_SELF_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertReadDenyRaw();
+
+        assertVisibleUsers(1);
+        assertSearch(OrgType.class, null, 0);
+        assertSearch(RoleType.class, null, 0);
+        // The search with ObjectClass is important. It is a very different case
+        // than searching just for UserType
+        assertSearch(ObjectType.class, null, 1);		// user (case2 is not shown as case clause is skipped)
+
+        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+
+        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+
+		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyDenyRaw();
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+		assertGetDeny(CaseType.class, CASE1_OID);
+		assertGetAllow(CaseType.class, CASE2_OID);
+		assertGetDeny(CaseType.class, CASE3_OID);
+		assertGetDeny(CaseType.class, CASE4_OID);
+		assertReadCertCasesDeny();
+		assertReadCases(CASE2_OID);
+
+        assertGlobalStateUntouched();
+	}
+
+	@Test
+    public void test204bAutzJackCaseAssigneeSelfRole() throws Exception {
+		final String TEST_NAME = "test204bAutzJackCaseAssigneeSelfRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_SELF_OID);
+        assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertReadDenyRaw();
+
+        assertVisibleUsers(1);
+        assertSearch(OrgType.class, null, 0);
+        assertSearch(RoleType.class, null, 0);
+        // The search with ObjectClass is important. It is a very different case
+        // than searching just for UserType
+        assertSearch(ObjectType.class, null, 1);		// user (case2 is skipped)
+
+        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+
+        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+		assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+
+		assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+		assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+		assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyDenyRaw();
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+		assertGetDeny(CaseType.class, CASE1_OID);
+		assertGetDeny(CaseType.class, CASE2_OID);
+		assertGetAllow(CaseType.class, CASE3_OID);
+		assertGetDeny(CaseType.class, CASE4_OID);
+		assertReadCertCasesDeny();
+		assertReadCases(CASE3_OID);
+
+        assertGlobalStateUntouched();
+	}
+
+	@Test
+    public void test204cAutzJackCaseAssigneeSelfWithDelegatesRole() throws Exception {
+		final String TEST_NAME = "test204cAutzJackCaseAssigneeSelfWithDelegatesRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_SELF_DELEGABLE_OID);
+        assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
+
+        addObject(USER_DEPUTY_1_FILE);
+        try {
+	        login(USER_DEPUTY_1_NAME);
+
+	        // WHEN
+	        displayWhen(TEST_NAME);
+
+	        assertGetDeny(UserType.class, USER_JACK_OID);
+	        assertGetAllow(UserType.class, USER_DEPUTY_1_OID);
+	        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+	        assertReadDenyRaw();
+
+	        assertVisibleUsers(1);
+	        assertSearch(OrgType.class, null, 0);
+	        assertSearch(RoleType.class, null, 0);
+	        // The search with ObjectClass is important. It is a very different case
+	        // than searching just for UserType
+	        assertSearch(ObjectType.class, null, 1);        // user (case2 is skipped)
+
+	        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+	        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+
+	        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+	        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+
+	        assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+	        assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+	        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+	        assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+
+	        assertAddDeny();
+
+	        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Captain"));
+	        assertModifyAllow(UserType.class, USER_DEPUTY_1_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Captain"));
+	        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Pirate"));
+	        assertModifyDenyRaw();
+
+	        assertDeleteDeny();
+	        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+	        assertGetDeny(CaseType.class, CASE1_OID);
+	        assertGetDeny(CaseType.class, CASE2_OID);
+	        assertGetAllow(CaseType.class, CASE3_OID);
+	        assertGetDeny(CaseType.class, CASE4_OID);
+	        assertReadCertCasesDeny();
+	        assertReadCases(CASE3_OID);
+
+	        assertGlobalStateUntouched();
+        } finally {
+	        deleteObjectRepo(UserType.class, USER_DEPUTY_1_OID);        // faster than attempting to do this in each cleanup; todo reconsider
+        }
+	}
+
+	@Test
+    public void test204dAutzJackCaseAssigneeSelfWithNonWorkItemsDelegatesRole() throws Exception {
+		final String TEST_NAME = "test204dAutzJackCaseAssigneeSelfWithNonWorkItemsDelegatesRole";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+		assignRole(USER_JACK_OID, ROLE_SELF_DELEGABLE_OID);
+        assignRole(USER_JACK_OID, ROLE_CASES_ASSIGNEE_SELF_OID);
+
+        addObject(USER_DEPUTY_2_FILE);
+        try {
+	        login(USER_DEPUTY_2_NAME);
+
+	        // WHEN
+	        displayWhen(TEST_NAME);
+
+	        assertGetDeny(UserType.class, USER_JACK_OID);
+	        assertGetAllow(UserType.class, USER_DEPUTY_2_OID);
+	        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+	        assertReadDenyRaw();
+
+	        assertVisibleUsers(1);
+	        assertSearch(OrgType.class, null, 0);
+	        assertSearch(RoleType.class, null, 0);
+	        // The search with ObjectClass is important. It is a very different case
+	        // than searching just for UserType
+	        assertSearch(ObjectType.class, null, 1);        // user
+
+	        assertGetDeny(RoleType.class, ROLE_ORDINARY_OID);
+	        assertGetDeny(RoleType.class, ROLE_PERSONA_ADMIN_OID);
+
+	        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_ORDINARY_OID), 0);
+	        assertSearch(UserType.class, createMembersQuery(UserType.class, ROLE_APPROVER_UNASSIGN_ROLES_OID), 0);
+
+	        assertCanSearchRoleMemberUsers(ROLE_ORDINARY_OID, false);
+	        assertCanSearchRoleMembers(ROLE_ORDINARY_OID, false);
+	        assertCanSearchRoleMemberUsers(ROLE_UNINTERESTING_OID, false);
+	        assertCanSearchRoleMembers(ROLE_UNINTERESTING_OID, false);
+
+	        assertAddDeny();
+
+	        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Captain"));
+	        assertModifyAllow(UserType.class, USER_DEPUTY_2_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Captain"));
+	        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX,
+			        PrismTestUtil.createPolyString("Pirate"));
+	        assertModifyDenyRaw();
+
+	        assertDeleteDeny();
+	        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+	        assertGetDeny(CaseType.class, CASE1_OID);
+	        assertGetDeny(CaseType.class, CASE2_OID);
+	        assertGetDeny(CaseType.class, CASE3_OID);
+	        assertGetDeny(CaseType.class, CASE4_OID);
+	        assertReadCertCasesDeny();
+	        assertReadCases();
+
+	        assertGlobalStateUntouched();
+        } finally {
+        	deleteObjectRepo(UserType.class, USER_DEPUTY_2_OID);        // faster than attempting to do this in each cleanup; todo reconsider
+        }
 	}
 
 	@Test
@@ -1657,7 +1891,82 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertGlobalStateUntouched();
     }
+    
+    /**
+     * test getEditObjectDefinition for shadow. It should also call and apply edited schema for attributes
+     * @throws Exception
+     */
+    @Test
+    public void test259AutzJackSelfAccountsPartialControl() throws Exception {
+        final String TEST_NAME = "test259AutzJackSelfAccountsPartialControl";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_PASSWORD_OID);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_NICK_NAME, PrismTestUtil.createPolyString("jackie"));
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        PrismObjectDefinition<ShadowType> rOcDef = modelInteractionService.getEditObjectDefinition(shadow, null, task, result);
+        shadow.applyDefinition(rOcDef, true);
+        
+        ResourceAttributeContainer resourceAttributeCOntainer = ShadowUtil.getAttributesContainer(shadow);
+        ObjectClassComplexTypeDefinition containerDef = resourceAttributeCOntainer.getDefinition().getComplexTypeDefinition();
+        
+        Item attr = resourceAttributeCOntainer.findItem(new ItemName("weapon"));
+        ItemDefinition attrDf = attr.getDefinition();
+        AssertJUnit.assertTrue("Expected that attribute can be read", attrDf.canRead());
+        AssertJUnit.assertTrue("Expected that attribute cannot be added", !attrDf.canAdd());
+        AssertJUnit.assertTrue("Expected that attribute cannot be modified", !attrDf.canModify());
+        
+        display("Refined objectclass def", containerDef);
+        assertAttributeFlags(containerDef, SchemaConstants.ICFS_UID, true, false, false);
+        assertAttributeFlags(containerDef, SchemaConstants.ICFS_NAME, true, false, false);
+        assertAttributeFlags(containerDef, new ItemName("location"), true, true, true);
+        assertAttributeFlags(containerDef, new ItemName("weapon"), true, false, false);
+
+        // Not linked to jack
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+
+        // Not linked to jack
+        assertAddDeny(ACCOUNT_JACK_DUMMY_RED_FILE);
+        // Not even jack's account
+        assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
+
+        assertPasswordChangeAllow(UserType.class, USER_JACK_OID, "nbusr123");
+        assertPasswordChangeDeny(UserType.class, USER_GUYBRUSH_OID, "nbusr123");
+        
+		PrismObjectDefinition<UserType> rDef = modelInteractionService.getEditObjectDefinition(user, AuthorizationPhaseType.REQUEST, task, result);
+		assertItemFlags(rDef, PASSWORD_PATH, true, false, false);
+
+        assertGlobalStateUntouched();
+    }
+    
     @Test
     public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
 		final String TEST_NAME = "test260AutzJackObjectFilterLocationShadowRole";
@@ -2038,7 +2347,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		displayTestTitle(TEST_NAME);
 		// GIVEN
 		cleanupAutzTest(USER_JACK_OID);
-		assignRole(USER_JACK_OID, ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID);
+		assignRole(USER_JACK_OID, ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID);
 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
@@ -2048,7 +2357,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 		displayWhen(TEST_NAME);
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertAssignments(user, 1);
-		assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTACTROLES_OID);
+		assertAssignedRole(user, ROLE_END_USER_REQUESTABLE_ABSTRACTROLES_OID);
 
 		assertAllow("assign requestable org to jack",
         		(task, result) -> assignOrg(USER_JACK_OID, ORG_REQUESTABLE_OID, task, result));
@@ -2893,6 +3202,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertDeleteDeny();
 
 		assertReadCertCasesAllow();
+		assertReadCasesAllow();
 
         assertGlobalStateUntouched();
 

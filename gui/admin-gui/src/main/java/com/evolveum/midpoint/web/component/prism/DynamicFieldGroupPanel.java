@@ -15,32 +15,41 @@
  */
 package com.evolveum.midpoint.web.component.prism;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PolyStringUtils;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.util.FormTypeUtil;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.util.GuiImplUtil;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.MutableItemDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PolyStringUtils;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.util.FormTypeUtil;
+import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractFormItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormFieldGroupType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FormItemDisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<ObjectWrapper<O>> {
+public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<PrismObjectWrapper<O>> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -51,14 +60,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 
 	private List<AbstractFormItemType> formItems;
 
-	public DynamicFieldGroupPanel(String id, String groupName, IModel<ObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
+	public DynamicFieldGroupPanel(String id, String groupName, IModel<PrismObjectWrapper<O>> objectWrapper, List<AbstractFormItemType> formItems, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
 		this.formItems = formItems;
 		initLayout(groupName, formItems, mainForm);
 	}
 
-	public DynamicFieldGroupPanel(String id, IModel<ObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
+	public DynamicFieldGroupPanel(String id, IModel<PrismObjectWrapper<O>> objectWrapper, @NotNull FormDefinitionType formDefinition, Form<?> mainForm, PageBase parentPage) {
 		super(id, objectWrapper);
 		setParent(parentPage);
 		this.formItems = FormTypeUtil.getFormItems(formDefinition.getFormItems());
@@ -81,7 +90,6 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		RepeatingView itemView = new RepeatingView(ID_PROPERTY);
 		add(itemView);
 
-		int i = 0;
 		for (AbstractFormItemType formItem : formItems) {
 
 			if (formItem instanceof FormFieldGroupType) {
@@ -91,23 +99,16 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 				continue;
 			}
 
-			ItemWrapper<?,?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
+			ItemWrapper<?,?,?,?> itemWrapper = findAndTailorItemWrapper(formItem, getObjectWrapper());
 
-			if (itemWrapper instanceof ContainerWrapper) {
-				//noinspection unchecked
-				ContainerWrapper<Containerable> containerWrapper = (ContainerWrapper<Containerable>) itemWrapper;
-				PrismContainerPanel<?> containerPanel = new PrismContainerPanel<>(itemView.newChildId(),
-						Model.of(containerWrapper), true, mainForm, w -> ItemVisibility.AUTO, getPageBase());
-				containerPanel.setOutputMarkupId(true);
-				itemView.add(containerPanel);
-			} else {
-				PrismPropertyPanel<?> propertyPanel = new PrismPropertyPanel<>(itemView.newChildId(),
-						Model.of(itemWrapper), mainForm, null, getPageBase());
-				propertyPanel.setOutputMarkupId(true);
-				propertyPanel.add(AttributeModifier.append("class", ((i % 2) == 0) ? "" : "stripe"));
-				itemView.add(propertyPanel);
+			try {
+				Panel panel = getPageBase().initItemPanel(itemView.newChildId(), itemWrapper.getTypeName(), Model.of(itemWrapper), null);
+				panel.setOutputMarkupId(true);
+				itemView.add(panel);
+			} catch (SchemaException e) {
+				getSession().error("Cannot create panel " + e.getMessage());
 			}
-			i++;
+			
 		}
 	}
 
@@ -116,14 +117,14 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 	}
 
 	@NotNull
-	private ItemWrapper<?,?,?> findAndTailorItemWrapper(AbstractFormItemType formField, ObjectWrapper<O> objectWrapper) {
-		ItemWrapper<?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
+	private ItemWrapper<?, ?, ?, ?> findAndTailorItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
+		ItemWrapper<?, ?, ?, ?> itemWrapper = findItemWrapper(formField, objectWrapper);
 		applyFormDefinition(itemWrapper, formField);
 		return itemWrapper;
 	}
 
 	@NotNull
-	private ItemWrapper<?, ?, ?> findItemWrapper(AbstractFormItemType formField, ObjectWrapper<O> objectWrapper) {
+	private ItemWrapper<?, ?, ?, ?> findItemWrapper(AbstractFormItemType formField, PrismObjectWrapper<O> objectWrapper) {
 		ItemPath path = GuiImplUtil.getItemPath(formField);
 		if (path == null) {
 			getSession().error("Bad form item definition. It has to contain reference to the real attribute");
@@ -131,13 +132,16 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 			throw new RestartResponseException(getPageBase());
 		}
 
-		ItemWrapper<?,?,?> itemWrapper;
+		ItemWrapper<?,?,?,?> itemWrapper;
 		ItemDefinition<?> itemDef = objectWrapper.getObject().getDefinition().findItemDefinition(path);
-		if (itemDef instanceof PrismContainerDefinition) {
-			itemWrapper = objectWrapper.findContainerWrapper(path);
-		} else {
-			itemWrapper = objectWrapper.findPropertyWrapper(path);
+		try {
+			itemWrapper = objectWrapper.findItem(path, ItemWrapper.class);
+		} catch (SchemaException e) {
+			getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
+			LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
+			throw new RestartResponseException(getPageBase());
 		}
+		
 		if (itemWrapper == null) {
 			getSession().error("Bad form item definition. No attribute with path: " + path + " was found");
 			LOGGER.error("Bad form item definition. No attribute with path: " + path + " was found");
@@ -146,7 +150,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		return itemWrapper;
 	}
 
-	private void applyFormDefinition(ItemWrapper itemWrapper, AbstractFormItemType formField) {
+	private void applyFormDefinition(ItemWrapper<?, ?, ?, ?> itemWrapper, AbstractFormItemType formField) {
 
 		FormItemDisplayType displayType = formField.getDisplay();
 
@@ -154,7 +158,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 			return;
 		}
 
-		MutableItemDefinition itemDef = itemWrapper.getItemDefinition().toMutable();
+		MutableItemDefinition itemDef = itemWrapper.toMutable();
 		if (PolyStringUtils.isNotEmpty(displayType.getLabel())) {
 			itemDef.setDisplayName(displayType.getLabel().getOrig());
 		}
@@ -169,7 +173,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 		}
 	}
 
-	public ObjectWrapper<O> getObjectWrapper() {
+	public PrismObjectWrapper<O> getObjectWrapper() {
 		return getModelObject();
 	}
 
@@ -187,7 +191,7 @@ public class DynamicFieldGroupPanel<O extends ObjectType> extends BasePanel<Obje
 			if (component instanceof PrismPropertyPanel) {
 				IModel<?> model = component.getDefaultModel();
 				if (model != null && model.getObject() instanceof ItemWrapper) {
-					ItemWrapper<?, ?, ?> itemWrapper = (ItemWrapper<?, ?, ?>) model.getObject();
+					ItemWrapper<?, ?, ?, ?> itemWrapper = (ItemWrapper<?, ?, ?, ?>) model.getObject();
 					if (!itemWrapper.checkRequired(pageBase)) {
 						rvHolder.setValue(false);
 					}

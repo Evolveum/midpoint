@@ -654,30 +654,38 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return thisObject.clone();
 	}
 
-    void storeIntoLensElementContextType(LensElementContextType lensElementContextType, boolean reduced) throws SchemaException {
-		if (objectOld != null) {
-			if (reduced) {
+    void storeIntoLensElementContextType(LensElementContextType lensElementContextType, LensContext.ExportType exportType) throws SchemaException {
+		if (objectOld != null && exportType != LensContext.ExportType.MINIMAL) {
+			if (exportType == LensContext.ExportType.REDUCED) {
 				lensElementContextType.setObjectOldRef(ObjectTypeUtil.createObjectRef(objectOld, getPrismContext()));
 			} else {
-				lensElementContextType.setObjectOld(objectOld.asObjectable());
+				lensElementContextType.setObjectOld(objectOld.asObjectable().clone());
 			}
 		}
-		if (objectNew != null) {
-			if (reduced) {
+		if (objectCurrent != null && exportType == LensContext.ExportType.TRACE) {
+			lensElementContextType.setObjectCurrent(objectCurrent.asObjectable().clone());
+		}
+		if (objectNew != null && exportType != LensContext.ExportType.MINIMAL) {
+			if (exportType == LensContext.ExportType.REDUCED) {
 				lensElementContextType.setObjectNewRef(ObjectTypeUtil.createObjectRef(objectNew, getPrismContext()));
 			} else {
-				lensElementContextType.setObjectNew(objectNew.asObjectable());
+				lensElementContextType.setObjectNew(objectNew.asObjectable().clone());
 			}
 		}
-        lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
-        for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
-            lensElementContextType.getExecutedDeltas().add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
-        }
-        lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
-        lensElementContextType.setOid(oid);
-        lensElementContextType.setIteration(iteration);
-        lensElementContextType.setIterationToken(iterationToken);
-        lensElementContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
+		if (exportType != LensContext.ExportType.MINIMAL) {
+			lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
+			for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
+				lensElementContextType.getExecutedDeltas()
+						.add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
+			}
+			lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
+			lensElementContextType.setOid(oid);
+			lensElementContextType.setIteration(iteration);
+			lensElementContextType.setIterationToken(iterationToken);
+			lensElementContextType.setSynchronizationIntent(
+					synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
+		}
+        lensElementContextType.setFresh(isFresh);
     }
 
 	public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {

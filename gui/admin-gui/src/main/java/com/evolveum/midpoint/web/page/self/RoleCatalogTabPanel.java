@@ -76,7 +76,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            protected OrgTreeStateStorage getOrgTreeStateStorage(){
+            public OrgTreeStateStorage getOrgTreeStateStorage(){
                 return getRoleCatalogStorage();
             }
         };

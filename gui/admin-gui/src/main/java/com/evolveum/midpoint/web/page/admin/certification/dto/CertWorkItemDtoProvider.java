@@ -91,9 +91,7 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            handleNotSuccessOrHandledErrorInIterator(result);
-        }
+        getPage().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
@@ -115,16 +113,13 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
             ObjectQuery query = getQuery().clone();
             count = acs.countOpenWorkItems(query, notDecidedOnly, null, task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
+            result.recordFatalError("Couldn't count objects: " + ex.getMessage(), ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects: " + ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();
         }
 
-        if (!WebComponentUtil.isSuccessOrHandledError(result)) {
-            getPage().showResult(result);
-            throw new RestartResponseException(PageError.class);
-        }
+        getPage().showResult(result, false);
 
         LOGGER.trace("end::internalSize()");
         return count;

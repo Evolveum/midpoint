@@ -16,15 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxButton;
 
 /**
  * @author lazyman
  */
-public class DebugButtonPanel<T> extends SimplePanel<T> {
+public class DebugButtonPanel<T> extends BasePanel<T> {
 
     private static final String ID_EXPORT = "export";
     private static final String ID_DELETE = "delete";
@@ -32,8 +33,13 @@ public class DebugButtonPanel<T> extends SimplePanel<T> {
     public DebugButtonPanel(String id, IModel<T> model) {
         super(id, model);
     }
-
+    
     @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
+
     protected void initLayout() {
         AjaxButton export = new AjaxButton(ID_EXPORT, createStringResource("DebugButtonPanel.button.export")) {
 

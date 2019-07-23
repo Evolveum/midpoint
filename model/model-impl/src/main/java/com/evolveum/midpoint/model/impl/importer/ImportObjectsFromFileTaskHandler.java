@@ -162,7 +162,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty<String> filenameProperty = task.getExtensionProperty(ModelConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = task.getExtensionPropertyOrClone(ModelConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

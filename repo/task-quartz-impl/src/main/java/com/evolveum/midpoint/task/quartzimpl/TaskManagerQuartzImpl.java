@@ -42,11 +42,13 @@ import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -91,25 +93,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.ClusterExecutionHelper;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
-import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.task.api.LightweightTaskHandler;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskDeletionListener;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskListener;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.TaskPartitionsDefinition;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskWaitingReason;
-import com.evolveum.midpoint.task.api.WorkersReconciliationOptions;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
@@ -181,6 +164,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private ClusterExecutionHelper clusterExecutionHelper;
     @Autowired private Protector protector;
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
+    @Autowired private Tracer tracer;
 
 	private InfrastructureConfigurationType infrastructureConfiguration;
 	private String webContextPath;
@@ -283,7 +267,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @PostConstruct
     public void init() {
 
-        OperationResult result = createOperationResult("init");
+        OperationResult result = createOperationResult(DOT_IMPL_CLASS + "init");
 
         try {
             new Initializer(this).init(result);
@@ -487,7 +471,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	    try {
 		    TaskQuartzImpl root = getTask(rootTaskOid, result);
-		    List<Task> subtasks = root.listSubtasks(true, parentResult);
+		    List<Task> subtasks = root.listSubtasksDeeply(true, parentResult);
 		    List<String> oidsToResume = new ArrayList<>(subtasks.size() + 1);
 		    if (root.getExecutionStatus() == TaskExecutionStatus.SUSPENDED) {
 			    oidsToResume.add(rootTaskOid);
@@ -523,13 +507,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	}
 
 	@Override
-	public void deleteWorkersAndWorkState(String coordinatorTaskOid, long subtasksWaitTime, OperationResult parentResult)
+	public void deleteWorkersAndWorkState(String rootTaskOid, boolean deleteWorkers, long subtasksWaitTime,
+			OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "deleteWorkersAndWorkState");
-		result.addParam("coordinatorTaskOid", coordinatorTaskOid);
+		result.addParam("rootTaskOid", rootTaskOid);
+		result.addParam("deleteWorkers", deleteWorkers);
 		result.addParam("subtasksWaitTime", subtasksWaitTime);
 		try {
-			workersManager.deleteWorkersAndWorkState(coordinatorTaskOid, subtasksWaitTime, result);
+			workersManager.deleteWorkersAndWorkState(rootTaskOid, deleteWorkers, subtasksWaitTime, result);
 		} catch (Throwable t) {
 			result.recordFatalError("Couldn't delete workers and work state", t);
 			throw t;
@@ -981,7 +967,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		}
 
 		try {
-			CryptoUtil.encryptValues(protector, taskImpl.getLiveTaskPrismObject());
+			CryptoUtil.encryptValues(protector, taskImpl.getLiveTaskObjectForNotRunningTasks());
 			addTaskToRepositoryAndQuartz(taskImpl, null, parentResult);
 		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
@@ -1021,7 +1007,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
         String oid;
         try {
-		     oid = repositoryService.addObject(task.getTaskPrismObject(), options, result);
+		     oid = repositoryService.addObject(task.getUpdatedTaskObject(), options, result);
         } catch (ObjectAlreadyExistsException | SchemaException e) {
             result.recordFatalError("Couldn't add task to repository: " + e.getMessage(), e);
             throw e;
@@ -1252,15 +1238,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
                 try {
                     task.setLightweightHandlerExecuting(true);
-                    task.setLightweightThread(Thread.currentThread());
-                    task.startCollectingRepoAndCacheStats();
+                    task.setExecutingThread(Thread.currentThread());
+                    task.startCollectingLowLevelStatistics();
                     cacheConfigurationManager.setThreadLocalProfiles(task.getCachingProfiles());
+	                OperationResult.setThreadLocalHandlingStrategy(task.getOperationResultHandlingStrategyName());
                     lightweightTaskHandler.run(task);
                     cacheConfigurationManager.unsetThreadLocalProfiles();
                 } catch (Throwable t) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Lightweight task handler has thrown an exception; task = {}", t, task);
                 } finally {
-                	task.setLightweightThread(null);
+                	task.setExecutingThread(null);
                     task.setLightweightHandlerExecuting(false);
                 }
                 LOGGER.debug("Lightweight task handler shell finishing; task = {}", task);
@@ -1366,7 +1353,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             fillInSubtasks(task, clusterStatusInformation, options, result);
         }
         fillOperationExecutionState(task);
-        return task.getTaskPrismObject();
+        return task.getUpdatedTaskObject();     // task is never live running
     }
 
     private void fillOperationExecutionState(Task task0) {
@@ -1417,23 +1404,25 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	    }
     }
 
-	// task is Task or TaskType
+	// task is Task, TaskType or PrismObject<TaskType>
 	// subtask is Task or PrismObject<TaskType>
     private void addSubtask(Object task, Object subtask) {
     	TaskType subtaskBean;
-    	if (subtask instanceof Task) {
-    		subtaskBean = ((Task) subtask).getTaskType();
+    	if (subtask instanceof TaskQuartzImpl) {
+    		subtaskBean = ((TaskQuartzImpl) subtask).getLiveTaskObject().asObjectable();
 	    } else if (subtask instanceof PrismObject<?>) {
 		    //noinspection unchecked
 		    subtaskBean = ((PrismObject<TaskType>) subtask).asObjectable();
 	    } else {
 		    throw new IllegalArgumentException("subtask: " + task);
 	    }
-
+    	
     	if (task instanceof Task) {
 		    ((InternalTaskInterface) task).addSubtask(subtaskBean);
 	    } else if (task instanceof TaskType) {
 		    ((TaskType) task).getSubtask().add(subtaskBean);
+	    } else if (task instanceof PrismObject<?>) {
+	    	((PrismObject<TaskType>) task).asObjectable().getSubtask().add(subtaskBean);
 	    } else {
 		    throw new IllegalArgumentException("task: " + task);
 	    }
@@ -1490,7 +1479,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      OperationResult parentResult) throws SchemaException {
 
-        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+        OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -1511,7 +1500,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	public <T extends ObjectType> SearchResultMetadata searchObjectsIterative(Class<T> type,
 			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
 			ResultHandler<T> handler, OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + ".searchObjects");
+		OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "searchObjects");
         result.addParam("objectType", type);
         result.addParam("query", query);
         result.addArbitraryObjectCollectionAsParam("options", options);
@@ -1665,7 +1654,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
         TaskType taskBean;
         if (task instanceof TaskQuartzImpl) {
-        	taskBean = ((TaskQuartzImpl) task).getLiveTaskPrismObject().asObjectable();
+        	taskBean = ((TaskQuartzImpl) task).getLiveTaskObjectForNotRunningTasks().asObjectable();
         } else if (task instanceof PrismObject<?>) {
 	        //noinspection unchecked
 	        taskBean = ((PrismObject<TaskType>) task).asObjectable();
@@ -2491,6 +2480,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 		return configuration.isLocalNodeClusteringEnabled();
 	}
 
+	@Override
+	public boolean isClustered() {
+		return configuration.isClustered();
+	}
+
 	public SystemConfigurationChangeDispatcher getSystemConfigurationChangeDispatcher() {
 		return systemConfigurationChangeDispatcher;
 	}
@@ -2547,17 +2541,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 	 */
 	public RunningTaskQuartzImpl createRunningTask(Task task) {
 		if (task instanceof RunningTask) {
-			LOGGER.warn("Task {} is already a RunningTask: {}", task);
+			LOGGER.warn("Task {} is already a RunningTask", task);
 			return ((RunningTaskQuartzImpl) task);
 		} else {
-			PrismObject<TaskType> taskPrismObject = task.getTaskPrismObject();
+			PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
 			return new RunningTaskQuartzImpl(this, taskPrismObject, repositoryService);
 		}
 	}
 
 	@Override
 	public RunningTaskQuartzImpl createFakeRunningTask(Task task) {
-		return createRunningTask(task);
+		RunningTaskQuartzImpl runningTask = createRunningTask(task);
+		runningTask.setExecutingThread(Thread.currentThread());
+		return runningTask;
 	}
 
 	@Override
@@ -2567,5 +2563,15 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
 	public CacheConfigurationManager getCacheConfigurationManager() {
 		return cacheConfigurationManager;
+	}
+
+	@Override
+	public boolean isDynamicProfilingEnabled() {
+		return midpointConfiguration.getProfilingMode() == ProfilingMode.DYNAMIC;
+	}
+
+	@Override
+	public Tracer getTracer() {
+		return tracer;
 	}
 }

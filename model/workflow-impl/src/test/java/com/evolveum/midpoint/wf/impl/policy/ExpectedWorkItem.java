@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.wf.impl.policy;
 
-import com.evolveum.midpoint.schema.util.WfContextUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * @author mederly
@@ -34,15 +35,15 @@ public class ExpectedWorkItem {
 		this.task = task;
 	}
 
-	public boolean matches(WorkItemType actualWorkItem) {
+	public boolean matches(CaseWorkItemType actualWorkItem) {
 		if (!assigneeOid.equals(actualWorkItem.getOriginalAssigneeRef().getOid())) {
 			return false;
 		}
-		if (targetOid != null && !targetOid.equals(WfContextUtil.getTargetRef(actualWorkItem).getOid())) {
+		if (targetOid != null && !targetOid.equals(ApprovalContextUtil.getTargetRef(actualWorkItem).getOid())) {
 			return false;
 		}
-		TaskType actualTask = WfContextUtil.getTask(actualWorkItem);
-		return task.processName.equals(actualTask.getWorkflowContext().getProcessInstanceName());
+		CaseType actualCase = CaseWorkItemUtil.getCaseRequired(actualWorkItem);
+		return task.processName.equals(actualCase.getName().getOrig());
 	}
 
 	@Override

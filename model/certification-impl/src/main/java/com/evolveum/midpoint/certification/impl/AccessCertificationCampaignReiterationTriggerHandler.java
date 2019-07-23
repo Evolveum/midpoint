@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.certification.impl;
 
 import com.evolveum.midpoint.certification.api.CertificationManager;
-import com.evolveum.midpoint.model.impl.trigger.TriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.SingleTriggerHandler;
 import com.evolveum.midpoint.model.impl.trigger.TriggerHandlerRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,7 +41,7 @@ import javax.annotation.PostConstruct;
  *
  */
 @Component
-public class AccessCertificationCampaignReiterationTriggerHandler implements TriggerHandler {
+public class AccessCertificationCampaignReiterationTriggerHandler implements SingleTriggerHandler {
 
 	static final String HANDLER_URI = AccessCertificationConstants.NS_CERTIFICATION_TRIGGER_PREFIX + "/reiterate-campaign/handler-3";
 

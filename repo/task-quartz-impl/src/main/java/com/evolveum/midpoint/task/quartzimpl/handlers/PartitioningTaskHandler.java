@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -261,6 +260,12 @@ public class PartitioningTaskHandler implements TaskHandler {
 				null, partition, partitionsDefinition);
 		// work management is updated and stored into subtask later
 
+		TaskExecutionEnvironmentType executionEnvironment = applyDefaults(
+				p -> p.getExecutionEnvironment(masterTask),
+				ps -> ps.getExecutionEnvironment(masterTask),
+				masterTask.getExecutionEnvironment(), partition, partitionsDefinition);
+		subtask.setExecutionEnvironment(CloneUtil.clone(executionEnvironment));
+
 		String handlerUriTemplate = applyDefaults(
 				p -> p.getHandlerUri(masterTask),
 				ps -> ps.getHandlerUri(masterTask),
@@ -286,7 +291,7 @@ public class PartitioningTaskHandler implements TaskHandler {
 		subtask.setExecutionStatus(TaskExecutionStatusType.SUSPENDED);
 		subtask.setOwnerRef(CloneUtil.clone(masterTask.getOwnerRef()));
 		subtask.setCategory(masterTask.getCategory());
-		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRef()));
+		subtask.setObjectRef(CloneUtil.clone(masterTask.getObjectRefOrClone()));
 		subtask.setRecurrence(TaskRecurrenceType.SINGLE);
 		subtask.setParent(masterTask.getTaskIdentifier());
 		boolean copyMasterExtension = applyDefaults(
@@ -298,6 +303,12 @@ public class PartitioningTaskHandler implements TaskHandler {
 			if (masterExtension != null) {
 				subtask.asPrismObject().add(masterExtension);
 			}
+		}
+		ExtensionType extensionFromPartition = partition.getExtension(masterTask);
+		if (extensionFromPartition != null) {
+			//noinspection unchecked
+			subtask.asPrismContainerValue().findOrCreateContainer(TaskType.F_EXTENSION).getValue()
+					.mergeContent(extensionFromPartition.asPrismContainerValue(), Collections.emptyList());
 		}
 
 		applyDeltas(subtask, partition.getOtherDeltas(masterTask));

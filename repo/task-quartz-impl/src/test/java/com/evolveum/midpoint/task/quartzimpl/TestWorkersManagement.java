@@ -16,15 +16,16 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.quartzimpl.work.WorkStateManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -33,6 +34,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -54,15 +56,17 @@ import static org.testng.AssertJUnit.assertTrue;
 public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(TestWorkersManagement.class);
-	public static final long DEFAULT_SLEEP_INTERVAL = 250L;
-	public static final long DEFAULT_TIMEOUT = 30000L;
+	private static final long DEFAULT_SLEEP_INTERVAL = 250L;
+	private static final long DEFAULT_TIMEOUT = 30000L;
 
 	@Autowired private WorkStateManager workStateManager;
+	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static String taskFilename(String testName, String subId) {
 		return "src/test/resources/workers/task-" + testNumber(testName) + "-" + subId + ".xml";
 	}
 
+	@SuppressWarnings("unused")
 	private static String taskFilename(String testName) {
 		return taskFilename(testName, "0");
 	}
@@ -71,6 +75,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		return "44444444-2222-2222-2223-" + testNumber(testName) + subId + "00000000";
 	}
 
+	@SuppressWarnings("unused")
 	private static String taskOid(String test) {
 		return taskOid(test, "0");
 	}
@@ -79,23 +84,25 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		return test.substring(4, 7);
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String workerTaskFilename(String TEST_NAME) {
 		return taskFilename(TEST_NAME, "w");
 	}
 
 	@NotNull
-	protected String coordinatorTaskFilename(String TEST_NAME) {
+	private String coordinatorTaskFilename(String TEST_NAME) {
 		return taskFilename(TEST_NAME, "c");
 	}
 
+	@SuppressWarnings("unused")
 	@NotNull
 	protected String workerTaskOid(String TEST_NAME) {
 		return taskOid(TEST_NAME, "w");
 	}
 
 	@NotNull
-	protected String coordinatorTaskOid(String TEST_NAME) {
+	private String coordinatorTaskOid(String TEST_NAME) {
 		return taskOid(TEST_NAME, "c");
 	}
 
@@ -104,6 +111,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		super.initialize();
 		workStateManager.setFreeBucketWaitIntervalOverride(1000L);
 		DebugUtil.setPrettyPrintBeansAs(PrismContext.LANG_YAML);
+
+		cacheConfigurationManager.applyCachingConfiguration(
+				(SystemConfigurationType) prismContext.parseObject(SYSTEM_CONFIGURATION_FILE).asObjectable());
 	}
 
     @Test
@@ -134,6 +144,10 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		    display("coordinator task", coordinatorTask);
 		    display("worker task", workers.get(0));
+		    displayBucketOpStatistics("coordinator", coordinatorTask);
+		    displayBucketOpStatistics("worker", workers.get(0));
+		    assertCachingProfiles(coordinatorTask, "profile1");
+		    assertCachingProfiles(workers.get(0), "profile1");
 
 		    waitForTaskClose(coordinatorTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
@@ -162,7 +176,14 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 	    }
     }
 
-    @Test
+	private void displayBucketOpStatistics(String label, Task task) throws SchemaException {
+		OperationStatsType stats = task.getStoredOperationStats();
+		WorkBucketManagementPerformanceInformationType bucketStats = stats != null ? stats.getWorkBucketManagementPerformanceInformation() : null;
+		String text = bucketStats != null ? prismContext.yamlSerializer().root(new QName("stats")).serializeRealValue(bucketStats) : "(null)";
+		display("Bucket op stats for " + label, text);
+	}
+
+	@Test
     public void test110CreateWorkersRecurring() throws Exception {
         final String TEST_NAME = "test110CreateWorkersRecurring";
         OperationResult result = createResult(TEST_NAME, LOGGER);
@@ -234,6 +255,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		    //assertEquals("Wrong state-before-suspend of coordinator", TaskExecutionStatusType.RUNNABLE,
 			//	    coordinatorTask.getStateBeforeSuspend());
 		    assertEquals("Wrong execution status of worker", TaskExecutionStatus.CLOSED, worker.getExecutionStatus());
+		    //noinspection SimplifiedTestNGAssertion
 		    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
 
 		    // (4) ------------------------------------------------------------------------------------  WHEN (resume the tree)
@@ -252,7 +274,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 		    assertEquals("Wrong execution status of coordinator", TaskExecutionStatus.RUNNABLE,
 				    coordinatorTask.getExecutionStatus());
+		    //noinspection SimplifiedTestNGAssertion
 		    assertEquals("Wrong state-before-suspend of coordinator", null, coordinatorTask.getStateBeforeSuspend());
+		    //noinspection SimplifiedTestNGAssertion
 		    assertEquals("Wrong state-before-suspend of worker", null, worker.getStateBeforeSuspend());
 
 		    // (5) ------------------------------------------------------------------------------------  WHEN (suspend the tree while worker is executing)
@@ -295,6 +319,9 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		    display("coordinator task after resume-after-2nd-suspend", coordinatorTask);
 		    display("worker task after resume-after-2nd-suspend", worker);
 
+		    displayBucketOpStatistics("coordinator", coordinatorTask);
+		    displayBucketOpStatistics("worker", worker);
+
 		    waitForTaskClose(worker.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
 		    // brittle - might fail
@@ -332,8 +359,21 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
 			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
+			assertCachingProfiles(masterTask, "profile1");
+			assertCachingProfiles(subtasks.get(0), "profile1");
+			assertCachingProfiles(subtasks.get(1), "profile1");
+			assertCachingProfiles(subtasks.get(2), "profile1");
+
 			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
+			masterTask = taskManager.getTask(masterTaskOid, result);
+			subtasks = masterTask.listSubtasksDeeply(result);
+			displayBucketOpStatistics("master", masterTask);
+			for (Task subtask : subtasks) {
+				displayBucketOpStatistics(subtask.toString(), subtask);
+			}
+
+			//noinspection SimplifiedTestNGAssertion
 			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
 			// TODO some asserts here
@@ -369,6 +409,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
 			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
+			Task first = subtasks.stream().filter(t -> t.getName().getOrig().contains("(1)")).findFirst().orElse(null);
 			Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
 			Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
 			assertNotNull("Second-phase task was not created", second);
@@ -381,6 +422,12 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			display("Subtasks of second task after completion", secondSubtasks);
 			assertEquals("Wrong # of second task's subtasks", 3, secondSubtasks.size());
 
+			assertCachingProfiles(masterTask, "profile1");
+			assertCachingProfiles(first, "profile1");
+			assertCachingProfiles(second, "profile2");
+			assertCachingProfiles(third, "profile1");
+			secondSubtasks.forEach(t -> assertCachingProfiles(t, "profile2"));
+
 			waitForTaskCloseCheckingSubtasks(third.getOid(), result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 			third = taskManager.getTask(third.getOid(), result);
 			display("Third task after completion", third);
@@ -390,6 +437,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 
 			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
+			//noinspection SimplifiedTestNGAssertion
 			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
 			// TODO some asserts here
@@ -400,7 +448,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 		}
 	}
 
-	@Test(enabled = false)      // MID-5041
+	@Test
 	public void test220PartitioningToWorkersMoreBuckets() throws Exception {
 		final String TEST_NAME = "test220PartitioningToWorkersMoreBuckets";
 		OperationResult result = createResult(TEST_NAME, LOGGER);
@@ -425,6 +473,7 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			assertEquals("Wrong task kind", TaskKindType.PARTITIONED_MASTER, masterTask.getWorkManagement().getTaskKind());
 			assertEquals("Wrong # of partitions", 3, subtasks.size());
 
+			Task first = subtasks.stream().filter(t -> t.getName().getOrig().contains("(1)")).findFirst().orElse(null);
 			Task second = subtasks.stream().filter(t -> t.getName().getOrig().contains("(2)")).findFirst().orElse(null);
 			Task third = subtasks.stream().filter(t -> t.getName().getOrig().contains("(3)")).findFirst().orElse(null);
 			assertNotNull("Second-phase task was not created", second);
@@ -444,8 +493,16 @@ public class TestWorkersManagement extends AbstractTaskManagerTest {
 			display("Subtasks of third task after completion", thirdSubtasks);
 			assertEquals("Wrong # of third task's subtasks", 2, thirdSubtasks.size());
 
+			assertCachingProfiles(masterTask, "profile1");
+			assertCachingProfiles(first, "profile2");
+			assertCachingProfiles(second, "profile2");
+			assertCachingProfiles(third, "profile3");
+			secondSubtasks.forEach(t -> assertCachingProfiles(t, "profile2"));
+			thirdSubtasks.forEach(t -> assertCachingProfiles(t, "profile3"));
+
 			waitForTaskCloseCheckingSubtasks(masterTaskOid, result, DEFAULT_TIMEOUT, DEFAULT_SLEEP_INTERVAL);
 
+			//noinspection SimplifiedTestNGAssertion
 			assertEquals("Unexpected failure", null, partitionedWorkBucketsTaskHandler.getFailure());
 
 			assertEquals("Wrong # of items processed", 41, partitionedWorkBucketsTaskHandler.getItemsProcessed());

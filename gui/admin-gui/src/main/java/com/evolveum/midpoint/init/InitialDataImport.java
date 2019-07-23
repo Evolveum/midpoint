@@ -273,7 +273,7 @@ public class InitialDataImport extends DataImport{
         return tmpDir;
     }
 
-    private File[] getInitialImportObjects() {
+    protected File[] getInitialImportObjects() {
         URL path = InitialDataImport.class.getClassLoader().getResource("initial-objects");
     	String resourceType = path.getProtocol();
 

@@ -37,7 +37,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ActivationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -186,7 +185,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -232,7 +231,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		// WHEN
 		displayWhen(TEST_NAME);
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -312,7 +311,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, SchemaConstants.ORG_APPROVER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -385,7 +384,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -468,7 +467,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, assignment -> assignment.beginLimitTargetContent().allowTransitive(true).end(), result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -619,7 +618,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				SchemaConstants.ORG_DEPUTY, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -706,7 +705,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -782,7 +781,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -868,7 +867,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 						.asItemDelta());
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -932,7 +931,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R7_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1086,7 +1085,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
 		// WHEN
 		recording = true;
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 		recording = false;
 
 		// THEN
@@ -1537,7 +1536,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, null, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1596,7 +1595,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_MANAGER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1654,7 +1653,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 		LensContext<UserType> context = createContextForAssignment(UserType.class, USER_JACK_OID, OrgType.class, ORG11_OID, SchemaConstants.ORG_APPROVER, null, result);
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1712,7 +1711,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				null, null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1768,7 +1767,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				new QName("manager"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1838,7 +1837,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				new QName("approver"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);
@@ -1907,7 +1906,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 				new QName("a"), null, result);	// intentionally unqualified
 
 		// WHEN
-		assignmentProcessor.processAssignmentsProjections(context, clock.currentTimeXMLGregorianCalendar(), task, result);
+		assignmentProcessor.processAssignments(context, clock.currentTimeXMLGregorianCalendar(), task, result);
 
 		// THEN
 		display("Output context", context);

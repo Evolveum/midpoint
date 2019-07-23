@@ -21,6 +21,7 @@
         <parameter name="namespaces" value="true"/>
         <classes>
             <class name="com.evolveum.midpoint.schema.parser.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseUserPolyString"/>     <!-- currently not in other variants -->
             <class name="com.evolveum.midpoint.schema.parser.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseShadow"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseCertificationCase"/>
@@ -29,7 +30,7 @@
             <class name="com.evolveum.midpoint.schema.parser.TestParseForm"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpression"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptingExpressionXsiType"/>
-            <class name="com.evolveum.midpoint.schema.parser.TestParseWorkflowContext"/>
+            <class name="com.evolveum.midpoint.schema.parser.TestParseApprovalContext"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseMappingConst"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseScriptOutput"/>
             <class name="com.evolveum.midpoint.schema.parser.TestParseObjects"/>

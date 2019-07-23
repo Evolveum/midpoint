@@ -22,6 +22,7 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.web.component.MultifunctionalButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -68,7 +69,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
     private static final Trace LOGGER = TraceManager.getTrace(MainObjectListPanel.class);
 
     public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options, PageBase parentPage) {
-        super(id, type, tableId, options, parentPage);
+        super(id, type, tableId, options);
     }
 
     @Override
@@ -146,6 +147,11 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
             }
 
             @Override
+            protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+                return getNewObjectButtonLayerIconStyleMap();
+            }
+
+            @Override
             protected CompositedIconBuilder getAdditionalIconBuilder(S influencingObject, DisplayType additionalButtonDisplayType){
                 CompositedIconBuilder builder = MainObjectListPanel.this.getNewObjectButtonAdditionalIconBuilder(influencingObject, additionalButtonDisplayType);
                 if (builder == null){
@@ -165,6 +171,7 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
                 return getNewObjectButtonAdditionalDisplayType(buttonObject);
             }
         };
+        createNewObjectButton.add(new VisibleBehaviour(() -> isCreateNewObjectEnabled()));
         createNewObjectButton.add(AttributeAppender.append("class", "btn-margin-right"));
         buttonsList.add(createNewObjectButton);
 
@@ -260,6 +267,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         return false;
     }
 
+    protected boolean isCreateNewObjectEnabled(){
+        return true;
+    }
+
     protected List<S> getNewObjectInfluencesList(){
         return new ArrayList<>();
     }
@@ -271,6 +282,10 @@ public abstract class MainObjectListPanel<O extends ObjectType, S extends Serial
         sb.append(createStringResource("ObjectTypeLowercase." + getType().getSimpleName()).getString());
         return WebComponentUtil.createDisplayType(GuiStyleConstants.CLASS_ADD_NEW_OBJECT, "green",
                 sb.toString());
+    }
+
+    protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
+        return null;
     }
 
     protected DisplayType getNewObjectButtonSpecialDisplayType(){

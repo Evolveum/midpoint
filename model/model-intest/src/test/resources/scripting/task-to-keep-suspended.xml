@@ -38,10 +38,4 @@
 	<modelOperationContext>
 		<state>primary</state>
 	</modelOperationContext>
-	<workflowContext>
-		<processInstanceId>12345678</processInstanceId>
-		<processName>ItemApproval</processName>
-		<startTimestamp>2018-01-01T10:34:30.087+02:00</startTimestamp>
-		<endTimestamp>2018-01-12T12:24:23.192+02:00</endTimestamp>
-	</workflowContext>
 </task>

@@ -35,6 +35,10 @@ public enum ModelState {
 
 	FINAL;
 
+	public static ModelStateType toModelStateType(ModelState value) {
+	    return value != null ? value.toModelStateType() : null;
+    }
+
     public ModelStateType toModelStateType() {
         switch (this) {
             case INITIAL: return ModelStateType.INITIAL;

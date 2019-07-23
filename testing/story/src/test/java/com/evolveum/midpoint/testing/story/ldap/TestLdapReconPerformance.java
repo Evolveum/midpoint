@@ -416,12 +416,6 @@ public class TestLdapReconPerformance extends AbstractLdapTest {
 		assertEquals("Wrong number of Random LDAP accounts", NUMBER_OF_GENERATED_USERS, randoms);
 	}
 
-	private long getRunDurationMillis(String taskReconOpendjOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		PrismObject<TaskType> reconTask = getTask(taskReconOpendjOid);
-     	return (XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunFinishTimestamp()) 
-     			- XmlTypeConverter.toMillis(reconTask.asObjectable().getLastRunStartTimestamp()));
-	}
-	
 	protected void assertLdapConnectorInstances() throws NumberFormatException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException, InterruptedException {
 		assertLdapConnectorInstances(2,4);
 	}

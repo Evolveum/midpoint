@@ -79,23 +79,11 @@ public class CachePerformanceCollector implements DebugDumpable {
 			int passes = this.passes.get();
 			int notAvailable = this.notAvailable.get();
 			int sum = hits + weakHits + misses + passes + notAvailable;
-			sb.append("hits: ").append(hits);
-			if (sum > 0) {
-				sb.append(String.format(" (%.1f%%)", 100.0f * hits / sum));
-			}
-			if (weakHits > 0) {
-				sb.append(", weak hits: ").append(weakHits);
-				if (sum > 0) {
-					sb.append(String.format(" (%.1f%%)", 100.0f * weakHits / sum));
-				}
-			}
-			sb.append(", misses: ").append(misses);
-			sb.append(", passes: ").append(passes);
-			sb.append(", not available: ").append(notAvailable);
+			CacheUtil.formatPerformanceData(sb, hits, weakHits, misses, passes, notAvailable, sum);
 		}
 	}
 
-//	public void onCacheDestroy(AbstractThreadLocalCache cache) {
+	//	public void onCacheDestroy(AbstractThreadLocalCache cache) {
 //		getOrCreate(performanceMap, cache.getClass()).add(cache);
 //		Map<String, CacheData> localMap = threadLocalPerformanceMap.get();
 //		if (localMap != null) {

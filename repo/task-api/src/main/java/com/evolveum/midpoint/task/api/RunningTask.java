@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingRootType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -81,14 +81,14 @@ public interface RunningTask extends Task {
 	 */
 	void startLightweightHandler();
 
-	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy);
+	void startCollectingOperationStats(@NotNull StatisticsCollectionStrategy strategy, boolean initialExecution);
 
 	void storeOperationStatsDeferred();
 
 	/**
 	 * Call from the thread that executes the task ONLY! Otherwise wrong data might be recorded.
 	 */
-	void refreshStoredThreadLocalPerformanceStats();
+	void refreshLowLevelStatistics();
 
 	void storeOperationStats();
 
@@ -104,4 +104,28 @@ public interface RunningTask extends Task {
 	void incrementProgressAndStoreStatsIfNeeded();
 
 	void deleteLightweightAsynchronousSubtasks();
+
+	// EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+	int getAndIncrementObjectsSeen();
+
+	/**
+	 * Must be called from the thread that executes the task.
+	 * EXPERIMENTAL; consider moving to AbstractSearchIterativeResultHandler
+	 */
+	void startDynamicProfilingIfNeeded(RunningTask coordinatorTask, int objectsSeen);
+
+	/**
+	 * Must be called from the thread that executes the task.
+	 */
+	void stopDynamicProfiling();
+
+	/**
+	 * EXPERIMENTAL
+	 */
+	boolean requestTracingIfNeeded(RunningTask coordinatorTask, int objectsSeen, TracingRootType defaultTracingRoot);
+
+	/**
+	 * EXPERIMENTAL
+	 */
+	void stopTracing();
 }

@@ -492,6 +492,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode, Map<QName, XNod
         }
     }
 
+	@NotNull
 	@Override
 	public MapXNodeImpl clone() {
 		return (MapXNodeImpl) super.clone();        // fixme brutal hack

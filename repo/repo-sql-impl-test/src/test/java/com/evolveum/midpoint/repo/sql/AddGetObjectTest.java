@@ -218,16 +218,16 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             return null;
         }
 
-        return value.getItems() != null ? value.getItems().size() : 0;
+        return value.getItems().size();
     }
 
-    private void checkContainerValuesSize(QName parentName, PrismContainerValue newValue, PrismContainerValue oldValue) {
+    private void checkContainerValuesSize(QName parentName, PrismContainerValue<?> newValue, PrismContainerValue<?> oldValue) {
         LOGGER.info("Checking: " + parentName);
         AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
 
         List<QName> checked = new ArrayList<>();
 
-        for (Item item : (List<Item>) newValue.getItems()) {
+        for (Item item : newValue.getItems()) {
             if (!(item instanceof PrismContainer)) {
                 continue;
             }
@@ -240,7 +240,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             checked.add(oldContainer.getElementName());
         }
 
-        for (Item item : (List<Item>) oldValue.getItems()) {
+        for (Item item : oldValue.getItems()) {
             if (!(item instanceof PrismContainer) || checked.contains(item.getElementName())) {
                 continue;
             }

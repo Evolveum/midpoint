@@ -29,10 +29,18 @@ public class TextAreaPanel<T> extends InputPanel {
     public TextAreaPanel(String id, IModel<T> model, Integer rowsOverride) {
         super(id);
 
-        final TextArea<T> text = new TextArea<>(ID_INPUT, model);
+        final TextArea<T> text = new TextArea<T>(ID_INPUT, model) {
+
+            @Override
+            protected boolean shouldTrimInput() {
+                return false;
+            }
+        };
+
 		if (rowsOverride != null) {
 			text.add(new AttributeModifier("rows", rowsOverride));
 		}
+
         add(text);
     }
 

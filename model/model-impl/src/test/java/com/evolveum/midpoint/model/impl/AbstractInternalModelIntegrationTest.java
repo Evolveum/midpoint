@@ -134,8 +134,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 
-		// We want logging config from logback-test.xml and not from system config object
-		InternalsConfig.setAvoidLoggingChange(true);
+		// We want logging config from logback-test.xml and not from system config object (unless suppressed)
+		InternalsConfig.setAvoidLoggingChange(isAvoidLoggingChange());
 
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
@@ -192,5 +192,4 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelImplement
 		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILE, UserType.class, initResult).asObjectable();
 
 	}
-
 }

@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -60,7 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AbstractWriteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.AddRemoveAttributeValuesCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
@@ -115,7 +112,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 		OperationResult result = parentResult.createSubresult(OPERATION_ADD);
 
-		String ticketIdentifier = null;
+		String ticketIdentifier;
 		
 		InternalMonitor.recordConnectorOperation("add");
 		InternalMonitor.recordConnectorModification("add");
@@ -310,9 +307,7 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 
 	@Override
 	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, StateReporter reporter, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException,
-			ConfigurationException {
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult) {
 		// not supported
 		return null;
 	}

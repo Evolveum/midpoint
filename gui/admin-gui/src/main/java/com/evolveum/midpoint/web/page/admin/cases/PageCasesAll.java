@@ -19,9 +19,10 @@ import com.evolveum.midpoint.web.application.Url;
                 label = "PageCases.auth.casesAll.label",
                 description = "PageCases.auth.casesAll.description")
 })
-public class PageCasesAll extends PageCases {
-
+public class PageCasesAll {//extends PageCases {
+    //TODO !!! most probably we don't need this class any more. some specific case opbjects
+    // list pages will be implemented via object collection configuration
     public PageCasesAll() {
-        super(true);
+//        super(true);
     }
 }

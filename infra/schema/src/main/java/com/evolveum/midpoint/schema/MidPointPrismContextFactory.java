@@ -117,7 +117,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		// Standard schemas
 
 		schemaRegistry.getNamespacePrefixMapper().registerPrefix("http://www.w3.org/2001/XMLSchema", DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
-		schemaRegistry.getNamespacePrefixMapper().registerPrefix(XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI, "xsi", false);
+		schemaRegistry.getNamespacePrefixMapper().registerPrefix("http://www.w3.org/2001/XMLSchema-instance", "xsi", false);
 
 
 		// Prism Schemas

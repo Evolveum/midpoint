@@ -18,39 +18,42 @@ package com.evolveum.midpoint.schema.result;
 import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Visitable;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
 import com.evolveum.midpoint.util.*;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizableMessageType;
-import org.apache.commons.lang.BooleanUtils;
+import com.evolveum.midpoint.util.logging.*;
+import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleLocalizableMessageType;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Nested Operation Result.
@@ -69,13 +72,14 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
  * @author Radovan Semancik
  *
  */
-public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable {
+public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable, OperationResultBuilder {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String VARIOUS_VALUES = "[various values]";
 	private static final String INDENT_STRING = "    ";
 
 	private static final String TASK_OID_PREFIX = "taskOid:";
+	private static final String CASE_OID_PREFIX = "caseOid:";
 
     /**
      * This constant provides count threshold for same subresults (same operation and
@@ -83,7 +87,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
      */
     private static final int DEFAULT_SUBRESULT_STRIP_THRESHOLD = 10;
 
-    private static int subresultStripThreshold = DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+	@NotNull private static final OperationResultHandlingStrategyType DEFAULT_HANDLING_STRATEGY = new OperationResultHandlingStrategyType();
+	@NotNull private volatile static List<OperationResultHandlingStrategyType> handlingStrategies = emptyList();
+	@NotNull private static OperationResultHandlingStrategyType globalHandlingStrategy = DEFAULT_HANDLING_STRATEGY;
+    private static final ThreadLocal<OperationResultHandlingStrategyType> localHandlingStrategy =
+		    new ThreadLocal<>();
+
+    private static final AtomicInteger logSequenceCounter = new AtomicInteger(0);
 
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
@@ -92,6 +102,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	public static final String CONTEXT_ITEM = "item";
 	public static final String CONTEXT_TASK = "task";
 	public static final String CONTEXT_RESOURCE = "resource";
+	public static final String CONTEXT_REASON = "reason";
 
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_NAME = "name";
@@ -105,6 +116,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public static final String RETURN_COUNT = "count";
 	public static final String RETURN_BACKGROUND_TASK_OID = "backgroundTaskOid";
+	public static final String RETURN_COMMENT = "comment";
+	public static final String DEFAULT = "";
 
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
@@ -116,6 +129,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private Map<String, Collection<String>> params;
 	private Map<String, Collection<String>> context;
 	private Map<String, Collection<String>> returns;
+	private final List<String> qualifiers = new ArrayList<>();
 
 	private long token;
 	private String messageCode;
@@ -129,7 +143,31 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	private boolean summarizeErrors;
 	private boolean summarizePartialErrors;
 	private boolean summarizeSuccesses;
-	private boolean minor = false;
+	private OperationResultImportanceType importance = NORMAL;
+
+	private boolean building = true;        // experimental (NOT SERIALIZED)
+	private OperationResult futureParent;   // experimental (NOT SERIALIZED)
+
+	private Long start;
+	private Long end;
+	private Long microseconds;
+	private Long invocationId;
+
+	private final List<LogSegmentType> logSegments = new ArrayList<>();
+
+	private CompiledTracingProfile tracingProfile;      // NOT SERIALIZED
+	private boolean collectingLogEntries;               // NOT SERIALIZED
+	private boolean startedLoggingOverride;             // NOT SERIALIZED
+
+	private final List<TraceType> traces = new ArrayList<>();
+
+	// Caller can specify the reason of the operation invocation.
+	// (Normally, the reason is known from the parent opResult; but it might be an overkill to create operation result
+	// only to specify the reason.)
+	//
+	// Use of this attribute assumes that the callee will ALWAYS create OperationResult as its first step.
+	// TODO reconsider ... it looks like a really ugly hack
+	private transient String callerReason;
 
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
@@ -140,50 +178,20 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 */
 	private String asynchronousOperationReference;
 
+	private OperationInvocationRecord invocationRecord;
+
 	private static final Trace LOGGER = TraceManager.getTrace(OperationResult.class);
 
 	public OperationResult(String operation) {
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
 	}
 
-	public OperationResult(String operation, String messageCode, String message) {
-		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
-	}
-
 	public OperationResult(String operation, OperationResultStatus status, LocalizableMessage userFriendlyMessage) {
 		this(operation, null, status, 0, null, null, userFriendlyMessage, null, null);
 	}
 
-	public OperationResult(String operation, long token, String messageCode, String message) {
-		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
-	}
-
 	public OperationResult(String operation, OperationResultStatus status, String message) {
 		this(operation, null, status, 0, null, message, null, null, null);
-	}
-
-	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
-		this(operation, null, status, 0, messageCode, message, null, null, null);
-	}
-
-	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-			String message) {
-		this(operation, null, status, token, messageCode, message, null, null, null);
-	}
-
-	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-			String message, Throwable cause) {
-		this(operation, null, status, token, messageCode, message, null, cause, null);
-	}
-
-	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message) {
-		this(operation, params, status, token, messageCode, message, null, null, null);
-	}
-
-	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
-			long token, String messageCode, String message, List<OperationResult> subresults) {
-		this(operation, params, status, token, messageCode, message, null, null, subresults);
 	}
 
 	public OperationResult(String operation, Map<String, Collection<String>> params, OperationResultStatus status,
@@ -219,20 +227,122 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return result != null ? result.keepRootOnly() : null;
 	}
 
-	public OperationResult keepRootOnly() {
-		return new OperationResult(getOperation(), getStatus(), getMessageCode(), getMessage());
+	private OperationResult keepRootOnly() {
+		return new OperationResult(getOperation(), null, getStatus(), 0, getMessageCode(), getMessage(), null, null, null);
+	}
+
+	public OperationResultBuilder subresult(String operation) {
+		OperationResult subresult = new OperationResult(operation);
+		subresult.building = true;
+		subresult.futureParent = this;
+		subresult.tracingProfile = tracingProfile;
+		return subresult;
+	}
+
+	@Override
+	public OperationResult build() {
+		if (!building) {
+			throw new IllegalStateException("Not being built");
+		}
+		// todo only if profiled!
+		recordStart(this, operation, createArguments());
+		building = false;
+		if (futureParent != null) {
+			futureParent.addSubresult(this);
+			recordCallerReason(futureParent);
+		}
+		return this;
+	}
+
+	private void recordCallerReason(OperationResult parent) {
+		if (parent.getCallerReason() != null) {
+			addContext(CONTEXT_REASON, parent.getCallerReason());
+			parent.setCallerReason(null);
+		}
+	}
+
+	private static void recordStart(OperationResult result, String operation, Object[] arguments) {
+		result.invocationRecord = OperationInvocationRecord.create(operation, arguments);
+		result.invocationId = result.invocationRecord.getInvocationId();
+		result.start = System.currentTimeMillis();
+		result.collectingLogEntries = result.tracingProfile != null && result.tracingProfile.isCollectingLogEntries();
+		if (result.collectingLogEntries) {
+			LoggingLevelOverrideConfiguration loggingOverrideConfiguration = result.tracingProfile.getLoggingLevelOverrideConfiguration();
+			if (loggingOverrideConfiguration != null && !LevelOverrideTurboFilter.isActive()) {
+				LevelOverrideTurboFilter.overrideLogging(loggingOverrideConfiguration);
+				result.startedLoggingOverride = true;
+			}
+			TracingAppender.openSink(result::appendLoggedEvents);
+		}
+	}
+
+	private void appendLoggedEvents(LoggingEventSink loggingEventSink) {
+		if (!loggingEventSink.getEvents().isEmpty()) {
+			LogSegmentType segment = new LogSegmentType();
+			segment.setSequenceNumber(logSequenceCounter.getAndIncrement());
+			for (LoggedEvent event : loggingEventSink.getEvents()) {
+				segment.getEntry().add(event.getText());
+			}
+			logSegments.add(segment);
+		}
+	}
+
+	private Object[] createArguments() {
+		List<String> arguments = new ArrayList<>();
+		getParams().forEach((key, value) -> arguments.add(key + " => " + value));       // todo what with large values?
+		getContext().forEach((key, value) -> arguments.add("c:" + key + " => " + value));
+		return arguments.toArray();
 	}
 
 	public OperationResult createSubresult(String operation) {
-		OperationResult subresult = new OperationResult(operation);
-		addSubresult(subresult);
-		return subresult;
+		return createSubresult(operation, false, true, new Object[0]);
 	}
 
 	public OperationResult createMinorSubresult(String operation) {
-		OperationResult subresult = createSubresult(operation);
-		subresult.minor = true;
+		return createSubresult(operation, true, true, null);        // temporarily profiled todo make this configurable
+	}
+
+//	public static OperationResult createProfiled(String operation) {
+//		return createProfiled(operation, new Object[0]);
+//	}
+//
+//	public static OperationResult createProfiled(String operation, Object[] arguments) {
+//		OperationResult result = new OperationResult(operation);
+//		recordStart(result, operation, arguments);
+//		return result;
+//	}
+
+	private OperationResult createSubresult(String operation, boolean minor, boolean profiled, Object[] arguments) {
+		OperationResult subresult = new OperationResult(operation);
+		subresult.recordCallerReason(this);
+		addSubresult(subresult);
+		if (profiled) {
+			recordStart(subresult, operation, arguments);
+		}
+		subresult.importance = minor ? MINOR : NORMAL;
 		return subresult;
+	}
+
+	// todo determine appropriate places where recordEnd() should be called
+	public void recordEnd() {
+		if (invocationRecord != null) {
+			String returnValue = getReturns().toString();
+			if (cause != null) {
+				returnValue += "; " + cause.getClass().getName() + ": " + cause.getMessage();
+			}
+			// This is not quite clean. We should report the exception via processException method - but that does not allow
+			// showing return values that can be present in operation result. So this is a hack until InvocationRecord is fixed.
+			invocationRecord.processReturnValue(returnValue);
+			invocationRecord.afterCall();
+			microseconds = invocationRecord.getElapsedTimeMicros();
+			TracingAppender.closeCurrentSink();
+			invocationRecord = null;
+		}
+		end = System.currentTimeMillis();
+		if (startedLoggingOverride) {
+			LevelOverrideTurboFilter.cancelLoggingOverride();
+			startedLoggingOverride = false;
+		}
 	}
 
 	/**
@@ -270,12 +380,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return null;
 	}
 
-	public boolean isTaskOid(String ref) {
+	public static boolean isTaskOid(String ref) {
 		return ref != null && ref.startsWith(TASK_OID_PREFIX);
 	}
 
-	public String referenceToTaskOid(String ref) {
+	public static String referenceToTaskOid(String ref) {
 		return isTaskOid(ref) ? ref.substring(TASK_OID_PREFIX.length()) : null;
+	}
+
+	public static String referenceToCaseOid(String ref) {
+		return ref != null && ref.startsWith(CASE_OID_PREFIX) ? ref.substring(CASE_OID_PREFIX.length()) : null;
 	}
 
 	/**
@@ -385,6 +499,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
+		if (subresult.tracingProfile == null) {
+			subresult.tracingProfile = tracingProfile;
+		}
 	}
 
 	public OperationResult findSubresult(String operation) {
@@ -540,6 +657,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
+		computeStatus(false);
+	}
+
+	public void computeStatus(boolean skipFinish) {
+		if (!skipFinish) {
+			recordEnd();
+		}
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.SUCCESS;
@@ -634,23 +758,34 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 	
 	private void updateLocalizableMessage(LocalizableMessage localizableMessage) {
+		if (localizableMessage == null) {
+			return;
+		}
 		if (userFriendlyMessage instanceof SingleLocalizableMessage) {
-			if (localizableMessage != null) {
-				userFriendlyMessage = new LocalizableMessageListBuilder().message(userFriendlyMessage).message(localizableMessage).separator(LocalizableMessageList.SPACE).build();
-				return;
-			}
+			userFriendlyMessage = new LocalizableMessageListBuilder()
+					.message(userFriendlyMessage)
+					.message(localizableMessage)
+					.separator(LocalizableMessageList.SPACE).build();
+		} else if (userFriendlyMessage instanceof LocalizableMessageList) {
+			LocalizableMessageList userFriendlyMessageList = (LocalizableMessageList) this.userFriendlyMessage;
+			userFriendlyMessage = new LocalizableMessageList(
+					mergeMessages(userFriendlyMessageList, localizableMessage),
+					userFriendlyMessageList.getSeparator(),
+					userFriendlyMessageList.getPrefix(),
+					userFriendlyMessageList.getPostfix());
 		}
-		
-		if (userFriendlyMessage instanceof LocalizableMessageList) {
-			if (localizableMessage instanceof SingleLocalizableMessage) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().add(localizableMessage);
-				return;
-			}
-			if (localizableMessage instanceof LocalizableMessageList) {
-				((LocalizableMessageList) userFriendlyMessage).getMessages().addAll(((LocalizableMessageList) localizableMessage).getMessages());
-				return;
-			}
+	}
+
+	private List<LocalizableMessage> mergeMessages(LocalizableMessageList sum, LocalizableMessage increment) {
+		List<LocalizableMessage> rv = new ArrayList<>(sum.getMessages());
+		if (increment instanceof SingleLocalizableMessage) {
+			rv.add(increment);
+		} else if (increment instanceof LocalizableMessageList) {
+			rv.addAll(((LocalizableMessageList) increment).getMessages());
+		} else {
+			throw new IllegalArgumentException("increment: " + increment);
 		}
+		return rv;
 	}
 
 	/**
@@ -659,6 +794,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * result will be partial error. Handled error is considered a success.
 	 */
 	public void computeStatusComposite() {
+		recordEnd();
 		if (getSubresults().isEmpty()) {
 			if (status == OperationResultStatus.UNKNOWN) {
 				status = OperationResultStatus.NOT_APPLICABLE;
@@ -741,23 +877,99 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
 	}
 
-	public OperationResultStatus getComputeStatus() {
+	public void addTrace(TraceType trace) {
+		traces.add(trace);
+	}
+
+	@Override
+	public OperationResultBuilder tracingProfile(CompiledTracingProfile profile) {
+		this.tracingProfile = profile;
+		return this;
+	}
+
+	public <T> T getFirstTrace(Class<T> traceClass) {
+		Optional<TraceType> first = traces.stream().filter(t -> traceClass.isAssignableFrom(t.getClass())).findFirst();
+		if (first.isPresent()) {
+			//noinspection unchecked
+			return (T) first.get();
+		} else {
+			for (OperationResult subresult : getSubresults()) {
+				T firstInSubresult = subresult.getFirstTrace(traceClass);
+				if (firstInSubresult != null) {
+					return firstInSubresult;
+				}
+			}
+			return null;
+		}
+	}
+
+	public void addReturnComment(String comment) {
+		addReturn(RETURN_COMMENT, comment);
+	}
+
+	public boolean isTracingNormal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.NORMAL);
+	}
+
+	public boolean isTracingMinimal(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.MINIMAL);
+	}
+
+	public boolean isTracingDetailed(Class<? extends TraceType> traceClass) {
+		return isTracing(traceClass, TracingLevelType.DETAILED);
+	}
+
+	public boolean isTracing(Class<? extends TraceType> traceClass, TracingLevelType level) {
+		return getTracingLevel(traceClass).ordinal() >= level.ordinal();
+	}
+
+	@NotNull
+	public TracingLevelType getTracingLevel(Class<? extends TraceType> traceClass) {
+		if (tracingProfile != null) {
+			return tracingProfile.getLevel(traceClass);
+		} else {
+			return TracingLevelType.OFF;
+		}
+	}
+
+	public void clearTracingProfile() {
+		tracingProfile = null;
+	}
+
+	public static class PreviewResult {
+		public final OperationResultStatus status;
+		public final String message;
+
+		private PreviewResult(OperationResultStatus status, String message) {
+			this.status = status;
+			this.message = message;
+		}
+	}
+
+	// This is quite ugly. We should compute the preview in a way that does not modify existing object.
+	public PreviewResult computePreview() {
 		OperationResultStatus origStatus = status;
 		String origMessage = message;
-		computeStatus();
-		OperationResultStatus computedStatus = status;
+		computeStatus(true);
+		PreviewResult rv = new PreviewResult(status, message);
 		status = origStatus;
 		message = origMessage;
-		return computedStatus;
+		return rv;
+	}
+
+	public OperationResultStatus getComputeStatus() {
+		return computePreview().status;
 	}
 
     public void computeStatusIfUnknown() {
+	    recordEnd();
         if (isUnknown()) {
             computeStatus();
         }
     }
 
     public void recomputeStatus() {
+	    recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -766,6 +978,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String message) {
+		recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -774,6 +987,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recomputeStatus(String errorMessage, String warningMessage) {
+		recordEnd();
 		// Only recompute if there are subresults, otherwise keep original
 		// status
 		if (subresults != null && !subresults.isEmpty()) {
@@ -782,25 +996,28 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccessIfUnknown() {
+		recordEnd();
 		if (isUnknown()) {
 			recordSuccess();
 		}
 	}
 
 	public void recordNotApplicableIfUnknown() {
+		recordEnd();
 		if (isUnknown()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
 		}
 	}
 
 	public boolean isMinor() {
-		return minor;
+		return importance == MINOR;
 	}
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
 	 * described in module interface for every operation.
 	 */
+	@NotNull
 	public Map<String, Collection<String>> getParams() {
 		if (params == null) {
 			params = new HashMap<>();
@@ -826,66 +1043,99 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return values.iterator().next();
 	}
 
-	public void addParam(String name, String value) {
+	@Override
+	public OperationResult addQualifier(String value) {
+		qualifiers.add(value);
+		return this;
+	}
+
+	@Override
+	public OperationResult addParam(String name, String value) {
 		getParams().put(name, collectionize(value));
+		return this;
 	}
 
-	public void addParam(String name, PrismObject<? extends ObjectType> value) {
+	@Override
+	public OperationResult addParam(String name, PrismObject<? extends ObjectType> value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, ObjectType value) {
+	@Override
+	public OperationResult addParam(String name, ObjectType value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, boolean value) {
+	@Override
+	public OperationResult addParam(String name, boolean value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, long value) {
+	@Override
+	public OperationResult addParam(String name, long value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, int value) {
+	@Override
+	public OperationResult addParam(String name, int value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public void addParam(String name, Class<?> value) {
+	public OperationResult addParam(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
 			getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getParams().put(name, collectionize(stringify(value)));
 		}
+		return this;
 	}
 
-	public void addParam(String name, QName value) {
+	@Override
+	public OperationResult addParam(String name, QName value) {
 		getParams().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+		return this;
 	}
 
-	public void addParam(String name, PolyString value) {
+	@Override
+	public OperationResult addParam(String name, PolyString value) {
 		getParams().put(name, collectionize(value == null ? null : value.getOrig()));
+		return this;
 	}
 
-	public void addParam(String name, ObjectQuery value) {
+	@Override
+	public OperationResult addParam(String name, ObjectQuery value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addParam(String name, ObjectDelta<?> value) {
+	@Override
+	public OperationResult addParam(String name, ObjectDelta<?> value) {
 		getParams().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-
-	public void addParam(String name, String... values) {
+	@Override
+	public OperationResult addParam(String name, String... values) {
 		getParams().put(name, collectionize(values));
+		return this;
 	}
 
-	public void addArbitraryObjectAsParam(String paramName, Object paramValue) {
+	@Override
+	public OperationResult addArbitraryObjectAsParam(String paramName, Object paramValue) {
 		getParams().put(paramName, collectionize(stringify(paramValue)));
+		return this;
     }
 
-    public void addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
+    @Override
+    public OperationResult addArbitraryObjectCollectionAsParam(String name, Collection<?> value) {
 		getParams().put(name, stringifyCol(value));
+	    return this;
     }
 
     public Map<String, Collection<String>> getContext() {
@@ -895,68 +1145,96 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return context;
 	}
 
-	public void addContext(String name, String value) {
+	@Override
+	public OperationResult addContext(String name, String value) {
 		getContext().put(name, collectionize(value));
+		return this;
 	}
 
-	public void addContext(String name, PrismObject<? extends ObjectType> value) {
+	@Override
+	public OperationResult addContext(String name, PrismObject<? extends ObjectType> value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, ObjectType value) {
+	@Override
+	public OperationResult addContext(String name, ObjectType value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, boolean value) {
+	@Override
+	public OperationResult addContext(String name, boolean value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, long value) {
+	@Override
+	public OperationResult addContext(String name, long value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, int value) {
+	@Override
+	public OperationResult addContext(String name, int value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
+	@Override
 	@SuppressWarnings("unchecked")
-	public void addContext(String name, Class<?> value) {
+	public OperationResult addContext(String name, Class<?> value) {
 		if (ObjectType.class.isAssignableFrom(value)) {
 			getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
 		} else {
 			getContext().put(name, collectionize(stringify(value)));
 		}
+		return this;
 	}
 
-	public void addContext(String name, QName value) {
+	@Override
+	public OperationResult addContext(String name, QName value) {
 		getContext().put(name, collectionize(value == null ? null : QNameUtil.qNameToUri(value)));
+		return this;
 	}
 
-	public void addContext(String name, PolyString value) {
+	@Override
+	public OperationResult addContext(String name, PolyString value) {
 		getContext().put(name, collectionize(value == null ? null : value.getOrig()));
+		return this;
 	}
 
-	public void addContext(String name, ObjectQuery value) {
+	@Override
+	public OperationResult addContext(String name, ObjectQuery value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-	public void addContext(String name, ObjectDelta<?> value) {
+	@Override
+	public OperationResult addContext(String name, ObjectDelta<?> value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
 	}
 
-
-	public void addContext(String name, String... values) {
+	@Override
+	public OperationResult addContext(String name, String... values) {
 		getContext().put(name, collectionize(values));
+		return this;
 	}
 
-	public void addArbitraryObjectAsContext(String name, Object value) {
+	@Override
+	public OperationResult addArbitraryObjectAsContext(String name, Object value) {
 		getContext().put(name, collectionize(stringify(value)));
+		return this;
     }
 
-    public void addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
+    @Override
+    public OperationResult addArbitraryObjectCollectionAsContext(String paramName, Collection<?> paramValue) {
     	getContext().put(paramName, stringifyCol(paramValue));
+	    return this;
     }
 
+    @NotNull
 	public Map<String, Collection<String>> getReturns() {
 		if (returns == null) {
 			returns = new HashMap<>();
@@ -1089,7 +1367,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	/**
-	 * Contains mesage code based on module error catalog.
+	 * Contains message code based on module error catalog.
 	 *
 	 * @return Can return null.
 	 */
@@ -1126,6 +1404,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordSuccess() {
+		recordEnd();
 		// Success, no message or other explanation is needed.
 		status = OperationResultStatus.SUCCESS;
 	}
@@ -1140,6 +1419,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
+	}
+
+	public void recordFatalErrorNotFinish(Throwable cause) {
+		recordStatusNotFinish(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 
 	/**
@@ -1175,6 +1458,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, Throwable cause) {
+		recordEnd();
 		this.status = status;
 		this.cause = cause;
 		// No other message was given, so use message from the exception
@@ -1207,6 +1491,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
+		recordEnd();
+		recordStatusNotFinish(status, message, cause);
+	}
+
+	public void recordStatusNotFinish(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;
 		this.message = message;
 		this.cause = cause;
@@ -1238,6 +1527,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void recordStatus(OperationResultStatus status, String message) {
+		recordEnd();
 		this.status = status;
 		this.message = message;
 	}
@@ -1270,7 +1560,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return details;
 	}
 
-	public static OperationResult createOperationResult(OperationResultType result) throws SchemaException {
+	@Contract("null -> null; !null -> !null")
+	public static OperationResult createOperationResult(OperationResultType result) {
 		if (result == null) {
             return null;
         }
@@ -1297,13 +1588,23 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizableMessage,  null,
 				subresults);
-		opResult.setMinor(BooleanUtils.isTrue(result.isMinor()));
+		opResult.getQualifiers().addAll(result.getQualifier());
+		opResult.setImportance(result.getImportance());
 		if (result.getCount() != null) {
 			opResult.setCount(result.getCount());
 		}
 		if (result.getHiddenRecordsCount() != null) {
 			opResult.setHiddenRecordsCount(result.getHiddenRecordsCount());
 		}
+		if (result.getStart() != null) {
+			opResult.setStart(XmlTypeConverter.toMillis(result.getStart()));
+		}
+		if (result.getEnd() != null) {
+			opResult.setEnd(XmlTypeConverter.toMillis(result.getEnd()));
+		}
+		opResult.setMicroseconds(result.getMicroseconds());
+		opResult.setInvocationId(result.getInvocationId());
+		opResult.logSegments.addAll(result.getLog());
 		return opResult;
 	}
 
@@ -1315,13 +1616,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		return createOperationResultType(this, resolveKeys);
 	}
 
-	private OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
+	private static OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
 		OperationResultType resultType = new OperationResultType();
 		resultType.setToken(opResult.getToken());
 		resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
-		if (opResult.isMinor()) {
-			resultType.setMinor(true);
-		}
+		resultType.setImportance(opResult.getImportance());
 		if (opResult.getCount() != 1) {
 			resultType.setCount(opResult.getCount());
 		}
@@ -1329,6 +1628,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 			resultType.setHiddenRecordsCount(opResult.getHiddenRecordsCount());
 		}
 		resultType.setOperation(opResult.getOperation());
+		resultType.getQualifier().addAll(opResult.getQualifiers());
 		resultType.setMessage(opResult.getMessage());
 		resultType.setMessageCode(opResult.getMessageCode());
 
@@ -1370,9 +1670,15 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		resultType.setReturns(ParamsTypeUtil.toParamsType(opResult.getReturns()));
 
 		for (OperationResult subResult : opResult.getSubresults()) {
-			resultType.getPartialResults().add(opResult.createOperationResultType(subResult, resolveKeys));
+			resultType.getPartialResults().add(createOperationResultType(subResult, resolveKeys));
 		}
 
+		resultType.setStart(XmlTypeConverter.createXMLGregorianCalendar(opResult.start));
+		resultType.setEnd(XmlTypeConverter.createXMLGregorianCalendar(opResult.end));
+		resultType.setMicroseconds(opResult.microseconds);
+		resultType.setInvocationId(opResult.invocationId);
+		resultType.getLog().addAll(opResult.logSegments);           // consider cloning here
+		resultType.getTrace().addAll(opResult.traces);           // consider cloning here
 		return resultType;
 	}
 
@@ -1381,6 +1687,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
 	public void summarize(boolean alsoSubresults) {
+
+		int subresultStripThreshold = getSubresultStripThreshold();
 
 		// first phase: summarizing records if explicitly requested
 		Iterator<OperationResult> iterator = getSubresults().iterator();
@@ -1546,6 +1854,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	 * to the IAE that this method produces for easier debugging.
 	 */
 	public void cleanupResult(Throwable e) {
+
+		if (isTraced()) {
+			return;         // TEMPORARY fixme
+		}
+
+		OperationResultImportanceType preserveDuringCleanup = getPreserveDuringCleanup();
+
 		if (status == OperationResultStatus.UNKNOWN) {
 			LOGGER.error("Attempt to cleanup result of operation " + operation + " that is still UNKNOWN:\n{}", this.debugDump());
 			throw new IllegalStateException("Attempt to cleanup result of operation "+operation+" that is still UNKNOWN");
@@ -1565,17 +1880,27 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 					throw new IllegalStateException(message+"; during handling of exception "+e, e);
 				}
 			}
-			if (subresult.canCleanup()) {
+			if (subresult.canCleanup(preserveDuringCleanup)) {
 				iterator.remove();
 			}
 		}
 	}
 
-	private boolean canCleanup() {
-		if (!minor) {
-			return false;
+	private boolean canCleanup(OperationResultImportanceType preserveDuringCleanup) {
+		return isLesserThan(importance, preserveDuringCleanup) && (status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE);
+	}
+
+	/**
+	 * @return true if x < y
+	 */
+	@SuppressWarnings("WeakerAccess")
+	public static boolean isLesserThan(OperationResultImportanceType x, @NotNull OperationResultImportanceType y) {
+		switch (y) {
+			case MAJOR: return x != MAJOR;
+			case NORMAL: return x == MINOR;
+			case MINOR: return false;
+			default: throw new IllegalArgumentException("importance: " + y);
 		}
-		return status == OperationResultStatus.SUCCESS || status == OperationResultStatus.NOT_APPLICABLE;
 	}
 
 	@Override
@@ -1597,8 +1922,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		sb.append(operation);
 		sb.append(", st: ");
 		sb.append(status);
-		if (minor) {
+		if (importance == MINOR) {
 			sb.append(", MINOR");
+		} else if (importance == MAJOR) {
+			sb.append(", MAJOR");
 		}
 		sb.append(", msg: ");
 		sb.append(message);
@@ -1726,13 +2053,35 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		addReturn(RETURN_BACKGROUND_TASK_OID, oid); // deprecated
 	}
 
+	public void setCaseOid(String oid) {
+		setAsynchronousOperationReference(CASE_OID_PREFIX + oid);
+	}
+
 	@Deprecated // use asynchronous operation reference
 	public String getBackgroundTaskOid() {
 		return getReturnSingle(RETURN_BACKGROUND_TASK_OID);
 	}
 
-	public void setMinor(boolean value) {
-		this.minor = value;
+	@Deprecated
+	@Override
+	public OperationResult setMinor(boolean value) {
+		this.importance = value ? MINOR : NORMAL;
+		return this;
+	}
+
+	@Override
+	public OperationResultBuilder setMinor() {
+		return setImportance(MINOR);
+	}
+
+	public OperationResultImportanceType getImportance() {
+		return importance;
+	}
+
+	@Override
+	public OperationResult setImportance(OperationResultImportanceType value) {
+		this.importance = value;
+		return this;
 	}
 
 	public void recordThrowableIfNeeded(Throwable t) {
@@ -1792,192 +2141,233 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 	}
 
     public OperationResult clone() {
+		return clone(null, true);
+    }
+
+    public OperationResult clone(Integer maxDepth, boolean full) {
         OperationResult clone = new OperationResult(operation);
 
         clone.status = status;
-        clone.params = cloneParams(params);
-        clone.context = cloneParams(context);
-        clone.returns = cloneParams(returns);
+        clone.qualifiers.addAll(qualifiers);
+        clone.params = cloneParams(params, full);
+        clone.context = cloneParams(context, full);
+        clone.returns = cloneParams(returns, full);
         clone.token = token;
         clone.messageCode = messageCode;
         clone.message = message;
         clone.userFriendlyMessage = CloneUtil.clone(userFriendlyMessage);
-        clone.cause = CloneUtil.clone(cause);
+	    // I think it's not necessary to (deeply) clone the exception. They are usually not cloneable. See also MID-5379.
+        clone.cause = cause;
         clone.count = count;
 		clone.hiddenRecordsCount = hiddenRecordsCount;
-        if (subresults != null) {
-            clone.subresults = new ArrayList<>(subresults.size());
-            for (OperationResult subresult : subresults) {
-                if (subresult != null) {
-                    clone.subresults.add(subresult.clone());
-                }
-            }
-        }
-        clone.details = CloneUtil.clone(details);
+		if (subresults != null && (maxDepth == null || maxDepth > 0)) {
+			clone.subresults = new ArrayList<>(subresults.size());
+			for (OperationResult subresult : subresults) {
+				if (subresult != null) {
+					clone.subresults.add(subresult.clone(maxDepth != null ? maxDepth - 1 : null, full));
+				}
+			}
+		}
+        clone.details = full ? CloneUtil.clone(details) : details;
         clone.summarizeErrors = summarizeErrors;
         clone.summarizePartialErrors = summarizePartialErrors;
         clone.summarizeSuccesses = summarizeSuccesses;
-        clone.minor = minor;
+        clone.importance = importance;
         clone.asynchronousOperationReference = asynchronousOperationReference;
 
-        return clone;
+        clone.start = start;
+        clone.end = end;
+        clone.microseconds = microseconds;
+        clone.invocationId = invocationId;
+        clone.traces.addAll(CloneUtil.cloneCollectionMembers(traces));
+
+        clone.building = building;
+        clone.futureParent = futureParent;
+
+        // todo invocationRecord?
+
+	    return clone;
     }
 
-	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map) {
-		// TODO: implement more efficient clone
-		return CloneUtil.clone(map);
+	private Map<String, Collection<String>> cloneParams(Map<String, Collection<String>> map, boolean full) {
+		if (full) {
+			// TODO: implement more efficient clone
+			return CloneUtil.clone(map);
+		} else {
+			return map;
+		}
 	}
 
-	public static int getSubresultStripThreshold() {
-		return subresultStripThreshold;
+	@NotNull
+	private static OperationResultHandlingStrategyType getCurrentHandlingStrategy() {
+		OperationResultHandlingStrategyType local = localHandlingStrategy.get();
+		if (local != null) {
+			return local;
+		} else {
+			return globalHandlingStrategy;
+		}
 	}
 
-	// null means default value
-	public static void setSubresultStripThreshold(Integer value) {
-		subresultStripThreshold = value != null ? value : DEFAULT_SUBRESULT_STRIP_THRESHOLD;
+	private static int getSubresultStripThreshold() {
+		return defaultIfNull(getCurrentHandlingStrategy().getSubresultStripThreshold(), DEFAULT_SUBRESULT_STRIP_THRESHOLD);
+	}
+
+	@NotNull
+	private static OperationResultImportanceType getPreserveDuringCleanup() {
+		return defaultIfNull(getCurrentHandlingStrategy().getPreserveDuringCleanup(), NORMAL);
+	}
+
+	public static void applyOperationResultHandlingStrategy(
+			@NotNull List<OperationResultHandlingStrategyType> configuredStrategies, Integer stripThresholdDeprecated) {
+		if (!configuredStrategies.isEmpty()) {
+			handlingStrategies = CloneUtil.cloneCollectionMembers(configuredStrategies);
+		} else if (stripThresholdDeprecated != null) {
+			handlingStrategies = singletonList(new OperationResultHandlingStrategyType().subresultStripThreshold(stripThresholdDeprecated));
+		} else {
+			handlingStrategies = singletonList(DEFAULT_HANDLING_STRATEGY);
+		}
+		selectGlobalHandlingStrategy();
+	}
+
+	private static void selectGlobalHandlingStrategy() {
+		if (handlingStrategies.isEmpty()) {
+			globalHandlingStrategy = DEFAULT_HANDLING_STRATEGY;
+		} else if (handlingStrategies.size() == 1) {
+			globalHandlingStrategy = handlingStrategies.get(0);
+		} else {
+			List<OperationResultHandlingStrategyType> globalOnes = handlingStrategies.stream()
+					.filter(s -> Boolean.TRUE.equals(s.isGlobal())).collect(Collectors.toList());
+			if (globalOnes.isEmpty()) {
+				globalHandlingStrategy = handlingStrategies.get(0);
+				LOGGER.warn("Found no handling strategy marked as global, selecting the first one among all strategies: {}",
+						globalHandlingStrategy);
+			} else if (globalOnes.size() == 1) {
+				globalHandlingStrategy = globalOnes.get(0);
+			} else {
+				globalHandlingStrategy = globalOnes.get(0);
+				LOGGER.warn("Found {} handling strategies marked as global, selecting the first one among them: {}",
+						globalOnes.size(), globalHandlingStrategy);
+			}
+		}
+	}
+
+	public static void setThreadLocalHandlingStrategy(@Nullable String strategyName) {
+		OperationResultHandlingStrategyType selected;
+		if (strategyName == null) {
+			selected = globalHandlingStrategy;
+		} else {
+			Optional<OperationResultHandlingStrategyType> found = handlingStrategies.stream()
+					.filter(s -> strategyName.equals(s.getName()))
+					.findFirst();
+			if (found.isPresent()) {
+				selected = found.get();
+			} else {
+				LOGGER.error("Couldn't find operation result handling strategy '{}' - using the global one", strategyName);
+				selected = globalHandlingStrategy;
+			}
+		}
+		LOGGER.trace("Selected handling strategy: {}", selected);
+		localHandlingStrategy.set(selected);
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof OperationResult))
+			return false;
+		OperationResult result = (OperationResult) o;
+		return token == result.token &&
+				count == result.count &&
+				hiddenRecordsCount == result.hiddenRecordsCount &&
+				summarizeErrors == result.summarizeErrors &&
+				summarizePartialErrors == result.summarizePartialErrors &&
+				summarizeSuccesses == result.summarizeSuccesses &&
+				importance == result.importance &&
+				building == result.building &&
+				Objects.equals(start, result.start) &&
+				Objects.equals(end, result.end) &&
+				Objects.equals(microseconds, result.microseconds) &&
+				Objects.equals(invocationId, result.invocationId) &&
+				Objects.equals(tracingProfile, result.tracingProfile) &&
+				Objects.equals(operation, result.operation) &&
+				Objects.equals(qualifiers, result.qualifiers) &&
+				status == result.status &&
+				Objects.equals(params, result.params) &&
+				Objects.equals(context, result.context) &&
+				Objects.equals(returns, result.returns) &&
+				Objects.equals(messageCode, result.messageCode) &&
+				Objects.equals(message, result.message) &&
+				Objects.equals(userFriendlyMessage, result.userFriendlyMessage) &&
+				Objects.equals(cause, result.cause) &&
+				Objects.equals(subresults, result.subresults) &&
+				Objects.equals(details, result.details) &&
+				Objects.equals(traces, result.traces) &&
+				Objects.equals(asynchronousOperationReference, result.asynchronousOperationReference);
 	}
 
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((asynchronousOperationReference == null) ? 0 : asynchronousOperationReference.hashCode());
-		result = prime * result + ((cause == null) ? 0 : cause.hashCode());
-		result = prime * result + ((context == null) ? 0 : context.hashCode());
-		result = prime * result + count;
-		result = prime * result + ((details == null) ? 0 : details.hashCode());
-		result = prime * result + hiddenRecordsCount;
-		result = prime * result + ((userFriendlyMessage == null) ? 0 : userFriendlyMessage.hashCode());
-		result = prime * result + ((message == null) ? 0 : message.hashCode());
-		result = prime * result + ((messageCode == null) ? 0 : messageCode.hashCode());
-		result = prime * result + (minor ? 1231 : 1237);
-		result = prime * result + ((operation == null) ? 0 : operation.hashCode());
-		result = prime * result + ((params == null) ? 0 : params.hashCode());
-		result = prime * result + ((returns == null) ? 0 : returns.hashCode());
-		result = prime * result + ((status == null) ? 0 : status.hashCode());
-		result = prime * result + ((subresults == null) ? 0 : subresults.hashCode());
-		result = prime * result + (summarizeErrors ? 1231 : 1237);
-		result = prime * result + (summarizePartialErrors ? 1231 : 1237);
-		result = prime * result + (summarizeSuccesses ? 1231 : 1237);
-		result = prime * result + (int) (token ^ (token >>> 32));
-		return result;
+		return Objects
+				.hash(operation, qualifiers, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
+						hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
+						building, start, end, microseconds, invocationId, traces,
+						asynchronousOperationReference);
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj) {
-			return true;
-		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		OperationResult other = (OperationResult) obj;
-		if (asynchronousOperationReference == null) {
-			if (other.asynchronousOperationReference != null) {
-				return false;
-			}
-		} else if (!asynchronousOperationReference.equals(other.asynchronousOperationReference)) {
-			return false;
-		}
-		if (cause == null) {
-			if (other.cause != null) {
-				return false;
-			}
-		} else if (!cause.equals(other.cause)) {
-			return false;
-		}
-		if (context == null) {
-			if (other.context != null) {
-				return false;
-			}
-		} else if (!context.equals(other.context)) {
-			return false;
-		}
-		if (count != other.count) {
-			return false;
-		}
-		if (details == null) {
-			if (other.details != null) {
-				return false;
-			}
-		} else if (!details.equals(other.details)) {
-			return false;
-		}
-		if (hiddenRecordsCount != other.hiddenRecordsCount) {
-			return false;
-		}
-		if (userFriendlyMessage == null) {
-			if (other.userFriendlyMessage != null) {
-				return false;
-			}
-		} else if (!userFriendlyMessage.equals(other.userFriendlyMessage)) {
-			return false;
-		}
-		if (message == null) {
-			if (other.message != null) {
-				return false;
-			}
-		} else if (!message.equals(other.message)) {
-			return false;
-		}
-		if (messageCode == null) {
-			if (other.messageCode != null) {
-				return false;
-			}
-		} else if (!messageCode.equals(other.messageCode)) {
-			return false;
-		}
-		if (minor != other.minor) {
-			return false;
-		}
-		if (operation == null) {
-			if (other.operation != null) {
-				return false;
-			}
-		} else if (!operation.equals(other.operation)) {
-			return false;
-		}
-		if (params == null) {
-			if (other.params != null) {
-				return false;
-			}
-		} else if (!params.equals(other.params)) {
-			return false;
-		}
-		if (returns == null) {
-			if (other.returns != null) {
-				return false;
-			}
-		} else if (!returns.equals(other.returns)) {
-			return false;
-		}
-		if (status != other.status) {
-			return false;
-		}
-		if (subresults == null) {
-			if (other.subresults != null) {
-				return false;
-			}
-		} else if (!subresults.equals(other.subresults)) {
-			return false;
-		}
-		if (summarizeErrors != other.summarizeErrors) {
-			return false;
-		}
-		if (summarizePartialErrors != other.summarizePartialErrors) {
-			return false;
-		}
-		if (summarizeSuccesses != other.summarizeSuccesses) {
-			return false;
-		}
-		if (token != other.token) {
-			return false;
-		}
-		return true;
+	public Long getStart() {
+		return start;
 	}
 
+	public void setStart(Long start) {
+		this.start = start;
+	}
+
+	public Long getEnd() {
+		return end;
+	}
+
+	public void setEnd(Long end) {
+		this.end = end;
+	}
+
+	public Long getMicroseconds() {
+		return microseconds;
+	}
+
+	public void setMicroseconds(Long microseconds) {
+		this.microseconds = microseconds;
+	}
+
+	public Long getInvocationId() {
+		return invocationId;
+	}
+
+	public void setInvocationId(Long invocationId) {
+		this.invocationId = invocationId;
+	}
+
+	public boolean isTraced() {
+		return tracingProfile != null;
+	}
+
+	public CompiledTracingProfile getTracingProfile() {
+		return tracingProfile;
+	}
+
+	public List<TraceType> getTraces() {
+		return traces;
+	}
+
+	public List<String> getQualifiers() {
+		return qualifiers;
+	}
+
+	public String getCallerReason() {
+		return callerReason;
+	}
+
+	public void setCallerReason(String callerReason) {
+		this.callerReason = callerReason;
+	}
 }

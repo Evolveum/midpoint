@@ -89,7 +89,7 @@ public class AuditEventRecord implements DebugDumpable {
 	private String requestIdentifier;
 	
 	/**
-	 * Identitification of (interactive) session in which the event occured.
+	 * Identification of (interactive) session in which the event occured.
 	 */
 	private String sessionIdentifier;
 
@@ -176,12 +176,22 @@ public class AuditEventRecord implements DebugDumpable {
     private String parameter;
 
     private String message;
-
+    
+    /**
+	 *  Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+	 */
+    private Set<String> resourceOids = new HashSet<>();
+    
 	private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
 	private final Map<String, Set<String>> properties = new HashMap<>();
 
 	private final Map<String, Set<AuditReferenceValue>> references = new HashMap<>();
+	
+	private final Map<String, String> customColumnProperty = new HashMap<>();
+
+	// Just a hint for audit service proxy: these OID need not to be resolved, as they are known to not exist.
+	private final Set<String> nonExistingReferencedObjects = new HashSet<>();
 
 	public AuditEventRecord() {
 	}
@@ -421,7 +431,23 @@ public class AuditEventRecord implements DebugDumpable {
 	public Set<AuditReferenceValue> getReferenceValues(String name) {
 		return references.get(name);
 	}
-
+	
+	public Map<String, String> getCustomColumnProperty() {
+		return customColumnProperty;
+	}
+	
+	public Set<String> getResourceOids() {
+		return resourceOids;
+	}
+	
+	public void setResourceOids(Set<String> resourceOids) {
+		this.resourceOids = resourceOids;
+	}
+	
+	public void addResourceOid(String resourceOid) {
+		this.resourceOids.add(resourceOid);
+	}
+	
 	public void addPropertyValue(String key, String value) {
 		properties.computeIfAbsent(key, k -> new HashSet<>()).add(value);
 	}
@@ -496,6 +522,7 @@ public class AuditEventRecord implements DebugDumpable {
     	auditRecordType.setRequestIdentifier(requestIdentifier);
     	auditRecordType.setTaskIdentifier(taskIdentifier);
     	auditRecordType.setTaskOID(taskOID);
+    	auditRecordType.getResourceOid().addAll(resourceOids);
     	auditRecordType.setTimestamp(MiscUtil.asXMLGregorianCalendar(timestamp));
     	for (ObjectDeltaOperation delta : deltas) {
     		ObjectDeltaOperationType odo = new ObjectDeltaOperationType();
@@ -558,6 +585,8 @@ public class AuditEventRecord implements DebugDumpable {
         clone.message = this.message;
         clone.properties.putAll(properties);		// TODO deep clone?
         clone.references.putAll(references);		// TODO deep clone?
+        clone.resourceOids.addAll(resourceOids);
+        clone.customColumnProperty.putAll(customColumnProperty);
 		return clone;
 	}
 
@@ -570,7 +599,9 @@ public class AuditEventRecord implements DebugDumpable {
 				+ ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
 				+ ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
+                + ", cuscolprop=" + customColumnProperty
                 + ", prop=" + properties
+                + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
 	}
 
@@ -647,7 +678,9 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Parameter", parameter, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Message", message, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Properties", properties, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Resource OIDs", resourceOids, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "References", references, indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Custom column properties", customColumnProperty, indent + 1);
 		DebugUtil.debugDumpLabel(sb, "Deltas", indent + 1);
 		if (deltas.isEmpty()) {
 			sb.append(" none");
@@ -700,5 +733,14 @@ public class AuditEventRecord implements DebugDumpable {
 			}
 		}
 		setParameter(parameter);
+	}
+
+	@NotNull
+	public Set<String> getNonExistingReferencedObjects() {
+		return nonExistingReferencedObjects;
+	}
+
+	public void addNonExistingReferencedObject(String oid) {
+		nonExistingReferencedObjects.add(oid);
 	}
 }

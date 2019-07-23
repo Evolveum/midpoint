@@ -20,6 +20,9 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -88,6 +91,20 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		processParsingsPO(v -> getPrismContext().serializerFor(language).options(o).root(new QName("dummy")).serializeAnyData(v.asObjectable()), "s4", false);
 	}
 
+	@Test
+	public void testSkipItems() throws SchemaException, IOException {
+		PrismContext prismContext = getPrismContext();
+		PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
+		String serialized = prismContext.serializerFor(language)
+				.itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+				.serialize(jack);
+		System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
+		PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
+		assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
+		assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
+		assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
+	}
+
 	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId) throws Exception {
 		processParsings(UserType.class, null, UserType.COMPLEX_TYPE, null, serializer, serId);
 	}
@@ -110,8 +127,6 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 		assertUserJaxb(user.asObjectable(), true);
 		user.checkConsistence(true, true);
 	}
-
-
 
 	void assertUserPrism(PrismObject<UserType> user, boolean isObject) {
 
@@ -164,20 +179,20 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
 
 		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue.findContainer(AssignmentType.F_EXTENSION);
 		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
-		List<Item<?,?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
+		Collection<Item<?,?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
 		assertNotNull("No assignment extension items", assignmentExtensionItems);
 		assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
-		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.get(0);
+		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.iterator().next();
 		PrismAsserts.assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);
 		PrismPropertyValue<String> firstValueOfFirstAssignmentExtensionItem = firstAssignmentExtensionItem.getValues().get(0);
 		assertEquals("Wrong value of "+EXTENSION_INT_TYPE_ELEMENT+" in assignment extension", 42, firstValueOfFirstAssignmentExtensionItem.getValue());
 
 		PrismContainer<Containerable> constructionContainer = firstAssignmentValue.findContainer(AssignmentType.F_CONSTRUCTION);
 		PrismAsserts.assertDefinition(constructionContainer.getDefinition(), AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
-		List<Item<?,?>> constructionItems = constructionContainer.getValue().getItems();
+		Collection<Item<?,?>> constructionItems = constructionContainer.getValue().getItems();
 		assertNotNull("No construction items", constructionItems);
 		assertEquals("Wrong number of construction items", 1, constructionItems.size());
-		PrismReference firstConstructionItem = (PrismReference) constructionItems.get(0);
+		PrismReference firstConstructionItem = (PrismReference) constructionItems.iterator().next();
 		PrismAsserts.assertDefinition(firstConstructionItem.getDefinition(), ConstructionType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, 0, 1);
 		PrismReferenceValue firstValueOfFirstConstructionItem = firstConstructionItem.getValues().get(0);
 		assertEquals("Wrong resource name", "resource1", PolyString.getOrig(firstValueOfFirstConstructionItem.getTargetName()));

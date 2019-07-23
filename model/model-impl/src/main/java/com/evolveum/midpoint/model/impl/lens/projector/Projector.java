@@ -17,12 +17,14 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.PROJECTOR;
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
+import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorRunTraceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -95,8 +97,8 @@ public class Projector {
 	/**
 	 * Runs one projection wave, starting at current execution wave.
 	 */
-	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription,
-											   Task task, OperationResult parentResult)
+	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription, Task task,
+			OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		projectInternal(context, activityDescription, true, false, task, parentResult);
@@ -162,10 +164,20 @@ public class Projector {
 			context.resetProjectionWave();
 		}
 
-		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
-		result.addParam("fromStart", fromStart);
-		result.addContext("projectionWave", context.getProjectionWave());
-		result.addContext("executionWave", context.getExecutionWave());
+		OperationResult result = parentResult.subresult(Projector.class.getName() + ".project")
+				.addQualifier(context.getOperationQualifier())
+				.addParam("fromStart", fromStart)
+				.addContext("projectionWave", context.getProjectionWave())
+				.addContext("executionWave", context.getExecutionWave())
+				.build();
+		ProjectorRunTraceType trace;
+		if (result.isTraced()) {
+			trace = new ProjectorRunTraceType();
+			trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
 
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
@@ -178,13 +190,14 @@ public class Projector {
 
 			if (fromStart) {
 				medic.partialExecute("load",
-					() -> {
-						contextLoader.load(context, activityDescription, task, result);
-						// Set the "fresh" mark now so following consistency check will be stricter
-						context.setFresh(true);
-						if (consistencyChecks) context.checkConsistence();
-					},
-					partialProcessingOptions::getLoad, result);
+						(result1) -> {
+							contextLoader.load(context, activityDescription, task, result1);
+							// Set the "fresh" mark now so following consistency check will be stricter
+							context.setFresh(true);
+							if (consistencyChecks) context.checkConsistence();
+						},
+						partialProcessingOptions::getLoad,
+						Projector.class, context, result);
 			}
 	        // For now let's pretend to do just one wave. The maxWaves number will be corrected in the
 			// first wave when dependencies are sorted out for the first time.
@@ -213,12 +226,13 @@ public class Projector {
 	        	// object template and assignments.
 
 				medic.partialExecute("focus",
-						() -> {
-							focusProcessor.processFocus(context, activityDescription, now, task, result);
+						(result1) -> {
+							focusProcessor.processFocus(context, activityDescription, now, task, result1);
 					        context.recomputeFocus();
 					        if (consistencyChecks) context.checkConsistence();
 						},
-						partialProcessingOptions::getFocus, result);
+						partialProcessingOptions::getFocus,
+						Projector.class, context, result);
 
 				medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
 				LensUtil.checkContextSanity(context, "focus processing", result);
@@ -228,23 +242,33 @@ public class Projector {
 					// sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
 					// a projection is provisioned or deprovisioned only after the activation is processed.
 					if (fromStart && inFirstWave) {
-						LOGGER.trace("Processing activation for all contexts");
-						for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
-							if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
-									projectionContext.getSynchronizationPolicyDecision()
-											== SynchronizationPolicyDecision.IGNORE) {
-								continue;
+						OperationResult activationResult = result.subresult(Projector.class.getName() + ".activation")
+								.setMinor()
+								.build();
+						try {
+							LOGGER.trace("Processing activation for all contexts");
+							for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+								if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+										|| projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
+									continue;
+								}
+								activationProcessor.processActivation(context, projectionContext, now, task, activationResult);
+								projectionContext.recompute();
 							}
-							activationProcessor.processActivation(context, projectionContext, now, task, result);
-							projectionContext.recompute();
+							assignmentProcessor.removeIgnoredContexts(
+									context);        // TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
+						} catch (Throwable t) {
+							activationResult.recordFatalError(t);
+							throw t;
+						} finally {
+							activationResult.computeStatusIfUnknown();
 						}
-						assignmentProcessor.removeIgnoredContexts(
-								context);        // TODO move implementation of this method elsewhere; but it has to be invoked here, as activationProcessor sets the IGNORE flag
 					}
 					medic.traceContext(LOGGER, activityDescription, "projection activation of all resources", true, context,
 							true);
-					if (consistencyChecks)
+					if (consistencyChecks) {
 						context.checkConsistence();
+					}
 
 					dependencyProcessor.sortProjectionsToWaves(context);
 					maxWaves = dependencyProcessor.computeMaxWaves(context);
@@ -252,10 +276,11 @@ public class Projector {
 
 					for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
 
-						medic.partialExecute("projection " + projectionContext.getHumanReadableName(),
-								() -> projectProjection(context, projectionContext,
-										partialProcessingOptions, now, activityDescription, task, result),
-								partialProcessingOptions::getProjection);
+						medic.partialExecute("projection",
+								(result1) -> projectProjection(context, projectionContext,
+										partialProcessingOptions, now, activityDescription, task, result1),
+								partialProcessingOptions::getProjection,
+								Projector.class, context, projectionContext, result);
 						// TODO: make this condition more complex in the future. We may want the ability
 						// to select only some projections to process
 
@@ -291,6 +316,10 @@ public class Projector {
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
 		} finally {
+			result.computeStatusIfUnknown();
+			if (trace != null) {
+				trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
+			}
 			if (context.getInspector() != null) {
 				context.getInspector().projectorFinish(context);
 			}
@@ -314,7 +343,7 @@ public class Projector {
 //		ate.setResult(result);
 //		ate.setSource(taskType);
 //		ate.setTask(task);
-//		DeltaSetTriple<EvaluatedAssignmentImpl<TaskType>> evaluatedAssignments = ate.preProcessAssignments(task.getTaskPrismObject());
+//		DeltaSetTriple<EvaluatedAssignmentImpl<TaskType>> evaluatedAssignments = ate.preProcessAssignments(task.getUpdatedOrClonedTaskObject());
 //		
 //		Set<EvaluatedPolicyRule> evaluatedPolicyRules = new HashSet<>(); 
 //		
@@ -357,7 +386,7 @@ public class Projector {
 	    	}
 	
 	    	if (projectionContext.isTombstone()) {
-	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
+	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
 				return;
 	    	}
 	    	
@@ -377,62 +406,67 @@ public class Projector {
 	    	// TODO: decide if we need to continue
 	
 	    	medic.partialExecute("projectionValues",
-					() -> {
+					(result1) -> {
 						// This is a "composite" processor. it contains several more processor invocations inside
-						projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result);
+						projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result1);
 				    	if (consistencyChecks) context.checkConsistence();
 				
 				    	projectionContext.recompute();
 				    	if (consistencyChecks) context.checkConsistence();
 					},
-					partialProcessingOptions::getProjectionValues);
+					partialProcessingOptions::getProjectionValues,
+				    Projector.class, context, projectionContext, result);
 	
 	    	if (projectionContext.isTombstone()) {
-	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a thombstone");
+	    		result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
 				return;
 	    	}
 	
 	    	medic.partialExecute("projectionCredentials",
-					() -> {
-						projectionCredentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result);
+					(result1) -> {
+						projectionCredentialsProcessor.processProjectionCredentials(context, projectionContext, now, task, result1);
 				    	if (consistencyChecks) context.checkConsistence();
 
 				    	projectionContext.recompute();
 				    	medic.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
 				        if (consistencyChecks) context.checkConsistence();
 					},
-					partialProcessingOptions::getProjectionCredentials);
+					partialProcessingOptions::getProjectionCredentials,
+				    Projector.class, context, projectionContext, result);
 	
 
 	    	medic.partialExecute("projectionReconciliation",
-					() -> {
-						reconciliationProcessor.processReconciliation(context, projectionContext, task, result);
+					(result1) -> {
+						reconciliationProcessor.processReconciliation(context, projectionContext, task, result1);
 						projectionContext.recompute();
 						medic.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
 				        if (consistencyChecks) context.checkConsistence();
 					},
-					partialProcessingOptions::getProjectionReconciliation);
+					partialProcessingOptions::getProjectionReconciliation,
+				    Projector.class, context, projectionContext, result);
 
 	    	medic.partialExecute("projectionValuesPostRecon",
-					() -> {
-						projectionValuesProcessor.processPostRecon(context, projectionContext, activityDescription, task, result);
+					(result1) -> {
+						projectionValuesProcessor.processPostRecon(context, projectionContext, activityDescription, task, result1);
 				    	if (consistencyChecks) context.checkConsistence();
 				
 				    	projectionContext.recompute();
 				    	if (consistencyChecks) context.checkConsistence();
 					},
-					partialProcessingOptions::getProjectionValues);
+					partialProcessingOptions::getProjectionValues,
+				    Projector.class, context, projectionContext, result);
 
 	    	medic.partialExecute("projectionLifecycle",
-					() -> {
-						activationProcessor.processLifecycle(context, projectionContext, now, task, result);
+					(result1) -> {
+						activationProcessor.processLifecycle(context, projectionContext, now, task, result1);
 				    	if (consistencyChecks) context.checkConsistence();
 				
 				    	projectionContext.recompute();
 //				    	LensUtil.traceContext(LOGGER, activityDescription, "projection lifecycle of "+projectionDesc, false, context, false);
 				    	if (consistencyChecks) context.checkConsistence();
 					},
-					partialProcessingOptions::getProjectionLifecycle);
+					partialProcessingOptions::getProjectionLifecycle,
+				    Projector.class, context, projectionContext, result);
 
 	        result.recordSuccess();
 
@@ -471,18 +505,18 @@ public class Projector {
 
 	}
 
-	private void recordFatalError(Exception e, XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
+	private void recordFatalError(Exception e, XMLGregorianCalendar projectorStartTimestampCal, OperationResult result) {
 		result.recordFatalError(e);
 		result.cleanupResult(e);
 		if (LOGGER.isDebugEnabled()) {
-			long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
+			long projectorStartTimestamp = XmlTypeConverter.toMillis(projectorStartTimestampCal);
 	    	long projectorEndTimestamp = clock.currentTimeMillis();
-			LOGGER.debug("Projector failed: {}. Etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
+			LOGGER.debug("Projector failed: {}. Etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectorStartTimestamp));
 		}
 	}
 
-	private void computeResultStatus(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
-		boolean hasProjectionErrror = false;
+	private void computeResultStatus(XMLGregorianCalendar projectorStartTimestampCal, OperationResult result) {
+		boolean hasProjectionError = false;
 		OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
 		String message = null;
 		for (OperationResult subresult: result.getSubresults()) {
@@ -498,7 +532,7 @@ public class Projector {
 			if (subresult.isError()) {
 				message = subresult.getMessage();
 				if (OPERATION_PROJECT_PROJECTION.equals(subresult.getOperation())) {
-					hasProjectionErrror = true;
+					hasProjectionError = true;
 				} else {
 					if (finalStatus != OperationResultStatus.FATAL_ERROR) {
 						finalStatus = subresult.getStatus();
@@ -506,16 +540,16 @@ public class Projector {
 				}
 			}
 		}
-		if (finalStatus != OperationResultStatus.FATAL_ERROR && hasProjectionErrror) {
+		if (finalStatus != OperationResultStatus.FATAL_ERROR && hasProjectionError) {
 			finalStatus = OperationResultStatus.PARTIAL_ERROR;
 		}
 		result.setStatus(finalStatus);
 		result.setMessage(message);
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
-        	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
+        	long projectorStartTimestamp = XmlTypeConverter.toMillis(projectorStartTimestampCal);
         	long projectorEndTimestamp = clock.currentTimeMillis();
-        	LOGGER.trace("Projector finished ({}). Etime: {} ms", result.getStatus(), (projectorEndTimestamp - projectoStartTimestamp));
+        	LOGGER.trace("Projector finished ({}). Etime: {} ms", result.getStatus(), (projectorEndTimestamp - projectorStartTimestamp));
         }
 	}
 

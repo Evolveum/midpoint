@@ -16,30 +16,30 @@
 package com.evolveum.midpoint.gui.impl.component;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ContainerValuePanel;
-import com.evolveum.midpoint.web.component.prism.ContainerValueWrapper;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.prism.ItemWrapper;
 
 /**
  * @author skublik
  */
 
-public abstract class MultivalueContainerDetailsPanel<C extends Containerable> extends BasePanel<ContainerValueWrapper<C>> {
+public abstract class MultivalueContainerDetailsPanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<C>> {
 	private static final long serialVersionUID = 1L;
 
     private final static String ID_DISPLAY_NAME = "displayName";
     private final static String ID_BASIC_PANEL = "basicPanel";
     protected final static String ID_SPECIFIC_CONTAINERS_PANEL = "specificContainersPanel";
 
-    public MultivalueContainerDetailsPanel(String id, IModel<ContainerValueWrapper<C>> model){
+    public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model){
         super(id, model);
     }
     
@@ -52,7 +52,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
     
     protected abstract DisplayNamePanel<C> createDisplayNamePanel(String displayNamePanelId);
 
-    protected void initLayout(){
+    private void initLayout(){
     	
     	DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
@@ -71,16 +71,19 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 		add(getBasicContainerValuePanel(idPanel));
     }
     
-    private ContainerValuePanel getBasicContainerValuePanel(String idPanel){
+    private Panel getBasicContainerValuePanel(String idPanel){
     	Form form = new Form<>("form");
     	ItemPath itemPath = getModelObject().getPath();
-    	IModel<ContainerValueWrapper<C>> model = getModel();
-    	model.getObject().getContainer().setShowOnTopLevel(true);
-		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
-				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
+    	IModel<PrismContainerValueWrapper<C>> model = getModel();
+//    	model.getObject().getContainer().setShowOnTopLevel(true);
+    	Panel containerValue = getPageBase().initContainerValuePanel(idPanel, getModel(), wrapper -> getBasicTabVisibity(wrapper, itemPath));
+//    	PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> containerValue = new PrismContainerValuePanel<>(idPanel, getModel());
+    	return containerValue;
+//		return new ContainerValuePanel<C>(idPanel, getModel(), true, form,
+//				itemWrapper -> getBasicTabVisibity(itemWrapper, itemPath), getPageBase());
     }
     
-    protected ItemVisibility getBasicTabVisibity(ItemWrapper itemWrapper, ItemPath parentPath) {
+    protected ItemVisibility getBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentPath) {
     	return ItemVisibility.AUTO;
     }
 

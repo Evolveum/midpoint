@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.handlers;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -70,8 +69,8 @@ public class NoOpTaskHandler implements WorkBucketAwareTaskHandler {
 		runResult.setBucketComplete(false);     // overridden later
 		runResult.setShouldContinue(false);     // overridden later
 
-        PrismProperty<Integer> delayProp = task.getExtensionProperty(SchemaConstants.NOOP_DELAY_QNAME);
-        PrismProperty<Integer> stepsProp = task.getExtensionProperty(SchemaConstants.NOOP_STEPS_QNAME);
+        PrismProperty<Integer> delayProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_DELAY_QNAME);
+        PrismProperty<Integer> stepsProp = task.getExtensionPropertyOrClone(SchemaConstants.NOOP_STEPS_QNAME);
 
 		PrismPropertyDefinition delayPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_DELAY_QNAME);
 		PrismPropertyDefinition stepsPropDef = taskManagerImpl.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.NOOP_STEPS_QNAME);

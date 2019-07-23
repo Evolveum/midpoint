@@ -40,6 +40,7 @@
                 <value>synchronizationService</value>
                 <value>modelController</value>
                 <value>modelInteractionService</value>
+                <value>auditService</value>
             </list>
         </constructor-arg>
     </bean>

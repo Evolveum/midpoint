@@ -258,7 +258,7 @@ public class NameStep extends WizardStep {
 		}
 
 		PrismContainer<?> configuration = ResourceTypeUtil.getConfigurationContainer(resourceModelRaw.getObject());
-		if (configuration == null || configuration.isEmpty() || configuration.getValue() == null || isEmpty(configuration.getValue().getItems())) {
+		if (configuration == null || configuration.isEmpty() || configuration.getValue().hasNoItems()) {
 			return true;			// no config -> no loss
 		}
 

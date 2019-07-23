@@ -691,8 +691,8 @@ public class ObjectDeltaUpdater {
             return;
         }
 
-        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
-        for (Item item : (List<Item>) extension.getItems()) {
+        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+        for (Item item : extension.getItems()) {
             ItemDelta itemDelta = item.createDelta();
             itemDelta.setValuesToReplace(item.getClonedValues());
 
@@ -718,8 +718,8 @@ public class ObjectDeltaUpdater {
             assignment.setExtension(ext);
         }
 
-        PrismContainerValue extension = (PrismContainerValue) delta.getAnyValue();
-        for (Item item : (List<Item>) extension.getItems()) {
+        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+        for (Item item : extension.getItems()) {
             ItemDelta itemDelta = item.createDelta();
             itemDelta.setValuesToReplace(item.getClonedValues());
 

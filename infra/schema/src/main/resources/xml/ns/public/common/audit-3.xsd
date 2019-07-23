@@ -290,6 +290,27 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+	    <xsd:element name="resourceOid" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+	    <xsd:element name="customColumnProperty" type="tns:AuditEventRecordCustomColumnPropertyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Field of custom column for audit resord table.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+			<a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="auditEventRecord" type="tns:AuditEventRecordType" />
@@ -306,6 +327,24 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string" minOccurs="1" />
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuditEventRecordCustomColumnPropertyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Field of custom column for audit resord table.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:AuditEventRecordItemType">
+				<xsd:sequence>
+					<xsd:element name="value" type="xsd:string" minOccurs="0" maxOccurs="1" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="AuditEventRecordPropertyType">

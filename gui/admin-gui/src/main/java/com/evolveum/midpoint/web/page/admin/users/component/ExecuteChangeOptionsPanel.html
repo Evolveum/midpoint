@@ -27,7 +27,17 @@
 	        <div class="option-checkbox" wicket:id="reconcileAffectedContainer"/>
 	        <div class="option-checkbox" wicket:id="executeAfterAllApprovalsContainer"/>
 	        <div class="option-checkbox" wicket:id="keepDisplayingResultsContainer"/>
-	    </div>
+			<!-- TODO style -->
+			<div class="option-checkbox" wicket:id="tracingContainer">
+				<div class="checkbox">
+					<i class="helpTextIcon fa fa-fw fa-lightbulb-o text-warning" wicket:message="title:ItemHeaderPanel.experimentalFeature"></i>
+					<label style="padding-left: 0;" wicket:message="title:ExecuteChangeOptionsPanel.label.trace.help">
+						<wicket:message key="ExecuteChangeOptionsPanel.label.trace"/>
+						<select wicket:id="tracing"></select>
+					</label>
+				</div>
+			</div>
+		</div>
 	</div>
 </wicket:panel>
 </html>

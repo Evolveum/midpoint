@@ -254,7 +254,8 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 	
 	private String getQueryForCount(String query) {
-		query = "select count (*) " + query;
+		int index = query.toLowerCase().indexOf("from");
+		query = "select count (*) " + query.substring(index);
 		query = query.split("order")[0];
 		LOGGER.debug("Query for select: " + query);
 		return query;
@@ -398,6 +399,7 @@ public class DashboardServiceImpl implements DashboardService {
 		Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
 				.getCompileTimeClassForObjectType(collection.getType());
 		SearchFilterType searchFilter = collection.getFilter();
+		// TODO evaluate filter expressions here (call CollectionProcessor.evaluateExpressionsInFilter)
 		ObjectQuery query = prismContext.queryFactory().createQuery();
 		if (searchFilter != null && usingFilter) {
 			try {

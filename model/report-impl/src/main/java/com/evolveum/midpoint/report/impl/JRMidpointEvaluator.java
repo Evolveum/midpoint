@@ -110,7 +110,8 @@ public class JRMidpointEvaluator extends JREvaluator {
 		JRFillParameter resultParam = parametersMap.get(ReportTypeUtil.PARAMETER_OPERATION_RESULT);
 		if (resultParam == null) {
 			//TODO throw exception???
-			return null;
+//			return null;
+			return new OperationResult("Evaluate report script"); //temporary fix because of training, MID-5457
 		}
 		return (OperationResult) resultParam.getValue();
 	}

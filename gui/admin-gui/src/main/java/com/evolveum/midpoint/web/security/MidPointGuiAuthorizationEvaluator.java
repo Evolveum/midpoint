@@ -114,7 +114,22 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer, Secu
 	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
 		return securityContextManager.getPrincipal();
 	}
-    
+
+	@Override
+	public String getPrincipalOid() {
+		return securityContextManager.getPrincipalOid();
+	}
+
+	@Override
+	public void setTemporaryPrincipalOid(String value) {
+		securityContextManager.setTemporaryPrincipalOid(value);
+	}
+
+	@Override
+	public void clearTemporaryPrincipalOid() {
+		securityContextManager.clearTemporaryPrincipalOid();
+	}
+
 	@Override
 	public <O extends ObjectType, T extends ObjectType> void failAuthorization(String operationUrl,
 			AuthorizationPhaseType phase, AuthorizationParameters<O,T> params,

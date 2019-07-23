@@ -91,7 +91,7 @@ public class VariablesUtil {
 	}
 
 	private static void addProvidedVariables(VariablesMap resultingVariables, VariablesMap initialVariables, Task task) {
-		TypedValue<TaskType> taskValAndDef = new TypedValue<>(task.getTaskPrismObject().asObjectable(), task.getTaskPrismObject().getDefinition());
+		TypedValue<TaskType> taskValAndDef = new TypedValue<>(task.getUpdatedOrClonedTaskObject().asObjectable(), task.getUpdatedOrClonedTaskObject().getDefinition());
 		putImmutableValue(resultingVariables, ExpressionConstants.VAR_TASK, taskValAndDef);
 		if (initialVariables != null) {
 			initialVariables.forEach((key, value) -> putImmutableValue(resultingVariables, key, value));

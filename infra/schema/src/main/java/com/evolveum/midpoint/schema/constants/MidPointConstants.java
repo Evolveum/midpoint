@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.schema.constants;
 
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -63,4 +65,6 @@ public class MidPointConstants {
 	
 	public static final String NS_FUNC_CUSTOM = NS_MIDPOINT_PUBLIC_PREFIX+"/function/custom-3";
 
+	public static final String PROFILING_LOGGER_NAME = OperationExecutionLogger.PROFILING_LOGGER_NAME;
+	public static final String JAVA_HOME_ENVIRONMENT_VARIABLE = "JAVA_HOME";
 }

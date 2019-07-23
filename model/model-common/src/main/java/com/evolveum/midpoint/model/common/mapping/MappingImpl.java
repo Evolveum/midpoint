@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -137,7 +138,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	private String mappingContextDescription = null;
 
 	private VariableProducer variableProducer;
-	
+
+	private MappingEvaluationTraceType trace;
+
 	/**
 	 * Mapping pre-expression is invoked just before main mapping expression.
 	 * Pre expression will get the same expression context as the main expression.
@@ -150,6 +153,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
 	private Expression<V,D> expression;
+	
+	// Mapping state properties that are exposed to the expressions. They can be used by the expressions to "communicate".
+	// E.g. one expression seting the property and other expression checking the property.
+	private Map<String,Object> stateProperties;
 
 	private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
@@ -270,6 +277,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sources.isEmpty();
 	}
 
+	@Override
 	public MappingStrengthType getStrength() {
 		return getStrength(mappingType);
 	}
@@ -285,6 +293,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isAuthoritative() {
 		if (mappingType == null) {
 			return true;
@@ -296,6 +305,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return value;
 	}
 
+	@Override
 	public boolean isExclusive() {
 		if (mappingType == null) {
 			return false;
@@ -404,19 +414,56 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
 		return refinedObjectClassDefinition;
 	}
+	
+	@Override
+	public <T> T getStateProperty(String propertyName) {
+		if (stateProperties == null) {
+			return null;
+		}
+		return (T) stateProperties.get(propertyName);
+	}
+	
+	@Override
+	public <T> T setStateProperty(String propertyName, T value) {
+		if (stateProperties == null) {
+			stateProperties = new HashMap<>();
+		}
+		return (T)stateProperties.put(propertyName, value);
+	}
 
 	// TODO: rename to evaluateAll
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-		prepare(task, parentResult);
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluate")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("context", getContextDescription())
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor()
+				.build();
+		if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+			// temporary solution - to avoid checking level at too many places
+			trace = new MappingEvaluationTraceType(prismContext);
+			trace.setMapping(mappingType.clone());
+			result.addTrace(trace);
+		} else {
+			trace = null;
+		}
+		try {
+			prepare(task, result);
 
-//		if (!isActivated()) {
-//			outputTriple = null;
-//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
-//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
-//			return;
-//		}
+			//		if (!isActivated()) {
+			//			outputTriple = null;
+			//			LOGGER.debug("Skipping evaluation of mapping {} in {} because it is not activated",
+			//					mappingType.getName() == null?null:mappingType.getName(), contextDescription);
+			//			return;
+			//		}
 
-		evaluateBody(task, parentResult);
+			evaluateBody(task, result);
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	/**
@@ -427,7 +474,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 	public void prepare(Task task, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, SecurityViolationException,
 			ConfigurationException, CommunicationException {
-			OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".prepare");
+			OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".prepare")
+					.addArbitraryObjectAsContext("mapping", this)
+					.addArbitraryObjectAsContext("task", task)
+					.setMinor()
+					.build();
 		assertState(MappingEvaluationState.UNINITIALIZED);
 		try {
 
@@ -454,12 +505,16 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		return sourcesChanged();
 	}
 
-	// TODO: rename to evaluate
+	// TODO: rename to evaluate -- or evaluatePrepared?
 	public void evaluateBody(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
 		assertState(MappingEvaluationState.PREPARED);
 
-		OperationResult result = parentResult.createMinorSubresult(MappingImpl.class.getName()+".evaluate");
+		OperationResult result = parentResult.subresult(MappingImpl.class.getName()+".evaluatePrepared")
+				.addArbitraryObjectAsContext("mapping", this)
+				.addArbitraryObjectAsContext("task", task)
+				.setMinor()
+				.build();
 
         traceEvaluationStart();
 
@@ -468,6 +523,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			// We may need to re-parse the sources here
 
 			evaluateTimeConstraintValid(task, result);
+			if (trace != null) {
+				trace.setNextRecomputeTime(nextRecomputeTime);
+				trace.setTimeConstraintValid(timeConstraintValid);
+			}
 
 			if (!timeConstraintValid) {
 				outputTriple = null;
@@ -484,6 +543,11 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			boolean conditionOutputNew = computeConditionResult(conditionOutputTriple==null ? null : conditionOutputTriple.getNonNegativeValues());
 			boolean conditionResultNew = conditionOutputNew && conditionMaskNew;
 
+			if (trace != null) {
+				trace.setConditionResultOld(conditionResultOld);
+				trace.setConditionResultNew(conditionResultNew);
+			}
+
 			if (!conditionResultOld && !conditionResultNew) {
 				outputTriple = null;
 				transitionState(MappingEvaluationState.EVALUATED);
@@ -492,13 +556,13 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 				return;
 			}
 
-			// TODO: input filter
+			// TODO trace source and target values ... and range processing
+
 			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
-			// TODO: output filter
-
+			adjustForAuthoritative();
 			checkRange(task, result);
 
 			transitionState(MappingEvaluationState.EVALUATED);
@@ -510,6 +574,21 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			traceFailure(e);
 			throw e;
 		}
+	}
+
+	private void adjustForAuthoritative() {
+		if (isAuthoritative()) {
+			return;
+		}
+		if (outputTriple == null) {
+			return;
+		}
+		// Non-authoritative mappings do not remove values. Simply eliminate any values from the
+		// minus set to do that.
+		// However, we need to do this before we process range. Non-authoritative mappings may
+		// still remove values if range is set. We do not want to ignore minus values from
+		// range processing.
+		outputTriple.clearMinusSet();
 	}
 
 	private void checkRange(Task task, OperationResult result)
@@ -525,7 +604,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	private void checkRangeTarget(Task task, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-		String name = outputPath.lastName().getLocalPart();
+		String name = null;
+		if (outputPath != null) {
+			name = outputPath.lastName().getLocalPart();
+		} else {
+			name = outputDefinition.getName().getLocalPart();
+		} 
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
 		}
@@ -709,7 +793,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean isTrace() {
-		return LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
+		return trace != null || LOGGER.isTraceEnabled() || (mappingType != null && mappingType.isTrace() == Boolean.TRUE);
 	}
 
 	private void trace(String msg) {
@@ -717,6 +801,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			LOGGER.info(msg);
 		} else {
 			LOGGER.trace(msg);
+		}
+		if (trace != null) {
+			trace.setTextTrace(msg);
 		}
 	}
 
@@ -742,6 +829,10 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			sb.append("null");
 		} else {
 			sb.append(expression.shortDebugDump());
+		}
+		if (stateProperties != null) {
+			sb.append("\nState:\n");
+			DebugUtil.debugDumpMapMultiLine(sb, stateProperties, 1);
 		}
 	}
 
@@ -773,6 +864,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		}
 
 		XMLGregorianCalendar timeFrom = parseTime(timeFromType, task, result);
+		if (trace != null) {
+			trace.setTimeFrom(timeFrom);
+		}
 		if (timeFrom == null && timeFromType != null) {
 			// Time is specified but there is no value for it.
 			// This means that event that should start validity haven't happened yet
@@ -781,6 +875,9 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 			return;
 		}
 		XMLGregorianCalendar timeTo = parseTime(timeToType, task, result);
+		if (trace != null) {
+			trace.setTimeTo(timeTo);
+		}
 
 		if (timeFrom != null && timeFrom.compare(now) == DatatypeConstants.GREATER) {
 			// before timeFrom
@@ -1751,6 +1848,12 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		public Builder<V, D> addVariableDefinition(String name, String value) {
 			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
 					new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
+			return addVariableDefinition(name, (Object)value, def);
+		}
+		
+		public Builder<V, D> addVariableDefinition(String name, boolean value) {
+			MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+					new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
 			return addVariableDefinition(name, (Object)value, def);
 		}
 

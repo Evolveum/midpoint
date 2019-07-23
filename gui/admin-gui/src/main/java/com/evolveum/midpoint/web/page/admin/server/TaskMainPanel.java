@@ -15,18 +15,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -35,8 +26,18 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author semancik
@@ -58,12 +59,12 @@ public class TaskMainPanel extends Panel {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
-	private final LoadableModel<ObjectWrapper<TaskType>> objectModel;
+	private final LoadableModel<PrismObjectWrapper<TaskType>> objectModel;
 	private final IModel<TaskDto> taskDtoModel;
 	private final IModel<Boolean> showAdvancedFeaturesModel;
 	private final PageTaskEdit parentPage;
 
-	public TaskMainPanel(String id, LoadableModel<ObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
+	public TaskMainPanel(String id, LoadableModel<PrismObjectWrapper<TaskType>> objectModel, IModel<TaskDto> taskDtoModel,
 			IModel<Boolean> showAdvancedFeaturesModel, PageTaskEdit parentPage) {
 		super(id, objectModel);
 		this.objectModel = objectModel;
@@ -153,7 +154,7 @@ public class TaskMainPanel extends Panel {
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.progress")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskProgressTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {
@@ -172,10 +173,21 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
+				new AbstractTab(parentPage.createStringResource("pageTaskEdit.internalPerformance")) {
+					@Override
+					public WebMarkupContainer getPanel(String panelId) {
+						return new TaskInternalPerformanceTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+					}
+					@Override
+					public boolean isVisible() {
+						return visibility.computeInternalPerformanceVisible(parentPage);
+					}
+				});
+		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {
@@ -208,7 +220,7 @@ public class TaskMainPanel extends Panel {
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.errors")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel, parentPage);
+						return new TaskErrorsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
 					}
 					@Override
 					public boolean isVisible() {

@@ -275,7 +275,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
 					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
 				} else {
-
 					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
 				}
 				resultHandler.completeProcessing(localCoordinatorTask, opResult);
@@ -577,13 +576,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 
 	protected Collection<SelectorOptions<GetOperationOptions>> createSearchOptionsFromTask(H resultHandler, TaskRunResult runResult,
 			Task coordinatorTask, OperationResult opResult) {
-		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
+		SelectorQualifiedGetOptionsType opts = getRealValue(coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS));
 		return MiscSchemaUtil.optionsTypeToOptions(opts, prismContext);
 	}
 
 	protected Boolean getUseRepositoryDirectlyFromTask(H resultHandler, TaskRunResult runResult,
 			Task coordinatorTask, OperationResult opResult) {
-		return getRealValue(coordinatorTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY));
+		return getRealValue(coordinatorTask.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_USE_REPOSITORY_DIRECTLY));
 	}
 
 	protected ObjectQuery createQueryFromTaskIfExists(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
@@ -611,7 +610,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
     
     protected QueryType getObjectQueryTypeFromTaskObjectRef(Task task) {
-    	ObjectReferenceType objectRef = task.getObjectRef();
+    	ObjectReferenceType objectRef = task.getObjectRefOrClone();
     	if (objectRef == null) {
     		return null;
     	}
@@ -625,16 +624,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     }
     
     protected QueryType getObjectQueryTypeFromTaskExtension(Task task) {
-    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+    	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
     }
 
     protected IterationMethodType getIterationMethodFromTask(Task task) {
-    	return getRealValue(task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));
+    	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));
     }
 
     protected Class<? extends ObjectType> getTypeFromTask(Task task, Class<? extends ObjectType> defaultType) {
         Class<? extends ObjectType> objectClass;
-        PrismProperty<QName> objectTypePrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+        PrismProperty<QName> objectTypePrismProperty = task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
         if (objectTypePrismProperty != null && objectTypePrismProperty.getRealValue() != null) {
             objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectTypePrismProperty.getRealValue()).getClassDefinition();
         } else {

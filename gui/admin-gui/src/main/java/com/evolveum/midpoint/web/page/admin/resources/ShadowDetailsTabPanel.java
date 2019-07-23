@@ -16,20 +16,17 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.ShadowPanel;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismPanel;
-import com.evolveum.midpoint.web.model.ContainerWrapperListFromObjectWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -37,30 +34,29 @@ import java.util.List;
 public class ShadowDetailsTabPanel extends AbstractObjectTabPanel<ShadowType> {
 
 	private static final long serialVersionUID = 1L;
-
+	
+	private static final transient Trace LOGGER = TraceManager.getTrace(ShadowDetailsTabPanel.class);
+	
 	private static final String ID_ACCOUNT = "account";
+	
 
-	public ShadowDetailsTabPanel(String id, Form<ObjectWrapper<ShadowType>> mainForm,
-								 LoadableModel<ObjectWrapper<ShadowType>> objectWrapperModel, PageBase pageBase) {
-		super(id, mainForm, objectWrapperModel, pageBase);
+	public ShadowDetailsTabPanel(String id, Form<PrismObjectWrapper<ShadowType>> mainForm,
+								 LoadableModel<PrismObjectWrapper<ShadowType>> objectWrapperModel) {
+		super(id, mainForm, objectWrapperModel);
 	}
 
 	@Override
 	protected void onInitialize() {
 		super.onInitialize();
+		initLayout();
+	}
+	
+	
 
-		PrismPanel<ShadowType> panel = new PrismPanel<>(ID_ACCOUNT,
-				new ContainerWrapperListFromObjectWrapperModel(getObjectWrapperModel(), getVisibleContainers()),
-				null, getMainForm(), null, getPageBase());
-		add(panel);
+	private void initLayout() {
+		ShadowPanel shadowPanel = new ShadowPanel(ID_ACCOUNT, (IModel) getObjectWrapperModel());
+		add(shadowPanel);
 	}
 
-	private List<ItemPath> getVisibleContainers() {
-		// todo maybe everything should be visible, but for now this should be fine
-		return Arrays.asList(
-				ShadowType.F_ATTRIBUTES,
-				ItemPath.create(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD),
-				ShadowType.F_ACTIVATION
-		);
-	}
+	
 }

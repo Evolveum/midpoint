@@ -230,6 +230,7 @@ CREATE TABLE m_audit_event (
   outcome           INT,
   parameter         NVARCHAR(255) COLLATE database_default,
   remoteHostAddress NVARCHAR(255) COLLATE database_default,
+  requestIdentifier NVARCHAR(255) COLLATE database_default,
   result            NVARCHAR(255) COLLATE database_default,
   sessionIdentifier NVARCHAR(255) COLLATE database_default,
   targetName        NVARCHAR(255) COLLATE database_default,
@@ -238,7 +239,6 @@ CREATE TABLE m_audit_event (
   targetOwnerOid    NVARCHAR(36) COLLATE database_default,
   targetOwnerType   INT,
   targetType        INT,
-  requestIdentifier NVARCHAR(255) COLLATE database_default,
   taskIdentifier    NVARCHAR(255) COLLATE database_default,
   taskOID           NVARCHAR(255) COLLATE database_default,
   timestampValue    DATETIME2,
@@ -265,6 +265,11 @@ CREATE TABLE m_audit_ref_value (
   targetName_orig NVARCHAR(255) COLLATE database_default,
   type            NVARCHAR(255) COLLATE database_default,
   PRIMARY KEY (id)
+);
+CREATE TABLE m_audit_resource (
+  resourceOid     NVARCHAR(255) COLLATE database_default NOT NULL,
+  record_id       BIGINT                                 NOT NULL,
+  PRIMARY KEY (record_id, resourceOid)
 );
 CREATE TABLE m_case_wi (
   id                            INT                                   NOT NULL,
@@ -451,7 +456,6 @@ CREATE TABLE m_shadow (
 );
 CREATE TABLE m_task (
   binding                  INT,
-  canRunOnNode             NVARCHAR(255) COLLATE database_default,
   category                 NVARCHAR(255) COLLATE database_default,
   completionTimestamp      DATETIME2,
   executionStatus          INT,
@@ -474,18 +478,6 @@ CREATE TABLE m_task (
   taskIdentifier           NVARCHAR(255) COLLATE database_default,
   threadStopAction         INT,
   waitingReason            INT,
-  wfEndTimestamp           DATETIME2,
-  wfObjectRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfObjectRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfObjectRef_type         INT,
-  wfProcessInstanceId      NVARCHAR(255) COLLATE database_default,
-  wfRequesterRef_relation  NVARCHAR(157) COLLATE database_default,
-  wfRequesterRef_targetOid NVARCHAR(36) COLLATE database_default,
-  wfRequesterRef_type      INT,
-  wfStartTimestamp         DATETIME2,
-  wfTargetRef_relation     NVARCHAR(157) COLLATE database_default,
-  wfTargetRef_targetOid    NVARCHAR(36) COLLATE database_default,
-  wfTargetRef_type         INT,
   oid                      NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -528,12 +520,22 @@ CREATE TABLE m_archetype (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_case (
+  closeTimestamp         DATETIME2,
   name_norm           NVARCHAR(255) COLLATE database_default,
   name_orig           NVARCHAR(255) COLLATE database_default,
   objectRef_relation  NVARCHAR(157) COLLATE database_default,
   objectRef_targetOid NVARCHAR(36) COLLATE database_default,
   objectRef_type      INT,
+  parentRef_relation  NVARCHAR(157) COLLATE database_default,
+  parentRef_targetOid NVARCHAR(36) COLLATE database_default,
+  parentRef_type      INT,
+  requestorRef_relation  NVARCHAR(157) COLLATE database_default,
+  requestorRef_targetOid NVARCHAR(36) COLLATE database_default,
+  requestorRef_type      INT,
   state               NVARCHAR(255) COLLATE database_default,
+  targetRef_relation  NVARCHAR(157) COLLATE database_default,
+  targetRef_targetOid NVARCHAR(36) COLLATE database_default,
+  targetRef_type      INT,
   oid                 NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -555,6 +557,12 @@ CREATE TABLE m_connector_host (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
   port      NVARCHAR(255) COLLATE database_default,
+  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
+  PRIMARY KEY (oid)
+);
+CREATE TABLE m_dashboard (
+  name_norm NVARCHAR(255) COLLATE database_default,
+  name_orig NVARCHAR(255) COLLATE database_default,
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );
@@ -629,12 +637,6 @@ CREATE TABLE m_node (
   PRIMARY KEY (oid)
 );
 CREATE TABLE m_object_collection (
-  name_norm NVARCHAR(255) COLLATE database_default,
-  name_orig NVARCHAR(255) COLLATE database_default,
-  oid       NVARCHAR(36) COLLATE database_default NOT NULL,
-  PRIMARY KEY (oid)
-);
-CREATE TABLE m_dashboard (
   name_norm NVARCHAR(255) COLLATE database_default,
   name_orig NVARCHAR(255) COLLATE database_default,
   oid       NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -813,6 +815,10 @@ CREATE INDEX iAuditPropValRecordId
   ON m_audit_prop_value (record_id);
 CREATE INDEX iAuditRefValRecordId
   ON m_audit_ref_value (record_id);
+CREATE INDEX iAuditResourceOid
+  ON m_audit_resource (resourceOid);
+CREATE INDEX iAuditResourceOidRecordId
+  ON m_audit_resource (record_id);
 CREATE INDEX iCaseWorkItemRefTargetOid
   ON m_case_wi_reference (targetOid);
 
@@ -882,18 +888,7 @@ CREATE UNIQUE NONCLUSTERED INDEX iPrimaryIdentifierValueWithOC
     WHERE primaryIdentifierValue IS NOT NULL AND objectClass IS NOT NULL AND resourceRef_targetOid IS NOT NULL;
 CREATE INDEX iParent
   ON m_task (parent);
-CREATE INDEX iTaskWfProcessInstanceId
-  ON m_task (wfProcessInstanceId);
-CREATE INDEX iTaskWfStartTimestamp
-  ON m_task (wfStartTimestamp);
-CREATE INDEX iTaskWfEndTimestamp
-  ON m_task (wfEndTimestamp);
-CREATE INDEX iTaskWfRequesterOid
-  ON m_task (wfRequesterRef_targetOid);
-CREATE INDEX iTaskWfObjectOid
-  ON m_task (wfObjectRef_targetOid);
-CREATE INDEX iTaskWfTargetOid
-  ON m_task (wfTargetRef_targetOid);
+CREATE INDEX iTaskObjectOid ON m_task(objectRef_targetOid);
 CREATE INDEX iTaskNameOrig
   ON m_task (name_orig);
 ALTER TABLE m_task
@@ -907,8 +902,11 @@ CREATE INDEX iArchetypeNameOrig ON m_archetype(name_orig);
 CREATE INDEX iArchetypeNameNorm ON m_archetype(name_norm);
 CREATE INDEX iCaseNameOrig
   ON m_case (name_orig);
-ALTER TABLE m_case
-  ADD CONSTRAINT uc_case_name UNIQUE (name_norm);
+CREATE INDEX iCaseTypeObjectRefTargetOid ON m_case(objectRef_targetOid);
+CREATE INDEX iCaseTypeTargetRefTargetOid ON m_case(targetRef_targetOid);
+CREATE INDEX iCaseTypeParentRefTargetOid ON m_case(parentRef_targetOid);
+CREATE INDEX iCaseTypeRequestorRefTargetOid ON m_case(requestorRef_targetOid);
+CREATE INDEX iCaseTypeCloseTimestamp ON m_case(closeTimestamp);
 CREATE INDEX iConnectorNameOrig
   ON m_connector (name_orig);
 CREATE INDEX iConnectorNameNorm
@@ -917,6 +915,10 @@ CREATE INDEX iConnectorHostNameOrig
   ON m_connector_host (name_orig);
 ALTER TABLE m_connector_host
   ADD CONSTRAINT uc_connector_host_name UNIQUE (name_norm);
+CREATE INDEX iDashboardNameOrig
+  ON m_dashboard (name_orig);
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iFocusAdministrative
   ON m_focus (administrativeStatus);
 CREATE INDEX iFocusEffective
@@ -953,10 +955,6 @@ CREATE INDEX iObjectCollectionNameOrig
   ON m_object_collection (name_orig);
 ALTER TABLE m_object_collection
   ADD CONSTRAINT uc_object_collection_name UNIQUE (name_norm);
-CREATE INDEX iDashboardNameOrig
-  ON m_dashboard (name_orig);
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT u_dashboard_name UNIQUE (name_norm);
 CREATE INDEX iObjectTemplateNameOrig
   ON m_object_template (name_orig);
 ALTER TABLE m_object_template
@@ -1070,6 +1068,8 @@ ALTER TABLE m_audit_prop_value
   ADD CONSTRAINT fk_audit_prop_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_audit_ref_value
   ADD CONSTRAINT fk_audit_ref_value FOREIGN KEY (record_id) REFERENCES m_audit_event;
+ALTER TABLE m_audit_resource
+  ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
 ALTER TABLE m_case_wi
   ADD CONSTRAINT fk_case_wi_owner FOREIGN KEY (owner_oid) REFERENCES m_case;
 ALTER TABLE m_case_wi_reference
@@ -1145,6 +1145,8 @@ ALTER TABLE m_connector
   ADD CONSTRAINT fk_connector FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_connector_host
   ADD CONSTRAINT fk_connector_host FOREIGN KEY (oid) REFERENCES m_object;
+ALTER TABLE m_dashboard
+  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_focus
   ADD CONSTRAINT fk_focus FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_form
@@ -1161,8 +1163,6 @@ ALTER TABLE m_node
   ADD CONSTRAINT fk_node FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_collection
   ADD CONSTRAINT fk_object_collection FOREIGN KEY (oid) REFERENCES m_object;
-ALTER TABLE m_dashboard
-  ADD CONSTRAINT fk_dashboard FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_object_template
   ADD CONSTRAINT fk_object_template FOREIGN KEY (oid) REFERENCES m_object;
 ALTER TABLE m_org

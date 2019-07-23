@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
@@ -82,6 +83,7 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         tooltipLabel.setOutputMarkupId(true);
         tooltipLabel.setOutputMarkupPlaceholderTag(true);
         labelContainer.add(tooltipLabel);
+        labelContainer.add(new VisibleBehaviour(() -> getLabelVisible()) {});
 
         WebMarkupContainer checkWrapper = new WebMarkupContainer(ID_CHECK_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {
@@ -97,7 +99,11 @@ public class CheckFormGroup extends BasePanel<Boolean> {
         setOutputMarkupId(true);
     }
 
-    public CheckBox getCheck(){
+    protected boolean getLabelVisible() {
+		return true;
+	}
+
+	public CheckBox getCheck(){
         return (CheckBox) get(ID_CHECK_WRAPPER + ":" + ID_CHECK);
     }
     

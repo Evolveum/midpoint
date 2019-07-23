@@ -15,24 +15,31 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskErrorDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.model.IModel;
-
-import java.util.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Created by honchar.
@@ -41,16 +48,24 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TASK_ERRORS = "taskErrors";
+    
+    private IModel<TaskDto> taskDtoModel;
 
     public TaskErrorsTabPanel(String id, Form mainForm,
-                              LoadableModel<ObjectWrapper<TaskType>> taskWrapperModel,
-                              IModel<TaskDto> taskDtoModel, PageBase pageBase) {
-        super(id, mainForm, taskWrapperModel, pageBase);
-        initLayout(taskDtoModel, pageBase);
+                              LoadableModel<PrismObjectWrapper<TaskType>> taskWrapperModel,
+                              IModel<TaskDto> taskDtoModel) {
+        super(id, mainForm, taskWrapperModel);
+        this.taskDtoModel = taskDtoModel;
         setOutputMarkupId(true);
     }
+    
+    @Override
+    protected void onInitialize() {
+    	super.onInitialize();
+    	initLayout();
+    }
 
-    private void initLayout(final IModel<TaskDto> taskDtoModel, PageBase pageBase) {
+    private void initLayout() {
         ObjectDataProvider<TaskErrorDto, ObjectType> provider = new ObjectDataProvider<TaskErrorDto, ObjectType>
                 (TaskErrorsTabPanel.this, ObjectType.class) {
             private static final long serialVersionUID = 1L;
@@ -68,7 +83,7 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 
             @Override
             public ObjectQuery getQuery() {
-                return createContentQuery(taskDtoModel.getObject().getOid(), pageBase);
+                return createContentQuery(taskDtoModel.getObject().getOid(), getPageBase());
             }
         };
         TablePanel resultTablePanel = new TablePanel<>(ID_TASK_ERRORS, provider, initColumns());

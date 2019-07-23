@@ -21,12 +21,12 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -314,12 +314,37 @@ public class ProvisioningContext extends StateReporter {
 		}
 	}
 	
-	public <T extends CapabilityType> T getResourceEffectiveCapability(Class<T> capabilityClass) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-		return ResourceTypeUtil.getEffectiveCapability(getResource(), capabilityClass);
+
+	//check connector capabilities in this order :
+	// 1. take additional connector capabilieis if exist, if not, take resource capabilities
+	// 2. apply object class specific capabilities to the one selected in step 1.
+	// 3. in the returned capabilieties, check first configured capabilities and then native capabilities
+	public <T extends CapabilityType> T getEffectiveCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType capabilitiesType = getConnectorCapabilities(capabilityClass);
+		if (capabilitiesType == null) {
+			return null;
+		}
+		return CapabilityUtil.getEffectiveCapability(capabilitiesType, capabilityClass);
 	}
-	
-	public <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) {
-		return resourceManager.getConnectorCapabilities(resource.asPrismObject(), operationCapabilityClass);
+
+	public <T extends  CapabilityType> boolean hasNativeCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
+		return CapabilityUtil.hasNativeCapability(connectorCapabilities, capabilityClass);
+	}
+
+	public <T extends  CapabilityType> boolean hasConfiguredCapability(Class<T> capabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		CapabilitiesType connectorCapabilities = getConnectorCapabilities(capabilityClass);
+		if (connectorCapabilities == null) {
+			return false;
+		}
+		return CapabilityUtil.hasConfiguredCapability(connectorCapabilities, capabilityClass);
+	}
+
+	private <T extends CapabilityType> CapabilitiesType getConnectorCapabilities(Class<T> operationCapabilityClass) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+		return resourceManager.getConnectorCapabilities(getResource(), getObjectClassDefinition(), operationCapabilityClass);
 	}
 
 	@Override

@@ -138,7 +138,7 @@ public class PageDashboardInfo extends PageDashboard {
 
             @Override
             protected Component getMainComponent(String componentId) {
-                return new PersonalInfoPanel(componentId, PageDashboardInfo.this);
+                return new PersonalInfoPanel(componentId);
             }
         };
         add(personalInfo);

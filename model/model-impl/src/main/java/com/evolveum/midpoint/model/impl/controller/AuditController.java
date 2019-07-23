@@ -75,7 +75,7 @@ public class AuditController implements ModelAuditService {
 	@Override
 	public void audit(AuditEventRecord record, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorize(ModelAuthorizationAction.AUDIT_RECORD, task, result);
-		auditHelper.audit(record, task);
+		auditHelper.audit(record, task, result);
 	}
 
 	@Override
@@ -162,14 +162,14 @@ public class AuditController implements ModelAuditService {
 		params.put("targetOid", targetOid);
 		params.put("stage", AuditEventStage.EXECUTION);
 		return auditService.listRecords(
-				"from RAuditEventRecord as aer where (aer.timestamp >= :from) and (aer.targetOid = :targetOid) and (aer.eventStage = :stage) order by aer.timestamp desc",
+				"select * from m_audit_event as aer where (aer.timestampValue >= :from) and (aer.targetOid = :targetOid) and (aer.eventStage = :stage) order by aer.timestampValue desc",
         		params);
 	}
 
 	private AuditEventRecord findEvent(String eventIdentifier) {
 		Map<String,Object> params = new HashMap<>();
 		params.put("eventIdentifier", eventIdentifier);
-		List<AuditEventRecord> listRecords = auditService.listRecords("from RAuditEventRecord as aer where (aer.eventIdentifier = :eventIdentifier)", params);
+		List<AuditEventRecord> listRecords = auditService.listRecords("select * from m_audit_event as aer where (aer.eventIdentifier = :eventIdentifier)", params);
 		if (listRecords == null || listRecords.isEmpty()) {
 			return null;
 		}

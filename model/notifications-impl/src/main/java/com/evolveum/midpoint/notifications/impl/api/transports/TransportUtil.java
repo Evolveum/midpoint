@@ -18,27 +18,32 @@ package com.evolveum.midpoint.notifications.impl.api.transports;
 
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NamedConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationTransportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly
@@ -51,7 +56,7 @@ public class TransportUtil {
         fw.close();
     }
 
-	public static <T extends NamedConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
+	public static <T extends NotificationTransportConfigurationType> T getTransportConfiguration(String transportName, String baseTransportName,
 			Function<NotificationConfigurationType, List<T>> getter, RepositoryService cacheRepositoryService,
 			OperationResult result) {
 
@@ -95,4 +100,76 @@ public class TransportUtil {
 		return "================ " + new Date() + " ======= [" + transport + "]\n" + message.debugDump() + "\n\n";
 	}
 	
+	public static boolean isRecipientAllowed(String recipient, NotificationTransportConfigurationType transportConfigurationType,
+			Task task, OperationResult result, ExpressionFactory expressionFactory, ExpressionProfile expressionProfile, Trace logger) {
+		if (optionsForFilteringRecipient(transportConfigurationType) > 1) {
+			throw new IllegalArgumentException("Couln't use more as one choise from 'blackList', 'whiteList' and 'recipientFilterExpression'");
+		}
+		ExpressionType filter = transportConfigurationType.getRecipientFilterExpression();
+		if (filter != null) {
+			ExpressionVariables variables = new ExpressionVariables();
+			variables.put("recipientAddress", recipient, String.class);
+			try {
+				PrismPropertyValue<Boolean> allowedRecipient = ExpressionUtil.evaluateCondition(variables, filter, expressionProfile,
+						expressionFactory, "Recipient filter", task, result);
+				if(allowedRecipient == null) {
+					throw new IllegalArgumentException("Return value from expresion for filtering recipient is null");
+				}
+				return allowedRecipient.getValue();
+			} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+					| ConfigurationException | SecurityViolationException e) {
+				LoggingUtils.logUnexpectedException(logger, "Couldn't execute filter for recipient", e);
+			}
+		}
+		List<String> whiteList = transportConfigurationType.getWhiteList();
+		if (!whiteList.isEmpty()) {
+			for (String allowedRecipient : whiteList) {
+				String regexAllowedRecipient = allowedRecipient.replace("*", ".{0,}");
+				if (recipient.matches(regexAllowedRecipient)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
+		List<String> blackList = transportConfigurationType.getBlackList();
+		for (String forbiddenRecipient : blackList) {
+			String regexForbiddenRecipient = forbiddenRecipient.replace("*", ".{0,}");
+			if (recipient.matches(regexForbiddenRecipient)) {
+				return false;
+			}
+		}
+		
+		return true;
+	}
+
+	public static int optionsForFilteringRecipient(
+			NotificationTransportConfigurationType transportConfigurationType) {
+		int choises = 0;
+		if (transportConfigurationType.getRecipientFilterExpression() != null) {
+			choises++;
+		}
+		if (!transportConfigurationType.getBlackList().isEmpty()) {
+			choises++;
+		}
+		if (!transportConfigurationType.getWhiteList().isEmpty()) {
+			choises++;
+		}
+		return choises;
+	}
+	
+	public static void validateRecipient(List<String> allowedRecipient, List<String> forbiddenRecipient, List<String> recipients,
+    		NotificationTransportConfigurationType transportConfigurationType, Task task, OperationResult result, ExpressionFactory expressionFactory,
+    		ExpressionProfile expressionProfile, Trace logger) {
+    	for (String recipient : recipients) {
+    		if (TransportUtil.isRecipientAllowed(recipient, transportConfigurationType, task, result, expressionFactory, expressionProfile, logger)) {
+    			logger.debug("Recipient " + recipient + "is allowed");
+    			allowedRecipient.add(recipient);
+			} else {
+				logger.debug("Recipient " + recipient + "is forbidden");
+				forbiddenRecipient.add(recipient);
+			}
+    	}
+		
+	}
 }

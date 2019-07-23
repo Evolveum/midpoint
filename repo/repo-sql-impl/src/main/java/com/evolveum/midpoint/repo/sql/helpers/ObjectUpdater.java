@@ -26,7 +26,9 @@ import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -36,10 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -249,24 +247,23 @@ public class ObjectUpdater {
         LOGGER.trace("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        // Deep cloning for object transformation - we don't want to return object "changed" by save.
-        // Its' because we're removing some properties during save operation and if save fails,
-        // overwrite attempt (for example using object importer) might try to delete existing object
-        // and then try to save this object one more time.
-        String xml = prismContext.xmlSerializer().serialize(savedObject);
-        savedObject = prismContext.parseObject(xml);
-
-        if (FocusType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(FocusType.F_JPEG_PHOTO);
-        } else if (LookupTableType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(LookupTableType.F_ROW);
-        } else if (AccessCertificationCampaignType.class.equals(savedObject.getCompileTimeClass())) {
-            savedObject.removeContainer(AccessCertificationCampaignType.F_CASE);
-        } else if (TaskType.class.isAssignableFrom(savedObject.getCompileTimeClass())) {
-            savedObject.removeProperty(TaskType.F_RESULT);
+        List<ItemName> itemsToSkip = new ArrayList<>();
+        Class<T> compileTimeClass = savedObject.getCompileTimeClass();
+        assert compileTimeClass != null;
+        if (FocusType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(FocusType.F_JPEG_PHOTO);
+        } else if (LookupTableType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(LookupTableType.F_ROW);
+        } else if (AccessCertificationCampaignType.class.equals(compileTimeClass)) {
+            itemsToSkip.add(AccessCertificationCampaignType.F_CASE);
+        } else if (TaskType.class.isAssignableFrom(compileTimeClass)) {
+            itemsToSkip.add(TaskType.F_RESULT);
         }
 
-        xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE).serialize(savedObject);
+        String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
+                .itemsToSkip(itemsToSkip)
+                .options(SerializationOptions.createSerializeReferenceNamesForNullOids())
+                .serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
@@ -365,7 +362,7 @@ public class ObjectUpdater {
 
     public <T extends ObjectType> ModifyObjectResult<T> modifyObjectAttempt(Class<T> type, String oid,
 			Collection<? extends ItemDelta> originalModifications, ModificationPrecondition<T> precondition,
-			RepoModifyOptions modifyOptions, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
+			RepoModifyOptions modifyOptions, int attempt, OperationResult result, SqlRepositoryServiceImpl sqlRepositoryService)
 		    throws ObjectNotFoundException,
 		    SchemaException, ObjectAlreadyExistsException, SerializationRelatedException, PreconditionViolationException {
 
@@ -374,8 +371,8 @@ public class ObjectUpdater {
         Collection<? extends ItemDelta> modifications = CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
-        LOGGER.debug("Modifying object '{}' with oid '{}'.", type.getSimpleName(), oid);
-        LOGGER_PERFORMANCE.debug("> modify object {}, oid={}, modifications={}", type.getSimpleName(), oid, modifications);
+        LOGGER.debug("Modifying object '{}' with oid '{}' (attempt {})", type.getSimpleName(), oid, attempt);
+        LOGGER_PERFORMANCE.debug("> modify object {}, oid={} (attempt {}), modifications={}", type.getSimpleName(), oid, attempt, modifications);
 	    LOGGER.trace("Modifications:\n{}", DebugUtil.debugDumpLazily(modifications));
 
         Session session = null;
@@ -490,7 +487,7 @@ public class ObjectUpdater {
 
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
-            LOGGER.trace("Committed!");
+            LOGGER.trace("Committed! (at attempt {})", attempt);
             return rv;
         } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);

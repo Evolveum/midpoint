@@ -18,6 +18,8 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import javax.persistence.*;
 
+import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
+import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import org.hibernate.annotations.ForeignKey;
@@ -34,6 +36,8 @@ public class RAuditItem implements EntityState {
 
 	public static final String TABLE_NAME = "m_audit_item";
 	public static final String COLUMN_RECORD_ID = "record_id";
+	
+	private static final String CHANGE_ITEM_PATH_COLUMN_NAME = "changedItemPath";
 
     private Boolean trans;
 
@@ -98,6 +102,14 @@ public class RAuditItem implements EntityState {
     	itemChanged.setRecord(record);
     	itemChanged.setChangedItemPath(itemPath);
     	return itemChanged;
+
+    }
+    
+    public static SingleSqlQuery toRepo(Long recordId, String itemPath) {
+    	InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
+    	queryBuilder.addParameter(CHANGE_ITEM_PATH_COLUMN_NAME, itemPath, true);
+    	queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
+    	return queryBuilder.build();
 
     }
 

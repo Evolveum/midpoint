@@ -102,3 +102,7 @@ h1 {
 p {
   padding-left:15px;
 }
+
+.table-audit {
+  font-size:smaller;
+}

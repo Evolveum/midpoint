@@ -152,9 +152,8 @@ public class SearchPanel extends BasePanel<Search> {
         moreGroup.add(createVisibleBehaviour(SearchBoxModeType.BASIC));
         form.add(moreGroup);
 
-        AjaxLink more = new AjaxLink(ID_MORE) {
-        	
-        	private static final long serialVersionUID = 1L;
+        AjaxLink<Void> more = new AjaxLink<Void>(ID_MORE) {
+			private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -593,9 +592,9 @@ public class SearchPanel extends BasePanel<Search> {
                     }
                 });
                 item.add(check);
-
-                AjaxLink propLink = new AjaxLink(ID_PROP_LINK) {
-                	
+                
+                AjaxLink<Void> propLink = new AjaxLink<Void>(ID_PROP_LINK) {
+				                	
                 	private static final long serialVersionUID = 1L;
 
                     @Override

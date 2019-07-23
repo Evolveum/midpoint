@@ -15,19 +15,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
-import com.evolveum.midpoint.web.model.ContainerableFromPrismObjectModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 	private static final long serialVersionUID = 1L;

@@ -19,7 +19,8 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.WfContextUtil;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
+import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -71,7 +72,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		int stageNumber = stageIndex+1;
 		int currentStageNumber = defaultIfNull(processInfo.getCurrentStageNumber(), 0);
 		if (stageNumber <= currentStageNumber) {
-			addInformationFromRecordedStage(rv, stageInfo.getExecutionRecord(), resolver, session, opTask, result);
+			addInformationFromRecordedStage(rv, processInfo, stageInfo.getExecutionRecord(), resolver, session, opTask, result);
 		} else {
 			addInformationFromPreviewedStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
 		}
@@ -82,7 +83,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			if (stageNumber < currentStageNumber) {
 				rv.outcome = ApprovalLevelOutcomeType.APPROVE;      // no stage before current stage could be manually rejected
 			} else if (stageNumber == currentStageNumber) {
-				rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(WfContextUtil.getOutcome(processInfo));
+				rv.outcome = ApprovalUtils.approvalLevelOutcomeFromUri(ApprovalContextUtil.getOutcome(processInfo));
 			} else {
 				rv.outcome = null;
 			}
@@ -117,6 +118,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 	}
 
 	private static void addInformationFromRecordedStage(ApprovalStageExecutionInformationDto rv,
+			ApprovalSchemaExecutionInformationType processInfo,
 			ApprovalStageExecutionRecordType executionRecord, ObjectResolver resolver,
 			ObjectResolver.Session session, Task opTask, OperationResult result) {
 		for (CaseEventType event : executionRecord.getEvent()) {
@@ -127,11 +129,11 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 					LOGGER.warn("No original assignee in work item event {} -- ignoring it", workItemEvent);
 					continue;
 				}
-				String externalWorkItemId = workItemEvent.getExternalWorkItemId();
-				if (externalWorkItemId == null) {
+				if (workItemEvent.getExternalWorkItemId() == null) {
 					LOGGER.warn("No external work item ID in work item event {} -- ignoring it", workItemEvent);
 					continue;
 				}
+				WorkItemId externalWorkItemId = WorkItemId.create(workItemEvent.getExternalWorkItemId());
 				ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
 				if (engagement == null) {
 					resolve(approver, resolver, session, opTask, result);
@@ -155,17 +157,13 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 			}
 		}
 		// not needed after "create work item" events will be implemented
-		for (WorkItemType workItem : executionRecord.getWorkItem()) {
+		for (CaseWorkItemType workItem : executionRecord.getWorkItem()) {
 			ObjectReferenceType approver = workItem.getOriginalAssigneeRef();
 			if (approver == null) {
 				LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);
 				continue;
 			}
-			String externalWorkItemId = workItem.getExternalId();
-			if (externalWorkItemId == null) {
-				LOGGER.warn("No external work item ID in work item {} -- ignoring it", workItem);
-				continue;
-			}
+			WorkItemId externalWorkItemId = WorkItemId.create(processInfo.getCaseRef().getOid(), workItem.getId());
 			ApproverEngagementDto engagement = rv.findApproverEngagement(approver, externalWorkItemId);
 			if (engagement == null) {
 				resolve(approver, resolver, session, opTask, result);
@@ -179,7 +177,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		approverEngagements.add(engagement);
 	}
 
-	private ApproverEngagementDto findApproverEngagement(ObjectReferenceType approver, String externalWorkItemId) {
+	private ApproverEngagementDto findApproverEngagement(ObjectReferenceType approver, WorkItemId externalWorkItemId) {
 		for (ApproverEngagementDto engagement : approverEngagements) {
 			if (ObjectTypeUtil.matchOnOid(engagement.getApproverRef(), approver)
 					&& java.util.Objects.equals(engagement.getExternalWorkItemId(), externalWorkItemId)) {
@@ -223,7 +221,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 
 	// TODO tweak this as needed
 	public String getNiceStageName(int totalStageNumber) {
-		return WfContextUtil.getStageInfo(stageNumber, totalStageNumber, stageName, stageDisplayName);
+		return ApprovalContextUtil.getStageInfo(stageNumber, totalStageNumber, stageName, stageDisplayName);
 	}
 
 	public boolean isFirstDecides() {

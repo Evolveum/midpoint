@@ -853,7 +853,7 @@ public class ExecutionManager {
             output.append("*** Root thread for task ").append(task).append(":\n\n");
             addTaskInfo(output, localTask, rootThread);
             for (RunningTask subtask : localTask.getLightweightAsynchronousSubtasks()) {
-                Thread thread = ((RunningTaskQuartzImpl) subtask).getLightweightThread();
+                Thread thread = ((RunningTaskQuartzImpl) subtask).getExecutingThread();
                 output.append("** Information for lightweight asynchronous subtask ").append(subtask).append(":\n\n");
                 addTaskInfo(output, subtask, thread);
             }

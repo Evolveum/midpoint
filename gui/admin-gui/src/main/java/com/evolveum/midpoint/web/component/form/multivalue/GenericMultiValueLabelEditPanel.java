@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.util.ListModel;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -48,7 +49,7 @@ import java.util.List;
  *
  *  @author shood
  * */
-public class GenericMultiValueLabelEditPanel <T extends Serializable> extends BasePanel<List<T>> {
+public class GenericMultiValueLabelEditPanel<T extends Serializable> extends BasePanel<List<T>> { //BasePanel<List<T>> {
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(GenericMultiValueLabelEditPanel.class);
@@ -109,7 +110,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         });
         add(addFirstContainer);
 
-        AjaxLink addFirst = new AjaxLink(ID_ADD_FIRST) {
+        AjaxLink<Void> addFirst = new AjaxLink<Void>(ID_ADD_FIRST) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -169,7 +170,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
                     }
                 }));
 
-                AjaxLink edit = new AjaxLink(ID_EDIT) {
+                AjaxLink<Void> edit = new AjaxLink<Void>(ID_EDIT) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -220,14 +221,14 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
     }
 
     private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
-        AjaxLink add = new AjaxLink(ID_ADD) {
-            private static final long serialVersionUID = 1L;
+    	 AjaxLink<Void> add = new AjaxLink<Void>(ID_ADD) {
+             private static final long serialVersionUID = 1L;
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addValuePerformed(target);
-            }
-        };
+             @Override
+             public void onClick(AjaxRequestTarget target) {
+                 addValuePerformed(target);
+             }
+         };
         add.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -238,7 +239,7 @@ public class GenericMultiValueLabelEditPanel <T extends Serializable> extends Ba
         });
         buttonGroup.add(add);
 
-        AjaxLink remove = new AjaxLink(ID_REMOVE) {
+        AjaxLink<Void> remove = new AjaxLink<Void>(ID_REMOVE) {
             private static final long serialVersionUID = 1L;
 
             @Override

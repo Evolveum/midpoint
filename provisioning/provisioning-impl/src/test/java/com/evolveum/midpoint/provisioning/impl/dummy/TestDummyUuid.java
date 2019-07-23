@@ -19,6 +19,7 @@ import java.io.File;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 /**
  * Almost the same as TestDummy but this is using a UUID as ICF UID.
@@ -32,11 +33,6 @@ public class TestDummyUuid extends TestDummy {
 
 	public static final File TEST_DIR = new File(TEST_DIR_DUMMY, "dummy-uuid");
 	public static final File RESOURCE_DUMMY_FILE = new File(TEST_DIR, "resource-dummy.xml");
-
-	@Override
-	boolean areEntitlementByAttributesTestsEnabled() {
-		return false;
-	}
 
 	@Override
 	protected File getResourceDummyFile() {
@@ -53,4 +49,21 @@ public class TestDummyUuid extends TestDummy {
 		return false;
 	}
 
+	@Override
+	@Test
+	public void test234EntitleAccountWillPiratesIdentifiersUid() throws Exception {
+		// Disabled test here.
+		// The resource requires name hint, but it is not provided in the delta.
+		// Maybe one day midPoint will be smarter and can add the missing hint.
+		// But it is not this day.
+	}
+	
+	@Override
+	@Test
+	public void test235DetitleAccountWillPiratesIdentifiersUid() throws Exception {
+		// Disabled test here.
+		// The resource requires name hint, but it is not provided in the delta.
+		// Maybe one day midPoint will be smarter and can add the missing hint.
+		// But it is not this day.
+	}
 }

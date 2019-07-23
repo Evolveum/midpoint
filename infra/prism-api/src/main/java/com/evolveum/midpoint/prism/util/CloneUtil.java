@@ -25,6 +25,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.SerializationUtils;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import org.jetbrains.annotations.Contract;
 import org.springframework.util.ClassUtils;
 
 import javax.xml.datatype.Duration;
@@ -50,6 +52,7 @@ public class CloneUtil {
 
 	private static final Trace PERFORMANCE_ADVISOR = TraceManager.getPerformanceAdvisorTrace();
 
+	@Contract("null -> null; !null -> !null")
 	public static <T> T clone(T orig) {
 		if (orig == null) {
 			return null;
@@ -63,7 +66,7 @@ public class CloneUtil {
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
-			return orig;
+			return (T) clonePolyString((PolyString) orig);
 		}
         if (orig instanceof String) {
             // ...and so is String
@@ -75,6 +78,9 @@ public class CloneUtil {
 		}
 		if (origClass.isEnum()) {
 			return orig;
+		}
+		if (orig instanceof LocalizableMessage) {
+			return orig;        // all fields are final
 		}
 //        if (orig.getClass().equals(QName.class)) {
 //            QName origQN = (QName) orig;
@@ -115,7 +121,7 @@ public class CloneUtil {
 		 */
 		if (orig instanceof Duration) {
 			//noinspection unchecked
-			return (T) XmlTypeConverter.createDuration((Duration) orig);
+			return (T) XmlTypeConverter.createDuration(((Duration) orig));
 		}
 		if (orig instanceof Cloneable) {
 			T clone = javaLangClone(orig);
@@ -135,6 +141,10 @@ public class CloneUtil {
 		throw new IllegalArgumentException("Cannot clone "+orig+" ("+origClass+")");
 	}
 
+	/**
+	 * @return List that can be freely used.
+	 */
+	@Contract("!null -> !null; null -> null")
 	public static <T> List<T> cloneCollectionMembers(Collection<T> collection) {
 		if (collection == null) {
 			return null;
@@ -146,12 +156,12 @@ public class CloneUtil {
 		return clonedCollection;
 	}
 
-	public static <T> List<T> cloneListMembers(List<T> list) {
-		List<T> clonedCollection = new ArrayList<>(list.size());
-		for (T element : list) {
-			clonedCollection.add(clone(element));
+	private static PolyString clonePolyString(PolyString orig){
+		if (orig == null){
+			return null;
 		}
-		return clonedCollection;
+		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation() != null ?
+				orig.getTranslation().clone() : null, orig.getLang());
 	}
 
 	private static <T> T cloneArray(T orig) {

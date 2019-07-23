@@ -190,9 +190,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.debug("Getting object '{}' with oid '{}': {}", type.getSimpleName(), oid, result.getOperation());
         InternalMonitor.recordRepositoryRead(type, oid);
 
-        OperationResult subResult = result.createMinorSubresult(GET_OBJECT);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("oid", oid);
+        OperationResult subResult = result.subresult(GET_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .setMinor()
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
 
         PrismObject<T> object = null;
         try {
@@ -281,8 +284,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Searching shadow owner for {}", shadowOid);
 
-        OperationResult subResult = result.createSubresult(SEARCH_SHADOW_OWNER);
-        subResult.addParam("shadowOid", shadowOid);
+        OperationResult subResult = result.subresult(SEARCH_SHADOW_OWNER)
+                .addParam("shadowOid", shadowOid)
+                .build();
 
         try {
             return executeAttempts(shadowOid, OP_SEARCH_SHADOW_OWNER, FocusType.class, "searching shadow owner",
@@ -302,8 +306,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
 
-        OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW);
-        subResult.addParam("accountOid", accountOid);
+        OperationResult subResult = result.subresult(LIST_ACCOUNT_SHADOW)
+                .addParam("accountOid", accountOid)
+                .build();
 
         try {
             return executeAttempts(accountOid, OP_LIST_ACCOUNT_SHADOW_OWNER, UserType.class, "listing account shadow owner",
@@ -323,9 +328,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         logSearchInputParameters(type, query, false, null);
 
-        OperationResult subResult = result.createSubresult(SEARCH_OBJECTS);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("query", query);
+        OperationResult subResult = result.subresult(SEARCH_OBJECTS)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
 
         return executeQueryAttempts(query, OP_SEARCH_OBJECTS, type, "searching", subResult,
                 () -> new SearchResultList<>(new ArrayList<>(0)),
@@ -362,9 +369,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         logSearchInputParameters(type, query, false, null);
 
-        OperationResult result = parentResult.createSubresult(SEARCH_CONTAINERS);
-        result.addParam("type", type.getName());
-        result.addParam("query", query);
+        OperationResult result = parentResult.subresult(SEARCH_CONTAINERS)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
 
         return executeQueryAttempts(query, "searchContainers", type, "searching", result,
                 () -> new SearchResultList<>(new ArrayList<T>(0)),
@@ -382,9 +391,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Full query\n{}", query == null ? "undefined" : query.debugDump());
         }
 
-        OperationResult result = parentResult.createSubresult(COUNT_CONTAINERS);
-        result.addParam("type", type.getName());
-        result.addParam("query", query);
+        OperationResult result = parentResult.subresult(COUNT_CONTAINERS)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
 
         return executeQueryAttemptsNoSchemaException(query, "countContainers", type, "counting", result,
                 () -> 0,
@@ -441,9 +452,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
         }
 
-        OperationResult subResult = result.createSubresult(ADD_OBJECT);
-        subResult.addParam("object", object);
-        subResult.addParam("options", options.toString());
+        OperationResult subResult = result.createSubresult(ADD_OBJECT)
+                .addQualifier(object.asObjectable().getClass().getSimpleName())
+                .addParam("object", object)
+                .addParam("options", options.toString())
+                .build();
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
@@ -498,10 +511,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Deleting object type '{}' with oid '{}'", type.getSimpleName(), oid);
 
-        OperationResult subResult = result.createSubresult(DELETE_OBJECT);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("oid", oid);
-
+        OperationResult subResult = result.subresult(DELETE_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
         try {
 	        
         	DeleteObjectResult rv = executeAttemptsNoSchemaException(oid, OP_DELETE_OBJECT, type, "deleting",
@@ -530,9 +544,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Full query\n{}", query == null ? "undefined" : query.debugDump());
         }
 
-        OperationResult subResult = result.createMinorSubresult(COUNT_OBJECTS);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("query", query);
+        OperationResult subResult = result.subresult(COUNT_OBJECTS)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
 
         return executeQueryAttemptsNoSchemaException(query, OP_COUNT_OBJECTS, type, "counting", subResult,
                 () -> 0,
@@ -570,10 +586,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("oid", oid);
-        subResult.addArbitraryObjectCollectionAsParam("modifications", modifications);
+        OperationResult subResult = result.subresult(MODIFY_OBJECT)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .addArbitraryObjectCollectionAsParam("modifications", modifications)
+                .build();
 
         if (modifications.isEmpty() && !RepoModifyOptions.isExecuteIfNoChanges(options)) {
             LOGGER.debug("Modification list is empty, nothing was modified.");
@@ -617,7 +635,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, subResult, this);
+                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, attempt, subResult, this);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
 	                return rv;
                 } catch (RestartOperationRequestedException ex) {
@@ -650,9 +668,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
-        OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
-        subResult.addParam("oid", resourceOid);
-        subResult.addParam("resourceObjectShadowType", resourceObjectShadowType);
+        OperationResult subResult = result.subresult(LIST_RESOURCE_OBJECT_SHADOWS)
+                .addParam("oid", resourceOid)
+                .addParam("resourceObjectShadowType", resourceObjectShadowType)
+                .build();
 
         final String operation = "listing resource object shadows";
         int attempt = 1;
@@ -819,9 +838,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
-        OperationResult subResult = parentResult.createMinorSubresult(GET_VERSION);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("oid", oid);
+        OperationResult subResult = parentResult.subresult(GET_VERSION)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("oid", oid)
+                .build();
 
         // TODO executeAttempts
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
@@ -855,9 +876,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         logSearchInputParameters(type, query, true, strictlySequential);
 
-        OperationResult subResult = result.createSubresult(SEARCH_OBJECTS_ITERATIVE);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("query", query);
+        OperationResult subResult = result.subresult(SEARCH_OBJECTS_ITERATIVE)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type.getName())
+                .addParam("query", query)
+                .build();
 
         if (query != null) {
             ObjectFilter filter = query.getFilter();
@@ -1012,8 +1035,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        OperationResult result = parentResult.createSubresult(ADVANCE_SEQUENCE);
-        result.addParam("oid", oid);
+        OperationResult result = parentResult.subresult(ADVANCE_SEQUENCE)
+                .addParam("oid", oid)
+                .build();
 
         if (LOGGER.isTraceEnabled())
             LOGGER.trace("Advancing sequence {}", oid);
@@ -1044,8 +1068,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        OperationResult result = parentResult.createSubresult(RETURN_UNUSED_VALUES_TO_SEQUENCE);
-        result.addParam("oid", oid);
+        OperationResult result = parentResult.subresult(RETURN_UNUSED_VALUES_TO_SEQUENCE)
+                .addParam("oid", oid)
+                .build();
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Returning unused values of {} to sequence {}", unusedValues, oid);
@@ -1085,8 +1110,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         final String operation = "querying";
         int attempt = 1;
 
-        OperationResult subResult = result.createMinorSubresult(EXECUTE_QUERY_DIAGNOSTICS);
-        subResult.addParam("query", request.toString());
+        OperationResult subResult = result.subresult(EXECUTE_QUERY_DIAGNOSTICS)
+                .setMinor()
+                .addParam("request", request.toString())
+                .build();
 
         // TODO executeAttempts
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
@@ -1247,18 +1274,34 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public boolean hasConflict(ConflictWatcher watcher, OperationResult result) {
-    	if (watcher.hasConflict()) {
-    		return true;
-	    }
-	    try {
-		    getVersion(ObjectType.class, watcher.getOid(), result);
-	    } catch (ObjectNotFoundException e) {
-		    // just ignore this
-	    } catch (SchemaException e) {
-		    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
-	    }
-	    return watcher.hasConflict();
+    public boolean hasConflict(ConflictWatcher watcher, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(HAS_CONFLICT)
+                .setMinor()
+                .addParam("oid", watcher.getOid())
+                .addParam("watcherClass", watcher.getClass().getName())
+                .build();
+        try {
+            boolean rv;
+            if (watcher.hasConflict()) {
+                rv = true;
+            } else {
+                try {
+                    getVersion(ObjectType.class, watcher.getOid(), result);
+                } catch (ObjectNotFoundException e) {
+                    // just ignore this
+                } catch (SchemaException e) {
+                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
+                }
+                rv = watcher.hasConflict();
+            }
+            result.addReturn("hasConflict", rv);
+            return rv;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     /**
@@ -1268,7 +1311,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     @Override
     public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
             OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        OperationResult result = parentResult.createMinorSubresult(ADD_DIAGNOSTIC_INFORMATION);
+        OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
+                .addQualifier(type.getSimpleName())
+                .addParam("type", type)
+                .addParam("oid", oid)
+                .build();
         try {
             PrismObject<T> object = getObject(type, oid, null, result);
             boolean canStoreInfo = pruneDiagnosticInformation(type, oid, information,

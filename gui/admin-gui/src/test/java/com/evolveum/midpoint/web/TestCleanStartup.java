@@ -43,15 +43,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCleanStartup extends AbstractModelIntegrationTest {
 
-	@Autowired(required=true)
-	private InfraInitialSetup infraInitialSetup;
-
-	@Autowired(required=true)
-	private ModelInitialSetup modelInitialSetup;
-
-	@Autowired(required=true)
-	private InitialDataImport initialDataImport;
-
 	public TestCleanStartup() {
 		super();
 		InternalsConfig.setAvoidLoggingChange(true);
