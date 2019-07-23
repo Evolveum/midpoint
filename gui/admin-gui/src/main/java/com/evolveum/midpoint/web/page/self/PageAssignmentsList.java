@@ -438,7 +438,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             ItemPath deltaPath = delta.getPath().rest();
             ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
 
-            delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast(), getPrismContext()));
+            delta.setParentPath(WebComponentUtil.joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
             delta.applyDefinition(deltaDef);
 
             focusDelta.addModification(delta);
