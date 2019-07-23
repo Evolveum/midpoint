@@ -142,7 +142,6 @@ public class SearchFactory {
 
         SEARCHABLE_OBJECTS.put(CaseType.class, Arrays.asList(
                 ItemPath.create(CaseType.F_STATE),
-                ItemPath.create(CaseType.F_STAGE_NUMBER),
                 ItemPath.create(CaseType.F_PARENT_REF),
                 ItemPath.create(CaseType.F_REQUESTOR_REF),
                 ItemPath.create(CaseType.F_TARGET_REF),
