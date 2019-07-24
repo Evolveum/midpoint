@@ -267,6 +267,11 @@ public abstract class ResourceContentPanel extends Panel {
 			}
 
 			@Override
+			protected boolean isCreateNewObjectEnabled(){
+				return false;
+			}
+
+			@Override
 			protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
 				provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
 				provider.setEmptyListOnNullQuery(true);

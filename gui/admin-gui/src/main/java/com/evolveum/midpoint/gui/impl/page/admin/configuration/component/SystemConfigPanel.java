@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -71,6 +72,11 @@ public class SystemConfigPanel extends BasePanel<PrismObjectWrapper<SystemConfig
 				ItemPath.EMPTY_PATH, SystemConfigurationType.F_GLOBAL_SECURITY_POLICY_REF))) {
 			return ItemVisibility.AUTO;
 		}
+
+		if(itemWrapper.getPath().isSuperPathOrEquivalent(ItemPath.create(ObjectType.F_EXTENSION))) {
+			return ItemVisibility.AUTO;
+		}
+
 		return ItemVisibility.HIDDEN;
     }
 }

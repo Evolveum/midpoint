@@ -62,11 +62,6 @@ public class TestDummyCaseIgnore extends TestDummy {
 	}
 
 	@Override
-	boolean areEntitlementByAttributesTestsEnabled() {
-		return false;
-	}
-
-	@Override
 	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}

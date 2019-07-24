@@ -80,7 +80,7 @@ public class LocalePanel extends Panel {
 
             @Override
             protected SelectOption<LocaleDescriptor> newOption(String text, IModel<LocaleDescriptor> model) {
-                SelectOption option = super.newOption("&nbsp;" + text, model);
+                SelectOption option = super.newOption(text, model);
                 option.add(new AttributeModifier("data-icon", "flag-" + model.getObject().getFlag()));
 
                 return option;

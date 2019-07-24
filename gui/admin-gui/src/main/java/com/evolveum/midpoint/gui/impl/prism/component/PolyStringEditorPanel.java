@@ -159,7 +159,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             public void detach() {
 
             }
-        });
+        }, String.class, false);
         origValuePanel.setOutputMarkupId(true);
         origValuePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         origValuePanel.getBaseFormComponent().add(AttributeAppender.append("style", "border-right: none !important; "));

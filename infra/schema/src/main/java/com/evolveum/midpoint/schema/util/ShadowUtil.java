@@ -719,6 +719,16 @@ public class ShadowUtil {
 		}
 		return false;
 	}
+	
+	public static boolean hasSecondaryIdentifier(Collection<? extends ResourceAttribute<?>> identifiers,
+			ObjectClassComplexTypeDefinition objectClassDefinition) {
+		for (ResourceAttribute identifier: identifiers) {
+			if (objectClassDefinition.isSecondaryIdentifier(identifier.getElementName())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static ResourceAttribute<?> fixAttributePath(ResourceAttribute<?> attribute) throws SchemaException {
 		if (attribute == null) {

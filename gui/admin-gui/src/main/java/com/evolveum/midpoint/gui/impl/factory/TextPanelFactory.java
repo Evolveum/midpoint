@@ -59,7 +59,7 @@ public class TextPanelFactory<T> extends AbstractGuiComponentFactory<T> implemen
 		LookupTableType lookupTable = panelCtx.getPredefinedValues();
 		if (lookupTable == null) {
 			return new TextPanel<>(panelCtx.getComponentId(),
-					panelCtx.getRealValueModel(), panelCtx.getTypeClass());
+					panelCtx.getRealValueModel(), panelCtx.getTypeClass(), false);
 		}
 		
 		return new AutoCompleteTextPanel<T>(panelCtx.getComponentId(),

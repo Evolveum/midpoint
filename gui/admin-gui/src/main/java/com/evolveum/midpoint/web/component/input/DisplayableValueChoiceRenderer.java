@@ -52,7 +52,12 @@ public class DisplayableValueChoiceRenderer<T> implements IChoiceRenderer<T> {
 			return null;
 		}
 
-		return choices.getObject().get(Integer.parseInt(id));
+		T value = choices.getObject().get(Integer.parseInt(id));
+		if (value instanceof DisplayableValue) {
+			return (T) ((DisplayableValue) value).getValue();
+		}
+
+		return value;
 	}
 
 }
