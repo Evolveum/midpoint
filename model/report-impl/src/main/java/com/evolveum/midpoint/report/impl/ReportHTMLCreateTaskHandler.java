@@ -427,7 +427,7 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 				});
 				table.with(tBody);
 				return createTableBox(table, widgetData.getLabel(), auditRecordList.size(),
-						convertMillisToString(startMillis));
+						convertMillisToString(startMillis), true);
 			}
 			break;
 		}
@@ -591,13 +591,22 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 		}
 		return TagCreator.table().withClasses("table", "table-striped", "table-hover", "table-bordered");
 	}
-
+	
 	private ContainerTag createTableBox(ContainerTag table, String nameOfTable, int countOfTableRecords,
-			String createdTime) {
+			String createdTime, boolean isAudit) {
 		ContainerTag div = TagCreator.div().withClasses("box-body", "no-padding").with(TagCreator.h1(nameOfTable))
 				.with(TagCreator.p(REPORT_GENERATED_ON + createdTime))
 				.with(TagCreator.p(NUMBER_OF_RECORDS + countOfTableRecords)).with(table);
-		return TagCreator.div().withClasses("box", "boxed-table").with(div);
+		if(isAudit) {
+			return TagCreator.div().withClasses("box", "boxed-table", "box-audit").with(div);
+		} else {
+			return TagCreator.div().withClasses("box", "boxed-table").with(div);
+		}
+	}
+
+	private ContainerTag createTableBox(ContainerTag table, String nameOfTable, int countOfTableRecords,
+			String createdTime) {
+		return createTableBox(table, nameOfTable, countOfTableRecords, createdTime, false);
 	}
 
 	private ContainerTag createTHead(Set<String> set) {
@@ -608,17 +617,19 @@ public class ReportHTMLCreateTaskHandler extends ReportJasperCreateTaskHandler {
 	private String getStyleForColumn(String column) {
 		switch (column) {
 		case TIME_COLUMN:
-			return "width: 10%;";
+			return "width: 8%;";
 		case INITIATOR_COLUMN:
-			return "width: 8%;";
+			return "width: 6%;";
 		case EVENT_STAGE_COLUMN:
-			return "width: 5%;";
+			return "width: 4.5%;";
 		case EVENT_TYPE_COLUMN:
-			return "width: 10%;";
-		case TARGET_COLUMN:
-			return "width: 8%;";
-		case OUTCOME_COLUMN:
 			return "width: 7%;";
+		case TARGET_COLUMN:
+			return "width: 6%;";
+		case OUTCOME_COLUMN:
+			return "width: 5%;";
+		case DELTA_COLUMN:
+			return "width: 45%;";
 		}
 		return "";
 	}
