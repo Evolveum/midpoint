@@ -46,13 +46,13 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 	 * @param defaultType specifies type of the object that will be selected by default
 	 */
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-		super(id, defaultType, null, multiselect, parentPage);
+		super(id, defaultType, null, multiselect);
 
 	}
 
 	public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
 								boolean multiselect, PageBase parentPage) {
-		super(id, defaultType, null, options, multiselect, parentPage);
+		super(id, defaultType, null, options, multiselect);
 	}
 
 	@Override

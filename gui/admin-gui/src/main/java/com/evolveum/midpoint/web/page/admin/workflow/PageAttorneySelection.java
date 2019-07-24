@@ -105,7 +105,7 @@ public class PageAttorneySelection extends PageBase {
 
 
         ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class,
-                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList(), this) {
+                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
 
             @Override
             protected IColumn<SelectableBean<UserType>, String> createCheckboxColumn() {

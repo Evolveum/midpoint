@@ -195,7 +195,16 @@ public abstract class InfoBoxPanel extends Panel{
 		} else {
 			infoBox.add(AttributeModifier.append("style", getStringModel(DEFAULT_BACKGROUND_COLOR)));
 		}
-		infoBox.add(AttributeModifier.append("style", getStringModel(DEFAULT_COLOR)));
+        
+        if(displayModel.getObject() != null && StringUtils.isNoneBlank(displayModel.getObject().getCssStyle())) {
+			String style = displayModel.getObject().getCssStyle();
+			infoBox.add(AttributeModifier.append("style", style));
+			if(!style.toLowerCase().contains(" color:") && !style.toLowerCase().startsWith("color:")) {
+				infoBox.add(AttributeModifier.append("style", getStringModel(DEFAULT_COLOR)));
+			}
+		} else {
+			infoBox.add(AttributeModifier.append("style", getStringModel(DEFAULT_COLOR)));
+		}
         
         WebMarkupContainer infoBoxIcon = new WebMarkupContainer(ID_ICON);
 		infoBox.add(infoBoxIcon);

@@ -36,14 +36,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
+import java.io.Serializable;
+
 @Component
 public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<SearchFilterType> {
 
 	private static final long serialVersionUID = 1L;
 
-	private static transient Trace LOGGER = TraceManager.getTrace(SearchFilterPanelFactory.class);
-	
-	@Autowired GuiComponentRegistry registry;
+	@Autowired private transient GuiComponentRegistry registry;
 	
 	@PostConstruct
 	public void register() {
@@ -57,61 +57,7 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
 
 	@Override
 	protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
-		return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel((IModel<SearchFilterType>) panelCtx.getRealValueModel(), panelCtx.getPrismContext()));
-	}
-	
-	class SearchFilterTypeModel implements IModel<String> {
-		
-		private static final long serialVersionUID = 1L;
-		
-		private IModel<SearchFilterType> baseModel;
-		private PrismContext prismCtx;
-		
-		public SearchFilterTypeModel(IModel<SearchFilterType> valueWrapper, PrismContext prismCtx) {
-			this.baseModel = valueWrapper;
-			this.prismCtx = prismCtx;
-		}
-
-		@Override
-		public void detach() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public String getObject() {
-			try {
-				SearchFilterType value = baseModel.getObject();
-				if (value == null) {
-					return null;
-				}
-				
-				return prismCtx.xmlSerializer().serializeRealValue(value);
-			} catch (SchemaException e) {
-				// TODO handle!!!!
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
-//				getSession().error("Cannot serialize filter");
-			}
-			return null;
-		}
-
-		@Override
-		public void setObject(String object) {
-			if (StringUtils.isBlank(object)) {
-				return;
-			}
-			
-			try {
-				SearchFilterType filter = prismCtx.parserFor(object).parseRealValue(SearchFilterType.class);
-				baseModel.setObject(filter);
-			} catch (SchemaException e) {
-				// TODO handle!!!!
-				LoggingUtils.logUnexpectedException(LOGGER, "Cannot parse filter", e);
-//				getSession().error("Cannot parse filter");
-			}
-			
-		}
+		return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
 	}
 
-	
 }

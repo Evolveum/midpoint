@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -65,14 +66,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     public PageAdminObjectList(PageParameters parameters) {
         super(parameters);
-    }
-
-    @Override
-    protected void onInitialize(){
-        super.onInitialize();
         initLayout();
     }
-
+    
     protected void initLayout() {
         Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
         add(mainForm);
@@ -135,6 +131,16 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
+            protected Map<IconCssStyle, IconType> getNewObjectButtonLayerIconStyleMap(){
+                if (!isCollectionViewPage()){
+                    return null;
+                }
+                Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
+                layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
+                return layerIconMap;
+            }
+
+            @Override
             protected DisplayType getNewObjectButtonAdditionalDisplayType(CompiledObjectCollectionView collectionView){
                 return WebComponentUtil.getNewObjectDisplayTypeFromCollectionView(collectionView, PageAdminObjectList.this);
             }
@@ -178,7 +184,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
                 StringValue collectionName = getCollectionNameParameterValue();
                 String collectionNameValue = collectionName != null ? collectionName.toString() : "";
                 String key = isCollectionViewPage() ? WebComponentUtil.getObjectListPageStorageKey(collectionNameValue) :
-                        WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName());
+                        super.getStorageKey();
+//WebComponentUtil.getObjectListPageStorageKey(getType().getSimpleName()
                 return key;
             }
         };

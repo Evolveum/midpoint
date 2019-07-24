@@ -72,6 +72,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final long serialVersionUID = 1L;
 
     private static final String ID_CASE_WORK_ITEM_ACTIONS_PANEL = "caseWorkItemActionsPanel";
+    private static final String ID_CANCEL_BUTTON = "cancelButton";
     private WorkItemDetailsPanel workItemDetails = null;
 
     public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId, PageStorage pageStorage){
@@ -81,6 +82,19 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     @Override
     protected void onInitialize(){
         super.onInitialize();
+        AjaxButton cancelButton = new AjaxButton(ID_CANCEL_BUTTON,
+                createStringResource("MultivalueContainerListPanel.cancelButton")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                setItemDetailsVisible(false);
+                cancelItemDetailsPerformed(ajaxRequestTarget);
+                ajaxRequestTarget.add(CaseWorkItemListWithDetailsPanel.this);
+                ajaxRequestTarget.add(CaseWorkItemListWithDetailsPanel.this.getPageBase().getFeedbackPanel());
+            }
+        };
+        getDetailsPanelContainer().add(cancelButton);
 
         CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(unwrapPanelModel())){
             private static final long serialVersionUID = 1L;

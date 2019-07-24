@@ -15,100 +15,7 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.visualizer.Scene;
-import com.evolveum.midpoint.schema.*;
-import com.evolveum.midpoint.schema.util.*;
-import com.evolveum.midpoint.web.component.prism.*;
-import com.evolveum.midpoint.web.component.prism.show.SceneDto;
-import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
-import com.evolveum.midpoint.web.page.admin.cases.PageCase;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskChangesDto;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
-import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.wf.util.ChangesByState;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.apache.wicket.Application;
-import org.apache.wicket.Component;
-import org.apache.wicket.Localizer;
-import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.Page;
-import org.apache.wicket.PageReference;
-import org.apache.wicket.Session;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.feedback.IFeedback;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.joda.time.format.DateTimeFormat;
-
-import com.evolveum.midpoint.common.refinery.CompositeRefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -122,8 +29,6 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ComponentLoggerType;
-import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.StandardLoggerType;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
@@ -133,19 +38,8 @@ import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.model.api.visualizer.Scene;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -154,43 +48,26 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.DisplayableValue;
-import com.evolveum.midpoint.util.LocalizableMessage;
-import com.evolveum.midpoint.util.LocalizableMessageList;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -207,12 +84,14 @@ import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.show.SceneDto;
+import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageDialog;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
@@ -228,6 +107,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -236,12 +116,68 @@ import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.wf.util.ChangesByState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
+import org.apache.wicket.*;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.datetime.PatternDateConverter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joda.time.format.DateTimeFormat;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -647,7 +583,7 @@ public final class WebComponentUtil {
 	}
 
 	public static <T extends ObjectType> Class<T> qnameToClass(PrismContext prismContext, QName type, Class<T> returnType) {
-		return returnType = prismContext.getSchemaRegistry().determineCompileTimeClass(type);
+		return prismContext.getSchemaRegistry().determineCompileTimeClass(type);
 	}
 
 	public static <T extends ObjectType> QName classToQName(PrismContext prismContext, Class<T> clazz) {
@@ -915,15 +851,11 @@ public final class WebComponentUtil {
 	}
 
 	public static <T extends Enum> IModel<List<T>> createReadonlyModelFromEnum(final Class<T> type) {
-		return new IModel<List<T>>() {
+		return (IModel<List<T>>) () -> {
+			List<T> list = new ArrayList<>();
+			Collections.addAll(list, type.getEnumConstants());
 
-			@Override
-			public List<T> getObject() {
-				List<T> list = new ArrayList<>();
-				Collections.addAll(list, type.getEnumConstants());
-
-				return list;
-			}
+			return list;
 		};
 	}
 
@@ -968,13 +900,8 @@ public final class WebComponentUtil {
 
 	public static IModel<String> createCategoryNameModel(final Component component,
 			final IModel<String> categorySymbolModel) {
-		return new IModel<String>() {
-			@Override
-			public String getObject() {
-				return createStringResourceStatic(component,
-						"pageTasks.category." + categorySymbolModel.getObject()).getString();
-			}
-		};
+		return (IModel<String>) () -> createStringResourceStatic(component,
+				"pageTasks.category." + categorySymbolModel.getObject()).getString();
 	}
 
 	public static ObjectReferenceType createObjectRef(String oid, String name, QName type) {
@@ -984,26 +911,6 @@ public final class WebComponentUtil {
 		ort.setType(type);
 		return ort;
 	}
-
-	// public static DropDownChoicePanel createActivationStatusPanel(String id,
-	// final IModel<ActivationStatusType> model,
-	// final Component component) {
-	// return new DropDownChoicePanel(id, model,
-	// WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class),
-	// new IChoiceRenderer<ActivationStatusType>() {
-	//
-	// @Override
-	// public Object getDisplayValue(ActivationStatusType object) {
-	// return WebMiscUtil.createLocalizedModelForEnum(object,
-	// component).getObject();
-	// }
-	//
-	// @Override
-	// public String getIdValue(ActivationStatusType object, int index) {
-	// return Integer.toString(index);
-	// }
-	// }, true);
-	// }
 
 	public static <E extends Enum> DropDownChoicePanel createEnumPanel(Class clazz, String id,
 			final IModel<E> model, final Component component) {
@@ -1061,80 +968,14 @@ public final class WebComponentUtil {
 		};
 	}
 
-	public static <T> DropDownChoicePanel createEnumPanel(final Collection<T> allowedValues, String id,
-			final IModel model, final Component component) {
-		// final Class clazz = model.getObject().getClass();
-		final Object o = model.getObject();
-
-		final IModel<List<DisplayableValue>> enumModelValues = new AbstractReadOnlyModel<List<DisplayableValue>>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public List<DisplayableValue> getObject() {
-				return getDisplayableValues(allowedValues);
-			}
-
-		};
-
-		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(allowedValues)), true);
-
-	}
 	public static DropDownChoicePanel createEnumPanel(final PrismPropertyDefinition def, String id,
-			final IModel model, final Component component) {
-		// final Class clazz = model.getObject().getClass();
+			final IModel model) {
 		final Object o = model.getObject();
 
-		final IModel<List<DisplayableValue>> enumModelValues = new IModel<List<DisplayableValue>>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public List<DisplayableValue> getObject() {
-				return getDisplayableValues(def.getAllowedValues());
-			}
-
-		};
+		final IModel<List<DisplayableValue>> enumModelValues = (IModel<List<DisplayableValue>>) () -> getDisplayableValues(def.getAllowedValues());
 
 		return new DropDownChoicePanel(id, model, enumModelValues, new DisplayableValueChoiceRenderer(getDisplayableValues(def.getAllowedValues())), true);
-
-
-//		@Override
-//		public Object getObject(String id, IModel choices) {
-//			if (StringUtils.isBlank(id)) {
-//				return null;
-//			}
-//			return ((List) choices.getObject()).get(Integer.parseInt(id));
-//		}
-//
-//		@Override
-//		public Object getDisplayValue(Object object) {
-//			if (object instanceof DisplayableValue) {
-//				return ((DisplayableValue) object).getLabel();
-//			}
-//			for (DisplayableValue v : enumModelValues.getObject()) {
-//				if (object.equals(v.getValue())) {
-//					return v.getLabel();
-//				}
-//			}
-//			return object;
-//
-//		}
-//
-//		@Override
-//		public String getIdValue(Object object, int index) {
-//            if (object instanceof String && enumModelValues != null && enumModelValues.getObject() != null) {
-//                List<DisplayableValue> enumValues = enumModelValues.getObject();
-//                for (DisplayableValue v : enumValues) {
-//                    if (object.equals(v.getValue())) {
-//                        return String.valueOf(enumValues.indexOf(v));
-//                    }
-//                }
-//            }
-//            return String.valueOf(index);
-//		}
 	}
-
 
 	private static <T> List<DisplayableValue> getDisplayableValues(Collection<T> allowedValues) {
 		List<DisplayableValue> values = null;
@@ -1147,18 +988,6 @@ public final class WebComponentUtil {
 			}
 		}
 		return values;
-	}
-
-	public static <T> TextField<T> createAjaxTextField(String id, IModel<T> model) {
-		TextField<T> textField = new TextField<>(id, model);
-		textField.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-		return textField;
-	}
-
-	public static CheckBox createAjaxCheckBox(String id, IModel<Boolean> model) {
-		CheckBox checkBox = new CheckBox(id, model);
-		checkBox.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
-		return checkBox;
 	}
 
 	public static String getName(ObjectType object) {
@@ -1421,13 +1250,6 @@ public final class WebComponentUtil {
 
 	public static String getDisplayName(PrismObject object) {
 		return PolyString.getOrig(ObjectTypeUtil.getDisplayName(object));
-	}
-
-	public static String getIdentification(ObjectType object) {
-		if (object == null) {
-			return null;
-		}
-		return getName(object.asPrismObject()) + " (" + object.getOid() + ")";
 	}
 
 	public static PolyStringType createPolyFromOrigString(String str) {
@@ -1768,18 +1590,6 @@ public final class WebComponentUtil {
 		return result.isSuccess() || result.isHandledError() || result.isWarning();
 	}
 
-	public static boolean isSuccessOrHandledErrorOrInProgress(OperationResult result) {
-		if (result == null) {
-			return false;
-		}
-
-		return result.isSuccess() || result.isHandledError() || result.isInProgress();
-	}
-
-	public static <T extends ObjectType> String createDefaultIcon(T object) {
-		return createDefaultIcon(object.asPrismObject());
-	}
-
 	public static <T extends ObjectType> String createDefaultIcon(PrismObject<T> object) {
 		Class<T> type = object.getCompileTimeClass();
 		if (type.equals(UserType.class)) {
@@ -2116,14 +1926,6 @@ public final class WebComponentUtil {
 		return GuiStyleConstants.CLASS_SHADOW_ICON_UNKNOWN;
 	}
 
-	public static <AHT extends AssignmentHolderType, O extends ObjectType> void initNewObjectWithReference(PageBase pageBase, O targetObject, QName type, Collection<QName> relations) throws SchemaException {
-		List<ObjectReferenceType> newReferences = new ArrayList<>();
-		for (QName relation : relations) {
-			newReferences.add(ObjectTypeUtil.createObjectRef(targetObject, relation));
-		}
-		initNewObjectWithReference(pageBase, type, newReferences);
-	}
-
 	public static <AHT extends AssignmentHolderType> void initNewObjectWithReference(PageBase pageBase, QName type, List<ObjectReferenceType> newReferences) throws SchemaException {
 		PrismContext prismContext = pageBase.getPrismContext();
 		PrismObjectDefinition<AHT> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
@@ -2148,32 +1950,6 @@ public final class WebComponentUtil {
 		WebComponentUtil.dispatchToObjectDetailsPage(obj, true, pageBase);
 	}
 
-	public static String createUserIconTitle(PrismObject<UserType> object) {
-		UserType user = object.asObjectable();
-
-		// if user has superuser role assigned, it's superuser
-		for (AssignmentType assignment : user.getAssignment()) {
-			ObjectReferenceType targetRef = assignment.getTargetRef();
-			if (targetRef == null) {
-				continue;
-			}
-			if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-				return "user.superuser";
-			}
-		}
-
-		ActivationType activation = user.getActivation();
-		if (activation != null) {
-			if (ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())) {
-				return "ActivationStatusType.DISABLED";
-			} else if (ActivationStatusType.ARCHIVED.equals(activation.getEffectiveStatus())) {
-				return "ActivationStatusType.ARCHIVED";
-			}
-		}
-
-		return null;
-	}
-
 	public static String createErrorIcon(OperationResult result) {
 		OperationResultStatus status = result.getStatus();
 		OperationResultStatusPresentationProperties icon = OperationResultStatusPresentationProperties
@@ -2181,94 +1957,8 @@ public final class WebComponentUtil {
 		return icon.getIcon() + " fa-lg";
 	}
 
-	public static double getSystemLoad() {
-		java.lang.management.OperatingSystemMXBean operatingSystemMXBean = ManagementFactory.getOperatingSystemMXBean();
-//		RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
-		return operatingSystemMXBean.getSystemLoadAverage();
-//		int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
-//		long prevUpTime = runtimeMXBean.getUptime();
-//		long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
-//
-//		try {
-//			Thread.sleep(150);
-//		} catch (Exception ignored) {
-//			// ignored
-//		}
-//
-//		operatingSystemMXBean = ManagementFactory
-//				.getOperatingSystemMXBean();
-//		long upTime = runtimeMXBean.getUptime();
-//		long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
-//		long elapsedCpu = processCpuTime - prevProcessCpuTime;
-//		long elapsedTime = upTime - prevUpTime;
-//
-//		double cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
-//
-//		return cpuUsage;
-	}
-
-
-	public static double getMaxRam() {
-		int MB = 1024 * 1024;
-
-		MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
-		long maxHeap = mBean.getHeapMemoryUsage().getMax();
-		long maxNonHeap = mBean.getNonHeapMemoryUsage().getMax();
-
-		return (maxHeap + maxNonHeap) / MB;
-	}
-
-	public static double getRamUsage() {
-		int MB = 1024 * 1024;
-
-		MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
-		long usedHead = mBean.getHeapMemoryUsage().getUsed();
-		long usedNonHeap = mBean.getNonHeapMemoryUsage().getUsed();
-
-		return (usedHead + usedNonHeap) / MB;
-	}
-
-	/**
-	 * Checks table if has any selected rows ({@link Selectable} interface
-	 * dtos), adds "single" parameter to selected items if it's not null. If
-	 * table has no selected rows warn message is added to feedback panel, and
-	 * feedback is refreshed through {@link AjaxRequestTarget}
-	 *
-	 * @param target
-	 * @param single
-	 *            this parameter is used for row actions when action must be
-	 *            done only on chosen row.
-	 * @param table
-	 * @param page
-	 * @param nothingWarnMessage
-	 * @param <T>
-	 * @return
-	 */
-	public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single,
-			Table table, PageBase page, String nothingWarnMessage) {
-		List<T> selected;
-		if (single != null) {
-			selected = new ArrayList<>();
-			selected.add(single);
-		} else {
-			selected = WebComponentUtil.getSelectedData(table);
-			if (selected.isEmpty()) {
-				page.warn(page.getString(nothingWarnMessage));
-				target.add(page.getFeedbackPanel());
-			}
-		}
-
-		return selected;
-	}
-
 	public static void refreshFeedbacks(MarkupContainer component, final AjaxRequestTarget target) {
-		component.visitChildren(IFeedback.class, new IVisitor<Component, Void>() {
-
-			@Override
-			public void component(final Component component, final IVisit<Void> visit) {
-				target.add(component);
-			}
-		});
+		component.visitChildren(IFeedback.class, (IVisitor<Component, Void>) (component1, visit) -> target.add(component1));
 	}
 
 	/*
@@ -2326,23 +2016,6 @@ public final class WebComponentUtil {
 		return list;
 	}
 
-	public static boolean isObjectOrgManager(PrismObject<? extends ObjectType> object) {
-		if (object == null || object.asObjectable() == null) {
-			return false;
-		}
-
-		ObjectType objectType = object.asObjectable();
-		List<ObjectReferenceType> parentOrgRefs = objectType.getParentOrgRef();
-
-		for (ObjectReferenceType ref : parentOrgRefs) {
-			if (isManagerRelation(ref.getRelation())) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	public static String createHumanReadableByteCount(long bytes) {
 		int unit = 1024;
 		if (bytes < unit)
@@ -2382,21 +2055,6 @@ public final class WebComponentUtil {
 		}
 	}
 
-	public static <T extends Component> T theSameForPage(T object, PageReference containingPageReference) {
-		Page containingPage = containingPageReference.getPage();
-		if (containingPage == null) {
-			return object;
-		}
-		String path = object.getPageRelativePath();
-		T retval = (T) containingPage.get(path);
-		if (retval == null) {
-			return object;
-			// throw new IllegalStateException("There is no component like " +
-			// object + " (path '" + path + "') on " + containingPage);
-		}
-		return retval;
-	}
-
 	public static String debugHandler(IRequestHandler handler) {
 		if (handler == null) {
 			return null;
@@ -2410,7 +2068,7 @@ public final class WebComponentUtil {
 	}
 
 	// todo specify functionality of this method
-	public static ItemPath joinPath(ItemPath path1, ItemPath path2, PrismContext prismContext) {
+	public static ItemPath joinPath(ItemPath path1, ItemPath path2) {
 		ItemPath path = ItemPath.emptyIfNull(path1);
 		ItemPath deltaPath = ItemPath.emptyIfNull(path2);
 		List<Object> newPath = new ArrayList<>();
@@ -2544,14 +2202,6 @@ public final class WebComponentUtil {
 		return objectListPageMap.get(type);
 	}
 
-	public static String getStorageKeyForObjectClass(Class<? extends ObjectType> type) {
-		Class<? extends PageBase> listPageClass = getObjectListPage(type);
-		if (listPageClass == null) {
-			return null;
-		}
-		return getStorageKeyForPage(listPageClass);
-	}
-
 	@NotNull
 	public static TabbedPanel<ITab> createTabPanel(
 			String id, final PageBase parentPage, final List<ITab> tabs, TabbedPanel.RightSideItemProvider provider) {
@@ -2605,13 +2255,6 @@ public final class WebComponentUtil {
 		Label helpLabel = new Label(id);
 		helpLabel.add(new InfoTooltipBehavior());
 		return helpLabel;
-	}
-
-	public static String debugDumpComponentTree(Component c) {
-		StringBuilder sb = new StringBuilder();
-		debugDumpComponentTree(sb, c, 0);
-		return sb.toString();
-
 	}
 
 	private static void debugDumpComponentTree(StringBuilder sb, Component c, int level) {
@@ -2817,14 +2460,6 @@ public final class WebComponentUtil {
 		}
 		return view != null ? view.getDisplay() : null;
 	}
-	
-	public static List<ItemPath> getShadowItemsToShow() {
-		return Arrays.asList(
-				ShadowType.F_ATTRIBUTES,
-				SchemaConstants.PATH_ACTIVATION,
-				SchemaConstants.PATH_PASSWORD,
-				ShadowType.F_ASSOCIATION);
-	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
 																	 ShadowType shadowType) {
@@ -2968,14 +2603,6 @@ public final class WebComponentUtil {
 		return CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions());
 	}
 
-	private static boolean isCapabilityEnabled(CapabilityType cap) {
-		if (cap == null) {
-			return false;
-		}
-
-		return BooleanUtils.isNotFalse(cap.isEnabled());
-	}
-
 	public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase){
 		Task task = pageBase.createSimpleTask(operation);
 		OperationResult parentResult = new OperationResult(operation);
@@ -3088,22 +2715,14 @@ public final class WebComponentUtil {
 	}
 
 	private static IModel<List<Boolean>> createChoices() {
-		return new IModel<List<Boolean>>() {
+		return (IModel<List<Boolean>>) () -> {
+			List<Boolean> list = new ArrayList<>();
+			list.add(null);
+			list.add(Boolean.TRUE);
+			list.add(Boolean.FALSE);
 
-			@Override
-			public List<Boolean> getObject() {
-				List<Boolean> list = new ArrayList<>();
-				list.add(null);
-				list.add(Boolean.TRUE);
-				list.add(Boolean.FALSE);
-
-				return list;
-			}
+			return list;
 		};
-	}
-	
-	public static LookupTableType createAppenderChoices(PageBase pageBase, Task task, OperationResult result) {
-        return createAppenderChoices(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(pageBase, task, result).getRealValue().getLogging().getAppender());
 	}
 
 	private static LookupTableType createAppenderChoices(List<AppenderConfigurationType> appenders) {
@@ -3118,30 +2737,6 @@ public final class WebComponentUtil {
         		row.setLabel(new PolyStringType(name));
         		list.add(row);
         }
-        return lookupTable;
-	}
-
-	public static LookupTableType createLoggerPackageChoices(PageBase pageBase) {
-		LookupTableType lookupTable = new LookupTableType();
-        List<LookupTableRowType> list = lookupTable.createRowList();
-        IModel<List<StandardLoggerType>> standardLoggers = WebComponentUtil.createReadonlyModelFromEnum(StandardLoggerType.class);
-    	IModel<List<LoggingComponentType>> componentLoggers = WebComponentUtil.createReadonlyModelFromEnum(LoggingComponentType.class);
-
-    	for(StandardLoggerType standardLogger : standardLoggers.getObject()) {
-    		LookupTableRowType row = new LookupTableRowType();
-    		row.setKey(standardLogger.getValue());
-    		row.setValue(standardLogger.getValue());
-    		row.setLabel(new PolyStringType(pageBase.createStringResource("StandardLoggerType." + standardLogger.name()).getString()));
-    		list.add(row);
-    	}
-    	for(LoggingComponentType componentLogger : componentLoggers.getObject()) {
-    		LookupTableRowType row = new LookupTableRowType();
-    			String value = ComponentLoggerType.getPackageByValue(componentLogger);
-    		row.setKey(value);
-    		row.setValue(value);
-    		row.setLabel(new PolyStringType(pageBase.createStringResource("LoggingComponentType." + componentLogger.name()).getString()));
-    		list.add(row);
-    	}
         return lookupTable;
 	}
 
@@ -3238,10 +2833,6 @@ public final class WebComponentUtil {
 		return staticallyProvidedRelationRegistry;
 	}
 
-	public static void setStaticallyProvidedRelationRegistry(RelationRegistry staticallyProvidedRelationRegistry) {
-		WebComponentUtil.staticallyProvidedRelationRegistry = staticallyProvidedRelationRegistry;
-	}
-
 	public static ObjectFilter getAssignableRolesFilter(PrismObject<? extends FocusType> focusObject, Class<? extends AbstractRoleType> type, AssignmentOrder assignmentOrder,
 														OperationResult result, Task task, PageBase pageBase) {
 		ObjectFilter filter = null;
@@ -3279,43 +2870,7 @@ public final class WebComponentUtil {
 		
 		return duration;
 	}
-
-//	@Deprecated
-//	public static <IW extends ItemWrapperOld> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
-//        return new IModel<String>() {
-//        	private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public String getObject() {
-//            	ItemWrapperOld wrapper = model.getObject();
-//                String displayName = wrapper.getDisplayName();
-//                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
-//                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
-//                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
-//                return StringUtils.isEmpty(displayNameValueByKey) ?
-//                		component.getString(displayName, null, displayName) : displayNameValueByKey;
-//            }
-//        };
-//    }
-//
-
-//	public static <IW extends ItemWrapper<V, I, ID>> IModel<String> getDisplayName(final IModel<IW> model, Component component) {
-//        return new IModel<String>() {
-//        	private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public String getObject() {
-//            	ItemWrapperOld wrapper = model.getObject();
-//                String displayName = wrapper.getDisplayName();
-//                // TODO: this is maybe not needed any more. wrapper.getDisplayName() is supposed to return localized string
-//                // TODO: however, we have not tested all the scenarios, therefore let's leave it like this for now
-//                String displayNameValueByKey = PageBase.createStringResourceStatic(component, displayName).getString();
-//                return StringUtils.isEmpty(displayNameValueByKey) ?
-//                		component.getString(displayName, null, displayName) : displayNameValueByKey;
-//            }
-//        };
-//    }
-
+	
 	public static List<QName> loadResourceObjectClassValues(ResourceType resource, PageBase pageBase){
 		try {
 			ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(resource, pageBase.getPrismContext());

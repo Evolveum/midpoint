@@ -33,6 +33,11 @@
     </scm>
 	<dependencies>
 		<dependency>
+			<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+			<artifactId>org.apache.xerces</artifactId>
+			<version>2.9.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.reflections</groupId>
 			<artifactId>reflections</artifactId>
 		</dependency>
@@ -92,6 +97,11 @@
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations-java5</artifactId>
 		</dependency>
+		<dependency>
+            <groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+		</dependency>
+
         <!-- Test -->
 		<dependency>
 			<groupId>org.testng</groupId>

@@ -63,7 +63,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<version>3.8.0</version>
 				<configuration>
 					<source>${project.source.version}</source>
 					<target>${project.source.version}</target>
@@ -91,7 +91,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-plugin-plugin</artifactId>
-					<version>3.5.2</version>		<!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
+					<version>3.6.0</version>		<!-- 3.2 does not work because of some internal error; 3.4+ probably because of some misconfiguration -->
 				</plugin>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
@@ -166,7 +166,6 @@
 	</repositories>
 	<properties>
 		<!-- Build system options - more options in build-system/pom.xml -->
-		<project.source.version>1.8</project.source.version>
 		<clover.version>3.1.11</clover.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -183,6 +182,26 @@
 		<module>testing</module>
 	</modules>
 	<profiles>
+		<profile>
+			<id>jdk-11</id>
+			<properties>
+				<project.source.version>11</project.source.version>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<jdk>11</jdk>
+			</activation>
+		</profile>
+		<profile>
+			<id>jdk-8</id>
+			<properties>
+				<project.source.version>1.8</project.source.version>
+			</properties>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<jdk>1.8</jdk>
+			</activation>
+		</profile>
 		<profile>
 			<id>clover</id>
 			<activation>

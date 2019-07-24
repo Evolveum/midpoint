@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.util.SummaryTag;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -98,6 +99,16 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     @Override
     protected String getBoxAdditionalCssClass() {
         return null;
+    }
+
+    @Override
+    protected ObjectReferenceType getReferencedObjectToNavigate(){
+        return getModelObject().getParentRef();
+    }
+
+    @Override
+    protected IModel<String> getReferenceObjectTitleModel(){
+        return createStringResource("CaseWorkItemSummaryPanel.viewParentCaseButton");
     }
 
     @Override
