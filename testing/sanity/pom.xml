@@ -210,6 +210,10 @@
 			<artifactId>jaxb-api</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+		    <groupId>javax.xml.ws</groupId>
+			<artifactId>jaxws-api</artifactId>
+		</dependency>
 
 		<!-- TEST dependency -->
 		<dependency>

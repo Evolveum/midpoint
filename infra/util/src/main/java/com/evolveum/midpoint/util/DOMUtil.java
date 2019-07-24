@@ -38,11 +38,11 @@ import javax.xml.transform.stream.StreamResult;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.sun.org.apache.xml.internal.utils.XMLChar;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.xerces.util.XMLChar;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
