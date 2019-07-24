@@ -41,10 +41,8 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
     private static final String TRUNCATE_FUNCTION = "cleanupTestDatabase";
     private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabaseProc";
 
-    @Autowired
-    private ApplicationContext context;
-    @Autowired
-    private QueryCountInterceptor queryCountInterceptor;
+    @Autowired private ApplicationContext context;
+    @Autowired private QueryInspector queryInspector;
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -69,7 +67,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
         LOGGER.info("Deleting objects from database.");
 
         SessionFactory sessionFactory = (SessionFactory) bean;
-        sessionFactory.withOptions().interceptor(queryCountInterceptor);
+        sessionFactory.withOptions().interceptor(queryInspector);
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();

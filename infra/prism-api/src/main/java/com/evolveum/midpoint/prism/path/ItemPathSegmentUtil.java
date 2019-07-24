@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.path;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -29,6 +30,7 @@ class ItemPathSegmentUtil {
 				&& !isSpecialName(segment); // todo remove
 	}
 
+	@Contract("_, true -> !null")
 	static ItemName toName(Object segment, boolean failOnError) {
 		if (segment instanceof NameItemPathSegment) {
 			return ((NameItemPathSegment) segment).getName();

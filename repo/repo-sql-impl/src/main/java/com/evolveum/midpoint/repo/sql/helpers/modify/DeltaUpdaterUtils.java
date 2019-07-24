@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
@@ -30,7 +31,9 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.util.exception.SystemException;
+import org.hibernate.Session;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -200,61 +203,82 @@ public class DeltaUpdaterUtils {
         }
     }
 
-    public static void clearExtension(RAssignmentExtension extension) {
-        clearExtensionCollection(extension.getBooleans());
-        clearExtensionCollection(extension.getDates());
-        clearExtensionCollection(extension.getLongs());
-        clearExtensionCollection(extension.getPolys());
-        clearExtensionCollection(extension.getReferences());
-        clearExtensionCollection(extension.getStrings());
+    /**
+     * Similar to the above but avoids fetching the whole collection content.
+     * See MID-5558.
+     */
+    public static void markNewValuesTransientAndAddToExistingNoFetch(Collection dbCollection,
+            Collection<PrismEntityPair<?>> newValues, PrismIdentifierGenerator idGenerator, Session session) {
+        for (PrismEntityPair item : newValues) {
+            Object repositoryItem = item.getRepository();
+            if (repositoryItem instanceof EntityState) {
+                EntityState es = (EntityState) repositoryItem;
+                es.setTransient(true);
+            }
 
-        updateExtensionCounts(extension);
-    }
+            if (repositoryItem instanceof Container) {
+                PrismContainerValue pcv = (PrismContainerValue) item.getPrism();
+                if (pcv.getId() != null) {
+                    Integer expectedId = pcv.getId().intValue();
+                    ((Container) repositoryItem).setId(expectedId);
+                } else {
+                    long nextId = idGenerator.nextId();
+                    ((Container) repositoryItem).setId((int) nextId);
+                    ((PrismContainerValue) item.getPrism()).setId(nextId);
+                }
+            }
 
-    public static void clearExtension(RObject obj, RObjectExtensionType extType) {
-        clearExtensionCollection(obj.getBooleans(), extType);
-        clearExtensionCollection(obj.getDates(), extType);
-        clearExtensionCollection(obj.getLongs(), extType);
-        clearExtensionCollection(obj.getPolys(), extType);
-        clearExtensionCollection(obj.getReferences(), extType);
-        clearExtensionCollection(obj.getStrings(), extType);
-
-        updateExtensionCounts(obj);
-    }
-
-    private static void clearExtensionCollection(Collection<? extends RAExtBase> collection) {
-        Iterator<? extends RAExtBase> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            RAExtBase base = iterator.next();
-            iterator.remove();
-        }
-    }
-
-    private static void clearExtensionCollection(Collection<? extends ROExtBase> collection, RObjectExtensionType extType) {
-        Iterator<? extends ROExtBase> iterator = collection.iterator();
-        while (iterator.hasNext()) {
-            ROExtBase base = iterator.next();
-            if (extType.equals(base.getOwnerType())) {
-                iterator.remove();
+            boolean exists;
+            if (repositoryItem instanceof RAnyValue) {
+                Serializable id = ((RAnyValue) repositoryItem).createId();
+                exists = session.get(repositoryItem.getClass(), id) != null;
+            } else {
+                exists = false;
+            }
+            if (!exists) {
+                dbCollection.add(repositoryItem);
+                session.persist(repositoryItem);            // save is not cascaded to extension values any more [SAVE-CASCADE]
             }
         }
     }
 
-    public static void updateExtensionCounts(RAssignmentExtension extension) {
-        extension.setStringsCount((short) extension.getStrings().size());
-        extension.setDatesCount((short) extension.getDates().size());
-        extension.setPolysCount((short) extension.getPolys().size());
-        extension.setReferencesCount((short) extension.getReferences().size());
-        extension.setLongsCount((short) extension.getLongs().size());
-        extension.setBooleansCount((short) extension.getBooleans().size());
+    public static void clearExtension(RAssignmentExtension extension, Session session) {
+        clearExtensionCollection(extension.getBooleans(), session);
+        clearExtensionCollection(extension.getDates(), session);
+        clearExtensionCollection(extension.getLongs(), session);
+        clearExtensionCollection(extension.getPolys(), session);
+        clearExtensionCollection(extension.getReferences(), session);
+        clearExtensionCollection(extension.getStrings(), session);
     }
 
-    public static void updateExtensionCounts(RObject object) {
-        object.setStringsCount((short) object.getStrings().size());
-        object.setDatesCount((short) object.getDates().size());
-        object.setPolysCount((short) object.getPolys().size());
-        object.setReferencesCount((short) object.getReferences().size());
-        object.setLongsCount((short) object.getLongs().size());
-        object.setBooleansCount((short) object.getBooleans().size());
+    public static void clearExtension(RObject<?> obj, RObjectExtensionType extType, Session session) {
+        clearExtensionCollection(obj.getBooleans(), extType, session);
+        clearExtensionCollection(obj.getDates(), extType, session);
+        clearExtensionCollection(obj.getLongs(), extType, session);
+        clearExtensionCollection(obj.getPolys(), extType, session);
+        clearExtensionCollection(obj.getReferences(), extType, session);
+        clearExtensionCollection(obj.getStrings(), extType, session);
+    }
+
+    private static void clearExtensionCollection(Collection<? extends RAExtBase<?>> dbCollection, Session session) {
+        Iterator<? extends RAExtBase> iterator = dbCollection.iterator();
+        while (iterator.hasNext()) {
+            RAExtBase dbValue = iterator.next();
+            // we cannot filter on assignmentExtensionType because it is not present in database (yet)
+            session.delete(dbValue);    // see [SAVE-CASCADE]
+            iterator.remove();
+        }
+    }
+
+    private static void clearExtensionCollection(Collection<? extends ROExtBase<?>> dbCollection, RObjectExtensionType typeToDelete,
+            Session session) {
+        Iterator<? extends ROExtBase> iterator = dbCollection.iterator();
+        while (iterator.hasNext()) {
+            ROExtBase dbValue = iterator.next();
+            if (typeToDelete.equals(dbValue.getOwnerType())) {
+                session.delete(dbValue);    // see [SAVE-CASCADE]
+                iterator.remove();
+            }
+        }
     }
 }

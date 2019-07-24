@@ -19,7 +19,8 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -31,13 +32,17 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.Mapper;
-import com.evolveum.midpoint.repo.sql.helpers.modify.*;
+import com.evolveum.midpoint.repo.sql.helpers.modify.EntityRegistry;
+import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
+import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityMapper;
+import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,7 +62,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
@@ -80,8 +84,8 @@ public class ObjectDeltaUpdater {
     /**
      * modify
      */
-    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-                                                          PrismObject<T> prismObject, Session session) throws SchemaException {
+    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
+            PrismObject<T> prismObject, Session session) throws SchemaException {
 
         LOGGER.trace("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
 
@@ -103,112 +107,48 @@ public class ObjectDeltaUpdater {
         PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
 
-//        // ugly hack to preserve removal of (non-existent) task result (MID-5280) - temporarily worked around by assumeMissingItems parameter
-//        List<ItemPath> fakeItemsAdded = new ArrayList<>();
-//        addIncompleteItemIfNeeded(prismObject, fakeItemsAdded, TaskType.class, TaskType.F_RESULT);
+        // Preprocess modifications: We want to process only real modifications. (As for assumeMissingItems, see MID-5280.)
+        Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications, true);
+        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
-        // preprocess modifications
-        Collection<? extends ItemDelta> processedModifications = prismObject.narrowModifications(
-                (Collection<? extends ItemDelta<?, ?>>) modifications, true);
-        LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(processedModifications));
-
-//        removeIncompleteItemsAdded(prismObject, fakeItemsAdded);
-
-        // process only real modifications
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
+        //noinspection unchecked
         RObject<T> object = session.byId(objectClass).getReference(oid);
 
         ManagedType mainEntityType = entityRegistry.getJaxbMapping(type);
 
-        boolean modifiesShadowPendingOperation = false;
+        boolean shadowPendingOperationModified = false;
 
-        for (ItemDelta delta : processedModifications) {
+        for (ItemDelta<?, ?> delta : narrowedModifications) {
             ItemPath path = delta.getPath();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing delta with path '{}'", path);
-            }
+            LOGGER.trace("Processing delta with path '{}'", path);
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
                 if (delta.getPath().size() == 1) {
-                    handleObjectExtensionWholeContainer(object, delta, idGenerator);
+                    handleObjectExtensionWholeContainerDelta(object, delta, idGenerator, session);
                 } else {
-                    handleObjectExtensionOrAttributesDelta(object, delta, idGenerator);
+                    handleObjectExtensionItemDelta(object, delta, idGenerator, session);
                 }
-
-                continue;
-            }
-
-            AttributeStep attributeStep = new AttributeStep();
-            attributeStep.managedType = mainEntityType;
-            attributeStep.bean = object;
-
-            Iterator<?> segments = path.getSegments().iterator();
-            while (segments.hasNext()) {
-                Object segment = segments.next();
-                if (!ItemPath.isName(segment)) {
-                    LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", segment, path);
-                    break;
+            } else if (isOperationResult(delta)) {
+                handleOperationResult(object, delta);
+            } else if (ObjectType.F_METADATA.equivalent(delta.getPath())) {
+                handleWholeMetadata(object, delta);
+            } else if (FocusType.F_JPEG_PHOTO.equivalent(delta.getPath())) {
+                handlePhoto(object, delta);
+            } else {
+                if (object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath())) {
+                    shadowPendingOperationModified = true;
                 }
-
-                ItemName name = ItemPath.toName(segment);
-                String nameLocalPart = name.getLocalPart();
-
-                if (isAssignmentExtensionDelta(attributeStep, name)) {
-                    ItemName lastName = delta.getPath().lastName();
-                    if (AssignmentType.F_EXTENSION.equals(lastName)) {
-                        handleAssignmentExtensionWholeContainer((RAssignment) attributeStep.bean, delta, idGenerator);
-                    } else {
-                        handleAssignmentExtensionDelta((RAssignment) attributeStep.bean, delta, idGenerator);
-                    }
-                    continue;
-                }
-
-                if (isOperationResult(delta)) {
-                    handleOperationResult(attributeStep.bean, delta);
-                    continue;
-                }
-
-                if (isMetadata(delta)) {
-                    handleMetadata(attributeStep.bean, delta);
-                }
-
-                if (isFocusPhoto(delta)) {
-                    handlePhoto(attributeStep.bean, delta);
-                    continue;
-                }
-
-                if (isShadowPendingOperation(object, delta)) {
-                    modifiesShadowPendingOperation = true;
-                }
-
-                Attribute attribute = findAttribute(attributeStep, nameLocalPart, path, segments, name);
-                if (attribute == null) {
-                    // there's no table/column that needs update
-                    break;
-                }
-
-                if (segments.hasNext()) {
-                    attributeStep = stepThroughAttribute(attribute, attributeStep, segments);
-
-                    continue;
-                }
-
-                handleAttribute(attribute, attributeStep.bean, delta, prismObject, idGenerator);
-
-                if ("name".equals(attribute.getName()) && RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
-                    // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
-                    Attribute nameCopyAttribute = findAttribute(attributeStep, "nameCopy", null, null, null);
-                    handleAttribute(nameCopyAttribute, attributeStep.bean, delta, prismObject, idGenerator);
-                }
+                handleRegularModification(object, delta, idGenerator, session, prismObject, mainEntityType);
             }
         }
 
         // the following will apply deltas to prismObject
-        handleObjectCommonAttributes(type, processedModifications, prismObject, object, idGenerator);
+        handleObjectCommonAttributes(type, narrowedModifications, prismObject, object, idGenerator);
 
-        if (modifiesShadowPendingOperation) {
-            handleShadowPendingOperation(object, prismObject);
+        if (shadowPendingOperationModified) {
+            ((RShadow<?>) object).setPendingOperationCount(((ShadowType) prismObject.asObjectable()).getPendingOperation().size());
         }
 
         LOGGER.trace("Entity changes applied");
@@ -216,23 +156,61 @@ public class ObjectDeltaUpdater {
         return object;
     }
 
-//    private <T extends ObjectType> void removeIncompleteItemsAdded(PrismObject<T> prismObject, List<ItemPath> fakeItemsAdded) {
-//        for (ItemPath path : fakeItemsAdded) {
-//            prismObject.removeProperty(path);
-//        }
-//    }
-//
-//    private <T extends ObjectType> void addIncompleteItemIfNeeded(PrismObject<T> prismObject, List<ItemPath> fakeItemsAdded,
-//            Class<TaskType> objectClass, ItemName propertyPath) throws SchemaException {
-//        Class<T> staticClass = prismObject.getCompileTimeClass();
-//        if (staticClass != null && objectClass.isAssignableFrom(staticClass) && !prismObject.containsItem(propertyPath, true)) {
-//            prismObject.findOrCreateProperty(propertyPath).setIncomplete(true);
-//            fakeItemsAdded.add(propertyPath);
-//        }
-//    }
+    private <T extends ObjectType> void handleRegularModification(RObject<T> object, ItemDelta<?, ?> delta,
+            PrismIdentifierGenerator<T> idGenerator, Session session, PrismObject<T> prismObject, ManagedType<?> mainEntityType)
+            throws SchemaException {
+        TypeValuePair currentValueTypePair = new TypeValuePair();
+        currentValueTypePair.type = mainEntityType;
+        currentValueTypePair.value = object;
 
-    private boolean isFocusPhoto(ItemDelta delta) {
-        return FocusType.F_JPEG_PHOTO.equivalent(delta.getPath());
+        ItemPath path = delta.getPath();
+        Iterator<?> segments = path.getSegments().iterator();
+        while (segments.hasNext()) {
+            Object segment = segments.next();
+            if (!ItemPath.isName(segment)) {
+                LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", segment, path);
+                break;
+            }
+
+            ItemName name = ItemPath.toName(segment);
+            String nameLocalPart = name.getLocalPart();
+
+            if (currentValueTypePair.value instanceof RAssignment) {
+                if (QNameUtil.match(name, AssignmentType.F_EXTENSION)) {
+                    if (segments.hasNext()) {
+                        handleAssignmentExtensionItemDelta((RAssignment) currentValueTypePair.value, delta, idGenerator, session);
+                    } else {
+                        handleAssignmentExtensionWholeContainerDelta((RAssignment) currentValueTypePair.value, delta, idGenerator, session);
+                    }
+                    break;
+                } else if (QNameUtil.match(name, AssignmentType.F_METADATA)) {
+                    if (!segments.hasNext()) {
+                        handleWholeMetadata((RAssignment) currentValueTypePair.value, delta);
+                        break;
+                    }
+                }
+            }
+
+            Attribute attribute = findAttribute(currentValueTypePair, nameLocalPart, segments, name);
+            if (attribute == null) {
+                // there's no table/column that needs update
+                break;
+            }
+
+            if (segments.hasNext()) {
+                stepThroughAttribute(attribute, currentValueTypePair, segments);
+                continue;
+            }
+
+            handleAttribute(attribute, currentValueTypePair.value, delta, prismObject, idGenerator);
+
+            if ("name".equals(attribute.getName()) && RObject.class
+                    .isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
+                // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
+                Attribute nameCopyAttribute = findAttribute(currentValueTypePair, "nameCopy", null, null);
+                handleAttribute(nameCopyAttribute, currentValueTypePair.value, delta, prismObject, idGenerator);
+            }
+        }
     }
 
     private void handlePhoto(Object bean, ItemDelta delta) throws SchemaException {
@@ -276,16 +254,7 @@ public class ObjectDeltaUpdater {
         oldPhoto.setPhoto(photo.getPhoto());
     }
 
-    private boolean isMetadata(ItemDelta delta) {
-        ItemPath named = delta.getPath().namedSegmentsOnly();
-        return ObjectType.F_METADATA.equivalent(named);
-    }
-
-    private void handleMetadata(Object bean, ItemDelta delta) {
-        if (!(bean instanceof Metadata)) {
-            throw new SystemException("Bean is not instance of " + Metadata.class + ", shouldn't happen");
-        }
-
+    private void handleWholeMetadata(Metadata<?> bean, ItemDelta delta) {
         PrismValue value = null;
         if (!delta.isDelete()) {
             value = delta.getAnyValue();
@@ -339,32 +308,21 @@ public class ObjectDeltaUpdater {
         }
     }
 
-
-    private boolean isShadowPendingOperation(RObject<?> object, ItemDelta delta) {
-        return object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath());
-    }
-
-    private <T extends ObjectType> void handleShadowPendingOperation(RObject<T> bean, PrismObject<T> prismObject) throws SchemaException {
-        if (!(bean instanceof RShadow)) {
-            throw new SystemException("Bean is not instance of " + RShadow.class + ", shouldn't happen");
-        }
-        RShadow shadow = (RShadow) bean;
-
-        T objectable = prismObject.asObjectable();
-        if (!(objectable instanceof ShadowType)) {
-            throw new SystemException("PrismObject is not instance of " + ShadowType.class + ", shouldn't happen");
-        }
-        ShadowType shadowType = (ShadowType) objectable;
-
-        shadow.setPendingOperationCount(shadowType.getPendingOperation().size());
-    }
-
     private <T extends ObjectType> void handleObjectCommonAttributes(Class<T> type, Collection<? extends ItemDelta> modifications,
-                                                                     PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator<T> idGenerator) throws SchemaException {
+            PrismObject<T> prismObject, RObject object, PrismIdentifierGenerator<T> idGenerator) throws SchemaException {
 
         // update version
         String strVersion = prismObject.getVersion();
-        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(strVersion) + 1 : 1;
+        int version;
+        if (StringUtils.isNotBlank(strVersion)) {
+            try {
+                version = Integer.parseInt(strVersion) + 1;
+            } catch (NumberFormatException e) {
+                version = 1;
+            }
+        } else {
+            version = 1;
+        }
         object.setVersion(version);
 
         // apply modifications, ids' for new containers already filled in delta values
@@ -401,8 +359,8 @@ public class ObjectDeltaUpdater {
         return false;
     }
 
-    private <T extends ObjectType> void handleObjectTextInfoChanges(Class<T> type, Collection<? extends ItemDelta> modifications,
-            PrismObject prismObject, RObject<T> object) {
+    private void handleObjectTextInfoChanges(Class<? extends ObjectType> type, Collection<? extends ItemDelta> modifications,
+            PrismObject prismObject, RObject<?> object) {
         // update object text info if necessary
         if (!isObjectTextInfoRecomputationNeeded(type, modifications)) {
             return;
@@ -434,100 +392,58 @@ public class ObjectDeltaUpdater {
         return path.startsWithName(ShadowType.F_ATTRIBUTES);
     }
 
-    private boolean isAssignmentExtensionDelta(AttributeStep attributeStep, ItemName name) {
-        if (!(attributeStep.bean instanceof RAssignment)) {
-            return false;
-        }
-
-        if (!AssignmentType.F_EXTENSION.equals(name)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private void handleAssignmentExtensionDelta(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
-        RAssignmentExtension extension = assignment.getExtension();
-        if (extension == null) {
+    private void handleAssignmentExtensionItemDelta(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator,
+            Session session) throws SchemaException {
+        RAssignmentExtension extension;
+        if (assignment.getExtension() != null) {
+            extension = assignment.getExtension();
+        } else {
             extension = new RAssignmentExtension();
             extension.setOwner(assignment);
             extension.setTransient(true);
-
             assignment.setExtension(extension);
         }
-
-        processAnyExtensionDeltaValues(delta, null, null, extension, RAssignmentExtensionType.EXTENSION, idGenerator);
+        handleExtensionDelta(delta, null, null, extension, RAssignmentExtensionType.EXTENSION, idGenerator, session);
     }
 
-    private void processAnyExtensionDeltaValues(Collection<PrismValue> values,
-                                                RObject object,
-                                                RObjectExtensionType objectOwnerType,
-                                                RAssignmentExtension assignmentExtension,
-                                                RAssignmentExtensionType assignmentExtensionType,
-                                                BiConsumer<Collection<? extends RAnyValue>, Collection<PrismEntityPair<RAnyValue>>> processObjectValues) {
+    private void processExtensionDeltaValueSet(Collection<? extends PrismValue> prismValuesFromDelta,
+            RAnyConverter.ValueType valueType, RObject<?> object,
+            RObjectExtensionType objectOwnerType, RAssignmentExtension assignmentExtension,
+            RAssignmentExtensionType assignmentExtensionType,
+            BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
 
         RAnyConverter converter = new RAnyConverter(prismContext, extItemDictionary);
 
-        if (values == null || values.isEmpty()) {
+        if (prismValuesFromDelta == null) {
             return;
         }
 
         try {
-            Collection<PrismEntityPair<RAnyValue>> extValues = new ArrayList<>();
-            for (PrismValue value : values) {
-                RAnyValue extValue = converter.convertToRValue(value, object == null, objectOwnerType);
-                if (extValue == null) {
-                    continue;
-                }
-
-                extValues.add(new PrismEntityPair(value, extValue));
-            }
-
-            if (extValues.isEmpty()) {
-                // no changes in indexed values
-                return;
-                // todo can't return if new "values" collection is empty, if it was REPLACE with "nothing" we have to remove proper attributes
-            }
-
-            Class type = null;
-            if (!extValues.isEmpty()) {
-                RAnyValue first = extValues.iterator().next().getRepository();
-                type = first.getClass();
+            Collection<PrismEntityPair<RAnyValue<?>>> rValuesFromDelta = new ArrayList<>();
+            for (PrismValue prismValueFromDelta : prismValuesFromDelta) {
+                RAnyValue<?> rValueFromDelta = converter.convertToRValue(prismValueFromDelta, object == null);
+                rValuesFromDelta.add(new PrismEntityPair<>(prismValueFromDelta, rValueFromDelta));
             }
 
             if (object != null) {
-                extValues.stream().forEach(item -> {
-                    ROExtValue val = (ROExtValue) item.getRepository();
-                    val.setOwner(object);
-                    val.setOwnerType(objectOwnerType);
-                });
-
-                processObjectExtensionValues(object, type,
-                        (existing) -> processObjectValues.accept(existing, extValues));
+                processObjectExtensionValues(object, objectOwnerType, valueType, rValuesFromDelta, deltaValuesProcessor);
             } else {
-                extValues.stream().forEach(item -> {
-                    RAExtValue val = (RAExtValue) item.getRepository();
-                    val.setAnyContainer(assignmentExtension);
-                    val.setExtensionType(assignmentExtensionType);
-                });
-
-                processAssignmentExtensionValues(assignmentExtension, type,
-                        (existing) -> processObjectValues.accept(existing, extValues));
+                processAssignmentExtensionValues(assignmentExtension, assignmentExtensionType, valueType, rValuesFromDelta, deltaValuesProcessor);
             }
         } catch (SchemaException ex) {
             throw new SystemException("Couldn't process extension attributes", ex);
         }
     }
 
-    private Collection<RAnyValue> filterRAnyValues(Collection<? extends RAnyValue> existing, ItemDefinition def,
-                                                   RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
+    private Collection<RAnyValue<?>> getMatchingValues(Collection<? extends RAnyValue<?>> existing, ItemDefinition def,
+            RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
 
-        Collection<RAnyValue> filtered = new ArrayList<>();
+        Collection<RAnyValue<?>> filtered = new ArrayList<>();
         RExtItem extItemDefinition = extItemDictionary.findItemByDefinition(def);
         if (extItemDefinition == null) {
             return filtered;
         }
-        for (RAnyValue value : existing) {
+        for (RAnyValue<?> value : existing) {
             if (value.getItemId() == null) {
                 continue;       // suspicious
             }
@@ -540,10 +456,11 @@ public class ObjectDeltaUpdater {
                     continue;
                 }
             } else if (value instanceof RAExtValue) {
-                RAExtValue aValue = (RAExtValue) value;
-                if (!assignmentExtensionType.equals(aValue.getExtensionType())) {
-                    continue;
-                }
+                // we cannot filter on assignmentExtensionType because it is not present in database (yet)
+//                RAExtValue aValue = (RAExtValue) value;
+//                if (!assignmentExtensionType.equals(aValue.getExtensionType())) {
+//                    continue;
+//                }
             }
 
             filtered.add(value);
@@ -552,183 +469,211 @@ public class ObjectDeltaUpdater {
         return filtered;
     }
 
-    private void processAnyExtensionDeltaValues(ItemDelta delta,
-                                                RObject object,
-                                                RObjectExtensionType objectOwnerType,
-                                                RAssignmentExtension assignmentExtension,
-                                                RAssignmentExtensionType assignmentExtensionType,
-                                                PrismIdentifierGenerator idGenerator) {
-        // handle replace
-        if (delta.getValuesToReplace() != null && !delta.getValuesToReplace().isEmpty()) {
-            processAnyExtensionDeltaValues(delta.getValuesToReplace(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                    (existing, fromDelta) -> {
-                        ItemDefinition def = delta.getDefinition();
-                        Collection<RAnyValue> filtered = filterRAnyValues(existing, def, objectOwnerType, assignmentExtensionType);
+    private void handleExtensionDelta(ItemDelta<?, ?> delta,
+            RObject object, RObjectExtensionType objectExtensionType,
+            RAssignmentExtension assignmentExtension, RAssignmentExtensionType assignmentExtensionType,
+            PrismIdentifierGenerator idGenerator, Session session) throws SchemaException {
 
-                        if (fromDelta.isEmpty()) {
+        ItemDefinition definition = delta.getDefinition();
+        if (definition == null) {
+            // todo consider simply returning with no action
+            throw new IllegalStateException("Cannot process definition-less extension item: " + delta);
+        }
+        RAnyConverter.ValueType valueType = RAnyConverter.getValueType(definition, definition.getName(),
+                RAnyConverter.areDynamicsOfThisKindIndexed(objectExtensionType), prismContext);
+        if (valueType == null) {
+            return;
+        }
+
+        if (delta.getValuesToReplace() != null) {
+            processExtensionDeltaValueSet(delta.getValuesToReplace(), valueType, object, objectExtensionType,
+                    assignmentExtension, assignmentExtensionType, (dbCollection, pairsFromDelta) -> {
+                        Collection<? extends RAnyValue<?>> relevantInDb = getMatchingValues(dbCollection, definition, objectExtensionType, assignmentExtensionType);
+
+                        if (pairsFromDelta.isEmpty()) {
                             // if there are not new values, we just remove existing ones
-                            existing.removeAll(filtered);
+                            deleteFromCollectionAndDb(dbCollection, relevantInDb, session);
                             return;
                         }
 
-                        Collection<RAnyValue> toDelete = new ArrayList<>();
-                        Collection<PrismEntityPair<?>> toAdd = new ArrayList<>();
+                        Collection<RAnyValue<?>> rValuesToDelete = new ArrayList<>();
+                        Collection<PrismEntityPair<?>> pairsToAdd = new ArrayList<>();
 
-                        Set<Object> justValuesToReplace = new HashSet<>();
-                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            justValuesToReplace.add(pair.getRepository().getValue());
+                        // BEWARE - this algorithm does not work for RAnyValues that have equal "value" but differ in other components
+                        // (e.g. references: OID vs. relation/type; poly strings: orig vs. norm)
+                        Set<Object> realValuesToAdd = new HashSet<>();
+                        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
+                            realValuesToAdd.add(pair.getRepository().getValue());
                         }
 
-                        for (RAnyValue value : filtered) {
-                            if (justValuesToReplace.contains(value.getValue())) {
+                        for (RAnyValue value : relevantInDb) {
+                            if (realValuesToAdd.contains(value.getValue())) {
                                 // do not replace with the same one - don't touch
-                                justValuesToReplace.remove(value.getValue());
+                                realValuesToAdd.remove(value.getValue());
                             } else {
-                                toDelete.add(value);
+                                rValuesToDelete.add(value);
                             }
                         }
 
-                        for (PrismEntityPair<RAnyValue> pair : fromDelta) {
-                            if (justValuesToReplace.contains(pair.getRepository().getValue())) {
-                                toAdd.add(pair);
+                        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
+                            if (realValuesToAdd.contains(pair.getRepository().getValue())) {
+                                pairsToAdd.add(pair);
                             }
                         }
 
-                        existing.removeAll(toDelete);
-                        markNewOnesTransientAndAddToExisting(existing, toAdd, idGenerator);
+                        deleteFromCollectionAndDb(dbCollection, rValuesToDelete, session);
+                        markNewValuesTransientAndAddToExistingNoFetch(dbCollection, pairsToAdd, idGenerator, session);
                     });
-            return;
-        }
+        } else {
+            processExtensionDeltaValueSet(delta.getValuesToDelete(), valueType, object, objectExtensionType, assignmentExtension,
+                    assignmentExtensionType, (existing, fromDelta) -> {
+                        Collection<RAnyValue> rValuesToDelete = fromDelta.stream()
+                                .map(PrismEntityPair::getRepository)
+                                .collect(Collectors.toList());
+                        for (RAnyValue value : rValuesToDelete) {
+                            // TODO eliminate this extra "get" if value is not loaded yet
+                            RAnyValue fromSession = session.get(value.getClass(), value.createId());
+                            if (fromSession != null) {
+                                session.delete(fromSession);
+                            }
+                            // We must NOT call dbCollection.remove(...) here. It causes all collection values to be fetched
+                            // from the database, contradicting MID-5558.
+                        }
+                    });
 
-        // handle delete
-        processAnyExtensionDeltaValues(delta.getValuesToDelete(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> {
-                    Collection filtered = fromDelta.stream().map(i -> i.getRepository()).collect(Collectors.toList());
-                    existing.removeAll(filtered);
-                });
-
-        // handle add
-        processAnyExtensionDeltaValues(delta.getValuesToAdd(), object, objectOwnerType, assignmentExtension, assignmentExtensionType,
-                (existing, fromDelta) -> markNewOnesTransientAndAddToExisting(existing, (Collection) fromDelta, idGenerator));
-    }
-
-    private void processAssignmentExtensionValues(RAssignmentExtension extension, Class<? extends RAExtValue> type,
-                                                  Consumer<Collection<? extends RAExtValue>> processObjectValues) {
-
-        if (type.equals(RAExtDate.class)) {
-            processObjectValues.accept(extension.getDates());
-            Short count = getCount(extension.getDates());
-            extension.setDatesCount(count);
-        } else if (type.equals(RAExtLong.class)) {
-            processObjectValues.accept(extension.getLongs());
-            Short count = getCount(extension.getLongs());
-            extension.setLongsCount(count);
-        } else if (type.equals(RAExtReference.class)) {
-            processObjectValues.accept(extension.getReferences());
-            Short count = getCount(extension.getReferences());
-            extension.setReferencesCount(count);
-        } else if (type.equals(RAExtString.class)) {
-            processObjectValues.accept(extension.getStrings());
-            Short count = getCount(extension.getStrings());
-            extension.setStringsCount(count);
-        } else if (type.equals(RAExtPolyString.class)) {
-            processObjectValues.accept(extension.getPolys());
-            Short count = getCount(extension.getPolys());
-            extension.setPolysCount(count);
-        } else if (type.equals(RAExtBoolean.class)) {
-            processObjectValues.accept(extension.getBooleans());
-            Short count = getCount(extension.getBooleans());
-            extension.setBooleansCount(count);
+            processExtensionDeltaValueSet(delta.getValuesToAdd(), valueType, object, objectExtensionType, assignmentExtension,
+                    assignmentExtensionType,
+                    (existing, fromDelta) -> markNewValuesTransientAndAddToExistingNoFetch(existing, (Collection) fromDelta,
+                            idGenerator, session));
         }
     }
 
-    private void processObjectExtensionValues(RObject object, Class<? extends ROExtValue> type,
-                                              Consumer<Collection<ROExtValue>> processObjectValues) {
+    private void deleteFromCollectionAndDb(Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<? extends RAnyValue<?>> valuesToDelete, Session session) {
+        dbCollection.removeAll(valuesToDelete);     // do NOT use for handling regular ADD/DELETE value (fetches the whole collection)
+        valuesToDelete.forEach(session::delete);
+    }
 
-        if (type.equals(ROExtDate.class)) {
-            processObjectValues.accept(object.getDates());
-            Short count = getCount(object.getDates());
-            object.setDatesCount(count);
-        } else if (type.equals(ROExtLong.class)) {
-            processObjectValues.accept(object.getLongs());
-            Short count = getCount(object.getLongs());
-            object.setLongsCount(count);
-        } else if (type.equals(ROExtReference.class)) {
-            processObjectValues.accept(object.getReferences());
-            Short count = getCount(object.getReferences());
-            object.setReferencesCount(count);
-        } else if (type.equals(ROExtString.class)) {
-            processObjectValues.accept(object.getStrings());
-            Short count = getCount(object.getStrings());
-            object.setStringsCount(count);
-        } else if (type.equals(ROExtPolyString.class)) {
-            processObjectValues.accept(object.getPolys());
-            Short count = getCount(object.getPolys());
-            object.setPolysCount(count);
-        } else if (type.equals(ROExtBoolean.class)) {
-            processObjectValues.accept(object.getBooleans());
-            Short count = getCount(object.getBooleans());
-            object.setBooleansCount(count);
+    private void processAssignmentExtensionValues(RAssignmentExtension extension,
+            RAssignmentExtensionType assignmentExtensionType,
+            RAnyConverter.ValueType valueType,
+            Collection<PrismEntityPair<RAnyValue<?>>> valuesFromDelta,
+            BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
+
+        valuesFromDelta.forEach(item -> {
+            RAExtValue val = (RAExtValue) item.getRepository();
+            val.setAnyContainer(extension);
+            val.setExtensionType(assignmentExtensionType);
+        });
+
+        //noinspection Duplicates
+        switch (valueType) {
+            case BOOLEAN:
+                deltaValuesProcessor.accept(extension.getDates(), valuesFromDelta);
+                break;
+            case LONG:
+                deltaValuesProcessor.accept(extension.getLongs(), valuesFromDelta);
+                break;
+            case REFERENCE:
+                deltaValuesProcessor.accept(extension.getReferences(), valuesFromDelta);
+                break;
+            case STRING:
+                deltaValuesProcessor.accept(extension.getStrings(), valuesFromDelta);
+                break;
+            case POLY_STRING:
+                deltaValuesProcessor.accept(extension.getPolys(), valuesFromDelta);
+                break;
+            default:
+                throw new AssertionError("Wrong value type: " + valueType);
         }
     }
 
-    private Short getCount(Collection collection) {
-        if (collection == null) {
-            return 0;
-        }
+    private void processObjectExtensionValues(RObject<?> object,
+            RObjectExtensionType objectOwnerType, RAnyConverter.ValueType valueType,
+            Collection<PrismEntityPair<RAnyValue<?>>> valuesFromDelta,
+            BiConsumer<Collection<? extends RAnyValue<?>>, Collection<PrismEntityPair<RAnyValue<?>>>> deltaValuesProcessor) {
 
-        return Integer.valueOf(collection.size()).shortValue();
+        valuesFromDelta.forEach(item -> {
+            ROExtValue val = (ROExtValue) item.getRepository();
+            val.setOwner(object);
+            val.setOwnerType(objectOwnerType);
+        });
+
+        //noinspection Duplicates
+        switch (valueType) {
+            case BOOLEAN:
+                deltaValuesProcessor.accept(object.getBooleans(), valuesFromDelta);
+                break;
+            case DATE:
+                deltaValuesProcessor.accept(object.getDates(), valuesFromDelta);
+                break;
+            case LONG:
+                deltaValuesProcessor.accept(object.getLongs(), valuesFromDelta);
+                break;
+            case REFERENCE:
+                deltaValuesProcessor.accept(object.getReferences(), valuesFromDelta);
+                break;
+            case STRING:
+                deltaValuesProcessor.accept(object.getStrings(), valuesFromDelta);
+                break;
+            case POLY_STRING:
+                deltaValuesProcessor.accept(object.getPolys(), valuesFromDelta);
+                break;
+            default:
+                throw new AssertionError("Wrong value type: " + valueType);
+        }
     }
 
-    private void handleObjectExtensionWholeContainer(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
-        RObjectExtensionType extType = computeObjectExtensionType(delta);
+    private void handleObjectExtensionWholeContainerDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator,
+            Session session) throws SchemaException {
+        RObjectExtensionType ownerType = computeExtensionType(delta);
 
-        if (!delta.isAdd()) {
-            clearExtension(object, extType);
-        }
+        // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
+        clearExtension(object, ownerType, session);
 
-        if (delta.isDelete()) {
-            return;
-        }
+        if (delta.isAdd() || delta.isReplace()) {
+            PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+            if (extension != null) {
+                for (Item<?, ?> item : extension.getItems()) {
+                    ItemDelta<?, ?> itemDelta = item.createDelta();
+                    //noinspection unchecked
+                    itemDelta.addValuesToAdd((Collection) item.getClonedValues());
 
-        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
-        for (Item item : extension.getItems()) {
-            ItemDelta itemDelta = item.createDelta();
-            itemDelta.setValuesToReplace(item.getClonedValues());
-
-            processAnyExtensionDeltaValues(itemDelta, object, extType, null, null, idGenerator);
-        }
-    }
-
-    private void handleAssignmentExtensionWholeContainer(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
-        RAssignmentExtension ext = assignment.getExtension();
-        if (!delta.isAdd()) {
-            if (ext != null) {
-                clearExtension(ext);
+                    handleExtensionDelta(itemDelta, object, ownerType, null, null, idGenerator, session);
+                }
             }
         }
+    }
 
-        if (delta.isDelete()) {
-            return;
+    private void handleAssignmentExtensionWholeContainerDelta(RAssignment assignment, ItemDelta delta,
+            PrismIdentifierGenerator idGenerator, Session session) throws SchemaException {
+        RAssignmentExtension ext = assignment.getExtension();
+
+        // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
+        if (ext != null) {
+            clearExtension(ext, session);
         }
 
-        if (ext == null) {
-            ext = new RAssignmentExtension();
-            ext.setOwner(assignment);
-            assignment.setExtension(ext);
-        }
+        if (delta.isAdd() || delta.isReplace()) {
+            if (ext == null) {
+                ext = new RAssignmentExtension();
+                ext.setOwner(assignment);
+                assignment.setExtension(ext);
+            }
+            PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
+            if (extension != null) {
+                for (Item<?, ?> item : extension.getItems()) {
+                    ItemDelta itemDelta = item.createDelta();
+                    itemDelta.addValuesToAdd(item.getClonedValues());
 
-        PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
-        for (Item item : extension.getItems()) {
-            ItemDelta itemDelta = item.createDelta();
-            itemDelta.setValuesToReplace(item.getClonedValues());
-
-            processAnyExtensionDeltaValues(itemDelta, null, null, ext,
-                    RAssignmentExtensionType.EXTENSION, idGenerator);
+                    handleExtensionDelta(itemDelta, null, null, ext,
+                            RAssignmentExtensionType.EXTENSION, idGenerator, session);
+                }
+            }
         }
     }
 
-    private RObjectExtensionType computeObjectExtensionType(ItemDelta delta) {
+    private RObjectExtensionType computeExtensionType(ItemDelta delta) {
         if (isObjectExtensionDelta(delta.getPath())) {
             return RObjectExtensionType.EXTENSION;
         } else if (isShadowAttributesDelta(delta.getPath())) {
@@ -738,21 +683,20 @@ public class ObjectDeltaUpdater {
         throw new IllegalStateException("Unknown extension type, shouldn't happen");
     }
 
-    private void handleObjectExtensionOrAttributesDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator) {
-        RObjectExtensionType ownerType = computeObjectExtensionType(delta);
-        processAnyExtensionDeltaValues(delta, object, ownerType, null, null, idGenerator);
+    private void handleObjectExtensionItemDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator,
+            Session session) throws SchemaException {
+        handleExtensionDelta(delta, object, computeExtensionType(delta), null, null, idGenerator, session);
     }
 
-    private Attribute findAttribute(AttributeStep attributeStep, String nameLocalPart, ItemPath path,
-            Iterator<?> segments, ItemName name) {
-        Attribute attribute = entityRegistry.findAttribute(attributeStep.managedType, nameLocalPart);
+    private Attribute findAttribute(TypeValuePair typeValuePair, String nameLocalPart, Iterator<?> segments, ItemName name) {
+        Attribute attribute = entityRegistry.findAttribute(typeValuePair.type, nameLocalPart);
         if (attribute != null) {
             return attribute;
         }
 
-        attribute = entityRegistry.findAttributeOverride(attributeStep.managedType, nameLocalPart);
-        if (attribute != null) {
-            return attribute;
+        Attribute attributeOverride = entityRegistry.findAttributeOverride(typeValuePair.type, nameLocalPart);
+        if (attributeOverride != null) {
+            return attributeOverride;
         }
 
         if (!segments.hasNext()) {
@@ -763,7 +707,7 @@ public class ObjectDeltaUpdater {
         Object segment;
         ItemPath subPath = name;
         while (segments.hasNext()) {
-            if (!entityRegistry.hasAttributePathOverride(attributeStep.managedType, subPath)) {
+            if (!entityRegistry.hasAttributePathOverride(typeValuePair.type, subPath)) {
                 subPath = subPath.allUpToLastName();
                 break;
             }
@@ -775,28 +719,28 @@ public class ObjectDeltaUpdater {
             subPath = subPath.append(segment);
         }
 
-        return entityRegistry.findAttributePathOverride(attributeStep.managedType, subPath);
+        return entityRegistry.findAttributePathOverride(typeValuePair.type, subPath);
     }
 
-    private AttributeStep stepThroughAttribute(Attribute attribute, AttributeStep step, Iterator<?> segments) {
+    private TypeValuePair stepThroughAttribute(Attribute attribute, TypeValuePair step, Iterator<?> segments) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
             case EMBEDDED:
-                step.managedType = entityRegistry.getMapping(attribute.getJavaType());
-                Object child = invoke(step.bean, method);
+                step.type = entityRegistry.getMapping(attribute.getJavaType());
+                Object child = invoke(step.value, method);
                 if (child == null) {
                     // embedded entity doesn't exist we have to create it first, so it can be populated later
                     Class childType = getRealOutputType(attribute);
                     try {
                         child = childType.newInstance();
-                        PropertyUtils.setSimpleProperty(step.bean, attribute.getName(), child);
+                        PropertyUtils.setSimpleProperty(step.value, attribute.getName(), child);
                     } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
                         throw new SystemException("Couldn't create new instance of '" + childType.getName()
                                 + "', attribute '" + attribute.getName() + "'", ex);
                     }
                 }
-                step.bean = child;
+                step.value = child;
                 break;
             case ONE_TO_MANY:
                 // object extension is handled separately, only {@link Container} and references are handled here
@@ -804,7 +748,7 @@ public class ObjectDeltaUpdater {
 
                 Long id = ItemPath.toId(segments.next());
 
-                Collection c = (Collection) invoke(step.bean, method);
+                Collection c = (Collection) invoke(step.value, method);
                 if (!Container.class.isAssignableFrom(clazz)) {
                     throw new SystemException("Don't know how to go through collection of '" + getRealOutputType(attribute) + "'");
                 }
@@ -813,8 +757,8 @@ public class ObjectDeltaUpdater {
                 for (Container o : (Collection<Container>) c) {
                     long l = o.getId().longValue();
                     if (l == id) {
-                        step.managedType = entityRegistry.getMapping(clazz);
-                        step.bean = o;
+                        step.type = entityRegistry.getMapping(clazz);
+                        step.value = o;
 
                         found = true;
                         break;
@@ -980,9 +924,9 @@ public class ObjectDeltaUpdater {
         return (RObject) session.merge(object);
     }
 
-    private static class AttributeStep {
+    private static class TypeValuePair {
 
-        private ManagedType managedType;
-        private Object bean;
+        private ManagedType<?> type;
+        private Object value;
     }
 }

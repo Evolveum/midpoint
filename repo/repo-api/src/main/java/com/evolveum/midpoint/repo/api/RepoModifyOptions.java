@@ -21,14 +21,15 @@ import com.evolveum.midpoint.schema.AbstractOptions;
 import com.evolveum.midpoint.util.ShortDumpable;
 
 /**
- * @author mederly
  *
  */
 public class RepoModifyOptions extends AbstractOptions implements Serializable, ShortDumpable {
 	private static final long serialVersionUID = 478427843213482L;
 
-	// execute MODIFY operation even if the list of changes is empty
-	private boolean executeIfNoChanges = false;
+	/**
+	 * Execute MODIFY operation even if the list of changes is empty.
+	 */
+	private boolean executeIfNoChanges;
 
 	public boolean isExecuteIfNoChanges() {
 		return executeIfNoChanges;
@@ -39,7 +40,7 @@ public class RepoModifyOptions extends AbstractOptions implements Serializable, 
 	}
 
 	public static boolean isExecuteIfNoChanges(RepoModifyOptions options) {
-		return options != null ? options.isExecuteIfNoChanges() : false;
+		return options != null && options.isExecuteIfNoChanges();
 	}
 
 	public static RepoModifyOptions createExecuteIfNoChanges() {
@@ -47,6 +48,8 @@ public class RepoModifyOptions extends AbstractOptions implements Serializable, 
 		opts.setExecuteIfNoChanges(true);
 		return opts;
 	}
+
+
 	
 	@Override
 	public String toString() {

@@ -262,7 +262,9 @@ public class ObjectUpdater {
 
         String xml = prismContext.serializerFor(SqlRepositoryServiceImpl.DATA_LANGUAGE)
                 .itemsToSkip(itemsToSkip)
-                .options(SerializationOptions.createSerializeReferenceNamesForNullOids())
+                .options(SerializationOptions
+                        .createSerializeReferenceNamesForNullOids()
+                        .skipIndexOnly(true))
                 .serialize(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
@@ -277,8 +279,8 @@ public class ObjectUpdater {
         return baseHelper.getConfiguration();
     }
 
-    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-                                                                       String originalOid, Session session, OrgClosureManager.Context closureContext)
+    private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject<?> rObject,
+            String originalOid, Session session, OrgClosureManager.Context closureContext)
             throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
 
         // check name uniqueness (by type)
@@ -300,9 +302,17 @@ public class ObjectUpdater {
         updateFullObject(rObject, object);
 
         LOGGER.trace("Saving object (non overwrite).");
-        String oid = (String) session.save(rObject);
+        // By using persist() instead of save we cascade this operation to object+assignment extension values.
+        // (Save is intentionally not cascaded, because we need to add+delete these values manually.)
+        // See [SAVE-CASCADE].
+        session.persist(rObject);
         lookupTableHelper.addLookupTableRows(session, rObject, false);
         caseHelper.addCertificationCampaignCases(session, rObject, false);
+
+        String oid = rObject.getOid();
+        if (oid == null) {
+            throw new IllegalStateException("OID was not assigned to the object added");
+        }
 
         if (closureManager.isEnabled()) {
             Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
@@ -368,7 +378,9 @@ public class ObjectUpdater {
 
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
-        Collection<? extends ItemDelta> modifications = CloneUtil.cloneCollectionMembers(originalModifications);
+        //noinspection unchecked
+        Collection<? extends ItemDelta<?,?>> modifications = (Collection<? extends ItemDelta<?, ?>>)
+                CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
         LOGGER.debug("Modifying object '{}' with oid '{}' (attempt {})", type.getSimpleName(), oid, attempt);

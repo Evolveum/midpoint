@@ -18,33 +18,49 @@ package com.evolveum.midpoint.repo.sql.testing;
 
 import org.hibernate.EmptyInterceptor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class QueryCountInterceptor extends EmptyInterceptor {
+public class QueryInspector extends EmptyInterceptor {
 
-    private ThreadLocal<Integer> queryCount = new ThreadLocal<>();
+    private ThreadLocal<List<String>> queryCount = new ThreadLocal<>();
 
-    public void startCounter() {
-        queryCount.set(0);
+    public void start() {
+        queryCount.set(new ArrayList<>());
     }
 
     public int getQueryCount() {
-        Integer i = queryCount.get();
-        return i == null ? 0 : i;
+        List<String> queries = getQueries();
+        return queries != null ? queries.size() : 0;
     }
 
-    public void clearCounter() {
+    public List<String> getQueries() {
+        return queryCount.get();
+    }
+
+    public void clear() {
         queryCount.remove();
     }
 
     @Override
     public String onPrepareStatement(String sql) {
-        Integer count = queryCount.get();
-        if (count != null) {
-            queryCount.set(count + 1);
+        List<String> queries = getQueries();
+        if (queries != null) {
+            queries.add(sql);
         }
-
         return super.onPrepareStatement(sql);
+    }
+
+    public void dump() {
+        List<String> queries = getQueries();
+        if (queries != null) {
+            System.out.println("Queries collected (" + queries.size() + "):");
+            queries.forEach(q -> System.out.println(" - " + q));
+        } else {
+            System.out.println("Query collection was not started for this thread.");
+        }
     }
 }

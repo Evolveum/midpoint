@@ -172,7 +172,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingNorm().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -197,7 +197,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingOrig().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -222,7 +222,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -247,7 +247,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("guľôčka v jamôčke").matchingNorm().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.organization o\n" +
@@ -275,7 +275,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingOrig().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.organization o\n" +
@@ -300,7 +300,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingStrict().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.organization o\n" +
@@ -328,7 +328,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.organization o\n" +
@@ -357,7 +357,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.organization o\n" +
@@ -387,7 +387,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingOrig()
                     .build();
             String expected = "select\n" +
-                    "  o.oid, o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.organization o2\n" +
@@ -414,7 +414,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
 
             String expected = "select\n" +
-                    "  t.oid, t.fullObject, t.stringsCount, t.longsCount, t.datesCount, t.referencesCount, t.polysCount, t.booleansCount\n" +
+                    "  t.oid, t.fullObject\n" +
                     "from\n" +
                     "  RTask t\n" +
                     "    left join t.dependent d\n" +
@@ -457,13 +457,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, TaskType.class, query);
 
             String expected = "select\n" +
-                    "  t.oid, t.fullObject,\n" +
-                    "  t.stringsCount,\n" +
-                    "  t.longsCount,\n" +
-                    "  t.datesCount,\n" +
-                    "  t.referencesCount,\n" +
-                    "  t.polysCount,\n" +
-                    "  t.booleansCount\n" +
+                    "  t.oid, t.fullObject\n" +
                     "from\n" +
                     "  RTask t\n" +
                     "where\n" +
@@ -488,13 +482,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     new File(TEST_DIR, "query-user-by-enabled.xml"));
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -525,7 +513,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = realQuery.getQuery().getQueryString();
 
             String expected = "select\n" +
-                    "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
+                    "  g.oid, g.fullObject\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
                     "    left join g.longs l with ( l.ownerType = :ownerType and l.itemId = :itemId )\n" +
@@ -556,7 +544,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
             String expected = "select\n" +
-                    "  g.oid, g.fullObject, g.stringsCount, g.longsCount, g.datesCount, g.referencesCount, g.polysCount, g.booleansCount\n" +
+                    "  g.oid, g.fullObject\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
                     "    left join g.longs l with ( l.ownerType = :ownerType and l.itemId = :itemId )\n" +
@@ -586,7 +574,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-non-existing-attribute.xml"));
             String expected = "select\n" +
-                    "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
+                    "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
                     "    left join s.strings s2 with ( s2.ownerType = :ownerType and 1=0 )\n" +
@@ -605,7 +593,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attribute.xml"));
             String expected = "select\n" +
-                    "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
+                    "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
                     "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
@@ -625,7 +613,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false,
                     null);
             String expected = "select\n" +
-                    "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
+                    "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
                     "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
@@ -668,7 +656,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     getQuery(new File(TEST_DIR, "query-or-composite.xml"), ShadowType.class), false, null);
 
             String expected = "select\n" +
-                    "  s.oid, s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount, s.booleansCount\n" +
+                    "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
                     "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
@@ -723,13 +711,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -758,13 +740,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -795,13 +771,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -828,13 +798,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
-                    + "  s.fullObject,\n"
-                    + "  s.stringsCount,\n"
-                    + "  s.longsCount,\n"
-                    + "  s.datesCount,\n"
-                    + "  s.referencesCount,\n"
-                    + "  s.polysCount,\n"
-                    + "  s.booleansCount\n"
+                    + "  s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
                     + "where\n"
@@ -866,13 +830,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
 			// this doesn't work as expected ... maybe inner join would be better! Until implemented, we should throw UOO
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -896,13 +854,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n"
-					+ "  u.oid, u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.oid, u.fullObject\n"
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
@@ -935,13 +887,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
-					+ "  u.oid, u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.oid, u.fullObject\n"
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n"
@@ -982,13 +928,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -1011,13 +951,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-fullName.xml"));
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -1036,13 +970,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-substring-fullName.xml"));
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -1061,13 +989,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-name.xml"));
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -1088,13 +1010,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.employeeType e\n" +
@@ -1115,13 +1031,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ConnectorType.class,
                     new File(TEST_DIR, "query-connector-by-type.xml"));
             String expected = "select\n" +
-                    "  c.oid, c.fullObject,\n" +
-                    "  c.stringsCount,\n" +
-                    "  c.longsCount,\n" +
-                    "  c.datesCount,\n" +
-                    "  c.referencesCount,\n" +
-                    "  c.polysCount,\n" +
-                    "  c.booleansCount\n" +
+                    "  c.oid, c.fullObject\n" +
                     "from\n" +
                     "  RConnector c\n" +
                     "where\n" +
@@ -1139,13 +1049,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
             String expected = "select\n" +
-                    "  s.oid, s.fullObject,\n" +
-                    "  s.stringsCount,\n" +
-                    "  s.longsCount,\n" +
-                    "  s.datesCount,\n" +
-                    "  s.referencesCount,\n" +
-                    "  s.polysCount,\n" +
-                    "  s.booleansCount\n" +
+                    "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
                     "    left join s.strings s2 with ( s2.ownerType = :ownerType and s2.itemId = :itemId )\n" +
@@ -1180,13 +1084,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.linkRef l\n" +
@@ -1210,13 +1108,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
-                    + "  u.oid, u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.linkRef l\n"
@@ -1237,13 +1129,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
-                    + "  u.oid, u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.linkRef l\n"
@@ -1277,13 +1163,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1324,13 +1204,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1370,13 +1244,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1409,13 +1277,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1452,7 +1314,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             String expected = "select\n" +
-                    "  o.oid, o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.trigger t\n" +
@@ -1484,7 +1346,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ObjectType.class, query);
 
             String expected = "select\n" +
-                    "  o.oid, o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.trigger t\n" +
@@ -1507,13 +1369,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1544,13 +1400,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
-                    "  r.oid, r.fullObject,\n" +
-                    "  r.stringsCount,\n" +
-                    "  r.longsCount,\n" +
-                    "  r.datesCount,\n" +
-                    "  r.referencesCount,\n" +
-                    "  r.polysCount,\n" +
-                    "  r.booleansCount\n" +
+                    "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
                     "    left join r.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1579,13 +1429,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, RoleType.class, query);
 
             String expected = "select\n" +
-                    "  r.oid, r.fullObject,\n" +
-                    "  r.stringsCount,\n" +
-                    "  r.longsCount,\n" +
-                    "  r.datesCount,\n" +
-                    "  r.referencesCount,\n" +
-                    "  r.polysCount,\n" +
-                    "  r.booleansCount\n" +
+                    "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
                     "    left join r.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -1622,7 +1466,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -1654,7 +1498,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             // correct translation but the filter is wrong: we need to point to THE SAME timestamp -> i.e. ForValue should be used here
             String expected = "select\n" +
-                    "  o.oid, o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.trigger t\n" +
@@ -1749,13 +1593,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, false);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -1834,13 +1672,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
+
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
@@ -1866,13 +1699,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	        String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
 		            + "  u.oid,\n"
-		            + "  u.fullObject,\n"
-		            + "  u.stringsCount,\n"
-		            + "  u.longsCount,\n"
-		            + "  u.datesCount,\n"
-		            + "  u.referencesCount,\n"
-		            + "  u.polysCount,\n"
-		            + "  u.booleansCount\n"
+		            + "  u.fullObject\n"
 		            + "from\n"
 		            + "  RUser u\n"
 		            + "where\n"
@@ -1904,13 +1731,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 	        String real = rQuery.getQuery().getQueryString();
             String expected = "select\n"
 		            + "  u.oid,\n"
-		            + "  u.fullObject,\n"
-		            + "  u.stringsCount,\n"
-		            + "  u.longsCount,\n"
-		            + "  u.datesCount,\n"
-		            + "  u.referencesCount,\n"
-		            + "  u.polysCount,\n"
-		            + "  u.booleansCount\n"
+		            + "  u.fullObject\n"
 		            + "from\n"
 		            + "  RUser u\n"
 		            + "where\n"
@@ -1947,13 +1768,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
+
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
@@ -1979,13 +1795,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = rQuery.getQuery().getQueryString();
 			String expected = "select\n"
 					+ "  u.oid,\n"
-					+ "  u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.fullObject\n"
+
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "where\n"
@@ -2016,13 +1827,8 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = rQuery.getQuery().getQueryString();
 			String expected = "select\n"
 					+ "  u.oid,\n"
-					+ "  u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.fullObject\n"
+
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "where\n"
@@ -2085,13 +1891,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  ROrg o\n" +
                     "where\n" +
@@ -2151,13 +1951,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -2198,13 +1992,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -2253,13 +2041,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -2323,13 +2105,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query, false);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -2439,13 +2215,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -2505,13 +2275,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, objectQuery);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -2541,13 +2305,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             TypeFilter type = prismContext.queryFactory().createType(UserType.COMPLEX_TYPE, null);
             String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -2567,13 +2325,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             TypeFilter type = prismContext.queryFactory().createType(AbstractRoleType.COMPLEX_TYPE, null);
             String real = getInterpretedQuery2(session, ObjectType.class, prismContext.queryFactory().createQuery(type));
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -2596,13 +2348,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, ReportOutputType.class, query);
             String expected = "select\n" +
-                    "  r.oid, r.fullObject,\n" +
-                    "  r.stringsCount,\n" +
-                    "  r.longsCount,\n" +
-                    "  r.datesCount,\n" +
-                    "  r.referencesCount,\n" +
-                    "  r.polysCount,\n" +
-                    "  r.booleansCount\n" +
+                    "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RReportOutput r\n" +
                     "where\n" +
@@ -2625,13 +2371,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +                       // TODO - why not RUser here? we unnecessarily join all of RObject subtypes...
                     "where\n" +
@@ -2687,13 +2427,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -2722,13 +2456,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, ObjectType.class, query, false, null);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.strings s with ( s.ownerType = :ownerType and s.itemId = :itemId )\n" +
@@ -2756,13 +2484,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.linkRef l\n" +
@@ -2799,13 +2521,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "    left join o.orgType o2\n" +
@@ -2846,13 +2562,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n"
-					+ "  o.oid, o.fullObject,\n"
-					+ "  o.stringsCount,\n"
-					+ "  o.longsCount,\n"
-					+ "  o.datesCount,\n"
-					+ "  o.referencesCount,\n"
-					+ "  o.polysCount,\n"
-					+ "  o.booleansCount\n"
+					+ "  o.oid, o.fullObject\n"
 					+ "from\n"
 					+ "  RObject o\n"
 					+ "where\n"
@@ -2877,7 +2587,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                         .item(roleDef, RoleType.F_OWNER_REF).ref("c0c010c0-d34d-b33f-f00d-111111111111")
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
-            String expected = "select o.oid, o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount, o.booleansCount\n"
+            String expected = "select o.oid, o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
                     + "where\n"
@@ -2920,13 +2630,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, ObjectType.class, query);
             String expected = "select\n"
-                    + "  o.oid, o.fullObject,\n"
-                    + "  o.stringsCount,\n"
-                    + "  o.longsCount,\n"
-                    + "  o.datesCount,\n"
-                    + "  o.referencesCount,\n"
-                    + "  o.polysCount,\n"
-                    + "  o.booleansCount\n"
+                    + "  o.oid, o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
                     + "where\n"
@@ -2993,13 +2697,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, GenericObjectType.class, query);
             String expected = "select\n" +
-                    "  g.oid, g.fullObject,\n" +
-                    "  g.stringsCount,\n" +
-                    "  g.longsCount,\n" +
-                    "  g.datesCount,\n" +
-                    "  g.referencesCount,\n" +
-                    "  g.polysCount,\n" +
-                    "  g.booleansCount\n" +
+                    "  g.oid, g.fullObject\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
                     "    left join g.strings s with ( s.ownerType = :ownerType and s.itemId = :itemId )\n" +
@@ -3065,13 +2763,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, GenericObjectType.class, objectQuery, false,
                     null);
             String expected = "select\n" +
-                    "  g.oid, g.fullObject,\n" +
-                    "  g.stringsCount,\n" +
-                    "  g.longsCount,\n" +
-                    "  g.datesCount,\n" +
-                    "  g.referencesCount,\n" +
-                    "  g.polysCount,\n" +
-                    "  g.booleansCount\n" +
+                    "  g.oid, g.fullObject\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
                     "    left join g.booleans b with ( b.ownerType = :ownerType and b.itemId = :itemId )\n" +
@@ -3119,13 +2811,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, objectQuery);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -3183,13 +2869,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQuery2Whole(session, UserType.class, query, false, null);
             String real = realQuery.getQuery().getQueryString();
             String expected = "select\n"
-					+ "  u.oid, u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.oid, u.fullObject\n"
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "    left join u.strings s with (\n"
@@ -3215,13 +2895,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = getInterpretedQuery2(session, GenericObjectType.class, query);
             String expected = "select\n"
 					+ "  g.oid,\n"
-					+ "  g.fullObject,\n"
-					+ "  g.stringsCount,\n"
-					+ "  g.longsCount,\n"
-					+ "  g.datesCount,\n"
-					+ "  g.referencesCount,\n"
-					+ "  g.polysCount,\n"
-					+ "  g.booleansCount\n"
+					+ "  g.fullObject\n"
 					+ "from\n"
 					+ "  RGenericObject g\n"
 					+ "    left join g.references r with (\n"
@@ -3689,13 +3363,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.linkRef l\n" +
@@ -3728,13 +3396,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.linkRef l\n" +
@@ -3819,13 +3481,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "order by u.activation.administrativeStatus asc";
@@ -3928,13 +3584,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject,\n" +
-                    "  u.stringsCount,\n" +
-                    "  u.longsCount,\n" +
-                    "  u.datesCount,\n" +
-                    "  u.referencesCount,\n" +
-                    "  u.polysCount,\n" +
-                    "  u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -4072,7 +3722,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.assignments a with a.assignmentOwner = :assignmentOwner\n" +
@@ -4098,7 +3748,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +
@@ -4123,7 +3773,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "    left join u.createApproverRef c\n" +
@@ -4149,13 +3799,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n"
-                    + "  u.oid, u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.textInfoItems t\n"
@@ -4179,13 +3823,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n"
-                    + "  u.oid, u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.textInfoItems t\n"
@@ -4209,13 +3847,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query);
             String expected = "select\n"
                     + "  u.oid,\n"
-                    + "  u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.textInfoItems t\n"
@@ -4245,13 +3877,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
-                    + "  s.fullObject,\n"
-                    + "  s.stringsCount,\n"
-                    + "  s.longsCount,\n"
-                    + "  s.datesCount,\n"
-                    + "  s.referencesCount,\n"
-                    + "  s.polysCount,\n"
-                    + "  s.booleansCount\n"
+                    + "  s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
                     + "where\n"
@@ -4281,13 +3907,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
-                    + "  s.fullObject,\n"
-                    + "  s.stringsCount,\n"
-                    + "  s.longsCount,\n"
-                    + "  s.datesCount,\n"
-                    + "  s.referencesCount,\n"
-                    + "  s.polysCount,\n"
-                    + "  s.booleansCount\n"
+                    + "  s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
                     + "where\n"
@@ -4317,13 +3937,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
-                    + "  s.fullObject,\n"
-                    + "  s.stringsCount,\n"
-                    + "  s.longsCount,\n"
-                    + "  s.datesCount,\n"
-                    + "  s.referencesCount,\n"
-                    + "  s.polysCount,\n"
-                    + "  s.booleansCount\n"
+                    + "  s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
                     + "where\n"
@@ -4352,13 +3966,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 //					.build();
 //			String real = getInterpretedQuery2(session, TaskType.class, query);
 //			String expected = "select\n"
-//					+ "  t.oid, t.fullObject,\n"
-//					+ "  t.stringsCount,\n"
-//					+ "  t.longsCount,\n"
-//					+ "  t.datesCount,\n"
-//					+ "  t.referencesCount,\n"
-//					+ "  t.polysCount,\n"
-//					+ "  t.booleansCount\n"
+//					+ "  t.oid, t.fullObject\n"
 //					+ "from\n"
 //					+ "  RTask t\n"
 //					+ "where\n"
@@ -4386,13 +3994,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, ResourceType.class, query);
 			String expected = "select\n"
-					+ "  r.oid, r.fullObject,\n"
-					+ "  r.stringsCount,\n"
-					+ "  r.longsCount,\n"
-					+ "  r.datesCount,\n"
-					+ "  r.referencesCount,\n"
-					+ "  r.polysCount,\n"
-					+ "  r.booleansCount\n"
+					+ "  r.oid, r.fullObject\n"
 					+ "from\n"
 					+ "  RResource r\n"
 					+ "where\n"
@@ -4413,13 +4015,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, ResourceType.class, query);
 			String expected = "select\n"
-					+ "  r.oid, r.fullObject,\n"
-					+ "  r.stringsCount,\n"
-					+ "  r.longsCount,\n"
-					+ "  r.datesCount,\n"
-					+ "  r.referencesCount,\n"
-					+ "  r.polysCount,\n"
-					+ "  r.booleansCount\n"
+					+ "  r.oid, r.fullObject\n"
 					+ "from\n"
 					+ "  RResource r\n"
 					+ "where\n"
@@ -4440,13 +4036,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
                     + "  u.oid,\n"
-                    + "  u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.linkRef l\n"
@@ -4467,13 +4057,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
-					+ "  u.oid, u.fullObject,\n"
-					+ "  u.stringsCount,\n"
-					+ "  u.longsCount,\n"
-					+ "  u.datesCount,\n"
-					+ "  u.referencesCount,\n"
-					+ "  u.polysCount,\n"
-					+ "  u.booleansCount\n"
+					+ "  u.oid, u.fullObject\n"
 					+ "from\n"
 					+ "  RUser u\n"
 					+ "where\n"
@@ -4494,13 +4078,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 			String real = getInterpretedQuery2(session, UserType.class, query);
 			String expected = "select\n"
                     + "  u.oid,\n"
-                    + "  u.fullObject,\n"
-                    + "  u.stringsCount,\n"
-                    + "  u.longsCount,\n"
-                    + "  u.datesCount,\n"
-                    + "  u.referencesCount,\n"
-                    + "  u.polysCount,\n"
-                    + "  u.booleansCount\n"
+                    + "  u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
                     + "    left join u.employeeType e\n"
@@ -4523,13 +4101,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 					.build();
 			String real = getInterpretedQuery2(session, RoleType.class, query);
 			String expected = "select\n"
-					+ "  r.oid, r.fullObject,\n"
-					+ "  r.stringsCount,\n"
-					+ "  r.longsCount,\n"
-					+ "  r.datesCount,\n"
-					+ "  r.referencesCount,\n"
-					+ "  r.polysCount,\n"
-					+ "  r.booleansCount\n"
+					+ "  r.oid, r.fullObject\n"
 					+ "from\n"
 					+ "  RRole r\n"
 					+ "where\n"
@@ -4554,13 +4126,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
                     + "  s.oid,\n"
-                    + "  s.fullObject,\n"
-                    + "  s.stringsCount,\n"
-                    + "  s.longsCount,\n"
-                    + "  s.datesCount,\n"
-                    + "  s.referencesCount,\n"
-                    + "  s.polysCount,\n"
-                    + "  s.booleansCount\n"
+                    + "  s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
                     + "where\n"
@@ -4582,13 +4148,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
 					+ "  s.oid,\n"
-					+ "  s.fullObject,\n"
-					+ "  s.stringsCount,\n"
-					+ "  s.longsCount,\n"
-					+ "  s.datesCount,\n"
-					+ "  s.referencesCount,\n"
-					+ "  s.polysCount,\n"
-					+ "  s.booleansCount\n"
+					+ "  s.fullObject\n"
 					+ "from\n"
 					+ "  RShadow s\n"
 					+ "    left join s.operationExecutions o\n"
@@ -4614,13 +4174,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
 					+ "  s.oid,\n"
-					+ "  s.fullObject,\n"
-					+ "  s.stringsCount,\n"
-					+ "  s.longsCount,\n"
-					+ "  s.datesCount,\n"
-					+ "  s.referencesCount,\n"
-					+ "  s.polysCount,\n"
-					+ "  s.booleansCount\n"
+					+ "  s.fullObject\n"
 					+ "from\n"
 					+ "  RShadow s\n"
 					+ "    left join s.operationExecutions o\n"
@@ -4652,13 +4206,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, ShadowType.class, query);
             String expected = "select\n"
 					+ "  s.oid,\n"
-					+ "  s.fullObject,\n"
-					+ "  s.stringsCount,\n"
-					+ "  s.longsCount,\n"
-					+ "  s.datesCount,\n"
-					+ "  s.referencesCount,\n"
-					+ "  s.polysCount,\n"
-					+ "  s.booleansCount\n"
+					+ "  s.fullObject\n"
 					+ "from\n"
 					+ "  RShadow s\n"
 					+ "    left join s.operationExecutions o\n"
@@ -4683,13 +4231,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, FocusType.class, query);
             String expected = "select\n"
 					+ "  f.oid,\n"
-					+ "  f.fullObject,\n"
-					+ "  f.stringsCount,\n"
-					+ "  f.longsCount,\n"
-					+ "  f.datesCount,\n"
-					+ "  f.referencesCount,\n"
-					+ "  f.polysCount,\n"
-					+ "  f.booleansCount\n"
+					+ "  f.fullObject\n"
 					+ "from\n"
 					+ "  RFocus f\n"
 					+ "    left join f.personaRef p\n"
@@ -4714,16 +4256,10 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, UserType.class, query, false, distinct());
             String expected;
             expected = "select u.oid,\n"
-                        + "  u.fullObject,\n"
-                        + "  u.stringsCount,\n"
-                        + "  u.longsCount,\n"
-                        + "  u.datesCount,\n"
-                        + "  u.referencesCount,\n"
-                        + "  u.polysCount,\n"
-                        + "  u.booleansCount\n"
-                        + "from\n"
-                        + "  RUser u\n"
-                        + "order by u.nameCopy.orig asc\n";
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "order by u.nameCopy.orig asc\n";
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
@@ -4745,13 +4281,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             if (config.isUsingOracle() || config.isUsingSQLServer()) {
                 expected = "select\n"
                         + "  u.oid,\n"
-                        + "  u.fullObject,\n"
-                        + "  u.stringsCount,\n"
-                        + "  u.longsCount,\n"
-                        + "  u.datesCount,\n"
-                        + "  u.referencesCount,\n"
-                        + "  u.polysCount,\n"
-                        + "  u.booleansCount\n"
+                        + "  u.fullObject\n"
                         + "from\n"
                         + "  RUser u\n"
                         + "where\n"
@@ -4765,12 +4295,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 expected = "select distinct\n"
                         + "  u.oid,\n"
                         + "  u.fullObject,\n"
-                        + "  u.stringsCount,\n"
-                        + "  u.longsCount,\n"
-                        + "  u.datesCount,\n"
-                        + "  u.referencesCount,\n"
-                        + "  u.polysCount,\n"
-                        + "  u.booleansCount,\n"
                         + "  u.nameCopy.orig\n"
                         + "from\n"
                         + "  RUser u left join u.employeeType e where e like :e\n"
@@ -4801,13 +4325,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             if (config.isUsingOracle() || config.isUsingSQLServer()) {
                 expected = "select\n"
                         + "  u.oid,\n"
-                        + "  u.fullObject,\n"
-                        + "  u.stringsCount,\n"
-                        + "  u.longsCount,\n"
-                        + "  u.datesCount,\n"
-                        + "  u.referencesCount,\n"
-                        + "  u.polysCount,\n"
-                        + "  u.booleansCount\n"
+                        + "  u.fullObject\n"
                         + "from\n"
                         + "  RUser u\n"
                         + "where\n"
@@ -4827,12 +4345,6 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                 expected = "select distinct\n"
                         + "  u.oid,\n"
                         + "  u.fullObject,\n"
-                        + "  u.stringsCount,\n"
-                        + "  u.longsCount,\n"
-                        + "  u.datesCount,\n"
-                        + "  u.referencesCount,\n"
-                        + "  u.polysCount,\n"
-                        + "  u.booleansCount,\n"
                         + "  u.nameCopy.orig\n"
                         + "from\n"
                         + "  RUser u\n"
@@ -4864,13 +4376,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
             String expected = "select\n"
                     + "  a.oid,\n"
-                    + "  a.fullObject,\n"
-                    + "  a.stringsCount,\n"
-                    + "  a.longsCount,\n"
-                    + "  a.datesCount,\n"
-                    + "  a.referencesCount,\n"
-                    + "  a.polysCount,\n"
-                    + "  a.booleansCount\n"
+                    + "  a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCampaign a\n"
                     + "where\n"
@@ -4898,13 +4404,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             String real = getInterpretedQuery2(session, AccessCertificationCampaignType.class, query);
             String expected = "select\n"
                     + "  a.oid,\n"
-                    + "  a.fullObject,\n"
-                    + "  a.stringsCount,\n"
-                    + "  a.longsCount,\n"
-                    + "  a.datesCount,\n"
-                    + "  a.referencesCount,\n"
-                    + "  a.polysCount,\n"
-                    + "  a.booleansCount\n"
+                    + "  a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCampaign a\n"
                     + "where\n"
@@ -4958,13 +4458,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, false);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -5007,13 +4501,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery2(session, ObjectType.class, query, false);
             String expected = "select\n" +
-                    "  o.oid, o.fullObject,\n" +
-                    "  o.stringsCount,\n" +
-                    "  o.longsCount,\n" +
-                    "  o.datesCount,\n" +
-                    "  o.referencesCount,\n" +
-                    "  o.polysCount,\n" +
-                    "  o.booleansCount\n" +
+                    "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
                     "where\n" +
@@ -5146,7 +4634,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class).asc(UserType.F_NAME).maxSize(20).build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "order by\n" +
@@ -5167,7 +4655,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(RoleType.class).asc(RoleType.F_NAME).maxSize(20).build();
 
             String expected = "select\n" +
-                    "  r.oid, r.fullObject, r.stringsCount, r.longsCount, r.datesCount, r.referencesCount, r.polysCount, r.booleansCount\n" +
+                    "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
                     "order by\n" +
@@ -5191,13 +4679,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
 
             String expected = "select\n"
                     + "  t.oid,\n"
-                    + "  t.fullObject,\n"
-                    + "  t.stringsCount,\n"
-                    + "  t.longsCount,\n"
-                    + "  t.datesCount,\n"
-                    + "  t.referencesCount,\n"
-                    + "  t.polysCount,\n"
-                    + "  t.booleansCount\n"
+                    + "  t.fullObject\n"
                     + "from\n"
                     + "  RTask t\n"
                     + "    left join t.archetypeRef a\n"
@@ -5221,13 +4703,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             String expected = "select\n"
 		            + "  f.oid,\n"
-		            + "  f.fullObject,\n"
-		            + "  f.stringsCount,\n"
-		            + "  f.longsCount,\n"
-		            + "  f.datesCount,\n"
-		            + "  f.referencesCount,\n"
-		            + "  f.polysCount,\n"
-		            + "  f.booleansCount\n"
+		            + "  f.fullObject\n"
 		            + "from\n"
 		            + "  RFocus f";
 
@@ -5245,13 +4721,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             String expected = "select\n"
 		            + "  o.oid,\n"
-		            + "  o.fullObject,\n"
-		            + "  o.stringsCount,\n"
-		            + "  o.longsCount,\n"
-		            + "  o.datesCount,\n"
-		            + "  o.referencesCount,\n"
-		            + "  o.polysCount,\n"
-		            + "  o.booleansCount\n"
+		            + "  o.fullObject\n"
 		            + "from\n"
 		            + "  RObject o\n"
 		            + "where\n"
@@ -5275,13 +4745,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
         try {
             String expected = "select\n"
 		            + "  o.oid,\n"
-		            + "  o.fullObject,\n"
-		            + "  o.stringsCount,\n"
-		            + "  o.longsCount,\n"
-		            + "  o.datesCount,\n"
-		            + "  o.referencesCount,\n"
-		            + "  o.polysCount,\n"
-		            + "  o.booleansCount\n"
+		            + "  o.fullObject\n"
 		            + "from\n"
 		            + "  RObject o";
 
@@ -5301,7 +4765,7 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
                     .item(F_NAME).eq("asdf").matchingNorm().build();
 
             String expected = "select\n" +
-                    "  u.oid, u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount, u.booleansCount\n" +
+                    "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
                     "where\n" +

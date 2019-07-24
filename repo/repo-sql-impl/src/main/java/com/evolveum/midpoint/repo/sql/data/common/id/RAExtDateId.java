@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtDate;
+
 import java.sql.Timestamp;
 import java.util.Objects;
 
@@ -74,5 +76,12 @@ public class RAExtDateId extends RAExtBaseId {
                 ", itemId=" + itemId +
                 ", value=" + value +
                 '}';
+    }
+
+    public static RAExtDateId createFromValue(RAExtDate value) {
+        RAExtDateId rv = new RAExtDateId();
+        rv.value = value.getValue();
+        rv.fillInFromValue(value);
+        return rv;
     }
 }

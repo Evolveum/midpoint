@@ -36,7 +36,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_string", indexes = {
         @Index(name = "iExtensionString", columnList = "stringValue")
 })
-public class ROExtString extends ROExtBase {
+public class ROExtString extends ROExtBase<String> {
 
     private String value;
 
@@ -99,5 +99,10 @@ public class ROExtString extends ROExtBase {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), value);
+    }
+
+    @Override
+    public ROExtStringId createId() {
+        return ROExtStringId.createFromValue(this);
     }
 }

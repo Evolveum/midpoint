@@ -1,0 +1,1871 @@
+/*
+ * Copyright (c) 2010-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.repo.sql;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
+import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.util.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static java.util.Collections.singleton;
+import static org.testng.AssertJUnit.*;
+
+/**
+ * Comprehensive test for extension and attribute values processing.
+ * Introduced as part of providing "index-only" extension values (MID-5558)
+ * and related refactoring of ObjectDeltaUpdater.
+ */
+@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+public class ExtensionTest extends BaseSQLRepoTest {
+
+    private static final File TEST_DIR = new File("src/test/resources/extension");
+    private static final File USER_RUMCAJS_FILE = new File(TEST_DIR, "user-rumcajs.xml");
+    private static final File USER_MANKA_FILE = new File(TEST_DIR, "user-manka.xml");
+
+    private PrismObject<UserType> expectedUser;
+    private String userOid;
+
+    private RExtItem itemHidden1;
+    private RExtItem itemHidden2;
+    private RExtItem itemHidden3;
+    private RExtItem itemVisible;
+    private RExtItem itemWeapon;
+    private RExtItem itemShipName;
+
+    private static final int ADD_VALUE_ITERATIONS = 100000;
+
+    @BeforeClass
+    public void beforeClass() throws Exception {
+        super.beforeClass();
+
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+
+        itemHidden1 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN1);
+        itemHidden2 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN2);
+        itemHidden3 = createOrFindExtensionItemDefinition(UserType.class, EXT_HIDDEN3);
+        itemVisible = createOrFindExtensionItemDefinition(UserType.class, EXT_VISIBLE);
+        itemWeapon = createOrFindExtensionItemDefinition(UserType.class, EXT_WEAPON);
+        itemShipName = createOrFindExtensionItemDefinition(UserType.class, EXT_SHIP_NAME);
+    }
+
+    @Test
+    public void test010AddUser() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test010AddUser");
+
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RUMCAJS_FILE);
+        expectedUser = PrismTestUtil.parseObject(USER_RUMCAJS_FILE);
+
+        queryInspector.start();
+        userOid = repositoryService.addObject(user, null, result);
+        queryInspector.dump();
+
+        /*
+         - select count(*) from m_user where oid=?
+         - insert into m_object (createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, fullObject, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, name_norm, name_orig, objectTypeClass, tenantRef_relation, tenantRef_targetOid, tenantRef_type, version, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_focus (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, costCenter, emailAddress, hasPhoto, locale, locality_norm, locality_orig, preferredLanguage, telephoneNumber, timezone, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_user (additionalName_norm, additionalName_orig, employeeNumber, familyName_norm, familyName_orig, fullName_norm, fullName_orig, givenName_norm, givenName_orig, honorificPrefix_norm, honorificPrefix_orig, honorificSuffix_norm, honorificSuffix_orig, name_norm, name_orig, nickName_norm, nickName_orig, title_norm, title_orig, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test
+    public void test020AddVisibleUserExtensionValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test020AddVisibleUserExtensionValue");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_VISIBLE)
+                .add("v4", "v5")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // TODO eliminate 3rd and 4th select (select ... from m_object_ext_string s where s.item_id=? and s.owner_oid=? and s.ownerType=? and s.stringValue=?)
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+        assertSearch(EXT_VISIBLE, "v1", 1, result);
+        assertSearch(EXT_VISIBLE, "v2", 1, result);
+        assertSearch(EXT_VISIBLE, "v3", 1, result);
+        assertSearch(EXT_VISIBLE, "v4", 1, result);
+        assertSearch(EXT_VISIBLE, "v5", 1, result);
+        assertSearch(EXT_VISIBLE, "v6", 0, result);
+    }
+
+    @Test
+    public void test025AddVisibleUserExtensionValueDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test025AddVisibleUserExtensionValueDuplicate");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_VISIBLE)
+                    .add("v4")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(3, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+        assertSearch(EXT_VISIBLE, "v1", 1, result);
+        assertSearch(EXT_VISIBLE, "v2", 1, result);
+        assertSearch(EXT_VISIBLE, "v3", 1, result);
+        assertSearch(EXT_VISIBLE, "v4", 1, result);
+        assertSearch(EXT_VISIBLE, "v5", 1, result);
+        assertSearch(EXT_VISIBLE, "v6", 0, result);
+    }
+
+    @Test
+    public void test026ReplaceVisibleExtensionValues() throws Exception {
+        OperationResult result = new OperationResult("test026ReplaceVisibleExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_WEAPON)
+                    .replace("weapon1", "weapon2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        // todo remove SELECTs before inserts
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(7, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon, "weapon1", "weapon2");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test027DeleteVisibleExtensionValues() throws Exception {
+        OperationResult result = new OperationResult("test027DeleteVisibleExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_WEAPON)
+                    .delete("weapon1", "weapon2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        // TODO remove SELECTs before deletion
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test028ReplaceNonIndexedExtensionProperty() throws Exception {
+        OperationResult result = new OperationResult("test028ReplaceNonIndexedExtensionProperty");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_LOOT)
+                    .replace(34)
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(3, queryInspector.getQueryCount());
+        }
+
+        RExtItem extItemDef = extItemDictionary.findItemByDefinition(delta.getModifications().iterator().next().getDefinition());
+        assertNull("ext item definition for loot exists", extItemDef);
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test030AddHiddenUserExtensionValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test030AddHiddenUserExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_HIDDEN1).add("h1.4")
+                .item(UserType.F_EXTENSION, EXT_HIDDEN2).add("h2.1", "h2.2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // TODO eliminate 3 selects
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(7, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3", "h1.4");
+            assertExtension(u, itemHidden2, "h2.1", "h2.2");
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.5", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 1, result);
+        assertSearch(EXT_HIDDEN2, "h2.2", 1, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test
+    public void test032AddHiddenUserExtensionValuesDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test032AddHiddenUserExtensionValuesDuplicate");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_HIDDEN1).add("h1.4")
+                .item(UserType.F_EXTENSION, EXT_HIDDEN2).add("h2.1", "h2.2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // TODO consider how to deal with the conflicts
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2", "h1.3", "h1.4");
+            assertExtension(u, itemHidden2, "h2.1", "h2.2");
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.5", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 1, result);
+        assertSearch(EXT_HIDDEN2, "h2.2", 1, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test
+    public void test035DeleteHiddenUserExtensionValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test035DeleteHiddenUserExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_HIDDEN1).delete("h1.1", "h1.2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        // TODO eliminate 2 selects
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.3", "h1.4");
+            assertExtension(u, itemHidden2, "h2.1", "h2.2");
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.5", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 1, result);
+        assertSearch(EXT_HIDDEN2, "h2.2", 1, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test
+    public void test036DeleteHiddenUserExtensionValuesDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test036DeleteHiddenUserExtensionValuesDuplicate");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_HIDDEN1).delete("h1.1", "h1.2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // TODO eliminate 2 selects
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.3", "h1.4");
+            assertExtension(u, itemHidden2, "h2.1", "h2.2");
+            assertExtension(u, itemHidden3, "h3.1");
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.5", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 1, result);
+        assertSearch(EXT_HIDDEN2, "h2.2", 1, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 1, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test
+    public void test040ReplaceHiddenExtensionValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test040ReplaceHiddenExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_HIDDEN1).replace("h1.2", "h1.5")
+                .item(UserType.F_EXTENSION, EXT_HIDDEN2).replace()
+                .item(UserType.F_EXTENSION, EXT_HIDDEN3).replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        // todo delete 4th and 5th selects
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(8, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.2", "h1.5");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3", "v4", "v5");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_HIDDEN1, "h1.1", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.2", 1, result);
+        assertSearch(EXT_HIDDEN1, "h1.3", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.4", 0, result);
+        assertSearch(EXT_HIDDEN1, "h1.5", 1, result);
+        assertSearch(EXT_HIDDEN2, "h2.1", 0, result);
+        assertSearch(EXT_HIDDEN2, "h2.2", 0, result);
+        assertSearch(EXT_HIDDEN3, "h3.1", 0, result);
+        assertSearch(EXT_HIDDEN3, "h1.3", 0, result);
+    }
+
+    @Test // MID-5573
+    public void test045ReplaceVisibleExtensionValuesToNull() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test045ReplaceVisibleExtensionValuesToNull");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION, EXT_VISIBLE).replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        // TODO eliminate 3rd select (maybe, maybe not)
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.2", "h1.5");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible);
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+        assertSearch(EXT_VISIBLE, "v0", 0, result);
+        assertSearch(EXT_VISIBLE, "v1", 0, result);
+        assertSearch(EXT_VISIBLE, "v2", 0, result);
+        assertSearch(EXT_VISIBLE, "v3", 0, result);
+    }
+
+    @Test
+    public void test050DeleteWholeExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test050DeleteWholeExtension");
+
+        PrismContainerValue<?> existingExtension = expectedUser.getExtension().getValue().clone();
+        existingExtension.removeProperty(EXT_HIDDEN1);      // there are two values of this kind there
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION)
+                    .delete(existingExtension)
+                .asObjectDelta("");
+        expectedUser.asObjectable().setExtension(null);     // we cannot apply the delta here as expectedUser has hidden1 values in the extension
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+         - select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+         - select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+         - select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+         - select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(10, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1);
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible);
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test055AddWholeExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test055AddWholeExtension");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition().getExtensionDefinition().instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_HIDDEN1).addRealValues("H1:1", "H1:2");
+        extValue.findOrCreateProperty(EXT_HIDDEN3).addRealValues("H3:1");
+        extValue.findOrCreateProperty(EXT_VISIBLE).addRealValues("V1");
+        extValue.findOrCreateProperty(EXT_VISIBLE).addRealValues("V2");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION)
+                    .add(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+         - select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+         - select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+         - select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+         - select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // todo Eliminate individual insertion SELECTs
+        // todo But can we eliminate deletion selects? Only if we know there're no index-only entries + that extension did not exist before the modify operation.
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(15, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "H1:1", "H1:2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3, "H3:1");
+            assertExtension(u, itemVisible, "V1", "V2");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+    }
+
+    /**
+     * This is really tricky. We try to add another value to single-valued extension container.
+     */
+    @Test
+    public void test058AddWholeExtensionDifferentValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test055AddWholeExtension");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition().getExtensionDefinition().instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_HIDDEN1).addRealValues("H1:100");
+        extValue.findOrCreateProperty(EXT_VISIBLE).addRealValues("V3");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION)
+                    .add(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+         - select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+         - select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+         - select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+         - select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        // todo eliminate individual SELECTs
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(13, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "H1:100");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "V3");
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test060ReplaceWholeExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test060ReplaceWholeExtension");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition().getExtensionDefinition().instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_HIDDEN1).addRealValues("H1:2", "H1:3");
+        extValue.findOrCreateProperty(EXT_HIDDEN2).addRealValues("H2:1");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION)
+                    .replace(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+         - select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+         - select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+         - select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+         - select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        // TODO replace SELECTs on insertion
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(14, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "H1:2", "H1:3");
+            assertExtension(u, itemHidden2, "H2:1");
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible);
+            assertExtension(u, itemWeapon);
+        }
+
+        // Disabled because of null/empty extension dichotomy: getObject returns empty extension while we expect null one.
+        // This is really not interesting.
+        //assertGetObject(result);
+    }
+
+    @Test
+    public void test065ReplaceWholeExtensionToNull() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test065ReplaceWholeExtensionToNull");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_EXTENSION)
+                    .replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+         - select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+         - select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+         - select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+         - select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+         - select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(10, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1);
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible);
+            assertExtension(u, itemWeapon);
+        }
+
+        assertGetObject(result);
+    }
+
+    private void assertGetObject(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assertGetObjectNoInclude(userOid, expectedUser, result);
+        assertGetObjectInclude(userOid, null, expectedUser, result);
+        assertGetObjectInclude(userOid, singleton(EXT_HIDDEN1), expectedUser, result);
+        assertGetObjectInclude(userOid, Arrays.asList(EXT_HIDDEN1, EXT_HIDDEN2), expectedUser, result);
+        assertGetObjectInclude(userOid, Arrays.asList(EXT_HIDDEN1, EXT_HIDDEN2, EXT_HIDDEN3), expectedUser, result);
+    }
+
+    @Test
+    public void test110AddUserWithAssignment() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test110AddUserWithAssignment");
+
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_MANKA_FILE);
+        expectedUser = PrismTestUtil.parseObject(USER_MANKA_FILE);
+
+        queryInspector.start();
+        userOid = repositoryService.addObject(user, null, result);
+        queryInspector.dump();
+
+        /*
+         - select count(*) from m_user where oid=?
+         - insert into m_object (createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, fullObject, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, name_norm, name_orig, objectTypeClass, tenantRef_relation, tenantRef_targetOid, tenantRef_type, version, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_focus (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, costCenter, emailAddress, hasPhoto, locale, locality_norm, locality_orig, preferredLanguage, telephoneNumber, timezone, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_user (additionalName_norm, additionalName_orig, employeeNumber, familyName_norm, familyName_orig, fullName_norm, fullName_orig, givenName_norm, givenName_orig, honorificPrefix_norm, honorificPrefix_orig, honorificSuffix_norm, honorificSuffix_orig, name_norm, name_orig, nickName_norm, nickName_orig, title_norm, title_orig, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, assignmentOwner, createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, extId, extOid, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, orderValue, orgRef_relation, orgRef_targetOid, orgRef_type, resourceRef_relation, resourceRef_targetOid, resourceRef_type, targetRef_relation, targetRef_targetOid, targetRef_type, tenantRef_relation, tenantRef_targetOid, tenantRef_type, id, owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_extension (booleansCount, datesCount, longsCount, polysCount, referencesCount, stringsCount, owner_id, owner_owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(9, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "w1", "w2", "w3");
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test120AddAssignmentExtensionValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test120AddAssignmentExtensionValue");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
+                .add("w4", "w5")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // TODO eliminate 3rd and 4th select (select ... from m_object_ext_string s where s.item_id=? and s.owner_oid=? and s.ownerType=? and s.stringValue=?)
+        // TODO eliminate also "all strings" selection
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(8, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "w1", "w2", "w3", "w4", "w5");
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test125AddAssignmentExtensionValueDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test125AddAssignmentExtensionValueDuplicate");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
+                    .add("w4")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(3, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "w1", "w2", "w3", "w4", "w5");
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test126ReplaceAssignmentExtensionValues() throws Exception {
+        OperationResult result = new OperationResult("test126ReplaceAssignmentExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
+                    .replace("w2", "w9")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+        // todo remove SELECTs before inserts
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(8, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "w2", "w9");
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test127DeleteAssignmentExtensionValues() throws Exception {
+        OperationResult result = new OperationResult("test127DeleteAssignmentExtensionValues");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
+                    .delete("w2")
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+        // TODO remove SELECTs before deletion
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "w9");
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test128ReplaceNonIndexedExtensionProperty() throws Exception {
+        OperationResult result = new OperationResult("test128ReplaceNonIndexedExtensionProperty");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_LOOT)
+                .replace(34)
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+        
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(4, queryInspector.getQueryCount());
+        }
+
+        RExtItem extItemDef = extItemDictionary.findItemByDefinition(delta.getModifications().iterator().next().getDefinition());
+        assertNull("ext item definition for loot exists", extItemDef);
+
+        assertGetObject(result);
+    }
+
+    // No tests for hidden (index-only) assignment extension values yet.
+
+    @Test
+    public void test145ReplaceAssignmentValuesToNull() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test145ReplaceAssignmentValuesToNull");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION, EXT_WEAPON)
+                    .replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+        // TODO eliminate 3rd select (maybe, maybe not)
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon);
+            assertExtension(a, itemShipName, "none");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test150DeleteWholeAssignmentExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test150DeleteWholeAssignmentExtension");
+
+        PrismContainerValue<?> existingExtension =
+                expectedUser.findContainer(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)).getValue();
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
+                    .delete(existingExtension.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(11, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            // should here be RAssignmentExtension at all?
+            assertExtension(a, itemWeapon);
+            assertExtension(a, itemShipName);
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test155AddWholeAssignmentExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test155AddWholeAssignmentExtension");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition()
+                .findContainerDefinition(UserType.F_ASSIGNMENT)
+                .findContainerDefinition(AssignmentType.F_EXTENSION)
+                .instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W1", "W2");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
+                    .add(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+
+        // todo Eliminate individual insertion SELECTs
+        // todo But can we eliminate deletion selects? Only if we know that extension did not exist before the modify operation.
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(13, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "W1", "W2");
+            assertExtension(a, itemShipName);
+        }
+
+        assertGetObject(result);
+    }
+
+    /**
+     * This is really tricky. We try to add another value to single-valued extension container.
+     */
+    @Test
+    public void test158AddWholeAssignmentExtensionDifferentValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test158AddWholeAssignmentExtensionDifferentValue");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition()
+                .findContainerDefinition(UserType.F_ASSIGNMENT)
+                .findContainerDefinition(AssignmentType.F_EXTENSION)
+                .instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W3");
+        extValue.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("?");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
+                    .add(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+
+        // todo eliminate individual SELECTs
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(14, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "W3");
+            assertExtension(a, itemShipName, "?");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test160ReplaceWholeAssignmentExtension() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test055AddWholeExtension");
+
+        PrismContainerValue<?> extValue = expectedUser.getDefinition()
+                .findContainerDefinition(UserType.F_ASSIGNMENT)
+                .findContainerDefinition(AssignmentType.F_EXTENSION)
+                .instantiate().getValue();
+        extValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W4", "W5");
+        extValue.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
+                .replace(extValue.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - select raextstrin0_.item_id as item_id1_11_0_, raextstrin0_.anyContainer_owner_id as anyConta2_11_0_, raextstrin0_.anyContainer_owner_owner_oid as anyConta3_11_0_, raextstrin0_.stringValue as stringVa4_11_0_ from m_assignment_ext_string raextstrin0_ where raextstrin0_.item_id=? and raextstrin0_.anyContainer_owner_id=? and raextstrin0_.anyContainer_owner_owner_oid=? and raextstrin0_.stringValue=?
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+
+        // TODO replace SELECTs on insertion
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(15, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon, "W4", "W5");
+            assertExtension(a, itemShipName, "ship");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test165ReplaceWholeAssignmentExtensionToNull() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test165ReplaceWholeAssignmentExtensionToNull");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION)
+                .replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         */
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(11, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a = u.getAssignments().iterator().next();
+            assertExtension(a, itemWeapon);
+            assertExtension(a, itemShipName);
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test170AddAssignments() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test170AddAssignments");
+        
+        AssignmentType newAssignment = new AssignmentType(prismContext)
+                .id(777L)
+                .targetRef("999999", OrgType.COMPLEX_TYPE);
+        PrismContainerValue<?> newExtValue = newAssignment.asPrismContainerValue()
+                .findOrCreateContainer(AssignmentType.F_EXTENSION)
+                .getValue();
+        newExtValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W2.1", "W2.2");
+        newExtValue.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship2");
+        
+        AssignmentType newAssignment2 = new AssignmentType(prismContext)
+                .id(888L)
+                .targetRef("999999", OrgType.COMPLEX_TYPE);
+        PrismContainerValue<?> newExtValue2 = newAssignment2.asPrismContainerValue()
+                .findOrCreateContainer(AssignmentType.F_EXTENSION)
+                .getValue();
+        newExtValue2.findOrCreateProperty(EXT_WEAPON).addRealValues("W3.1", "W3.2");
+        newExtValue2.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship3");
+        
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                    .add(newAssignment, newAssignment2)
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select rassignmen_.owner_id, rassignmen_.owner_owner_oid, rassignmen_.booleansCount as booleans3_12_, rassignmen_.datesCount as datesCou4_12_, rassignmen_.longsCount as longsCou5_12_, rassignmen_.polysCount as polysCou6_12_, rassignmen_.referencesCount as referenc7_12_, rassignmen_.stringsCount as stringsC8_12_ from m_assignment_extension rassignmen_ where rassignmen_.owner_id=? and rassignmen_.owner_owner_oid=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select rassignmen_.owner_id, rassignmen_.owner_owner_oid, rassignmen_.booleansCount as booleans3_12_, rassignmen_.datesCount as datesCou4_12_, rassignmen_.longsCount as longsCou5_12_, rassignmen_.polysCount as polysCou6_12_, rassignmen_.referencesCount as referenc7_12_, rassignmen_.stringsCount as stringsC8_12_ from m_assignment_extension rassignmen_ where rassignmen_.owner_id=? and rassignmen_.owner_owner_oid=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - insert into m_assignment (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, assignmentOwner, createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, extId, extOid, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, orderValue, orgRef_relation, orgRef_targetOid, orgRef_type, resourceRef_relation, resourceRef_targetOid, resourceRef_type, targetRef_relation, targetRef_targetOid, targetRef_type, tenantRef_relation, tenantRef_targetOid, tenantRef_type, id, owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_extension (booleansCount, datesCount, longsCount, polysCount, referencesCount, stringsCount, owner_id, owner_owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - insert into m_assignment (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, assignmentOwner, createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, extId, extOid, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, orderValue, orgRef_relation, orgRef_targetOid, orgRef_type, resourceRef_relation, resourceRef_targetOid, resourceRef_type, targetRef_relation, targetRef_targetOid, targetRef_type, tenantRef_relation, tenantRef_targetOid, tenantRef_type, id, owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_extension (booleansCount, datesCount, longsCount, polysCount, referencesCount, stringsCount, owner_id, owner_owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
+         */
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(19, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            RAssignment a1 = find(u.getAssignments(), 1);
+            RAssignment a2 = find(u.getAssignments(), 777);
+            RAssignment a3 = find(u.getAssignments(), 888);
+            assertExtension(a1, itemWeapon);
+            assertExtension(a1, itemShipName);
+            assertExtension(a2, itemWeapon, "W2.1", "W2.2");
+            assertExtension(a2, itemShipName, "ship2");
+            assertExtension(a3, itemWeapon, "W3.1", "W3.2");
+            assertExtension(a3, itemShipName, "ship3");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test173DeleteAssignment() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test173DeleteAssignment");
+        
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                    .delete(new AssignmentType(prismContext).id(777L))
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
+         - select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - delete from m_assignment_policy_situation where assignment_id=? and assignment_oid=?
+         - delete from m_assignment where id=? and owner_oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         - delete from m_assignment_extension where owner_id=? and owner_owner_oid=?
+          */
+
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(16, queryInspector.getQueryCount());
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            assertEquals("Wrong # of assignments", 2, u.getAssignments().size());
+            RAssignment a1 = find(u.getAssignments(), 1);
+            RAssignment a3 = find(u.getAssignments(), 888);
+            assertExtension(a1, itemWeapon);
+            assertExtension(a1, itemShipName);
+            assertExtension(a3, itemWeapon, "W3.1", "W3.2");
+            assertExtension(a3, itemShipName, "ship3");
+        }
+
+        assertGetObject(result);
+    }
+
+    @Test
+    public void test175ReplaceAssignments() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test175ReplaceAssignments");
+
+        AssignmentType newAssignment = new AssignmentType(prismContext)
+                .id(999L)
+                .targetRef("999999aaaaa", OrgType.COMPLEX_TYPE);
+        PrismContainerValue<?> newExtValue = newAssignment.asPrismContainerValue()
+                .findOrCreateContainer(AssignmentType.F_EXTENSION)
+                .getValue();
+        newExtValue.findOrCreateProperty(EXT_WEAPON).addRealValues("W4.1", "W4.2");
+        newExtValue.findOrCreateProperty(EXT_SHIP_NAME).addRealValues("ship4");
+
+        ObjectDelta<UserType> delta = getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                    .replace(newAssignment)
+                .asObjectDelta("");
+        delta.applyTo(expectedUser);
+
+        queryInspector.start();
+        repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
+        queryInspector.dump();
+
+        /*
+         - select oid from m_object where oid = ? for update
+         - select ruser0_.oid as oid1_27_, ruser0_2_.createChannel as createCh2_27_, ruser0_2_.createTimestamp as createTi3_27_, ruser0_2_.creatorRef_relation as creatorR4_27_, ruser0_2_.creatorRef_targetOid as creatorR5_27_, ruser0_2_.creatorRef_type as creatorR6_27_, ruser0_2_.fullObject as fullObje7_27_, ruser0_2_.lifecycleState as lifecycl8_27_, ruser0_2_.modifierRef_relation as modifier9_27_, ruser0_2_.modifierRef_targetOid as modifie10_27_, ruser0_2_.modifierRef_type as modifie11_27_, ruser0_2_.modifyChannel as modifyC12_27_, ruser0_2_.modifyTimestamp as modifyT13_27_, ruser0_2_.name_norm as name_no14_27_, ruser0_2_.name_orig as name_or15_27_, ruser0_2_.objectTypeClass as objectT16_27_, ruser0_2_.tenantRef_relation as tenantR17_27_, ruser0_2_.tenantRef_targetOid as tenantR18_27_, ruser0_2_.tenantRef_type as tenantR19_27_, ruser0_2_.version as version20_27_, ruser0_1_.administrativeStatus as administ1_53_, ruser0_1_.archiveTimestamp as archiveT2_53_, ruser0_1_.disableReason as disableR3_53_, ruser0_1_.disableTimestamp as disableT4_53_, ruser0_1_.effectiveStatus as effectiv5_53_, ruser0_1_.enableTimestamp as enableTi6_53_, ruser0_1_.validFrom as validFro7_53_, ruser0_1_.validTo as validTo8_53_, ruser0_1_.validityChangeTimestamp as validity9_53_, ruser0_1_.validityStatus as validit10_53_, ruser0_1_.costCenter as costCen11_53_, ruser0_1_.emailAddress as emailAd12_53_, ruser0_1_.hasPhoto as hasPhot13_53_, ruser0_1_.locale as locale14_53_, ruser0_1_.locality_norm as localit15_53_, ruser0_1_.locality_orig as localit16_53_, ruser0_1_.preferredLanguage as preferr17_53_, ruser0_1_.telephoneNumber as telepho18_53_, ruser0_1_.timezone as timezon19_53_, ruser0_.additionalName_norm as addition1_73_, ruser0_.additionalName_orig as addition2_73_, ruser0_.employeeNumber as employee3_73_, ruser0_.familyName_norm as familyNa4_73_, ruser0_.familyName_orig as familyNa5_73_, ruser0_.fullName_norm as fullName6_73_, ruser0_.fullName_orig as fullName7_73_, ruser0_.givenName_norm as givenNam8_73_, ruser0_.givenName_orig as givenNam9_73_, ruser0_.honorificPrefix_norm as honorif10_73_, ruser0_.honorificPrefix_orig as honorif11_73_, ruser0_.honorificSuffix_norm as honorif12_73_, ruser0_.honorificSuffix_orig as honorif13_73_, ruser0_.name_norm as name_no14_73_, ruser0_.name_orig as name_or15_73_, ruser0_.nickName_norm as nickNam16_73_, ruser0_.nickName_orig as nickNam17_73_, ruser0_.title_norm as title_n18_73_, ruser0_.title_orig as title_o19_73_ from m_user ruser0_ inner join m_focus ruser0_1_ on ruser0_.oid=ruser0_1_.oid inner join m_object ruser0_2_ on ruser0_.oid=ruser0_2_.oid where ruser0_.oid=?
+         - select assignment0_.owner_oid as owner_oi2_5_0_, assignment0_.id as id1_5_0_, assignment0_.id as id1_5_1_, assignment0_.owner_oid as owner_oi2_5_1_, assignment0_.administrativeStatus as administ3_5_1_, assignment0_.archiveTimestamp as archiveT4_5_1_, assignment0_.disableReason as disableR5_5_1_, assignment0_.disableTimestamp as disableT6_5_1_, assignment0_.effectiveStatus as effectiv7_5_1_, assignment0_.enableTimestamp as enableTi8_5_1_, assignment0_.validFrom as validFro9_5_1_, assignment0_.validTo as validTo10_5_1_, assignment0_.validityChangeTimestamp as validit11_5_1_, assignment0_.validityStatus as validit12_5_1_, assignment0_.assignmentOwner as assignm13_5_1_, assignment0_.createChannel as createC14_5_1_, assignment0_.createTimestamp as createT15_5_1_, assignment0_.creatorRef_relation as creator16_5_1_, assignment0_.creatorRef_targetOid as creator17_5_1_, assignment0_.creatorRef_type as creator18_5_1_, assignment0_.extId as extId38_5_1_, assignment0_.extOid as extOid39_5_1_, assignment0_.lifecycleState as lifecyc19_5_1_, assignment0_.modifierRef_relation as modifie20_5_1_, assignment0_.modifierRef_targetOid as modifie21_5_1_, assignment0_.modifierRef_type as modifie22_5_1_, assignment0_.modifyChannel as modifyC23_5_1_, assignment0_.modifyTimestamp as modifyT24_5_1_, assignment0_.orderValue as orderVa25_5_1_, assignment0_.orgRef_relation as orgRef_26_5_1_, assignment0_.orgRef_targetOid as orgRef_27_5_1_, assignment0_.orgRef_type as orgRef_28_5_1_, assignment0_.resourceRef_relation as resourc29_5_1_, assignment0_.resourceRef_targetOid as resourc30_5_1_, assignment0_.resourceRef_type as resourc31_5_1_, assignment0_.targetRef_relation as targetR32_5_1_, assignment0_.targetRef_targetOid as targetR33_5_1_, assignment0_.targetRef_type as targetR34_5_1_, assignment0_.tenantRef_relation as tenantR35_5_1_, assignment0_.tenantRef_targetOid as tenantR36_5_1_, assignment0_.tenantRef_type as tenantR37_5_1_, rassignmen1_.owner_id as owner_id1_12_2_, rassignmen1_.owner_owner_oid as owner_ow2_12_2_, rassignmen1_.booleansCount as booleans3_12_2_, rassignmen1_.datesCount as datesCou4_12_2_, rassignmen1_.longsCount as longsCou5_12_2_, rassignmen1_.polysCount as polysCou6_12_2_, rassignmen1_.referencesCount as referenc7_12_2_, rassignmen1_.stringsCount as stringsC8_12_2_ from m_assignment assignment0_ left outer join m_assignment_extension rassignmen1_ on assignment0_.extId=rassignmen1_.owner_id and assignment0_.extOid=rassignmen1_.owner_owner_oid where assignment0_.owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select dates0_.anyContainer_owner_id as anyConta2_7_0_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_0_, dates0_.item_id as item_id1_7_0_, dates0_.dateValue as dateValu4_7_0_, dates0_.item_id as item_id1_7_1_, dates0_.anyContainer_owner_id as anyConta2_7_1_, dates0_.anyContainer_owner_owner_oid as anyConta3_7_1_, dates0_.dateValue as dateValu4_7_1_ from m_assignment_ext_date dates0_ where dates0_.anyContainer_owner_id=? and dates0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select longs0_.anyContainer_owner_id as anyConta2_8_0_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_0_, longs0_.item_id as item_id1_8_0_, longs0_.longValue as longValu4_8_0_, longs0_.item_id as item_id1_8_1_, longs0_.anyContainer_owner_id as anyConta2_8_1_, longs0_.anyContainer_owner_owner_oid as anyConta3_8_1_, longs0_.longValue as longValu4_8_1_ from m_assignment_ext_long longs0_ where longs0_.anyContainer_owner_id=? and longs0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select polys0_.anyContainer_owner_id as anyConta2_9_0_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_0_, polys0_.item_id as item_id1_9_0_, polys0_.orig as orig4_9_0_, polys0_.item_id as item_id1_9_1_, polys0_.anyContainer_owner_id as anyConta2_9_1_, polys0_.anyContainer_owner_owner_oid as anyConta3_9_1_, polys0_.orig as orig4_9_1_, polys0_.norm as norm5_9_1_ from m_assignment_ext_poly polys0_ where polys0_.anyContainer_owner_id=? and polys0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select references0_.anyContainer_owner_id as anyConta2_10_0_, references0_.anyContainer_owner_owner_oid as anyConta3_10_0_, references0_.item_id as item_id1_10_0_, references0_.targetoid as targetoi4_10_0_, references0_.item_id as item_id1_10_1_, references0_.anyContainer_owner_id as anyConta2_10_1_, references0_.anyContainer_owner_owner_oid as anyConta3_10_1_, references0_.targetoid as targetoi4_10_1_, references0_.relation as relation5_10_1_, references0_.targetType as targetTy6_10_1_ from m_assignment_ext_reference references0_ where references0_.anyContainer_owner_id=? and references0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select strings0_.anyContainer_owner_id as anyConta2_11_0_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_0_, strings0_.item_id as item_id1_11_0_, strings0_.stringValue as stringVa4_11_0_, strings0_.item_id as item_id1_11_1_, strings0_.anyContainer_owner_id as anyConta2_11_1_, strings0_.anyContainer_owner_owner_oid as anyConta3_11_1_, strings0_.stringValue as stringVa4_11_1_ from m_assignment_ext_string strings0_ where strings0_.anyContainer_owner_id=? and strings0_.anyContainer_owner_owner_oid=?
+         - select rassignmen_.owner_id, rassignmen_.owner_owner_oid, rassignmen_.booleansCount as booleans3_12_, rassignmen_.datesCount as datesCou4_12_, rassignmen_.longsCount as longsCou5_12_, rassignmen_.polysCount as polysCou6_12_, rassignmen_.referencesCount as referenc7_12_, rassignmen_.stringsCount as stringsC8_12_ from m_assignment_extension rassignmen_ where rassignmen_.owner_id=? and rassignmen_.owner_owner_oid=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select raextstrin_.item_id, raextstrin_.anyContainer_owner_id, raextstrin_.anyContainer_owner_owner_oid, raextstrin_.stringValue from m_assignment_ext_string raextstrin_ where raextstrin_.item_id=? and raextstrin_.anyContainer_owner_id=? and raextstrin_.anyContainer_owner_owner_oid=? and raextstrin_.stringValue=?
+         - select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
+         - select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
+         - select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
+         - select booleans0_.anyContainer_owner_id as anyConta2_6_0_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_0_, booleans0_.item_id as item_id1_6_0_, booleans0_.booleanValue as booleanV4_6_0_, booleans0_.item_id as item_id1_6_1_, booleans0_.anyContainer_owner_id as anyConta2_6_1_, booleans0_.anyContainer_owner_owner_oid as anyConta3_6_1_, booleans0_.booleanValue as booleanV4_6_1_ from m_assignment_ext_boolean booleans0_ where booleans0_.anyContainer_owner_id=? and booleans0_.anyContainer_owner_owner_oid=?
+         - insert into m_assignment (administrativeStatus, archiveTimestamp, disableReason, disableTimestamp, effectiveStatus, enableTimestamp, validFrom, validTo, validityChangeTimestamp, validityStatus, assignmentOwner, createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, extId, extOid, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, orderValue, orgRef_relation, orgRef_targetOid, orgRef_type, resourceRef_relation, resourceRef_targetOid, resourceRef_type, targetRef_relation, targetRef_targetOid, targetRef_type, tenantRef_relation, tenantRef_targetOid, tenantRef_type, id, owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_extension (booleansCount, datesCount, longsCount, polysCount, referencesCount, stringsCount, owner_id, owner_owner_oid) values (?, ?, ?, ?, ?, ?, ?, ?)
+         - insert into m_assignment_ext_string (item_id, anyContainer_owner_id, anyContainer_owner_owner_oid, stringValue) values (?, ?, ?, ?)
+         - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
+         - delete from m_assignment_policy_situation where assignment_id=? and assignment_oid=?
+         - delete from m_assignment where id=? and owner_oid=?
+         - delete from m_assignment_extension where owner_id=? and owner_owner_oid=?
+         - delete from m_assignment where id=? and owner_oid=?
+         - delete from m_assignment_ext_string where item_id=? and anyContainer_owner_id=? and anyContainer_owner_owner_oid=? and stringValue=?
+         - delete from m_assignment_extension where owner_id=? and owner_owner_oid=?
+         */
+        if (baseHelper.getConfiguration().isUsingH2()) {
+            AssertJUnit.assertEquals(34, queryInspector.getQueryCount());       // !!!!!!!!!!!
+        }
+
+        try (Session session = factory.openSession()) {
+            RUser u = session.get(RUser.class, userOid);
+            assertExtension(u, itemHidden1, "h1.1", "h1.2");
+            assertExtension(u, itemHidden2);
+            assertExtension(u, itemHidden3);
+            assertExtension(u, itemVisible, "v1", "v2", "v3");
+            assertExtension(u, itemWeapon);
+            assertEquals("Wrong # of assignments", 1, u.getAssignments().size());
+            RAssignment a = find(u.getAssignments(), 999);
+            assertExtension(a, itemWeapon, "W4.1", "W4.2");
+            assertExtension(a, itemShipName, "ship4");
+        }
+
+        assertGetObject(result);
+    }
+
+    private RAssignment find(Set<RAssignment> assignments, int id) {
+        RAssignment rv = assignments.stream()
+                .filter(a -> a.getId() == id)
+                .findFirst().orElse(null);
+        assertNotNull("No assignment #" + id, rv);
+        return rv;
+    }
+
+    @Test(enabled = false)
+    public void test900AddDeleteValuePerformance() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test900AddDeleteValuePerformance");
+
+        PrismObject<UserType> user = new UserType(getPrismContext())
+                .name("test100")
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        long overallStart = System.currentTimeMillis();
+        long lastBatchStart = overallStart;
+        int lastBatchFrom = 0;
+        for (int i = 0; i < ADD_VALUE_ITERATIONS;) {
+            String valueA = String.format("value-%09d-a", i);
+            String valueB = String.format("value-%09d-b", i);
+            List<ItemDelta<?, ?>> addModifications = getPrismContext().deltaFor(UserType.class)
+                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).add(valueA, valueB)
+                    .asItemDeltas();
+            List<ItemDelta<?, ?>> deleteModifications = getPrismContext().deltaFor(UserType.class)
+                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).delete(valueB)
+                    .asItemDeltas();
+            long lastStart = System.currentTimeMillis();
+            repositoryService.modifyObject(UserType.class, user.getOid(), addModifications, result);
+            repositoryService.modifyObject(UserType.class, user.getOid(), deleteModifications, result);
+            long end = System.currentTimeMillis();
+            i++;
+            if (i % 100 == 0) {
+                long totalDuration = end - overallStart;
+                long lastBatchDuration = end - lastBatchStart;
+                long lastDuration = end - lastStart;
+                int lastBatchSize = i - lastBatchFrom;
+                System.out.printf("Values added: %7d, last duration: %4d ms, last batch average: %9.1f, overall average: %9.1f\n",
+                        i, lastDuration, (float) lastBatchDuration / lastBatchSize, (float) totalDuration / i);
+                lastBatchFrom = i;
+                lastBatchStart = end;
+            }
+        }
+    }
+
+    private void assertGetObjectNoInclude(String oid, PrismObject<UserType> expected, OperationResult result) throws SchemaException,
+            ObjectNotFoundException {
+        checkObject(oid, expected, false, null, result);
+    }
+
+    // toInclude == null means "ALL"
+    private void assertGetObjectInclude(String oid, Collection<ItemName> toInclude, PrismObject<UserType> expected, OperationResult result) throws SchemaException,
+            ObjectNotFoundException {
+        checkObject(oid, expected, true, toInclude, result);
+    }
+
+    private void checkObject(String oid, PrismObject<UserType> expected, boolean include, Collection<ItemName> toInclude, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<UserType> expectedAdapted;
+        if (include && toInclude == null) {
+            expectedAdapted = expected;
+        } else {
+            expectedAdapted = expected.clone();
+            PrismContainer<?> extension = expectedAdapted.getExtension();
+            if (extension != null) {
+                if (!include || !toInclude.contains(EXT_HIDDEN1)) {
+                    extension.getValue().removeProperty(EXT_HIDDEN1);
+                }
+                if (!include || !toInclude.contains(EXT_HIDDEN2)) {
+                    extension.getValue().removeProperty(EXT_HIDDEN2);
+                }
+                if (!include || !toInclude.contains(EXT_HIDDEN3)) {
+                    extension.getValue().removeProperty(EXT_HIDDEN3);
+                }
+                if (extension.isEmpty()) {
+                    expectedAdapted.getValue().removeContainer(UserType.F_EXTENSION);
+                }
+            }
+        }
+
+        Collection<SelectorOptions<GetOperationOptions>> options;
+        if (include) {
+            if (toInclude == null) {
+                options = Collections.singletonList(
+                        SelectorOptions.create(GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+            } else {
+                ItemPath[] paths = toInclude.stream()
+                        .map(name -> ItemPath.create(UserType.F_EXTENSION, name)).toArray(ItemPath[]::new);
+                options = schemaHelper.getOperationOptionsBuilder().items((Object[]) paths).retrieve().build();
+            }
+        } else {
+            options = null;
+        }
+        PrismObject<UserType> real = repositoryService.getObject(UserType.class, oid, options, result);
+        ObjectDelta<UserType> delta = expectedAdapted.diff(real);
+        System.out.println("Expected object = \n" + expectedAdapted.debugDump());
+        System.out.println("Real object in repo = \n" + real.debugDump());
+        System.out.println("Difference = \n" + delta.debugDump());
+        if (!delta.isEmpty()) {
+            fail("Objects are not equal with include=" + include + ", toInclude=" + toInclude + ":\n*** Expected:\n" +
+                    expectedAdapted.debugDump() + "\n*** Got:\n" + real.debugDump() + "\n*** Delta:\n" + delta.debugDump());
+        }
+    }
+
+    private void assertSearch(ItemName item, String value, int expectedCount, OperationResult result) throws SchemaException {
+        ObjectQuery query = getPrismContext().queryFor(UserType.class)
+                .item(UserType.F_EXTENSION, item)
+                .eq(value)
+                .build();
+        SearchResultList<PrismObject<UserType>> found = repositoryService
+                .searchObjects(UserType.class, query, null, result);
+        PrismTestUtil.display("Found", found);
+        assertEquals("Wrong # of objects found", expectedCount, found.size());
+    }
+
+//    private void assertAnyValues(Collection<? extends RAnyValue> collection, Integer extItemId, Object... values) {
+//        Collection<RAnyValue> filtered = new ArrayList<>();
+//
+//        if (collection != null) {
+//            for (RAnyValue v : collection) {
+//                if (extItemId.equals(v.getItemId())) {
+//                    filtered.add(v);
+//                }
+//            }
+//        }
+//
+//        AssertJUnit.assertEquals(values.length, filtered.size());
+//
+//        for (Object value : values) {
+//            boolean found = false;
+//            for (RAnyValue v : filtered) {
+//                if (v.getValue().equals(value)) {
+//                    found = true;
+//                    break;
+//                }
+//            }
+//
+//            if (!found) {
+//                AssertJUnit.fail("Couldn't find '" + value + "' in extension collection");
+//            }
+//        }
+//    }
+
+
+    // This is ad-hoc test moved here from ObjectDeltaUpdaterTest
+    @Test
+    public void test199ReplaceAssignmentExtension() throws Exception {
+        OperationResult result = new OperationResult("test199ReplaceAssignmentExtension");
+
+        String file = FOLDER_BASE + "/modify/user-with-assignment-extension.xml";
+        PrismObject<UserType> user = prismContext.parseObject(new File(file));
+        user.setOid(null);
+        repositoryService.addObject(user, null, result);
+        String userOid = user.getOid();
+
+        QName SHIP_NAME_QNAME = new QName("http://example.com/p", "shipName");
+        PrismPropertyDefinition<String> def1 = prismContext.definitionFactory().createPropertyDefinition(SHIP_NAME_QNAME, DOMUtil.XSD_STRING);
+        ExtensionType extension = new ExtensionType(prismContext);
+        PrismProperty<String> loot = def1.instantiate();
+        loot.setRealValue("otherString");
+        extension.asPrismContainerValue().add(loot);
+
+        List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .replace(extension)
+                .asItemDeltas();
+
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, AssignmentType.F_EXTENSION, SHIP_NAME_QNAME), def1).eq("otherString")
+                .build();
+        List list = repositoryService.searchObjects(UserType.class, query, null, result);
+        assertEquals("Wrong # of query1 results", 1, list.size());
+
+        Session session = open();
+        RUser ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        RAssignmentExtension ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(1, ext.getStrings().size());
+        close(session);
+
+        // delete
+        deltas = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .delete(extension.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        session = open();
+        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(0, ext.getStrings().size());
+        close(session);
+
+        // add
+        deltas = prismContext.deltaFor(UserType.class)
+                .item(ItemPath.create(UserType.F_ASSIGNMENT, 1, AssignmentType.F_EXTENSION))
+                .add(extension.asPrismContainerValue().clone())
+                .asItemDeltas();
+        repositoryService.modifyObject(UserType.class, userOid, deltas, result);
+
+        session = open();
+        ruser = (RUser) session.createQuery("from RUser where oid = :o").setParameter("o", user.getOid()).getSingleResult();
+        ext = ruser.getAssignments().iterator().next().getExtension();
+        assertEquals(1, ext.getStrings().size());
+        close(session);
+    }
+}

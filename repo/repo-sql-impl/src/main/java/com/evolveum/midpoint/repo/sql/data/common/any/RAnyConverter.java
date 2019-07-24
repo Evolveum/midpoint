@@ -17,8 +17,9 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.BooleanUtils;
@@ -46,13 +48,16 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lazyman
  */
 public class RAnyConverter {
 
-    private enum ValueType {
+    public enum ValueType {
+
+        REFERENCE(ObjectReferenceType.class, ROExtReference.class, RAExtReference.class),
 
         BOOLEAN(Boolean.class, ROExtBoolean.class, RAExtBoolean.class),
 
@@ -65,8 +70,8 @@ public class RAnyConverter {
         POLY_STRING(PolyString.class, ROExtPolyString.class, RAExtPolyString.class);
 
         private Class valueType;
-        private Class<? extends ROExtValue> oExtType;
-        private Class<? extends RAExtValue> aExtType;
+        private Class<? extends ROExtValue<?>> oExtType;
+        private Class<? extends RAExtValue<?>> aExtType;
 
         ValueType(Class valueType, Class oExtType, Class aExtType) {
             this.valueType = valueType;
@@ -78,6 +83,7 @@ public class RAnyConverter {
             return valueType;
         }
 
+        @NotNull
         public RAExtValue createNewAExtValue(Object value) {
             try {
                 Constructor<? extends RAExtValue> constr = aExtType.getConstructor(value.getClass());
@@ -87,6 +93,7 @@ public class RAnyConverter {
             }
         }
 
+        @NotNull
         public ROExtValue createNewOExtValue(Object value) {
             try {
                 Constructor<? extends ROExtValue> constr = oExtType.getConstructor(value.getClass());
@@ -124,6 +131,7 @@ public class RAnyConverter {
         this.extItemDictionary = extItemDictionary;
     }
 
+    @NotNull
     private RAnyValue extractAndCreateValue(ItemDefinition def, PrismPropertyValue propertyValue, boolean assignment)
             throws SchemaException {
 
@@ -132,21 +140,18 @@ public class RAnyConverter {
         return assignment ? type.createNewAExtValue(extractedValue) : type.createNewOExtValue(extractedValue);
     }
 
-    public RAnyValue convertToRValue(PrismValue value, boolean assignment, RObjectExtensionType ownerType) throws SchemaException {
-        RAnyValue rValue;
+    @NotNull
+    public RAnyValue<?> convertToRValue(PrismValue value, boolean isAssignment) throws SchemaException {
+        RAnyValue<?> rValue;
 
         ItemDefinition definition = value.getParent().getDefinition();
-
-        if (!isIndexed(definition, value.getParent().getElementName(), areDynamicsOfThisKindIndexed(ownerType), prismContext)) {
-            return null;
-        }
 
         if (value instanceof PrismPropertyValue) {
             PrismPropertyValue propertyValue = (PrismPropertyValue) value;
 
-            rValue = extractAndCreateValue(definition, propertyValue, assignment);
+            rValue = extractAndCreateValue(definition, propertyValue, isAssignment);
         } else if (value instanceof PrismReferenceValue) {
-            if (assignment) {
+            if (isAssignment) {
                 PrismReferenceValue referenceValue = (PrismReferenceValue) value;
                 rValue = RAExtReference.createReference(referenceValue);
             } else {
@@ -183,7 +188,7 @@ public class RAnyConverter {
             RAnyValue rValue;
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
-                rValue = convertToRValue(value, assignment, ownerType);
+                rValue = convertToRValue(value, assignment);
                 rValues.add(rValue);
             }
         } catch (Exception ex) {
@@ -208,76 +213,91 @@ public class RAnyConverter {
         return null;
     }
 
-    private static boolean isIndexed(ItemDefinition definition, QName elementName,
-            boolean indexAlsoDynamics, PrismContext prismContext)
+    /**
+     * @return null if item is not indexed
+     */
+    public static ValueType getValueType(ItemDefinition<?> definition,
+            ItemName itemName, boolean indexAlsoDynamics, PrismContext prismContext)
             throws SchemaException {
-        if (definition instanceof PrismContainerDefinition) {
-            return false;
-        }
-        if (definition instanceof PrismReferenceDefinition) {
-            return true;        // TODO make reference indexing configurable
-        }
-        if (!(definition instanceof PrismPropertyDefinition)) {
+        if (definition == null) {
+            return null;
+        }if (definition instanceof PrismContainerDefinition) {
+            return null;
+        } else if (definition instanceof PrismReferenceDefinition) {
+            // TODO make reference indexing configurable
+            return ValueType.REFERENCE;
+        } else if (!(definition instanceof PrismPropertyDefinition)) {
             throw new UnsupportedOperationException("Unknown definition type '"
-                    + definition + "', can't say if '" + elementName + "' is indexed or not.");
+                    + definition + "', can't say if '" + itemName + "' is indexed or not.");
         }
 
-        PrismPropertyDefinition pDefinition = (PrismPropertyDefinition) definition;
+        PrismPropertyDefinition<?> pDefinition = (PrismPropertyDefinition<?>) definition;
         Boolean isIndexed = pDefinition.isIndexed();
-
-        if (definition.isDynamic() && !indexAlsoDynamics && BooleanUtils.isNotTrue(isIndexed)) {
-            return false;
+        if (BooleanUtils.isFalse(isIndexed)) {
+            return null;
+        } else if (isIndexed == null && definition.isDynamic() && !indexAlsoDynamics) {
+            return null;
         }
 
-        if (isIndexed != null) {
-            if (isIndexed && !isIndexedByDefault(definition, prismContext)) {
-                throw new SchemaException("Item is marked as indexed (definition " + definition.debugDump()
+        IndexableStatus status = getIndexableStatus(pDefinition, prismContext);
+        if (isIndexed == null) {
+            return status.indexedByDefault ? status.valueType : null;
+        } else {
+            assert Boolean.TRUE.equals(isIndexed);
+            if (status.valueType != null) {
+                return status.valueType;
+            } else {
+                throw new SchemaException("Item is marked as indexed (definition " + definition
                         + ") but definition type (" + definition.getTypeName() + ") doesn't support indexing");
             }
-
-            return isIndexed;
         }
-
-        return isIndexedByDefault(definition, prismContext);
     }
 
-    private static boolean areDynamicsOfThisKindIndexed(RObjectExtensionType extensionType) {
+    private static class IndexableStatus {
+        final boolean indexedByDefault;
+        final ValueType valueType;
+
+        private IndexableStatus(boolean indexedByDefault, ValueType valueType) {
+            this.indexedByDefault = indexedByDefault;
+            this.valueType = valueType;
+        }
+    }
+
+    private static IndexableStatus getIndexableStatus(PrismPropertyDefinition<?> definition, PrismContext prismContext) {
+        QName type = definition.getTypeName();
+        ValueType valueType = TYPE_MAP.get(type);
+        if (valueType != null) {
+            return new IndexableStatus(true, valueType);
+        } else {
+            Collection<? extends TypeDefinition> typeDefinitions = prismContext.getSchemaRegistry()
+                    .findTypeDefinitionsByType(definition.getTypeName());
+            if (typeDefinitions.size() != 1) {
+                return new IndexableStatus(false, null);        // shouldn't occur
+            }
+            TypeDefinition typeDef = typeDefinitions.iterator().next();
+            if (typeDef instanceof SimpleTypeDefinition) {
+                SimpleTypeDefinition simpleTypeDef = (SimpleTypeDefinition) typeDef;
+                if (DOMUtil.XSD_STRING.equals(simpleTypeDef.getBaseTypeName())
+                        && simpleTypeDef.getDerivationMethod() == SimpleTypeDefinition.DerivationMethod.RESTRICTION) {
+                    return new IndexableStatus(true, ValueType.STRING);
+                }
+            }
+            return new IndexableStatus(false, null);
+        }
+    }
+
+    private static boolean isIndexed(ItemDefinition definition, ItemName elementName,
+            boolean indexAlsoDynamics, PrismContext prismContext)
+            throws SchemaException {
+        return getValueType(definition, elementName, indexAlsoDynamics, prismContext) != null;
+    }
+
+    public static boolean areDynamicsOfThisKindIndexed(RObjectExtensionType extensionType) {
         // We assume that if an object/assignment extension item is not configured in XSD, we won't be searching for it.
         // This is to fix MID-4878 with a reasonable effort (as the sync token is currently not defined in any XSD).
         //
         // For shadow attributes we - of course - treat them as indexed.
         return extensionType != RObjectExtensionType.EXTENSION;
-    }
-
-    //todo should be renamed to canBeIndexed
-    private static boolean isIndexedByDefault(ItemDefinition definition, PrismContext prismContext) {
-        QName type = definition.getTypeName();
-        if (DOMUtil.XSD_DATETIME.equals(type)
-                || DOMUtil.XSD_INT.equals(type)
-                || DOMUtil.XSD_LONG.equals(type)
-                || DOMUtil.XSD_SHORT.equals(type)
-                || DOMUtil.XSD_INTEGER.equals(type)
-                || DOMUtil.XSD_DOUBLE.equals(type)
-                || DOMUtil.XSD_FLOAT.equals(type)
-                || DOMUtil.XSD_STRING.equals(type)
-                || DOMUtil.XSD_DECIMAL.equals(type)
-                || DOMUtil.XSD_BOOLEAN.equals(type)
-                || PolyStringType.COMPLEX_TYPE.equals(type)) {
-            return true;
-        }
-        Collection<? extends TypeDefinition> typeDefinitions = prismContext.getSchemaRegistry()
-                .findTypeDefinitionsByType(definition.getTypeName());
-        if (typeDefinitions.isEmpty() || typeDefinitions.size() > 1) {
-            return false;        // shouldn't occur
-        }
-        TypeDefinition typeDef = typeDefinitions.iterator().next();
-        if (typeDef instanceof SimpleTypeDefinition) {
-            SimpleTypeDefinition simpleTypeDef = (SimpleTypeDefinition) typeDef;
-            return DOMUtil.XSD_STRING.equals(simpleTypeDef.getBaseTypeName())
-                    && simpleTypeDef.getDerivationMethod() == SimpleTypeDefinition.DerivationMethod.RESTRICTION;
-        } else {
-            return false;
-        }
     }
 
     @NotNull
@@ -433,5 +453,22 @@ public class RAnyConverter {
         }
 
         return object;
+    }
+
+    // TODO fix this!
+    public static Collection<? extends ROExtValue> getExtValues(RObject rObject, RExtItem extItemDef, ItemDefinition<?> itemDef) {
+        assert extItemDef.getId() != null;
+        return getAllExtValues(rObject, itemDef).stream()
+                .filter(value -> extItemDef.getId().equals(value.getItemId()))  // check also extensionType
+                .collect(Collectors.toList());
+    }
+
+    // TODO fix this! (add support for other types)
+    private static Collection<? extends ROExtValue<?>> getAllExtValues(RObject<?> rObject, ItemDefinition<?> itemDef) {
+        if (DOMUtil.XSD_STRING.equals(itemDef.getTypeName())) {
+            return rObject.getStrings();
+        } else {
+            return Collections.emptyList();
+        }
     }
 }

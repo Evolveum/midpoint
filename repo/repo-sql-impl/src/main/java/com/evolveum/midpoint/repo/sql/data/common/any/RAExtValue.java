@@ -13,6 +13,7 @@ public interface RAExtValue<T> extends RAnyValue<T> {
 
     void setAnyContainer(RAssignmentExtension extension);
 
+    // not persistent (yet)
     RAssignmentExtensionType getExtensionType();
 
     void setExtensionType(RAssignmentExtensionType type);

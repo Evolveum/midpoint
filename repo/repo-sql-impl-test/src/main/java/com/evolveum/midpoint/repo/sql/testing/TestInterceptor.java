@@ -29,7 +29,7 @@ public class TestInterceptor extends EmptyInterceptor {
     private EntityStateInterceptor entityStateInterceptor;
 
     @Autowired
-    private QueryCountInterceptor queryCountInterceptor;
+    private QueryInspector queryInspector;
 
     @Override
     public Boolean isTransient(Object entity) {
@@ -38,6 +38,6 @@ public class TestInterceptor extends EmptyInterceptor {
 
     @Override
     public String onPrepareStatement(String sql) {
-        return queryCountInterceptor.onPrepareStatement(sql);
+        return queryInspector.onPrepareStatement(sql);
     }
 }

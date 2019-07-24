@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.helpers;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
@@ -27,9 +28,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
-import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
-import com.evolveum.midpoint.repo.sql.data.common.any.RItemKind;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -63,6 +62,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -193,8 +193,7 @@ public class ObjectRetriever {
             RObject obj = (RObject) query.uniqueResult();
 
 			if (obj != null) {
-				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
-						obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount(), obj.getBooleansCount());
+				fullObject = new GetObjectResult(obj.getOid(), obj.getFullObject());
 			}
 		}
 
@@ -548,18 +547,12 @@ public class ObjectRetriever {
             GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
             if (GetOperationOptions.isRaw(rootOptions)) {
                 LOGGER.debug("Loading definitions for shadow attributes.");
-
-                Short[] counts = result.getCountProjection();
                 Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
-
-                for (int i = 0; i < classes.length; i++) {
-                    if (counts[i] == null || counts[i] == 0) {
-                        continue;
-                    }
-
-                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
-                }
-                LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
+	            for (Class aClass : classes) {
+	            	// TODO restrict classes to only those that are currently present in the object
+		            applyShadowAttributeDefinitions(aClass, prismObject, session);
+	            }
+                LOGGER.debug("Definitions for attributes loaded.");
             } else {
                 LOGGER.debug("Not loading definitions for shadow attributes, raw=false");
             }
@@ -590,6 +583,7 @@ public class ObjectRetriever {
 //                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
 //            }
         }
+        loadIndexOnlyItemsIfNeeded(prismObject, options, session);
 
         if (partialValueHolder != null) {
         	partialValueHolder.setValue(prismObject);
@@ -601,8 +595,63 @@ public class ObjectRetriever {
 		return prismObject;
     }
 
+    // TODO add support for index-only attributes here
+	private <T extends ObjectType> void loadIndexOnlyItemsIfNeeded(PrismObject<T> prismObject,
+			Collection<SelectorOptions<GetOperationOptions>> options, Session session) throws SchemaException {
+		List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
+		if (retrieveOptions.isEmpty()) {
+			return;
+		}
 
-    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
+		RObject loaded = null;
+		for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
+			if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getName()),
+					retrieveOptions, false)) {
+				LOGGER.trace("We have to load index-only extension item {}", itemDefinition);
+				if (loaded == null) {
+					loaded = session.load(RObject.class, prismObject.getOid());
+				}
+				RExtItem extItemDef = extItemDictionary.findItemByDefinition(itemDefinition);
+				if (extItemDef == null) {
+					LOGGER.warn("No ext item definition for {}", itemDefinition);
+				} else if (extItemDef.getId() == null) {
+					throw new IllegalStateException("Ext item definition with no ID: " + extItemDef);
+				} else {
+					Collection<? extends ROExtValue> values = RAnyConverter.getExtValues(loaded, extItemDef, itemDefinition);
+					if (!values.isEmpty()) {
+						if (itemDefinition instanceof PrismPropertyDefinition) {
+							//noinspection unchecked
+							PrismProperty<Object> item = ((PrismPropertyDefinition<Object>) itemDefinition).instantiate();
+							for (ROExtValue value : values) {
+								item.addRealValue(value.getValue());
+							}
+							prismObject.getOrCreateExtension().getValue().add(item);
+						} else {
+							throw new UnsupportedOperationException(
+									"Non-property index-only items are not supported: " + itemDefinition);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private <T extends ObjectType> Collection<ItemDefinition<?>> getIndexOnlyExtensionItems(PrismObject<T> prismObject) {
+		List<ItemDefinition<?>> rv = new ArrayList<>();
+		if (prismObject.getDefinition() != null) {
+			PrismContainerDefinition<?> extensionDefinition = prismObject.getDefinition().getExtensionDefinition();
+			if (extensionDefinition != null) {
+				for (ItemDefinition definition : extensionDefinition.getDefinitions()) {
+					if (definition.isIndexOnly()) {
+						rv.add(definition);
+					}
+				}
+			}
+		}
+		return rv;
+	}
+
+	private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
                                                  PrismObject object, Session session) throws SchemaException {
 
         PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
@@ -745,39 +794,34 @@ public class ObjectRetriever {
 			QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
 			rQuery = engine.interpret(query, type, options, false, session);
 
-            ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
-            try {
-                Iterator<GetObjectResult> iterator = new ScrollableResultsIterator<>(results);
-                while (iterator.hasNext()) {
-                    GetObjectResult object = iterator.next();
+	        try (ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY)) {
+		        Iterator<GetObjectResult> iterator = new ScrollableResultsIterator<>(results);
+		        while (iterator.hasNext()) {
+			        GetObjectResult object = iterator.next();
 
-                    if (retrievedOids.contains(object.getOid())) {
-                    	continue;
-					}
+			        if (retrievedOids.contains(object.getOid())) {
+				        continue;
+			        }
 
-					// TODO treat exceptions encountered within the next call
-					PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
+			        // TODO treat exceptions encountered within the next call
+			        PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
 
-					/*
-					 *  We DO NOT store OIDs directly into retrievedOids, because this would mean that any duplicated results
-					 *  would get eliminated from processing. While this is basically OK, it would break existing behavior,
-					 *  and would lead to inconsistencies between e.g. "estimated total" vs "progress" in iterative tasks.
-					 *  Such inconsistencies could happen also in the current approach with retrievedOids/newlyRetrievedOids,
-					 *  but are much less likely.
-					 *  TODO reconsider this in the future - i.e. if it would not be beneficial to skip duplicate processing of objects
-					 *  TODO what about memory requirements of this data structure (consider e.g. millions of objects)
-					 */
-					newlyRetrievedOids.add(object.getOid());
+			        /*
+			         *  We DO NOT store OIDs directly into retrievedOids, because this would mean that any duplicated results
+			         *  would get eliminated from processing. While this is basically OK, it would break existing behavior,
+			         *  and would lead to inconsistencies between e.g. "estimated total" vs "progress" in iterative tasks.
+			         *  Such inconsistencies could happen also in the current approach with retrievedOids/newlyRetrievedOids,
+			         *  but are much less likely.
+			         *  TODO reconsider this in the future - i.e. if it would not be beneficial to skip duplicate processing of objects
+			         *  TODO what about memory requirements of this data structure (consider e.g. millions of objects)
+			         */
+			        newlyRetrievedOids.add(object.getOid());
 
-                    if (!handler.handle(prismObject, result)) {
-                        break;
-                    }
-                }
-            } finally {
-                if (results != null) {
-                    results.close();
-                }
-            }
+			        if (!handler.handle(prismObject, result)) {
+				        break;
+			        }
+		        }
+	        }
 
             session.getTransaction().commit();
         } catch (SchemaException | QueryException | RuntimeException ex) {

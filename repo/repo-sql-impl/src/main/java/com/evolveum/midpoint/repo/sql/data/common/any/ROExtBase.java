@@ -17,11 +17,12 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROExtBaseId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.util.Objects;
 
-abstract public class ROExtBase extends RAnyBase implements ROExtValue {
+abstract public class ROExtBase<T> extends RAnyBase<T> implements ROExtValue<T> {
 
 	private Boolean trans;
 
@@ -83,4 +84,6 @@ abstract public class ROExtBase extends RAnyBase implements ROExtValue {
 	public int hashCode() {
 		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerType());
 	}
+
+	public abstract ROExtBaseId createId();
 }

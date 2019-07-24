@@ -20,10 +20,12 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -31,7 +33,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
@@ -188,109 +190,47 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
 
 	private static final Set<Class<?>> OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT = new HashSet<>(Arrays.asList(
 			UserType.class, FocusType.class, AssignmentHolderType.class, ObjectType.class,
-			TaskType.class, LookupTableType.class, AccessCertificationCampaignType.class
+			TaskType.class, LookupTableType.class, AccessCertificationCampaignType.class,
+			ShadowType.class            // because of index-only attributes
 	));
 
 	public static boolean isRetrievedFullyByDefault(Class<?> objectType) {
 		return !OBJECTS_NOT_RETURNED_FULLY_BY_DEFAULT.contains(objectType);
 	}
 
-	public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
-        if (retrieveOptions.isEmpty()) {
-            return !ItemPathCollectionsUtil.containsEquivalent(PATHS_NOT_RETURNED_BY_DEFAULT, path);
+	public static boolean hasToLoadPath(@NotNull ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+		return hasToLoadPath(path, options, !ItemPathCollectionsUtil.containsEquivalent(PATHS_NOT_RETURNED_BY_DEFAULT, path));
+	}
+
+	public static boolean hasToLoadPath(@NotNull ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options,
+			boolean defaultValue) {
+        for (SelectorOptions<GetOperationOptions> option : emptyIfNull(options)) {
+        	// TODO consider ordering of the options from most specific to least specific
+	        RetrieveOption retrievalCommand = option != null && option.getOptions() != null ? option.getOptions().getRetrieve() : null;
+	        if (retrievalCommand != null) {
+		        ObjectSelector selector = option.getSelector();
+		        if (selector == null || selector.getPath() == null || selector.getPath().isSubPathOrEquivalent(path)) {
+			        switch (retrievalCommand) {
+				        case EXCLUDE:
+				        	return false;
+				        case DEFAULT:
+					        return defaultValue;
+				        case INCLUDE:
+					        return true;
+				        default:
+				        	throw new AssertionError("Wrong retrieve option: " + retrievalCommand);
+			        }
+		        }
+	        }
         }
-
-        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
-            ObjectSelector selector = option.getSelector();
-            if (selector != null) {
-	            UniformItemPath selected = selector.getPath();
-	            if (!isPathInSelected(path, selected)) {
-	                continue;
-	            }
-            }
-
-            RetrieveOption retrieveOption = option.getOptions().getRetrieve();
-            for (ItemPath notByDefault : PATHS_NOT_RETURNED_BY_DEFAULT) {
-                if (path.equivalent(notByDefault)) {
-                    //this one is not retrieved by default
-                    switch (retrieveOption) {
-                        case INCLUDE:
-                            return true;
-                        case EXCLUDE:
-                        case DEFAULT:
-                        default:
-                            return false;
-                    }
-                }
-            }
-
-            switch (retrieveOption) {
-                case EXCLUDE:
-                case DEFAULT:
-                    return false;
-                case INCLUDE:
-                default:
-                    return true;
-            }
-        }
-
-        return false;
-    }
-    
-    public static boolean isExplicitlyIncluded(UniformItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
-        if (retrieveOptions.isEmpty()) {
-            return false;
-        }
-
-        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
-            ObjectSelector selector = option.getSelector();
-            if (selector != null) {
-	            UniformItemPath selected = selector.getPath();
-	            if (!isPathInSelected(path, selected)) {
-	                continue;
-	            }
-            }
-
-            RetrieveOption retrieveOption = option.getOptions().getRetrieve();
-            switch (retrieveOption) {
-                case INCLUDE:
-                    return true;
-                case EXCLUDE:
-                case DEFAULT:
-                default:
-                    return false;
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean isPathInSelected(ItemPath path, ItemPath selected) {
-        if (selected == null || path == null) {
-            return false;
-        } else {
-        	return selected.isSubPathOrEquivalent(path);
-        }
+        return defaultValue;
     }
 
     public static List<SelectorOptions<GetOperationOptions>> filterRetrieveOptions(
             Collection<SelectorOptions<GetOperationOptions>> options) {
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions = new ArrayList<>();
-        if (options == null) {
-            return retrieveOptions;
-        }
-
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (option.getOptions() == null || option.getOptions().getRetrieve() == null) {
-                continue;
-            }
-
-            retrieveOptions.add(option);
-        }
-
-        return retrieveOptions;
+	    return MiscUtil.streamOf(options)
+			    .filter(option -> option.getOptions() != null && option.getOptions().getRetrieve() != null)
+			    .collect(Collectors.toList());
     }
 
 	public static <T> Map<T, Collection<UniformItemPath>> extractOptionValues(Collection<SelectorOptions<GetOperationOptions>> options,

@@ -364,6 +364,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		clone.canModify = this.canModify;
 		clone.operational = this.operational;
 		clone.valueEnumerationRef = this.valueEnumerationRef;
+		clone.indexOnly = this.indexOnly;
 	}
 
 	/**
