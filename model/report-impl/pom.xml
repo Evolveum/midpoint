@@ -192,6 +192,14 @@
    			<groupId>javax.annotation</groupId>
    			<artifactId>javax.annotation-api</artifactId>
   		</dependency>
+  		<dependency>
+		    <groupId>javax.xml.ws</groupId>
+			<artifactId>jaxws-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.soap</groupId>
+			<artifactId>javax.xml.soap-api</artifactId>
+	    </dependency>
 
 		<!-->Dependency definnition added, client to fetch reports <-->
 
