@@ -18910,6 +18910,27 @@
       				</xsd:documentation>
       			</xsd:annotation>
       		</xsd:element>
+      		<xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies a view of an object collection that is the result of the widget.
+							I.e. the collection that will be displayed when the widget is clicked, sent
+							out in "mailable" version of the widget and so on.
+						</p>
+						<p>
+							This part of widget definition is EXPERIMENTAL. It works only for some case,
+							some parts are hardcoded, untested or do not even work at all.
+							Use at your own risk. But it is perhaps best not to use this at all
+							until the code stabilizes.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+      			</xsd:annotation>
+      		</xsd:element>
       		<!-- TODO: formRef (optional, for form-based widgets) -->
       		<!-- TODO: view setting (optional, for list-based widgets) -->
       	</xsd:sequence>
@@ -24978,6 +24999,7 @@
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        	<!-- TODO: maybe we want this to be subtype of UserInterfaceFeatureType? -->
        		<xsd:sequence>
        			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
        				<xsd:annotation>
@@ -25057,7 +25079,24 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
-       			<!-- TODO later: sorting, expression -->
+       			<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						<p>
+       							Expression to be used to produce value for the column.
+       						</p>
+       						<p>
+       							Column expressions are EXPERIMENTAL. They work only under a very
+       							specific circumstances.
+       						</p>
+       					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.expression</a:displayName>
+							<a:experimental>true</a:experimental>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<!-- TODO later: sorting -->
            	</xsd:sequence>
     </xsd:complexType>
     
