@@ -29,7 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
-import com.evolveum.midpoint.repo.sql.testing.QueryInspector;
+import com.evolveum.midpoint.repo.sql.testing.TestStatementInspector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -65,13 +64,11 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
 
     private static final String FILE_USER = "user.xml";
 
-    @Autowired private QueryInspector queryInspector;
-
     private String userOid;
 
     @AfterMethod
     public void afterMethod() {
-        queryInspector.clear();
+        TestStatementInspector.clear();
     }
 
     @BeforeClass
@@ -98,9 +95,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         delta.addModificationReplaceProperty(
                 ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), ActivationStatusType.DISABLED);
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
         This looks quite well: Maybe the first two could be merged together.
@@ -112,7 +109,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -133,9 +130,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ActivationType activation = new ActivationType().administrativeStatus(ActivationStatusType.DISABLED);
         delta.addModificationDeleteContainer(UserType.F_ACTIVATION, activation.asPrismContainerValue());
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /* (What is being changed: version in M_OBJECT and activation-related columns in M_FOCUS.)
 
@@ -146,7 +143,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(4, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -164,9 +161,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 .add(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ARCHIVED))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -175,7 +172,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_focus set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, costCenter=?, emailAddress=?, hasPhoto=?, locale=?, locality_norm=?, locality_orig=?, preferredLanguage=?, telephoneNumber=?, timezone=? where oid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(4, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(4, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -200,9 +197,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 .delete(new AssignmentType(prismContext).id(1L))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -221,7 +218,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         // select createappr0_.owner_id as owner_id1_14_0_, createappr0_.owner_owner_oid as owner_ow2_14_0_, createappr0_.reference_type as referenc3_14_0_, createappr0_.relation as relation4_14_0_, createappr0_.targetOid as targetOi5_14_0_, createappr0_.owner_id as owner_id1_14_1_, createappr0_.owner_owner_oid as owner_ow2_14_1_, createappr0_.reference_type as referenc3_14_1_, createappr0_.relation as relation4_14_1_, createappr0_.targetOid as targetOi5_14_1_, createappr0_.targetType as targetTy6_14_1_ from m_assignment_reference createappr0_ where ( createappr0_.reference_type= 0) and createappr0_.owner_id=? and createappr0_.owner_owner_oid=?
         // select modifyappr0_.owner_id as owner_id1_14_0_, modifyappr0_.owner_owner_oid as owner_ow2_14_0_, modifyappr0_.reference_type as referenc3_14_0_, modifyappr0_.relation as relation4_14_0_, modifyappr0_.targetOid as targetOi5_14_0_, modifyappr0_.owner_id as owner_id1_14_1_, modifyappr0_.owner_owner_oid as owner_ow2_14_1_, modifyappr0_.reference_type as referenc3_14_1_, modifyappr0_.relation as relation4_14_1_, modifyappr0_.targetOid as targetOi5_14_1_, modifyappr0_.targetType as targetTy6_14_1_ from m_assignment_reference modifyappr0_ where ( modifyappr0_.reference_type= 1) and modifyappr0_.owner_id=? and modifyappr0_.owner_owner_oid=?
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(10, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(10, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -252,9 +249,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         delta.addModificationAddContainer(
                 ItemPath.create(UserType.F_ASSIGNMENT, 2, AssignmentType.F_ACTIVATION), activation.asPrismContainerValue());
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -265,7 +262,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -290,9 +287,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .delete(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ENABLED))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -303,7 +300,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -323,9 +320,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .add(new ActivationType(prismContext).administrativeStatus(ActivationStatusType.ARCHIVED))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -336,7 +333,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -358,9 +355,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .replace()
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -371,7 +368,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -392,9 +389,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .delete(createRef(ShadowType.COMPLEX_TYPE, "456"))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -405,7 +402,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_reference where owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -429,9 +426,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         parentOrgRef = createRef(OrgType.COMPLEX_TYPE, "789");
         delta.addModificationAddReference(UserType.F_PARENT_ORG_REF, parentOrgRef.asReferenceValue());
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -443,7 +440,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -467,9 +464,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .replace("asdf")
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -480,7 +477,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -501,9 +498,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .replace("zxcv")
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -514,7 +511,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -537,9 +534,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .add(createRef(UserType.COMPLEX_TYPE, "654"))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -550,7 +547,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -572,9 +569,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .delete(createRef(UserType.COMPLEX_TYPE, "654"))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -585,7 +582,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -610,9 +607,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -629,7 +626,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(11, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(11, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -667,9 +664,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -681,7 +678,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -709,9 +706,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -727,7 +724,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (isH2()) {
-            AssertJUnit.assertEquals(10, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(10, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -758,9 +755,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .replace("asdf2")
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -771,7 +768,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -791,9 +788,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .replace("zxcv2")
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -805,7 +802,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(7, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(7, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -828,9 +825,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .add(createRef(UserType.COMPLEX_TYPE, "6542"))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -841,7 +838,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -864,9 +861,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                     .delete(createRef(UserType.COMPLEX_TYPE, "6542"))
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -877,7 +874,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - delete from m_assignment_reference where owner_id=? and owner_owner_oid=? and reference_type=? and relation=? and targetOid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -906,9 +903,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -927,7 +924,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(13, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(13, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -965,9 +962,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -981,7 +978,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          */
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(8, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(8, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -1009,9 +1006,9 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
                 )
                 .asItemDeltas();
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, modifications, result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         /*
          - select oid from m_object where oid = ? for update
@@ -1028,7 +1025,7 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
          - update m_assignment set administrativeStatus=?, archiveTimestamp=?, disableReason=?, disableTimestamp=?, effectiveStatus=?, enableTimestamp=?, validFrom=?, validTo=?, validityChangeTimestamp=?, validityStatus=?, assignmentOwner=?, createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, extId=?, extOid=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, orderValue=?, orgRef_relation=?, orgRef_targetOid=?, orgRef_type=?, resourceRef_relation=?, resourceRef_targetOid=?, resourceRef_type=?, targetRef_relation=?, targetRef_targetOid=?, targetRef_type=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=? where id=? and owner_oid=?
          */
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(12, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(12, TestStatementInspector.getQueryCount());
         }
 
         try (Session session = factory.openSession()) {
@@ -1125,12 +1122,12 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         delta.addModificationAddProperty(UserType.F_JPEG_PHOTO, new byte[]{ 1, 2, 3 });
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         LOGGER.info("test280AddPhoto check");
@@ -1152,12 +1149,12 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         delta.addModificationReplaceProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(6, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(6, TestStatementInspector.getQueryCount());
         }
 
         LOGGER.info("test290ReplacePhoto check");
@@ -1179,12 +1176,12 @@ public class ObjectDeltaUpdaterTest extends BaseSQLRepoTest {
         ObjectDelta<UserType> delta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid);
         delta.addModificationDeleteProperty(UserType.F_JPEG_PHOTO, new byte[]{4,5,6});
 
-        queryInspector.start();
+        TestStatementInspector.start();
         repositoryService.modifyObject(UserType.class, userOid, delta.getModifications(), result);
-        queryInspector.dump();
+        TestStatementInspector.dump();
 
         if (baseHelper.getConfiguration().isUsingH2()) {
-            AssertJUnit.assertEquals(5, queryInspector.getQueryCount());
+            AssertJUnit.assertEquals(5, TestStatementInspector.getQueryCount());
         }
 
         LOGGER.info("test300DeletePhoto check");

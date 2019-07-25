@@ -103,14 +103,14 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 		if (!super.equals(o))
 			return false;
 		RAExtBase<?> raExtBase = (RAExtBase<?>) o;
-		return /*Objects.equals(getAssignmentOwnerOid(), raExtBase.getAssignmentOwnerOid()) &&
-				Objects.equals(getAssignmentId(), raExtBase.getAssignmentId()) && */
-				getExtensionType() == raExtBase.getExtensionType();
+		return Objects.equals(getOwnerOid(), raExtBase.getOwnerOid()) &&
+				Objects.equals(getOwnerId(), raExtBase.getOwnerId());
+				/*getExtensionType() == raExtBase.getExtensionType() */
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), /*getAssignmentOwnerOid(), getAssignmentId(), */ getExtensionType());
+		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerId());
 	}
 
 	@Override

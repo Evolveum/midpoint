@@ -16,45 +16,46 @@
 
 package com.evolveum.midpoint.repo.sql.testing;
 
-import org.hibernate.EmptyInterceptor;
+import org.hibernate.resource.jdbc.spi.StatementInspector;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * This inspector is instantiated by Hibernate.
+ * However, the queries recorded are accessed statically, as we do not have access to Hibernate-created instances of this class.
  */
-public class QueryInspector extends EmptyInterceptor {
+public class TestStatementInspector implements StatementInspector {
 
-    private ThreadLocal<List<String>> queryCount = new ThreadLocal<>();
+    private static ThreadLocal<List<String>> queries = new ThreadLocal<>();
 
-    public void start() {
-        queryCount.set(new ArrayList<>());
+    public static void start() {
+        queries.set(new ArrayList<>());
     }
 
-    public int getQueryCount() {
+    public static int getQueryCount() {
         List<String> queries = getQueries();
         return queries != null ? queries.size() : 0;
     }
 
-    public List<String> getQueries() {
-        return queryCount.get();
+    public static List<String> getQueries() {
+        return queries.get();
     }
 
-    public void clear() {
-        queryCount.remove();
+    public static void clear() {
+        queries.remove();
     }
 
     @Override
-    public String onPrepareStatement(String sql) {
+    public synchronized String inspect(String sql) {
         List<String> queries = getQueries();
         if (queries != null) {
             queries.add(sql);
         }
-        return super.onPrepareStatement(sql);
+        return sql;
     }
 
-    public void dump() {
+    public static void dump() {
         List<String> queries = getQueries();
         if (queries != null) {
             System.out.println("Queries collected (" + queries.size() + "):");

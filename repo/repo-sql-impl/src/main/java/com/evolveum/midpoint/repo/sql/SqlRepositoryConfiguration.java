@@ -317,6 +317,9 @@ public class SqlRepositoryConfiguration {
 
 	public static final String PROPERTY_INITIALIZATION_FAIL_TIMEOUT = "initializationFailTimeout";
 
+	public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION = "enableNoFetchExtensionValuesInsertion";
+	public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION = "enableNoFetchExtensionValuesDeletion";
+
     private static final String DRIVER_H2 = Driver.class.getName();
     private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
     private static final String DRIVER_MARIADB = "org.mariadb.jdbc.Driver";
@@ -391,6 +394,9 @@ public class SqlRepositoryConfiguration {
 	private String schemaVersionIfMissing;
 	private String schemaVersionOverride;
 	private String schemaVariant;           // e.g. "utf8mb4" for MySQL/MariaDB
+
+	private boolean enableNoFetchExtensionValuesInsertion;
+	private boolean enableNoFetchExtensionValuesDeletion;
 
 	/*
 	 * Notes:
@@ -509,6 +515,9 @@ public class SqlRepositoryConfiguration {
 	    schemaVariant = configuration.getString(PROPERTY_SCHEMA_VARIANT);
 
 	    initializationFailTimeout = configuration.getLong(PROPERTY_INITIALIZATION_FAIL_TIMEOUT, 1L);
+
+	    enableNoFetchExtensionValuesInsertion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION, true);
+	    enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
     }
 
 	private boolean isAutoUpdate(String hbm2ddl) {
@@ -974,5 +983,25 @@ public class SqlRepositoryConfiguration {
 
 	public long getInitializationFailTimeout() {
 		return initializationFailTimeout;
+	}
+
+	public boolean isEnableNoFetchExtensionValuesInsertion() {
+		return enableNoFetchExtensionValuesInsertion;
+	}
+
+	public boolean isEnableNoFetchExtensionValuesDeletion() {
+		return enableNoFetchExtensionValuesDeletion;
+	}
+
+	// for testing only
+	@SuppressWarnings("SameParameterValue")
+	void setEnableNoFetchExtensionValuesInsertion(boolean enableNoFetchExtensionValuesInsertion) {
+		this.enableNoFetchExtensionValuesInsertion = enableNoFetchExtensionValuesInsertion;
+	}
+
+	// for testing only
+	@SuppressWarnings("SameParameterValue")
+	void setEnableNoFetchExtensionValuesDeletion(boolean enableNoFetchExtensionValuesDeletion) {
+		this.enableNoFetchExtensionValuesDeletion = enableNoFetchExtensionValuesDeletion;
 	}
 }

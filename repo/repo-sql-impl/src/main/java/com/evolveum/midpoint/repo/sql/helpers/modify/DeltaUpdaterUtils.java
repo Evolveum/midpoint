@@ -203,45 +203,6 @@ public class DeltaUpdaterUtils {
         }
     }
 
-    /**
-     * Similar to the above but avoids fetching the whole collection content.
-     * See MID-5558.
-     */
-    public static void markNewValuesTransientAndAddToExistingNoFetch(Collection dbCollection,
-            Collection<PrismEntityPair<?>> newValues, PrismIdentifierGenerator idGenerator, Session session) {
-        for (PrismEntityPair item : newValues) {
-            Object repositoryItem = item.getRepository();
-            if (repositoryItem instanceof EntityState) {
-                EntityState es = (EntityState) repositoryItem;
-                es.setTransient(true);
-            }
-
-            if (repositoryItem instanceof Container) {
-                PrismContainerValue pcv = (PrismContainerValue) item.getPrism();
-                if (pcv.getId() != null) {
-                    Integer expectedId = pcv.getId().intValue();
-                    ((Container) repositoryItem).setId(expectedId);
-                } else {
-                    long nextId = idGenerator.nextId();
-                    ((Container) repositoryItem).setId((int) nextId);
-                    ((PrismContainerValue) item.getPrism()).setId(nextId);
-                }
-            }
-
-            boolean exists;
-            if (repositoryItem instanceof RAnyValue) {
-                Serializable id = ((RAnyValue) repositoryItem).createId();
-                exists = session.get(repositoryItem.getClass(), id) != null;
-            } else {
-                exists = false;
-            }
-            if (!exists) {
-                dbCollection.add(repositoryItem);
-                session.persist(repositoryItem);            // save is not cascaded to extension values any more [SAVE-CASCADE]
-            }
-        }
-    }
-
     public static void clearExtension(RAssignmentExtension extension, Session session) {
         clearExtensionCollection(extension.getBooleans(), session);
         clearExtensionCollection(extension.getDates(), session);

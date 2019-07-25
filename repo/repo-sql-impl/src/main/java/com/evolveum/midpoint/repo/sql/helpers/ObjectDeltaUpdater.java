@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.RepoModifyOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -51,11 +52,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -81,15 +84,32 @@ public class ObjectDeltaUpdater {
     @Autowired private PrismEntityMapper prismEntityMapper;
     @Autowired private ExtItemDictionary extItemDictionary;
 
+    private static class Context {
+        private final RepoModifyOptions options;
+        private final PrismIdentifierGenerator<?> idGenerator;
+        private final Session session;
+        private final ObjectUpdater.AttemptContext attemptContext;
+
+        private Context(RepoModifyOptions options, PrismIdentifierGenerator<?> idGenerator, Session session,
+                ObjectUpdater.AttemptContext attemptContext) {
+            this.options = options;
+            this.idGenerator = idGenerator;
+            this.session = session;
+            this.attemptContext = attemptContext;
+        }
+    }
+
     /**
      * modify
      */
-    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta<?, ?>> modifications,
-            PrismObject<T> prismObject, Session session) throws SchemaException {
+    public <T extends ObjectType> RObject<T> modifyObject(Class<T> type, String oid,
+            Collection<? extends ItemDelta<?, ?>> modifications,
+            PrismObject<T> prismObject, RepoModifyOptions modifyOptions, Session session,
+            ObjectUpdater.AttemptContext attemptContext) throws SchemaException {
 
         LOGGER.trace("Starting to build entity changes for {}, {}, \n{}", type, oid, DebugUtil.debugDumpLazily(modifications));
 
-        // normalize reference.relation qnames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
+        // normalize reference.relation QNames like it's done here ObjectTypeUtil.normalizeAllRelations(prismObject);
 
         // how to generate identifiers correctly now? to repo entities and to full xml, ids in full XML are generated
         // on different place than we later create new containers...how to match them
@@ -106,6 +126,8 @@ public class ObjectDeltaUpdater {
 
         PrismIdentifierGenerator<T> idGenerator = new PrismIdentifierGenerator<>(PrismIdentifierGenerator.Operation.MODIFY);
         idGenerator.collectUsedIds(prismObject);
+
+        Context ctx = new Context(modifyOptions, idGenerator, session, attemptContext);
 
         // Preprocess modifications: We want to process only real modifications. (As for assumeMissingItems, see MID-5280.)
         Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications, true);
@@ -126,9 +148,9 @@ public class ObjectDeltaUpdater {
 
             if (isObjectExtensionDelta(path) || isShadowAttributesDelta(path)) {
                 if (delta.getPath().size() == 1) {
-                    handleObjectExtensionWholeContainerDelta(object, delta, idGenerator, session);
+                    handleObjectExtensionWholeContainerDelta(object, delta, ctx);
                 } else {
-                    handleObjectExtensionItemDelta(object, delta, idGenerator, session);
+                    handleObjectExtensionItemDelta(object, delta, ctx);
                 }
             } else if (isOperationResult(delta)) {
                 handleOperationResult(object, delta);
@@ -140,7 +162,7 @@ public class ObjectDeltaUpdater {
                 if (object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath())) {
                     shadowPendingOperationModified = true;
                 }
-                handleRegularModification(object, delta, idGenerator, session, prismObject, mainEntityType);
+                handleRegularModification(object, delta, prismObject, mainEntityType, ctx);
             }
         }
 
@@ -157,7 +179,7 @@ public class ObjectDeltaUpdater {
     }
 
     private <T extends ObjectType> void handleRegularModification(RObject<T> object, ItemDelta<?, ?> delta,
-            PrismIdentifierGenerator<T> idGenerator, Session session, PrismObject<T> prismObject, ManagedType<?> mainEntityType)
+            PrismObject<T> prismObject, ManagedType<?> mainEntityType, Context ctx)
             throws SchemaException {
         TypeValuePair currentValueTypePair = new TypeValuePair();
         currentValueTypePair.type = mainEntityType;
@@ -178,9 +200,9 @@ public class ObjectDeltaUpdater {
             if (currentValueTypePair.value instanceof RAssignment) {
                 if (QNameUtil.match(name, AssignmentType.F_EXTENSION)) {
                     if (segments.hasNext()) {
-                        handleAssignmentExtensionItemDelta((RAssignment) currentValueTypePair.value, delta, idGenerator, session);
+                        handleAssignmentExtensionItemDelta((RAssignment) currentValueTypePair.value, delta, ctx);
                     } else {
-                        handleAssignmentExtensionWholeContainerDelta((RAssignment) currentValueTypePair.value, delta, idGenerator, session);
+                        handleAssignmentExtensionWholeContainerDelta((RAssignment) currentValueTypePair.value, delta, ctx);
                     }
                     break;
                 } else if (QNameUtil.match(name, AssignmentType.F_METADATA)) {
@@ -202,13 +224,14 @@ public class ObjectDeltaUpdater {
                 continue;
             }
 
-            handleAttribute(attribute, currentValueTypePair.value, delta, prismObject, idGenerator);
+            handleAttribute(attribute, currentValueTypePair.value, delta, prismObject, ctx.idGenerator);
 
             if ("name".equals(attribute.getName()) && RObject.class
                     .isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
                 // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
                 Attribute nameCopyAttribute = findAttribute(currentValueTypePair, "nameCopy", null, null);
-                handleAttribute(nameCopyAttribute, currentValueTypePair.value, delta, prismObject, idGenerator);
+                assert nameCopyAttribute != null;
+                handleAttribute(nameCopyAttribute, currentValueTypePair.value, delta, prismObject, ctx.idGenerator);
             }
         }
     }
@@ -218,7 +241,7 @@ public class ObjectDeltaUpdater {
             throw new SystemException("Bean is not instance of " + RFocus.class + ", shouldn't happen");
         }
 
-        RFocus focus = (RFocus) bean;
+        RFocus<?> focus = (RFocus<?>) bean;
         Set<RFocusPhoto> photos = focus.getJpegPhoto();
 
         if (delta.isDelete()) {
@@ -254,6 +277,7 @@ public class ObjectDeltaUpdater {
         oldPhoto.setPhoto(photo.getPhoto());
     }
 
+    @SuppressWarnings("Duplicates")
     private void handleWholeMetadata(Metadata<?> bean, ItemDelta delta) {
         PrismValue value = null;
         if (!delta.isDelete()) {
@@ -271,6 +295,7 @@ public class ObjectDeltaUpdater {
             // todo clean this up
             // we know that mapper supports mapping null value, but still this code smells
             Mapper mapper = prismEntityMapper.getMapper(MetadataType.class, Metadata.class);
+            //noinspection unchecked
             mapper.map(null, context);
         }
     }
@@ -283,6 +308,7 @@ public class ObjectDeltaUpdater {
         return OperationResultType.COMPLEX_TYPE.equals(def.getTypeName());
     }
 
+    @SuppressWarnings("Duplicates")
     private void handleOperationResult(Object bean, ItemDelta delta) {
         if (!(bean instanceof OperationResult)) {
             throw new SystemException("Bean is not instance of " + OperationResult.class + ", shouldn't happen");
@@ -304,6 +330,7 @@ public class ObjectDeltaUpdater {
             // todo clean this up
             // we know that mapper supports mapping null value, but still this code smells
             Mapper mapper = prismEntityMapper.getMapper(OperationResultType.class, OperationResult.class);
+            //noinspection unchecked
             mapper.map(null, context);
         }
     }
@@ -392,8 +419,7 @@ public class ObjectDeltaUpdater {
         return path.startsWithName(ShadowType.F_ATTRIBUTES);
     }
 
-    private void handleAssignmentExtensionItemDelta(RAssignment assignment, ItemDelta delta, PrismIdentifierGenerator idGenerator,
-            Session session) throws SchemaException {
+    private void handleAssignmentExtensionItemDelta(RAssignment assignment, ItemDelta delta, Context ctx) throws SchemaException {
         RAssignmentExtension extension;
         if (assignment.getExtension() != null) {
             extension = assignment.getExtension();
@@ -403,7 +429,7 @@ public class ObjectDeltaUpdater {
             extension.setTransient(true);
             assignment.setExtension(extension);
         }
-        handleExtensionDelta(delta, null, null, extension, RAssignmentExtensionType.EXTENSION, idGenerator, session);
+        handleExtensionDelta(delta, null, null, extension, RAssignmentExtensionType.EXTENSION, ctx);
     }
 
     private void processExtensionDeltaValueSet(Collection<? extends PrismValue> prismValuesFromDelta,
@@ -435,6 +461,7 @@ public class ObjectDeltaUpdater {
         }
     }
 
+    @SuppressWarnings("unused") // assignmentExtensionType will be used later
     private Collection<RAnyValue<?>> getMatchingValues(Collection<? extends RAnyValue<?>> existing, ItemDefinition def,
             RObjectExtensionType objectOwnerType, RAssignmentExtensionType assignmentExtensionType) {
 
@@ -472,7 +499,7 @@ public class ObjectDeltaUpdater {
     private void handleExtensionDelta(ItemDelta<?, ?> delta,
             RObject object, RObjectExtensionType objectExtensionType,
             RAssignmentExtension assignmentExtension, RAssignmentExtensionType assignmentExtensionType,
-            PrismIdentifierGenerator idGenerator, Session session) throws SchemaException {
+            Context ctx) throws SchemaException {
 
         ItemDefinition definition = delta.getDefinition();
         if (definition == null) {
@@ -487,69 +514,167 @@ public class ObjectDeltaUpdater {
 
         if (delta.getValuesToReplace() != null) {
             processExtensionDeltaValueSet(delta.getValuesToReplace(), valueType, object, objectExtensionType,
-                    assignmentExtension, assignmentExtensionType, (dbCollection, pairsFromDelta) -> {
-                        Collection<? extends RAnyValue<?>> relevantInDb = getMatchingValues(dbCollection, definition, objectExtensionType, assignmentExtensionType);
-
-                        if (pairsFromDelta.isEmpty()) {
-                            // if there are not new values, we just remove existing ones
-                            deleteFromCollectionAndDb(dbCollection, relevantInDb, session);
-                            return;
-                        }
-
-                        Collection<RAnyValue<?>> rValuesToDelete = new ArrayList<>();
-                        Collection<PrismEntityPair<?>> pairsToAdd = new ArrayList<>();
-
-                        // BEWARE - this algorithm does not work for RAnyValues that have equal "value" but differ in other components
-                        // (e.g. references: OID vs. relation/type; poly strings: orig vs. norm)
-                        Set<Object> realValuesToAdd = new HashSet<>();
-                        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
-                            realValuesToAdd.add(pair.getRepository().getValue());
-                        }
-
-                        for (RAnyValue value : relevantInDb) {
-                            if (realValuesToAdd.contains(value.getValue())) {
-                                // do not replace with the same one - don't touch
-                                realValuesToAdd.remove(value.getValue());
-                            } else {
-                                rValuesToDelete.add(value);
-                            }
-                        }
-
-                        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
-                            if (realValuesToAdd.contains(pair.getRepository().getValue())) {
-                                pairsToAdd.add(pair);
-                            }
-                        }
-
-                        deleteFromCollectionAndDb(dbCollection, rValuesToDelete, session);
-                        markNewValuesTransientAndAddToExistingNoFetch(dbCollection, pairsToAdd, idGenerator, session);
-                    });
+                    assignmentExtension, assignmentExtensionType,
+                    (dbCollection, pairsFromDelta) -> replaceExtensionValues(objectExtensionType, assignmentExtensionType,
+                            definition, dbCollection, pairsFromDelta, ctx));
         } else {
             processExtensionDeltaValueSet(delta.getValuesToDelete(), valueType, object, objectExtensionType, assignmentExtension,
-                    assignmentExtensionType, (existing, fromDelta) -> {
-                        Collection<RAnyValue> rValuesToDelete = fromDelta.stream()
-                                .map(PrismEntityPair::getRepository)
-                                .collect(Collectors.toList());
-                        for (RAnyValue value : rValuesToDelete) {
-                            // TODO eliminate this extra "get" if value is not loaded yet
-                            RAnyValue fromSession = session.get(value.getClass(), value.createId());
-                            if (fromSession != null) {
-                                session.delete(fromSession);
-                            }
-                            // We must NOT call dbCollection.remove(...) here. It causes all collection values to be fetched
-                            // from the database, contradicting MID-5558.
-                        }
-                    });
+                    assignmentExtensionType,
+                    (dbCollection, pairsFromDelta) -> deleteExtensionValues(dbCollection, pairsFromDelta, ctx));
 
             processExtensionDeltaValueSet(delta.getValuesToAdd(), valueType, object, objectExtensionType, assignmentExtension,
                     assignmentExtensionType,
-                    (existing, fromDelta) -> markNewValuesTransientAndAddToExistingNoFetch(existing, (Collection) fromDelta,
-                            idGenerator, session));
+                    (dbCollection, pairsFromDelta) -> addExtensionValues(dbCollection, pairsFromDelta, ctx));
         }
+    }
+
+    private void addExtensionValues(Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<PrismEntityPair<RAnyValue<?>>> pairsFromDelta, Context ctx) {
+        markNewValuesTransientAndAddToExistingNoFetch(dbCollection, pairsFromDelta, ctx);
+    }
+
+    /**
+     * Similar to DeltaUpdaterUtils.markNewValuesTransientAndAddToExisting but avoids fetching the whole collection content.
+     * See MID-5558.
+     */
+    private static <T> void markNewValuesTransientAndAddToExistingNoFetch(Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<PrismEntityPair<RAnyValue<?>>> newValues, Context ctx) {
+        for (PrismEntityPair<RAnyValue<?>> item : newValues) {
+            RAnyValue<?> rValue = item.getRepository();
+            boolean exists;
+            if (Boolean.TRUE.equals(RepoModifyOptions.getUseNoFetchExtensionValuesInsertion(ctx.options))) {
+                exists = false;     // skipping the check
+                ctx.attemptContext.noFetchExtensionValueInsertionAttempted = true;      // to know that CVE can be caused because of this
+            } else {
+                Serializable id = rValue.createId();
+                exists = ctx.session.get(rValue.getClass(), id) != null;
+            }
+            if (!exists) {
+                //noinspection unchecked
+                ((Collection) dbCollection).add(rValue);
+                ctx.session.persist(rValue);            // save is not cascaded to extension values any more [SAVE-CASCADE]
+            }
+        }
+    }
+
+    private void deleteExtensionValues(Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<PrismEntityPair<RAnyValue<?>>> pairsFromDelta, Context ctx) {
+        if (pairsFromDelta.isEmpty()) {
+            return;
+        }
+        Collection<RAnyValue<?>> rValuesToDelete = pairsFromDelta.stream()
+                .map(PrismEntityPair::getRepository)
+                .collect(Collectors.toList());
+
+        boolean collectionLoaded = dbCollection instanceof PersistentCollection &&
+            ((PersistentCollection) dbCollection).wasInitialized();
+
+        // Note: as for 4.0 "no fetch" deletion is available only for ROExtString (MID-5558).
+        boolean noFetchDeleteSupported =
+                Boolean.TRUE.equals(RepoModifyOptions.getUseNoFetchExtensionValuesDeletion(ctx.options)) &&
+                rValuesToDelete.stream().allMatch(rValue -> rValue instanceof ROExtString);
+
+        //System.out.println("Collection loaded = " + collectionLoaded + ", noFetchDeleteSupported = " + noFetchDeleteSupported + " for " + rValuesToDelete);
+        if (!collectionLoaded && noFetchDeleteSupported) {
+            // We are quite sure we are deleting detached value that has NOT been loaded in this session.
+            // But we don't generally use session.delete, because it first loads the transient/detached entity.
+            //
+            // Of course, we must NOT call dbCollection.remove(...) here. It causes all collection values to be fetched
+            // from the database, contradicting MID-5558.
+
+            boolean bulkDelete = false;
+            //noinspection ConstantConditions
+            if (bulkDelete) {
+                List<Serializable> rValueIdList = rValuesToDelete.stream()
+                        .map(RAnyValue::createId)
+                        .collect(Collectors.toList());
+                // This translates to potentially large "OR" query like
+                // Query:["delete from m_object_ext_string where
+                //           item_id=? and owner_oid=? and ownerType=? and stringValue=? or
+                //           item_id=? and owner_oid=? and ownerType=? and stringValue=?"],
+                // Params:[(5,6a39f871-4e8c-4c24-bfc1-abebc4a66ee6,0,weapon1,
+                //          5,6a39f871-4e8c-4c24-bfc1-abebc4a66ee6,0,weapon2)]
+                // I think we should avoid it.
+                //
+                // We could group related objects (same ownerOid, ownerType, itemId) into one DELETE operation,
+                // but that's perhaps too much effort for too little gain.
+                //
+                // We could try batching but I don't know how to do this in Hibernate. Using native queries is currently
+                // too complicated.
+                ctx.session.createQuery("delete from ROExtString where id in (:id)")
+                        .setParameterList("id", rValueIdList)
+                        .executeUpdate();
+            } else {
+                for (RAnyValue<?> value : rValuesToDelete) {
+                    ROExtString s = (ROExtString) value;
+                    ctx.session.createQuery("delete from ROExtString where ownerOid = :ownerOid and "
+                            + "ownerType = :ownerType and itemId = :itemId and value = :value")
+                            .setParameter("ownerOid", s.getOwnerOid())
+                            .setParameter("itemId", s.getItemId())
+                            .setParameter("ownerType", s.getOwnerType())
+                            .setParameter("value", s.getValue())
+                            .executeUpdate();
+                }
+            }
+        } else {
+            // Traditional deletion
+            dbCollection.removeAll(rValuesToDelete);
+
+            // This approach works as well but is needlessly complicated:
+//            dbCollection.size();            // to load the collection if it was not loaded before
+//            for (RAnyValue<?> rValue : rValuesToDelete) {
+//                RAnyValue<?> fromSession = ctx.session.get(rValue.getClass(), rValue.createId());    // there's no additional cost here as the value is already loaded
+//                if (fromSession != null) {
+//                    dbCollection.remove(fromSession);
+//                    ctx.session.delete(fromSession);
+//                }
+//            }
+        }
+    }
+
+    private void replaceExtensionValues(RObjectExtensionType objectExtensionType,
+            RAssignmentExtensionType assignmentExtensionType, ItemDefinition definition, Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<PrismEntityPair<RAnyValue<?>>> pairsFromDelta, Context ctx) {
+        Collection<? extends RAnyValue<?>> relevantInDb = getMatchingValues(dbCollection, definition, objectExtensionType, assignmentExtensionType);
+
+        if (pairsFromDelta.isEmpty()) {
+            // if there are not new values, we just remove existing ones
+            deleteFromCollectionAndDb(dbCollection, relevantInDb, ctx.session);
+            return;
+        }
+
+        Collection<RAnyValue<?>> rValuesToDelete = new ArrayList<>();
+        Collection<PrismEntityPair<RAnyValue<?>>> pairsToAdd = new ArrayList<>();
+
+        // BEWARE - this algorithm does not work for RAnyValues that have equal "value" but differ in other components
+        // (e.g. references: OID vs. relation/type; poly strings: orig vs. norm)
+        Set<Object> realValuesToAdd = new HashSet<>();
+        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
+            realValuesToAdd.add(pair.getRepository().getValue());
+        }
+
+        for (RAnyValue value : relevantInDb) {
+            if (realValuesToAdd.contains(value.getValue())) {
+                // do not replace with the same one - don't touch
+                realValuesToAdd.remove(value.getValue());
+            } else {
+                rValuesToDelete.add(value);
+            }
+        }
+
+        for (PrismEntityPair<RAnyValue<?>> pair : pairsFromDelta) {
+            if (realValuesToAdd.contains(pair.getRepository().getValue())) {
+                pairsToAdd.add(pair);
+            }
+        }
+
+        deleteFromCollectionAndDb(dbCollection, rValuesToDelete, ctx.session);
+        markNewValuesTransientAndAddToExistingNoFetch(dbCollection, pairsToAdd, ctx);
     }
 
     private void deleteFromCollectionAndDb(Collection<? extends RAnyValue<?>> dbCollection,
             Collection<? extends RAnyValue<?>> valuesToDelete, Session session) {
+        //noinspection SuspiciousMethodCalls
         dbCollection.removeAll(valuesToDelete);     // do NOT use for handling regular ADD/DELETE value (fetches the whole collection)
         valuesToDelete.forEach(session::delete);
     }
@@ -624,12 +749,11 @@ public class ObjectDeltaUpdater {
         }
     }
 
-    private void handleObjectExtensionWholeContainerDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator,
-            Session session) throws SchemaException {
+    private void handleObjectExtensionWholeContainerDelta(RObject object, ItemDelta delta, Context ctx) throws SchemaException {
         RObjectExtensionType ownerType = computeExtensionType(delta);
 
         // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
-        clearExtension(object, ownerType, session);
+        clearExtension(object, ownerType, ctx.session);
 
         if (delta.isAdd() || delta.isReplace()) {
             PrismContainerValue<?> extension = (PrismContainerValue<?>) delta.getAnyValue();
@@ -639,19 +763,18 @@ public class ObjectDeltaUpdater {
                     //noinspection unchecked
                     itemDelta.addValuesToAdd((Collection) item.getClonedValues());
 
-                    handleExtensionDelta(itemDelta, object, ownerType, null, null, idGenerator, session);
+                    handleExtensionDelta(itemDelta, object, ownerType, null, null, ctx);
                 }
             }
         }
     }
 
-    private void handleAssignmentExtensionWholeContainerDelta(RAssignment assignment, ItemDelta delta,
-            PrismIdentifierGenerator idGenerator, Session session) throws SchemaException {
+    private void handleAssignmentExtensionWholeContainerDelta(RAssignment assignment, ItemDelta delta, Context ctx) throws SchemaException {
         RAssignmentExtension ext = assignment.getExtension();
 
         // Because ADD for single-valued container is the same as REPLACE (really?) we treat ADD as a REPLACE here.
         if (ext != null) {
-            clearExtension(ext, session);
+            clearExtension(ext, ctx.session);
         }
 
         if (delta.isAdd() || delta.isReplace()) {
@@ -664,10 +787,11 @@ public class ObjectDeltaUpdater {
             if (extension != null) {
                 for (Item<?, ?> item : extension.getItems()) {
                     ItemDelta itemDelta = item.createDelta();
+                    //noinspection unchecked
                     itemDelta.addValuesToAdd(item.getClonedValues());
 
                     handleExtensionDelta(itemDelta, null, null, ext,
-                            RAssignmentExtensionType.EXTENSION, idGenerator, session);
+                            RAssignmentExtensionType.EXTENSION, ctx);
                 }
             }
         }
@@ -683,9 +807,8 @@ public class ObjectDeltaUpdater {
         throw new IllegalStateException("Unknown extension type, shouldn't happen");
     }
 
-    private void handleObjectExtensionItemDelta(RObject object, ItemDelta delta, PrismIdentifierGenerator idGenerator,
-            Session session) throws SchemaException {
-        handleExtensionDelta(delta, object, computeExtensionType(delta), null, null, idGenerator, session);
+    private void handleObjectExtensionItemDelta(RObject object, ItemDelta delta, Context ctx) throws SchemaException {
+        handleExtensionDelta(delta, object, computeExtensionType(delta), null, null, ctx);
     }
 
     private Attribute findAttribute(TypeValuePair typeValuePair, String nameLocalPart, Iterator<?> segments, ItemName name) {
@@ -722,7 +845,7 @@ public class ObjectDeltaUpdater {
         return entityRegistry.findAttributePathOverride(typeValuePair.type, subPath);
     }
 
-    private TypeValuePair stepThroughAttribute(Attribute attribute, TypeValuePair step, Iterator<?> segments) {
+    private void stepThroughAttribute(Attribute attribute, TypeValuePair step, Iterator<?> segments) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
@@ -754,6 +877,7 @@ public class ObjectDeltaUpdater {
                 }
 
                 boolean found = false;
+                //noinspection unchecked
                 for (Container o : (Collection<Container>) c) {
                     long l = o.getId().longValue();
                     if (l == id) {
@@ -776,8 +900,6 @@ public class ObjectDeltaUpdater {
             default:
                 // nothing to do for other cases
         }
-
-        return step;
     }
 
     private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
@@ -822,6 +944,7 @@ public class ObjectDeltaUpdater {
             value = anyPrismValue.getRealValue();
         }
 
+        //noinspection unchecked
         value = prismEntityMapper.map(value, outputType);
 
         try {
@@ -842,6 +965,7 @@ public class ObjectDeltaUpdater {
 
         // handle replace
         if (delta.isReplace()) {
+            //noinspection unchecked
             Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
             replaceValues(collection, valuesToReplace, item, idGenerator);
             return;
@@ -849,14 +973,16 @@ public class ObjectDeltaUpdater {
 
         // handle add
         if (delta.isAdd()) {
+            //noinspection unchecked
             Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
             addValues(collection, valuesToAdd, idGenerator);
         }
 
         // handle delete
         if (delta.isDelete()) {
+            //noinspection unchecked
             Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
-            valuesToDelete.stream().forEach(pair -> {
+            valuesToDelete.forEach(pair -> {
                 if (pair.getRepository() instanceof EntityState) {
                     ((EntityState) pair.getRepository()).setTransient(false);
                 }
@@ -868,10 +994,10 @@ public class ObjectDeltaUpdater {
     private Collection<PrismEntityPair> processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
                                                            ItemDelta delta, Object bean) {
         if (values == null) {
-            return new ArrayList();
+            return new ArrayList<>();
         }
 
-        Collection<PrismEntityPair> results = new ArrayList();
+        Collection<PrismEntityPair> results = new ArrayList<>();
         for (PrismValue value : values) {
             MapperContext context = new MapperContext();
             context.setRepositoryContext(new RepositoryContext(repositoryService, prismContext, relationRegistry,
@@ -880,8 +1006,9 @@ public class ObjectDeltaUpdater {
             context.setDelta(delta);
             context.setOwner(bean);
 
+            //noinspection unchecked
             Object result = prismEntityMapper.mapPrismValue(value, outputType, context);
-            results.add(new PrismEntityPair(value, result));
+            results.add(new PrismEntityPair<>(value, result));
         }
 
         return results;
@@ -915,13 +1042,16 @@ public class ObjectDeltaUpdater {
     /**
      * add with overwrite
      */
-    public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge, Session session) {
+    @SuppressWarnings("unused")
+    public <T extends ObjectType> RObject<T> update(PrismObject<T> object, RObject<T> objectToMerge,
+            boolean noFetchExtensionValueInsertionForbidden, Session session) {
 
         return merge(objectToMerge, session); // todo implement
     }
 
     private <T extends ObjectType> RObject<T> merge(RObject<T> object, Session session) {
-        return (RObject) session.merge(object);
+        //noinspection unchecked
+        return (RObject<T>) session.merge(object);
     }
 
     private static class TypeValuePair {

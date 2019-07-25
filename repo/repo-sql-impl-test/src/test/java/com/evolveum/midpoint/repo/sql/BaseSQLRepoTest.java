@@ -33,7 +33,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.testing.QueryInspector;
+import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
@@ -108,7 +108,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired protected SessionFactory factory;
     @Autowired protected ExtItemDictionary extItemDictionary;
     @Autowired protected Protector protector;
-    @Autowired protected QueryInspector queryInspector;
+    @Autowired protected TestQueryListener queryListener;
 
     private static Set<Class> initializedClasses = new HashSet<>();
 

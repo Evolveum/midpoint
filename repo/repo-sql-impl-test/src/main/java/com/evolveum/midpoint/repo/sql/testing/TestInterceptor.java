@@ -28,16 +28,8 @@ public class TestInterceptor extends EmptyInterceptor {
     @Autowired
     private EntityStateInterceptor entityStateInterceptor;
 
-    @Autowired
-    private QueryInspector queryInspector;
-
     @Override
     public Boolean isTransient(Object entity) {
         return entityStateInterceptor.isTransient(entity);
-    }
-
-    @Override
-    public String onPrepareStatement(String sql) {
-        return queryInspector.onPrepareStatement(sql);
     }
 }
