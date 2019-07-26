@@ -475,8 +475,8 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
 									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				CaseType parentCase = CaseTypeUtil.getCase(unwrapRowModel(rowModel));
-				cellItem.add(new Label(componentId, parentCase != null ? parentCase.getState() : ""));
+				CaseWorkItemType workItem = unwrapRowModel(rowModel);
+				cellItem.add(new Label(componentId, workItem.getCloseTimestamp() != null ? SchemaConstants.CASE_STATE_CLOSED : SchemaConstants.CASE_STATE_OPEN));
 			}
 
 			@Override
