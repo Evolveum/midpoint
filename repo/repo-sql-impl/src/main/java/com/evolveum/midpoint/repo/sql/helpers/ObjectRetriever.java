@@ -22,12 +22,12 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.MutablePrismReferenceDefinition;
 import com.evolveum.midpoint.repo.api.RepositoryObjectDiagnosticData;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -62,7 +63,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.namespace.QName;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ArrayUtils.getLength;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -524,7 +524,10 @@ public class ObjectRetriever {
 			Holder<PrismObject<T>> partialValueHolder,
 			Session session, OperationResult operationResult) throws SchemaException {
 
-		byte[] fullObject = result.getFullObject();
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        boolean raw = GetOperationOptions.isRaw(rootOptions);
+
+        byte[] fullObject = result.getFullObject();
 		String xml = RUtil.getXmlFromByteArray(fullObject, getConfiguration().isUseZip());
         PrismObject<T> prismObject;
         try {
@@ -562,8 +565,7 @@ public class ObjectRetriever {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
 
-            GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-            if (GetOperationOptions.isRaw(rootOptions)) {
+            if (raw) {
                 LOGGER.debug("Loading definitions for shadow attributes.");
                 Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
 	            for (Class aClass : classes) {
@@ -601,7 +603,9 @@ public class ObjectRetriever {
 //                prismObject.setPropertyRealValue(TaskType.F_RESULT_STATUS, (status != null ? status.getSchemaValue() : null));
 //            }
         }
-        loadIndexOnlyItemsIfNeeded(prismObject, options, session);
+        if (getConfiguration().isEnableIndexOnlyItems()) {
+            loadIndexOnlyItemsIfNeeded(prismObject, options, raw, session);
+        }
 
         if (partialValueHolder != null) {
         	partialValueHolder.setValue(prismObject);
@@ -615,19 +619,19 @@ public class ObjectRetriever {
 
     // TODO add support for index-only attributes here
 	private <T extends ObjectType> void loadIndexOnlyItemsIfNeeded(PrismObject<T> prismObject,
-			Collection<SelectorOptions<GetOperationOptions>> options, Session session) throws SchemaException {
+			Collection<SelectorOptions<GetOperationOptions>> options, boolean raw, Session session) throws SchemaException {
 		List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
 		if (retrieveOptions.isEmpty()) {
 			return;
 		}
 
-		RObject loaded = null;
+		RObject<?> rObject = null;
 		for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
 			if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getName()),
 					retrieveOptions, false)) {
 				LOGGER.trace("We have to load index-only extension item {}", itemDefinition);
-				if (loaded == null) {
-					loaded = session.load(RObject.class, prismObject.getOid());
+				if (rObject == null) {
+					rObject = session.load(RObject.class, prismObject.getOid());
 				}
 				RExtItem extItemDef = extItemDictionary.findItemByDefinition(itemDefinition);
 				if (extItemDef == null) {
@@ -635,13 +639,15 @@ public class ObjectRetriever {
 				} else if (extItemDef.getId() == null) {
 					throw new IllegalStateException("Ext item definition with no ID: " + extItemDef);
 				} else {
-					Collection<? extends ROExtValue> values = RAnyConverter.getExtValues(loaded, extItemDef, itemDefinition);
+					Collection<? extends ROExtValue> values = RAnyConverter.getExtValues(rObject, extItemDef, itemDefinition);
 					if (!values.isEmpty()) {
 						if (itemDefinition instanceof PrismPropertyDefinition) {
 							//noinspection unchecked
 							PrismProperty<Object> item = ((PrismPropertyDefinition<Object>) itemDefinition).instantiate();
 							for (ROExtValue value : values) {
-								item.addRealValue(value.getValue());
+							    if (value.getOwnerType() == RObjectExtensionType.EXTENSION) {   // just for sure
+                                    item.addRealValue(value.getValue());
+                                }
 							}
 							prismObject.getOrCreateExtension().getValue().add(item);
 						} else {
@@ -652,9 +658,64 @@ public class ObjectRetriever {
 				}
 			}
 		}
+		// todo what about extension items that are not part of object extension definition?
+
+		// attributes
+        if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
+            boolean getAllAttributes = SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, retrieveOptions, false);
+            if (getAllAttributes) {
+                if (rObject == null) {
+                    rObject = session.load(RShadow.class, prismObject.getOid());
+                }
+                LOGGER.trace("Going to fetch attributes from {}", rObject);
+                //noinspection unchecked
+                PrismObject<ShadowType> shadowObject = (PrismObject<ShadowType>) prismObject;
+                retrieveAllAttributeValues(shadowObject, rObject.getBooleans(), raw);
+                retrieveAllAttributeValues(shadowObject, rObject.getDates(), raw);
+                retrieveAllAttributeValues(shadowObject, rObject.getLongs(), raw);
+                retrieveAllAttributeValues(shadowObject, rObject.getPolys(), raw);
+                retrieveAllAttributeValues(shadowObject, rObject.getReferences(), raw);
+                retrieveAllAttributeValues(shadowObject, rObject.getStrings(), raw);
+            } else {
+                // fetching of individual attributes is not supported yet
+            }
+        }
 	}
 
-	private <T extends ObjectType> Collection<ItemDefinition<?>> getIndexOnlyExtensionItems(PrismObject<T> prismObject) {
+    private void retrieveAllAttributeValues(PrismObject<ShadowType> shadowObject,
+            Collection<? extends ROExtValue<?>> dbCollection, boolean raw) throws SchemaException {
+        PrismContainer<Containerable> attributeContainer = shadowObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+        // Hack: let's ignore values of attributes that already exist in this container
+        Collection<QName> existingAttributeNames = attributeContainer.getValue().getItemNames();
+        for (ROExtValue<?> rValue : dbCollection) {
+            if (rValue.getOwnerType() == RObjectExtensionType.ATTRIBUTES) {
+                LOGGER.trace("- processing {}", rValue);
+                RExtItem extItem = extItemDictionary.getItemById(rValue.getItemId());
+                if (extItem == null) {
+                    LOGGER.warn("Couldn't get definition for extItem ID {} for value of {} in {} -- it will not be fetched",
+                            rValue.getItemId(), rValue, shadowObject);
+                } else {
+                    ItemName extItemName = RUtil.stringToQName(extItem.getName());
+                    if (!QNameUtil.matchAny(extItemName, existingAttributeNames)) {
+                        PrismProperty attribute = attributeContainer.findProperty(extItemName);
+                        if (attribute == null) {
+                            if (raw) {
+                                attribute = ((PrismPropertyDefinition) createDynamicDefinition(extItem, extItemName))
+                                        .instantiate();
+                            } else {
+                                attribute = prismContext.itemFactory().createProperty(extItemName);
+                            }
+                            attributeContainer.add(attribute);
+                        }
+                        //noinspection unchecked
+                        attribute.addRealValue(rValue.getValue());      // no polystring nor reference is expected here
+                    }
+                }
+            }
+        }
+    }
+
+    private <T extends ObjectType> Collection<ItemDefinition<?>> getIndexOnlyExtensionItems(PrismObject<T> prismObject) {
 		List<ItemDefinition<?>> rv = new ArrayList<>();
 		if (prismObject.getDefinition() != null) {
 			PrismContainerDefinition<?> extensionDefinition = prismObject.getDefinition().getExtensionDefinition();
@@ -695,34 +756,31 @@ public class ObjectRetriever {
 	        	continue;
 	        }
 	        ItemName name = RUtil.stringToQName(extItem.getName());
-            QName type = RUtil.stringToQName(extItem.getType());
             Item item = attributes.findItem(name);
-
-            if (item == null) {
-            	continue;
-            }
-
-            // A switch statement used to be here
-            // but that caused strange trouble with OpenJDK. This if-then-else works.
-            if (item.getDefinition() == null) {
-                RItemKind rValType = extItem.getKind();
-                if (rValType == RItemKind.PROPERTY) {
-                    MutablePrismPropertyDefinition<Object> def = object.getPrismContext().definitionFactory().createPropertyDefinition(name, type);
-                    def.setMinOccurs(0);
-                    def.setMaxOccurs(-1);
-                    def.setRuntimeSchema(true);
-                    item.applyDefinition(def, true);
-                } else if (rValType == RItemKind.REFERENCE) {
-                    MutablePrismReferenceDefinition def = object.getPrismContext().definitionFactory().createReferenceDefinition(name, type);
-	                def.setMinOccurs(0);
-	                def.setMaxOccurs(-1);
-	                def.setRuntimeSchema(true);
-                    item.applyDefinition(def, true);
-                } else {
-                    throw new UnsupportedOperationException("Unsupported value type " + rValType);
-                }
+            if (item != null && item.getDefinition() == null) {
+                MutableItemDefinition<?> def = createDynamicDefinition(extItem, name);
+                //noinspection unchecked
+                item.applyDefinition(def, true);
             }
         }
+    }
+
+    @NotNull
+    private MutableItemDefinition<?> createDynamicDefinition(RExtItem extItem, ItemName name) {
+        QName type = RUtil.stringToQName(extItem.getType());
+        RItemKind rValType = extItem.getKind();
+        MutableItemDefinition<?> def;
+        if (rValType == RItemKind.PROPERTY) {
+            def  = prismContext.definitionFactory().createPropertyDefinition(name, type);
+        } else if (rValType == RItemKind.REFERENCE) {
+            def = prismContext.definitionFactory().createReferenceDefinition(name, type);
+        } else {
+            throw new UnsupportedOperationException("Unsupported value type " + rValType);
+        }
+        def.setMinOccurs(0);
+        def.setMaxOccurs(-1);
+        def.setRuntimeSchema(true);
+        return def;
     }
 
     public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadowsAttempt(

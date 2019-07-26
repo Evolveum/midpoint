@@ -105,4 +105,11 @@ public class ROExtString extends ROExtBase<String> {
     public ROExtStringId createId() {
         return ROExtStringId.createFromValue(this);
     }
+
+    @Override
+    public String toString() {
+        return "ROExtString{" +
+                "value='" + value + '\'' +
+                '}';
+    }
 }

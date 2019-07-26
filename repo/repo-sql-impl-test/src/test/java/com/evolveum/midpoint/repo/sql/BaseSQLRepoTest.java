@@ -70,6 +70,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.evolveum.midpoint.schema.constants.MidPointConstants.NS_RI;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -94,6 +95,10 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 	static final ItemName EXT_LOOT = new ItemName(NS_EXT, "loot");
 	static final ItemName EXT_WEAPON = new ItemName(NS_EXT, "weapon");
 	static final ItemName EXT_SHIP_NAME = new ItemName(NS_EXT, "shipName");
+
+	static final ItemName ATTR_GROUP_NAME = new ItemName(NS_RI, "groupName");
+	static final ItemName ATTR_MEMBER = new ItemName(NS_RI, "member");
+	static final ItemName ATTR_MANAGER = new ItemName(NS_RI, "manager");
 
 	@Autowired protected LocalSessionFactoryBean sessionFactoryBean;
     @Autowired

@@ -319,6 +319,7 @@ public class SqlRepositoryConfiguration {
 
 	public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION = "enableNoFetchExtensionValuesInsertion";
 	public static final String PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION = "enableNoFetchExtensionValuesDeletion";
+	public static final String PROPERTY_ENABLE_INDEX_ONLY_ITEMS = "enableIndexOnlyItems";
 
     private static final String DRIVER_H2 = Driver.class.getName();
     private static final String DRIVER_MYSQL = "com.mysql.cj.jdbc.Driver";
@@ -397,6 +398,7 @@ public class SqlRepositoryConfiguration {
 
 	private boolean enableNoFetchExtensionValuesInsertion;
 	private boolean enableNoFetchExtensionValuesDeletion;
+	private boolean enableIndexOnlyItems;
 
 	/*
 	 * Notes:
@@ -518,6 +520,7 @@ public class SqlRepositoryConfiguration {
 
 	    enableNoFetchExtensionValuesInsertion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_INSERTION, true);
 	    enableNoFetchExtensionValuesDeletion = configuration.getBoolean(PROPERTY_ENABLE_NO_FETCH_EXTENSION_VALUES_DELETION, false);
+	    enableIndexOnlyItems = configuration.getBoolean(PROPERTY_ENABLE_INDEX_ONLY_ITEMS, false);
     }
 
 	private boolean isAutoUpdate(String hbm2ddl) {
@@ -993,6 +996,10 @@ public class SqlRepositoryConfiguration {
 		return enableNoFetchExtensionValuesDeletion;
 	}
 
+	public boolean isEnableIndexOnlyItems() {
+		return enableIndexOnlyItems;
+	}
+
 	// for testing only
 	@SuppressWarnings("SameParameterValue")
 	void setEnableNoFetchExtensionValuesInsertion(boolean enableNoFetchExtensionValuesInsertion) {
@@ -1003,5 +1010,11 @@ public class SqlRepositoryConfiguration {
 	@SuppressWarnings("SameParameterValue")
 	void setEnableNoFetchExtensionValuesDeletion(boolean enableNoFetchExtensionValuesDeletion) {
 		this.enableNoFetchExtensionValuesDeletion = enableNoFetchExtensionValuesDeletion;
+	}
+
+	// for testing only
+	@SuppressWarnings("SameParameterValue")
+	void setEnableIndexOnlyItems(boolean enableIndexOnlyItems) {
+		this.enableIndexOnlyItems = enableIndexOnlyItems;
 	}
 }

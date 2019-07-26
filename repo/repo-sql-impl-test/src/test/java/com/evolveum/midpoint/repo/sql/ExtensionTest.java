@@ -23,19 +23,18 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoModifyOptions;
+import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,6 +46,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.RI_ACCOUNT_OBJECT_CLASS;
 import static java.util.Collections.singleton;
 import static org.testng.AssertJUnit.*;
 
@@ -73,6 +73,20 @@ public class ExtensionTest extends BaseSQLRepoTest {
     private RExtItem itemWeapon;
     private RExtItem itemShipName;
 
+    private PrismObject<ShadowType> expectedShadow;
+    private String shadowOid;
+
+    private ResourceAttributeDefinition<String> attrGroupNameDefinition;
+    private ResourceAttributeDefinition<String> attrMemberDefinition;
+    private ResourceAttributeDefinition<String> attrManagerDefinition;
+
+    private RExtItem itemGroupName;
+    private RExtItem itemMember;
+    private RExtItem itemManager;
+
+    private PrismObjectDefinition<ShadowType> shadowDefinition;
+    private ResourceAttributeContainerDefinition shadowAttributesDefinition;
+
     private static final int ADD_VALUE_ITERATIONS = 100000;
 
     private boolean verbose = false;
@@ -92,6 +106,26 @@ public class ExtensionTest extends BaseSQLRepoTest {
 
         sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
         sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
+
+        createShadowDefinition();
+    }
+
+    private void createShadowDefinition() {
+        ObjectClassComplexTypeDefinitionImpl ctd = new ObjectClassComplexTypeDefinitionImpl(RI_ACCOUNT_OBJECT_CLASS, prismContext);
+        attrGroupNameDefinition = ctd.createAttributeDefinition(ATTR_GROUP_NAME, DOMUtil.XSD_STRING);
+        attrGroupNameDefinition.toMutable().setMaxOccurs(1);
+        attrMemberDefinition = ctd.createAttributeDefinition(ATTR_MEMBER, DOMUtil.XSD_STRING);
+        attrMemberDefinition.toMutable().setMaxOccurs(-1);
+        attrMemberDefinition.toMutable().setIndexOnly(true);
+        attrManagerDefinition = ctd.createAttributeDefinition(ATTR_MANAGER, DOMUtil.XSD_STRING);
+        attrManagerDefinition.toMutable().setMaxOccurs(-1);
+        shadowAttributesDefinition = new ResourceAttributeContainerDefinitionImpl(ShadowType.F_ATTRIBUTES, ctd, prismContext);
+        shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class)
+                .cloneWithReplacedDefinition(ShadowType.F_ATTRIBUTES, shadowAttributesDefinition);
+        itemGroupName = extItemDictionary.createOrFindItemDefinition(attrGroupNameDefinition, false);
+        itemMember = extItemDictionary.createOrFindItemDefinition(attrMemberDefinition, false);
+        itemManager = extItemDictionary.createOrFindItemDefinition(attrManagerDefinition, false);
     }
 
     boolean isNoFetchInsertion() {
@@ -162,7 +196,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
          */
         assertCounts(5, 11);
     }
-
 
     @Test
     public void test020AddVisibleUserExtensionValue() throws Exception {
@@ -1880,5 +1913,846 @@ public class ExtensionTest extends BaseSQLRepoTest {
         ext = ruser.getAssignments().iterator().next().getExtension();
         assertEquals(1, ext.getStrings().size());
         close(session);
+    }
+
+    @Test
+    public void test410AddShadow() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test410AddShadow");
+
+        expectedShadow = shadowDefinition.instantiate();
+        expectedShadow.asObjectable().name("alumni");
+        PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
+        expectedShadow.getValue().add(attributesContainer);
+        PrismContainerValue<?> attributes = attributesContainer.getValue();
+        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        name.setRealValue("alumni");
+        attributes.add(name);
+        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        member.addRealValues("banderson", "kwhite");
+        attributes.add(member);
+        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        manager.addRealValues("jack", "jim");
+        attributes.add(manager);
+
+        queryListener.start();
+        shadowOid = repositoryService.addObject(expectedShadow.clone(), null, result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "jack", "jim");
+        }
+
+        assertGetShadow(result);
+
+        /*
+ [1] insert into m_object (createChannel, createTimestamp, creatorRef_relation, creatorRef_targetOid, creatorRef_type, fullObject, lifecycleState, modifierRef_relation, modifierRef_targetOid, modifierRef_type, modifyChannel, modifyTimestamp, name_norm, name_orig, objectTypeClass, tenantRef_relation, tenantRef_targetOid, tenantRef_type, version, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ [1] insert into m_shadow (attemptNumber, dead, exist, failedOperationType, fullSynchronizationTimestamp, intent, kind, name_norm, name_orig, objectClass, pendingOperationCount, primaryIdentifierValue, resourceRef_relation, resourceRef_targetOid, resourceRef_type, status, synchronizationSituation, synchronizationTimestamp, oid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         */
+        assertCounts(3, 7);
+    }
+
+    @Test
+    public void test420AddVisibleAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test420AddVisibleAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MANAGER), attrManagerDefinition)
+                .add("alice", "bob")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
+        }
+
+        assertGetShadow(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+        safe insertions:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        assertCounts(4 + getExtraSafeInsertionSelects(2), 5 + getExtraSafeInsertionSelects(2));
+    }
+
+    @Test
+    public void test425AddVisibleAttributeValuesDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test425AddVisibleAttributeValuesDuplicate");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MANAGER), attrManagerDefinition)
+                .add("alice", "bob")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "jack", "jim", "alice", "bob");
+        }
+
+        assertGetShadow(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        assertCounts(3, 3);
+    }
+
+    @Test
+    public void test426ReplaceVisibleAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test426ReplaceVisibleAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MANAGER), attrManagerDefinition)
+                .replace("bob", "chuck")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "bob", "chuck");
+        }
+
+        assertGetShadow(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [3] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+
+        safe insertions:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [3] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(6 + getExtraSafeInsertionSelects(1), 8 + getExtraSafeInsertionSelects(1));
+    }
+
+    @Test
+    public void test427DeleteVisibleAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test427DeleteVisibleAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_GROUP_NAME), attrGroupNameDefinition)
+                .delete("alumni")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName);
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "bob", "chuck");
+        }
+
+        assertGetShadow(result);
+
+        /*
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [1] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        no fetch deletion:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] delete from m_object_ext_string where owner_oid=? and ownerType=? and item_id=? and stringValue=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (isNoFetchDeletion()) {
+            assertCounts(4, 4);
+        } else {
+            assertCounts(5, 5);
+        }
+    }
+
+    /**
+     * We load extension values (e.g. invoking REPLACE operation) and then try to delete an extension value.
+     */
+    @Test
+    public void test428DeleteAlreadyLoadedVisibleAttributeValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test428DeleteAlreadyLoadedVisibleAttributeValue");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_GROUP_NAME), attrGroupNameDefinition)
+                    .replace("ALUMNI")
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MANAGER), attrManagerDefinition)
+                    .delete("bob")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetShadow(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [1] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        no fetch deletion (= the same)
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [1] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        safe insertions:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [1] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(6 + getExtraSafeInsertionSelects(1), 6 + getExtraSafeInsertionSelects(1));
+    }
+
+    // skipping replace non-indexed attribute value test (x29)
+
+    @Test
+    public void test430AddHiddenAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test430AddHiddenAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
+                    .add("tbrown", "jsmith")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+        safe insertions:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        assertCounts(4 + getExtraSafeInsertionSelects(2), 5 + getExtraSafeInsertionSelects(2));
+    }
+
+    @Test
+    public void test432AddHiddenAttributeValuesDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test432AddHiddenAttributeValuesDuplicate");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
+                    .add("tbrown", "jsmith")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "banderson", "kwhite", "tbrown", "jsmith");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+         <<< ConstraintViolationException here -> restarting the operation in safer way >>>
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+        safe insertions:
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (isNoFetchInsertion()) {
+            assertCounts(8, 9);
+        } else {
+            assertCounts(5, 5);
+        }
+    }
+
+    @Test
+    public void test435DeleteHiddenAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test435DeleteHiddenAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
+                    .delete("tbrown", "jsmith")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [2] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        no fetch delete
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] delete from m_object_ext_string where owner_oid=? and ownerType=? and item_id=? and stringValue=?
+ [1] delete from m_object_ext_string where owner_oid=? and ownerType=? and item_id=? and stringValue=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+         */
+        if (isNoFetchDeletion()) {
+            assertCounts(5, 5);
+        } else {
+            assertCounts(5, 6);
+        }
+    }
+
+    @Test
+    public void test436DeleteHiddenAttributeValuesDuplicate() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test436DeleteHiddenAttributeValuesDuplicate");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
+                    .delete("tbrown", "jsmith")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+        no fetch delete
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] delete from m_object_ext_string where owner_oid=? and ownerType=? and item_id=? and stringValue=?
+ [1] delete from m_object_ext_string where owner_oid=? and ownerType=? and item_id=? and stringValue=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        if (isNoFetchDeletion()) {
+            assertCounts(5, 5);
+        } else {
+            assertCounts(4, 4);
+        }
+    }
+
+    @Test
+    public void test440ReplaceHiddenAttributeValues() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test440ReplaceHiddenAttributeValues");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ItemPath.create(ShadowType.F_ATTRIBUTES, ATTR_MEMBER), attrMemberDefinition)
+                    .replace("alice", "bob")
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "ALUMNI");
+            assertExtension(s, itemMember, "alice", "bob");
+            assertExtension(s, itemManager, "chuck");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [2] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+         safe insertions (can be improved)
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [2] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [2] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(6 + getExtraSafeInsertionSelects(2), 8 + getExtraSafeInsertionSelects(2));
+    }
+
+    @Test
+    public void test450DeleteWholeContainer() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test450DeleteWholeContainer");
+
+        PrismContainerValue<?> existingAttributes = expectedShadow.findContainer(ShadowType.F_ATTRIBUTES).getValue().clone();
+        existingAttributes.removeProperty(ATTR_MEMBER);      // there are two values of this kind there
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ShadowType.F_ATTRIBUTES)
+                    .delete(existingAttributes)
+                .asObjectDelta("");
+        expectedShadow.asObjectable().setAttributes(null);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName);
+            assertExtension(s, itemMember);
+            assertExtension(s, itemManager);
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [4] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(10, 13);
+    }
+
+    @Test
+    public void test455AddWholeContainer() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test455AddWholeContainer");
+
+        expectedShadow.getValue().removeContainer(ShadowType.F_ATTRIBUTES); // just for sure
+        PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
+        PrismContainerValue<?> attributes = attributesContainer.getValue();
+        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        name.setRealValue("alumni");
+        attributes.add(name);
+        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        member.addRealValues("banderson", "kwhite");
+        attributes.add(member);
+        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        manager.addRealValues("jack", "jim");
+        attributes.add(manager);
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ShadowType.F_ATTRIBUTES)
+                    .add(attributes.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni");
+            assertExtension(s, itemMember, "banderson", "kwhite");
+            assertExtension(s, itemManager, "jack", "jim");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+
+        safe insertions (can be improved)
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+         */
+        assertCounts(10 + getExtraSafeInsertionSelects(5), 14 + getExtraSafeInsertionSelects(5));
+    }
+
+
+    /**
+     * This is really tricky. We try to add another value to single-valued attributes container.
+     */
+    @Test
+    public void test458AddWholeContainerDifferentValue() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test458AddWholeContainerDifferentValue");
+
+        PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
+        PrismContainerValue<?> attributes = attributesContainer.getValue();
+        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        name.setRealValue("alumni2");
+        attributes.add(name);
+        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        member.addRealValues("banderson2", "kwhite2");
+        attributes.add(member);
+        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        manager.addRealValues("jack2", "jim2");
+        attributes.add(manager);
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ShadowType.F_ATTRIBUTES)
+                    .add(attributes.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni2");
+            assertExtension(s, itemMember, "banderson2", "kwhite2");
+            assertExtension(s, itemManager, "jack2", "jim2");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [5] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        safe insertions (can be improved)
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [5] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(11 + getExtraSafeInsertionSelects(5), 19 + getExtraSafeInsertionSelects(5));
+    }
+
+    @Test
+    public void test460ReplaceWholeContainer() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test460ReplaceWholeContainer");
+
+        PrismContainer<?> attributesContainer = shadowAttributesDefinition.instantiate();
+        PrismContainerValue<?> attributes = attributesContainer.getValue();
+        ResourceAttribute<String> name = attrGroupNameDefinition.instantiate();
+        name.setRealValue("alumni3");
+        attributes.add(name);
+        ResourceAttribute<String> member = attrMemberDefinition.instantiate();
+        member.addRealValues("banderson3", "kwhite3");
+        attributes.add(member);
+        ResourceAttribute<String> manager = attrManagerDefinition.instantiate();
+        manager.addRealValues("jack3", "jim3");
+        attributes.add(manager);
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ShadowType.F_ATTRIBUTES)
+                    .replace(attributes.clone())
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName, "alumni3");
+            assertExtension(s, itemMember, "banderson3", "kwhite3");
+            assertExtension(s, itemManager, "jack3", "jim3");
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [5] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+
+        safe insertions (can be improved)
+
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [1] select roextstrin0_.item_id as item_id1_33_0_, roextstrin0_.owner_oid as owner_oi2_33_0_, roextstrin0_.ownerType as ownerTyp3_33_0_, roextstrin0_.stringValue as stringVa4_33_0_ from m_object_ext_string roextstrin0_ where roextstrin0_.item_id=? and roextstrin0_.owner_oid=? and roextstrin0_.ownerType=? and roextstrin0_.stringValue=?
+ [5] insert into m_object_ext_string (item_id, owner_oid, ownerType, stringValue) values (?, ?, ?, ?)
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [5] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(11 + getExtraSafeInsertionSelects(5), 19 + getExtraSafeInsertionSelects(5));
+    }
+
+    @Test
+    public void test465ReplaceWholeContainerToNull() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test465ReplaceWholeContainerToNull");
+
+        ObjectDelta<ShadowType> delta = getPrismContext().deltaFor(ShadowType.class)
+                .item(ShadowType.F_ATTRIBUTES)
+                    .replace()
+                .asObjectDelta("");
+        delta.applyTo(expectedShadow);
+
+        queryListener.start();
+        repositoryService.modifyObject(ShadowType.class, shadowOid, delta.getModifications(), getOptions(), result);
+        queryListener.dumpAndStop();
+
+        try (Session session = factory.openSession()) {
+            RShadow<?> s = session.get(RShadow.class, shadowOid);
+            assertExtension(s, itemGroupName);
+            assertExtension(s, itemMember);
+            assertExtension(s, itemManager);
+        }
+
+        assertGetObject(result);
+
+        /*
+ [1] select oid from m_object where oid = ? for update
+ [1] select rshadow0_.oid as oid1_27_, rshadow0_1_.createChannel as createCh2_27_, rshadow0_1_.createTimestamp as createTi3_27_, rshadow0_1_.creatorRef_relation as creatorR4_27_, rshadow0_1_.creatorRef_targetOid as creatorR5_27_, rshadow0_1_.creatorRef_type as creatorR6_27_, rshadow0_1_.fullObject as fullObje7_27_, rshadow0_1_.lifecycleState as lifecycl8_27_, rshadow0_1_.modifierRef_relation as modifier9_27_, rshadow0_1_.modifierRef_targetOid as modifie10_27_, rshadow0_1_.modifierRef_type as modifie11_27_, rshadow0_1_.modifyChannel as modifyC12_27_, rshadow0_1_.modifyTimestamp as modifyT13_27_, rshadow0_1_.name_norm as name_no14_27_, rshadow0_1_.name_orig as name_or15_27_, rshadow0_1_.objectTypeClass as objectT16_27_, rshadow0_1_.tenantRef_relation as tenantR17_27_, rshadow0_1_.tenantRef_targetOid as tenantR18_27_, rshadow0_1_.tenantRef_type as tenantR19_27_, rshadow0_1_.version as version20_27_, rshadow0_.attemptNumber as attemptN1_41_, rshadow0_.dead as dead2_41_, rshadow0_.exist as exist3_41_, rshadow0_.failedOperationType as failedOp4_41_, rshadow0_.fullSynchronizationTimestamp as fullSync5_41_, rshadow0_.intent as intent6_41_, rshadow0_.kind as kind7_41_, rshadow0_.name_norm as name_nor8_41_, rshadow0_.name_orig as name_ori9_41_, rshadow0_.objectClass as objectC10_41_, rshadow0_.pendingOperationCount as pending11_41_, rshadow0_.primaryIdentifierValue as primary12_41_, rshadow0_.resourceRef_relation as resourc13_41_, rshadow0_.resourceRef_targetOid as resourc14_41_, rshadow0_.resourceRef_type as resourc15_41_, rshadow0_.status as status16_41_, rshadow0_.synchronizationSituation as synchro17_41_, rshadow0_.synchronizationTimestamp as synchro18_41_ from m_shadow rshadow0_ inner join m_object rshadow0_1_ on rshadow0_.oid=rshadow0_1_.oid where rshadow0_.oid=?
+ [1] select booleans0_.owner_oid as owner_oi2_28_0_, booleans0_.item_id as item_id1_28_0_, booleans0_.ownerType as ownerTyp3_28_0_, booleans0_.booleanValue as booleanV4_28_0_, booleans0_.item_id as item_id1_28_1_, booleans0_.owner_oid as owner_oi2_28_1_, booleans0_.ownerType as ownerTyp3_28_1_, booleans0_.booleanValue as booleanV4_28_1_ from m_object_ext_boolean booleans0_ where booleans0_.owner_oid=?
+ [1] select dates0_.owner_oid as owner_oi2_29_0_, dates0_.item_id as item_id1_29_0_, dates0_.ownerType as ownerTyp3_29_0_, dates0_.dateValue as dateValu4_29_0_, dates0_.item_id as item_id1_29_1_, dates0_.owner_oid as owner_oi2_29_1_, dates0_.ownerType as ownerTyp3_29_1_, dates0_.dateValue as dateValu4_29_1_ from m_object_ext_date dates0_ where dates0_.owner_oid=?
+ [1] select longs0_.owner_oid as owner_oi2_30_0_, longs0_.item_id as item_id1_30_0_, longs0_.ownerType as ownerTyp3_30_0_, longs0_.longValue as longValu4_30_0_, longs0_.item_id as item_id1_30_1_, longs0_.owner_oid as owner_oi2_30_1_, longs0_.ownerType as ownerTyp3_30_1_, longs0_.longValue as longValu4_30_1_ from m_object_ext_long longs0_ where longs0_.owner_oid=?
+ [1] select polys0_.owner_oid as owner_oi2_31_0_, polys0_.item_id as item_id1_31_0_, polys0_.ownerType as ownerTyp3_31_0_, polys0_.orig as orig4_31_0_, polys0_.item_id as item_id1_31_1_, polys0_.owner_oid as owner_oi2_31_1_, polys0_.ownerType as ownerTyp3_31_1_, polys0_.orig as orig4_31_1_, polys0_.norm as norm5_31_1_ from m_object_ext_poly polys0_ where polys0_.owner_oid=?
+ [1] select references0_.owner_oid as owner_oi2_32_0_, references0_.item_id as item_id1_32_0_, references0_.ownerType as ownerTyp3_32_0_, references0_.targetoid as targetoi4_32_0_, references0_.item_id as item_id1_32_1_, references0_.owner_oid as owner_oi2_32_1_, references0_.ownerType as ownerTyp3_32_1_, references0_.targetoid as targetoi4_32_1_, references0_.relation as relation5_32_1_, references0_.targetType as targetTy6_32_1_ from m_object_ext_reference references0_ where references0_.owner_oid=?
+ [1] select strings0_.owner_oid as owner_oi2_33_0_, strings0_.item_id as item_id1_33_0_, strings0_.ownerType as ownerTyp3_33_0_, strings0_.stringValue as stringVa4_33_0_, strings0_.item_id as item_id1_33_1_, strings0_.owner_oid as owner_oi2_33_1_, strings0_.ownerType as ownerTyp3_33_1_, strings0_.stringValue as stringVa4_33_1_ from m_object_ext_string strings0_ where strings0_.owner_oid=?
+ [1] update m_object set createChannel=?, createTimestamp=?, creatorRef_relation=?, creatorRef_targetOid=?, creatorRef_type=?, fullObject=?, lifecycleState=?, modifierRef_relation=?, modifierRef_targetOid=?, modifierRef_type=?, modifyChannel=?, modifyTimestamp=?, name_norm=?, name_orig=?, objectTypeClass=?, tenantRef_relation=?, tenantRef_targetOid=?, tenantRef_type=?, version=? where oid=?
+ [5] delete from m_object_ext_string where item_id=? and owner_oid=? and ownerType=? and stringValue=?
+         */
+        assertCounts(10, 14);
+    }
+
+    private void assertGetShadow(OperationResult result) throws SchemaException, ObjectNotFoundException {
+        assertGetShadowNoInclude(shadowOid, expectedShadow, result);
+        assertGetShadowInclude(shadowOid, null, expectedShadow, result);
+        // This is not yet supported:
+        //assertGetShadowInclude(shadowOid, singleton(ATTR_MEMBER), expectedShadow, result);
+    }
+
+    private void assertGetShadowNoInclude(String oid, PrismObject<ShadowType> expected, OperationResult result) throws SchemaException,
+            ObjectNotFoundException {
+        checkShadow(oid, expected, true, false, null, result);
+        checkShadow(oid, expected, false, false, null, result);
+    }
+
+    // toInclude == null means "ALL"
+    private void assertGetShadowInclude(String oid, Collection<ItemName> toInclude, PrismObject<ShadowType> expected, OperationResult result) throws SchemaException,
+            ObjectNotFoundException {
+        checkShadow(oid, expected, true, true, toInclude, result);
+        checkShadow(oid, expected, false, true, toInclude, result);
+    }
+
+    private void checkShadow(String oid, PrismObject<ShadowType> expected, boolean raw, boolean include, Collection<ItemName> toInclude, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        PrismObject<ShadowType> expectedAdapted;
+        if (include && toInclude == null) {
+            expectedAdapted = expected;
+        } else {
+            expectedAdapted = expected.clone();
+            PrismContainer<?> attributes = expectedAdapted.findContainer(ShadowType.F_ATTRIBUTES);
+            if (attributes != null) {
+                if (!include || !toInclude.contains(ATTR_MEMBER)) {
+                    attributes.getValue().removeProperty(ATTR_MEMBER);
+                }
+                if (attributes.isEmpty()) {
+                    expectedAdapted.getValue().removeContainer(ShadowType.F_ATTRIBUTES);
+                }
+            }
+        }
+
+        Collection<SelectorOptions<GetOperationOptions>> options;
+        if (include) {
+            if (toInclude == null) {
+                options = schemaHelper.getOperationOptionsBuilder().retrieve().raw(raw).build();
+            } else {
+                ItemPath[] paths = toInclude.stream()
+                        .map(name -> ItemPath.create(ShadowType.F_ATTRIBUTES, name)).toArray(ItemPath[]::new);
+                options = schemaHelper.getOperationOptionsBuilder().items((Object[]) paths).retrieve().raw(raw).build();
+            }
+        } else {
+            options = schemaHelper.getOperationOptionsBuilder().raw(raw).build();
+        }
+        PrismObject<ShadowType> real = repositoryService.getObject(ShadowType.class, oid, options, result);
+        ObjectDelta<ShadowType> delta = expectedAdapted.diff(real);
+        if (verbose) {
+            System.out.println("Expected object = \n" + expectedAdapted.debugDump());
+            System.out.println("Real object in repo = \n" + real.debugDump());
+            System.out.println("Difference = \n" + delta.debugDump());
+        }
+        if (!delta.isEmpty()) {
+            fail("Objects are not equal with include=" + include + ", toInclude=" + toInclude + ":\n*** Expected:\n" +
+                    expectedAdapted.debugDump() + "\n*** Got:\n" + real.debugDump() + "\n*** Delta:\n" + delta.debugDump());
+        }
     }
 }
