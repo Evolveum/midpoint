@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.jetbrains.annotations.NotNull;
@@ -399,6 +400,11 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 	@Override
 	public AttributeFetchStrategyType getFetchStrategy() {
 		return refinedAttributeDefinition.getFetchStrategy();
+	}
+
+	@Override
+	public AttributeStorageStrategyType getStorageStrategy() {
+		return refinedAttributeDefinition.getStorageStrategy();
 	}
 
 	@Override

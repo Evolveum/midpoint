@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -38,13 +39,6 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemProcessingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,6 +60,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition<T> attributeDefinition;
     private AttributeFetchStrategyType fetchStrategy;
+    private AttributeStorageStrategyType storageStrategy;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
     private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<>();
@@ -354,7 +349,16 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		this.fetchStrategy = fetchStrategy;
 	}
 
-	public QName getMatchingRuleQName() {
+	@Override
+    public AttributeStorageStrategyType getStorageStrategy() {
+        return storageStrategy;
+    }
+
+    public void setStorageStrategy(AttributeStorageStrategyType storageStrategy) {
+        this.storageStrategy = storageStrategy;
+    }
+
+    public QName getMatchingRuleQName() {
 		return matchingRuleQName;
 	}
 
@@ -382,9 +386,9 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 	}
 
 	// schemaHandlingAttrDefType may be null if we are parsing from schema only
-    static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef, ResourceAttributeDefinitionType schemaHandlingAttrDefType,
-                                            ObjectClassComplexTypeDefinition objectClassDef, PrismContext prismContext,
-                                            String contextDescription) throws SchemaException {
+    static <T> RefinedAttributeDefinition<T> parse(ResourceAttributeDefinition<T> schemaAttrDef,
+            ResourceAttributeDefinitionType schemaHandlingAttrDefType, ObjectClassComplexTypeDefinition objectClassDef,
+            PrismContext prismContext, String contextDescription) throws SchemaException {
 
         RefinedAttributeDefinitionImpl<T> rAttrDef = new RefinedAttributeDefinitionImpl<>(schemaAttrDef, prismContext);
 
@@ -407,8 +411,10 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         rAttrDef.matchingRuleQName = schemaAttrDef.getMatchingRuleQName();
         if (schemaHandlingAttrDefType != null) {
             rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
+            rAttrDef.storageStrategy = schemaHandlingAttrDefType.getStorageStrategy();
+            rAttrDef.setIndexOnly(rAttrDef.storageStrategy == AttributeStorageStrategyType.QUERY_ONLY);
             if (schemaHandlingAttrDefType.getMatchingRule() != null) {
-            	rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
+                rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
             }
         }
 
@@ -559,6 +565,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 		clone.description = this.description;
 		clone.displayName = this.displayName;
 		clone.fetchStrategy = this.fetchStrategy;
+		clone.storageStrategy = this.storageStrategy;
 		clone.inboundMappingTypes = this.inboundMappingTypes;
 		clone.intolerantValuePattern = this.intolerantValuePattern;
 		clone.isExclusiveStrong = this.isExclusiveStrong;

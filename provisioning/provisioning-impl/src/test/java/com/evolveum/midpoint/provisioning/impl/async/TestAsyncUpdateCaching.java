@@ -41,6 +41,6 @@ public class TestAsyncUpdateCaching extends TestAsyncUpdate {
 
 	@Override
 	protected int getNumberOfAccountAttributes() {
-		return 3;
+		return 4;
 	}
 }

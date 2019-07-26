@@ -24,6 +24,7 @@
 			<icfs:name>banderson</icfs:name>
 			<icfs:uid>banderson</icfs:uid>
 			<ri:test>value4</ri:test>
+			<ri:memberOf>group0</ri:memberOf>
 		</attributes>
 	</object>
 </ucfChange>

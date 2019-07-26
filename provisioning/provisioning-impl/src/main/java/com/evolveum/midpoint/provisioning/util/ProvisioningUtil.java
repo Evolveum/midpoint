@@ -165,7 +165,7 @@ public class ProvisioningUtil {
 		Collection<ResourceAttributeDefinition> explicit = new ArrayList<>();
 		for (RefinedAttributeDefinition attributeDefinition : objectClassDefinition.getAttributeDefinitions()) {
 			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
-			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+			if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
 			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
 					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getName()), ctx.getGetOperationOptions(), false))) {

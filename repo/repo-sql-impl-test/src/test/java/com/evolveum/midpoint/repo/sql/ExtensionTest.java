@@ -1739,45 +1739,6 @@ public class ExtensionTest extends BaseSQLRepoTest {
         return rv;
     }
 
-    @Test(enabled = false)
-    public void test900AddDeleteValuePerformance() throws Exception {
-        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test900AddDeleteValuePerformance");
-
-        PrismObject<UserType> user = new UserType(getPrismContext())
-                .name("test100")
-                .asPrismObject();
-        repositoryService.addObject(user, null, result);
-
-        long overallStart = System.currentTimeMillis();
-        long lastBatchStart = overallStart;
-        int lastBatchFrom = 0;
-        for (int i = 0; i < ADD_VALUE_ITERATIONS;) {
-            String valueA = String.format("value-%09d-a", i);
-            String valueB = String.format("value-%09d-b", i);
-            List<ItemDelta<?, ?>> addModifications = getPrismContext().deltaFor(UserType.class)
-                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).add(valueA, valueB)
-                    .asItemDeltas();
-            List<ItemDelta<?, ?>> deleteModifications = getPrismContext().deltaFor(UserType.class)
-                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).delete(valueB)
-                    .asItemDeltas();
-            long lastStart = System.currentTimeMillis();
-            repositoryService.modifyObject(UserType.class, user.getOid(), addModifications, getOptions(), result);
-            repositoryService.modifyObject(UserType.class, user.getOid(), deleteModifications, getOptions(), result);
-            long end = System.currentTimeMillis();
-            i++;
-            if (i % 100 == 0) {
-                long totalDuration = end - overallStart;
-                long lastBatchDuration = end - lastBatchStart;
-                long lastDuration = end - lastStart;
-                int lastBatchSize = i - lastBatchFrom;
-                System.out.printf("Values added: %7d, last duration: %4d ms, last batch average: %9.1f, overall average: %9.1f\n",
-                        i, lastDuration, (float) lastBatchDuration / lastBatchSize, (float) totalDuration / i);
-                lastBatchFrom = i;
-                lastBatchStart = end;
-            }
-        }
-    }
-
     private void assertGetObjectNoInclude(String oid, PrismObject<UserType> expected, OperationResult result) throws SchemaException,
             ObjectNotFoundException {
         checkObject(oid, expected, false, null, result);
@@ -2753,6 +2714,45 @@ public class ExtensionTest extends BaseSQLRepoTest {
         if (!delta.isEmpty()) {
             fail("Objects are not equal with include=" + include + ", toInclude=" + toInclude + ":\n*** Expected:\n" +
                     expectedAdapted.debugDump() + "\n*** Got:\n" + real.debugDump() + "\n*** Delta:\n" + delta.debugDump());
+        }
+    }
+
+    @Test(enabled = false)
+    public void test900AddDeleteValuePerformance() throws Exception {
+        OperationResult result = new OperationResult(ExtensionTest.class.getName() + ".test900AddDeleteValuePerformance");
+
+        PrismObject<UserType> user = new UserType(getPrismContext())
+                .name("test100")
+                .asPrismObject();
+        repositoryService.addObject(user, null, result);
+
+        long overallStart = System.currentTimeMillis();
+        long lastBatchStart = overallStart;
+        int lastBatchFrom = 0;
+        for (int i = 0; i < ADD_VALUE_ITERATIONS;) {
+            String valueA = String.format("value-%09d-a", i);
+            String valueB = String.format("value-%09d-b", i);
+            List<ItemDelta<?, ?>> addModifications = getPrismContext().deltaFor(UserType.class)
+                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).add(valueA, valueB)
+                    .asItemDeltas();
+            List<ItemDelta<?, ?>> deleteModifications = getPrismContext().deltaFor(UserType.class)
+                    .item(UserType.F_EXTENSION, EXT_HIDDEN1).delete(valueB)
+                    .asItemDeltas();
+            long lastStart = System.currentTimeMillis();
+            repositoryService.modifyObject(UserType.class, user.getOid(), addModifications, getOptions(), result);
+            repositoryService.modifyObject(UserType.class, user.getOid(), deleteModifications, getOptions(), result);
+            long end = System.currentTimeMillis();
+            i++;
+            if (i % 100 == 0) {
+                long totalDuration = end - overallStart;
+                long lastBatchDuration = end - lastBatchStart;
+                long lastDuration = end - lastStart;
+                int lastBatchSize = i - lastBatchFrom;
+                System.out.printf("Values added: %7d, last duration: %4d ms, last batch average: %9.1f, overall average: %9.1f\n",
+                        i, lastDuration, (float) lastBatchDuration / lastBatchSize, (float) totalDuration / i);
+                lastBatchFrom = i;
+                lastBatchStart = end;
+            }
         }
     }
 }

@@ -1002,19 +1002,19 @@ public class SqlRepositoryConfiguration {
 
 	// for testing only
 	@SuppressWarnings("SameParameterValue")
-	void setEnableNoFetchExtensionValuesInsertion(boolean enableNoFetchExtensionValuesInsertion) {
+	public void setEnableNoFetchExtensionValuesInsertion(boolean enableNoFetchExtensionValuesInsertion) {
 		this.enableNoFetchExtensionValuesInsertion = enableNoFetchExtensionValuesInsertion;
 	}
 
 	// for testing only
 	@SuppressWarnings("SameParameterValue")
-	void setEnableNoFetchExtensionValuesDeletion(boolean enableNoFetchExtensionValuesDeletion) {
+	public void setEnableNoFetchExtensionValuesDeletion(boolean enableNoFetchExtensionValuesDeletion) {
 		this.enableNoFetchExtensionValuesDeletion = enableNoFetchExtensionValuesDeletion;
 	}
 
 	// for testing only
 	@SuppressWarnings("SameParameterValue")
-	void setEnableIndexOnlyItems(boolean enableIndexOnlyItems) {
+	public void setEnableIndexOnlyItems(boolean enableIndexOnlyItems) {
 		this.enableIndexOnlyItems = enableIndexOnlyItems;
 	}
 }

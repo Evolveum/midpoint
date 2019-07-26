@@ -26,16 +26,13 @@
 		  xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 		  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 								  
-	<name>Async Update Resource</name>
+	<name>Async Update Resource (index only)</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration>
 		<conf:sources>
-			<amqp091>
-				<uri>amqp://localhost:5672/</uri>
-				<username>guest</username>
-				<password>guest</password>
-				<queue>testQueue</queue>
-			</amqp091>
+			<other>
+				<className>com.evolveum.midpoint.provisioning.impl.async.MockAsyncUpdateSource</className>
+			</other>
 		</conf:sources>
 	</connectorConfiguration>
 	<schema>
@@ -68,6 +65,18 @@
 			</xsd:schema>
 		</definition>
 	</schema>
+	<schemaHandling>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>ri:memberOf</ref>
+				<storageStrategy>indexOnly</storageStrategy>
+			</attribute>
+		</objectType>
+	</schemaHandling>
 	<capabilities>
 		<configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<cap:read>
