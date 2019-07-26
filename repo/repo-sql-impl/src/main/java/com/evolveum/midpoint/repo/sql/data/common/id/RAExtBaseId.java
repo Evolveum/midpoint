@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBase;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -27,6 +29,12 @@ public class RAExtBaseId implements Serializable {
 	protected String ownerOid;
 	protected Integer ownerId;
 	protected Integer itemId;
+
+	void fillInFromValue(RAExtBase value) {
+		ownerOid = value.getOwnerOid();
+		ownerId = value.getOwnerId();
+		itemId = value.getItemId();
+	}
 
 	public String getOwnerOid() {
 		return ownerOid;

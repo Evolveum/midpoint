@@ -36,7 +36,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_long", indexes = {
         @Index(name = "iExtensionLong", columnList = "longValue")
 })
-public class ROExtLong extends ROExtBase {
+public class ROExtLong extends ROExtBase<Long> {
 
     private Long value;
 
@@ -94,5 +94,10 @@ public class ROExtLong extends ROExtBase {
             return false;
         ROExtLong that = (ROExtLong) o;
         return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public ROExtLongId createId() {
+        return ROExtLongId.createFromValue(this);
     }
 }

@@ -44,6 +44,14 @@
 
     <xsd:element name="locations" type="tns:LocationsType"/>
 
+    <xsd:element name="hidden" type="xsd:string">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexOnly>true</a:indexOnly>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="LocationsType">
         <xsd:sequence>
             <xsd:element name="location" type="tns:LocationType"/>

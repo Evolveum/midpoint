@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import com.evolveum.midpoint.repo.sql.data.common.id.RAExtBaseId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 
 import java.util.Objects;
@@ -102,14 +103,14 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 		if (!super.equals(o))
 			return false;
 		RAExtBase<?> raExtBase = (RAExtBase<?>) o;
-		return /*Objects.equals(getAssignmentOwnerOid(), raExtBase.getAssignmentOwnerOid()) &&
-				Objects.equals(getAssignmentId(), raExtBase.getAssignmentId()) && */
-				getExtensionType() == raExtBase.getExtensionType();
+		return Objects.equals(getOwnerOid(), raExtBase.getOwnerOid()) &&
+				Objects.equals(getOwnerId(), raExtBase.getOwnerId());
+				/*getExtensionType() == raExtBase.getExtensionType() */
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), /*getAssignmentOwnerOid(), getAssignmentId(), */ getExtensionType());
+		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerId());
 	}
 
 	@Override
@@ -120,49 +121,5 @@ abstract public class RAExtBase<T> extends RAnyBase<T> implements RAExtValue<T> 
 				'}';
 	}
 
-	//	public RObject getOwner() {
-	//		return owner;
-	//	}
-	//
-	//	public String getOwnerOid() {
-	//		if (ownerOid == null && owner != null) {
-	//			ownerOid = owner.getOid();
-	//		}
-	//		return ownerOid;
-	//	}
-	//
-	//	public RObjectExtensionType getOwnerType() {
-	//		return ownerType;
-	//	}
-	//
-	//	public void setOwner(RObject owner) {
-	//		this.owner = owner;
-	//	}
-	//
-	//	public void setOwnerOid(String ownerOid) {
-	//		this.ownerOid = ownerOid;
-	//	}
-	//
-	//	public void setOwnerType(RObjectExtensionType ownerType) {
-	//		this.ownerType = ownerType;
-	//	}
-	//
-	//	@Override
-	//	public boolean equals(Object o) {
-	//		if (this == o)
-	//			return true;
-	//		if (!(o instanceof RAExtBase))
-	//			return false;
-	//		if (!super.equals(o))
-	//			return false;
-	//		RAExtBase roExtBase = (RAExtBase) o;
-	//		return Objects.equals(getOwnerOid(), roExtBase.getOwnerOid()) &&
-	//				getOwnerType() == roExtBase.getOwnerType() &&
-	//				Objects.equals(getItem(), roExtBase.getItem());
-	//	}
-	//
-	//	@Override
-	//	public int hashCode() {
-	//		return Objects.hash(super.hashCode(), getOwnerOid(), getOwnerType(), getItem());
-	//	}
+	public abstract RAExtBaseId createId();
 }

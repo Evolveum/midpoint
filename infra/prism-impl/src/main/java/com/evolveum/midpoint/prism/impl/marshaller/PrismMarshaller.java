@@ -315,7 +315,7 @@ public class PrismMarshaller {
 				ItemName elementName = itemDef.getName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
-					if (!QNameUtil.contains(itemsToSkip, elementName)) {
+					if (!shouldSkipItem(itemsToSkip, elementName, itemDef, ctx)) {
 						XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
 						xmap.put(elementName, xsubnode);
 						marshaledItems.add(elementName);
@@ -327,12 +327,18 @@ public class PrismMarshaller {
 		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
 		for (Item<?,?> item : containerVal.getItems()) {
 			QName elementName = item.getElementName();
-			if (marshaledItems.contains(elementName) || QNameUtil.contains(itemsToSkip, elementName)) {
+			if (marshaledItems.contains(elementName) || shouldSkipItem(itemsToSkip, elementName, item.getDefinition(), ctx)) {
 				continue;
 			}
 			XNodeImpl xsubnode = marshalItemContent(item, getItemDefinition(containerVal, item), ctx, null);
 			xmap.put(elementName, xsubnode);
 		}
+	}
+
+	private boolean shouldSkipItem(Collection<? extends QName> itemsToSkip, QName elementName, ItemDefinition<?> itemDef,
+			SerializationContext ctx) {
+		return QNameUtil.contains(itemsToSkip, elementName) ||
+				ctx != null && ctx.getOptions() != null && ctx.getOptions().isSkipIndexOnly() && itemDef != null && itemDef.isIndexOnly();
 	}
 
 	private <C extends Containerable> ItemDefinition getItemDefinition(PrismContainerValue<C> cval, Item<?, ?> item) {
@@ -416,7 +422,8 @@ public class PrismMarshaller {
             isComposite = definition.isComposite();
         }
         if ((SerializationContext.isSerializeCompositeObjects(ctx) || isComposite || !containsOid) && value.getObject() != null) {
-            XNodeImpl xobjnode = marshalObjectContent(value.getObject(), value.getObject().getDefinition(), ctx);
+	        //noinspection unchecked
+	        XNodeImpl xobjnode = marshalObjectContent(value.getObject(), value.getObject().getDefinition(), ctx);
             xmap.put(createReferenceQName(XNodeImpl.KEY_REFERENCE_OBJECT, namespace), xobjnode);
         }
 
@@ -524,6 +531,7 @@ public class PrismMarshaller {
 		return beanMarshaller.getPrismContext().getSchemaRegistry();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void addTypeDefinitionIfNeeded(@NotNull QName itemName, QName typeName, @NotNull XNodeImpl valueNode) {
 		if (valueNode.getTypeQName() != null && valueNode.isExplicitTypeDeclaration()) {
 			return; // already set

@@ -711,4 +711,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return oldItem;
 	}
 
+	@Override
+	public boolean isIndexOnly() {
+		return false;   // todo
+	}
 }

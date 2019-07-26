@@ -98,4 +98,9 @@ public class RAExtDate extends RAExtBase<Timestamp> implements RAExtValue<Timest
         RAExtDate that = (RAExtDate) o;
         return Objects.equals(value, that.value);
     }
+
+    @Override
+    public RAExtDateId createId() {
+        return RAExtDateId.createFromValue(this);
+    }
 }

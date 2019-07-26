@@ -31,11 +31,45 @@
     <bean id="testDataSource" factory-bean="testDataSourceFactory" factory-method="createDataSource"
           depends-on="testDataSourceFactory"/>
 
+    <!-- Proxied data source used to collect SQL statements -->
+
+    <bean id="proxiedTestDataSource" primary="true" class="net.ttddyy.dsproxy.support.ProxyDataSource">
+        <property name="dataSource" ref="testDataSource"/>
+        <property name="proxyConfig" ref="proxyConfig"/>
+    </bean>
+
+    <bean id="proxyConfig"
+          factory-bean="proxyConfigSupport"
+          factory-method="create"/>
+
+    <bean id="proxyConfigSupport" class="net.ttddyy.dsproxy.support.ProxyConfigSpringXmlSupport">
+        <property name="dataSourceName" value="my-ds"/>
+        <property name="queryListener" ref="queryChainListener"/>        <!-- this is bound to be ChainListener (unfortunately) -->
+<!--        <property name="methodListener" ref="methodListener"/>-->
+    </bean>
+
+    <bean id="queryChainListener" class="net.ttddyy.dsproxy.listener.ChainListener">
+        <property name="listeners">
+            <list>
+                <ref bean="testQueryListener"/>
+            </list>
+        </property>
+    </bean>
+
+    <!-- We don't need this (under normal circumstances) -->
+<!--    <bean id="methodListener" class="net.ttddyy.dsproxy.listener.CompositeMethodListener">-->
+<!--        <property name="listeners">-->
+<!--            <list>-->
+<!--                <bean class="net.ttddyy.dsproxy.listener.TracingMethodListener"/>-->
+<!--            </list>-->
+<!--        </property>-->
+<!--    </bean>-->
+
     <!-- Hibernate session factory -->
     <bean id="testSessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
-          depends-on="testDataSource" lazy-init="true">
+          depends-on="proxiedTestDataSource" lazy-init="true">
 
-        <property name="dataSource" ref="testDataSource"/>
+        <property name="dataSource" ref="proxiedTestDataSource"/>
         <property name="hibernateProperties">
             <props>
                 <prop key="hibernate.dialect">#{testSqlRepositoryFactory.sqlConfiguration.hibernateDialect}</prop>
@@ -46,6 +80,7 @@
                 <prop key="javax.persistence.validation.mode">none</prop>
                 <prop key="hibernate.transaction.coordinator_class">jdbc</prop>
                 <prop key="hibernate.hql.bulk_id_strategy">org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy</prop>
+                <prop key="hibernate.session_factory.statement_inspector">com.evolveum.midpoint.repo.sql.testing.TestStatementInspector</prop>
                 <!-- Todo implement strategy that will not do select when where clause contains only equals on primary key -->
                 <!--<prop key="hibernate.hql.bulk_id_strategy">com.evolveum.midpoint.repo.sql.util.EmptyMultiTableBulkIdStrategy</prop>-->
             </props>

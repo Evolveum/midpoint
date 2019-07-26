@@ -924,6 +924,14 @@ class DomToSchemaPostProcessor {
 			propDef.setIndexed(indexable);
 		}
 
+		Element indexOnlyElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_INDEX_ONLY);
+		if (indexOnlyElement != null) {
+			propDef.setIndexOnly(Boolean.TRUE.equals(XmlTypeConverter.toJavaValue(indexOnlyElement, Boolean.class)));
+			if (propDef.isIndexOnly()) {
+				propDef.setIndexed(true);
+			}
+		}
+
 		Element matchingRuleElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_MATCHING_RULE);
 		if (matchingRuleElement != null) {
 			QName matchingRule = XmlTypeConverter.toJavaValue(matchingRuleElement, QName.class);

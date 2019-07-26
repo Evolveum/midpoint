@@ -19,21 +19,20 @@ package com.evolveum.midpoint.repo.sql;
 /**
  *
  */
-public class RestartOperationRequestedException extends SerializationRelatedException {
+public class ExtensionTestSafeInsertionAndDeletion extends ExtensionTest {
 
-	private final boolean forbidNoFetchExtensionValueAddition;
+    @Override
+    boolean isNoFetchInsertion() {
+        return false;
+    }
 
-	public RestartOperationRequestedException(String message) {
-		super(message);
-		forbidNoFetchExtensionValueAddition = false;
-	}
+    @Override
+    boolean isNoFetchDeletion() {
+        return false;
+    }
 
-	public RestartOperationRequestedException(String message, boolean forbidNoFetchExtensionValueAddition) {
-		super(message);
-		this.forbidNoFetchExtensionValueAddition = forbidNoFetchExtensionValueAddition;
-	}
-
-	public boolean isForbidNoFetchExtensionValueAddition() {
-		return forbidNoFetchExtensionValueAddition;
-	}
+    @Override
+    int getExtraSafeInsertionSelects(int insertions) {
+        return insertions;
+    }
 }
