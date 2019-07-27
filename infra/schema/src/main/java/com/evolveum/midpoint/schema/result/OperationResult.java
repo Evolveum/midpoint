@@ -345,6 +345,17 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 		}
 	}
 
+	// This is not quite useful: We want to record the "real" end, i.e. when the control leaves the region belonging to
+	// the operation result. So it's actually OK to rewrite the end timestamp, even if it was already set.
+	// A small price to pay is that "end" could get a bit inconsistent with "microseconds", that was presumably set earlier.
+	// But that's quite good - when analyzing we can see that such an inconsistency arose and we can deal with it.
+
+//	public void recordEndIfNeeded() {
+//		if (invocationRecord != null || end == null) {
+//			recordEnd();
+//		}
+//	}
+
 	/**
 	 * Reference to an asynchronous operation that can be used to retrieve
 	 * the status of the running operation. This may be a task identifier,

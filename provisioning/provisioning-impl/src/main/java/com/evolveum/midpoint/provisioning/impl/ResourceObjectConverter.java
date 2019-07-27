@@ -483,11 +483,8 @@ public class ResourceObjectConverter {
 		OperationResult result = parentResult.createSubresult(OPERATION_MODIFY_RESOURCE_OBJECT);
 		
 		try {
-		
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDump(itemDeltas, 1));
-			}
-			
+			LOGGER.trace("Modifying resource object {}, deltas:\n{}", repoShadow, DebugUtil.debugDumpLazily(itemDeltas, 1));
+
 			RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 			Collection<Operation> operations = new ArrayList<>();
 			
@@ -497,8 +494,7 @@ public class ResourceObjectConverter {
 			if (ProvisioningUtil.isProtectedShadow(ctx.getObjectClassDefinition(), repoShadow, matchingRuleRegistry,
 					relationRegistry)) {
 				if (hasChangesOnResource(itemDeltas)) {
-					LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
-							+ identifiers);
+					LOGGER.error("Attempt to modify protected resource object {}: {}", objectClassDefinition, identifiers);
 					SecurityViolationException e = new SecurityViolationException("Cannot modify protected resource object "
 							+ objectClassDefinition + ": " + identifiers);
 					result.recordFatalError(e);
@@ -539,7 +535,7 @@ public class ResourceObjectConverter {
 				result.recordNotApplicableIfUnknown();
 				return AsynchronousOperationReturnValue.wrap(null, result);
 			}
-	
+
 	        /*
 	         *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
 	         *  groups of which this account is a member of. (In case of object->subject associations.)
@@ -552,8 +548,6 @@ public class ResourceObjectConverter {
 	         *
 	         *  We decide based on setting of explicitReferentialIntegrity in association definition.
 	         */
-	       
-	
 			collectAttributeAndEntitlementChanges(ctx, itemDeltas, operations, repoShadow, result);
 			
 			PrismObject<ShadowType> preReadShadow = null;
@@ -582,9 +576,7 @@ public class ResourceObjectConverter {
 				// has the account as enabled, then the last enable operation would be ignored.
 				// No case is created to re-enable the account. And the account stays disabled at the end.
 				preReadShadow = shadowCaretaker.applyPendingOperations(ctx, repoShadow, preReadShadow, true, now);
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Pre-read object (applied pending operations):\n{}", preReadShadow==null?null:preReadShadow.debugDump(1));
-				}
+				LOGGER.trace("Pre-read object (applied pending operations):\n{}", DebugUtil.debugDumpLazily(preReadShadow, 1));
 			}
 			
 			if (!operations.isEmpty()) {
@@ -630,18 +622,14 @@ public class ResourceObjectConverter {
 					LOGGER.trace("Post-read object:\n{}", postReadShadow.debugDump());
 				}
 	        	ObjectDelta<ShadowType> resourceShadowDelta = preReadShadow.diff(postReadShadow);
-	        	if (LOGGER.isTraceEnabled()) {
-	        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDump());
-	        	}
+        		LOGGER.trace("Determined side-effect changes by old-new diff:\n{}", resourceShadowDelta.debugDumpLazily());
 	        	for (ItemDelta modification: resourceShadowDelta.getModifications()) {
 	        		if (modification.getParentPath().startsWithName(ShadowType.F_ATTRIBUTES) && !ItemDeltaCollectionsUtil
 					        .hasEquivalent(itemDeltas, modification)) {
 	        			ItemDeltaCollectionsUtil.merge(sideEffectDeltas, modification);
 	        		}
 	        	}
-	        	if (LOGGER.isTraceEnabled()) {
-	        		LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}", DebugUtil.debugDump(sideEffectDeltas));
-	        	}
+        		LOGGER.trace("Side-effect changes after merging with old-new diff:\n{}", DebugUtil.debugDumpLazily(sideEffectDeltas));
 	        }
 	
 	        Collection<? extends ItemDelta> allDeltas = new ArrayList<>();
@@ -649,7 +637,7 @@ public class ResourceObjectConverter {
 	        ((Collection)allDeltas).addAll(sideEffectDeltas);
 	        
 	        // Execute entitlement modification on other objects (if needed)
-	        shadowAfter = executeEntitlementChangesModify(ctx, 
+	        executeEntitlementChangesModify(ctx,
 	        		preReadShadow == null ? repoShadow : preReadShadow,
 	        		postReadShadow == null ? shadowAfter : postReadShadow,
 	        		scripts, connOptions, allDeltas, result);
@@ -662,10 +650,7 @@ public class ResourceObjectConverter {
 				}
 			}
 	        
-	        if (LOGGER.isTraceEnabled()) {
-	    		LOGGER.trace("Modificaiton side-effect changes:\n{}", DebugUtil.debugDump(sideEffectDeltas));
-	    	}
-	        
+    		LOGGER.trace("Modification side-effect changes:\n{}", DebugUtil.debugDumpLazily(sideEffectDeltas));
 	        LOGGER.trace("Modified resource object {}", repoShadow);
 	        
 	        computeResultStatus(result);
@@ -675,10 +660,11 @@ public class ResourceObjectConverter {
 				aResult.setOperationType(modifyAsyncRet.getOperationType());
 			}
 			return aResult;
-			
 		} catch (Throwable e) {
 			result.recordFatalError(e);
 			throw e;
+		} finally {
+			result.recordEnd();
 		}
 	}
 	
@@ -1274,7 +1260,7 @@ public class ResourceObjectConverter {
 
 		ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
 		
-		SearchResultMetadata metadata = null;
+		SearchResultMetadata metadata;
 		try {
 		
 			metadata = connector.search(objectClassDef, query, 
@@ -1418,6 +1404,7 @@ public class ResourceObjectConverter {
 		}
 	}
 
+	@NotNull
 	private Collection<Operation> determineActivationChange(ProvisioningContext ctx, ShadowType shadow, Collection<? extends ItemDelta> objectChange,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		ResourceType resource = ctx.getResource();
@@ -1445,7 +1432,7 @@ public class ResourceObjectConverter {
 				}
 			} else {
 				LOGGER.trace("Native activation capability, creating property modification");
-				operations.add(new PropertyModificationOperation(enabledPropertyDelta));
+				operations.add(new PropertyModificationOperation<>(enabledPropertyDelta));
 			}
 		}
 		
@@ -1460,7 +1447,7 @@ public class ResourceObjectConverter {
 			}
 			XMLGregorianCalendar xmlCal = validFromPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation validFrom change to: {}", xmlCal);
-			operations.add(new PropertyModificationOperation(validFromPropertyDelta));
+			operations.add(new PropertyModificationOperation<>(validFromPropertyDelta));
 		}
 
 		// validTo
@@ -1474,7 +1461,7 @@ public class ResourceObjectConverter {
 			}
 			XMLGregorianCalendar xmlCal = validToPropertyDelta.getPropertyNewMatchingPath().getRealValue();
 			LOGGER.trace("Found activation validTo change to: {}", xmlCal);
-				operations.add(new PropertyModificationOperation(validToPropertyDelta));
+				operations.add(new PropertyModificationOperation<>(validToPropertyDelta));
 		}
 		
 		PropertyDelta<LockoutStatusType> lockoutPropertyDelta = PropertyDeltaCollectionsUtil.findPropertyDelta(objectChange,
@@ -1493,7 +1480,7 @@ public class ResourceObjectConverter {
 						ctx, lockoutPropertyDelta, shadow, status, activationCapability, result);
 				operations.add(activationAttribute);
 			} else {
-				operations.add(new PropertyModificationOperation(lockoutPropertyDelta));
+				operations.add(new PropertyModificationOperation<>(lockoutPropertyDelta));
 			}
 		}
 		
@@ -1718,8 +1705,7 @@ public class ResourceObjectConverter {
 		return false;
 	}
 
-
-	private void collectAttributeAndEntitlementChanges(ProvisioningContext ctx, 
+	private void collectAttributeAndEntitlementChanges(ProvisioningContext ctx,
 			Collection<? extends ItemDelta> objectChange, Collection<Operation> operations, 
 			PrismObject<ShadowType> shadow, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		if (operations == null) {
@@ -1730,8 +1716,8 @@ public class ResourceObjectConverter {
 		for (ItemDelta itemDelta : objectChange) {
 			if (isAttributeDelta(itemDelta) || SchemaConstants.PATH_PASSWORD.equivalent(itemDelta.getParentPath())) {
 				if (itemDelta instanceof PropertyDelta) {
-					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
-							(PropertyDelta) itemDelta);
+					PropertyModificationOperation attributeModification = new PropertyModificationOperation<>(
+							(PropertyDelta<?>) itemDelta);
 					RefinedAttributeDefinition<Object> attrDef = objectClassDefinition.findAttributeDefinition(itemDelta.getElementName());
 					if (attrDef != null) {
 						attributeModification.setMatchingRuleQName(attrDef.getMatchingRuleQName());
@@ -1750,9 +1736,7 @@ public class ResourceObjectConverter {
 			} else if (SchemaConstants.PATH_ACTIVATION.equivalent(itemDelta.getParentPath())) {
 				if (!activationProcessed) {
 					Collection<Operation> activationOperations = determineActivationChange(ctx, shadow.asObjectable(), objectChange, result);
-					if (activationOperations != null){
-						operations.addAll(activationOperations);
-					}
+					operations.addAll(activationOperations);
 					activationProcessed = true;
 				}
 			} else if (ShadowType.F_ASSOCIATION.equivalent(itemDelta.getPath())) {
@@ -1763,8 +1747,8 @@ public class ResourceObjectConverter {
 				}
 			} else if (ShadowType.F_AUXILIARY_OBJECT_CLASS.equivalent(itemDelta.getPath())) {
 				if (itemDelta instanceof PropertyDelta) {
-					PropertyModificationOperation attributeModification = new PropertyModificationOperation(
-							(PropertyDelta) itemDelta);
+					PropertyModificationOperation attributeModification = new PropertyModificationOperation<>(
+							(PropertyDelta<?>) itemDelta);
 					operations.add(attributeModification);
 				} else {
 					throw new UnsupportedOperationException("Not supported delta: " + itemDelta);
@@ -1772,7 +1756,6 @@ public class ResourceObjectConverter {
 			} else {
 				LOGGER.trace("Skip converting item delta: {}. It's not resource object change, but it is shadow change.", itemDelta);	
 			}
-			
 		}
 	}
 
@@ -2556,13 +2539,13 @@ public class ResourceObjectConverter {
 		return asyncResult;
 	}
 	
-	private void computeResultStatus(OperationResult parentResult) {
-		if (parentResult.isInProgress()) {
+	private void computeResultStatus(OperationResult result) {
+		if (result.isInProgress()) {
 			return;
 		}
 		OperationResultStatus status = OperationResultStatus.SUCCESS;
 		String asyncRef = null;
-		for (OperationResult subresult: parentResult.getSubresults()) {
+		for (OperationResult subresult: result.getSubresults()) {
 			if (OPERATION_MODIFY_ENTITLEMENT.equals(subresult.getOperation()) && subresult.isError()) {
 				status = OperationResultStatus.PARTIAL_ERROR;
 			} else if (subresult.isError()) {
@@ -2572,8 +2555,8 @@ public class ResourceObjectConverter {
 				asyncRef = subresult.getAsynchronousOperationReference();
 			}
 		}
-		parentResult.setStatus(status);
-		parentResult.setAsynchronousOperationReference(asyncRef);
+		result.setStatus(status);
+		result.setAsynchronousOperationReference(asyncRef);
 	}
 	
 	private <C extends CapabilityType> void checkForCapability(ProvisioningContext ctx, Class<C> capabilityClass, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
