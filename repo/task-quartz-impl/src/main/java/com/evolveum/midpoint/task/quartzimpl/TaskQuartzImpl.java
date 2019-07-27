@@ -260,7 +260,7 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	@Override
 	public PrismObject<TaskType> getUpdatedOrClonedTaskObject() {
 		if (isLiveRunningInstance()) {
-			return getTaskPrismObjectClone();
+			return getClonedTaskObject();
 		} else {
 			updateTaskPrismResult(taskPrism);
 			return taskPrism;
@@ -279,10 +279,12 @@ public class TaskQuartzImpl implements InternalTaskInterface {
 	}
 
 	Task cloneAsStaticTask() {
-		return new TaskQuartzImpl(taskManager, getTaskPrismObjectClone(), repositoryService);
+		return new TaskQuartzImpl(taskManager, getClonedTaskObject(), repositoryService);
 	}
 
-	public PrismObject<TaskType> getTaskPrismObjectClone() {
+	@NotNull
+	@Override
+	public PrismObject<TaskType> getClonedTaskObject() {
 		synchronized (PRISM_ACCESS) {
 			PrismObject<TaskType> rv = taskPrism.clone();
 			updateTaskPrismResult(rv);

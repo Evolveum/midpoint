@@ -106,7 +106,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		Map<String, String> templateParameters = createTemplateParameters(task, result);      // todo evaluate lazily if needed
 		File file = createFileName(zip, tracingProfile, templateParameters);
 		try {
-			TracingOutputType tracingOutput = createTracingOutput(result, tracingProfile);
+			TracingOutputType tracingOutput = createTracingOutput(task, result, tracingProfile);
 			String xml = prismContext.xmlSerializer().serializeRealValue(tracingOutput);
 			if (zip) {
 				MiscUtil.writeZipFile(file, ZIP_ENTRY_NAME, xml, StandardCharsets.UTF_8);
@@ -131,15 +131,36 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 		}
 	}
 
-	private TracingOutputType createTracingOutput(OperationResult result, TracingProfileType tracingProfile) {
+	private TracingOutputType createTracingOutput(Task task, OperationResult result, TracingProfileType tracingProfile) {
 		TracingOutputType output = new TracingOutputType(prismContext);
 		output.beginMetadata()
 				.createTimestamp(XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis()))
 				.profile(tracingProfile);
+		output.setEnvironment(createTracingEnvironmentDescription(task, tracingProfile));
+
 		OperationResultType resultBean = result.createOperationResultType();
 		output.setDictionary(extractDictionary(resultBean));
 		output.setResult(resultBean);
 		return output;
+	}
+
+	@NotNull
+	private TracingEnvironmentType createTracingEnvironmentDescription(Task task, TracingProfileType tracingProfile) {
+		TracingEnvironmentType environment = new TracingEnvironmentType(prismContext);
+		if (!Boolean.TRUE.equals(tracingProfile.isHideDeploymentInformation())) {
+			DeploymentInformationType deployment = systemConfiguration.getDeploymentInformation();
+			if (deployment != null) {
+				DeploymentInformationType deploymentClone = deployment.clone();
+				deploymentClone.setSubscriptionIdentifier(null);
+				environment.setDeployment(deploymentClone);
+			}
+		}
+		TaskType taskClone = task.getClonedTaskObject().asObjectable();
+		if (taskClone.getResult() != null) {
+			taskClone.getResult().getPartialResults().clear();
+		}
+		environment.setTaskRef(ObjectTypeUtil.createObjectRefWithFullObject(taskClone, prismContext));
+		return environment;
 	}
 
 	// Extracting from JAXB objects currently does not work because RawType.getValue fails for

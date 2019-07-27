@@ -894,6 +894,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
 	@NotNull
 	PrismObject<TaskType> getUpdatedTaskObject();
 
+    /**
+     * Returns cloned task object.
+     */
+    @NotNull
+    PrismObject<TaskType> getClonedTaskObject();
+
 	/**
 	 * Re-reads the task state from the persistent storage.
 	 *
