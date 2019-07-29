@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.PrismObjectValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import java.io.File;
@@ -41,6 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -498,6 +501,19 @@ public class ReportUtils {
         List values = itemDelta.getValue();
         StringBuilder sb = new StringBuilder();
         for (Object value : values) {
+            String v = printItemDeltaValue(itemDelta.getPath().getItemPath(), value);
+            if (StringUtils.isNotBlank(v)) {
+                sb.append(v);
+                sb.append(", ");
+            }
+        }
+        sb.setLength(Math.max(sb.length() - 2, 0)); // delete last delimiter
+        return sb.toString();
+    }
+    
+    private static String printItemDeltaValues(ItemDelta itemDelta, Collection values) {
+        StringBuilder sb = new StringBuilder();
+        for (Object value : values) {
             String v = printItemDeltaValue(itemDelta.getPath(), value);
             if (StringUtils.isNotBlank(v)) {
                 sb.append(v);
@@ -508,7 +524,10 @@ public class ReportUtils {
         return sb.toString();
     }
 
-    private static String printItemDeltaValue(ItemPathType itemPath, Object value) {
+    private static String printItemDeltaValue(ItemPath itemPath, Object value) {
+    	if(value instanceof PrismValue) {
+    		value = ((PrismValue) value).getRealValue();
+    	}
         if (value instanceof MetadataType) {
             return "";
         } else if (value instanceof RawType) {
@@ -518,7 +537,7 @@ public class ReportUtils {
                     return "";
                 }
 
-                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath.getItemPath());
+                Object parsedRealValue = ((RawType) value).getParsedRealValue(null, itemPath);
                 if (parsedRealValue instanceof Containerable) { // this is for PCV
                     return prettyPrintForReport(((Containerable) parsedRealValue).asPrismContainerValue());
                 }
@@ -535,7 +554,7 @@ public class ReportUtils {
         }
     }
 
-    private static String printItemDeltaOldValues(ItemPathType itemPath, List values) {
+    private static String printItemDeltaOldValues(ItemPath itemPath, Collection values) {
         StringBuilder sb = new StringBuilder();
         for (Object value : values) {
             String v = printItemDeltaValue(itemPath, value);
@@ -563,8 +582,12 @@ public class ReportUtils {
     }
 
     private static boolean isMetadata(ItemPathType itemPath) {
+    	return isMetadata(itemPath.getItemPath());
+    }
+    
+    private static boolean isMetadata(ItemPath itemPath) {
         boolean retMeta = false;
-        for (Object ips : itemPath.getItemPath().getSegments()) {
+        for (Object ips : itemPath.getSegments()) {
             if (ItemPath.isName(ips) && ObjectType.F_METADATA.getLocalPart().equals(ItemPath.toName(ips).getLocalPart())) {
                 return true;
             }
@@ -587,7 +610,7 @@ public class ReportUtils {
         if (itemDelta.getEstimatedOldValue() != null && !itemDelta.getEstimatedOldValue().isEmpty()) {
             sb.append("Old: ");
             sb.append("{");
-            sb.append(printItemDeltaOldValues(itemDelta.getPath(), itemDelta.getEstimatedOldValue()));
+            sb.append(printItemDeltaOldValues(itemDelta.getPath().getItemPath(), itemDelta.getEstimatedOldValue()));
             sb.append("}");
             sb.append(", ");
             displayNA = true;
@@ -630,22 +653,87 @@ public class ReportUtils {
         sb.append("\n");
         return sb.toString();
     }
+    
+    public static String prettyPrintForReport(ItemDelta itemDelta) {
+        StringBuilder sb = new StringBuilder();
+        boolean displayNA = false;
+
+        if (isMetadata(itemDelta.getPath())) {
+            return sb.toString();
+        }
+
+        sb.append("\t");
+        sb.append(itemDelta.getPath());
+        sb.append(": ");
+        sb.append("{");
+        if (itemDelta.getEstimatedOldValues() != null && !itemDelta.getEstimatedOldValues().isEmpty()) {
+            sb.append("Old: ");
+            sb.append("{");
+            sb.append(printItemDeltaOldValues(itemDelta.getPath(), itemDelta.getEstimatedOldValues()));
+            sb.append("}");
+            sb.append(", ");
+            displayNA = true;
+        } else if (itemDelta.isReplace() || itemDelta.isAdd()) {
+        	sb.append("Old: {}, ");
+        }
+
+        if (itemDelta.isReplace()) {
+            sb.append("Replace: ");
+            sb.append("{");
+            sb.append(printItemDeltaValues(itemDelta, itemDelta.getValuesToReplace()));
+            sb.append("}");
+            sb.append(", ");
+            displayNA = false;
+        }
+
+        if (itemDelta.isDelete()) {
+            sb.append("Delete: ");
+            sb.append("{");
+            sb.append(printItemDeltaValues(itemDelta, itemDelta.getValuesToDelete()));
+            sb.append("}");
+            sb.append(", ");
+            displayNA = false;
+        }
+
+        if (itemDelta.isAdd()) {
+            sb.append("Add: ");
+            sb.append("{");
+            sb.append(printItemDeltaValues(itemDelta, itemDelta.getValuesToAdd()));
+            sb.append("}");
+            sb.append(", ");
+            displayNA = false;
+        }
+
+        if (displayNA) {
+            sb.append("N/A"); // this is rare case when oldValue is present but replace, delete and add lists are all null
+        } else {
+            sb.setLength(Math.max(sb.length() - 2, 0));
+        }
+
+        sb.append("}");
+        sb.append("\n");
+        return sb.toString();
+    }
 
     public static String getBusinessDisplayName(ObjectReferenceType ort) {
         return ort.getDescription();
     }
 
     private static String printChangeType(String objectName, ObjectDeltaType delta, String opName, String resourceName) {
+    	return printChangeType(objectName, delta.getObjectType().getLocalPart(), delta.getOid(), opName, resourceName);
+    }
+    
+    private static String printChangeType(String objectName,String objectType, String objectOid, String opName, String resourceName) {
         StringBuilder sb = new StringBuilder();
         sb.append(opName);
         sb.append(" ");
-        sb.append(delta.getObjectType().getLocalPart());
+        sb.append(objectType);
         if (StringUtils.isNotBlank(objectName)) {
             sb.append(": ");
             sb.append(objectName);
-        } else if (delta.getOid() != null) {
+        } else if (objectOid != null) {
             sb.append(": ");
-            sb.append(delta.getOid());
+            sb.append(objectOid);
         }
         if (StringUtils.isNotBlank(resourceName)) {
             sb.append(" - ");
@@ -655,6 +743,8 @@ public class ReportUtils {
         sb.append("\n");
         return sb.toString();
     }
+    
+    
 
     public static String printDelta(List<ObjectDeltaType> delta) {
         StringBuilder sb = new StringBuilder();
@@ -697,6 +787,47 @@ public class ReportUtils {
 
             case DELETE:
                 sb.append(printChangeType(objectName, delta, "Delete", resourceName));
+                break;
+        }
+
+        return sb.toString();
+    }
+    
+    public static String printDelta(ObjectDeltaOperation deltaOp) {
+    	ObjectDelta delta = deltaOp.getObjectDelta();
+    	String objectName = deltaOp.getObjectName() == null ? null : deltaOp.getObjectName().toString();
+    	String resourceName = deltaOp.getResourceName() == null ? null : deltaOp.getResourceName().toString();
+    	StringBuilder sb = new StringBuilder();
+		
+        switch (delta.getChangeType()) {
+            case MODIFY:
+                Collection<ItemDelta> modificationDeltas = delta.getModifications();
+                if (modificationDeltas != null && !modificationDeltas.isEmpty()) {
+                    sb.append(printChangeType(objectName, delta.getObjectTypeClass().getSimpleName(), delta.getOid(), "Modify", resourceName));
+                }
+                for (ItemDelta itemDelta : modificationDeltas) {
+                    sb.append(prettyPrintForReport(itemDelta));
+                }
+                sb.setLength(Math.max(sb.length() - 1, 0));
+                break;
+
+            case ADD:
+                ObjectType objectToAdd = (ObjectType) delta.getObjectToAdd();
+                if (objectToAdd != null) {
+                    sb.append(printChangeType(objectName, delta.getObjectTypeClass().getSimpleName(), delta.getOid(), "Add", resourceName));
+                    if (objectToAdd.getName() != null) {
+                        sb.append(prettyPrintForReport(objectToAdd.getClass().getSimpleName()));
+                        sb.append("=");
+                        sb.append(objectToAdd.getName().toString());
+                    }
+                    sb.append(" {");
+                    sb.append(prettyPrintForReport(objectToAdd));
+                    sb.append("}");
+                }
+                break;
+
+            case DELETE:
+                sb.append(printChangeType(objectName, delta.getObjectTypeClass().getSimpleName(), delta.getOid(), "Delete", resourceName));
                 break;
         }
 

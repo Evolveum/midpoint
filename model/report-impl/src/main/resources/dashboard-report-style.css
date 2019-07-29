@@ -103,9 +103,6 @@ p {
   padding-left:15px;
 }
 
-.table-audit {
+.table-smaller-font table {
   font-size:smaller;
-}
-.box-audit {
-  width:150%;
 }

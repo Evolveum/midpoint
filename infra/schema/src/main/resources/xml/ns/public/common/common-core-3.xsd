@@ -2499,6 +2499,9 @@
                                 Execution status provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
                             </xsd:documentation>
+			    <xsd:appinfo>
+				<a:displayName>TaskType.executionStatus</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="waitingReason" type="tns:TaskWaitingReasonType" minOccurs="0">
@@ -2548,6 +2551,9 @@
                                 TRANSIENT. This value is not stored in the repository.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.nodeAsObserved</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="category" type="xsd:string" minOccurs="0">
@@ -2556,6 +2562,9 @@
                                 Kind of the task, e.g. live sync, reconciliation, workflow, import from resource.
                                 Used mainly for the GUI.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.category</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
@@ -2588,6 +2597,9 @@
                                 Top-level state of the 'result' (OperationResultType).
                                 It is put here for ease of use - mainly filtering, displaying, and so on.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.resultStatus</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -2599,6 +2611,9 @@
                                 that it imports from. Similarly
                                 for synchronization and reconciliation tasks (cycles).
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.objectRef</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -2670,6 +2685,9 @@
                                 Relative metric of task progress. The meaning of this attribute
                                 is specific to particular task handler.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.progress</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
@@ -18910,7 +18928,7 @@
       				</xsd:documentation>
       			</xsd:annotation>
       		</xsd:element>
-      		<xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="unbounded">
+      		<xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						<p>
