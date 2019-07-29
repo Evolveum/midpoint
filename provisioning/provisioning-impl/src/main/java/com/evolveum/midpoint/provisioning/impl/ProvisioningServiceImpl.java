@@ -160,14 +160,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		PrismObject<T> resultingObject = null;
+		PrismObject<T> resultingObject;
 
 		if (ResourceType.class.isAssignableFrom(type)) {
-
 			if (GetOperationOptions.isRaw(rootOptions)) {
                 try {
-				    resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid,
-						null, result);
+				    resultingObject = (PrismObject<T>) cacheRepositoryService.getObject(ResourceType.class, oid, options, result);
                 } catch (ObjectNotFoundException|SchemaException ex) {
                     // catching an exception is important because otherwise the result is UNKNOWN
                     result.recordFatalError(ex);
@@ -181,14 +179,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					result.muteLastSubresultError();
 					ProvisioningUtil.logWarning(LOGGER, result,
 							"Bad connector reference defined for resource:  " + ex.getMessage(), ex);
-				} catch (SchemaException ex){
+				} catch (SchemaException ex) {
 					result.muteLastSubresultError();
-					ProvisioningUtil.logWarning(LOGGER, result,
-							"Schema violation:  " + ex.getMessage(), ex);
-				} catch (ConfigurationException ex){
+					ProvisioningUtil.logWarning(LOGGER, result, "Schema violation:  " + ex.getMessage(), ex);
+				} catch (ConfigurationException ex) {
 					result.muteLastSubresultError();
-					ProvisioningUtil.logWarning(LOGGER, result,
-							"Configuration problem:  " + ex.getMessage(), ex);
+					ProvisioningUtil.logWarning(LOGGER, result, "Configuration problem:  " + ex.getMessage(), ex);
 				}
 			} else {
 				// We need to handle resource specially. This is usually cached
@@ -221,18 +217,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} else {
 			// Not resource
 
-			PrismObject<T> repositoryObject = getRepoObject(type, oid, rootOptions, result);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDump());
-			}
+			PrismObject<T> repositoryObject = getRepoObject(type, oid, options, result);
+			LOGGER.trace("Retrieved repository object:\n{}", repositoryObject.debugDumpLazily());
 
 			if (repositoryObject.canRepresent(ShadowType.class)) {
-
 				try {
-
 					resultingObject = (PrismObject<T>) shadowCache.getShadow(oid,
 							(PrismObject<ShadowType>) (repositoryObject), options, task, result);
-
 				} catch (ObjectNotFoundException e) {
 					if (!GetOperationOptions.isAllowNotFound(rootOptions)){
 						ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
@@ -248,8 +239,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					ProvisioningUtil.recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
 					throw new SystemException(e);
 				}
-
-
 			} else {
 				resultingObject = repositoryObject;
 			}
@@ -261,9 +250,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			resultingObject.asObjectable().setFetchResult(result.createOperationResultType());
 		}
 		result.cleanupResult();
-
 		return resultingObject;
-
 	}
 
 	@Override
@@ -1352,12 +1339,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return resourceObjectShadowDefinition;
 	}
 
-	private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid, GetOperationOptions options, OperationResult result) throws ObjectNotFoundException, SchemaException{
-
+	private <T extends ObjectType> PrismObject<T> getRepoObject(Class<T> type, String oid,
+			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
 		try {
-			return getCacheRepositoryService().getObject(type, oid, null, result);
+			return getCacheRepositoryService().getObject(type, oid, options, result);
 		} catch (ObjectNotFoundException e) {
-			if (!GetOperationOptions.isAllowNotFound(options)){
+			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+			if (!GetOperationOptions.isAllowNotFound(rootOptions)) {
 				ProvisioningUtil.recordFatalError(LOGGER, result, "Can't get object with oid " + oid + ". Reason " + e.getMessage(), e);
 			} else {
 				result.muteLastSubresultError();
