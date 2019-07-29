@@ -807,42 +807,24 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
 	@Override
 	public OperationResult getCurrentResult() {
-		OperationResult rv = ModelExpressionThreadLocalHolder.getCurrentResult();
-		if (rv == null) {
-			// fallback (MID-4130): but maybe we should instead make sure ModelExpressionThreadLocalHolder is set up correctly
-			ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
-			if (ctx != null) {
-				rv = ctx.getResult();
-			}
+		// This is the most current operation result, reflecting e.g. the fact that mapping evaluation was started.
+		ScriptExpressionEvaluationContext ctx = ScriptExpressionEvaluationContext.getThreadLocal();
+		if (ctx != null) {
+			return ctx.getResult();
+		} else {
+			// This is a bit older. But better than nothing.
+			return ModelExpressionThreadLocalHolder.getCurrentResult();
 		}
-		return rv;
 	}
 
 	@Override
 	public OperationResult getCurrentResult(String operationName) {
 		OperationResult currentResult = getCurrentResult();
-		if (currentResult == null) {
-			return new OperationResult(operationName);
-		} else {
+		if (currentResult != null) {
 			return currentResult;
-		}
-	}
-
-	private OperationResult createSubresult(String operationName) {
-		OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
-		if (currentResult == null) {
-			return new OperationResult(operationName);
 		} else {
-			return currentResult.createSubresult(operationName);
-		}
-	}
-
-	private OperationResult createMinorSubresult(String operationName) {
-		OperationResult currentResult = ModelExpressionThreadLocalHolder.getCurrentResult();
-		if (currentResult == null) {
+			LOGGER.warn("No operation result for {}, creating a new one", operationName);
 			return new OperationResult(operationName);
-		} else {
-			return currentResult.createMinorSubresult(operationName);
 		}
 	}
 

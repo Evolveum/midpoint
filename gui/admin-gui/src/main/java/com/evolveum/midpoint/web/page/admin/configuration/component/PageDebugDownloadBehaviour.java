@@ -48,6 +48,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
     private boolean exportAll;
     private Class<? extends ObjectType> type;
     private boolean useZip;
+    private boolean showAllItems;
     private ObjectQuery query;
 
     public boolean isExportAll() {
@@ -83,6 +84,14 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
 
     public void setUseZip(boolean useZip) {
         this.useZip = useZip;
+    }
+
+    public boolean isShowAllItems() {
+        return showAllItems;
+    }
+
+    public void setShowAllItems(boolean showAllItems) {
+        this.showAllItems = showAllItems;
     }
 
     @Override
@@ -171,7 +180,9 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         GetOperationOptionsBuilder optionsBuilder = page.getSchemaHelper().getOperationOptionsBuilder()
                 .raw()
                 .resolveNames();
-        optionsBuilder = WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsBuilder, type);
+        if (showAllItems) {
+            optionsBuilder = optionsBuilder.retrieve();
+        }
         service.searchObjectsIterative(type, query, handler, optionsBuilder.build(),
                 page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }

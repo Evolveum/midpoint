@@ -49,6 +49,8 @@
 		<foo:password xsi:type="t:ProtectedStringType">
 			<t:clearValue>openS3zam3</t:clearValue>
 		</foo:password>
+		<ext:hidden>HIDDEN!</ext:hidden>
+		<ext:stringType>visible</ext:stringType>
 	</extension>
 
     <!-- Account as composite object, resource as reference -->

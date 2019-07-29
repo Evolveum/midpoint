@@ -368,7 +368,13 @@ public class SimpleTaskAdapter implements Task {
     @NotNull
     @Override
     public PrismObject<TaskType> getUpdatedTaskObject() {
-        return null;
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @NotNull
+    @Override
+    public PrismObject<TaskType> getClonedTaskObject() {
+        throw new UnsupportedOperationException("not implemented yet.");
     }
 
     @Override

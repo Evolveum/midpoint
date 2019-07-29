@@ -105,6 +105,12 @@
             <artifactId>spring-test</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>net.ttddyy</groupId>
+            <artifactId>datasource-proxy</artifactId>
+            <version>1.5.1</version>
+        </dependency>
+
 		<dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>

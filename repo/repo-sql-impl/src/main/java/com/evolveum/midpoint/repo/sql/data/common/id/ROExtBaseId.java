@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtBase;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.io.Serializable;
@@ -29,6 +30,12 @@ public class ROExtBaseId implements Serializable {
 	protected String ownerOid;
 	protected RObjectExtensionType ownerType;
 	protected Integer itemId;
+
+	void fillInFromValue(ROExtBase value) {
+		ownerOid = value.getOwnerOid();
+		ownerType = value.getOwnerType();
+		itemId = value.getItemId();
+	}
 
 	public String getOwnerOid() {
 		return ownerOid;

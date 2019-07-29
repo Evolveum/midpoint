@@ -69,6 +69,11 @@ public class ActivationAsserter<RA> extends AbstractAsserter<RA> {
 		return this;
 	}
 	
+	public ActivationAsserter<RA> assertNoAdministrativeStatus() {
+		assertNull("Unexpected administrative status in " + desc() + ": " + getActivation().getAdministrativeStatus(), getActivation().getAdministrativeStatus());
+		return this;
+	}
+	
 	public ActivationAsserter<RA> assertValidFrom(XMLGregorianCalendar expected) {
 		assertEquals("Wrong validFrom in " + desc(), expected, getActivation().getValidFrom());
 		return this;
@@ -102,6 +107,11 @@ public class ActivationAsserter<RA> extends AbstractAsserter<RA> {
 	
 	public ActivationAsserter<RA> assertEffectiveStatus(ActivationStatusType expected) {
 		assertEquals("Wrong effective status in " + desc(), expected, getActivation().getEffectiveStatus());
+		return this;
+	}
+	
+	public ActivationAsserter<RA> assertNoEffectiveStatus() {
+		assertNull("Unexpected effective status in " + desc() + ": " + getActivation().getEffectiveStatus(), getActivation().getEffectiveStatus());
 		return this;
 	}
 		

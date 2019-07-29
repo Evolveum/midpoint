@@ -39,7 +39,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_reference", indexes = {
         @Index(name = "iExtensionReference", columnList = "targetoid")
 })
-public class ROExtReference extends ROExtBase {
+public class ROExtReference extends ROExtBase<String> {
 
     public static final String F_TARGET_OID = "value";
     public static final String F_RELATION = "relation";
@@ -129,5 +129,10 @@ public class ROExtReference extends ROExtBase {
         repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getTargetType()));
 
         return repo;
+    }
+
+    @Override
+    public ROExtReferenceId createId() {
+        return ROExtReferenceId.createFromValue(this);
     }
 }

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtBoolean;
+
 import java.util.Objects;
 
 /**
@@ -73,5 +75,12 @@ public class RAExtBooleanId extends RAExtBaseId {
                 ", itemId=" + itemId +
                 ", value=" + value +
                 '}';
+    }
+
+    public static RAExtBooleanId createFromValue(RAExtBoolean value) {
+        RAExtBooleanId rv = new RAExtBooleanId();
+        rv.value = value.getValue();
+        rv.fillInFromValue(value);
+        return rv;
     }
 }

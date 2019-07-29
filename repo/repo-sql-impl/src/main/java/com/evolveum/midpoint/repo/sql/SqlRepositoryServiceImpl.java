@@ -462,6 +462,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         long opHandle = pm.registerOperationStart(OP_ADD_OBJECT, object.getCompileTimeClass());
         int attempt = 1;
         int restarts = 0;
+        boolean noFetchExtensionValueInsertionForbidden = false;
         try {
 	        // TODO use executeAttempts
 	        final String operation = "adding";
@@ -469,7 +470,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	        String proposedOid = object.getOid();
 	        while (true) {
 	            try {
-                    String createdOid = objectUpdater.addObjectAttempt(object, options, subResult);
+                    String createdOid = objectUpdater.addObjectAttempt(object, options, noFetchExtensionValueInsertionForbidden, subResult);
                     invokeConflictWatchers((w) -> w.afterAddObject(createdOid, object));
                     return createdOid;
                 } catch (RestartOperationRequestedException ex) {
@@ -479,10 +480,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     if (restarts > RESTART_LIMIT) {
                         throw new IllegalStateException("Too many operation restarts");
                     }
-	            } catch (RuntimeException ex) {
+                } catch (RuntimeException ex) {
 	                attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
 	            }
+                noFetchExtensionValueInsertionForbidden = true;     // todo This is a temporary measure; needs better handling.
 	        }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
@@ -629,13 +631,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         int attempt = 1;
         int restarts = 0;
 
+        boolean noFetchExtensionValueInsertionForbidden = false;
+
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(OP_MODIFY_OBJECT, type);
 
         try {
             while (true) {
                 try {
-                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options, attempt, subResult, this);
+                    ModifyObjectResult<T> rv = objectUpdater.modifyObjectAttempt(type, oid, modifications, precondition, options,
+                            attempt, subResult, this, noFetchExtensionValueInsertionForbidden);
 	                invokeConflictWatchers((w) -> w.afterModifyObject(oid));
 	                return rv;
                 } catch (RestartOperationRequestedException ex) {
@@ -644,6 +649,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     restarts++;
                     if (restarts > RESTART_LIMIT) {
                         throw new IllegalStateException("Too many operation restarts");
+                    } else if (ex.isForbidNoFetchExtensionValueAddition()) {
+                        noFetchExtensionValueInsertionForbidden = true;
                     }
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(oid, operation, attempt, ex, subResult);

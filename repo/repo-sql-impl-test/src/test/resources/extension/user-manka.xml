@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:ext="http://example.com/p"
+        oid="87d973ee-5c47-488e-94cb-dfaa8cc9448d">
+    <name>manka</name>
+    <extension>
+        <ext:hidden1>h1.1</ext:hidden1>
+        <ext:hidden1>h1.2</ext:hidden1>
+        <ext:visible>v1</ext:visible>
+        <ext:visible>v2</ext:visible>
+        <ext:visible>v3</ext:visible>
+    </extension>
+    <assignment id="1">
+        <extension>
+            <ext:weapon>w1</ext:weapon>
+            <ext:weapon>w2</ext:weapon>
+            <ext:weapon>w3</ext:weapon>
+			<ext:shipName>none</ext:shipName>
+        </extension>
+        <targetRef oid="12345" type="RoleType" />
+    </assignment>
+</user>

@@ -98,4 +98,9 @@ public class RAExtLong extends RAExtBase<Long> implements RAExtValue<Long> {
         RAExtLong that = (RAExtLong) o;
         return Objects.equals(value, that.value);
     }
+
+    @Override
+    public RAExtLongId createId() {
+        return RAExtLongId.createFromValue(this);
+    }
 }

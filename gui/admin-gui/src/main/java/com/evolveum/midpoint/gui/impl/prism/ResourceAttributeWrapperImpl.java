@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 
@@ -211,6 +212,11 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
 	@Override
 	public AttributeFetchStrategyType getFetchStrategy() {
 		return getRefinedAttributeDefinition().getFetchStrategy();
+	}
+
+	@Override
+	public AttributeStorageStrategyType getStorageStrategy() {
+		return getRefinedAttributeDefinition().getStorageStrategy();
 	}
 
 	@Override

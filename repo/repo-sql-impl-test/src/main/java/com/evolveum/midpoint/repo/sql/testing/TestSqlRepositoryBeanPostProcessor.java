@@ -41,10 +41,7 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
     private static final String TRUNCATE_FUNCTION = "cleanupTestDatabase";
     private static final String TRUNCATE_PROCEDURE = "cleanupTestDatabaseProc";
 
-    @Autowired
-    private ApplicationContext context;
-    @Autowired
-    private QueryCountInterceptor queryCountInterceptor;
+    @Autowired private ApplicationContext context;
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
@@ -69,7 +66,6 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
         LOGGER.info("Deleting objects from database.");
 
         SessionFactory sessionFactory = (SessionFactory) bean;
-        sessionFactory.withOptions().interceptor(queryCountInterceptor);
         Session session = sessionFactory.openSession();
         try {
             session.beginTransaction();
@@ -108,9 +104,6 @@ public class TestSqlRepositoryBeanPostProcessor implements BeanPostProcessor {
     /**
      * This method decides whether function or procedure (oracle, ms sql server)
      * will be used to cleanup testing database.
-     *
-     * @param config
-     * @return
      */
     private boolean useProcedure(SqlRepositoryConfiguration config) {
         return StringUtils.containsIgnoreCase(config.getHibernateDialect(), "oracle")

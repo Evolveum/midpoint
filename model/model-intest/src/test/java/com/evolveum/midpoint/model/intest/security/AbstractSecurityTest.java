@@ -205,6 +205,9 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-exec-all.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_OID = "00000000-0000-0000-0000-00000000ad08";
+	
+	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-fullname.xml");
+	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_OID = "f9e8a432-af7e-11e9-b338-9336f46ab95d";
 
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-user.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_USER_OID = "00000000-0000-0000-0000-00000000ae08";
@@ -393,7 +396,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 	protected static final XMLGregorianCalendar JACK_VALID_TO_LONG_AHEAD = XmlTypeConverter.createXMLGregorianCalendar(10000000000000L);
 
 	protected static final int NUMBER_OF_ALL_USERS = 11;
-	protected static final int NUMBER_OF_IMPORTED_ROLES = 74;
+	protected static final int NUMBER_OF_IMPORTED_ROLES = 75;
 	protected static final int NUMBER_OF_ALL_ORGS = 11;
 
 	protected String userRumRogersOid;
@@ -435,6 +438,7 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_EXEC_ALL_FILE, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_GET_SEARCH_SOME_MODIFY_SOME_USER_FILE, initResult);
 		repoAddObjectFromFile(ROLE_PROP_DENY_MODIFY_SOME_FILE, initResult);
@@ -519,6 +523,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 		assignOrg(userCobbOid, ORG_SCUMM_BAR_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_ORDINARY_OID, initTask, initResult);
 		assignRole(userCobbOid, ROLE_UNINTERESTING_OID, initTask, initResult);
+		
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 		
 		InternalsConfig.setDetailedAuhotizationLog(true);
 	}
@@ -676,7 +682,8 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result /* no value */);
         modifyUserReplace(USER_JACK_OID, UserType.F_COST_CENTER, task, result /* no value */);
-        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString(USER_JACK_FULL_NAME));
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, createPolyString(USER_JACK_FULL_NAME));
+        modifyUserReplace(USER_JACK_OID, UserType.F_ADDITIONAL_NAME, task, result, createPolyString(USER_JACK_ADDITIONAL_NAME));
         modifyUserReplace(USER_JACK_OID, UserType.F_SUBTYPE, task, result, USER_JACK_SUBTYPE);
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_FROM, task, result  /* no value */);
         modifyUserReplace(USER_JACK_OID, SchemaConstants.PATH_ACTIVATION_VALID_TO, task, result  /* no value */);

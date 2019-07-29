@@ -131,7 +131,7 @@ public class REmbeddedReference implements ObjectReference {
         }
     }
 
-    public static void fromJaxb(ObjectReferenceType jaxb, REmbeddedReference repo,
+    public static REmbeddedReference fromJaxb(ObjectReferenceType jaxb, REmbeddedReference repo,
             RelationRegistry relationRegistry) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -141,7 +141,7 @@ public class REmbeddedReference implements ObjectReference {
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
         repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());
-
+        return repo;
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {

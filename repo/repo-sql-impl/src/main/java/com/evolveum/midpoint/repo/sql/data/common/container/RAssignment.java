@@ -210,7 +210,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 0")
-    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createApproverRef") })
     public Set<RAssignmentReference> getCreateApproverRef() {
@@ -243,7 +243,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     }
 
     @Where(clause = RAssignmentReference.REFERENCE_TYPE + "= 1")
-    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JaxbPath(itemPath = { @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyApproverRef") })
     public Set<RAssignmentReference> getModifyApproverRef() {
