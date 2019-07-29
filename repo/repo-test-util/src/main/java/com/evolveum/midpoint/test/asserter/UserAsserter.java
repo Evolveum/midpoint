@@ -104,6 +104,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	}
 	
 	@Override
+	public UserAsserter<RA> assertNoDescription() {
+		super.assertNoDescription();
+		return this;
+	}
+	
+	@Override
 	public UserAsserter<RA> assertSubtype(String... expected) {
 		super.assertSubtype(expected);
 		return this;
@@ -229,6 +235,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	
 	public UserAsserter<RA> assertNoFamilyName() {
 		assertNoItem(UserType.F_FAMILY_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertAdditionalName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_ADDITIONAL_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoAdditionalName() {
+		assertNoItem(UserType.F_ADDITIONAL_NAME);
 		return this;
 	}
 	

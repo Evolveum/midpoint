@@ -17,6 +17,12 @@ package com.evolveum.midpoint.prism.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +32,9 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -149,6 +158,15 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		this.delta = delta;
 	}
 
+	/**
+	 * Returns new item that is a result of delta application. May return null if there is no
+	 * new item.
+	 * 
+	 * WARNING: Output of this method should be used for preview only.
+	 * It should NOT be placed into prism structures. Not even cloned.
+	 * This method may return dummy items or similar items that are not usable.
+	 * Values in the items should be OK, but they may need cloning.
+	 */
 	public Item<V,D> getItemNew() {
 		return itemNew;
 	}
@@ -221,10 +239,11 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		}
 		if (subItemDeltas != null && !subItemDeltas.isEmpty()) {
 			if (itemNew == null) {
-				throw new SchemaException("Cannot apply subitem delta to null new item");
+				// Subitem deltas on an non-existing container. This should be fine to create an empty container here.
+				itemNew = definition.getPrismContext().itemFactory().createDummyItem(itemOld, definition, resolvePath);
 			}
 			for (ItemDelta<?,?> subItemDelta: subItemDeltas) {
-				itemNew = (Item<V,D>) subItemDelta.getItemNew((Item) itemNew);
+				subItemDelta.applyTo(itemNew);
 			}
 		}
 	}
@@ -558,4 +577,5 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			throw new IllegalArgumentException("Attempt to set delta without definition");
 		}
 	}
+	
 }

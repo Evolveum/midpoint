@@ -17,8 +17,11 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 import javax.xml.namespace.QName;
 
@@ -70,4 +73,13 @@ public interface ItemFactory {
 	<C extends Containerable> PrismContainerValue<C> createContainerValue(C containerable);
 
 	<C extends Containerable> PrismContainerValue<C> createContainerValue();
+	
+	/**
+	 * Creates a dummy container with a fixed path. 
+	 * This container is good for storing values, e.g. in case of delta computations to get
+	 * preview of the new item.
+	 * But such container cannot be used to fit into any prism structure (cannot set parent). 
+	 */
+	@Experimental
+	<V extends PrismValue,D extends ItemDefinition> Item<V,D> createDummyItem(Item<V,D> itemOld, D definition, ItemPath path) throws SchemaException;
 }
