@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,13 @@
 package com.evolveum.midpoint.prism.impl;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.impl.item.DummyContainerImpl;
+import com.evolveum.midpoint.prism.impl.item.DummyPropertyImpl;
+import com.evolveum.midpoint.prism.impl.item.DummyReferenceImpl;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
@@ -151,5 +157,24 @@ public class ItemFactoryImpl implements ItemFactory {
 	@Override
 	public <C extends Containerable> PrismContainerValue<C> createContainerValue() {
 		return new PrismContainerValueImpl<>(prismContext);
+	}
+
+	@Override
+	public <V extends PrismValue,D extends ItemDefinition> Item<V,D> createDummyItem(Item<V,D> itemOld, D definition, ItemPath path) throws SchemaException {
+		Item<V,D> itemMid;
+		if (itemOld == null) {
+			itemMid = definition.instantiate();
+		} else {
+			itemMid = itemOld.clone();
+		}
+		if (itemMid instanceof PrismProperty<?>) {
+			return (Item<V,D>) new DummyPropertyImpl<>((PrismProperty<?>)itemMid, path);
+		} else if (itemMid instanceof PrismReference) {
+			return (Item<V,D>) new DummyReferenceImpl((PrismReference)itemMid, path);
+		} else if (itemMid instanceof PrismContainer<?>) {
+			return (Item<V,D>) new DummyContainerImpl<>((PrismContainer<?>)itemMid, path);
+		} else {
+			throw new IllegalStateException("Unknown type "+itemMid.getClass());
+		}
 	}
 }

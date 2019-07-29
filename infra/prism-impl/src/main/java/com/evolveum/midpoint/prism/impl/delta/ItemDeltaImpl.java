@@ -1260,7 +1260,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		} else if (compareComplex == CompareResult.SUPERPATH) {
 			throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is above the item path");
 		} else if (compareComplex == CompareResult.NO_RELATION) {
-			throw new SchemaException("Cannot apply delta "+this+" to "+item+" as paths do not match");
+			throw new SchemaException("Cannot apply delta "+this+" to "+item+" as paths do not match (item:"+itemPath+", delta:"+deltaPath+")");
 		}
 	}
 
@@ -1326,6 +1326,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	/**
 	 * Returns the "new" state of the property - the state that would be after
 	 * the delta is applied.
+	 * 
+	 * WARNING: Output of this method should be used for preview only.
+	 * It should NOT be placed into prism structures. Not even cloned.
+	 * This method may return dummy items or similar items that are not usable.
+	 * Values in the items should be OK, but they may need cloning.
 	 */
 	public Item<V,D> getItemNew() throws SchemaException {
 		return getItemNew(null);
@@ -1334,24 +1339,34 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 	/**
 	 * Returns the "new" state of the property - the state that would be after
 	 * the delta is applied.
+	 * 
+	 * WARNING: Output of this method should be used for preview only.
+	 * It should NOT be placed into prism structures. Not even cloned.
+	 * This method may return dummy items or similar items that are not usable.
+	 * Values in the items should be OK, but they may need cloning.
 	 */
 	public Item<V,D> getItemNew(Item<V,D> itemOld) throws SchemaException {
 		if (definition == null) {
 			throw new IllegalStateException("No definition in "+this);
 		}
-		Item<V,D> itemNew;
-		if (itemOld == null) {
-			if (isEmpty()) {
-				return null;
-			}
-			itemNew = definition.instantiate(getElementName());
-		} else {
-			itemNew = itemOld.clone();
+		if (isEmpty()) {
+			return itemOld;
 		}
+		Item<V,D> itemNew;
+		// We cannot just instantiate or clone the item here. Path will not match. E.g. the deltas may work on subitems of this container.
+		// We need to create a dummy item that has a proper path.
+		itemNew = prismContext.itemFactory().createDummyItem(itemOld, definition, fullPath);
 		applyTo(itemNew);
 		return itemNew;
 	}
 
+	/**
+	 * Returns the "new" state of the property - the state that would be after
+	 * the delta is applied.
+	 * 
+	 * WARNING: This is supposed to work only if the paths of the the delta and the item matches.
+	 * E.g. it is NOT usable for application of subdeltas to containers. 
+	 */
 	public Item<V,D> getItemNewMatchingPath(Item<V,D> itemOld) throws SchemaException {
 		if (definition == null) {
 			throw new IllegalStateException("No definition in "+this);

@@ -115,6 +115,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
+	public PrismObjectAsserter<O,RA> assertNoDescription() {
+		assertNull("Unexpected description in "+desc()+": "+getObject().asObjectable().getDescription(), getObject().asObjectable().getDescription());
+		return this;
+	}
+	
 	public PrismObjectAsserter<O,RA> assertSubtype(String... expected) {
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype in "+desc(), getObject().asObjectable().getSubtype(), expected);
 		return this;
