@@ -37,8 +37,10 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1038,7 +1041,8 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     
     /**
      * FullName is computed in user template. It is not readable, therefore it should not be present in the preview deltas.
-     *	But it is modifiable (execution). Therefore the real modify operation should pass.
+     * But it is modifiable (execution). Therefore the real modify operation should pass.
+     * MID-5595
      */
     @Test
     public void test219AutzJackPropReadSomeModifySomeFullName() throws Exception {
@@ -1066,8 +1070,39 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
         		.assertNoEffectiveStatus();
         
-        // TODO: preview
-        	
+        ObjectDelta<UserType> jackGivenNameDelta = deltaFor(UserType.class)
+        	.item(UserType.F_GIVEN_NAME).replace(createPolyString("Jackie"))
+        	.asObjectDelta(USER_JACK_OID);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN: preview changes
+        ModelContext<UserType> previewContext = previewChanges(jackGivenNameDelta, null, task, result);
+        
+        assertSuccess(result);
+        assertPreviewContext(previewContext)
+        	.focusContext()
+        		.primaryDelta()
+        			.assertModify()
+    				.assertModifications(1)
+    				.property(UserType.F_GIVEN_NAME)
+    					.valuesToReplace()
+    						.single()
+    							.assertPolyStringValue("Jackie")
+    							.end()
+    						.end()
+    					.end()
+    				.end()
+    			.secondaryDelta()
+    				// Secondary delta should be there. Because we are changing something.
+    				// But the user does not have authorization to read fullname.
+    				// Therefore the delta should be empty.
+    				.assertModify()
+    				.assertModifications(0);
+        				
+        
+        // WHEN: real modification
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_GIVEN_NAME, createPolyString("Jackie"));
 
         userJack = getUser(USER_JACK_OID);

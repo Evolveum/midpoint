@@ -23,6 +23,7 @@
     	FullName is computed in user template. It is not readable, therefore it should not be present in the preview deltas.
     	But it is modifiable (execution). Therefore the real modify operation should pass.
     	Mostly based on role-prop-read-some-modify-some-*
+    	MID-5595
     </description>
     <authorization>
     	<name>read-some-fullname-req</name>
@@ -30,7 +31,7 @@
     	<phase>request</phase>
     	<item>c:name</item>
     	<item>givenName</item>
-    	<!-- fullName is NOT here. -->
+    	<!-- fullName is NOT here. MID-5595 -->
     	<item>c:activation/c:administrativeStatus</item>
     	<item>c:assignment</item>
     	<item>c:familyName</item> <!-- Not in exec autz -->
@@ -52,7 +53,7 @@
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>request</phase>
     	<item>givenName</item>
-    	<!-- fullName is NOT here. -->
+    	<!-- fullName is NOT here. MID-5595 -->
     	<item>c:additionalName</item>
     	<item>c:description</item>
     	<item>c:costCenter</item> <!-- Not in exec autz -->
