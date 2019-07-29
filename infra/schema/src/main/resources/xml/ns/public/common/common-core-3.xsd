@@ -8160,7 +8160,7 @@
 						It can be queried. If needed to get it, explicit INCLUDE option has to be used.
                 	</xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="QUERY_ONLY"/>
+                        <jaxb:typesafeEnumMember name="INDEX_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

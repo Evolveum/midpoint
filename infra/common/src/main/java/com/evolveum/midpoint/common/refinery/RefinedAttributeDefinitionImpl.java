@@ -412,7 +412,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         if (schemaHandlingAttrDefType != null) {
             rAttrDef.fetchStrategy = schemaHandlingAttrDefType.getFetchStrategy();
             rAttrDef.storageStrategy = schemaHandlingAttrDefType.getStorageStrategy();
-            rAttrDef.setIndexOnly(rAttrDef.storageStrategy == AttributeStorageStrategyType.QUERY_ONLY);
+            rAttrDef.setIndexOnly(rAttrDef.storageStrategy == AttributeStorageStrategyType.INDEX_ONLY);
             if (schemaHandlingAttrDefType.getMatchingRule() != null) {
                 rAttrDef.matchingRuleQName = schemaHandlingAttrDefType.getMatchingRule();
             }
