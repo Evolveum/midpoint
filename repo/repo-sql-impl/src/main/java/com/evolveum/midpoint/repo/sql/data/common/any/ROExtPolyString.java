@@ -37,7 +37,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_poly", indexes = {
         @Index(name = "iExtensionPolyString", columnList = "orig")
 })
-public class ROExtPolyString extends ROExtBase {
+public class ROExtPolyString extends ROExtBase<String> {
 
     //orig value
     private String value;
@@ -109,5 +109,10 @@ public class ROExtPolyString extends ROExtBase {
             return false;
         ROExtPolyString that = (ROExtPolyString) o;
         return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public ROExtPolyStringId createId() {
+        return ROExtPolyStringId.createFromValue(this);
     }
 }

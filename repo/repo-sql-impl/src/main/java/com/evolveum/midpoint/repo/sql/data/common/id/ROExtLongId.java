@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.util.Objects;
@@ -69,5 +70,12 @@ public class ROExtLongId extends ROExtBaseId {
     @Override
     public String toString() {
         return "ROExtLongId[" + ownerOid + "," + ownerType + "," + itemId + "," + value + "]";
+    }
+
+    public static ROExtLongId createFromValue(ROExtLong value) {
+        ROExtLongId rv = new ROExtLongId();
+        rv.value = value.getValue();
+        rv.fillInFromValue(value);
+        return rv;
     }
 }

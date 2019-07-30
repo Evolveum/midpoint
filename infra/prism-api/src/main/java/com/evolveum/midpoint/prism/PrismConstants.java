@@ -89,6 +89,7 @@ public class PrismConstants {
 	public static final String A_ACCESS_CREATE = "create";
 	public static final String A_ACCESS_UPDATE = "update";
 	public static final String A_ACCESS_READ = "read";
+	public static final QName A_INDEX_ONLY = new QName(NS_ANNOTATION, "indexOnly");
 	public static final QName A_INDEXED = new QName(NS_ANNOTATION, "indexed");
 	public static final QName A_IGNORE = new QName(NS_ANNOTATION, "ignore");
 	public static final QName A_PROCESSING = new QName(NS_ANNOTATION, "processing");

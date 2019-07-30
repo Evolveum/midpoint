@@ -97,4 +97,9 @@ public class RAExtString extends RAExtBase<String> implements RAExtValue<String>
         RAExtString that = (RAExtString) o;
         return Objects.equals(value, that.value);
     }
+
+    @Override
+    public RAExtStringId createId() {
+        return RAExtStringId.createFromValue(this);
+    }
 }

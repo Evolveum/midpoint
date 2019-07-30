@@ -112,4 +112,9 @@ public class RAExtPolyString extends RAExtBase<String> implements RAExtValue<Str
         RAExtPolyString that = (RAExtPolyString) o;
         return Objects.equals(value, that.value);
     }
+
+    @Override
+    public RAExtPolyStringId createId() {
+        return RAExtPolyStringId.createFromValue(this);
+    }
 }

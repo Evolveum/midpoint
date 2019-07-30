@@ -37,7 +37,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_date", indexes = {
         @Index(name = "iExtensionDate", columnList = "dateValue")
 })
-public class ROExtDate extends ROExtBase {
+public class ROExtDate extends ROExtBase<Timestamp> {
 
     private Timestamp value;
 
@@ -95,5 +95,10 @@ public class ROExtDate extends ROExtBase {
             return false;
         ROExtDate that = (ROExtDate) o;
         return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public ROExtDateId createId() {
+        return ROExtDateId.createFromValue(this);
     }
 }

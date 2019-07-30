@@ -69,12 +69,12 @@ public class XmlTypeConverter {
         return datatypeFactory;
     }
 
-    @Deprecated // do NOT use form the outside of prism
+    @Deprecated // do NOT use from the outside of prism
 	public static boolean canConvert(Class<?> clazz) {
         return (XsdTypeMapper.getJavaToXsdMapping(clazz) != null);
     }
 
-	@Deprecated // do NOT use form the outside of prism
+	@Deprecated // do NOT use from the outside of prism
     public static boolean canConvert(QName xsdType) {
         return (XsdTypeMapper.getXsdToJavaMapping(xsdType) != null);
     }

@@ -261,7 +261,7 @@ public class BaseHelper {
 			return false;
 		}
 
-		if (isSerializationRelatedConstraintViolationException(ex)) {
+		if (hasSerializationRelatedConstraintViolationException(ex)) {
 			return true;
 		}
 
@@ -334,13 +334,12 @@ public class BaseHelper {
 		"duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
 	};
 
-	boolean isSerializationRelatedConstraintViolationException(Throwable ex) {
-
+	private boolean hasSerializationRelatedConstraintViolationException(Throwable ex) {
 		ConstraintViolationException cve = ExceptionUtil.findException(ex, ConstraintViolationException.class);
-		if (cve == null) {
-			return false;
-		}
+		return cve != null && isSerializationRelatedConstraintViolationException(cve);
+	}
 
+	boolean isSerializationRelatedConstraintViolationException(ConstraintViolationException cve) {
 		// BRUTAL HACK - serialization-related issues sometimes manifest themselves as ConstraintViolationException.
 		//
 		// For PostgreSQL and Microsoft SQL Server this happens mainly when automatically generated identifiers are to be
@@ -362,7 +361,7 @@ public class BaseHelper {
 		SQLException sqlException = findSqlException(cve);
 		if (sqlException != null) {
 			SQLException nextException = sqlException.getNextException();
-			LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", ex, sqlException, nextException);
+			LOGGER.debug("ConstraintViolationException = {}; SQL exception = {}; embedded SQL exception = {}", cve, sqlException, nextException);
 			String msg1;
 			if (sqlException.getMessage() != null) {
 				msg1 = sqlException.getMessage().trim();

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.schema.parser;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -40,6 +41,7 @@ import java.util.*;
 import static com.evolveum.midpoint.schema.TestConstants.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
 /**
  *
@@ -102,12 +104,15 @@ public class TestParseUserPolyString extends AbstractObjectParserTest<UserType> 
 		PrismObject<UserType> jack = prismContext.parserFor(getFile()).language(language).parse();
 		String serialized = prismContext.serializerFor(language)
 				.itemsToSkip(Arrays.asList(UserType.F_ORGANIZATIONAL_UNIT, UserType.F_LINK_REF, UserType.F_ASSIGNMENT))
+				.options(SerializationOptions.createSkipIndexOnly())
 				.serialize(jack);
 		System.out.println("Serialization with org unit, linkRef and assignment skipped:\n" + serialized);
 		PrismObject<UserType> jackReparsed = prismContext.parserFor(serialized).language(language).parse();
 		assertEquals("Wrong # of org units", 0, jackReparsed.asObjectable().getOrganizationalUnit().size());
 		assertEquals("Wrong # of assignments", 0, jackReparsed.asObjectable().getAssignment().size());
 		assertEquals("Wrong # of links", 0, jackReparsed.asObjectable().getLinkRef().size());
+		assertNotNull("ext:stringType is not present", jackReparsed.getExtensionContainerValue().find(new ItemName("stringType")));
+		assertNull("ext:hidden is present", jackReparsed.getExtensionContainerValue().find(new ItemName("hidden")));
 	}
 
 	private void processParsingsPCV(SerializingFunction<PrismContainerValue<UserType>> serializer, String serId)

@@ -52,6 +52,9 @@
             <class name="com.evolveum.midpoint.repo.sql.LookupTableTestReindex"/>
             <class name="com.evolveum.midpoint.repo.sql.PerformanceTest"/>
             <class name="com.evolveum.midpoint.repo.sql.ObjectDeltaUpdaterTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ExtensionTest"/>
+            <class name="com.evolveum.midpoint.repo.sql.ExtensionTestNoFetchDeletion"/>
+            <class name="com.evolveum.midpoint.repo.sql.ExtensionTestSafeInsertionAndDeletion"/>
         </classes>
     </test>
     <test name="Concurrency Tests" parallel="false" preserve-order="true" verbose="10" enabled="false">		<!-- enabled only for dbtest -->

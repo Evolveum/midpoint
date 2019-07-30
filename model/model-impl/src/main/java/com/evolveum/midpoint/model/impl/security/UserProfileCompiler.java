@@ -17,10 +17,7 @@ package com.evolveum.midpoint.model.impl.security;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -36,21 +33,17 @@ import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.util.DeputyUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.controller.CollectionProcessor;
 import com.evolveum.midpoint.model.impl.lens.AssignmentCollector;
+import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationTransformer;
 import com.evolveum.midpoint.security.api.DelegatorWithOtherPrivilegesLimitations;
@@ -67,9 +60,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractObjectTypeConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationRoleManagementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AdminGuiConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
@@ -81,8 +71,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectDetailsSetT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewAdditionalPanelsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GuiObjectListViewsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFormsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -93,7 +81,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceFeatureType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * Compiles user interface profile for a particular user. The profile contains essential information needed to efficiently render
@@ -428,7 +415,7 @@ public class UserProfileCompiler {
 		// Not very efficient algorithm. But must do for now.
 		List<GuiObjectColumnType> existingColumns = existingView.getColumns();
 		existingColumns.addAll(newColumns);
-		List<GuiObjectColumnType> orderedList = orderCustomColumns(existingColumns);
+		List<GuiObjectColumnType> orderedList = ModelImplUtils.orderCustomColumns(existingColumns);
 		existingColumns.clear();
 		existingColumns.addAll(orderedList);
 	}
@@ -569,54 +556,6 @@ public class UserProfileCompiler {
 			return UserInterfaceElementVisibilityType.AUTOMATIC;
 		}
 		return UserInterfaceElementVisibilityType.VACANT;
-	}
-
-	/*
-	the ordering algorithm is: the first level is occupied by
-	the column which previousColumn == null || "" || notExistingColumnNameValue.
-	Each next level contains columns which
-	previousColumn == columnNameFromPreviousLevel
-	 */
-	private List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-		if (customColumns == null || customColumns.size() == 0){
-			return new ArrayList<>();
-		}
-		List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
-		List<String> previousColumnValues = new ArrayList<>();
-		previousColumnValues.add(null);
-		previousColumnValues.add("");
-
-		Map<String, String> columnRefsMap = new HashMap<>();
-		for (GuiObjectColumnType column : customColumns){
-			columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
-		}
-
-		List<String> temp = new ArrayList<> ();
-		int index = 0;
-		while (index < customColumns.size()){
-			int sortFrom = index;
-			for (int i = index; i < customColumnsList.size(); i++){
-				GuiObjectColumnType column = customColumnsList.get(i);
-				if (previousColumnValues.contains(column.getPreviousColumn()) ||
-						!columnRefsMap.containsKey(column.getPreviousColumn())){
-					Collections.swap(customColumnsList, index, i);
-					index++;
-					temp.add(column.getName());
-				}
-			}
-			if (temp.size() == 0){
-				temp.add(customColumnsList.get(index).getName());
-				index++;
-			}
-			if (index - sortFrom > 1){
-				customColumnsList.subList(sortFrom, index - 1)
-						.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
-			}
-			previousColumnValues.clear();
-			previousColumnValues.addAll(temp);
-			temp.clear();
-		}
-		return customColumnsList;
 	}
 
 	public CompiledUserProfile getGlobalCompiledUserProfile(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

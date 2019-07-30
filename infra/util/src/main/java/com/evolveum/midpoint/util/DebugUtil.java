@@ -647,7 +647,7 @@ public class DebugUtil {
 		};
 	}
 
-	public static Object debugDumpLazily(Collection<? extends DebugDumpable> dumpables) {
+	public static Object debugDumpLazily(Collection<?> dumpables) {
 		if (dumpables == null || dumpables.isEmpty()) {
 			return dumpables;
 		}
@@ -658,7 +658,19 @@ public class DebugUtil {
 			}
 		};
 	}
-	
+
+	public static Object debugDumpLazily(Collection<?> dumpables, int indent) {
+		if (dumpables == null || dumpables.isEmpty()) {
+			return dumpables;
+		}
+		return new Object() {
+			@Override
+			public String toString() {
+				return debugDump(dumpables, indent, true);
+			}
+		};
+	}
+
 	public static String shortDump(ShortDumpable sd) {
 		if (sd == null) {
 			return null;

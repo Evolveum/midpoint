@@ -82,6 +82,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
+    static final String PARAM_SHOW_ALL_ITEMS = "showAllItems";
     private String dataLanguage = null;
     
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
@@ -92,12 +93,12 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         if (dataLanguage == null) {
             dataLanguage = determineDataLanguage();
         }
-        if (objectViewDtoModel == null){
+        if (objectViewDtoModel == null) {
             objectViewDtoModel = initObjectViewObject();
         }
         initLayout();
@@ -142,16 +143,15 @@ public class PageDebugView extends PageAdminConfiguration {
                 try {
                     MidPointApplication application = PageDebugView.this.getMidpointApplication();
 
-                    // FIXME: ObjectType.class will not work well here. We need more specific type.
-                    //todo on page debug list create page params, put there oid and class for object type and send that to this page....read it here
                     Class<? extends ObjectType> type = getTypeFromParameters();
 
 	                GetOperationOptionsBuilder optionsBuilder = getSchemaHelper().getOperationOptionsBuilder()
 			                .raw()
 			                .resolveNames()
 			                .tolerateRawData();
-                    // TODO make this configurable (or at least do not show campaign cases in production)
-                    optionsBuilder = WebModelServiceUtils.addIncludeOptionsForExportOrView(optionsBuilder, type);
+	                if (getPageParameters().get(PARAM_SHOW_ALL_ITEMS).toBoolean(true)) {
+                        optionsBuilder = optionsBuilder.retrieve();
+                    }
                     PrismObject<? extends ObjectType> object = getModelService().getObject(type, objectOid.toString(), optionsBuilder.build(), task, result);
 
                     PrismContext context = application.getPrismContext();

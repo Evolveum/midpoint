@@ -642,6 +642,16 @@ public class MiscUtil {
 		return list != null ? list : Collections.emptyList();
 	}
 
+	@NotNull
+	public static <T> Collection<T> emptyIfNull(Collection<T> collection) {
+		return collection != null ? collection : Collections.emptyList();
+	}
+
+	@NotNull
+	public static <T> Stream<T> streamOf(Collection<T> collection) {
+		return collection != null ? collection.stream() : Stream.empty();
+	}
+
 	public static String nullIfEmpty(String s) {
 		return "".equals(s) ? null : s;
 	}

@@ -878,4 +878,46 @@ public class ObjectTypeUtil {
 		}
 		return false;
 	}
+	
+	public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
+		if (customColumns == null || customColumns.size() == 0){
+			return new ArrayList<>();
+		}
+		List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
+		List<String> previousColumnValues = new ArrayList<>();
+		previousColumnValues.add(null);
+		previousColumnValues.add("");
+
+		Map<String, String> columnRefsMap = new HashMap<>();
+		for (GuiObjectColumnType column : customColumns){
+			columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
+		}
+
+		List<String> temp = new ArrayList<> ();
+		int index = 0;
+		while (index < customColumns.size()){
+			int sortFrom = index;
+			for (int i = index; i < customColumnsList.size(); i++){
+				GuiObjectColumnType column = customColumnsList.get(i);
+				if (previousColumnValues.contains(column.getPreviousColumn()) ||
+						!columnRefsMap.containsKey(column.getPreviousColumn())){
+					Collections.swap(customColumnsList, index, i);
+					index++;
+					temp.add(column.getName());
+				}
+			}
+			if (temp.size() == 0){
+				temp.add(customColumnsList.get(index).getName());
+				index++;
+			}
+			if (index - sortFrom > 1){
+				customColumnsList.subList(sortFrom, index - 1)
+						.sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
+			}
+			previousColumnValues.clear();
+			previousColumnValues.addAll(temp);
+			temp.clear();
+		}
+		return customColumnsList;
+	}
 }

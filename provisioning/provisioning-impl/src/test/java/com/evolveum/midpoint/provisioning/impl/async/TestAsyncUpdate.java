@@ -50,6 +50,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
@@ -68,6 +69,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 	protected static final File TEST_DIR = new File("src/test/resources/async/");
 
 	static final File RESOURCE_ASYNC_CACHING_FILE = new File(TEST_DIR, "resource-async-caching.xml");
+	static final File RESOURCE_ASYNC_CACHING_INDEX_ONLY_FILE = new File(TEST_DIR, "resource-async-caching-index-only.xml");
 	static final File RESOURCE_ASYNC_NO_CACHING_FILE = new File(TEST_DIR, "resource-async-no-caching.xml");
 	static final File RESOURCE_ASYNC_CACHING_AMQP_FILE = new File(TEST_DIR, "resource-async-caching-amqp.xml");
 	private static final String RESOURCE_ASYNC_OID = "fb04d113-ebf8-41b4-b13b-990a597d110b";
@@ -194,13 +196,6 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertNotNull("No configuration container", configurationContainer);
 		PrismContainerDefinition confContDef = configurationContainer.getDefinition();
 		assertNotNull("No configuration container definition", confContDef);
-//		PrismProperty<String> propDefaultAssignee = configurationContainer.findProperty(CONF_PROPERTY_DEFAULT_ASSIGNEE_QNAME);
-//		assertNotNull("No defaultAssignee conf prop", propDefaultAssignee);
-
-//		assertNotNull("No configuration properties container", confingurationPropertiesContainer);
-//		PrismContainerDefinition confPropDef = confingurationPropertiesContainer.getDefinition();
-//		assertNotNull("No configuration properties container definition", confPropDef);
-
 	}
 
 	@Test
@@ -230,7 +225,7 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertFalse("Empty identifiers in account", accountDef.getPrimaryIdentifiers().isEmpty());
 		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
 
-		assertEquals("Unexpected number of definitions", 3, accountDef.getDefinitions().size());
+		assertEquals("Unexpected number of definitions", 4, accountDef.getDefinitions().size());
 	}
 
 	@Test
@@ -308,8 +303,10 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		assertNotNull("Delta is missing", lastChange.getObjectDelta());
 		assertTrue("Delta is not a MODIFY one", lastChange.getObjectDelta().isModify());
 		Collection<? extends ItemDelta<?, ?>> modifications = lastChange.getObjectDelta().getModifications();
-		assertEquals("Wrong # of modifications", 1, modifications.size());
-		assertEquals("Wrong # of values added", 3, modifications.iterator().next().getValuesToAdd().size());
+		assertEquals("Wrong # of modifications", 2, modifications.size());
+		Iterator<? extends ItemDelta<?, ?>> iterator = modifications.iterator();
+		assertEquals("Wrong # of values added (first mod)", 3, iterator.next().getValuesToAdd().size());
+		assertEquals("Wrong # of values added (second mod)", 6, iterator.next().getValuesToAdd().size());
 		assertNotNull("Current shadow is not present", lastChange.getCurrentShadow());
 
 		PrismObject<ShadowType> accountRepo = findAccountShadowByUsername("banderson", resource, result);
@@ -354,10 +351,8 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 		checkRepoShadow(accountRepo, ShadowKindType.ACCOUNT, getNumberOfAccountAttributes());
 	}
 
-
 	@Test
 	public void test125ListeningForNotificationOnly() throws Exception {
-
 		if (!hasReadCapability()) {
 			System.out.println("Skipping this test because there's no real read capability");
 			return;

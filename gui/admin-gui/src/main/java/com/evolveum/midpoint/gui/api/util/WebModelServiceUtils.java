@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.LocaleUtils;
 import org.apache.commons.lang.StringUtils;
@@ -76,20 +77,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RegistrationsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SelfRegistrationPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 
 /**
@@ -727,30 +714,6 @@ public class WebModelServiceUtils {
 	    } finally {
 	    	result.computeStatusIfUnknown();
 	    }
-	}
-
-	// deduplicate with Action.addIncludeOptionsForExport (ninja module)
-	public static GetOperationOptionsBuilder addIncludeOptionsForExportOrView(GetOperationOptionsBuilder builder,
-			Class<? extends ObjectType> type) {
-		// todo fix this brutal hack (related to checking whether to include particular options)
-		boolean all = type == null
-				|| Objectable.class.equals(type)
-				|| com.evolveum.prism.xml.ns._public.types_3.ObjectType.class.equals(type)
-				|| ObjectType.class.equals(type);
-
-		if (all || UserType.class.isAssignableFrom(type)) {
-			builder = builder.item(UserType.F_JPEG_PHOTO).retrieve();
-		}
-		if (all || TaskType.class.isAssignableFrom(type)) {
-			builder = builder.item(TaskType.F_RESULT).retrieve();
-		}
-		if (all || LookupTableType.class.isAssignableFrom(type)) {
-			builder = builder.item(LookupTableType.F_ROW).retrieveQuery().asc(PrismConstants.T_ID).end();
-		}
-		if (all || AccessCertificationCampaignType.class.isAssignableFrom(type)) {
-			builder = builder.item(AccessCertificationCampaignType.F_CASE).retrieve();
-		}
-		return builder;
 	}
 
 	public static boolean isEnableExperimentalFeature(Task task, ModelServiceLocator pageBase) {

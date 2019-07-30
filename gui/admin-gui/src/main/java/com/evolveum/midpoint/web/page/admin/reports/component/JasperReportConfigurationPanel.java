@@ -22,6 +22,7 @@ import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.impl.model.JasperTemplateModel;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -64,7 +65,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 		initParametersTable();
 		initFiledsTable();
 
-		IModel<String> data = new Base64Model(new PropertyModel<>(getModel(), "jasperReportDto.jasperReportXml"));
+		IModel<String> data = new JasperTemplateModel(new PropertyModel<>(getModel(), "jasperReportDto.jasperReportXml"));
 		AceEditorPanel templateEditor = new AceEditorPanel(ID_TEMPLATE,
 				createStringResource("PageReport.jasperTemplate"), data, 300);
 		add(templateEditor);

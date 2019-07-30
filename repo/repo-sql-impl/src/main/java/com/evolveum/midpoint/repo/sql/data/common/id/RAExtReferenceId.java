@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtReference;
+
 import java.util.Objects;
 
 /**
@@ -72,5 +74,12 @@ public class RAExtReferenceId extends RAExtBaseId {
                 ", itemId=" + itemId +
                 ", value='" + value + '\'' +
                 '}';
+    }
+
+    public static RAExtReferenceId createFromValue(RAExtReference value) {
+        RAExtReferenceId rv = new RAExtReferenceId();
+        rv.value = value.getValue();
+        rv.fillInFromValue(value);
+        return rv;
     }
 }

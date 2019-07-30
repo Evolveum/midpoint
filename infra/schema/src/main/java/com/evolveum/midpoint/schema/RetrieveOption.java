@@ -5,7 +5,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RetrieveOptionType;
 public enum RetrieveOption {
 
 	/**
-	 * Return the item "as ususal". If the item would be returned by default then return it.
+	 * Return the item "as usual". If the item would be returned by default then return it.
 	 * If the item would not be returned by default then it may not be returned.
 	 */
 	DEFAULT,
