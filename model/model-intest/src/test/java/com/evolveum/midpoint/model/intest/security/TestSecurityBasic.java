@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest.security;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,6 +34,8 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -773,11 +776,76 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
+    /**
+     * MID-5595
+     * @throws Exception
+     */
+    @Test
+    public void test219AutzJackPropReadSomeModifySomeFullName() throws Exception {
+		final String TEST_NAME = "test219AutzJackPropReadSomeModifySomeFullName";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, result);
+        
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_OID);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Captain"));
+
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("Jack", userJack);
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_USERNAME));
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString(USER_JACK_GIVEN_NAME));
+        PrismAsserts.assertPropertyValue(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
+        	ActivationStatusType.ENABLED);
+        PrismAsserts.assertNoItem(userJack, UserType.F_FULL_NAME);
+        PrismAsserts.assertNoItem(userJack, UserType.F_FAMILY_NAME);
+        PrismAsserts.assertNoItem(userJack, UserType.F_ADDITIONAL_NAME);
+        PrismAsserts.assertNoItem(userJack, UserType.F_DESCRIPTION);
+        PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+        assertAssignmentsWithTargets(userJack, 1);
+        
+        ObjectDelta<UserType> delta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_GIVEN_NAME, PrismTestUtil.createPolyString("Jackie"));
+
+        ModelContext<UserType> modelContext = modelInteractionService.previewChanges(MiscSchemaUtil.createCollection(delta),
+        		null, task, result);
+        
+        display("Preview context", modelContext);
+        
+        ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
+		assertNotNull("Null model focus context", focusContext);
+		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
+		assertTrue("Focus secondary delta not modify", userSecondaryDelta.isModify());
+		assertEquals("Unexpected modifications in focus secondary delta", 0, userSecondaryDelta.getModifications().size());
+        
+        assertDeleteDeny();
+
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, null, result);
+        
+        assertGlobalStateUntouched();
+	}
+    
+
     @Test
     public void test220AutzJackPropDenyModifySome() throws Exception {
 		final String TEST_NAME = "test220AutzJackPropDenyModifySome";
 		displayTestTitle(TEST_NAME);
 		// GIVEN
+		
+		Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, null, result);
+		
 		cleanupAutzTest(USER_JACK_OID);
 		assignRole(USER_JACK_OID, ROLE_PROP_DENY_MODIFY_SOME_OID);
 		login(USER_JACK_USERNAME);

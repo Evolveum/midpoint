@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -586,4 +587,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	public Map<ItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
 		return itemDefinitionsMap;
 	}
+
+	@Override
+	public void forEachDelta(Consumer<ObjectDelta<O>> consumer) {
+		super.forEachDelta(consumer);
+		for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
+			consumer.accept(secondaryDelta);
+		}
+	}
+	
+	
 }

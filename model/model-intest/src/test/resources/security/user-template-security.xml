@@ -42,7 +42,7 @@
     
     <mapping>
     	<name>usertemplate-fullName</name>
-    	<strength>weak</strength>
+    	<strength>strong</strength>
     	<source>
     		<path>givenName</path>
     	</source>
