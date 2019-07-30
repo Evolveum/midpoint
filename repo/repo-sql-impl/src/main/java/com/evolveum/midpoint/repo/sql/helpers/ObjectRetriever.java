@@ -621,6 +621,7 @@ public class ObjectRetriever {
 	private <T extends ObjectType> void loadIndexOnlyItemsIfNeeded(PrismObject<T> prismObject,
 			Collection<SelectorOptions<GetOperationOptions>> options, boolean raw, Session session) throws SchemaException {
 		List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
+        LOGGER.trace("loadIndexOnlyItemsIfNeeded: retrieval options = {}", retrieveOptions);
 		if (retrieveOptions.isEmpty()) {
 			return;
 		}
@@ -661,8 +662,11 @@ public class ObjectRetriever {
 		// todo what about extension items that are not part of object extension definition?
 
 		// attributes
-        if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
+        Class<T> compileTimeClass = prismObject.getCompileTimeClass();
+		LOGGER.trace("Object class: {}", compileTimeClass);
+        if (ShadowType.class.equals(compileTimeClass)) {
             boolean getAllAttributes = SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, retrieveOptions, false);
+            LOGGER.trace("getAllAttributes = {}", getAllAttributes);
             if (getAllAttributes) {
                 if (rObject == null) {
                     rObject = session.load(RShadow.class, prismObject.getOid());
@@ -687,6 +691,7 @@ public class ObjectRetriever {
         PrismContainer<Containerable> attributeContainer = shadowObject.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
         // Hack: let's ignore values of attributes that already exist in this container
         Collection<QName> existingAttributeNames = attributeContainer.getValue().getItemNames();
+        LOGGER.trace("existingAttributeNames = {}", existingAttributeNames);
         for (ROExtValue<?> rValue : dbCollection) {
             if (rValue.getOwnerType() == RObjectExtensionType.ATTRIBUTES) {
                 LOGGER.trace("- processing {}", rValue);
