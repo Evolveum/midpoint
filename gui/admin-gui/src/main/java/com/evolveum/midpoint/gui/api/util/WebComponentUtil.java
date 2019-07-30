@@ -91,6 +91,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageDialog;
+import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.cases.PageCase;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
@@ -213,6 +214,7 @@ public final class WebComponentUtil {
 		objectDetailsPageMap.put(ReportType.class, PageReport.class);
 		objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
 		objectDetailsPageMap.put(CaseType.class, PageCase.class);
+		objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
 	}
 
 	static{
@@ -1943,6 +1945,11 @@ public final class WebComponentUtil {
 				// TODO: fix MID-3234
 				if (ref.getType() != null && OrgType.COMPLEX_TYPE.equals(ref.getType())) {
 					assignmentHolder.getParentOrgRef().add(ref.clone());
+				}
+
+				// The same problem as above TODO MID-3234
+				if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
+					assignmentHolder.getArchetypeRef().add(ref.clone());
 				}
 			});
 		}
