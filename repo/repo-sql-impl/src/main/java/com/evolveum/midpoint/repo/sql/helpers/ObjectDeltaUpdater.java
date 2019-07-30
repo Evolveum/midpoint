@@ -213,7 +213,7 @@ public class ObjectDeltaUpdater {
     }
 
     private boolean isFocusPhoto(ItemDelta delta) {
-        return new ItemPath(FocusType.F_JPEG_PHOTO).equals(delta.getPath());
+        return new ItemPath(FocusType.F_JPEG_PHOTO).equivalent(delta.getPath());
     }
 
     private void handlePhoto(Object bean, ItemDelta delta) throws SchemaException {
