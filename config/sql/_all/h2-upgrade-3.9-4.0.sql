@@ -94,3 +94,7 @@ CREATE INDEX iAuditResourceOidRecordId
   ON m_audit_resource (record_id);
 ALTER TABLE m_audit_resource
   ADD CONSTRAINT fk_audit_resource FOREIGN KEY (record_id) REFERENCES m_audit_event;
+
+-- 2019-07-30 11:30
+
+ALTER TABLE m_audit_item ALTER COLUMN changedItemPath VARCHAR(900);
