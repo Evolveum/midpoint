@@ -2158,7 +2158,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return false;
     }
 
-    private void createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
+    private void  createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
                                          final Class<? extends PageBase> newPageType) {
         MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;

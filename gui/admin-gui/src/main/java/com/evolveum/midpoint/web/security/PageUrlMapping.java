@@ -65,6 +65,16 @@ public enum PageUrlMapping {
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description"),
             new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
                     "PageAdminRoles.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")
+    }),
+    CASE_DETAILS("/admin/caseWorkItem/**", new DisplayableValue[]{
+            new AuthorizationActionValue(AUTZ_UI_CASE_WORK_ITEM_URL,
+                    "PageCaseWorkItems.authUri.resourceDetails.label", "PageAdminResources.authUri.resourceDetails.description"),
+            new AuthorizationActionValue(AUTZ_UI_CASE_WORK_ITEMS_ALL_URL,
+                    "PageCaseWorkItems.authUri.resourcesAll.label", "PageAdminResources.authUri.resourcesAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_URL,
+                    "PageCaseWorkItems.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description"),
+            new AuthorizationActionValue(AUTZ_GUI_ALL_DEPRECATED_URL,
+                    "PageCaseWorkItems.authUri.rolesAll.label", "PageAdminRoles.authUri.guiAll.description")
     });
 
     private String url;
