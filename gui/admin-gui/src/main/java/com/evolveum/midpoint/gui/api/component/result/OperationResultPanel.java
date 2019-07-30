@@ -594,12 +594,13 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 						return " box-info";
 					case SUCCESS:
 						return " box-success";
+					case HANDLED_ERROR:
+						return " box-default";
 					case FATAL_ERROR:
 
 						return " box-danger";
 					case UNKNOWN:
 					case PARTIAL_ERROR:
-					case HANDLED_ERROR: // TODO:
 					case WARNING:
 					default:
 						return " box-warning";
@@ -662,13 +663,13 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 			case NOT_APPLICABLE:
 				return "left-info";
 			case SUCCESS:
+			case HANDLED_ERROR: // TODO:
 				return "left-success";
 			case FATAL_ERROR:
 
 				return "left-danger";
 			case UNKNOWN:
 			case PARTIAL_ERROR:
-			case HANDLED_ERROR: // TODO:
 			case WARNING:
 			default:
 				return "left-warning";
