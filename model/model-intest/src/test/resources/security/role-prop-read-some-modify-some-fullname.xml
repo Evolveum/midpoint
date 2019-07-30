@@ -26,9 +26,12 @@
     	MID-5595
     </description>
     <authorization>
-    	<name>read-some-fullname-req</name>
+    	<name>read-some-fullname-user-req</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>request</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
     	<item>c:name</item>
     	<item>givenName</item>
     	<!-- fullName is NOT here. MID-5595 -->
@@ -37,9 +40,12 @@
     	<item>c:familyName</item> <!-- Not in exec autz -->
     </authorization>
     <authorization>
-    	<name>read-some-exec</name>
+    	<name>read-some-fullname-user-exec</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>execution</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
     	<item>c:name</item>
     	<item>givenName</item>
     	<item>c:fullName</item> <!-- fullName IS here. -->
@@ -49,9 +55,12 @@
     	<item>activation/validTo</item> <!-- Not in request autz -->
     </authorization>
     <authorization>
-    	<name>modify-some-req</name>
+    	<name>modify-some-fullname-user-req</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>request</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
     	<item>givenName</item>
     	<!-- fullName is NOT here. MID-5595 -->
     	<item>c:additionalName</item>
@@ -60,9 +69,12 @@
     	<item>activation/validFrom</item>
     </authorization>
     <authorization>
-    	<name>modify-some-exec</name>
+    	<name>modify-some-fullname-user-exec</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
+    	<object>
+    		<type>UserType</type>
+    	</object>
     	<item>givenName</item>
     	<item>c:fullName</item> <!-- fullName IS here. -->
     	<item>c:additionalName</item>
@@ -72,13 +84,29 @@
     	<item>activation/validTo</item> <!-- Not in request autz -->
     	<item>activation/effectiveStatus</item> <!-- Not in request autz -->
     </authorization>
-<!--     <authorization>
-    	<name>modify-some-operational-exec</name>
-    	<description>Required, these are operational properties that midPoint changes automatically</description>
+    <authorization>
+    	<name>read-some-fullname-shadow</name>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<object>
+    		<type>ShadowType</type>
+    	</object>
+    	<item>name</item>
+    	<item>objectClass</item>
+    	<item>kind</item>
+    	<item>intent</item>
+    	<item>resourceRef</item>
+    	<!-- attributes is NOT here. MID-5595 -->
+    	<item>activation</item>
+    </authorization>
+    <authorization>
+    	<name>modify-some-fullname-shadow-exec</name>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
-    	<item>activation/validityStatus</item>
-    	<item>activation/validityChangeTimestamp</item>
-    	<item>activation/effectiveStatus</item>
-    </authorization>  -->
+    	<object>
+    		<type>ShadowType</type>
+    	</object>
+    	<item>attributes</item>
+    	<item>activation</item>
+    	<item>credentials</item>
+    </authorization>
 </role>

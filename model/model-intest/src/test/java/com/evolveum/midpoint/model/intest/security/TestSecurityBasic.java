@@ -1051,6 +1051,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_OID);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
         login(USER_JACK_USERNAME);
 
         // WHEN
@@ -1083,6 +1084,30 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertSuccess(result);
         assertPreviewContext(previewContext)
         	.focusContext()
+        		.objectOld()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName(USER_JACK_GIVEN_NAME)
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
+    			.objectCurrent()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName(USER_JACK_GIVEN_NAME)
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
+    			.objectNew()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName("Jackie")
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
         		.primaryDelta()
         			.assertModify()
     				.assertModifications(1)
@@ -1099,8 +1124,34 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     				// But the user does not have authorization to read fullname.
     				// Therefore the delta should be empty.
     				.assertModify()
-    				.assertModifications(0);
-        				
+    				.assertModifications(0)
+    				.end()
+    			.end()
+    		.projectionContexts()
+    			.single()
+    				.objectOld()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.end()
+					.objectCurrent()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+    					.end()
+					.objectNew()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+    					.end()
+    				.assertNoPrimaryDelta()
+    				.secondaryDelta()
+    					.assertModify()
+    					// Read of shadow attributes not allowed
+    					.assertModifications(0);
+        
         
         // WHEN: real modification
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_GIVEN_NAME, createPolyString("Jackie"));
@@ -1136,8 +1187,6 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertAddDeny();
 
         assertDeleteDeny();
-        
-        // TODO: preview add object
         
         loginAdministrator();
         
