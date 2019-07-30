@@ -511,7 +511,7 @@ public class TestDiffEquals {
         assertFalse(delta.isEmpty());
     }
 
-	@Test(enabled = false)      // MID-4688
+	@Test      // MID-4688
 	public void testDiffWithMetadata() {
 		System.out.println("\n\n===[ testDiffWithMetadata ]===\n");
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
