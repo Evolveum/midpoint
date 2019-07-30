@@ -21,8 +21,12 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.util.ModelUtils;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensElementContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -66,6 +70,8 @@ public class SchemaTransformer {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaTransformer.class);
 
+	private static final String OPERATION_APPLY_SCHEMAS_AND_SECURITY = SchemaTransformer.class.getName()+".applySchemasAndSecurity";
+	
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
@@ -240,44 +246,12 @@ public class SchemaTransformer {
 	public <O extends ObjectType> void applySchemasAndSecurity(LensContext<O> context,
 			AuthorizationPhaseType phase, Task task, OperationResult parentResult) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
 		LOGGER.trace("applySchemasAndSecurity({}) starting", context);
-    	LensFocusContext<O> focusContext = context.getFocusContext();
-    	if (focusContext == null) {
-    		return; 
-    	}
-    	OperationResult result = parentResult.createMinorSubresult(SchemaTransformer.class.getName()+".applySchemasAndSecurity");
-    	
+		OperationResult result = parentResult.createMinorSubresult(OPERATION_APPLY_SCHEMAS_AND_SECURITY);
+		
     	try {
-	    	PrismObject<O> object = focusContext.getObjectAny();
-	    	GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
-	    	authorizeOptions(getOptions, object, null, phase, task, result);
-	    	
-	    	ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
-	    	// TODO: object definition? Do we really need to apply security to that?
-	    	
-	    	AuthorizationDecisionType globalReadDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
-			if (globalReadDecision == AuthorizationDecisionType.DENY) {
-				// shortcut
-				SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
-				throw new AuthorizationException("Access denied");
-			}
-	
-			AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
-			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-	
-			focusContext.forEachObject(focusObject -> 
-				applySecurityConstraints(focusObject.getValue().getItems(), securityConstraints, globalReadDecision,
-					globalAddDecision, globalModifyDecision, phase));
-	
-			AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
-			if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
-				}
-				result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
-				context.setEvaluatedAssignmentTriple(null);
-			}
-			
-			// TODO: process projections?
+
+    		applySchemasAndSecurityFocus(context, phase, task, result);
+        	applySchemasAndSecurityProjections(context, phase, task, result);
 			
 			result.computeStatus();
 			result.recordSuccessIfUnknown();
@@ -288,6 +262,62 @@ public class SchemaTransformer {
     	}
     	
 		LOGGER.trace("applySchemasAndSecurity finishing");			// to allow folding in log viewer
+	}
+	
+	private <O extends ObjectType> void applySchemasAndSecurityFocus(LensContext<O> context,
+			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    	LensFocusContext<O> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	
+    	ObjectSecurityConstraints securityConstraints = applySchemasAndSecurityElementContext(context, focusContext, phase, task, result);
+		
+		AuthorizationDecisionType assignmentDecision = securityConstraints.findItemDecision(SchemaConstants.PATH_ASSIGNMENT, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
+		if (!AuthorizationDecisionType.ALLOW.equals(assignmentDecision)) {
+			PrismObject<O> object = focusContext.getObjectAny();
+			LOGGER.trace("Logged in user isn't authorized to read (or get) assignment item of the object: {}", object);
+			result.recordWarning("Logged in user isn't authorized to read (or get) assignment item of the object: " + object);
+			context.setEvaluatedAssignmentTriple(null);
+		}
+	}
+	
+	private <O extends ObjectType> void applySchemasAndSecurityProjections(LensContext<O> context,
+			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+		for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+			applySchemasAndSecurityElementContext(context, projCtx, phase, task, result);
+		}
+	}
+		
+	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints applySchemasAndSecurityElementContext(LensContext<F> context, LensElementContext<O> elementContext,
+			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
+    	
+    	PrismObject<O> object = elementContext.getObjectAny();
+    	GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
+    	authorizeOptions(getOptions, object, null, phase, task, result);
+    	
+    	ObjectSecurityConstraints securityConstraints = compileSecurityConstraints(object, task, result);
+    	
+    	AuthorizationDecisionType globalReadDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, phase);
+		if (globalReadDecision == AuthorizationDecisionType.DENY) {
+			// shortcut
+			SecurityUtil.logSecurityDeny(object, "because the authorization denies access");
+			throw new AuthorizationException("Access denied");
+		}
+
+		AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
+		AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
+
+		elementContext.forEachObject(focusObject -> 
+			applySecurityConstraints(focusObject.getValue(), securityConstraints, phase, 
+					globalReadDecision, globalAddDecision, globalModifyDecision,
+					false));
+		
+		elementContext.forEachDelta(focusDelta -> 
+			applySecurityConstraints(focusDelta, securityConstraints, phase, 
+					globalReadDecision, globalAddDecision, globalModifyDecision));
+
+		return securityConstraints;
 	}
 	
 	public void setFullAccessFlags(ItemDefinition<?> itemDef) {		
@@ -310,8 +340,8 @@ public class SchemaTransformer {
 
 			AuthorizationDecisionType globalAddDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.ADD.getUrl(), phase);
 			AuthorizationDecisionType globalModifyDecision = securityConstraints.findAllItemsDecision(ModelAuthorizationAction.MODIFY.getUrl(), phase);
-			applySecurityConstraints(object.getValue().getItems(), securityConstraints, globalReadDecision,
-					globalAddDecision, globalModifyDecision, phase);
+			applySecurityConstraints(object.getValue(), securityConstraints, phase,
+					globalReadDecision, globalAddDecision, globalModifyDecision, true);
 			if (object.isEmpty()) {
 				// let's make it explicit
 				SecurityUtil.logSecurityDeny(object, "because the subject has not access to any item");
@@ -342,17 +372,16 @@ public class SchemaTransformer {
 		}
 	}
 
-	public void applySecurityConstraints(List<Item<?,?>> items, ObjectSecurityConstraints securityConstraints,
-			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision,
-			AuthorizationPhaseType phase) {
+	private void applySecurityConstraints(PrismContainerValue<?> pcv, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision,
+			AuthorizationDecisionType defaultModifyDecision, boolean applyToDefinitions) {
 		LOGGER.trace("applySecurityConstraints(items): items={}, phase={}, defaults R={}, A={}, M={}",
-				items, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
-		if (items == null) {
+				pcv.getItems(), phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		if (pcv.getItems() == null || pcv.getItems().isEmpty()) {
 			return;
 		}
-		Iterator<Item<?,?>> iterator = items.iterator();
-		while (iterator.hasNext()) {
-			Item<?,?> item = iterator.next();
+		List<Item> itemsToRemove = new ArrayList<>();
+		for (Item<?, ?> item : pcv.getItems()) {
 			ItemPath itemPath = item.getPath();
 			ItemDefinition<?> itemDef = item.getDefinition();
 			if (itemDef != null && itemDef.isElaborate()) {
@@ -365,7 +394,7 @@ public class SchemaTransformer {
 			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
 			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
 					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
-			if (itemDef != null) {
+			if (applyToDefinitions && itemDef != null) {
 				if (itemReadDecision != AuthorizationDecisionType.ALLOW) {
 					((ItemDefinitionImpl) itemDef).setCanRead(false);
 				}
@@ -379,7 +408,7 @@ public class SchemaTransformer {
 			if (item instanceof PrismContainer<?>) {
 				if (itemReadDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
-					iterator.remove();
+					itemsToRemove.add(item);
 				} else {
 					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
 					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
@@ -389,27 +418,116 @@ public class SchemaTransformer {
 					}
 					boolean itemWasEmpty = item.isEmpty();		// to prevent removal of originally empty items
 					List<? extends PrismContainerValue<?>> values = ((PrismContainer<?>)item).getValues();
-					Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
-					while (vi.hasNext()) {
-						PrismContainerValue<?> cval = vi.next();
-						List<Item<?,?>> subitems = cval.getItems();
-						if (subitems != null && !subitems.isEmpty()) {	// second condition is to prevent removal of originally empty values
-							applySecurityConstraints(subitems, securityConstraints, subDefaultReadDecision, itemAddDecision, itemModifyDecision, phase);
-							if (subitems.isEmpty()) {
-								vi.remove();
-							}
-						}
-					}
-					if (!itemWasEmpty && item.isEmpty()) {
-						iterator.remove();
+					reduceContainerValues(values, securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, applyToDefinitions);
+					if (item.hasNoValues() && itemReadDecision == null) {
+						// We have removed all the content, if there was any. So, in the default case, there's nothing that
+						// we are interested in inside this item. Therefore let's just remove it.
+						// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+						itemsToRemove.add(item);
 					}
 				}
 			} else {
 				if (itemReadDecision == AuthorizationDecisionType.DENY || (itemReadDecision == null && defaultReadDecision == null)) {
-					iterator.remove();
+					itemsToRemove.add(item);
 				}
 			}
 		}
+		for (Item itemToRemove : itemsToRemove) {
+			pcv.remove(itemToRemove);
+		}
+	}
+	
+	private <O extends ObjectType> void applySecurityConstraints(ObjectDelta<O> objectDelta, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
+			AuthorizationDecisionType defaultReadDecision, AuthorizationDecisionType defaultAddDecision, AuthorizationDecisionType defaultModifyDecision) {
+		LOGGER.trace("applySecurityConstraints(objectDelta): items={}, phase={}, defaults R={}, A={}, M={}",
+				objectDelta, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision);
+		if (objectDelta.isAdd()) {
+			applySecurityConstraints(objectDelta.getObjectToAdd().getValue(), securityConstraints, phase, defaultReadDecision, defaultAddDecision, defaultModifyDecision, false);
+			return;
+		}
+		if (objectDelta.isDelete()) {
+			// Nothing to do
+			return;
+		}
+		// Modify delta
+		Collection<? extends ItemDelta<?,?>> modifications = objectDelta.getModifications();
+		if (modifications == null || modifications.isEmpty()) {
+			// Nothing to do
+			return;
+		}
+		List<ItemDelta<?, ?>> itemsToRemove = new ArrayList<>();
+		for (ItemDelta<?, ?> modification : modifications) {
+			ItemPath itemPath = modification.getPath();
+			ItemDefinition<?> itemDef = modification.getDefinition();
+			if (itemDef != null && itemDef.isElaborate()) {
+				LOGGER.trace("applySecurityConstraints(item): {}: skip (elaborate)", itemPath);
+				continue;
+			}
+			ItemPath nameOnlyItemPath = itemPath.namedSegmentsOnly();
+			AuthorizationDecisionType itemReadDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, defaultReadDecision, phase);
+			AuthorizationDecisionType itemAddDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, defaultReadDecision, phase);
+			AuthorizationDecisionType itemModifyDecision = computeItemDecision(securityConstraints, nameOnlyItemPath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, defaultReadDecision, phase);
+			LOGGER.trace("applySecurityConstraints(item): {}: decisions R={}, A={}, M={}",
+					itemPath, itemReadDecision, itemAddDecision, itemModifyDecision);
+			if (modification instanceof ContainerDelta<?>) {
+				if (itemReadDecision == AuthorizationDecisionType.DENY) {
+					// Explicitly denied access to the entire container
+					itemsToRemove.add(modification);
+				} else {
+					// No explicit decision (even ALLOW is not final here as something may be denied deeper inside)
+					AuthorizationDecisionType subDefaultReadDecision = defaultReadDecision;
+					if (itemReadDecision == AuthorizationDecisionType.ALLOW) {
+						// This means allow to all subitems unless otherwise denied.
+						subDefaultReadDecision = AuthorizationDecisionType.ALLOW;
+					}
+					
+					reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToAdd(),
+							securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
+					reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToDelete(),
+							securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
+					reduceContainerValues((List<? extends PrismContainerValue<?>>) ((ContainerDelta<?>)modification).getValuesToReplace(),
+							securityConstraints, phase, itemReadDecision, itemAddDecision, itemModifyDecision, subDefaultReadDecision, false);
+					
+					if (modification.isEmpty() && itemReadDecision == null) {
+						// We have removed all the content, if there was any. So, in the default case, there's nothing that
+						// we are interested in inside this item. Therefore let's just remove it.
+						// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+						itemsToRemove.add(modification);
+					}
+				}
+			} else {
+				if (itemReadDecision == AuthorizationDecisionType.DENY || itemReadDecision == null) {
+					itemsToRemove.add(modification);
+					break;
+				}
+			}
+		}
+		for (ItemDelta<?, ?> modificationToRemove : itemsToRemove) {
+			modifications.remove(modificationToRemove);
+		}
+	}
+	
+	private boolean reduceContainerValues(List<? extends PrismContainerValue<?>> values, ObjectSecurityConstraints securityConstraints, AuthorizationPhaseType phase,
+			AuthorizationDecisionType itemReadDecision, AuthorizationDecisionType itemAddDecision, AuthorizationDecisionType itemModifyDecision, AuthorizationDecisionType subDefaultReadDecision,
+			boolean applyToDefinitions) {
+		if (values == null) {
+			return false;
+		}
+		boolean removedSomething = false;
+		Iterator<? extends PrismContainerValue<?>> vi = values.iterator();
+		while (vi.hasNext()) {
+			PrismContainerValue<?> cval = vi.next();
+			applySecurityConstraints(cval, securityConstraints, phase, 
+					subDefaultReadDecision, itemAddDecision, itemModifyDecision, applyToDefinitions);
+			if ((cval.getItems() == null || cval.getItems().isEmpty()) && itemReadDecision == null) {
+				// We have removed all the content, if there was any. So, in the default case, there's nothing that
+				// we are interested in inside this PCV. Therefore let's just remove it.
+				// (If itemReadDecision is ALLOW, we obviously keep this untouched.)
+				vi.remove();
+				removedSomething = true;
+			}
+		}
+		return removedSomething;
 	}
 
 	public <D extends ItemDefinition> void applySecurityConstraints(D itemDefinition, ObjectSecurityConstraints securityConstraints,

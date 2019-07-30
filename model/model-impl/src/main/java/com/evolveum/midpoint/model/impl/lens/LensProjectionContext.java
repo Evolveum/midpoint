@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
@@ -1505,4 +1507,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return !current.asObjectable().getPendingOperation().isEmpty();
 	}
 
+	@Override
+	public void forEachDelta(Consumer<ObjectDelta<ShadowType>> consumer) {
+		super.forEachDelta(consumer);
+		if (secondaryDelta != null) {
+			consumer.accept(secondaryDelta);
+		}
+	}
 }

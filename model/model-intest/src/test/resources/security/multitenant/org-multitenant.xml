@@ -577,7 +577,7 @@
 		<name>leto</name>
 		<givenName>Leto</givenName>
 		<familyName>Atreides</familyName>
-		<fullName>Duke Leto Atreides</fullName>
+		<fullName>Leto Atreides</fullName>
 		<honorificPrefix>Duke</honorificPrefix>
 		<assignment id="1">
 			<targetRef oid="00000000-8888-6666-a200-000000000000" type="OrgType"/> <!-- House Atreides -->
