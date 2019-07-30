@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -52,67 +53,58 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelProjectionContext,ShadowType,RA> {
+public class FocusContextAsserter<F extends ObjectType,RA> extends ElementContextAsserter<ModelElementContext<F>,F,RA> {
 	
 
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext) {
-		super(projectionContext);
+	public FocusContextAsserter(ModelElementContext<F> focusContext) {
+		super(focusContext);
 	}
 	
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext, String detail) {
-		super(projectionContext, detail);
+	public FocusContextAsserter(ModelElementContext<F> focusContext, String detail) {
+		super(focusContext, detail);
 	}
 	
-	public ProjectionContextAsserter(ModelProjectionContext projectionContext, RA returnAsserter, String detail) {
-		super(projectionContext, returnAsserter, detail);
+	public FocusContextAsserter(ModelElementContext<F> focusContext, RA returnAsserter, String detail) {
+		super(focusContext, returnAsserter, detail);
 	}
 	
-	public ModelProjectionContext getProjectionContext() {
+	public ModelElementContext<F> getFocusContext() {
 		return getElementContext();
 	}
 
 	@Override
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectOld() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				getProjectionContext().getObjectOld(), this, "object old in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
+	public PrismObjectAsserter<F,? extends FocusContextAsserter<F,RA>> objectOld() {
+		return (PrismObjectAsserter<F, ? extends FocusContextAsserter<F, RA>>) super.objectOld();
 	}
 	
 	@Override
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectCurrent() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				getProjectionContext().getObjectCurrent(), this, "object current in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
+	public PrismObjectAsserter<F,? extends FocusContextAsserter<F,RA>> objectCurrent() {
+		return (PrismObjectAsserter<F, ? extends FocusContextAsserter<F, RA>>) super.objectCurrent();
 	}
 	
 	@Override
-	public ShadowAsserter<ProjectionContextAsserter<RA>> objectNew() {
-		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				getProjectionContext().getObjectNew(), this, "object new in "+desc());
-		copySetupTo(shadowAsserter);
-		return shadowAsserter;
+	public PrismObjectAsserter<F,? extends FocusContextAsserter<F,RA>> objectNew() {
+		return (PrismObjectAsserter<F, ? extends FocusContextAsserter<F, RA>>) super.objectNew();
 	}
 	
 	@Override
-	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> primaryDelta() {
-		return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.primaryDelta();
+	public ObjectDeltaAsserter<F, ? extends FocusContextAsserter<F,RA>> primaryDelta() {
+		return (ObjectDeltaAsserter<F, ? extends FocusContextAsserter<F,RA>>) super.primaryDelta();
 	}
 	
 	@Override
-	public ProjectionContextAsserter<RA> assertNoPrimaryDelta() {
+	public FocusContextAsserter<F,RA> assertNoPrimaryDelta() {
 		super.assertNoPrimaryDelta();
 		return this;
 	}
 	
 	@Override
-	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> secondaryDelta() {
-		return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.secondaryDelta();
+	public ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>> secondaryDelta() {
+		return (ObjectDeltaAsserter<F, FocusContextAsserter<F,RA>>) super.secondaryDelta();
 	}
 	
 	@Override
-	public ProjectionContextAsserter<RA> assertNoSecondaryDelta() {
+	public FocusContextAsserter<F,RA> assertNoSecondaryDelta() {
 		super.assertNoSecondaryDelta();
 		return this;
 	}
@@ -120,18 +112,18 @@ public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelP
 	@Override
 	protected String desc() {
 		// TODO: better desc
-		return descWithDetails(getProjectionContext());
+		return descWithDetails(getFocusContext());
 	}
 	
 	@Override
-	public ProjectionContextAsserter<RA> display() {
+	public FocusContextAsserter<F,RA> display() {
 		display(desc());
 		return this;
 	}
 	
 	@Override
-	public ProjectionContextAsserter<RA> display(String message) {
-		IntegrationTestTools.display(message, getProjectionContext());
+	public FocusContextAsserter<F,RA> display(String message) {
+		IntegrationTestTools.display(message, getFocusContext());
 		return this;
 	}	
 }

@@ -844,6 +844,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		}
 	}
 	
+	public void forEachDelta(Consumer<ObjectDelta<O>> consumer) {
+		if (primaryDelta != null) {
+			consumer.accept(primaryDelta);
+		}
+	}
+	
 	public void finishBuild() {
 		if (primaryDelta != null) {
 			primaryDelta.normalize();
