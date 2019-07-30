@@ -239,7 +239,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
         super.copyValues(strategy, clone);
         for (PrismReferenceValue value : getValues()) {
 	        try {
-		        clone.add(value.cloneComplex(strategy));
+		        clone.add(value.cloneComplex(strategy), false);
 	        } catch (SchemaException e) {
 		        throw new IllegalStateException("Unexpected SchemaException while copying values: " + e.getMessage(), e);
 	        }

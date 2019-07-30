@@ -237,16 +237,23 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     }
 
     public void addValue(PrismPropertyValue<T> pValueToAdd) {
+    	addValue(pValueToAdd, true);
+    }
+
+    public void addValue(PrismPropertyValue<T> pValueToAdd, boolean checkUniqueness) {
 		checkMutability();
 	    ((PrismPropertyValueImpl<T>) pValueToAdd).checkValue();
-    	Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-    	while (iterator.hasNext()) {
-    		PrismPropertyValue<T> pValue = iterator.next();
-    		if (pValue.equals(pValueToAdd, EquivalenceStrategy.REAL_VALUE)) {
-    			LOGGER.warn("Adding value to property "+ getElementName()+" that already exists (overwriting), value: "+pValueToAdd);
-    			iterator.remove();
-    		}
-    	}
+	    if (checkUniqueness) {
+		    Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+		    while (iterator.hasNext()) {
+			    PrismPropertyValue<T> pValue = iterator.next();
+			    if (pValue.equals(pValueToAdd, EquivalenceStrategy.REAL_VALUE)) {
+				    LOGGER.warn("Adding value to property " + getElementName() + " that already exists (overwriting), value: "
+						    + pValueToAdd);
+				    iterator.remove();
+			    }
+		    }
+	    }
     	pValueToAdd.setParent(this);
     	pValueToAdd.recompute();
     	getValues().add(pValueToAdd);
@@ -392,7 +399,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
     protected void copyValues(CloneStrategy strategy, PrismPropertyImpl<T> clone) {
         super.copyValues(strategy, clone);
         for (PrismPropertyValue<T> value : getValues()) {
-            clone.addValue(value.cloneComplex(strategy));
+            clone.addValue(value.cloneComplex(strategy), false);
         }
     }
 
