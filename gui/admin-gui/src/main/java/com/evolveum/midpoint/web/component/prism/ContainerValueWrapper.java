@@ -27,6 +27,7 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Nullable;
@@ -598,6 +599,10 @@ public class ContainerValueWrapper<C extends Containerable> extends PrismWrapper
 										newValCloned);
 							}
 							pDelta.setValuesToReplace(Arrays.asList(newValCloned));
+						} else if (ProtectedStringType.COMPLEX_TYPE.equals(propertyDef.getTypeName())) {
+							if (newValCloned == null || newValCloned.isEmpty()) {
+								pDelta.setValueToReplace();
+							}
 						} else {
 							if (oldValCloned != null) {
 								if (LOGGER.isTraceEnabled()) {
