@@ -74,17 +74,6 @@ import static org.hibernate.annotations.CascadeType.*;
 
 /**
  * @author lazyman
- *
- * TO BE RESEARCHED FURTHER:
- *
- * Note on cascading into extension values sets: At one time it looked like that if we wanted to avoid fetching all values when doing DELETE,
- * we had to restrict cascading of SAVE/UPDATE operation to them. Otherwise it was not sufficient to remove respective extension
- * values from DB, because it was necessary to remove them also from the respective collection. And this incured SELECT operation
- * on all collection members.
- *
- * (Now it seems that this works even when cascade = ALL. That's why it needs to be researched a bit more.)
- *
- * For all related places, see [SAVE-CASCADE] mark.
  */
 @NamedQueries({
         @NamedQuery(name = "get.focusPhoto", query = "select p.photo from RFocusPhoto p where p.ownerOid = :oid"),
@@ -389,43 +378,48 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtLong> getLongs() {
         return longs;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtBoolean> getBooleans() {
         return booleans;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
-    //@Cascade({ ALL} )
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtString> getStrings() {
         return strings;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtDate> getDates() {
         return dates;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtReference> getReferences() {
         return references;
     }
 
     @NotQueryable
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE - see [SAVE-CASCADE]
+    //@Cascade({ PERSIST, MERGE, REMOVE, REFRESH, DELETE, REPLICATE, LOCK, DETACH })      // not SAVE_UPDATE
+    @Cascade({ ALL} )
     public Collection<ROExtPolyString> getPolys() {
         return polys;
     }

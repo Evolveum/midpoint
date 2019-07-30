@@ -353,7 +353,14 @@ public class ObjectDeltaUpdater {
         object.setVersion(version);
 
         // apply modifications, ids' for new containers already filled in delta values
-        ItemDeltaCollectionsUtil.applyTo(modifications, prismObject);
+        for (ItemDelta<?, ?> modification : modifications) {
+            if (modification.getDefinition() == null || !modification.getDefinition().isIndexOnly()) {
+                modification.applyTo(prismObject);
+            } else {
+                // There's no point in applying modifications to index-only items; they are not serialized.
+                // (Presumably they are not indexed as well.)
+            }
+        }
 
         handleObjectTextInfoChanges(type, modifications, prismObject, object);
 
@@ -552,8 +559,22 @@ public class ObjectDeltaUpdater {
             if (!exists) {
                 //noinspection unchecked
                 ((Collection) dbCollection).add(rValue);
-                ctx.session.persist(rValue);            // save is not cascaded to extension values any more [SAVE-CASCADE]
+                ctx.session.persist(rValue);            // it looks that in this way we avoid SQL SELECT (at the cost of .persist that can be sometimes more costly)
             }
+        }
+    }
+
+    /**
+     * Similar to DeltaUpdaterUtils.markNewValuesTransientAndAddToExisting but simpler.
+     *
+     * We rely on the fact that SAVE/UPDATE is now cascaded to extension items.
+     */
+    private static <T> void markNewValuesTransientAndAddToExistingNoFetchNoPersist(Collection<? extends RAnyValue<?>> dbCollection,
+            Collection<PrismEntityPair<RAnyValue<?>>> newValues, Context ctx) {
+        for (PrismEntityPair<RAnyValue<?>> item : newValues) {
+            RAnyValue<?> rValue = item.getRepository();
+            //noinspection unchecked
+            ((Collection) dbCollection).add(rValue);
         }
     }
 
@@ -669,7 +690,7 @@ public class ObjectDeltaUpdater {
         }
 
         deleteFromCollectionAndDb(dbCollection, rValuesToDelete, ctx.session);
-        markNewValuesTransientAndAddToExistingNoFetch(dbCollection, pairsToAdd, ctx);
+        markNewValuesTransientAndAddToExistingNoFetchNoPersist(dbCollection, pairsToAdd, ctx);
     }
 
     private void deleteFromCollectionAndDb(Collection<? extends RAnyValue<?>> dbCollection,

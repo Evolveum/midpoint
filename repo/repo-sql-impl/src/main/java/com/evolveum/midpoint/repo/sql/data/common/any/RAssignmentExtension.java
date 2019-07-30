@@ -42,9 +42,6 @@ import java.util.Set;
 
 /**
  * @author lazyman
- *
- * Note: We do cascade = ALL, unlike in RObject class. We do not try to eliminate "get all ext values" queries like in RObject - yet.
- * See [SAVE-CASCADE]
  */
 @Ignore
 @Entity
