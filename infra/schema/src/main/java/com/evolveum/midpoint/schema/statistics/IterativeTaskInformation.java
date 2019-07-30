@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
 import org.apache.commons.collections.buffer.CircularFifoBuffer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.namespace.QName;
@@ -178,10 +179,12 @@ public class IterativeTaskInformation {
         rv.setCurrentObjectStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(currentObjectStartTimestamp));
     }
 
-    // sum != null, delta != null
     // overrideCurrent should be TRUE if the delta is chronologically later (i.e. if delta is meant as an update to sum)
     // if it is simply an aggregation of various (parallel) sources, overrideCurrent should be FALSE
-    public static void addTo(IterativeTaskInformationType sum, IterativeTaskInformationType delta, boolean overrideCurrent) {
+    public static void addTo(@NotNull IterativeTaskInformationType sum, IterativeTaskInformationType delta, boolean overrideCurrent) {
+        if (delta == null) {
+            return;
+        }
         if (sum.getLastSuccessEndTimestamp() == null || (delta.getLastSuccessEndTimestamp() != null &&
                 delta.getLastSuccessEndTimestamp().compare(sum.getLastSuccessEndTimestamp()) == DatatypeConstants.GREATER)) {
             sum.setLastSuccessObjectName(delta.getLastSuccessObjectName());
