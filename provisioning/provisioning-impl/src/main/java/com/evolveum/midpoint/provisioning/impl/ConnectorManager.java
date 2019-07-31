@@ -336,13 +336,15 @@ public class ConnectorManager implements Cacheable {
 				connectorTypeCache.put(connOid, connectorType);
 			}
 		}
+
+		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
 			// We need to resolve the connector host
 			String connectorHostOid = connectorType.getConnectorHostRef().getOid();
 			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
-			connectorType.setConnectorHost(connectorHost.asObjectable());
+			connector.modifyUnfrozen( c -> ((PrismObject<ConnectorType>) c).asObjectable().setConnectorHost(connectorHost.asObjectable()));
 		}
-		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
+
 		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
 		if (userDataEntry == null) {
 			InternalMonitor.recordCount(InternalCounters.CONNECTOR_SCHEMA_PARSE_COUNT);
