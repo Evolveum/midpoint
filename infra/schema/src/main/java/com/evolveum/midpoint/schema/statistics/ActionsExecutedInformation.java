@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectActionsExecutedEntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActionsExecutedInformationType;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -85,9 +86,11 @@ public class ActionsExecutedInformation {
         return rv;
     }
 
-    public static void addTo(ActionsExecutedInformationType sum, ActionsExecutedInformationType delta) {
-        addTo(sum.getObjectActionsEntry(), delta.getObjectActionsEntry());
-        addTo(sum.getResultingObjectActionsEntry(), delta.getResultingObjectActionsEntry());
+    public static void addTo(ActionsExecutedInformationType sum, @Nullable ActionsExecutedInformationType delta) {
+        if (delta != null) {
+            addTo(sum.getObjectActionsEntry(), delta.getObjectActionsEntry());
+            addTo(sum.getResultingObjectActionsEntry(), delta.getResultingObjectActionsEntry());
+        }
     }
 
     public static void addTo(List<ObjectActionsExecutedEntryType> sumEntries, List<ObjectActionsExecutedEntryType> deltaEntries) {
