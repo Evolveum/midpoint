@@ -1912,7 +1912,7 @@ public class ShadowManager {
 							if (currentValues.size() >= 100) {
 								Object[] currentValuesNormalized = new Object[currentValues.size()];
 								for (int i = 0; i < currentValues.size(); i++) {
-									currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i));
+									currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
 								}
 								attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
 							} else {
