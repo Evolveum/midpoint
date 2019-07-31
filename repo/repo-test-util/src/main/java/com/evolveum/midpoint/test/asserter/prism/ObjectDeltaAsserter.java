@@ -27,11 +27,13 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ContainerDeltaAsserter;
+import com.evolveum.midpoint.test.asserter.PropertyDeltaAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -95,6 +97,19 @@ public class ObjectDeltaAsserter<O extends ObjectType,RA> extends AbstractAssert
 	public ObjectDeltaAsserter<O,RA> assertOid() {
 		assertNotNull("No OID in "+desc(), delta.getOid());
 		return this;
+	}
+	
+	public ObjectDeltaAsserter<O,RA> assertModifications(int expected) {
+		assertEquals("Wrong number of modifications in "+desc(), expected, delta.getModifications().size());
+		return this;
+	}
+	
+	public <T> PropertyDeltaAsserter<T,ObjectDeltaAsserter<O,RA>> property(ItemPath path) {
+		PropertyDelta<T> propertyDelta = delta.findPropertyDelta(path);
+		assertNotNull("No property delta for path "+path+" in "+desc(), propertyDelta);
+		PropertyDeltaAsserter<T,ObjectDeltaAsserter<O,RA>> propertyDeltaAsserter = new PropertyDeltaAsserter<>(propertyDelta, this, "property delta for "+path+" in "+desc());
+		copySetupTo(propertyDeltaAsserter);
+		return propertyDeltaAsserter;
 	}
 	
 	public <C extends Containerable> ContainerDeltaAsserter<C,ObjectDeltaAsserter<O,RA>> container(ItemPath path) {

@@ -1901,13 +1901,24 @@ public class ShadowManager {
 				}
 				if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
 					if (!currentResourceItem.isIncomplete()) {
-						MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
+						MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
 						PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
 						if (oldRepoAttributeProperty == null) {
 							PropertyDelta<Object> attrAddDelta = currentResourceAttrProperty.createDelta();
-							for (PrismPropertyValue<?> pval : currentResourceAttrProperty.getValues()) {
-								//noinspection unchecked
-								attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+							List<PrismPropertyValue<Object>> currentValues = currentResourceAttrProperty.getValues();
+							// This is a brutal hack: For extension attributes the ADD operation is slow when using large # of
+							// values to add. So let's do REPLACE instead (this is OK if there are no existing values).
+							// TODO Move this logic to repository. Here it is only for PoC purposes.
+							if (currentValues.size() >= 100) {
+								Object[] currentValuesNormalized = new Object[currentValues.size()];
+								for (int i = 0; i < currentValues.size(); i++) {
+									currentValuesNormalized[i] = matchingRule.normalize(currentValues.get(i).getValue());
+								}
+								attrAddDelta.setRealValuesToReplace(currentValuesNormalized);
+							} else {
+								for (PrismPropertyValue<?> pval : currentValues) {
+									attrAddDelta.addRealValuesToAdd(matchingRule.normalize(pval.getValue()));
+								}
 							}
 							if (attrAddDelta.getDefinition().getTypeName() == null) {
 								throw new SchemaException("No definition in " + attrAddDelta);
@@ -1916,7 +1927,6 @@ public class ShadowManager {
 						} else {
 							if (attrDef.isSingleValue()) {
 								Object currentResourceRealValue = currentResourceAttrProperty.getRealValue();
-								//noinspection unchecked
 								Object currentResourceNormalizedRealValue = matchingRule.normalize(currentResourceRealValue);
 								if (!Objects.equals(currentResourceNormalizedRealValue, oldRepoAttributeProperty.getRealValue())) {
 									PropertyDelta delta;
@@ -1935,7 +1945,6 @@ public class ShadowManager {
 							} else {
 								PrismProperty<Object> normalizedCurrentResourceAttrProperty = currentResourceAttrProperty.clone();
 								for (PrismPropertyValue pval : normalizedCurrentResourceAttrProperty.getValues()) {
-									//noinspection unchecked
 									Object normalizedRealValue = matchingRule.normalize(pval.getValue());
 									//noinspection unchecked
 									pval.setValue(normalizedRealValue);

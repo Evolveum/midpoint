@@ -39,12 +39,18 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
+import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.TriggersAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -146,6 +152,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 			assertEquals("Wrong lifecycleState in "+desc(), SchemaConstants.LIFECYCLE_ACTIVE, actualLifecycleState);
 		}
 		return this;
+	}
+	
+	public UserAsserter<PrismObjectAsserter<O,RA>> asUser() {
+		UserAsserter<PrismObjectAsserter<O,RA>> asserter = new UserAsserter<>((PrismObject<UserType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public RoleAsserter<PrismObjectAsserter<O,RA>> asRole() {
+		RoleAsserter<PrismObjectAsserter<O,RA>> asserter = new RoleAsserter<>((PrismObject<RoleType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public OrgAsserter<PrismObjectAsserter<O,RA>> asOrg() {
+		OrgAsserter<PrismObjectAsserter<O,RA>> asserter = new OrgAsserter<>((PrismObject<OrgType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	protected String desc() {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationInformationType;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -121,7 +122,10 @@ public class SynchronizationInformation {
         return rv;
     }
 
-    public static void addTo(SynchronizationInformationType sum, SynchronizationInformationType delta) {
+    public static void addTo(SynchronizationInformationType sum, @Nullable SynchronizationInformationType delta) {
+        if (delta == null) {
+            return;
+        }
         sum.setCountProtected(sum.getCountProtected() + delta.getCountProtected());
         sum.setCountNoSynchronizationPolicy(sum.getCountNoSynchronizationPolicy() + delta.getCountNoSynchronizationPolicy());
         sum.setCountSynchronizationDisabled(sum.getCountSynchronizationDisabled() + delta.getCountSynchronizationDisabled());

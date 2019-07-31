@@ -305,9 +305,6 @@ public class ObjectUpdater {
         updateFullObject(rObject, object);
 
         LOGGER.trace("Saving object (non overwrite).");
-        // By using persist() instead of save we cascade this operation to object+assignment extension values.
-        // (Save is intentionally not cascaded, because we need to add+delete these values manually.)
-        // See [SAVE-CASCADE].
         session.persist(rObject);
         lookupTableHelper.addLookupTableRows(session, rObject, false);
         caseHelper.addCertificationCampaignCases(session, rObject, false);

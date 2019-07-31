@@ -258,6 +258,11 @@ public class ColumnUtils {
 				.setParameters(objects);
 	}
 
+	public static StringResourceModel createStringResource(String resourceKey, String defaultString, Object... objects) {
+		return new StringResourceModel(resourceKey).setModel(new Model<String>()).setDefaultValue(defaultString)
+				.setParameters(objects);
+	}
+
 	public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
 		List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 

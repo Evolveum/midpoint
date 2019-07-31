@@ -16,16 +16,20 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapperImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,10 +40,6 @@ import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -80,44 +80,45 @@ public class ConfigurationStep extends WizardStep {
 	private static final String ID_MAIN = "main";
 
 	final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
-	final private NonEmptyLoadableModel<List<PrismContainerWrapper<?>>> configurationPropertiesModel;
+//	final private NonEmptyLoadableModel<List<PrismContainerWrapper<?>>> configurationPropertiesModel;
 	final private PageResourceWizard parentPage;
+	final private LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
 
     public ConfigurationStep(NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
         super(parentPage);
         this.resourceModelNoFetch = modelNoFetch;
 		this.parentPage = parentPage;
 
-        this.configurationPropertiesModel = new NonEmptyLoadableModel<List<PrismContainerWrapper<?>>>(false) {
-            
-        	private static final long serialVersionUID = 1L;
-
+		this.configurationModel = new LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>>(false) {
 			@Override
-			@NotNull
-            protected List<PrismContainerWrapper<?>> load() {
+			protected PrismContainerWrapper<ConnectorConfigurationType> load() {
 				try {
 					return createConfigContainerWrappers();
-				} catch (SchemaException e) {
-					throw new SystemException(e.getMessage(), e);
+				} catch (Exception e) {
+					getSession().error("Cannot load conector configuration, " + e.getMessage());
+					throw new RestartResponseException(PageResourceWizard.class);
 				}
-            }
+			}
 		};
-		parentPage.registerDependentModel(configurationPropertiesModel);
 
         initLayout();
     }
 
-	@NotNull
-	private List<PrismContainerWrapper<?>> createConfigContainerWrappers() throws SchemaException {
+    public void resetConfiguration() {
+    	configurationModel.reset();
+	}
+
+	//@NotNull
+	private PrismContainerWrapper<ConnectorConfigurationType> createConfigContainerWrappers() throws SchemaException {
 		PrismObject<ResourceType> resource = resourceModelNoFetch.getObject();
 		PrismContainer<ConnectorConfigurationType> configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		
 		List<PrismContainerWrapper<?>> containerWrappers = new ArrayList<>();
 
 		if(parentPage.isNewResource()) {
-			return containerWrappers;
+			return null;
 		}
-		
+		ItemStatus configurationStatus = ItemStatus.NOT_CHANGED;
 		if (configuration == null) {
 			PrismObject<ConnectorType> connector = ResourceTypeUtil.getConnectorIfPresent(resource);
 			if (connector == null) {
@@ -135,50 +136,17 @@ public class ConfigurationStep extends WizardStep {
 			PrismContainerDefinition<ConnectorConfigurationType> definitionFixed = definition.clone();
 			definitionFixed.toMutable().setMaxOccurs(1);
 			configuration = definitionFixed.instantiate();
+			configurationStatus = ItemStatus.ADDED;
 		}
 
-		List<PrismContainerDefinition> containerDefinitions = getSortedConfigContainerDefinitions(configuration);
 		Task task = getPageBase().createSimpleTask(OPERATION_CREATE_CONFIGURATION_WRAPPERS);
-		
-		for (PrismContainerDefinition<?> containerDef : containerDefinitions) {
-			PrismContainer container = configuration.findContainer(containerDef.getName());
-			ItemStatus status = ItemStatus.NOT_CHANGED;
-			if (container == null) {
-				status = ItemStatus.ADDED;
-				container = configuration.findOrCreateContainer(containerDef.getName());
-			}
+		WrapperContext ctx = new WrapperContext(task, getResult());
+		ctx.setReadOnly(parentPage.isReadOnly());
+		ctx.setShowEmpty(ItemStatus.ADDED == configurationStatus);
+		PrismContainerWrapper<ConnectorConfigurationType> configurationWrapper = getPageBase().createItemWrapper(configuration, configurationStatus, ctx);
 
-			WrapperContext ctx = new WrapperContext(task, getResult());
-			ctx.setReadOnly(parentPage.isReadOnly());
-			PrismContainerWrapper<?> containerWrapper = getPageBase().createItemWrapper(container, status, ctx);
-			containerWrappers.add(containerWrapper);
-		}
-		return containerWrappers;
+		return configurationWrapper;
 	}
-
-	@NotNull
-	private List<PrismContainerDefinition> getSortedConfigContainerDefinitions(PrismContainer<ConnectorConfigurationType> configuration) {
-		List<PrismContainerDefinition> relevantDefinitions = new ArrayList<>();
-		for (ItemDefinition<?> def : configuration.getDefinition().getDefinitions()) {
-			if (def instanceof PrismContainerDefinition) {
-				relevantDefinitions.add((PrismContainerDefinition) def);
-			}
-		}
-		Collections.sort(relevantDefinitions, new Comparator<PrismContainerDefinition>() {
-			@Override
-			public int compare(PrismContainerDefinition o1, PrismContainerDefinition o2) {
-				int ord1 = o1.getDisplayOrder() != null ? o1.getDisplayOrder() : Integer.MAX_VALUE;
-				int ord2 = o2.getDisplayOrder() != null ? o2.getDisplayOrder() : Integer.MAX_VALUE;
-				return Integer.compare(ord1, ord2);
-			}
-		});
-		return relevantDefinitions;
-	}
-
-//     @Override
-//     protected void onConfigure() {
-//             updateConfigurationTabs();
-//     }
 
 	private void initLayout() {
     	com.evolveum.midpoint.web.component.form.Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN, true);
@@ -212,9 +180,20 @@ public class ConfigurationStep extends WizardStep {
 	private List<ITab> createConfigurationTabs() {
 		final com.evolveum.midpoint.web.component.form.Form form = getForm();
 		List<ITab> tabs = new ArrayList<>();
-		List<PrismContainerWrapper<?>> wrappers = configurationPropertiesModel.getObject();
-		for (final PrismContainerWrapper<?> wrapper : wrappers) {
-			String tabName = getString(wrapper.getDisplayName(), null, wrapper.getDisplayName());
+		PrismContainerWrapper<ConnectorConfigurationType> configuration = configurationModel.getObject();
+		if (configuration == null) {
+			return new ArrayList<>();
+		}
+		PrismContainerValueWrapper<ConnectorConfigurationType> configurationValue = null;
+		try {
+			configurationValue = configuration.getValue();
+		} catch (SchemaException e) {
+			LOGGER.error("Cannot get value for conenctor configuration, {}", e.getMessage(), e);
+			getSession().error("A problem occurred while getting value for connector configuration, " + e.getMessage());
+			return null;
+		}
+		for (final PrismContainerWrapper<?> wrapper : configurationValue.getContainers()) {
+			String tabName = wrapper.getDisplayName();
 			tabs.add(new AbstractTab(new Model<>(tabName)) {
 				private static final long serialVersionUID = 1L;
 
@@ -292,26 +271,28 @@ public class ConfigurationStep extends WizardStep {
         OperationResult result = task.getResult();
 		boolean saved = false;
         try {
-            List<PrismContainerWrapper<?>> wrappers = configurationPropertiesModel.getObject();
-            
-            ObjectDelta delta = parentPage.getPrismContext().deltaFactory().object()
-					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid()
-					);
-            
-            
-            
-            for (PrismContainerWrapper<?> wrapper : wrappers) {
-            	Collection<ItemDelta> wrapperDetla = wrapper.getDelta();
-            	if (wrapperDetla == null || wrapperDetla.isEmpty()) {
-            		continue;
-            	}
-            	delta.addModifications(wrapperDetla);
-            	
-            }
-			
-//			for (ContainerWrapperImpl wrapper : wrappers) {
-//				wrapper.collectModifications(delta);
-//			}
+            PrismContainerWrapper<ConnectorConfigurationType> configuration = configurationModel.getObject();
+            Collection<ItemDelta> modifications = configuration.getDelta();
+
+            if (modifications == null) {
+            	//TODO should we show some info to user?
+				return;
+			}
+
+			ObjectDelta delta = parentPage.getPrismContext()
+					.deltaFactory()
+					.object()
+					.createEmptyModifyDelta(ResourceType.class, parentPage.getEditedResourceOid());
+
+            if (ItemStatus.ADDED == configuration.getStatus()) {
+				ContainerDelta connectorConfigDelta = delta.createContainerModification(ResourceType.F_CONNECTOR_CONFIGURATION);
+				for (ItemDelta mod : modifications) {
+					connectorConfigDelta.merge(mod);
+				}
+			} else {
+            	delta.mergeModifications(modifications);
+			}
+
 			parentPage.getPrismContext().adopt(delta);
 			if (!delta.isEmpty()) {
 				parentPage.logDelta(delta);
@@ -330,9 +311,6 @@ public class ConfigurationStep extends WizardStep {
 		if (parentPage.showSaveResultInPage(saved, result)) {
             parentPage.showResult(result);
         }
-
-		configurationPropertiesModel.reset();
-		updateConfigurationTabs();
 
 	}
 }

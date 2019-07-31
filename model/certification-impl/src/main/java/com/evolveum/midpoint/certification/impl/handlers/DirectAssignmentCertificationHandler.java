@@ -108,6 +108,9 @@ public class DirectAssignmentCertificationHandler extends BaseCertificationHandl
                 valid = isIncludeServices(scope);
             } else if (UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
                 valid = isIncludeUsers(scope);
+            } else if (ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType())) {
+                // archetype assignment management is not fully supported for now, therefore ignoring
+                valid = false;
             } else {
                 throw new IllegalStateException("Unexpected targetRef type: " + assignment.getTargetRef().getType() + " in " + ObjectTypeUtil.toShortString(assignment));
             }

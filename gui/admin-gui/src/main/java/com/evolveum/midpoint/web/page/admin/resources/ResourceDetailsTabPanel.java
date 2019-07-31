@@ -183,6 +183,8 @@ public class ResourceDetailsTabPanel extends Panel {
 		List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
 				parentPage.getPrismContext().queryFor(TaskType.class)
 						.item(TaskType.F_OBJECT_REF).ref(resource.getOid())
+						.and()
+						.item(TaskType.F_PARENT).isNull()
 						.build(),
 				result, parentPage);
 

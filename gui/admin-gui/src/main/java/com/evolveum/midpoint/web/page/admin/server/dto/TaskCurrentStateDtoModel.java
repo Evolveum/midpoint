@@ -54,9 +54,7 @@ public class TaskCurrentStateDtoModel implements IModel<TaskCurrentStateDto> {
 
     @Override
     public TaskCurrentStateDto getObject() {
-//        if (object == null) {
-            object = getObjectInternal();
-//        }
+        object = getObjectInternal();
         return object;
     }
 
@@ -81,7 +79,7 @@ public class TaskCurrentStateDtoModel implements IModel<TaskCurrentStateDto> {
             Collection<SelectorOptions<GetOperationOptions>> options = page.retrieveItemsNamed(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED);
             PrismObject<TaskType> task = page.getModelService().getObject(TaskType.class, oid, options, operationTask, result);
             TaskDto taskDto = new TaskDto(task.asObjectable(), null, page.getModelService(), page.getTaskService(),
-                    page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), false, operationTask, result, page);
+                    page.getModelInteractionService(), taskManager, page.getWorkflowManager(), TaskDtoProviderOptions.fullOptions(), true, operationTask, result, page);
             taskModel.setObject(taskDto);
         } catch (CommunicationException|ObjectNotFoundException|SchemaException|SecurityViolationException|ConfigurationException|ExpressionEvaluationException|RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, taskModel.getObject());

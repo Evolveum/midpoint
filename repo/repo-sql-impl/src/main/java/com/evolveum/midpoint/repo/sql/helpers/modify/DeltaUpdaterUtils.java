@@ -226,7 +226,6 @@ public class DeltaUpdaterUtils {
         while (iterator.hasNext()) {
             RAExtBase dbValue = iterator.next();
             // we cannot filter on assignmentExtensionType because it is not present in database (yet)
-            session.delete(dbValue);    // see [SAVE-CASCADE]
             iterator.remove();
         }
     }
@@ -234,10 +233,10 @@ public class DeltaUpdaterUtils {
     private static void clearExtensionCollection(Collection<? extends ROExtBase<?>> dbCollection, RObjectExtensionType typeToDelete,
             Session session) {
         Iterator<? extends ROExtBase> iterator = dbCollection.iterator();
+        //noinspection Java8CollectionRemoveIf
         while (iterator.hasNext()) {
             ROExtBase dbValue = iterator.next();
             if (typeToDelete.equals(dbValue.getOwnerType())) {
-                session.delete(dbValue);    // see [SAVE-CASCADE]
                 iterator.remove();
             }
         }

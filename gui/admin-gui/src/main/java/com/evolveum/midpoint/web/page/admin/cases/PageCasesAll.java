@@ -12,7 +12,7 @@ import com.evolveum.midpoint.web.application.Url;
         urls = {
                 @Url(mountUrl = "/admin/casesAll", matchUrlForSecurity = "/admin/casesAll")
         }, action = {
-        @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL_LABEL,
+        @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL,
                 label = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,

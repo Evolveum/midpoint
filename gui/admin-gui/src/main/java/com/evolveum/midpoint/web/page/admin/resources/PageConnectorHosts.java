@@ -170,6 +170,11 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
 	}
 
 	@Override
+	protected boolean isCreateNewObjectEnabled() {
+		return false;
+	}
+
+	@Override
 	protected List<InlineMenuItem> createRowActions() {
 		List<InlineMenuItem> headerMenuItems = new ArrayList<>();
 		headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete")) {
