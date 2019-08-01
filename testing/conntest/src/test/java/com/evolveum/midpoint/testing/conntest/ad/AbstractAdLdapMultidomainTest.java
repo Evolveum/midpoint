@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -586,8 +587,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query,
         		NUMBER_OF_ACCOUNTS, task, result);
 
-        // TODO: why 11? should be 1
-//        assertConnectorOperationIncrement(11);
+        // TODO: Why 14? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 14);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -595,7 +596,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         	assertFalse(metadata.isPartialResults());
         }
 
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
     }
 
 	/**
@@ -618,7 +619,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
 
 		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
 
-//        assertConnectorOperationIncrement(1);
+		// TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -626,174 +628,173 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest {
         	assertFalse(metadata.isPartialResults());
         }
 
-//        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(2);
     }
 
-//	/**
-//	 * Blocksize is 5, so this gets more than two blocks.
-//	 */
-//	@Test
-//    public void test154SeachFirst11Accounts() throws Exception {
-//		final String TEST_NAME = "test154SeachFirst11Accounts";
-//        displayTestTile(TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-//
-//        ObjectPaging paging = ObjectPaging.createEmptyPaging();
-//        paging.setMaxSize(11);
-//		query.setPaging(paging);
-//
-//		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
-//
-//        assertConnectorOperationIncrement(1);
-//        assertConnectorSimulatedPagingSearchIncrement(0);
-//
-//        SearchResultMetadata metadata = searchResultList.getMetadata();
-//        if (metadata != null) {
-//        	assertFalse(metadata.isPartialResults());
-//        }
-//
-//        assertLdapConnectorInstances(2);
-//    }
-//
-//	@Test
-//    public void test162SeachFirst2AccountsOffset0() throws Exception {
-//		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
-//        displayTestTile(TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-//
-//        ObjectPaging paging = ObjectPaging.createEmptyPaging();
-//        paging.setOffset(0);
-//        paging.setMaxSize(2);
-//		query.setPaging(paging);
-//
-//		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
-//
-//        assertConnectorOperationIncrement(1);
-//        assertConnectorSimulatedPagingSearchIncrement(0);
-//
-//        SearchResultMetadata metadata = searchResultList.getMetadata();
-//        if (metadata != null) {
-//        	assertFalse(metadata.isPartialResults());
-//        }
-//
-//        assertLdapConnectorInstances(2);
-//    }
-//
-//	/**
-//	 * Blocksize is 5, so this is in one block.
-//	 * There is offset, so VLV should be used.
-//	 * No explicit sorting.
-//	 */
-//	@Test
-//    public void test172Search2AccountsOffset1() throws Exception {
-//		final String TEST_NAME = "test172Search2AccountsOffset1";
-//        displayTestTile(TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-//
-//        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
-//		query.setPaging(paging);
-//
-//		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
-//
-//        assertConnectorOperationIncrement(1);
-//        assertConnectorSimulatedPagingSearchIncrement(0);
-//
-//        SearchResultMetadata metadata = searchResultList.getMetadata();
-//        if (metadata != null) {
-//        	assertFalse(metadata.isPartialResults());
-//        }
-//
-//        assertLdapConnectorInstances(2);
-//    }
-//
-//	/**
-//	 * Blocksize is 5, so this gets more than two blocks.
-//	 * There is offset, so VLV should be used.
-//	 * No explicit sorting.
-//	 */
-//	@Test
-//    public void test174SeachFirst11AccountsOffset2() throws Exception {
-//		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
-//        displayTestTile(TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-//
-//        ObjectPaging paging = ObjectPaging.createPaging(2, 11);
-//		query.setPaging(paging);
-//
-//		allowDuplicateSearchResults = true;
-//
-//		// WHEN
-//		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
-//
-//		// THEN
-//		allowDuplicateSearchResults = false;
-//
-//        assertConnectorOperationIncrement(1);
-//        assertConnectorSimulatedPagingSearchIncrement(0);
-//
-//        SearchResultMetadata metadata = searchResultList.getMetadata();
-//        if (metadata != null) {
-//        	assertFalse(metadata.isPartialResults());
-//        }
-//
-//        assertLdapConnectorInstances(2);
-//    }
-//
-//	/**
-//	 * Blocksize is 5, so this is in one block.
-//	 * There is offset, so VLV should be used.
-//	 * Explicit sorting.
-//	 */
-//	@Test
-//    public void test182Search2AccountsOffset1SortCn() throws Exception {
-//		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
-//        displayTestTile(TEST_NAME);
-//
-//        // GIVEN
-//        Task task = createTask(TEST_NAME);
-//        OperationResult result = task.getResult();
-//
-//        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
-//
-//        ObjectPaging paging = ObjectPaging.createPaging(1, 2);
-//        paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
-//		query.setPaging(paging);
-//
-//		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
-//
-//        assertAccountShadow(shadows.get(0), "CN=Adalbert Meduza,OU=evolveum,DC=win,DC=evolveum,DC=com");
-//        assertAccountShadow(shadows.get(1), "CN=Adalbert Meduza1,OU=evolveum,DC=win,DC=evolveum,DC=com");
-//
-//        assertConnectorOperationIncrement(1);
-//        assertConnectorSimulatedPagingSearchIncrement(0);
-//
-//        SearchResultMetadata metadata = shadows.getMetadata();
-//        if (metadata != null) {
-//        	assertFalse(metadata.isPartialResults());
-//        }
-//
-//        assertLdapConnectorInstances(2);
-//    }
+	@Test
+    public void test154SeachFirst11Accounts() throws Exception {
+		final String TEST_NAME = "test154SeachFirst11Accounts";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
+        paging.setMaxSize(11);
+		query.setPaging(paging);
+
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+
+		// TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+        assertLdapConnectorInstances(2);
+    }
+
+	@Test
+    public void test162SeachFirst2AccountsOffset0() throws Exception {
+		final String TEST_NAME = "test162SeachFirst2AccountsOffset0";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+
+        ObjectPaging paging = prismContext.queryFactory().createPaging();
+        paging.setOffset(0);
+        paging.setMaxSize(2);
+		query.setPaging(paging);
+
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+
+		// TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+        assertLdapConnectorInstances(2);
+    }
+
+	/**
+	 * There is offset, so VLV should be used.
+	 * No explicit sorting.
+	 */
+	@Test
+    public void test172Search2AccountsOffset1() throws Exception {
+		final String TEST_NAME = "test172Search2AccountsOffset1";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+
+        ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
+		query.setPaging(paging);
+
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 2, task, result);
+
+		// TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+        assertLdapConnectorInstances(2);
+    }
+
+	/**
+	 * There is offset, so VLV should be used.
+	 * No explicit sorting.
+	 */
+	@Test
+    public void test174SeachFirst11AccountsOffset2() throws Exception {
+		final String TEST_NAME = "test174SeachFirst11AccountsOffset2";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+
+        ObjectPaging paging = prismContext.queryFactory().createPaging(2, 11);
+		query.setPaging(paging);
+
+		allowDuplicateSearchResults = true;
+
+		// WHEN
+		SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(TEST_NAME, query, 11, task, result);
+
+		// THEN
+		allowDuplicateSearchResults = false;
+
+		// TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        SearchResultMetadata metadata = searchResultList.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+        assertLdapConnectorInstances(2);
+    }
+
+	/**
+	 * There is offset, so VLV should be used.
+	 * Explicit sorting.
+	 */
+	@Test
+    public void test182Search2AccountsOffset1SortCn() throws Exception {
+		final String TEST_NAME = "test182Search2AccountsOffset1SortCn";
+		displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        ObjectQuery query = ObjectQueryUtil.createResourceAndObjectClassQuery(getResourceOid(), getAccountObjectClass(), prismContext);
+
+        ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
+        paging.setOrdering(getAttributePath(resource, "cn"), OrderDirection.ASCENDING);
+		query.setPaging(paging);
+
+		SearchResultList<PrismObject<ShadowType>> shadows = doSearch(TEST_NAME, query, 2, task, result);
+
+        assertAccountShadow(shadows.get(0), "CN=Adolf Supperior,CN=Users,DC=ad,DC=evolveum,DC=com");
+//        assertAccountShadow(shadows.get(1), "CN=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852},CN=Users,DC=ad,DC=evolveum,DC=com");
+
+        // TODO: Why 2? Why not 1?
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 2);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        SearchResultMetadata metadata = shadows.getMetadata();
+        if (metadata != null) {
+        	assertFalse(metadata.isPartialResults());
+        }
+
+        assertLdapConnectorInstances(2);
+    }
 
 	@Test
     public void test200AssignAccountBarbossa() throws Exception {
