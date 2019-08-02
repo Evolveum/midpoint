@@ -448,7 +448,7 @@
     	<name>time bomb</name>
     	<timeFrom>
 			<referenceTime>
-				<path>$focus/metadata/createTimestamp</path>
+				<path>$focus/extension/funeralTimestamp</path>
 			</referenceTime>
 			<offset>P1M</offset>
 		</timeFrom>

@@ -192,10 +192,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Jackie"));
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
-        assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString(USER_JACK_ADDITIONAL_NAME));
 
         // original value of 0 should be gone now, because the corresponding item in user template is marked as non-tolerant
         PrismAsserts.assertPropertyValue(userJack.findContainer(UserType.F_EXTENSION), PIRACY_BAD_LUCK, 123L, 456L);
@@ -250,10 +247,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?",
                 GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
-
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
-        assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
 	}
 
 	/**
@@ -2619,10 +2612,13 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	}
 
 	/**
-	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
+	 * There is no funeralTimestamp. But there is user template mapping ("time bomb")
+	 * that is using funeralTimestamp as timeFrom. Make sure that it will not die with
+	 * null value.
+	 * MID-5603
 	 */
 	@Test
-    public void test800Kaboom() throws Exception {
+    public void test800NullTimeFrom() throws Exception {
 		final String TEST_NAME = "test800Kaboom";
         displayTestTitle(TEST_NAME);
 
@@ -2630,21 +2626,95 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-
+        
         importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
-
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        now.add(XmlTypeConverter.createDuration("P1M1D"));
-        clock.override(now);
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
 
         // THEN
-        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Kaboom!"));
-        assertNoTrigger(userJack);
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+	    	.assertNoTrigger();
+	}
+
+	/**
+	 * Set funeral timestamp. But the time-based mapping should not trigger yet.
+	 */
+	@Test
+    public void test802FuneralTimestamp() throws Exception {
+		final String TEST_NAME = "test802FuneralTimestamp";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, now);
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+	    	.triggers()
+	    		.single()
+	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+	    			.assertTimestampFuture(now, "P1M", 10*1000L);
+	}
+	
+	/**
+	 * Move the time to the future a bit. But not far enough to cause an explosion.
+	 */
+	@Test
+    public void test804PreKaboom() throws Exception {
+		final String TEST_NAME = "test804PreKaboom";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        clockForward("P2D");
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+        	.triggers()
+	    		.single()
+	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+	    			.assertTimestampFuture("P30D", 5*24*60*60*1000L);
+	}
+	
+	/**
+	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
+	 */
+	@Test
+    public void test808Kaboom() throws Exception {
+		final String TEST_NAME = "test808Kaboom";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        
+        clockForward("P1M");
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName("Kaboom!")
+	    	.assertNoTrigger();
 	}
 
 	@Test

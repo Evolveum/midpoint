@@ -320,4 +320,10 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 	private PrismProperty<PolyStringType> getPasswordValueProperty() {
 		return getObject().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
 	}
+	
+	@Override
+	public ShadowAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
+		return this;
+	}
 }
