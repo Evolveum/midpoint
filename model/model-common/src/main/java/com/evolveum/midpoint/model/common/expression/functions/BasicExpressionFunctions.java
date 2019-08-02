@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -86,6 +87,12 @@ public class BasicExpressionFunctions {
     private final Charset UTF8_CHARSET = StandardCharsets.UTF_8;
 
     public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
+    
+    /**
+     * Special value that is too far in the past. It can be returned from time-based expressions to
+     * make sure that the expression is always executed.
+     */
+    public static final XMLGregorianCalendar LONG_AGO = XmlTypeConverter.createXMLGregorianCalendar(1, 1, 1, 0, 0, 0);
 
     private static String STRING_PATTERN_WHITESPACE = "\\s+";
     private static String STRING_PATTERN_HONORIFIC_PREFIX_ENDS_WITH_DOT = "^(\\S+\\.)$";
@@ -450,6 +457,10 @@ public class BasicExpressionFunctions {
     }
 
 
+    public <T> T getExtensionPropertyValue(ObjectType object, String localPart) throws SchemaException {
+        return getExtensionPropertyValue(object, new javax.xml.namespace.QName(null, localPart));
+    }
+    
     public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
         return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
     }
@@ -784,6 +795,57 @@ public class BasicExpressionFunctions {
 
     public XMLGregorianCalendar currentDateTime() {
         return clock.currentTimeXMLGregorianCalendar();
+    }
+    
+    public XMLGregorianCalendar fromNow(String timeSpec) {
+        return XmlTypeConverter.fromNow(XmlTypeConverter.createDuration(timeSpec));
+    }
+
+    
+    public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
+    	if (now == null) {
+    		return null;
+    	}
+    	if (duration == null) {
+    		return now;
+    	}
+    	return XmlTypeConverter.addDuration(now, duration);
+    }
+    
+    public XMLGregorianCalendar addDuration(XMLGregorianCalendar now, String duration) {
+    	if (now == null) {
+    		return null;
+    	}
+    	if (duration == null) {
+    		return now;
+    	}
+    	return XmlTypeConverter.addDuration(now, duration);
+    }
+    
+    public XMLGregorianCalendar addMillis(XMLGregorianCalendar now, long duration) {
+    	if (now == null) {
+    		return null;
+    	}
+    	if (duration == 0) {
+    		return now;
+    	}
+    	return XmlTypeConverter.addMillis(now, duration);
+    }
+    
+    public XMLGregorianCalendar roundDownToMidnight(XMLGregorianCalendar in) {
+    	XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
+    	out.setTime(0, 0, 0, 0);
+    	return out;
+    }
+    
+    public XMLGregorianCalendar roundUpToEndOfDay(XMLGregorianCalendar in) {
+    	XMLGregorianCalendar out = XmlTypeConverter.createXMLGregorianCalendar(in);
+    	out.setTime(23, 59, 59, 999);
+    	return out;
+    }
+    
+    public XMLGregorianCalendar longAgo() {
+    	return LONG_AGO;
     }
 
     private ParsedFullName parseFullName(String fullName) {
@@ -1129,10 +1191,6 @@ public class BasicExpressionFunctions {
             return DebugUtil.debugDump(((ObjectType) o).asPrismObject(), indent);
         }
         return DebugUtil.debugDump(o, indent);
-    }
-
-    public static XMLGregorianCalendar fromNow(String timeSpec) {
-        return XmlTypeConverter.fromNow(XmlTypeConverter.createDuration(timeSpec));
     }
 
 }

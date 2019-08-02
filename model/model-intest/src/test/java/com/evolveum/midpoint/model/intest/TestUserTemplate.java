@@ -2636,6 +2636,9 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // THEN
         assertUserAfter(USER_JACK_OID)
 	    	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+	    	.extension()
+	    		.assertNoItem(PIRACY_TALES)
+	    		.end()
 	    	.assertNoTrigger();
 	}
 
@@ -2702,10 +2705,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
         clockForward("P1M");
 
         // WHEN
@@ -2714,7 +2713,68 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // THEN
         assertUserAfter(USER_JACK_OID)
 	    	.assertAdditionalName("Kaboom!")
-	    	.assertNoTrigger();
+	    	.extension()
+	    		.assertNoItem(PIRACY_TALES)
+	    		.end()
+    		.triggers()
+	    		.single()
+	    			// Trigger for "tales bomb" mapping (see below)
+	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+	    			.assertTimestampFuture("P2M", 5*24*60*60*1000L);
+	}
+	
+	/**
+	 * Move the time to the future a bit further.
+	 * There is another time-sensitive mapping (tales bomb).
+	 * This should get it prepared, creating trigger.
+	 * MID-4630
+	 */
+	@Test
+    public void test810PreTalesBomb() throws Exception {
+		final String TEST_NAME = "test810PreTalesBomb";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        clockForward("P1D");
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+        
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertNoItem(PIRACY_TALES)
+        		.end()
+        	.triggers()
+	    		.single()
+	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+	    			.assertTimestampFuture("P2M", 5*24*60*60*1000L);
+	}
+	
+	/**
+	 * Move the time 3M the future. Tales bomb should explode.
+	 * MID-4630
+	 */
+	@Test
+    public void test812PreTalesBomb() throws Exception {
+		final String TEST_NAME = "test812PreTalesBomb";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        clockForward("P3M");
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.end()
+        	.triggers()
+	    		.assertNone();
 	}
 
 	@Test

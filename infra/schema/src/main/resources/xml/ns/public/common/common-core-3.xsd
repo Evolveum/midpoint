@@ -9708,13 +9708,25 @@
     <xsd:complexType name="MappingTimeDeclarationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Specification of time-based mapping constraints.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="referenceTime" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
            	<xsd:element name="offset" type="xsd:duration" minOccurs="0"/>
+           	<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Expression that is supposed to return the timestamp.
+           				The expression may return null. In that case the time constraint will be
+           				considered unsatisfied.
+           			</xsd:documentation>
+           			<xsd:appinfo>
+           				<a:since>4.0</a:since>
+           			</xsd:appinfo>
+           		</xsd:annotation>
+           	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
