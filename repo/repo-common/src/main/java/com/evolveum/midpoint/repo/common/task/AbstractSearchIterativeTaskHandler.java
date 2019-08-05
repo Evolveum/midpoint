@@ -622,10 +622,6 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     	queryType.setFilter(filterType);
     	return queryType;
     }
-    
-    protected QueryType getObjectQueryTypeFromTaskExtension(Task task) {
-    	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
-    }
 
     protected IterationMethodType getIterationMethodFromTask(Task task) {
     	return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_ITERATION_METHOD));

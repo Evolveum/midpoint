@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+
+import static com.evolveum.midpoint.prism.PrismProperty.getRealValue;
 
 /**
  * @author mederly
@@ -40,4 +44,9 @@ public interface WorkBucketAwareTaskHandler extends TaskHandler {
 	default TaskWorkBucketProcessingResult onNoMoreBuckets(Task task, TaskWorkBucketProcessingResult previousRunResult) {
 		return previousRunResult;
 	}
+
+	default QueryType getObjectQueryTypeFromTaskExtension(Task task) {
+		return getRealValue(task.getExtensionPropertyOrClone(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+	}
+
 }
