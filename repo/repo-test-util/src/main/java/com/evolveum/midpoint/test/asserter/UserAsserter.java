@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -378,6 +379,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	@Override
 	public UserAsserter<RA> assertNoArchetypeRef() {
 		super.assertNoArchetypeRef();
+		return this;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
 		return this;
 	}
 }

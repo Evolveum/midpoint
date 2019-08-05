@@ -104,7 +104,7 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
 
 
 	protected String desc() {
-		return "exension of " + descWithDetails(getObject());
+		return "extension of " + descWithDetails(getObject());
 	}
 
 	@Override

@@ -22,9 +22,12 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -50,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -234,6 +238,14 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
 		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
 		assertNull("Unexpected item "+itemPath+" in "+desc(), item);
+		return this;
+	}
+	
+	public PrismObjectAsserter<O,RA> assertNoTrigger() {
+		List<TriggerType> triggers = object.asObjectable().getTrigger();
+		if (triggers != null && !triggers.isEmpty()) {
+			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers + "; in "+desc());
+		}
 		return this;
 	}
 	

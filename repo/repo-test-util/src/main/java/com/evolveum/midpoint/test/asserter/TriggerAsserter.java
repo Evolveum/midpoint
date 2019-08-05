@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -100,6 +101,20 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
 				XmlTypeConverter.addDuration(start, durationOffset),
 				XmlTypeConverter.addDuration(end, durationOffset),
 				trigger.getTimestamp());
+		return this;
+	}
+	
+	public TriggerAsserter<R> assertTimestampFuture(String durationOffset, long tolerance) {
+		assertTimestampFuture(getClock().currentTimeXMLGregorianCalendar(), durationOffset, tolerance);
+		return this;
+	}
+	
+	public TriggerAsserter<R> assertTimestampFuture(XMLGregorianCalendar now, String durationOffset, long tolerance) {
+		Duration offsetDuration = XmlTypeConverter.createDuration(durationOffset);
+		XMLGregorianCalendar mid = XmlTypeConverter.addDuration(now, offsetDuration);
+		XMLGregorianCalendar start = XmlTypeConverter.addMillis(mid, -tolerance);
+		XMLGregorianCalendar end = XmlTypeConverter.addMillis(mid, tolerance);
+		TestUtil.assertBetween("Wrong timestamp in "+desc(), start, end, trigger.getTimestamp());
 		return this;
 	}
 	

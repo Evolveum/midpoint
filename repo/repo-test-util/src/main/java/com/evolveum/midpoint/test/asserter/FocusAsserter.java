@@ -371,4 +371,10 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		}
 		return this;
 	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoTrigger() {
+		super.assertNoTrigger();
+		return this;
+	}
 }

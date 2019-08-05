@@ -52,7 +52,6 @@
 		<module>model-test</module>
 		<module>model-impl</module>
 		<module>model-intest</module>
-		<module>model-client</module>
         <module>workflow-api</module>
         <module>workflow-impl</module>
         <module>notifications-api</module>

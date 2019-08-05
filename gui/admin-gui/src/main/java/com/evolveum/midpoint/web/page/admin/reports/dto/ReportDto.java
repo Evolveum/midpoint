@@ -145,13 +145,15 @@ public class ReportDto implements Serializable {
         	dashboardEngine.setDashboardRef(dashboardRef);
         	reportType.setDashboard(dashboardEngine);
         } else {
-        	reportType.setExport(exportType);
-            reportType.setTemplate(jasperReportDto.getTemplate());
-            reportType.setTemplateStyle(templateStyle);
-            reportType.setVirtualizer(virtualizer);
-            reportType.setVirtualizerKickOn(virtualizerKickOn);
-            reportType.setMaxPages(maxPages);
-            reportType.setTimeout(timeout);
+        	JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
+        	jasperConfig.setExport(exportType);
+        	jasperConfig.setTemplate(jasperReportDto.getTemplate());
+        	jasperConfig.setTemplateStyle(templateStyle);
+        	jasperConfig.setVirtualizer(virtualizer);
+        	jasperConfig.setVirtualizerKickOn(virtualizerKickOn);
+        	jasperConfig.setMaxPages(maxPages);
+        	jasperConfig.setTimeout(timeout);
+        	reportType.setJasper(jasperConfig);
         }
 
         return reportType.asPrismObject();

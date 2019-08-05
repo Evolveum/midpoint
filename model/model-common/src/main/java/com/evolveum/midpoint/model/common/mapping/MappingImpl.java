@@ -916,21 +916,46 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (timeType == null) {
 			return null;
 		}
-		XMLGregorianCalendar time;
+		XMLGregorianCalendar referenceTime;
+		ExpressionType expressionType = timeType.getExpression();
 		VariableBindingDefinitionType referenceTimeType = timeType.getReferenceTime();
 		if (referenceTimeType == null) {
 			if (defaultReferenceTime == null) {
-				throw new SchemaException("No reference time specified (and there is also no default) in time specification in "+getMappingContextDescription());
+				if (expressionType == null) {
+					throw new SchemaException("No reference time specified, there is also no default and no expression; in time specification in "+getMappingContextDescription());
+				} else {
+					referenceTime = null;
+				}
 			} else {
-				time = (XMLGregorianCalendar) defaultReferenceTime.clone();
+				referenceTime = defaultReferenceTime;
 			}
 		} else {
-			time = parseTimeSource(referenceTimeType, task, result);
-			if (time == null) {
-				// Reference time is specified but the value is not present.
+			referenceTime = parseTimeSource(referenceTimeType, task, result);
+		}
+		
+		XMLGregorianCalendar time;
+		if (expressionType == null) {
+			if (referenceTime == null) {
+				return null;
+			} else {
+				time = (XMLGregorianCalendar) referenceTime.clone();
+			}
+		} else {
+			MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition = prismContext.definitionFactory().createPropertyDefinition(
+					ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.XSD_DATETIME);
+			timeDefinition.setMaxOccurs(1);
+			
+			ExpressionVariables timeVariables = new ExpressionVariables();
+			timeVariables.addVariableDefinitions(variables);
+			timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
+			
+			PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(timeVariables, timeDefinition, expressionType, expressionProfile, expressionFactory, "time expression in "+contextDescription, task, result);
+			
+			if (timePropVal == null) {
 				return null;
 			}
-			time = (XMLGregorianCalendar) time.clone();
+			
+			time = timePropVal.getValue();
 		}
 		Duration offset = timeType.getOffset();
 		if (offset != null) {
