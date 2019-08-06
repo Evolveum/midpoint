@@ -2231,7 +2231,9 @@ public class ShadowCache {
 				} else {
 					attributeFilter.add(subFilters.iterator().next());
 				}
-
+			} else if (f instanceof  UnaryLogicalFilter) {
+				ObjectFilter subFilter = ((UnaryLogicalFilter) f).getFilter();
+				attributeFilter.add(prismContext.queryFactory().createNot(subFilter));
 			} else if (f instanceof SubstringFilter) {
 				attributeFilter.add(f);
 			} else if (f instanceof RefFilter) {
