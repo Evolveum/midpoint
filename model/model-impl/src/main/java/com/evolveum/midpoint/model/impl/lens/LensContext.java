@@ -966,6 +966,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 			sb.append("null");
 		}
 		sb.append("\n");
+		DebugUtil.debugDumpLabel(sb, "Focus template", indent + 1);
+		sb.append(" ").append(focusTemplate).append("\n");
 
 		DebugUtil.debugDumpWithLabel(sb, "FOCUS", focusContext, indent + 1);
 

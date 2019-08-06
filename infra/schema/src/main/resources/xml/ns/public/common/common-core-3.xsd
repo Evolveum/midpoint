@@ -20324,6 +20324,14 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
+                    <xsd:element name="totalSizeCap" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.totalSizeCap</a:displayName>
+								<a:since>4.0</a:since>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
                     <xsd:element name="maxFileSize" type="xsd:string" minOccurs="0">
 						<xsd:annotation>
 							<xsd:appinfo>
