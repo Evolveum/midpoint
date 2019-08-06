@@ -215,9 +215,9 @@ public class LoggingConfigurationManager {
 			sb.append(config.getRootLoggerAppender());
 			sb.append("\" />\n");
 			if (altAppenderCreated) {
-				sb.append("\t\t<appender-ref ref=\"" + ALT_APPENDER_NAME + "\"/>");
+				sb.append("\t\t<appender-ref ref=\"" + ALT_APPENDER_NAME + "\"/>\n");
 			}
-			sb.append("\t\t<appender-ref ref=\"" + TRACING_APPENDER_NAME + "\"/>");
+			sb.append("\t\t<appender-ref ref=\"" + TRACING_APPENDER_NAME + "\"/>\n");
 			sb.append("\t</root>\n");
 		}
 
@@ -313,14 +313,14 @@ public class LoggingConfigurationManager {
 		String altFilename = getAltAppenderFilename(midpointConfiguration);
 		String altPrefix = getAltAppenderPrefix(midpointConfiguration);
 		if (StringUtils.isNotEmpty(altFilename)) {
-			sb.append("<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
+			sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.FileAppender\">\n")
 					.append("\t\t\t\t<file>").append(altFilename).append("</file>\n")
 					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
 					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
 					.append("\t\t\t\t</layout>\n")
 					.append("\t\t\t</appender>\n");
 		} else {
-			sb.append("<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
+			sb.append("\t<appender name=\"" + ALT_APPENDER_NAME + "\" class=\"ch.qos.logback.core.ConsoleAppender\">\n")
 					.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
 					.append("\t\t\t\t\t<pattern>").append(altPrefix).append(appender.getPattern()).append("</pattern>\n")
 					.append("\t\t\t\t</layout>\n")
@@ -348,14 +348,11 @@ public class LoggingConfigurationManager {
 		String filePattern = appender.getFilePattern();
 		boolean isPrudent = Boolean.TRUE.equals(appender.isPrudent());
 		boolean isAppend = Boolean.TRUE.equals(appender.isAppend());
+		boolean isRolling = filePattern != null ||
+				appender.getMaxHistory() != null && appender.getMaxHistory() > 0 ||
+				StringUtils.isNotEmpty(appender.getMaxFileSize());
+		String appenderClass = isRolling ? "ch.qos.logback.core.rolling.RollingFileAppender" : "ch.qos.logback.core.FileAppender";
 
-		boolean isRolling = false;
-		String appenderClass = "ch.qos.logback.core.FileAppender";
-		if (filePattern != null || (appender.getMaxHistory() != null && appender.getMaxHistory() > 0) || !StringUtils.isEmpty(appender.getMaxFileSize()) ) {
-			isRolling = true;
-			appenderClass = "ch.qos.logback.core.rolling.RollingFileAppender"; 
-		}
-		
 		prepareCommonAppenderHeader(sb, appender, config, appenderClass);
 
 		if (!isPrudent) {
@@ -366,28 +363,22 @@ public class LoggingConfigurationManager {
 		}
 
 		if (isRolling) {
-			//rolling policy
 			sb.append("\t\t<rollingPolicy class=\"ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy\">\n");
-			sb.append("\t\t\t<fileNamePattern>");
-			sb.append(filePattern);
-			sb.append("</fileNamePattern>\n");
+			sb.append("\t\t\t<fileNamePattern>").append(filePattern).append("</fileNamePattern>\n");
 			if (appender.getMaxHistory() != null && appender.getMaxHistory() > 0) {
-				sb.append("\t\t\t<maxHistory>");
-				sb.append(appender.getMaxHistory());
-				sb.append("</maxHistory>\n");
+				sb.append("\t\t\t<maxHistory>").append(appender.getMaxHistory()).append("</maxHistory>\n");
 			}
 			sb.append("\t\t\t<cleanHistoryOnStart>true</cleanHistoryOnStart>\n");
-
-			if (!StringUtils.isEmpty(appender.getMaxFileSize())) {
-				sb.append("\t\t\t<maxFileSize>");
-				sb.append(appender.getMaxFileSize());
-				sb.append("</maxFileSize>\n");
+			if (StringUtils.isNotEmpty(appender.getMaxFileSize())) {
+				sb.append("\t\t\t<maxFileSize>").append(appender.getMaxFileSize()).append("</maxFileSize>\n");
+			}
+			if (StringUtils.isNotEmpty(appender.getTotalSizeCap())) {
+				sb.append("\t\t\t<totalSizeCap>").append(appender.getTotalSizeCap()).append("</totalSizeCap>\n");
 			}
 			sb.append("\t\t</rollingPolicy>\n");
 		}
 		
 		prepareCommonAppenderFooter(sb, appender);
-
 	}
 	
 	private static void prepareSyslogAppenderConfiguration(StringBuilder sb, SyslogAppenderConfigurationType appender, LoggingConfigurationType config) {
@@ -402,7 +393,6 @@ public class LoggingConfigurationManager {
 		appendProp(sb, "throwableExcluded", appender.isThrowableExcluded());
 		
 		prepareCommonAppenderFooter(sb, appender);
-
 	}
 
 	private static void appendProp(StringBuilder sb, String name, Object value) {
@@ -414,11 +404,11 @@ public class LoggingConfigurationManager {
 	}
 
 	private static void prepareTracingAppenderConfiguration(StringBuilder sb, AppenderConfigurationType appender) {
-		sb.append("<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
-				.append("\t\t\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
-				.append("\t\t\t\t\t<pattern>").append(appender.getPattern()).append("</pattern>\n")
-				.append("\t\t\t\t</layout>\n")
-				.append("\t\t\t</appender>\n");
+		sb.append("\t<appender name=\"" + TRACING_APPENDER_NAME + "\" class=\"").append(TRACING_APPENDER_CLASS_NAME).append("\">\n")
+				.append("\t\t<layout class=\"ch.qos.logback.classic.PatternLayout\">\n")
+				.append("\t\t\t<pattern>").append(appender.getPattern()).append("</pattern>\n")
+				.append("\t\t</layout>\n")
+				.append("\t</appender>\n");
 	}
 
 	private static void prepareCommonAppenderHeader(StringBuilder sb,
