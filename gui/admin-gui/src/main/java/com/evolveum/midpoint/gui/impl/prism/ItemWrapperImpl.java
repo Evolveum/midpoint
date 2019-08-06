@@ -267,7 +267,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 			displayName = name.getLocalPart();
 
 			PrismContainerValue<?> val = newItem.getParent();
-			if (val.getDefinition().isRuntimeSchema()) {
+			if (val != null && val.getDefinition() != null
+					&& val.getDefinition().isRuntimeSchema()) {
 				return localizeName(displayName, displayName);
 			}
 
