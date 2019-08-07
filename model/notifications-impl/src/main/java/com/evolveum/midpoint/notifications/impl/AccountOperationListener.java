@@ -169,7 +169,7 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         String accountOid = operationDescription.getObjectDelta().getOid();
 
-        PrismObject<UserType> user = findRequestee(accountOid, task, result, operationDescription.getObjectDelta().isDelete());
+        PrismObject<UserType> user = findRequestee(accountOid, task, result);
         if (user != null) {
             event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
@@ -197,59 +197,22 @@ public class AccountOperationListener implements ResourceOperationListener {
 //        return typeMatches(type, entry.getSituation(), opDescr) && statusMatches(status, entry.getSituation());
 //    }
 
-    private PrismObject<UserType> findRequestee(String accountOid, Task task, OperationResult result, boolean isDelete) {
-        PrismObject<UserType> user;
-
-        if (accountOid != null) {
+    private PrismObject<UserType> findRequestee(String shadowOid, Task task, OperationResult result) {
+        // This is (still) a temporary solution. We need to rework it eventually.
+        if (task != null && task.getRequestee() != null) {
+            return task.getRequestee();
+        } else if (shadowOid != null) {
             try {
-                user = cacheRepositoryService.listAccountShadowOwner(accountOid, result);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("listAccountShadowOwner for account {} yields {}",accountOid, user);
-                }
+                PrismObject<UserType> user = cacheRepositoryService.listAccountShadowOwner(shadowOid, result);
+                LOGGER.trace("listAccountShadowOwner for shadow {} yields {}", shadowOid, user);
+                return user;
             } catch (ObjectNotFoundException e) {
-                LOGGER.trace("There's a problem finding account " + accountOid, e);
+                LOGGER.trace("There's a problem finding account {}", shadowOid, e);
                 return null;
             }
-
-            if (user != null) {
-                return user;
-            }
-        }
-
-        PrismObject<UserType> requestee = task != null ? task.getRequestee() : null;
-        if (requestee == null) {
-            LOGGER.debug("There is no owner of account {} (in repo nor in task).", accountOid);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Task = {}", (task != null ? task.debugDump() : null));
-            }
-            return null;
-        }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Requestee = {} for account {}", requestee, accountOid);
-        }
-        if (requestee.getOid() == null) {
-            return requestee;
-        }
-
-        // let's try to get current value of requestee ... if it exists (it will NOT exist in case of delete operation)
-        try {
-            return cacheRepositoryService.getObject(UserType.class, requestee.getOid(), null, result);
-        } catch (ObjectNotFoundException e) {
-            if (isDelete) {
-                result.removeLastSubresult();           // get rid of this error - it's not an error
-            }
-            return requestee;           // returning last known value
-//            if (!isDelete) {
-//                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
-//            } else {
-//                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted.");
-//                result.removeLastSubresult();       // to suppress the error message (in GUI + in tests)
-//            }
-//            return null;
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
+        } else {
+            LOGGER.debug("There is no owner of account {} (in repo nor in task).", shadowOid);
             return null;
         }
     }
-
 }
