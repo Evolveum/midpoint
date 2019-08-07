@@ -187,7 +187,7 @@ public class Clockwork {
 			try {
 				context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
 				if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
-					context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
+					context.createAndRegisterFocusConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 				}
 				FocusConstraintsChecker
 						.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
@@ -342,13 +342,13 @@ public class Clockwork {
 
 
 	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
-		for (ConflictWatcher watcher : context.getConflictWatchers()) {
-			if (repositoryService.hasConflict(watcher, result)) {
-				LOGGER.debug("Found modify-modify conflict on {}", watcher);
-				return true;
-			}
+		ConflictWatcher watcher = context.getFocusConflictWatcher();
+		if (watcher != null && repositoryService.hasConflict(watcher, result)) {
+			LOGGER.debug("Found modify-modify conflict on {}", watcher);
+			return true;
+		} else {
+			return false;
 		}
-		return false;
 	}
 
 	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context, Task task, OperationResult result)

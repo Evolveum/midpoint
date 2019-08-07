@@ -201,9 +201,12 @@ public class ChangeExecutor {
 						executeDelta(focusDelta, focusContext, context, null, conflictResolution, null, task, subResult);
 
 						if (focusDelta.isAdd() && focusDelta.getOid() != null) {
-							ConflictWatcher watcher = context
-									.createAndRegisterConflictWatcher(focusDelta.getOid(), cacheRepositoryService);
-							watcher.setExpectedVersion(focusDelta.getObjectToAdd().getVersion());
+							// The watcher can already exist; if the OID was pre-existing in the object.
+							if (context.getFocusConflictWatcher() == null) {
+								ConflictWatcher watcher = context
+										.createAndRegisterFocusConflictWatcher(focusDelta.getOid(), cacheRepositoryService);
+								watcher.setExpectedVersion(focusDelta.getObjectToAdd().getVersion());
+							}
 						}
 						subResult.computeStatus();
 

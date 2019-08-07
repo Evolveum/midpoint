@@ -173,7 +173,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 				.assertOp("getObject.RoleType", 3)
 				.assertOp("getObject.ShadowType", 12)               // todo lower this
 				.assertOp("getObject.UserType", 5)                  // todo lower this
-				.assertOp("getVersion.ObjectType", 2)               // todo lower this
+				.assertOp("getVersion.ObjectType", 1)               // todo lower this
 				.assertOp("listAccountShadowOwner.UserType", 6)     // todo
 				.assertOp("modifyObject.ShadowType", 3)             // todo
 				.assertOp("modifyObject.UserType", 3);              // todo
@@ -219,7 +219,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 				.assertOp("audit.AuditEventRecord", 2)
 				.assertOp("getObject.ShadowType", 12)               // todo lower this
 				.assertOp("getObject.UserType", 5)                  // todo lower this
-				.assertOp("getVersion.ObjectType", 2)               // todo lower this
+				.assertOp("getVersion.ObjectType", 1)               // todo lower this
 				.assertOp("listAccountShadowOwner.UserType", 6)     // todo
 				.assertOp("modifyObject.ShadowType", 3)             // todo
 				.assertOp("modifyObject.UserType", 3);              // todo

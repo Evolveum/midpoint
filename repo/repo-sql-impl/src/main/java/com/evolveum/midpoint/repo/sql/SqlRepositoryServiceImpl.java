@@ -1253,7 +1253,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 	
     @Override
-    public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
+    public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
 	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
 	    if (watchers == null) {
 	    	conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
