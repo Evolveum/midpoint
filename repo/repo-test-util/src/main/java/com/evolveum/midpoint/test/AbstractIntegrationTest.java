@@ -2480,6 +2480,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		asserter.setPrismContext(prismContext);
 		asserter.setObjectResolver(repoSimpleObjectResolver);
 		asserter.setProtector(protector);
+		asserter.setClock(clock);
 	}
 	
 	protected PolyStringAsserter<Void> assertPolyString(PolyString polystring, String desc) {

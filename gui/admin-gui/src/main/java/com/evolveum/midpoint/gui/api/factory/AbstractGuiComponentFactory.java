@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -57,11 +58,18 @@ import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
 
 	private static final long serialVersionUID = 1L;
 
+	@Autowired
+	private transient GuiComponentRegistry registry;
+
+	public GuiComponentRegistry getRegistry() {
+		return registry;
+	}
 
 	@Override
 	public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {

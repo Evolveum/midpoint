@@ -134,7 +134,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
 
     public PageCreatedReports(PageParameters pageParameters) {
         super(pageParameters);
-
+        
         initReportTypeMap();
     }
 
@@ -155,10 +155,14 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
          }
          return "undefined";
     }
-
+    
     @Override
-    protected void initLayout() {
-        super.initLayout();
+    protected void onInitialize() {
+    	super.onInitialize();
+    	customInitLayout();
+    }
+    
+    private void customInitLayout() {
 
         String reportName = reportTypeMal.get(getReportType());
         List<String> values = new ArrayList<>(reportTypeMal.values());

@@ -34,5 +34,15 @@
 			<t:value>value2</t:value>
 			<t:value>value3</t:value>
 		</t:itemDelta>
+		<t:itemDelta>
+			<t:modificationType>add</t:modificationType>
+			<t:path>attributes/ri:memberOf</t:path>
+			<t:value>group1</t:value>
+			<t:value>group2</t:value>
+			<t:value>group3</t:value>
+			<t:value>group4</t:value>
+			<t:value>group5</t:value>
+			<t:value>group6</t:value>
+		</t:itemDelta>
 	</objectDelta>
 </ucfChange>

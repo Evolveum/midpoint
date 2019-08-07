@@ -50,7 +50,7 @@ public class LogicalOperation extends Operation{
 				return null;
 			}
 			
-			Filter f = getInterpreter().interpret(objectFilter, icfNameMapper);
+			Filter f = getInterpreter().interpret(not.getFilter(), icfNameMapper);
 			return FilterBuilder.not(f);
 		} else {
 		

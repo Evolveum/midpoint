@@ -61,7 +61,7 @@
 <body wicket:id="body" class="">
     <div wicket:id="mainPopup"/>
     <div class="wrapper">
-        <header wicket:id="mainHeader" class="main-header" style="max-height:150px;">
+        <header wicket:id="mainHeader" class="main-header" style="max-height:550px;">
             <!-- Logo -->
             <a class="custom-logo" wicket:id="customLogo">
                 <i wicket:id="customLogoImgCss"/>
@@ -97,18 +97,20 @@
                             </a>
                         </li>
                     </ol>
+                    <div class="pull-right">
                         <a wicket:id="cartButton" class="shopping-cart-icon">
                             <i class="fa fa-shopping-cart fa-2x shopping-cart-icon"></i>
                             <span wicket:id="itemsCount" class="badge bg-red"
                                   style="position: absolute; top: 1px; margin-left: 20px;"></span>
                         </a>
-                    <ul class="nav navbar-nav pull-right">
-                        <!-- User Account: style can be found in dropdown.less -->
-                        <li class="dropdown user user-menu" wicket:id="rightMenu"/>
-                        <li>
-                            <div wicket:id="locale"/>
-                        </li>
-                    </ul>
+                        <ul class="nav navbar-nav pull-right">
+                            <!-- User Account: style can be found in dropdown.less -->
+                            <li class="dropdown user user-menu" wicket:id="rightMenu"/>
+                            <li>
+                                <div wicket:id="locale"/>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </nav>
         </header>

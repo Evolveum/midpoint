@@ -740,6 +740,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+    		<xsd:element name="originDescription" type="xsd:string" minOccurs="0">
+    			<xsd:annotation>
+    				<xsd:documentation>
+    					Short description of trigger origin, e.g. name of the mapping.
+    					Used for diagnostic purposes.
+    				</xsd:documentation>
+    				<xsd:appinfo>
+    					<a:operational>true</a:operational>
+    					<a:indexed>false</a:indexed>
+    					<a:since>4.0</a:since>
+    				</xsd:appinfo>
+    			</xsd:annotation>
+    		</xsd:element>
 			<xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -2499,6 +2512,9 @@
                                 Execution status provides information about the task overall high-level execution state.
                                 It tells whether the task is running/runnable, waits for something or is done.
                             </xsd:documentation>
+			    <xsd:appinfo>
+				<a:displayName>TaskType.executionStatus</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="waitingReason" type="tns:TaskWaitingReasonType" minOccurs="0">
@@ -2548,6 +2564,9 @@
                                 TRANSIENT. This value is not stored in the repository.
                                 (It is currently not possible to use it for filtering or sorting.)
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.nodeAsObserved</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="category" type="xsd:string" minOccurs="0">
@@ -2556,6 +2575,9 @@
                                 Kind of the task, e.g. live sync, reconciliation, workflow, import from resource.
                                 Used mainly for the GUI.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.category</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0">
@@ -2588,6 +2610,9 @@
                                 Top-level state of the 'result' (OperationResultType).
                                 It is put here for ease of use - mainly filtering, displaying, and so on.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.resultStatus</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
@@ -2599,6 +2624,9 @@
                                 that it imports from. Similarly
                                 for synchronization and reconciliation tasks (cycles).
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.objectRef</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="lastRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
@@ -2670,6 +2698,9 @@
                                 Relative metric of task progress. The meaning of this attribute
                                 is specific to particular task handler.
                             </xsd:documentation>
+                            <xsd:appinfo>
+				<a:displayName>TaskType.progress</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="operationStats" type="tns:OperationStatsType" minOccurs="0">
@@ -7824,6 +7855,15 @@
 							</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="storageStrategy" type="tns:AttributeStorageStrategyType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>ResourceItemDefinitionType.storageStrategy</a:displayName>
+								<a:since>4.0</a:since>
+								<a:experimental>true</a:experimental>
+							</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -8119,6 +8159,39 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="MINIMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:simpleType name="AttributeStorageStrategyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The way how an attribute is stored in repo - in case of passive caching.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		TODO
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="indexOnly">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Attribute is not stored in full repo object (XML) structure.
+						It can be queried. If needed to get it, explicit INCLUDE option has to be used.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INDEX_ONLY"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -9648,13 +9721,25 @@
     <xsd:complexType name="MappingTimeDeclarationType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Specification of time-based mapping constraints.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="referenceTime" type="tns:VariableBindingDefinitionType" minOccurs="0" maxOccurs="1"/>
            	<xsd:element name="offset" type="xsd:duration" minOccurs="0"/>
+           	<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0">
+           		<xsd:annotation>
+           			<xsd:documentation>
+           				Expression that is supposed to return the timestamp.
+           				The expression may return null. In that case the time constraint will be
+           				considered unsatisfied.
+           			</xsd:documentation>
+           			<xsd:appinfo>
+           				<a:since>4.0</a:since>
+           			</xsd:appinfo>
+           		</xsd:annotation>
+           	</xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -18910,6 +18995,27 @@
       				</xsd:documentation>
       			</xsd:annotation>
       		</xsd:element>
+      		<xsd:element name="view" type="tns:GuiObjectListViewType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						<p>
+							Specifies a view of an object collection that is the result of the widget.
+							I.e. the collection that will be displayed when the widget is clicked, sent
+							out in "mailable" version of the widget and so on.
+						</p>
+						<p>
+							This part of widget definition is EXPERIMENTAL. It works only for some case,
+							some parts are hardcoded, untested or do not even work at all.
+							Use at your own risk. But it is perhaps best not to use this at all
+							until the code stabilizes.
+						</p>
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:experimental>true</a:experimental>
+					</xsd:appinfo>
+      			</xsd:annotation>
+      		</xsd:element>
       		<!-- TODO: formRef (optional, for form-based widgets) -->
       		<!-- TODO: view setting (optional, for list-based widgets) -->
       	</xsd:sequence>
@@ -20228,6 +20334,14 @@
 						<xsd:annotation>
 							<xsd:appinfo>
 								<a:displayName>FileAppenderConfigurationType.maxHistory</a:displayName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+                    <xsd:element name="totalSizeCap" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<a:displayName>FileAppenderConfigurationType.totalSizeCap</a:displayName>
+								<a:since>4.0</a:since>
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
@@ -24978,6 +25092,7 @@
                 <a:since>3.6</a:since>
             </xsd:appinfo>
         </xsd:annotation>
+        	<!-- TODO: maybe we want this to be subtype of UserInterfaceFeatureType? -->
        		<xsd:sequence>
        			<xsd:element name="name" type="xsd:string" minOccurs="1" maxOccurs="1">
        				<xsd:annotation>
@@ -25057,7 +25172,24 @@
        					</xsd:appinfo>
        				</xsd:annotation>
        			</xsd:element>
-       			<!-- TODO later: sorting, expression -->
+       			<xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+       				<xsd:annotation>
+       					<xsd:documentation>
+       						<p>
+       							Expression to be used to produce value for the column.
+       						</p>
+       						<p>
+       							Column expressions are EXPERIMENTAL. They work only under a very
+       							specific circumstances.
+       						</p>
+       					</xsd:documentation>
+						<xsd:appinfo>
+							<a:displayName>GuiObjectColumnType.expression</a:displayName>
+							<a:experimental>true</a:experimental>
+       					</xsd:appinfo>
+       				</xsd:annotation>
+       			</xsd:element>
+       			<!-- TODO later: sorting -->
            	</xsd:sequence>
     </xsd:complexType>
     

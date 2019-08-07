@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -448,7 +448,7 @@
     	<name>time bomb</name>
     	<timeFrom>
 			<referenceTime>
-				<path>$focus/metadata/createTimestamp</path>
+				<path>$focus/extension/funeralTimestamp</path>
 			</referenceTime>
 			<offset>P1M</offset>
 		</timeFrom>
@@ -457,6 +457,80 @@
     	</expression>
     	<target>
     		<path>additionalName</path>
+    	</target>
+    </mapping>
+    
+    <!-- MID-5603, MID-4630 -->
+    <mapping>
+    	<name>tales bomb</name>
+    	<timeFrom>
+			<expression>
+				<script>
+					<code>
+						if (focus?.additionalName?.orig != 'Kaboom!') {
+							// null means that this mapping is not active. It has no date.
+							// it will not be processed.
+							return null
+						}
+						javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
+						if (funeralTimestamp == null) {
+							// Always process this mapping immediately
+							return basic.longAgo()
+						}
+						def timestamp = basic.addDuration(funeralTimestamp, "P3M")
+						timetamp = basic.roundDownToMidnight(timestamp)
+						return timestamp
+					</code>
+				</script>
+			</expression>
+		</timeFrom>
+    	<expression>
+            <value>Once upon a time</value>    	
+    	</expression>
+    	<target>
+    		<path>extension/tales</path>
+    	</target>
+    </mapping>
+    
+    <!-- MID-4630, this one is strong and has a condition -->
+    <mapping>
+    	<name>loot bomb</name>
+    	<strength>strong</strength>
+    	<source>
+    		<path>givenName</path>
+    	</source>
+    	<timeFrom>
+			<expression>
+				<script>
+					<code>
+						if (!focus?.description?.contains('gone')) {
+							// Time-constraint is inactive
+							// We do not want this constraint to be active too soon.
+							// Otherwise it will set the trigger and that would complicate other tests.
+							return null
+						}
+						javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
+						if (funeralTimestamp == null) {
+							// Always process this mapping immediately
+							return basic.longAgo()
+						}
+						def timestamp = basic.addDuration(funeralTimestamp, "P1Y")
+						timetamp = basic.roundDownToMidnight(timestamp)
+						return timestamp
+					</code>
+				</script>
+			</expression>
+		</timeFrom>
+    	<expression>
+            <value>1000000</value>    	
+    	</expression>
+    	<condition>
+    		<script>
+    			<code>givenName?.norm == 'lootjack'</code>
+    		</script>
+    	</condition>
+    	<target>
+    		<path>extension/loot</path>
     	</target>
     </mapping>
     

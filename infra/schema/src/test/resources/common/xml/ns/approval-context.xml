@@ -19,7 +19,6 @@
 				 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 				 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 				 xsi:type="c:ApprovalContextType">
-	<!-- TODO enable this and fix it (MID-4018) -->
 	<deltasToApprove>
 		<focusPrimaryDelta>
 			<t:changeType>modify</t:changeType>

@@ -524,99 +524,70 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 		Validate.notNull(resourceObjectIdentification, "Null primary identifiers");
 		ObjectClassComplexTypeDefinition objectClassDefinition = resourceObjectIdentification.getObjectClassDefinition();
-		// Result type for this operation
-		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName()
-				+ ".fetchObject");
+
+		OperationResult result = parentResult.createMinorSubresult(ConnectorInstance.class.getName() + ".fetchObject");
 		result.addArbitraryObjectAsParam("resourceObjectDefinition", objectClassDefinition);
 		result.addArbitraryObjectAsParam("identification", resourceObjectIdentification);
 		result.addContext("connector", connectorType);
-
-		if (connIdConnectorFacade == null) {
-			result.recordFatalError("Attempt to use unconfigured connector");
-			throw new IllegalStateException("Attempt to use unconfigured connector "
-					+ connectorType + " " + description);
-		}
-
-		// Get UID from the set of identifiers
-		Uid uid;
 		try {
-			uid = getUid(resourceObjectIdentification);
-		} catch (SchemaException e) {
-			result.recordFatalError(e);
-			throw e;
+			if (connIdConnectorFacade == null) {
+				throw new IllegalStateException("Attempt to use unconfigured connector " + connectorType + " " + description);
+			}
+
+			// Get UID from the set of identifiers
+			Uid uid = getUid(resourceObjectIdentification);
+			if (uid == null) {
+				throw new IllegalArgumentException(
+						"Required attribute UID not found in identification set while attempting to fetch object identified by "
+								+ resourceObjectIdentification + " from " + description);
+			}
+
+			ObjectClass icfObjectClass = connIdNameMapper
+					.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
+			if (icfObjectClass == null) {
+				throw new IllegalArgumentException("Unable to determine object class from QName "
+						+ objectClassDefinition.getTypeName()
+						+ " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
+						+ description);
+			}
+
+			OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+			convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
+			optionsBuilder.setAllowPartialResults(true);
+			OperationOptions options = optionsBuilder.build();
+
+			ConnectorObject co;
+			//noinspection CaughtExceptionImmediatelyRethrown
+			try {
+				co = fetchConnectorObject(reporter, objectClassDefinition, icfObjectClass, uid, options, result);
+			} catch (CommunicationException | RuntimeException | SchemaException | GenericFrameworkException |
+					ConfigurationException | SecurityViolationException ex) {
+				// This is fatal. No point in continuing. Just re-throw the exception.
+				throw ex;
+			} catch (ObjectNotFoundException ex) {
+				throw new ObjectNotFoundException(
+						"Object identified by " + resourceObjectIdentification + " (ConnId UID " + uid + "), objectClass "
+								+ objectClassDefinition.getTypeName() + "  was not found in " + description);
+			}
+
+			if (co == null) {
+				throw new ObjectNotFoundException(
+						"Object identified by " + resourceObjectIdentification + " (ConnId UID " + uid + "), objectClass "
+								+ objectClassDefinition.getTypeName() + " was not in " + description);
+			}
+
+			PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
+			PrismObject<ShadowType> shadow = connIdConvertor
+					.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+
+			result.recordSuccess();
+			return shadow;
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
 		}
-		if (uid == null) {
-			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
-					+ resourceObjectIdentification + " from " + description);
-			throw new IllegalArgumentException(
-					"Required attribute UID not found in identification set while attempting to fetch object identified by "
-							+ resourceObjectIdentification + " from " + description);
-		}
-
-		ObjectClass icfObjectClass = connIdNameMapper.objectClassToConnId(objectClassDefinition, getSchemaNamespace(), connectorType, legacySchema);
-		if (icfObjectClass == null) {
-			result.recordFatalError("Unable to determine object class from QName "
-					+ objectClassDefinition.getTypeName()
-					+ " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
-					+ description);
-			throw new IllegalArgumentException("Unable to determine object class from QName "
-					+ objectClassDefinition.getTypeName()
-					+ " while attempting to fetch object identified by " + resourceObjectIdentification + " from "
-					+ description);
-		}
-
-		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn, optionsBuilder);
-		optionsBuilder.setAllowPartialResults(true);
-		OperationOptions options = optionsBuilder.build();
-
-		ConnectorObject co = null;
-		try {
-
-			// Invoke the ConnId connector
-			co = fetchConnectorObject(reporter, objectClassDefinition, icfObjectClass, uid, options,
-					result);
-
-		} catch (CommunicationException ex) {
-			result.recordFatalError(ex);
-			// This is fatal. No point in continuing. Just re-throw the
-			// exception.
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError(ex);
-			// This is fatal. No point in continuing. Just re-throw the
-			// exception.
-			throw ex;
-		} catch (ConfigurationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SecurityViolationException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + resourceObjectIdentification + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + "  was not found in "
-					+ description);
-		} catch (SchemaException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			result.recordFatalError(ex);
-			throw ex;
-		}
-
-		if (co == null) {
-			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + resourceObjectIdentification + " (ConnId UID "+uid+"), objectClass " + objectClassDefinition.getTypeName() + " was not in "
-					+ description);
-		}
-
-		PrismObjectDefinition<ShadowType> shadowDefinition = toShadowDefinition(objectClassDefinition);
-		PrismObject<ShadowType> shadow = connIdConvertor.convertToResourceObject(co, shadowDefinition, false, caseIgnoreAttributeNames, legacySchema);
-
-		result.recordSuccess();
-		return shadow;
-
 	}
 
 	private PrismObjectDefinition<ShadowType> toShadowDefinition(
@@ -1864,7 +1835,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				PrismObject<ShadowType> resourceObject;
 				Validate.notNull(connectorObject, "null connector object");
 				try {
-					resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
+					resourceObject = connIdConvertor.convertToResourceObject(connectorObject, objectDefinition, false, caseIgnoreAttributeNames, legacySchema,
+							result);
 				} catch (SchemaException e) {
 					recordResume();
 					throw new IntermediateException(e);
@@ -2312,7 +2284,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 	@NotNull
 	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas,
-			PrismSchema schema, OperationResult parentResult)
+			PrismSchema schema, OperationResult result)
 			throws SchemaException, GenericFrameworkException {
 		List<Change> changeList = new ArrayList<>();
 
@@ -2360,7 +2332,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				LOGGER.trace("START creating delta of type CREATE");
 				PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
+						objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
@@ -2383,7 +2355,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
 				LOGGER.trace("START creating delta of type {}", icfDeltaType);
 				PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames, legacySchema);
+						objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
 
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());

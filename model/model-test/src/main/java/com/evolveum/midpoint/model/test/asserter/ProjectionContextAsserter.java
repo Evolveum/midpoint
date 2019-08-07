@@ -52,86 +52,86 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * @author semancik
  *
  */
-public class ProjectionContextAsserter<RA> extends AbstractAsserter<RA> {
+public class ProjectionContextAsserter<RA> extends ElementContextAsserter<ModelProjectionContext,ShadowType,RA> {
 	
-	final private ModelProjectionContext projectionContext;
 
 	public ProjectionContextAsserter(ModelProjectionContext projectionContext) {
-		super();
-		this.projectionContext = projectionContext;
+		super(projectionContext);
 	}
 	
 	public ProjectionContextAsserter(ModelProjectionContext projectionContext, String detail) {
-		super(detail);
-		this.projectionContext = projectionContext;
+		super(projectionContext, detail);
 	}
 	
 	public ProjectionContextAsserter(ModelProjectionContext projectionContext, RA returnAsserter, String detail) {
-		super(returnAsserter, detail);
-		this.projectionContext = projectionContext;
+		super(projectionContext, returnAsserter, detail);
 	}
 	
 	public ModelProjectionContext getProjectionContext() {
-		return projectionContext;
+		return getElementContext();
 	}
 
+	@Override
 	public ShadowAsserter<ProjectionContextAsserter<RA>> objectOld() {
 		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectOld(), this, "object old in "+desc());
+				getProjectionContext().getObjectOld(), this, "object old in "+desc());
 		copySetupTo(shadowAsserter);
 		return shadowAsserter;
 	}
 	
+	@Override
 	public ShadowAsserter<ProjectionContextAsserter<RA>> objectCurrent() {
 		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectCurrent(), this, "object current in "+desc());
+				getProjectionContext().getObjectCurrent(), this, "object current in "+desc());
 		copySetupTo(shadowAsserter);
 		return shadowAsserter;
 	}
 	
+	@Override
 	public ShadowAsserter<ProjectionContextAsserter<RA>> objectNew() {
 		ShadowAsserter<ProjectionContextAsserter<RA>> shadowAsserter = new ShadowAsserter<ProjectionContextAsserter<RA>>(
-				projectionContext.getObjectNew(), this, "object new in "+desc());
+				getProjectionContext().getObjectNew(), this, "object new in "+desc());
 		copySetupTo(shadowAsserter);
 		return shadowAsserter;
 	}
 	
+	@Override
 	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> primaryDelta() {
-		ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-				projectionContext.getPrimaryDelta(), this, "primary delta in "+desc());
-		copySetupTo(deltaAsserter);
-		return deltaAsserter;
+		return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.primaryDelta();
 	}
 	
+	@Override
 	public ProjectionContextAsserter<RA> assertNoPrimaryDelta() {
-		assertNull("Unexpected primary delta in "+desc(), projectionContext.getPrimaryDelta());
+		super.assertNoPrimaryDelta();
 		return this;
 	}
 	
+	@Override
 	public ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> secondaryDelta() {
-		ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-				projectionContext.getSecondaryDelta(), this, "secondary delta in "+desc());
-		copySetupTo(deltaAsserter);
-		return deltaAsserter;
+		return (ObjectDeltaAsserter<ShadowType, ProjectionContextAsserter<RA>>) super.secondaryDelta();
 	}
-
+	
+	@Override
 	public ProjectionContextAsserter<RA> assertNoSecondaryDelta() {
-		assertNull("Unexpected secondary delta in "+desc(), projectionContext.getSecondaryDelta());
+		super.assertNoSecondaryDelta();
 		return this;
 	}
-
+	
+	@Override
 	protected String desc() {
 		// TODO: better desc
-		return descWithDetails(projectionContext);
+		return descWithDetails(getProjectionContext());
 	}
 	
+	@Override
 	public ProjectionContextAsserter<RA> display() {
 		display(desc());
 		return this;
 	}
 	
+	@Override
 	public ProjectionContextAsserter<RA> display(String message) {
-		IntegrationTestTools.display(message, projectionContext);
+		IntegrationTestTools.display(message, getProjectionContext());
 		return this;
 	}	
 }

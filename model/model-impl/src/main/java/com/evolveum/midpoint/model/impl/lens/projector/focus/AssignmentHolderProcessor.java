@@ -140,6 +140,8 @@ public class AssignmentHolderProcessor {
 			iterationSpecificationType = null;
 			maxIterations = 0;
 		}
+		LOGGER.trace("maxIterations = {}, iteration specification = {} derived from template {}", maxIterations,
+				iterationSpecificationType, objectTemplate);
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
 		boolean wasResetIterationCounter = false;

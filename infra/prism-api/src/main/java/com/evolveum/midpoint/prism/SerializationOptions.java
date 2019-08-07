@@ -24,6 +24,7 @@ public class SerializationOptions implements Cloneable {
 	private boolean serializeCompositeObjects;
     private boolean serializeReferenceNames;
     private boolean serializeReferenceNamesForNullOids;
+    private boolean skipIndexOnly;
 	private ItemNameQualificationStrategy itemNameQualificationStrategy;
 
 	/**
@@ -44,10 +45,13 @@ public class SerializationOptions implements Cloneable {
         this.serializeReferenceNames = serializeReferenceNames;
     }
 
+    public SerializationOptions serializeReferenceNames(boolean value) {
+    	setSerializeReferenceNames(value);
+    	return this;
+    }
+
     public static SerializationOptions createSerializeReferenceNames() {
-    	SerializationOptions serializationOptions = new SerializationOptions();
-    	serializationOptions.setSerializeReferenceNames(true);
-    	return serializationOptions;
+    	return new SerializationOptions().serializeReferenceNames(true);
     }
 
     public static boolean isSerializeReferenceNames(SerializationOptions options) {
@@ -62,10 +66,13 @@ public class SerializationOptions implements Cloneable {
         this.serializeReferenceNamesForNullOids = serializeReferenceNames;
     }
 
+    public SerializationOptions serializeReferenceNamesForNullOids(boolean value) {
+        setSerializeReferenceNamesForNullOids(value);
+        return this;
+    }
+
     public static SerializationOptions createSerializeReferenceNamesForNullOids() {
-    	SerializationOptions serializationOptions = new SerializationOptions();
-    	serializationOptions.setSerializeReferenceNamesForNullOids(true);
-    	return serializationOptions;
+    	return new SerializationOptions().serializeReferenceNamesForNullOids(true);
     }
 
     public static boolean isSerializeReferenceNamesForNullOids(SerializationOptions options) {
@@ -80,10 +87,13 @@ public class SerializationOptions implements Cloneable {
 		this.serializeCompositeObjects = serializeCompositeObjects;
 	}
 
+	public SerializationOptions serializeCompositeObjects(boolean value) {
+    	setSerializeCompositeObjects(value);
+    	return this;
+	}
+
 	public static SerializationOptions createSerializeCompositeObjects() {
-		SerializationOptions serializationOptions = new SerializationOptions();
-		serializationOptions.setSerializeCompositeObjects(true);
-		return serializationOptions;
+		return new SerializationOptions().serializeCompositeObjects(true);
 	}
 
 	public static boolean isSerializeCompositeObjects(SerializationOptions options) {
@@ -98,14 +108,34 @@ public class SerializationOptions implements Cloneable {
 		this.serializeForExport = serializeForExport;
 	}
 
+	public SerializationOptions serializeForExport(boolean value) {
+    	setSerializeForExport(value);
+    	return this;
+	}
+
 	public static SerializationOptions createSerializeForExport() {
-		SerializationOptions serializationOptions = new SerializationOptions();
-		serializationOptions.setSerializeForExport(true);
-		return serializationOptions;
+		return new SerializationOptions().serializeForExport(true);
 	}
 
 	public static boolean isSerializeForExport(SerializationOptions options) {
     	return options != null && options.isSerializeForExport();
+	}
+
+	public void setSkipIndexOnly(boolean skipIndexOnly) {
+		this.skipIndexOnly = skipIndexOnly;
+	}
+
+	public SerializationOptions skipIndexOnly(boolean value) {
+		setSkipIndexOnly(value);
+		return this;
+	}
+
+	public static SerializationOptions createSkipIndexOnly() {
+		return new SerializationOptions().skipIndexOnly(true);
+	}
+
+	public boolean isSkipIndexOnly() {
+		return skipIndexOnly;
 	}
 
 	//	public ItemNameQualificationStrategy getItemNameQualificationStrategy() {
@@ -165,9 +195,18 @@ public class SerializationOptions implements Cloneable {
 		} catch (CloneNotSupportedException e) {
 			throw new IllegalStateException(e);
 		}
-		clone.serializeReferenceNames = serializeReferenceNames;
-		clone.itemNameQualificationStrategy = itemNameQualificationStrategy;
-		clone.serializeForExport = serializeForExport;
 		return clone;
+	}
+
+	@Override
+	public String toString() {
+		return "SerializationOptions{" +
+				"serializeCompositeObjects=" + serializeCompositeObjects +
+				", serializeReferenceNames=" + serializeReferenceNames +
+				", serializeReferenceNamesForNullOids=" + serializeReferenceNamesForNullOids +
+				", skipIndexOnly=" + skipIndexOnly +
+				", itemNameQualificationStrategy=" + itemNameQualificationStrategy +
+				", serializeForExport=" + serializeForExport +
+				'}';
 	}
 }

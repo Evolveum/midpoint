@@ -19,23 +19,33 @@ import java.io.Serializable;
 import java.util.*;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.SelectableDataTable;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.NavigationToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
+import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
+import org.apache.wicket.extensions.markup.html.repeater.tree.table.ITreeDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
+import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeDataProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.navigation.paging.PagingNavigator;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
@@ -224,7 +234,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		};
 
 		TableTree<SelectableBean<OrgType>, String> tree = new TableTree<SelectableBean<OrgType>, String>(
-				ID_TREE, columns, provider, Integer.MAX_VALUE, treeStateMode) {
+				ID_TREE, columns, provider, 20, treeStateMode) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -284,6 +294,57 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				if (!isInverse) {
 					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
 				}
+			}
+
+			@Override
+			protected ITreeDataProvider<SelectableBean<OrgType>> newDataProvider(ITreeProvider<SelectableBean<OrgType>> provider)
+			{
+				return new TreeDataProvider<SelectableBean<OrgType>>(provider)
+				{
+					private static final long serialVersionUID = 1L;
+
+					@Override
+					protected boolean iterateChildren(SelectableBean<OrgType> object)
+					{
+						return getState(object) == State.EXPANDED;
+					}
+
+					@Override
+					public Iterator<? extends SelectableBean<OrgType>> iterator(long first, long count) {
+						if (!(provider instanceof OrgTreeProvider)) {
+							return super.iterator(first, count);
+						}
+
+						OrgTreeProvider orgTreeProvider = (OrgTreeProvider) provider;
+						first = first == 0 ? 0 : first - 1;
+						orgTreeProvider.setOffset(first);
+						orgTreeProvider.setCount(count + 1);
+
+						return super.iterator(0, count + 1);
+
+					}
+
+					@Override
+					public long size() {
+						if (!(provider instanceof OrgTreeProvider)) {
+							return super.size();
+						}
+
+						OrgTreeProvider orgTreeProvider = (OrgTreeProvider) provider;
+						return orgTreeProvider.size() + 1;
+
+					}
+				};
+			}
+
+			@Override
+			protected DataTable<SelectableBean<OrgType>, String> newDataTable(String id, List<? extends IColumn<SelectableBean<OrgType>, String>> iColumns, IDataProvider<SelectableBean<OrgType>> dataProvider, long rowsPerPage) {
+				DataTable dataTable = super.newDataTable(id, iColumns, dataProvider, rowsPerPage);
+
+
+				NavigationToolbar navigation = new NavigationToolbar(dataTable);
+				dataTable.addBottomToolbar(navigation);
+				return dataTable;
 			}
 		};
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());

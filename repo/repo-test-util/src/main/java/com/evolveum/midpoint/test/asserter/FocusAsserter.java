@@ -116,6 +116,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 	}
 	
 	@Override
+	public FocusAsserter<F,RA> assertNoDescription() {
+		super.assertNoDescription();
+		return this;
+	}
+	
+	@Override
 	public FocusAsserter<F,RA> assertSubtype(String... expected) {
 		super.assertSubtype(expected);
 		return this;
@@ -363,6 +369,12 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
 		if (archetypeRefs != null && !archetypeRefs.isEmpty()) {
 			fail("Found archetypeRefs while not expected any: "+archetypeRefs);
 		}
+		return this;
+	}
+	
+	@Override
+	public FocusAsserter<F,RA> assertNoTrigger() {
+		super.assertNoTrigger();
 		return this;
 	}
 }

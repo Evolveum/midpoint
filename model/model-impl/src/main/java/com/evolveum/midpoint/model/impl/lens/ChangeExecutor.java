@@ -54,6 +54,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.VersionPrecondition;
+import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.PointInTimeType;
@@ -66,7 +67,9 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.OwnerResolver;
@@ -1326,8 +1329,8 @@ public class ChangeExecutor {
 	private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeAddition(ObjectDelta<T> change,
 			LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectAlreadyExistsException,
-					ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-					SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+			ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
 
 		PrismObject<T> objectToAdd = change.getObjectToAdd();
 
@@ -1337,11 +1340,11 @@ public class ChangeExecutor {
 		change.getModifications().clear();
 
 		OwnerResolver ownerResolver = createOwnerResolver(context, task, result);
+		T objectTypeToAdd = objectToAdd.asObjectable();
 		try {
 			securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
 					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), ownerResolver, task, result);
 
-			T objectTypeToAdd = objectToAdd.asObjectable();
 
 			metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task, result);
 
@@ -1392,15 +1395,31 @@ public class ChangeExecutor {
 		} catch (Throwable t) {
 			task.recordObjectActionExecuted(objectToAdd, objectToAdd.getCompileTimeClass(), null,
 					ChangeType.ADD, context.getChannel(), t);
+			if (objectTypeToAdd instanceof ShadowType) {
+				handleProvisioningError(resource, t, task, result);
+				((LensProjectionContext) objectContext).setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+				return null;
+			}
 			throw t;
+
+
+		}
+	}
+
+	private void handleProvisioningError(ResourceType resource, Throwable t, Task task, OperationResult result) throws ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, PreconditionViolationException, CommunicationException, SchemaException {
+		ErrorSelectorType errorSelectorType = ResourceTypeUtil.getConnectorErrorCriticality(resource);
+		CriticalityType criticality = ExceptionUtil.getCriticality(errorSelectorType, t, CriticalityType.FATAL);
+		RepoCommonUtils.processErrorCriticality(task, criticality, t, result);
+		if (CriticalityType.IGNORE == criticality) {
+			result.muteLastSubresultError();
 		}
 	}
 
 	private <T extends ObjectType, F extends ObjectType> PrismObject<T> executeDeletion(ObjectDelta<T> change,
 			LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
 			ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
-					ObjectAlreadyExistsException, SchemaException, CommunicationException,
-					ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+			ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
 
 		String oid = change.getOid();
 		Class<T> objectTypeClass = change.getObjectTypeClass();
@@ -1449,6 +1468,12 @@ public class ChangeExecutor {
 		} catch (Throwable t) {
 			task.recordObjectActionExecuted(objectOld, objectTypeClass, oid, ChangeType.DELETE,
 					context.getChannel(), t);
+
+			if (ShadowType.class.isAssignableFrom(objectTypeClass)) {
+				handleProvisioningError(resource, t, task, result);
+				return objectContext.getObjectCurrent();
+			}
+
 			throw t;
 		}
 		

@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROExtBaseId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 /**
@@ -17,4 +18,6 @@ public interface ROExtValue<T> extends RAnyValue<T> {
     RObjectExtensionType getOwnerType();
 
     void setOwnerType(RObjectExtensionType type);
+
+    ROExtBaseId createId();
 }

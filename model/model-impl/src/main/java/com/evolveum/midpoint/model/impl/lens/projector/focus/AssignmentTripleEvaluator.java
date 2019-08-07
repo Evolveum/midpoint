@@ -73,6 +73,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTripleEvaluator.class);
 
+	private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
+
 	private LensContext<AH> context;
 	private ObjectType source;
 	private AssignmentEvaluator<AH> assignmentEvaluator;
@@ -570,7 +572,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private EvaluatedAssignmentImpl<AH> evaluateAssignment(ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi,
     		PlusMinusZero mode, boolean evaluateOld, String assignmentPlacementDesc, SmartAssignmentElement smartAssignment) throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-		OperationResult subResult = result.createMinorSubresult(AssignmentProcessor.class.getName()+".evaluateAssignment");
+		OperationResult subResult = result.createMinorSubresult(OP_EVALUATE_ASSIGNMENT);
 		subResult.addParam("assignmentDescription", assignmentPlacementDesc);
         try {
 			// Evaluate assignment. This follows to the assignment targets, follows to the inducements,
@@ -621,6 +623,13 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             }
         	subResult.recordFatalError(e);
         	throw e;
+		} catch (RuntimeException | Error e) {
+			AssignmentType assignmentType = LensUtil.getAssignmentType(assignmentIdi, evaluateOld);
+        	if (LOGGER.isTraceEnabled()) {
+        		LOGGER.trace("Processing of assignment resulted in error {}: {}", e, SchemaDebugUtil.prettyPrint(assignmentType));
+            }
+			subResult.recordFatalError(e);
+			throw e;
 		}
 	}
 

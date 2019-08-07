@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package com.evolveum.midpoint.test.asserter;
 
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -37,6 +38,7 @@ public abstract class AbstractAsserter<RA> {
 	private PrismContext prismContext;
 	private SimpleObjectResolver objectResolver;
 	private Protector protector;
+	private Clock clock;
 	
 	public AbstractAsserter() {
 		this(null);
@@ -75,6 +77,14 @@ public abstract class AbstractAsserter<RA> {
 
 	public void setProtector(Protector protector) {
 		this.protector = protector;
+	}
+
+	public Clock getClock() {
+		return clock;
+	}
+
+	public void setClock(Clock clock) {
+		this.clock = clock;
 	}
 
 	protected String getDetails() {
@@ -118,5 +128,6 @@ public abstract class AbstractAsserter<RA> {
 		other.setPrismContext(this.getPrismContext());
 		other.setObjectResolver(this.getObjectResolver());
 		other.setProtector(this.getProtector());
+		other.setClock(this.getClock());
 	}
 }

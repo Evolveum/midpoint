@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Evolveum
+ * Copyright (c) 2018-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,12 @@ public class ModelContextAsserter<O extends ObjectType,RA> extends AbstractAsser
 	
 	public static <O extends ObjectType> ModelContextAsserter<O,Void> forContext(ModelContext<O> ctx, String details) {
 		return new ModelContextAsserter<>(ctx, details);
+	}
+	
+	public FocusContextAsserter<O,? extends ModelContextAsserter<O,RA>> focusContext() {
+		FocusContextAsserter<O,? extends ModelContextAsserter<O,RA>> asserter = new FocusContextAsserter<>(modelContext.getFocusContext(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	public ProjectionContextsAsserter<O, ? extends ModelContextAsserter<O,RA>, RA> projectionContexts() {

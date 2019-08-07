@@ -284,4 +284,10 @@ public class OrgAsserter<RA> extends AbstractRoleAsserter<OrgType,RA> {
 		super.assertNoArchetypeRef();
 		return this;
 	}
+	
+	@Override
+	public OrgAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
+		return this;
+	}
 }

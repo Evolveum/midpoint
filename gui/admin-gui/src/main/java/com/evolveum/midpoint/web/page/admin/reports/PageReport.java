@@ -20,6 +20,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -33,6 +34,7 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.model.JasperTemplateModel;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.JasperReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportEngineSelectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
@@ -158,7 +159,7 @@ public class PageReport extends PageAdmin {
                 @Override
                 public WebMarkupContainer getPanel(String panelId) {
                     IModel<String> title = PageReport.this.createStringResource("PageReport.jasperTemplateStyle");
-                    IModel<String> data = new Base64Model(new PropertyModel(model, "templateStyle"));
+                    IModel<String> data = new JasperTemplateModel(new PropertyModel(model, "templateStyle"));
                     return new AceEditorPanel(panelId, title, data);
                 }
             });

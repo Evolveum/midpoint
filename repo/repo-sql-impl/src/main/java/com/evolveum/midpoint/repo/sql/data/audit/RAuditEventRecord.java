@@ -714,7 +714,7 @@ public class RAuditEventRecord implements Serializable {
     	queryBulder.addParameter(REMOTE_HOST_ADDRESS_COLUMN_NAME, record.getRemoteHostAddress());
     	queryBulder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
     	queryBulder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
-    	queryBulder.addParameter(MESSAGE_COLUMN_NAME, record.getMessage());
+    	queryBulder.addParameter(MESSAGE_COLUMN_NAME, RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
     	if(record.getOutcome() != null) {
         queryBulder.addParameter(OUTCOME_COLUMN_NAME, RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
                 ROperationResultStatus.class));

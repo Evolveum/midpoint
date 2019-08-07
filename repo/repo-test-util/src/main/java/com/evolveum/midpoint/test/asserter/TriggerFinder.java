@@ -1,0 +1,100 @@
+/**
+ * Copyright (c) 2018-2019 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.evolveum.midpoint.test.asserter;
+
+import static org.testng.AssertJUnit.assertEquals;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.bouncycastle.util.Arrays;
+import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+
+/**
+ * 
+ * Note: considered to align this with ParentOrgRefFinder into some kind of common superclass.
+ * But the resulting structure of generics is just too insane. It is lesser evil to have copy&pasted code. 
+ * 
+ * @author semancik
+ */
+public class TriggerFinder<O extends ObjectType, OA extends PrismObjectAsserter<O,RA>, RA> {
+
+	private final TriggersAsserter<O,OA,RA> triggersAsserter;
+	private String originDescription;
+	
+	public TriggerFinder(TriggersAsserter<O,OA,RA> triggersAsserter) {
+		this.triggersAsserter = triggersAsserter;
+	}
+	
+	public TriggerFinder<O,OA,RA> originDescription(String originDescription) {
+		this.originDescription = originDescription;
+		return this;
+	}
+	
+	public TriggerAsserter<TriggersAsserter<O,OA,RA>> find() throws ObjectNotFoundException, SchemaException {
+		TriggerType found = null;
+		for (TriggerType trigger: triggersAsserter.getTriggers()) {
+			if (matches(trigger)) {
+				if (found == null) {
+					found = trigger;
+				} else {
+					fail("Found more than one trigger that matches search criteria");
+				}
+			}
+		}
+		if (found == null) {
+			fail("Found no trigger that matches search criteria");
+		}
+		return triggersAsserter.forTrigger(found);
+	}
+	
+	public TriggersAsserter<O,OA,RA> assertCount(int expectedCount) throws ObjectNotFoundException, SchemaException {
+		int foundCount = 0;
+		for (TriggerType trigger: triggersAsserter.getTriggers()) {
+			if (matches(trigger)) {
+				foundCount++;
+			}
+		}
+		assertEquals("Wrong number of triggers for specified criteria in "+triggersAsserter.desc(), expectedCount, foundCount);
+		return triggersAsserter;
+	}
+	
+	private boolean matches(TriggerType trigger) throws ObjectNotFoundException, SchemaException {
+		
+		if (originDescription != null) {
+			if (!originDescription.equals(trigger.getOriginDescription())) {
+				return false;
+			}
+		}
+		
+		// TODO: more criteria
+		return true;
+	}
+
+	protected void fail(String message) {
+		AssertJUnit.fail(message);
+	}
+
+}

@@ -283,6 +283,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 		return asserter;
 	}
 	
+	public ShadowAsserter<RA> assertNoAttributes() {
+		assertNull("Unexpected attributes in "+desc(), getObject().findContainer(ShadowType.F_ATTRIBUTES));
+		return this;
+	}
+	
 	public ShadowAsserter<RA> assertNoLegacyConsistency() {
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_RESULT);
 		PrismAsserts.assertNoItem(getObject(), ShadowType.F_ATTEMPT_NUMBER);
@@ -314,5 +319,11 @@ public class ShadowAsserter<RA> extends PrismObjectAsserter<ShadowType,RA> {
 	
 	private PrismProperty<PolyStringType> getPasswordValueProperty() {
 		return getObject().findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+	}
+	
+	@Override
+	public ShadowAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
+		return this;
 	}
 }

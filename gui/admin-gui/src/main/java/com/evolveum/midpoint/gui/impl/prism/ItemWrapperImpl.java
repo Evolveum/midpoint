@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -34,15 +35,6 @@ import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.ItemProcessing;
-import com.evolveum.midpoint.prism.MutableItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -267,27 +259,36 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 
 		String displayName = newItem.getDisplayName();
 		if (!StringUtils.isEmpty(displayName)) {
-			return localizeName(displayName);
+			return localizeName(displayName, displayName);
 		}
 
 		QName name = newItem.getElementName();
 		if (name != null) {
 			displayName = name.getLocalPart();
 
-			PrismValue val = newItem.getParent();
+			PrismContainerValue<?> val = newItem.getParent();
+			if (val != null && val.getDefinition() != null
+					&& val.getDefinition().isRuntimeSchema()) {
+				return localizeName(displayName, displayName);
+			}
+
 			if (val != null && val.getTypeName() != null) {
-				displayName = val.getTypeName().getLocalPart() + "." + displayName;
+				if (val.getRealClass() != null) {
+					displayName = val.getRealClass().getSimpleName() + "." + displayName;
+				} else {
+					displayName = val.getTypeName().getLocalPart() + "." + displayName;
+				}
 			}
 		} else {
 			displayName = newItem.getDefinition().getTypeName().getLocalPart();
 		}
 
-		return localizeName(displayName);
+		return localizeName(displayName, name.getLocalPart());
 	}
 	
-	private String localizeName(String nameKey) {
+	private String localizeName(String nameKey, String defaultString) {
 		Validate.notNull(nameKey, "Null localization key");
-		return ColumnUtils.createStringResource(nameKey).getString();
+		return ColumnUtils.createStringResource(nameKey, defaultString).getString();
 	}
 
 
@@ -711,4 +712,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		return oldItem;
 	}
 
+	@Override
+	public boolean isIndexOnly() {
+		return false;   // todo
+	}
 }

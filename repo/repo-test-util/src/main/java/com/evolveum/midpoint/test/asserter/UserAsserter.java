@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
@@ -100,6 +101,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	@Override
 	public UserAsserter<RA> assertDescription(String expected) {
 		super.assertDescription(expected);
+		return this;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertNoDescription() {
+		super.assertNoDescription();
 		return this;
 	}
 	
@@ -229,6 +236,16 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	
 	public UserAsserter<RA> assertNoFamilyName() {
 		assertNoItem(UserType.F_FAMILY_NAME);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertAdditionalName(String expectedOrig) {
+		assertPolyStringProperty(UserType.F_ADDITIONAL_NAME, expectedOrig);
+		return this;
+	}
+	
+	public UserAsserter<RA> assertNoAdditionalName() {
+		assertNoItem(UserType.F_ADDITIONAL_NAME);
 		return this;
 	}
 	
@@ -362,6 +379,12 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
 	@Override
 	public UserAsserter<RA> assertNoArchetypeRef() {
 		super.assertNoArchetypeRef();
+		return this;
+	}
+	
+	@Override
+	public UserAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
 		return this;
 	}
 }

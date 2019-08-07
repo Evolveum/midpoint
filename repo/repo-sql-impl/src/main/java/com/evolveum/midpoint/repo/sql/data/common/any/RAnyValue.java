@@ -34,4 +34,6 @@ public interface RAnyValue<T> extends Serializable, EntityState {
     void setItemId(Integer id);
 
     T getValue();
+
+    Serializable createId();
 }

@@ -37,8 +37,10 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1032,6 +1035,172 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
 
         assertDeleteDeny();
+
+        assertGlobalStateUntouched();
+	}
+    
+    /**
+     * FullName is computed in user template. It is not readable, therefore it should not be present in the preview deltas.
+     * But it is modifiable (execution). Therefore the real modify operation should pass.
+     * MID-5595
+     */
+    @Test
+    public void test219AutzJackPropReadSomeModifySomeFullName() throws Exception {
+		final String TEST_NAME = "test219AutzJackPropReadSomeModifySomeFullName";
+        displayTestTitle(TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_FULLNAME_OID);
+        assignAccountToUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+
+        assertReadAllow();
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        assertUser(userJack, "before modify (read by jack)")
+        	.assertName(USER_JACK_USERNAME)
+        	.assertNoFullName()
+        	.assertGivenName(USER_JACK_GIVEN_NAME)
+        	.assertNoFamilyName()
+        	.assertNoAdditionalName()
+        	.assertNoDescription()
+        	.activation()
+        		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+        		.assertNoEffectiveStatus();
+        
+        ObjectDelta<UserType> jackGivenNameDelta = deltaFor(UserType.class)
+        	.item(UserType.F_GIVEN_NAME).replace(createPolyString("Jackie"))
+        	.asObjectDelta(USER_JACK_OID);
+        
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN: preview changes
+        ModelContext<UserType> previewContext = previewChanges(jackGivenNameDelta, null, task, result);
+        
+        assertSuccess(result);
+        assertPreviewContext(previewContext)
+        	.focusContext()
+        		.objectOld()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName(USER_JACK_GIVEN_NAME)
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
+    			.objectCurrent()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName(USER_JACK_GIVEN_NAME)
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
+    			.objectNew()
+        			.assertName(USER_JACK_USERNAME)
+        			.asUser()
+	        			.assertNoFullName()
+	                	.assertGivenName("Jackie")
+	                	.assertNoFamilyName()
+	                	.end()
+        			.end()
+        		.primaryDelta()
+        			.assertModify()
+    				.assertModifications(1)
+    				.property(UserType.F_GIVEN_NAME)
+    					.valuesToReplace()
+    						.single()
+    							.assertPolyStringValue("Jackie")
+    							.end()
+    						.end()
+    					.end()
+    				.end()
+    			.secondaryDelta()
+    				// Secondary delta should be there. Because we are changing something.
+    				// But the user does not have authorization to read fullname.
+    				// Therefore the delta should be empty.
+    				.assertModify()
+    				.assertModifications(0)
+    				.end()
+    			.end()
+    		.projectionContexts()
+    			.single()
+    				.objectOld()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.end()
+					.objectCurrent()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+    					.end()
+					.objectNew()
+    					.assertKind(ShadowKindType.ACCOUNT)
+    					.assertObjectClass()
+    					.assertNoAttributes()
+    					.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+    					.end()
+    				.assertNoPrimaryDelta()
+    				.secondaryDelta()
+    					.assertModify()
+    					// Read of shadow attributes not allowed
+    					.assertModifications(0);
+        
+        
+        // WHEN: real modification
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_GIVEN_NAME, createPolyString("Jackie"));
+
+        userJack = getUser(USER_JACK_OID);
+        assertUser(userJack, "after modify (read by jack)")
+        	.assertName(USER_JACK_USERNAME)
+        	.assertNoFullName()
+        	.assertGivenName("Jackie")
+        	.assertNoFamilyName()
+        	.assertNoAdditionalName()
+        	.assertNoDescription()
+        	.activation()
+        		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+        		.assertNoEffectiveStatus();
+
+        PrismObjectDefinition<UserType> userJackEditSchema = getEditObjectDefinition(userJack);
+        display("Jack's edit schema", userJackEditSchema);
+        assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+        assertItemFlags(userJackEditSchema, ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+
+        assertAddDeny();
+
+        assertDeleteDeny();
+        
+        loginAdministrator();
+        
+        userJack = getUser(USER_JACK_OID);
+        assertUser(userJack, "after modify (read by administrator)")
+        	.assertName(USER_JACK_USERNAME)
+        	.assertFullName("Jackie Sparrow")
+        	.assertGivenName("Jackie")
+        	.assertFamilyName(USER_JACK_FAMILY_NAME)
+        	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+        	.assertDescription(USER_JACK_DESCRIPTION)
+        	.activation()
+        		.assertAdministrativeStatus(ActivationStatusType.ENABLED)
+        		.assertEffectiveStatus(ActivationStatusType.ENABLED);
 
         assertGlobalStateUntouched();
 	}
@@ -2064,7 +2233,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
 		PrismObject<UserType> angelica = findUserByUsername(USER_ANGELICA_NAME);
 		display("angelica", angelica);
-		assertUser(angelica, null, USER_ANGELICA_NAME, "angelika", "angelika", "angelika");
+		assertUser(angelica, null, USER_ANGELICA_NAME, "angelika angelika", "angelika", "angelika");
 		assertAssignedRole(angelica, ROLE_BASIC_OID);
 		assertAccount(angelica, RESOURCE_DUMMY_OID);
 
@@ -2877,7 +3046,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         		(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_FAMILY_NAME, task, result, PrismTestUtil.createPolyString("changed")));
 
         user = getUser(USER_JACK_OID);
-        assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
+        assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, "Jack changed", "Jack", "changed");
 
         assertGlobalStateUntouched();
 	}
@@ -2913,7 +3082,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 			(task, result) -> modifyObjectReplaceProperty(UserType.class, USER_JACK_OID, UserType.F_FAMILY_NAME, task, result, PrismTestUtil.createPolyString("changed")));
 
         user = getUser(USER_JACK_OID);
-        assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, USER_JACK_FULL_NAME, "Jack", "changed");
+        assertUser(user, USER_JACK_OID, USER_JACK_USERNAME, "Jack changed", "Jack", "changed");
 
         assertGlobalStateUntouched();
 	}

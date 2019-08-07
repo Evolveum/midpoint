@@ -189,6 +189,7 @@ public class MappingEvaluator {
 
 		Map<UniformItemPath,MappingOutputStruct<V>> outputTripleMap = new HashMap<>();
 		XMLGregorianCalendar nextRecomputeTime = null;
+		String triggerOriginDescription = null;
 		Collection<MappingType> mappingTypes = params.getMappingTypes();
 		Collection<MappingImpl<V,D>> mappings = new ArrayList<>(mappingTypes.size());
 
@@ -496,6 +497,8 @@ public class MappingEvaluator {
 			if (mappingNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
 					nextRecomputeTime = mappingNextRecomputeTime;
+					// TODO: maybe better description? But consider storage requirements. We do not want to store too much.
+					triggerOriginDescription = mapping.getIdentifier();
 				}
 			}
 		}
@@ -521,6 +524,7 @@ public class MappingEvaluator {
 				TriggerType triggerType = triggerCVal.asContainerable();
 				triggerType.setTimestamp(nextRecomputeTime);
 				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
+				triggerType.setOriginDescription(triggerOriginDescription);
 
 				targetContext.swallowToSecondaryDelta(triggerDelta);
 			}

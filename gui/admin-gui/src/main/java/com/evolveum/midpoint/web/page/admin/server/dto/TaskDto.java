@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.schema.util.TaskWorkStateTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -1314,26 +1315,78 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	}
 
 	public void ensureSubtasksLoaded(PageBase pageBase) {
-		if (!subtasksLoaded) {
-			Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
-					.item(TaskType.F_SUBTASK).retrieve()
-					.build();
-			Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
-			try {
-				TaskType task = pageBase.getModelService()
-						.getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
-				fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(), pageBase.getModelInteractionService(),
-						pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(), opTask,
-						opTask.getResult(), pageBase);
+    	ensureSubtasksLoaded(pageBase, false);
+	}
+
+	public void ensureSubtasksLoaded(PageBase pageBase, boolean recursive) {
+		if (!subtasksLoaded && taskType.getOid() != null) {
+			if (!subtasks.isEmpty() || !transientSubtasks.isEmpty()) {
+				// Subtasks are loaded but we haven't noticed yet. TODO fix this ugly hacking
 				subtasksLoaded = true;
-			} catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
-				LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
-				subtasksLoaded = false;
-			} catch (Throwable t) {
-				pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
-				subtasksLoaded = false;
+			} else {
+				Collection<SelectorOptions<GetOperationOptions>> getOptions = pageBase.getOperationOptionsBuilder()
+						.item(TaskType.F_SUBTASK).retrieve()
+						.build();
+				Task opTask = pageBase.createAnonymousTask("ensureSubtasksLoaded");
+				try {
+					TaskType task = pageBase.getModelService()
+							.getObject(TaskType.class, getOid(), getOptions, opTask, opTask.getResult()).asObjectable();
+					fillInChildren(task, pageBase.getModelService(), pageBase.getTaskService(),
+							pageBase.getModelInteractionService(),
+							pageBase.getTaskManager(), pageBase.getWorkflowManager(), TaskDtoProviderOptions.minimalOptions(),
+							opTask,
+							opTask.getResult(), pageBase);
+					subtasksLoaded = true;
+				} catch (ObjectNotFoundException t) {   // often happens when refreshing Task List page
+					LOGGER.debug("Couldn't load subtasks for task {}", taskType, t);
+					subtasksLoaded = false;
+				} catch (Throwable t) {
+					pageBase.error("Couldn't load subtasks: " + t.getMessage());            // TODO
+					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load subtasks for task {}", t, taskType);
+					subtasksLoaded = false;
+				}
 			}
 		}
+		if (recursive) {
+			for (TaskDto subtask : subtasks) {
+				subtask.ensureSubtasksLoaded(pageBase, true);
+			}
+		}
+	}
+
+	public List<TaskDto> getWholeTree(boolean persistentOnly) {
+    	List<TaskDto> rv = new ArrayList<>();
+    	if (!persistentOnly || taskType.getOid() != null) {
+    		rv.add(this);
+		    for (TaskDto subtask : subtasks) {
+			    rv.addAll(subtask.getWholeTree(persistentOnly));
+		    }
+		    if (!persistentOnly) {
+			    rv.addAll(transientSubtasks);
+		    }
+	    }
+    	return rv;
+	}
+
+	// currently returns only selected information
+	public OperationStatsType getAggregatedOperationStats() {
+		ensureSubtasksLoaded(pageBase, true);
+
+		IterativeTaskInformationType iterativeTaskInformation = new IterativeTaskInformationType();
+		SynchronizationInformationType synchronizationInformation = new SynchronizationInformationType();
+		ActionsExecutedInformationType actionsExecutedInformation = new ActionsExecutedInformationType();
+		List<TaskDto> allTasks = getWholeTree(true);
+		for (TaskDto taskDto : allTasks) {
+			OperationStatsType operationStats = taskDto.getTaskType().getOperationStats();
+			if (operationStats != null) {
+				IterativeTaskInformation.addTo(iterativeTaskInformation, operationStats.getIterativeTaskInformation(), true);
+				SynchronizationInformation.addTo(synchronizationInformation, operationStats.getSynchronizationInformation());
+				ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStats.getActionsExecutedInformation());
+			}
+		}
+		return new OperationStatsType()
+				.iterativeTaskInformation(iterativeTaskInformation)
+				.synchronizationInformation(synchronizationInformation)
+				.actionsExecutedInformation(actionsExecutedInformation);
 	}
 }

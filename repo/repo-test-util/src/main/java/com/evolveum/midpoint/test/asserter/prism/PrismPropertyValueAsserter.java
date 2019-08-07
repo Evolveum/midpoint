@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -66,6 +67,11 @@ public class PrismPropertyValueAsserter<T, RA> extends PrismValueAsserter<PrismP
 	
 	public PrismPropertyValueAsserter<T,RA> assertValue(T expectedValue) {
 		assertEquals("Wrong property value in "+desc(), expectedValue, getPrismValue().getValue());
+		return this;
+	}
+	
+	public PrismPropertyValueAsserter<T,RA> assertPolyStringValue(String expectedOrigValue) {
+		assertEquals("Wrong property value in "+desc(), expectedOrigValue, ((PolyString)getPrismValue().getValue()).getOrig());
 		return this;
 	}
 	

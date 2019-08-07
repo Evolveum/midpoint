@@ -36,7 +36,7 @@ import java.util.Objects;
 @Table(name = "m_object_ext_boolean", indexes = {
         @Index(name = "iExtensionBoolean", columnList = "booleanValue")
 })
-public class ROExtBoolean extends ROExtBase {
+public class ROExtBoolean extends ROExtBase<Boolean> {
 
     private Boolean value;
 
@@ -95,5 +95,10 @@ public class ROExtBoolean extends ROExtBase {
             return false;
         ROExtBoolean that = (ROExtBoolean) o;
         return Objects.equals(value, that.value);
+    }
+
+    @Override
+    public ROExtBooleanId createId() {
+        return ROExtBooleanId.createFromValue(this);
     }
 }

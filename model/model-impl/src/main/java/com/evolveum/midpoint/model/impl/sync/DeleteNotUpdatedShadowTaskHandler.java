@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.Date;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -42,7 +41,9 @@ import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeModelTaskHan
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -52,7 +53,6 @@ import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandl
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -64,12 +64,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * @author skublik
@@ -146,10 +147,10 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 		PrismObject<ResourceType> resource = getResource(task);
 		ObjectClassComplexTypeDefinition objectclassDef = null;
 			
-			RefinedResourceSchema refinedSchema;
-			try {
-				refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-				objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
+		RefinedResourceSchema refinedSchema;
+		try {
+			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+			objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, task);
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
@@ -178,13 +179,6 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 		}
 		
 		return query;
-//		
-//		try {
-//			return prismContext.getQueryConverter().createQueryType(query);
-//		} catch (SchemaException e) {
-//			LOGGER.error("Couldn't convert query " + query + " to QueryType", e);
-//		}
-//		return null;
 	}
 	
 	private PrismObject<ResourceType> getResource(Task task) {
@@ -228,6 +222,12 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
 		
 		if(resource == null) {
 			throw new IllegalArgumentException("Resource is null");
+		}
+		
+		PrismProperty<AvailabilityStatusType> status = resource.findProperty(ItemPath.create(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS));
+		
+		if(status == null || !AvailabilityStatusType.UP.equals(status.getRealValue())) {
+			throw new IllegalArgumentException("Resource have to have value of last availability status on UP");
 		}
 		
 		return resource;

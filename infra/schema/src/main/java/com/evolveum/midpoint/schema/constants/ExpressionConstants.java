@@ -110,6 +110,8 @@ public class ExpressionConstants {
 	public static final String VAR_ITERATION_TOKEN = "iterationToken";
 	public static final ItemName VAR_ITERATION_TOKEN_QNAME = new ItemName(SchemaConstants.NS_C, VAR_ITERATION_TOKEN);
 
+	public static final String VAR_REFERENCE_TIME = "referenceTime";
+	
 	// Variables used in object merging expressions
 	public static final String VAR_SIDE = "side";
 	public static final String VAR_OBJECT_LEFT = "objectLeft";
@@ -168,4 +170,5 @@ public class ExpressionConstants {
 	// Too vague. modelContext or prismConext should be used instead.
 	@Deprecated
 	public static final String VAR_CONTEXT = "context";
+
 }

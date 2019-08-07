@@ -41,10 +41,10 @@ public class TaskCurrentStateDto {
     }
 
     public OperationStatsType getOperationStatsType() {
-        if (taskDto == null || taskDto.getTaskType() == null) {
+        if (taskDto == null) {
             return null;
         }
-        return taskDto.getTaskType().getOperationStats();
+        return taskDto.getAggregatedOperationStats();
     }
 
     public SynchronizationInformationType getSynchronizationInformationType() {

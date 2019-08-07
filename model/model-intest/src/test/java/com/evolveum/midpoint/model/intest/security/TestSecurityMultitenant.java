@@ -148,7 +148,7 @@ public class TestSecurityMultitenant extends AbstractSecurityTest {
 	
 	protected static final String USER_LETO_ATREIDES_OID = "00000000-8888-6666-a200-200000000000";
 	protected static final String USER_LETO_ATREIDES_NAME = "leto";
-	protected static final String USER_LETO_ATREIDES_FULL_NAME = "Duke Leto Atreides";
+	protected static final String USER_LETO_ATREIDES_FULL_NAME = "Leto Atreides";
 	
 	protected static final String USER_PAUL_ATREIDES_OID = "00000000-8888-6666-a200-200000000001";
 	protected static final String USER_PAUL_ATREIDES_NAME = "paul";

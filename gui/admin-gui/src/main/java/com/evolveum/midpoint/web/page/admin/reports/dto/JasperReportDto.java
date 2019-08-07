@@ -33,7 +33,7 @@ public class JasperReportDto implements Serializable{
 
 	public JasperReportDto(byte[] jasperReportxml, boolean onlyForPromptingParams) {
 		this.jasperReportXml = jasperReportxml;
-
+		String st = new String(jasperReportxml);
 		initFileds(onlyForPromptingParams);
 	}
 
@@ -76,7 +76,7 @@ public class JasperReportDto implements Serializable{
 				design.removeParameter(param.getName());
 			}
 
-			detail = new String(Base64.decodeBase64(jasperReportXml));
+			detail = new String(Base64.isBase64(jasperReportXml) ? Base64.decodeBase64(jasperReportXml) :jasperReportXml);
 
 
 		} catch (SchemaException e) {
@@ -154,7 +154,7 @@ public class JasperReportDto implements Serializable{
 			oldDesign.setQuery(q);
 
 			String reportAsString = JRXmlWriter.writeReport(oldDesign, "UTF-8");
-			return Base64.encodeBase64(reportAsString.getBytes("UTF-8"));
+			return reportAsString.getBytes("UTF-8");
 
 		} catch (JRException | ClassNotFoundException | SchemaException | UnsupportedEncodingException ex) {
 			throw new IllegalStateException(ex.getMessage(), ex.getCause());

@@ -128,4 +128,9 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
 
         return repo;
     }
+
+    @Override
+    public RAExtReferenceId createId() {
+        return RAExtReferenceId.createFromValue(this);
+    }
 }

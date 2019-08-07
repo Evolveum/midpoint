@@ -246,7 +246,7 @@ public class ProjectionValuesProcessor {
 //		        LensUtil.traceContext(LOGGER, activityDescription, "values (consolidation)", false, context, true);
 
 
-		        if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.DELETE) {
+		        if (policyDecision == SynchronizationPolicyDecision.DELETE) {
 		        	// No need to play the iterative game if the account is deleted
 		        	break;
 		        }

@@ -56,13 +56,7 @@ class TaskTabsVisibility implements Serializable {
     }
 
 	public boolean computeProgressVisible(PageTaskEdit parentPage) {
-        final OperationStatsType operationStats = parentPage.getTaskDto().getTaskType().getOperationStats();
-        progressVisible = !parentPage.isEdit() && operationStats != null
-				// readability is maybe not required, as the corresponding data would be null if not readable
-				&& parentPage.isReadable(TaskType.F_OPERATION_STATS)
-                && (operationStats.getIterativeTaskInformation() != null ||
-                        operationStats.getSynchronizationInformation() != null ||
-                        operationStats.getActionsExecutedInformation() != null);
+        progressVisible = !parentPage.isEdit();
         return progressVisible;
     }
 

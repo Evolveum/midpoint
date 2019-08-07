@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeStorageStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +78,9 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
 	AttributeFetchStrategyType getFetchStrategy();
 
-	List<String> getTolerantValuePattern();
+    AttributeStorageStrategyType getStorageStrategy();
+
+    List<String> getTolerantValuePattern();
 
 	List<String> getIntolerantValuePattern();
 

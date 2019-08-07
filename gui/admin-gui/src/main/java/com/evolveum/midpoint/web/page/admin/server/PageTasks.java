@@ -418,9 +418,11 @@ public class PageTasks extends PageAdminTasks implements Refreshable {
 				synchronizeWorkflowRequestsPerformed(target);
 			}
 		};
+		// TODO this functionality will be needed in the future (to synchronize execution tasks with their cases)
+		//  But it is not available now, so let's hide it.
+		synchronizeWorkflowRequests.setVisible(false);
 		add(synchronizeWorkflowRequests);
 
-		//      adding Refresh button
 		AjaxButton refresh = new AjaxButton("refreshTasks",
 				createStringResource("pageTasks.button.refreshTasks")) {
 

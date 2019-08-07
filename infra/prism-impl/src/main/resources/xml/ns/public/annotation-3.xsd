@@ -23,7 +23,7 @@
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
-            jaxb:version="2.0">
+            jaxb:version="2.0" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -130,6 +130,27 @@
         </xsd:annotation>
     </xsd:element>
     
+    <xsd:element name="indexOnly" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:documentation>
+                Property marker annotation: index-only property. Property that has this
+                annotation should be indexed in the data store but not stored in "full" object
+                representation. Its retrieval usually requires an explicit INCLUDE option.
+                This annotation implies indexed=true.
+                WARNING: Presence of this annotation may impose some restriction on the
+                property, usually a length restriction. E.g. database systems usually
+                restrict the length of a datatype that can be efficiently indexed.
+
+                BEWARE: EXPERIMENTAL. Almost no support of this for regular items
+                (only shadow attributes, as per MID-5558).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.0</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="index" type="tns:IndexType">
         <xsd:annotation>
             <xsd:documentation>

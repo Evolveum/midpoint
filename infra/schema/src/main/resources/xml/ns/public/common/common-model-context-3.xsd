@@ -1678,6 +1678,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="hideDeploymentInformation" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether to hide or include deployment information (except for subscription identifier) in the trace.
+                        Default is false, i.e. the deployment information is included.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="collectLogEntries" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1916,6 +1924,14 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="environment" type="tns:TracingEnvironmentType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Description of the environment where the trace was captured. E.g. the deployment information,
+                        enclosing task, and so on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1972,6 +1988,41 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="tracingOutputMetadata" type="tns:TracingOutputMetadataType" />
+
+    <xsd:complexType name="TracingEnvironmentType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of the environment where the trace was captured. E.g. the deployment information,
+                enclosing task, and so on.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="deployment" type="tns:DeploymentInformationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Information about the deployment. Subscription information is excluded.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="taskRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Enclosing task. Some parts (e.g. operation result children) are excluded to save space.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:composite>true</a:composite>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="tracingEnvironment" type="tns:TracingEnvironmentType" />
 
     <xsd:complexType name="LoggingOverrideType">
         <xsd:annotation>

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.workflow.CaseWorkItemSummaryPanel;
@@ -56,7 +57,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType.F_OB
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/caseWorkItem", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(
+		urls = {
+				@Url(mountUrl = "/admin/caseWorkItem", matchUrlForSecurity = "/admin/caseWorkItem")
+		},
+		encoder = OnePageParameterEncoder.class,
+		action = {
 		@AuthorizationAction(actionUri = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL,
 				label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
 				description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),

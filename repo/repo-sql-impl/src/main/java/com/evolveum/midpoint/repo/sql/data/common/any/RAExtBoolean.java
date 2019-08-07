@@ -98,4 +98,9 @@ public class RAExtBoolean extends RAExtBase<Boolean> implements RAExtValue<Boole
         RAExtBoolean that = (RAExtBoolean) o;
         return Objects.equals(value, that.value);
     }
+
+    @Override
+    public RAExtBooleanId createId() {
+        return RAExtBooleanId.createFromValue(this);
+    }
 }

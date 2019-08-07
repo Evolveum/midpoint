@@ -125,6 +125,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_ZIP_CHECK = "zipCheck";
+	private static final String ID_SHOW_ALL_ITEMS_CHECK = "showAllItemsCheck";
 	private static final String ID_TABLE = "table";
 	private static final String ID_CHOICE_CONTAINER = "choiceContainer";
 	private static final String ID_CHOICE = "choice";
@@ -142,6 +143,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 
 	// search form model;
 	private IModel<DebugSearchDto> searchModel;
+	private IModel<Boolean> showAllItemsModel = Model.of(true);         // todo make this persistent (in user session)
 	// confirmation dialog model
 	private IModel<DebugConfDialogDto> confDialogModel;
 	private IModel<List<ObjectViewDto>> resourcesModel;
@@ -257,6 +259,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 		downloadBehaviour.setType(type);
 		downloadBehaviour.setQuery(query);
 		downloadBehaviour.setUseZip(hasToZip());
+		downloadBehaviour.setShowAllItems(showAllItemsModel.getObject());
 		downloadBehaviour.initiate(target);
 	}
 
@@ -271,7 +274,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 			@Override
 			protected WebMarkupContainer createHeader(String headerId) {
 				return new SearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
-						resourcesModel, objectClassListModel);
+						resourcesModel, objectClassListModel, showAllItemsModel);
 			}
 
 		};
@@ -667,6 +670,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 		PageParameters parameters = new PageParameters();
 		parameters.add(PageDebugView.PARAM_OBJECT_ID, oid);
 		parameters.add(PageDebugView.PARAM_OBJECT_TYPE, type.getSimpleName());
+		parameters.add(PageDebugView.PARAM_SHOW_ALL_ITEMS, showAllItemsModel.getObject());
 		navigateToNext(PageDebugView.class, parameters);
 	}
 
@@ -1003,13 +1007,15 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 	private static class SearchFragment extends Fragment {
 
 		public SearchFragment(String id, String markupId, MarkupContainer markupProvider,
-				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
+				IModel<DebugSearchDto> model, IModel<List<ObjectViewDto>> resourcesModel,
+				IModel<List<QName>> objectClassListModel, IModel<Boolean> showAllItemsModel) {
 			super(id, markupId, markupProvider, model);
 
-			initLayout(resourcesModel, objectClassListModel);
+			initLayout(resourcesModel, objectClassListModel, showAllItemsModel);
 		}
 
-		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel) {
+		private void initLayout(IModel<List<ObjectViewDto>> resourcesModel, IModel<List<QName>> objectClassListModel,
+				IModel<Boolean> showAllItemsModel) {
 			final IModel<DebugSearchDto> model = (IModel) getDefaultModel();
 
 			TextField<String> oidFilterField = new TextField<>(ID_OID_FILTER, new PropertyModel(model, DebugSearchDto.F_OID_FILTER));
@@ -1148,6 +1154,15 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 				}
 			};
 			add(zipCheck);
+
+			AjaxCheckBox showAllItemsCheck = new AjaxCheckBox(ID_SHOW_ALL_ITEMS_CHECK, showAllItemsModel) {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected void onUpdate(AjaxRequestTarget target) {
+				}
+			};
+			add(showAllItemsCheck);
 
 			SearchPanel search = new SearchPanel(ID_SEARCH,
                 new PropertyModel<>(model, DebugSearchDto.F_SEARCH)) {

@@ -22,9 +22,12 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
+
+import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -39,12 +42,19 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
 import com.evolveum.midpoint.test.asserter.ExtensionAsserter;
+import com.evolveum.midpoint.test.asserter.OrgAsserter;
 import com.evolveum.midpoint.test.asserter.ParentOrgRefsAsserter;
+import com.evolveum.midpoint.test.asserter.RoleAsserter;
 import com.evolveum.midpoint.test.asserter.TriggersAsserter;
+import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -115,6 +125,11 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 		return this;
 	}
 	
+	public PrismObjectAsserter<O,RA> assertNoDescription() {
+		assertNull("Unexpected description in "+desc()+": "+getObject().asObjectable().getDescription(), getObject().asObjectable().getDescription());
+		return this;
+	}
+	
 	public PrismObjectAsserter<O,RA> assertSubtype(String... expected) {
 		PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype in "+desc(), getObject().asObjectable().getSubtype(), expected);
 		return this;
@@ -141,6 +156,24 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 			assertEquals("Wrong lifecycleState in "+desc(), SchemaConstants.LIFECYCLE_ACTIVE, actualLifecycleState);
 		}
 		return this;
+	}
+	
+	public UserAsserter<PrismObjectAsserter<O,RA>> asUser() {
+		UserAsserter<PrismObjectAsserter<O,RA>> asserter = new UserAsserter<>((PrismObject<UserType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public RoleAsserter<PrismObjectAsserter<O,RA>> asRole() {
+		RoleAsserter<PrismObjectAsserter<O,RA>> asserter = new RoleAsserter<>((PrismObject<RoleType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
+	}
+	
+	public OrgAsserter<PrismObjectAsserter<O,RA>> asOrg() {
+		OrgAsserter<PrismObjectAsserter<O,RA>> asserter = new OrgAsserter<>((PrismObject<OrgType>) getObject(), this, getDetails());
+		copySetupTo(asserter);
+		return asserter;
 	}
 	
 	protected String desc() {
@@ -205,6 +238,14 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
 	public PrismObjectAsserter<O,RA> assertNoItem(ItemPath itemPath) {
 		Item<PrismValue, ItemDefinition> item = getObject().findItem(itemPath);
 		assertNull("Unexpected item "+itemPath+" in "+desc(), item);
+		return this;
+	}
+	
+	public PrismObjectAsserter<O,RA> assertNoTrigger() {
+		List<TriggerType> triggers = object.asObjectable().getTrigger();
+		if (triggers != null && !triggers.isEmpty()) {
+			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers + "; in "+desc());
+		}
 		return this;
 	}
 	

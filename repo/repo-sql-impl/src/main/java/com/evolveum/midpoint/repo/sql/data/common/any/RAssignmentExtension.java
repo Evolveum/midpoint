@@ -23,7 +23,6 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -39,7 +38,6 @@ import javax.persistence.*;
 
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,13 +54,6 @@ public class RAssignmentExtension implements Serializable, EntityState {
     private RAssignment owner;
     private String ownerOid;
     private Integer ownerId;
-
-    private Short stringsCount;
-    private Short longsCount;
-    private Short datesCount;
-    private Short referencesCount;
-    private Short polysCount;
-    private Short booleansCount;
 
     private Set<RAExtString> strings;
     private Set<RAExtLong> longs;
@@ -108,7 +99,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return ownerId;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtBoolean> getBooleans() {
         if (booleans == null) {
@@ -117,7 +108,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return booleans;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtLong> getLongs() {
         if (longs == null) {
@@ -126,7 +117,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return longs;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtString> getStrings() {
         if (strings == null) {
@@ -135,7 +126,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return strings;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtDate> getDates() {
         if (dates == null) {
@@ -144,7 +135,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return dates;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtReference> getReferences() {
         if (references == null) {
@@ -153,57 +144,13 @@ public class RAssignmentExtension implements Serializable, EntityState {
         return references;
     }
 
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
         }
         return polys;
-    }
-
-    public Short getBooleansCount() {
-        return booleansCount;
-    }
-
-    public Short getStringsCount() {
-        return stringsCount;
-    }
-
-    public Short getLongsCount() {
-        return longsCount;
-    }
-
-    public Short getDatesCount() {
-        return datesCount;
-    }
-
-    public Short getReferencesCount() {
-        return referencesCount;
-    }
-
-    public Short getPolysCount() {
-        return polysCount;
-    }
-
-    public void setStringsCount(Short stringsCount) {
-        this.stringsCount = stringsCount;
-    }
-
-    public void setLongsCount(Short longsCount) {
-        this.longsCount = longsCount;
-    }
-
-    public void setDatesCount(Short datesCount) {
-        this.datesCount = datesCount;
-    }
-
-    public void setReferencesCount(Short referencesCount) {
-        this.referencesCount = referencesCount;
-    }
-
-    public void setPolysCount(Short polysCount) {
-        this.polysCount = polysCount;
     }
 
     public void setPolys(Set<RAExtPolyString> polys) {
@@ -242,10 +189,6 @@ public class RAssignmentExtension implements Serializable, EntityState {
         this.booleans = booleans;
     }
 
-    public void setBooleansCount(Short booleansCount) {
-        this.booleansCount = booleansCount;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -254,32 +197,18 @@ public class RAssignmentExtension implements Serializable, EntityState {
         RAssignmentExtension that = (RAssignmentExtension) o;
 
         if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
-        if (datesCount != null ? !datesCount.equals(that.datesCount) : that.datesCount != null) return false;
         if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
-        if (longsCount != null ? !longsCount.equals(that.longsCount) : that.longsCount != null) return false;
         if (polys != null ? !polys.equals(that.polys) : that.polys != null) return false;
-        if (polysCount != null ? !polysCount.equals(that.polysCount) : that.polysCount != null) return false;
         if (references != null ? !references.equals(that.references) : that.references != null) return false;
-        if (referencesCount != null ? !referencesCount.equals(that.referencesCount) : that.referencesCount != null)
-            return false;
         if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
-        if (stringsCount != null ? !stringsCount.equals(that.stringsCount) : that.stringsCount != null) return false;
         if (booleans != null ? !booleans.equals(that.booleans) : that.booleans != null) return false;
-        if (booleansCount != null ? !booleansCount.equals(that.booleansCount) : that.booleansCount != null)
-            return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = stringsCount != null ? stringsCount.hashCode() : 0;
-        result = 31 * result + (longsCount != null ? longsCount.hashCode() : 0);
-        result = 31 * result + (datesCount != null ? datesCount.hashCode() : 0);
-        result = 31 * result + (referencesCount != null ? referencesCount.hashCode() : 0);
-        result = 31 * result + (polysCount != null ? polysCount.hashCode() : 0);
-        result = 31 * result + (booleansCount != null ? booleansCount.hashCode() : 0);
-        return result;
+        return 1;
     }
 
     public static void fromJaxb(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
@@ -322,19 +251,11 @@ public class RAssignmentExtension implements Serializable, EntityState {
                 repo.getBooleans().add((RAExtBoolean) value);
             }
         }
-
-        DeltaUpdaterUtils.updateExtensionCounts(repo);
     }
 
     @Override
     public String toString() {
         return "RAssignmentExtension{" +
-                "strings#=" + stringsCount +
-                ", longs#=" + longsCount +
-                ", dates#=" + datesCount +
-                ", references#=" + referencesCount +
-                ", polys#=" + polysCount +
-                ", booleans#=" + booleansCount +
                 '}';
     }
 }

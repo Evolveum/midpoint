@@ -143,4 +143,9 @@ public class ResourceAsserter<RA> extends PrismObjectAsserter<ResourceType,RA> {
 		return this;
 	}
 
+	@Override
+	public ResourceAsserter<RA> assertNoTrigger() {
+		super.assertNoTrigger();
+		return this;
+	}
 }

@@ -161,7 +161,6 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 		repoAddObjectFromFile(ROLE_READ_ORG_EXEC_FILE, initResult);
 		repoAddObjectFromFile(ROLE_READ_RESOURCE_OPERATIONAL_STATE_FILE, initResult);
 
-		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_SECURITY_OID, initResult);
 	}
 	
 	protected static final int NUMBER_OF_IMPORTED_ROLES = 19;

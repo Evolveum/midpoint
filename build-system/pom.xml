@@ -89,19 +89,48 @@
         <wro4j.version>1.8.0</wro4j.version>
         <jackson.version>2.9.9</jackson.version>
         <snakeyaml.version>1.19</snakeyaml.version>
-        <surefire.version>3.0.0-M2</surefire.version>
+        <surefire.version>3.0.0-M3</surefire.version>
         <reflections.version>0.9.11</reflections.version>
         <guava.version>20.0</guava.version>
         <jcommander.version>1.72</jcommander.version>
-		<failsafe.version>3.0.0-M2</failsafe.version>
+		<failsafe.version>3.0.0-M3</failsafe.version>
 		<antrun.version>1.8</antrun.version>
+		<javax.xml.soap.version>1.4.0</javax.xml.soap.version>
         <qpid-broker.version>7.1.1</qpid-broker.version>
         <jakarta.jaxb.version>2.3.2</jakarta.jaxb.version>
         <asm.version>7.0</asm.version>
+		<jaxws-api.version>2.3.1</jaxws-api.version>
+		<stax-api.version>1.0-2</stax-api.version>
+		<geronimo-ws-metadata_2.0_spec.version>1.1.3</geronimo-ws-metadata_2.0_spec.version>
+		<activation.version>1.1.1</activation.version>
+		<javax.activation.version>1.2.0</javax.activation.version>
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
+		
+			<!-- Upgrade to Java 11 -->
+			<dependency>
+				<groupId>javax.xml.soap</groupId>
+				<artifactId>javax.xml.soap-api</artifactId>
+				<version>${javax.xml.soap.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.xml.ws</groupId>
+				<artifactId>jaxws-api</artifactId>
+				<version>${jaxws-api.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.geronimo.specs</groupId>
+				<artifactId>geronimo-ws-metadata_2.0_spec</artifactId>
+				<version>${geronimo-ws-metadata_2.0_spec.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.activation</groupId>
+				<artifactId>javax.activation</artifactId>
+				<version>${javax.activation.version}</version>
+			</dependency>
+		
+			<dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -135,6 +164,10 @@
 					<exclusion> <!-- Conflicting version with CXF -->
                         <groupId>org.ow2.asm</groupId>
                         <artifactId>asm</artifactId>
+                    </exclusion>
+					<exclusion>
+                        <groupId>org.apache.ant</groupId>
+						<artifactId>ant</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -199,7 +232,7 @@
             <dependency> <!-- Explicit version -->
                 <groupId>javax.activation</groupId>
                 <artifactId>activation</artifactId>
-                <version>1.1.1</version>
+                <version>${activation.version}</version>
             </dependency>
             <dependency>
 				<groupId>org.codehaus.groovy</groupId>
@@ -476,13 +509,21 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-core</artifactId>
                 <version>${cxf.version}</version>
-                <exclusions>
-                    <!-- Conflicting version with sun jaxb-xjc -->
-                        <exclusion>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-xjc</artifactId>
-                        </exclusion>
-                </exclusions>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jvnet.staxex</groupId>
+					<artifactId>stax-ex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.soap</groupId>
+					<artifactId>javax.xml.soap-api</artifactId>
+				</exclusion>
+				<!-- Conflicting version with sun jaxb-xjc -->
+                        	<exclusion>
+                            		<groupId>org.glassfish.jaxb</groupId>
+                            		<artifactId>jaxb-xjc</artifactId>
+                        	</exclusion>
+			</exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -498,6 +539,16 @@
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-tools-common</artifactId>
                 <version>${cxf.version}</version>
+				<exclusions>
+				<exclusion>
+					<groupId>org.jvnet.staxex</groupId>
+					<artifactId>stax-ex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.soap</groupId>
+					<artifactId>javax.xml.soap-api</artifactId>
+				</exclusion>
+			</exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
@@ -590,6 +641,16 @@
 			   <groupId>org.apache.cxf</groupId>
 			   <artifactId>cxf-rt-rs-client</artifactId>
 			   <version>${cxf.version}</version>
+			   <exclusions>
+				<exclusion>
+					<groupId>org.jvnet.staxex</groupId>
+					<artifactId>stax-ex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.xml.soap</groupId>
+					<artifactId>javax.xml.soap-api</artifactId>
+				</exclusion>
+			</exclusions>
 			</dependency>
 			<dependency>
 			   <groupId>org.apache.cxf</groupId>
@@ -599,7 +660,7 @@
 	        <dependency>
 	            <groupId>org.apache.cxf.xjc-utils</groupId>
 	            <artifactId>cxf-xjc-runtime</artifactId>
-				<version>${cxf-xjc.version}</version>
+		    <version>${cxf-xjc.version}</version>
         	</dependency>
         	<dependency>
 	            <groupId>org.apache.wss4j</groupId>
@@ -1326,7 +1387,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
+				<version>3.8.0</version>
 				<configuration>
 					<source>${project.source.version}</source>
 					<target>${project.source.version}</target>
@@ -1342,7 +1403,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>2.6</version>
+				<version>3.1.0</version>
 				<configuration>
 					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
@@ -1350,7 +1411,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.2.1</version>
+				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -1364,7 +1425,7 @@
 			<plugin>
 				<groupId>com.lukegb.mojo</groupId>
 				<artifactId>gitdescribe-maven-plugin</artifactId>
-				<version>1.3</version>
+				<version>3.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -1381,7 +1442,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.4</version>
+				<version>3.1.2</version>
 				<configuration>
 					<archive>
 						<manifestEntries>
@@ -1406,7 +1467,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>2.6</version>
+				<version>3.2.3</version>
 				<configuration>
 					<archive>
 						<manifestEntries>
@@ -1430,7 +1491,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.3.10.v20160621</version>
+                <version>9.4.19.v20190610</version>
                 <configuration>
                     <systemProperties>
                         <systemProperty>
@@ -1453,7 +1514,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.0.5</version>
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>
@@ -1465,7 +1526,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>2.1.11</version>
+				<version>3.0.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -1497,7 +1558,8 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
+			<!-- maven-dependency-plugin wait for 3.1.2 version because MDEP-613 Analyze failed: Unsupported class file major version 55 (Java 11) -->
+			<plugin> 
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.1.1e1</version>
@@ -1678,7 +1740,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>findbugs-maven-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>3.0.5</version>
 				<configuration>
 					<effort>Max</effort>
 					<threshold>Low</threshold>

@@ -70,6 +70,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	protected boolean heterogeneousListItem;
     private PrismReferenceValue valueEnumerationRef;
 
+	private boolean indexOnly = false;
+
 	// TODO: annotations
 
 	/**
@@ -362,6 +364,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		clone.canModify = this.canModify;
 		clone.operational = this.operational;
 		clone.valueEnumerationRef = this.valueEnumerationRef;
+		clone.indexOnly = this.indexOnly;
 	}
 
 	/**
@@ -525,5 +528,15 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	@Override
 	public void setInherited(boolean inherited) {
 		this.inherited = inherited;
+	}
+
+	@Override
+	public boolean isIndexOnly() {
+		return indexOnly;
+	}
+
+	@Override
+	public void setIndexOnly(boolean indexOnly) {
+		this.indexOnly = indexOnly;
 	}
 }

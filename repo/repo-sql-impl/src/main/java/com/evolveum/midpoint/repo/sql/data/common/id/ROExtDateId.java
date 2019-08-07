@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.sql.Timestamp;
@@ -70,5 +71,12 @@ public class ROExtDateId extends ROExtBaseId {
     @Override
     public String toString() {
         return "ROExtDateId[" + ownerOid + "," + ownerType + "," + itemId + "," + value + "]";
+    }
+
+    public static ROExtDateId createFromValue(ROExtDate value) {
+        ROExtDateId rv = new ROExtDateId();
+        rv.value = value.getValue();
+        rv.fillInFromValue(value);
+        return rv;
     }
 }

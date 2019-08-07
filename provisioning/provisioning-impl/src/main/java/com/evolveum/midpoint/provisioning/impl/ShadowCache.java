@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.*;
@@ -89,6 +90,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Shadow cache is a facade that covers all the operations with shadows. It
@@ -1415,6 +1417,41 @@ public class ShadowCache {
 				}
 				
 				if (pendingDelta.isModify()) {
+
+					// Apply shadow naming attribute modification
+					PrismContainer<ShadowAttributesType> shadowAttributesContainer = repoShadow.findContainer(ItemPath.create(ShadowType.F_ATTRIBUTES));
+					ResourceAttributeContainer resourceAttributeContainer = ResourceAttributeContainer.convertFromContainer(shadowAttributesContainer, ctx.getObjectClassDefinition());
+					ResourceAttributeContainerDefinition resourceAttrDefinition = resourceAttributeContainer.getDefinition();
+					if(resourceAttrDefinition != null) {
+
+						// If naming attribute is present in delta...
+						ResourceAttributeDefinition namingAttribute = resourceAttrDefinition.getNamingAttribute();
+						if (namingAttribute != null) {
+							if (pendingDelta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getName()))) {
+
+								// Retrieve a possible changed name per the defined naming attribute for the resource
+								ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getName()));
+								Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
+								Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
+
+								if (valueToReplace.isPresent()){
+									Object valueToReplaceObj = ((PrismPropertyValue)valueToReplace.get()).getValue();
+									if (valueToReplaceObj instanceof String) {
+
+										// Apply the new naming attribute value to the shadow name by adding the change to the modification set for shadow delta
+										PropertyDelta<PolyString> nameDelta = shadowDelta.createPropertyModification(ItemPath.create(ShadowType.F_NAME));
+										Collection<PolyString> modificationSet = new ArrayList<>();
+										PolyString nameAttributeReplacement = new PolyString((String) valueToReplaceObj);
+										modificationSet.add(nameAttributeReplacement);
+										nameDelta.setValuesToReplace(PrismValueCollectionsUtil.createCollection(prismContext, modificationSet));
+										shadowDelta.addModification(nameDelta);
+									}
+								}
+							}
+						}
+					}
+
+					// Apply shadow attribute modifications
 					for (ItemDelta<?, ?> pendingModification: pendingDelta.getModifications()) {
 						shadowDelta.addModification(pendingModification.clone());
 					}
@@ -2194,7 +2231,9 @@ public class ShadowCache {
 				} else {
 					attributeFilter.add(subFilters.iterator().next());
 				}
-
+			} else if (f instanceof  UnaryLogicalFilter) {
+				ObjectFilter subFilter = ((UnaryLogicalFilter) f).getFilter();
+				attributeFilter.add(prismContext.queryFactory().createNot(subFilter));
 			} else if (f instanceof SubstringFilter) {
 				attributeFilter.add(f);
 			} else if (f instanceof RefFilter) {

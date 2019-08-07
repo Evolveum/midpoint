@@ -275,8 +275,6 @@ public class Clockwork {
 		TracingLevelType level = result.getTracingLevel(trace.getClass());
 		if (level.ordinal() >= TracingLevelType.MINIMAL.ordinal()) {
 			trace.getText().add(context.debugDump());   // todo
-			trace.getText().add(task.debugDump());      // todo
-			trace.getText().add(task.getResult().getOperation());   // todo
 		}
 		trace.setInputLensContext(context.toLensContextType(getExportTypeTraceOrReduced(trace, result)));
 		result.addTrace(trace);

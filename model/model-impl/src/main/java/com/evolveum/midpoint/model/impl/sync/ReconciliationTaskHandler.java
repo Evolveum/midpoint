@@ -22,7 +22,9 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -531,6 +533,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		try {
 
 			ObjectQuery query = objectclassDef.createShadowSearchQuery(resource.getOid());
+			query = addQueryFromTaskIfExists(query, localCoordinatorTask);
 			query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
 			
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative");
@@ -569,11 +572,13 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         return !interrupted;
 	}
 
-    // returns false in case of execution interruption
+
+
+	// returns false in case of execution interruption
 	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
 			final ObjectClassComplexTypeDefinition objectclassDef,
 			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, RunningTask localCoordinatorTask,
-			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException {
+			WorkBucketType workBucket, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException, CommunicationException {
         boolean interrupted;
 
 		// find accounts
@@ -590,6 +595,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(objectclassDef.getTypeName())
 				.build();
 
+		query = addQueryFromTaskIfExists(query, localCoordinatorTask);
 		query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
 
 		if (LOGGER.isTraceEnabled()) {
@@ -649,6 +655,31 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                     + (interrupted ? " Was interrupted during processing." : ""));
 
         return !interrupted;
+	}
+
+	private ObjectQuery addQueryFromTaskIfExists(ObjectQuery query, RunningTask localCoordinatorTask) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+
+		QueryType queryType = getObjectQueryTypeFromTaskExtension(localCoordinatorTask);
+
+		if (queryType == null || queryType.getFilter() == null) {
+			return query;
+		}
+
+		ObjectQuery taskQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, queryType);
+
+		if (taskQuery == null || taskQuery.getFilter() == null) {
+			return query;
+		}
+
+		if (query == null || query.getFilter() == null) {
+			return taskQuery;
+		}
+
+		AndFilter andFilter =  prismContext.queryFactory().createAnd(query.getFilter(), taskQuery.getFilter());
+		ObjectQuery finalQuery = prismContext.queryFactory().createQuery(andFilter);
+		provisioningService.applyDefinition(ShadowType.class, finalQuery, localCoordinatorTask, localCoordinatorTask.getResult());
+		return finalQuery;
+
 	}
 
 	private ObjectQuery narrowQueryForBucket(ObjectQuery query, Task localCoordinatorTask,

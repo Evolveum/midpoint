@@ -77,7 +77,13 @@ public class ReportTypeUtil {
 	
 	 public static JasperDesign loadJasperDesign(byte[] template) throws SchemaException{
 	    	try	 {
-	    	byte[] reportTemplate = Base64.decodeBase64(template);
+	    	byte[] reportTemplate;
+	    		
+	    	if(Base64.isBase64(template)) {
+	    		reportTemplate = Base64.decodeBase64(template);
+	    	} else {
+	    		reportTemplate = template;
+	    	}
 		
 		 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
 		 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
