@@ -22,12 +22,17 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.statistics.CachePerformanceInformationUtil;
+import com.evolveum.midpoint.schema.statistics.RepositoryPerformanceInformationUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -186,6 +191,41 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		workItems.forEach(wi -> rv.put(wi.getOriginalAssigneeRef().getOid(), wi));
 		return rv;
 	}
-	//endregion
+    //endregion
 
+	protected PerformanceMonitor getRepoPerformanceMonitor() {
+		return repositoryService.getPerformanceMonitor();
+	}
+
+	protected void resetGlobalCachePerformanceCollector() {
+		CachePerformanceCollector.INSTANCE.clear();
+	}
+
+	protected void dumpGlobalCachePerformanceData(String testName) {
+		display("Cache performance data for " + testName + " (got from cache performance collector)", CachePerformanceCollector.INSTANCE);
+	}
+
+	protected void dumpThreadLocalCachePerformanceData(String testName) {
+		dumpCachePerformanceData(testName, CachePerformanceCollector.INSTANCE.getThreadLocalPerformanceMap());
+	}
+
+	protected void resetThreadLocalPerformanceData() {
+		getRepoPerformanceMonitor().startThreadLocalPerformanceInformationCollection();
+		CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
+	}
+
+	protected PerformanceInformation dumpThreadLocalPerformanceData(String testName) {
+		PerformanceInformation performanceInformation = getRepoPerformanceMonitor().getThreadLocalPerformanceInformation();
+		dumpRepoPerformanceData("Repo operations for " + testName, performanceInformation);
+		dumpCachePerformanceData(testName, CachePerformanceCollector.INSTANCE.getThreadLocalPerformanceMap());
+		return performanceInformation;
+	}
+
+	protected void dumpRepoPerformanceData(String label, PerformanceInformation performanceInformation) {
+		display(label, RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()));
+	}
+
+	protected void dumpCachePerformanceData(String label, Map<String, CachePerformanceCollector.CacheData> performanceMap) {
+		display(label, CachePerformanceInformationUtil.format(performanceMap));
+	}
 }
