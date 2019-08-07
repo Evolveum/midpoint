@@ -676,7 +676,7 @@ public interface RepositoryService {
 
 	void postInit(OperationResult result) throws SchemaException;
 
-	ConflictWatcher createAndRegisterConflictWatcher(String oid);
+	ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid);
 
 	void unregisterConflictWatcher(ConflictWatcher watcher);
 
