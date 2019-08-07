@@ -72,11 +72,14 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 	private void initLayout() {
 
 		try {
-			Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(), PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.EMPTY_PATH), null);
+			Panel main = getPageBase().initItemPanel(ID_MAIN_PANEL, getObjectWrapper().getTypeName(), 
+					PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.EMPTY_PATH), null, true);
 			add(main);
-			Panel activation = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ACTIVATION), null);
+			Panel activation = getPageBase().initItemPanel(ID_ACTIVATION_PANEL, ActivationType.COMPLEX_TYPE, 
+					PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), FocusType.F_ACTIVATION), null, true);
 			add(activation);
-			Panel password = getPageBase().initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null);
+			Panel password = getPageBase().initItemPanel(ID_PASSWORD_PANEL, PasswordType.COMPLEX_TYPE, 
+					PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD)), null, true);
 			add(password);
 		} catch (SchemaException e) {
 			LOGGER.error("Could not create focus details panel. Reason: {}", e.getMessage(), e);

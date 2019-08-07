@@ -845,56 +845,25 @@ body .treeview-menu > li > span:hover {
 	border-top: 1px solid #ddd;
 }
 
+.multivalue-container > .container-wrapper > div {
+	padding-left: 40px;
+}
+
 //top-level-prism-container is class for first showed container
-.top-level-prism-container > .container-wrapper > .prism-properties > div > 
-.prism-property > .prism-properties > div > .container-wrapper{
+.top-level-prism-container > .container-wrapper > div > div > 
+.prism-properties > .prism-containers {
+  	padding-left: 0px; //align one-level containers
+}
+
+//top-level-prism-container is class for first showed container
+.top-level-prism-container > .container-wrapper > div > div > 
+.prism-properties > .prism-containers > prism-property {
   	border-top: 1px solid #ddd;	// line over area of container
-  	margin-left: -45px;			// aligning container on first level with superior container (multivalue container)
-  	padding-left: 15px;
-}
-
-/*.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property > 
-.prism-properties > div > .container-wrapper .multivalue-container {
-  padding-left: 30px;	//padding for multivalue containers
-}*/
-
-.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
- .prism-properties > div > .container-wrapper .singlevalue-container {
-  margin-left: -60px;	//margin for value of singlevalue containers
-}
-
-.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
- .prism-properties > div > .container-wrapper .prism-properties {
-  margin-left: 15px;
-}
-
-.top-level-prism-container .multivalue-container > .container-wrapper > .prism-properties > div {
-  padding-left: 15px;	//padding for value of multivalue containers
-}
-
-.top-level-prism-container > .container-wrapper > .prism-properties > div > .prism-property >
-.prism-properties > div > .container-wrapper > .container-wrapper > .prism-properties > div >
-.singlevalue-container {
-  	margin-left: -60px; // aligning container on first level with superior container (singlevalue container)
-}
-
-.top-level-prism-container > .container-wrapper > .prism-properties > div >
- .prism-property > .container-fluid {
-   	border-top: 1px solid #ddd; // line over area of container
-   	padding-top: 5px;
-}
-
-.top-level-prism-container > .container-wrapper > .prism-properties > div {
-	padding-left: 0px;
 }
 
 .top-level-prism-container .row {
 	margin-right: 0px; 
     margin-left: 0px;
-}
-
-.top-level-prism-container .container-fluid {
-	padding-right: 0px;
 }
 
 .top-level-prism-container .prism-header {
@@ -916,7 +885,7 @@ body .treeview-menu > li > span:hover {
 .prism-properties {
 	
 	& > div {
-		padding-left: 30px;
+		padding-left: 40px;
 	}
 	
 	.stripe {
