@@ -45,6 +45,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -54,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author Radovan Semancik
  */
 public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestMappingDynamicSysVar.class);
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
 	private static final String PATTERN_NUMERIC = "^\\d+$";
@@ -615,12 +619,14 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
     	// WHEN
+    	System.out.println("WHEN");
+    	LOGGER.info("WHEN");
 		mapping.evaluate(null, opResult);
 
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
-		System.out.println("Output triple");
-		System.out.println(outputTriple.debugDump());
+		System.out.println("\nOutput triple");
+		System.out.println(outputTriple.debugDump(1));
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
 	  	PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());

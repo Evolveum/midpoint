@@ -76,6 +76,9 @@ public class Source<V extends PrismValue,D extends ItemDefinition> extends ItemD
 		sb.append("Source ").append(PrettyPrinter.prettyPrint(name)).append(":\n");
 		sb.append("  old: ").append(getItemOld()).append("\n");
 		sb.append("  delta: ").append(getDelta()).append("\n");
+		if (getSubItemDeltas() != null) {
+			sb.append("  subitem deltas: ").append(getSubItemDeltas()).append("\n");
+		}
 		sb.append("  new: ").append(getItemNew());
 	}
 

@@ -156,7 +156,7 @@ public class AssignmentCollector {
 						definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 					}
 					ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = 
-							new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType), definition);
+							new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
 					EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, assignmentHolder, assignmentHolder.toString(), virtual, task, result);
 					evaluatedAssignments.add(assignment);
 				} catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | PolicyViolationException | SecurityViolationException | ConfigurationException | CommunicationException e) {

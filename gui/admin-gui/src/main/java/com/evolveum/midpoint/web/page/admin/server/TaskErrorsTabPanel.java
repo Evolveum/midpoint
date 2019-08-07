@@ -15,14 +15,17 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -101,6 +104,21 @@ public class TaskErrorsTabPanel extends AbstractObjectTabPanel<TaskType> impleme
         List<IColumn<TaskErrorDto, String>> columns = new ArrayList<>();
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.objectName"), TaskErrorDto.F_OBJECT_REF_NAME));
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.status"), TaskErrorDto.F_STATUS));
+        columns.add(new AbstractColumn<TaskErrorDto, String>(createStringResource("pageTaskEdit.taskErros.timestamp")){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskErrorDto>> cellItem, String componentId,
+                                     IModel<TaskErrorDto> rowModel) {
+                Label label = new Label(componentId, new IModel<String>() {
+                    @Override
+                    public String getObject() {
+                        return WebComponentUtil.getShortDateTimeFormattedValue(rowModel.getObject().getErrorTimestamp(), getPageBase());
+                    }
+                });
+                cellItem.add(label);
+            }
+        });
         columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.taskErros.message"), TaskErrorDto.F_MESSAGE));
         return columns;
     }

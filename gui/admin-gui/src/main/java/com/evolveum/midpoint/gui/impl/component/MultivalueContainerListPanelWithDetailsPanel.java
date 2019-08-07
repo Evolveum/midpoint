@@ -199,4 +199,8 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 	protected WebMarkupContainer getDetailsPanelContainer(){
 		return (WebMarkupContainer) get(ID_DETAILS);
 	}
+
+	protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList(){
+		return detailsPanelItemsList;
+	}
 }

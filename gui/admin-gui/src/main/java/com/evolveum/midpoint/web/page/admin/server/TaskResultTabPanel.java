@@ -15,11 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -73,7 +69,7 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 	private void initLayout(final IModel<TaskDto> taskDtoModel, final PageBase pageBase) {
 		SortableDataProvider<OperationResult, String> provider = new ListDataProvider<>(this,
 				new PropertyModel<List<OperationResult>>(taskDtoModel, TaskDto.F_OP_RESULT));
-		TablePanel resultTablePanel = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns());
+		TablePanel resultTablePanel = new TablePanel<>(ID_OPERATION_RESULT, provider, initResultColumns(pageBase));
 		resultTablePanel.setStyle("padding-top: 0px;");
 		resultTablePanel.setShowPaging(false);
 		resultTablePanel.setOutputMarkupId(true);
@@ -101,12 +97,31 @@ public class TaskResultTabPanel extends AbstractObjectTabPanel<TaskType> impleme
 		
 	}
 
-	private List<IColumn<OperationResult, String>> initResultColumns() {
+	private List<IColumn<OperationResult, String>> initResultColumns(PageBase pageBase) {
 		List<IColumn<OperationResult, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.token"), "token"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.operation"), "operation"));
 		columns.add(new PropertyColumn<>(createStringResource("pageTaskEdit.opResult.status"), "status"));
+		columns.add(new AbstractColumn<OperationResult, String>(createStringResource("pageTaskEdit.opResult.timestamp")){
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void populateItem(Item<ICellPopulator<OperationResult>> cellItem, String componentId,
+									 IModel<OperationResult> rowModel) {
+				Label label = new Label(componentId, new IModel<String>() {
+					@Override
+					public String getObject() {
+						Long resultEndTime = rowModel.getObject().getEnd();
+						return resultEndTime != null && resultEndTime > 0 ?
+								WebComponentUtil.getShortDateTimeFormattedValue(new Date(), pageBase) : "";
+					}
+				});
+				cellItem.add(label);
+			}
+		});
 		columns.add(new AbstractColumn<OperationResult, String>(createStringResource("pageTaskEdit.opResult.message"), "message") {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void populateItem(Item<ICellPopulator<OperationResult>> cellItem, String componentId,
 					IModel<OperationResult> rowModel) {

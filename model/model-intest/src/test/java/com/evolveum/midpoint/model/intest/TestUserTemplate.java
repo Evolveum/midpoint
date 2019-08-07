@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.ItemFactory;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -92,7 +94,17 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 
 	private static final int NUMBER_OF_IMPORTED_ROLES = 5;
 
+	private static final String CANNIBAL_LEMONHEAD_USERNAME = "lemonhead";
+	private static final String CANNIBAL_REDSKULL_USERNAME = "redskull";
+	private static final String CANNIBAL_SHARPTOOTH_USERNAME = "sharptooth";
+	private static final String CANNIBAL_ORANGESKIN_USERNAME = "orangeskin";
+	private static final String CANNIBAL_CHERRYBRAIN_USERNAME = "cherrybrain";
+	private static final String CANNIBAL_PINEAPPLENOSE_USERNAME = "pineapplenose";
+	private static final String CANNIBAL_POTATOLEG_USERNAME = "potatoleg";
+
 	private static String jackEmployeeNumber;
+
+	private XMLGregorianCalendar funeralTimestamp;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -2638,6 +2650,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	    	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
 	    	.extension()
 	    		.assertNoItem(PIRACY_TALES)
+	    		.assertNoItem(PIRACY_LOOT)
 	    		.end()
 	    	.assertNoTrigger();
 	}
@@ -2654,8 +2667,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
         
-        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
-        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, now);
+        funeralTimestamp = clock.currentTimeXMLGregorianCalendar();
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result, funeralTimestamp);
 
         // WHEN
         waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
@@ -2663,10 +2676,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         // THEN
         assertUserAfter(USER_JACK_OID)
         	.assertAdditionalName(USER_JACK_ADDITIONAL_NAME)
+        	.extension()
+	    		.assertNoItem(PIRACY_TALES)
+	    		.assertNoItem(PIRACY_LOOT)
+	    		.end()
 	    	.triggers()
 	    		.single()
 	    			.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
-	    			.assertTimestampFuture(now, "P1M", 10*1000L);
+	    			.assertTimestampFuture(funeralTimestamp, "P1M", 10*1000L);
 	}
 	
 	/**
@@ -2678,10 +2695,6 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         displayTestTitle(TEST_NAME);
 
         // GIVEN
-        Task task = createTask(TEST_NAME);
-        OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-        
         clockForward("P2D");
 
         // WHEN
@@ -2745,6 +2758,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         	.assertAdditionalName("Kaboom!")
         	.extension()
         		.assertNoItem(PIRACY_TALES)
+        		.assertNoItem(PIRACY_LOOT)
         		.end()
         	.triggers()
 	    		.single()
@@ -2757,8 +2771,8 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	 * MID-4630
 	 */
 	@Test
-    public void test812PreTalesBomb() throws Exception {
-		final String TEST_NAME = "test812PreTalesBomb";
+    public void test812TalesBoom() throws Exception {
+		final String TEST_NAME = "test812TalesBoom";
         displayTestTitle(TEST_NAME);
 
         // GIVEN
@@ -2775,6 +2789,827 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         		.end()
         	.triggers()
 	    		.assertNone();
+	}
+	
+	/**
+	 * Recompute. Make sure situation is stable.
+	 * MID-4630
+	 */
+	@Test
+    public void test813TalesBoomRecompute() throws Exception {
+		final String TEST_NAME = "test813TalesBoomRecompute";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+
+        // WHEN
+        recomputeUser(USER_JACK_OID);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.end()
+        	.triggers()
+	    		.assertNone();
+
+	}
+	
+	/**
+	 * Remove tales and recompute. The mapping should kick in and re-set the tales.
+	 * MID-4630
+	 */
+	@Test
+    public void test820TalesUnBoom() throws Exception {
+		final String TEST_NAME = "test820TalesUnBoom";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_TALES), task, result /* no value */);
+        
+        // The tales mapping is normal. Therefore primary delta will override it.
+        assertUserBefore(USER_JACK_OID)
+	        .assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertNoItem(PIRACY_TALES)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+
+        // WHEN
+        // No delta here. The normal tales mapping will fire again.
+        recomputeUser(USER_JACK_OID);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.end()
+        	.triggers()
+	    		.assertNone();
+
+	}
+	
+	/**
+	 * Changing description will prepare the "loot bomb" mapping.
+	 * But it is not yet the time to fire it. Only a trigger should be set.
+	 * MID-4630
+	 */
+	@Test
+    public void test830PreLootBoom() throws Exception {
+		final String TEST_NAME = "test830PreLootBoom";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_JACK_OID, UserType.F_DESCRIPTION, task, result, "Rum is gone");
+        
+        // The tales mapping is normal. Therefore primary delta will override it.
+        assertUserBefore(USER_JACK_OID)
+	        .assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+	    		.assertNoItem(PIRACY_LOOT)
+	    		.end()
+	    	.triggers()
+	    		.single()
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+	    			.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+	    			
+
+        // WHEN
+        // No delta here. The normal tales mapping will fire again.
+        recomputeUser(USER_JACK_OID);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	        	.single()
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+        
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	        	.single()
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFuture(funeralTimestamp, "P1Y", 2*24*60*60*1000L);
+
+	}
+	
+	/**
+	 * Move the time 9M the future. Loot bomb could explode.
+	 * But loot property is not set yet. The condition is still false.
+	 * MID-4630
+	 */
+	@Test
+    public void test832LootBoomConditionFalse() throws Exception {
+		final String TEST_NAME = "test832LootBoomConditionFalse";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        clockForward("P9M");
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        recomputeUser(USER_JACK_OID);
+        
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+	    		.assertNoItem(PIRACY_LOOT)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+	}
+
+	/**
+	 * Loot bomb is over its timeFrom. Now make condition true. And it should explode.
+	 * MID-4630
+	 */
+	@Test
+    public void test835LootBoom() throws Exception {
+		final String TEST_NAME = "test835LootBoom";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        recomputeUser(USER_JACK_OID);
+        
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+	    		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+	}
+
+	/**
+	 * Reset funeral timestamp. Prepare for subsequent tests.
+	 */
+	@Test
+    public void test840ResetFuneralTimestamp() throws Exception {
+		final String TEST_NAME = "test840ResetFuneralTimestamp";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        modifyUserReplace(USER_JACK_OID, getExtensionPath(PIRACY_FUNERAL_TIMESTAMP), task, result /* no value */);
+
+        // WHEN
+        waitForTaskNextRunAssertSuccess(TASK_TRIGGER_SCANNER_OID, true);
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		// We have Kaboom. And no funeral timestamp. Tales mapping should be applied.
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// All conditions are satisfied. And no funeral timestamp. Loot mapping should be applied.
+        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+	}
+	
+	/**
+	 * Turn off condition on loot mapping
+	 * MID-4630
+	 */
+	@Test
+    public void test843UnLoot() throws Exception {
+		final String TEST_NAME = "test843UnLoot";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Justjack"));
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        recomputeUser(USER_JACK_OID);
+        
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+	    		.assertNoItem(PIRACY_LOOT)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+	}
+	
+	/**
+	 * Turn no condition on loot mapping
+	 * MID-4630
+	 */
+	@Test
+    public void test845ReLoot() throws Exception {
+		final String TEST_NAME = "test845ReLoot";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_GIVEN_NAME, task, result, createPolyString("Lootjack"));
+
+        // THEN
+        assertUserAfter(USER_JACK_OID)
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+        		.end()
+        	.triggers()
+	    		.assertNone();
+        
+        recomputeUser(USER_JACK_OID);
+        
+        assertUserAfter(USER_JACK_OID)
+	    	.assertAdditionalName("Kaboom!")
+	    	.extension()
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+	    		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+	    		.end()
+	    	.triggers()
+	    		.assertNone();
+	}
+	
+	/**
+	 * Lemonhead: no funeralDate, no description, no additional name
+	 * MID-4630
+	 */
+	@Test
+    public void test850AddCannibalLemonhead() throws Exception {
+		final String TEST_NAME = "test850AddCannibalLemonhead";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, false), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	.assertNoAdditionalName()
+        	.extension()
+        		// Additional name is not Kaboom!, tales are not there
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.assertNone();        
+	}
+
+	/**
+	 * Redskull: funeralDate=+0, no description, no additional name
+	 * MID-4630
+	 */
+	@Test
+    public void test852AddCanibalRedSkull() throws Exception {
+		final String TEST_NAME = "test852AddCanibalRedSkull";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", false), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	.assertNoAdditionalName()
+        	.extension()
+        		// Additional name is not Kaboom!, tales are not there
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.single()
+	    			// Trigger from time bomb. There is no condition and the reference time is set.
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
+	}
+	
+	/**
+	 * Shaprtooth: funeralDate=-1M1D, no description, no additional name
+	 * Time bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test854AddCanibalShaprtooth() throws Exception {
+		final String TEST_NAME = "test854AddCanibalShaprtooth";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", false), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		// Time is not up for tales bomb to explode.
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	        	.single()
+					// Trigger from tales bomb. We have Kaboomed, the time constraint has activated
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L);
+	}
+	
+	/**
+	 * Orangeskin: funeralDate=-3M1D, no description, no additional name
+	 * Time bomb should explode, tales bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test856AddCanibalOrangeskin() throws Exception {
+		final String TEST_NAME = "test856AddCanibalOrangeskin";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", false), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		// Additional name is Kaboom! and time is up
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. Description does not match.
+	    		.assertNone();        
+	}
+	
+	/**
+	 * Cherrybrain: funeralDate=-1Y1D, no description, no additional name
+	 * Time bomb should explode, tales bomb should explode, but not loot bomb
+	 * MID-4630
+	 */
+	@Test
+    public void test858AddCanibalCherrybrain() throws Exception {
+		final String TEST_NAME = "test858AddCanibalCherrybrain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", false), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+	        	// Additional name is Kaboom! and time is up
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Time is up. But description does not match and condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. Description does not match.
+        		// And we are already after timeFrom anyway.
+	    		.assertNone();        
+	}
+	
+	/**
+	 * Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
+	 * Time bomb should explode, tales bomb should explode
+	 * But not loot bomb, as the description does not match. 
+	 * MID-4630
+	 */
+	@Test
+    public void test859AddCanibalPineapplenose() throws Exception {
+		final String TEST_NAME = "test858AddCanibalCherrybrain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(
+        		createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", false)
+        			.asObjectable().givenName("Lootjack").asPrismObject(),
+        		task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+	        	// Additional name is Kaboom! and time is up
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Time is up. But description does not match and condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. Description does not match.
+        		// And we are already after timeFrom anyway.
+	    		.assertNone();        
+	}
+
+	/**
+	 * Rotten Lemonhead: no funeralDate, description=gone, no additional name
+	 * MID-4630
+	 */
+	@Test
+    public void test860AddCannibalRottenLemonhead() throws Exception {
+		final String TEST_NAME = "test860AddCannibalRottenLemonhead";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_LEMONHEAD_USERNAME, null, true), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	.assertNoAdditionalName()
+        	.extension()
+        		// Additional name is not Kaboom!, tales are not there
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.assertNone();        
+	}
+
+	/**
+	 * Rotten Redskull: funeralDate=+0, description=gone, no additional name
+	 * MID-4630
+	 */
+	@Test
+    public void test862AddCanibalRottenRedSkull() throws Exception {
+		final String TEST_NAME = "test862AddCanibalRottenRedSkull";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_REDSKULL_USERNAME, "", true), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	.assertNoAdditionalName()
+        	.extension()
+        		// Additional name is not Kaboom!, tales are not there
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.single()
+	    			// Trigger from time bomb. There is no condition and the reference time is set.
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+					.assertTimestampFuture(funeralTimestamp, "P1M", 1*24*60*60*1000L);
+	}
+	
+	/**
+	 * Rotten Shaprtooth: funeralDate=-1M1D, description=gone, no additional name
+	 * Time bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test864AddCanibalRottenShaprtooth() throws Exception {
+		final String TEST_NAME = "test864AddCanibalRottenShaprtooth";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_SHARPTOOTH_USERNAME, "-P1M1D", true), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		// Time is not up for tales bomb to explode.
+        		.assertNoItem(PIRACY_TALES)
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+        		.assertTriggers(2)
+        		.by()
+        			.originDescription("tales bomb")
+    			.find()
+	    			// Trigger from tales bomb. We have Kaboomed, the time constraint has activated
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+		    		.assertTimestampFuture(funeralTimestamp, "P3M", 1*24*60*60*1000L)
+		    		.end()
+	    		.by()
+        			.originDescription("loot bomb")
+    			.find()
+	    			// Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+		    		.assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
+	}
+	
+	/**
+	 * Rotten Orangeskin: funeralDate=-3M1D, description=gone, no additional name
+	 * Time bomb should explode, tales bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test866AddCanibalRottenOrangeskin() throws Exception {
+		final String TEST_NAME = "test866AddCanibalRottenOrangeskin";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_ORANGESKIN_USERNAME, "-P3M1D", true), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+        		// Additional name is Kaboom! and time is up
+        		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Description does not match, condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+	    		.single()
+		    		// Trigger from loot bomb. We have Kaboomed and we have the right description, the time constraint has activated
+		    		.assertHandlerUri(RecomputeTriggerHandler.HANDLER_URI)
+		    		.assertTimestampFuture(funeralTimestamp, "P1Y", 1*24*60*60*1000L);
+	}
+	
+	/**
+	 * Rotten Cherrybrain: funeralDate=-1Y1D, description=gone, no additional name
+	 * Time bomb should explode, tales bomb should explode
+	 * but not loot bomb, the condition is not satisfied
+	 * MID-4630
+	 */
+	@Test
+    public void test868AddCanibalRottenCherrybrain() throws Exception {
+		final String TEST_NAME = "test868AddCanibalRottenCherrybrain";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(createCannibal(CANNIBAL_CHERRYBRAIN_USERNAME, "-P1Y1D", true), task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+	        	// Additional name is Kaboom! and time is up
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Time is up. But description does not match and condition is false. No loot.
+        		.assertNoItem(PIRACY_LOOT)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. We are already after timeFrom.
+	    		.assertNone();        
+	}
+	
+	/**
+	 * Rotten Pineapplenose: funeralDate=-1Y1D, no description, no additional name, givenName=Lootjack
+	 * Time bomb should explode, tales bomb should explode, loot bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test869AddCanibalRottenPineapplenose() throws Exception {
+		final String TEST_NAME = "test869AddCanibalRottenPineapplenose";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(
+        		createCannibal(CANNIBAL_PINEAPPLENOSE_USERNAME, "-P1Y1D", true)
+        			.asObjectable().givenName("Lootjack").asPrismObject(),
+        		task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// Time bomb exploded
+        	.assertAdditionalName("Kaboom!")
+        	.extension()
+	        	// Additional name is Kaboom! and time is up
+	    		.assertPropertyValuesEqual(PIRACY_TALES, "Once upon a time")
+        		// Time is up. Description matches and condition is true.
+        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. Description does not match.
+        		// And we are already after timeFrom anyway.
+	    		.assertNone();        
+	}
+	
+	/**
+	 * Rotten Potatoleg: no funeralDate, rotten description, no additional name, givenName=Lootjack
+	 * Time bomb does not explode, tales bomb does not explode, loot bomb should explode
+	 * MID-4630
+	 */
+	@Test
+    public void test870AddCanibalRottenPotatoleg() throws Exception {
+		final String TEST_NAME = "test870AddCanibalRottenPotatoleg";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        // WHEN
+        String userOid = addObject(
+        		createCannibal(CANNIBAL_POTATOLEG_USERNAME, null, true)
+        			.asObjectable().givenName("Lootjack").asPrismObject(),
+        		task, result);
+
+        // THEN
+        assertSuccess(result);
+        
+        assertUserAfter(userOid)
+        	// No funeralTime, no explosion
+        	.assertNoAdditionalName()
+        	.extension()
+	        	// No kaboom, no explosion
+	    		.assertNoItem(PIRACY_TALES)
+        		// No funeral time, description matches and condition is true.
+        		.assertPropertyValuesEqual(PIRACY_LOOT, 1000000)
+        		.end()
+        	.triggers()
+        		// No trigger for loot bomb. Description does not match.
+        		// And we are already after timeFrom anyway.
+	    		.assertNone();        
+	}
+	
+	private PrismObject<UserType> createCannibal(String name, String funeralDateOffset, boolean rotten) throws SchemaException {
+		String username = rotten ? "rotten-" + name : name;
+		String fullname = (rotten ? "Cannibal Rotten " : "Cannibal ") + StringUtils.capitalize(name);
+		PrismObject<UserType> user = createUser(username, fullname);
+		user.asObjectable().givenName(StringUtils.capitalize(name));
+		if (rotten) {
+			user.asObjectable().setDescription("The fruit is gone");
+		}
+		if (funeralDateOffset != null) {
+			XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+			XMLGregorianCalendar funeralDate;
+			if (funeralDateOffset.isEmpty()) {
+				funeralDate = now;
+			} else {
+				funeralDate = XmlTypeConverter.addDuration(now, funeralDateOffset);
+			}
+			funeralTimestamp = funeralDate;
+			user.createExtension().setPropertyRealValue(PIRACY_FUNERAL_TIMESTAMP, funeralDate);
+		}
+		return user;
 	}
 
 	@Test

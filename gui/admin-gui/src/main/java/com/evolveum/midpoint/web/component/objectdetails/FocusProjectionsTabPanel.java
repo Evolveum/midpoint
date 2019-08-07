@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,9 +39,11 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.component.PendingOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.ShadowWrapper;
@@ -48,6 +51,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWithDetailsPanel;
+import com.evolveum.midpoint.gui.impl.component.ProjectionDisplayNamePanel;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismReferenceWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
@@ -56,6 +60,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
+import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -72,6 +77,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -104,6 +110,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
@@ -287,7 +294,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			protected DisplayNamePanel<ShadowType> createDisplayNamePanel(String displayNamePanelId) {
 				ItemRealValueModel<ShadowType> displayNameModel = 
 						new ItemRealValueModel<ShadowType>(item.getModel());
-				return new DisplayNamePanel<ShadowType>(displayNamePanelId, displayNameModel) {
+				return new ProjectionDisplayNamePanel(displayNamePanelId, displayNameModel) {
 					
 					@Override
 					protected IModel<String> getKindIntentLabelModel() {
@@ -298,10 +305,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 					protected IModel<List<String>> getDescriptionLabelsModel() {
 						List<String> descriptionLabels = new ArrayList<String>();
 						descriptionLabels.add(WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase()).getObject());
-						String pendingOperations = WebComponentUtil.getPendingOperationsLabels(getModelObject(), this);
-						if(pendingOperations != null) {
-							descriptionLabels.add(pendingOperations);
-						}
 						return new IModel<List<String>>() {
 
 							@Override
@@ -479,6 +482,23 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 			public String getCssClass()
 			{
 				return "col-xs-2";
+			}
+			
+			@Override
+			protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
+				IW object = rowModel.getObject();
+				List<PrismValueWrapper<PendingOperationType, PrismValue>> values = object.getValues();
+				List<PendingOperationType> pendingOperations = new ArrayList<PendingOperationType>();
+				values.forEach(value -> {
+					pendingOperations.add(value.getRealValue());
+				});
+				return new PendingOperationPanel(componentId, new IModel<List<PendingOperationType>>() {
+
+					@Override
+					public List<PendingOperationType> getObject() {
+						return pendingOperations;
+					}
+				});
 			}
 		});
 		
