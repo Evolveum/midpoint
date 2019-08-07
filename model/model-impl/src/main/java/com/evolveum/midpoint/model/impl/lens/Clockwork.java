@@ -182,6 +182,7 @@ public class Clockwork {
 
 			int clicked = 0;
 			boolean focusConflictPresent = false;
+			ConflictResolutionType conflictResolutionPolicy = null;
 			HookOperationMode finalMode;
 
 			try {
@@ -217,7 +218,8 @@ public class Clockwork {
 				// One last click in FINAL state
 				finalMode = click(context, task, result);
 				if (finalMode == HookOperationMode.FOREGROUND) {
-					focusConflictPresent = checkFocusConflicts(context, task, result);
+					conflictResolutionPolicy = ModelImplUtils.getConflictResolution(context);
+					focusConflictPresent = checkFocusConflicts(context, conflictResolutionPolicy, task, result);
 				}
 			} finally {
 				context.unregisterConflictWatchers(repositoryService);
@@ -231,7 +233,7 @@ public class Clockwork {
 			// intentionally outside the "try-finally" block to start with clean caches
 			if (focusConflictPresent) {
 				assert finalMode == HookOperationMode.FOREGROUND;
-				finalMode = resolveFocusConflict(context, task, result);
+				finalMode = resolveFocusConflict(context, conflictResolutionPolicy, task, result);
 			} else if (context.getConflictResolutionAttemptNumber() > 0) {
 				LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
 			}
@@ -340,10 +342,11 @@ public class Clockwork {
 		return context;
 	}
 
-
-	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
+	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, ConflictResolutionType resolutionPolicy,
+            Task task, OperationResult result) {
 		ConflictWatcher watcher = context.getFocusConflictWatcher();
-		if (watcher != null && repositoryService.hasConflict(watcher, result)) {
+		if (watcher != null && resolutionPolicy != null && resolutionPolicy.getAction() != ConflictResolutionActionType.NONE &&
+				repositoryService.hasConflict(watcher, result)) {
 			LOGGER.debug("Found modify-modify conflict on {}", watcher);
 			return true;
 		} else {
@@ -351,10 +354,10 @@ public class Clockwork {
 		}
 	}
 
-	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context, Task task, OperationResult result)
+	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context,
+			ConflictResolutionType resolutionPolicy, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
 			CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-		ConflictResolutionType resolutionPolicy = ModelImplUtils.getConflictResolution(context);
 		if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
 			return HookOperationMode.FOREGROUND;
 		}
