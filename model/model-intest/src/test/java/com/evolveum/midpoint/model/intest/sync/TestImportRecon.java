@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -84,18 +85,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -214,7 +203,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     protected static final File TASK_RECONCILE_DUMMY_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-dummy-single.xml");
     protected static final String TASK_RECONCILE_DUMMY_SINGLE_OID = "10000000-0000-0000-5656-565600000004";
 
-	protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
+    protected static final File TASK_RECONCILE_DUMMY_FILTER_FILE = new File(TEST_DIR, "task-reconcile-dummy-filter.xml");
+    protected static final String TASK_RECONCILE_DUMMY_FILTER_OID = "10000000-0000-0000-5656-565600000014";
+
+
+    protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
 	protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
 
 	protected static final File TASK_RECONCILE_DUMMY_LIME_FILE = new File(TEST_DIR, "task-reconcile-dummy-lime.xml");
@@ -2548,6 +2541,37 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
         assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
 	}
+
+    /**
+     * This should reconcile only accounts matched by filter
+     */
+    @Test
+    public void test520ReconResourceDummyFilter() throws Exception {
+        final String TEST_NAME = "test520ReconResourceDummyFilter";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        // Preconditions
+        assertUsers(getNumberOfUsers() + 12);
+
+        loginImportUser();
+
+        dummyAuditService.clear();
+        rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
+
+        // WHEN
+        displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER_FILE);
+
+
+        Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER_OID, true, 40000);
+        OperationStatsType statistics = taskAfter.getStoredOperationStats();
+        SynchronizationInformationType syncInfo = statistics.getSynchronizationInformation();
+        assertEquals(17 - 3 - 2, syncInfo.getCountLinked());  //total (17) - filtered (3)- protectected (2)
+    }
 
 	@Test
     public void test600SearchAllDummyAccounts() throws Exception {

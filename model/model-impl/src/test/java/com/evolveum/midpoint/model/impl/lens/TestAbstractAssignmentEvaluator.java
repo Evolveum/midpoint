@@ -214,7 +214,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		ObjectDeltaObject<UserType> userOdo = createUserOdo(user, userDelta);
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
+		display("Assignment old", assignmentType);
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+		assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
 		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
 		assignmentIdi.recompute();
 		display("Assignment IDI", assignmentIdi);
@@ -277,6 +279,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 		AssignmentEvaluator<UserType> assignmentEvaluator = createAssignmentEvaluator(userOdo);
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi = createAssignmentIdi(assignmentType);
+		assignmentIdi.setResolvePath(UserType.F_ASSIGNMENT);
 		assignmentIdi.setSubItemDeltas(userDelta.getModifications());
 		assignmentIdi.recompute();
 
@@ -956,6 +959,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> createAssignmentIdi(AssignmentType assignmentType) throws SchemaException {
-		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType), getAssignmentDefinition());
+		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), getAssignmentDefinition());
 	}
 }

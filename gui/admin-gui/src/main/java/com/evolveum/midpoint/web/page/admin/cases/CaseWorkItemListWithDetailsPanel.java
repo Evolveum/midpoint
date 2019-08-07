@@ -96,7 +96,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         };
         getDetailsPanelContainer().add(cancelButton);
 
-        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(unwrapPanelModel())){
+        CaseWorkItemType workItem = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
+        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(workItem)){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -116,6 +117,10 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
 
         };
         actionsPanel.setOutputMarkupId(true);
+        actionsPanel.add(new VisibleBehaviour(() -> {
+            CaseWorkItemType workItemSelected = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
+            return workItemSelected != null && workItemSelected.getCloseTimestamp() == null;
+        }));
         getDetailsPanelContainer().add(actionsPanel);
     }
 

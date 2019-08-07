@@ -246,7 +246,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 
 		};
 		actionsPanel.setOutputMarkupId(true);
-		actionsPanel.add(new VisibleBehaviour(() -> !SchemaConstants.CASE_STATE_CLOSED.equals(caseModel.getObject().getState())));
+		actionsPanel.add(new VisibleBehaviour(() -> caseWorkItemModel.getObject().getCloseTimestamp() == null));
 		add(actionsPanel);
 
 	}

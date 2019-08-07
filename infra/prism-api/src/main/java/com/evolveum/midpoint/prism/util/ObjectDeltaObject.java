@@ -376,7 +376,8 @@ public class ObjectDeltaObject<O extends Objectable> extends ItemDeltaItem<Prism
 			}
 		}
 		dumpObject(sb, newObject, "new", indent +1);
-		DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "definition", definition, indent + 1);
 		return sb.toString();
 	}
 

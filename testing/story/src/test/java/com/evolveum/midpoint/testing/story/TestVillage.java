@@ -262,7 +262,7 @@ public class TestVillage extends AbstractStoryTest {
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
 
-		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
+		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 
 	}
 

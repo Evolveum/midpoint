@@ -118,7 +118,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 //		InternalMonitor.setTraceResourceSchemaOperations(true);
-		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
+		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 	}
 
 	@Test
