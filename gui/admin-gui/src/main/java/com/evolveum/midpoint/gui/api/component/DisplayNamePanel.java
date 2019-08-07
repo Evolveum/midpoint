@@ -64,7 +64,6 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C>{
     private final static String ID_KIND_INTENT = "kindIntent";
     private final static String ID_DESCRIPTION = "description";
     private final static String ID_DESCRIPTION_LABELS = "descriptionLabels";
-    private final static String ID_PENDING_OPERATION = "pendingOperation";
     private final static String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
 
 	public DisplayNamePanel(String id, IModel<C> model) {
