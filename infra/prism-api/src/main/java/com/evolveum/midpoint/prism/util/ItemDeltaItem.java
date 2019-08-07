@@ -232,10 +232,12 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 //	}
 
 	public void recompute() throws SchemaException {
+		if (delta == null && (subItemDeltas == null || subItemDeltas.isEmpty())) {
+			itemNew = itemOld;
+			return;
+		}
 		if (delta != null) {
 			itemNew = delta.getItemNewMatchingPath(itemOld);
-		} else {
-			itemNew = itemOld;
 		}
 		if (subItemDeltas != null && !subItemDeltas.isEmpty()) {
 			if (itemNew == null) {
@@ -546,6 +548,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 		DebugUtil.debugDumpWithLabelLn(sb, "itemOld", itemOld, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "delta", delta, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "itemNew", itemNew, indent + 1);
+		DebugUtil.debugDumpWithLabelLn(sb, "subItemDeltas", subItemDeltas, indent + 1);
 		DebugUtil.debugDumpWithLabelLn(sb, "definition", definition, indent + 1);
 		DebugUtil.debugDumpWithLabelToStringLn(sb, "resolvePath", resolvePath, indent + 1);
 		DebugUtil.debugDumpWithLabelToString(sb, "residualPath", residualPath, indent + 1);
