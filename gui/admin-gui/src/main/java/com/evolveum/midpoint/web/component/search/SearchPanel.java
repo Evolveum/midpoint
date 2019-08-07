@@ -200,25 +200,24 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public boolean isEnabled() {
-                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
-                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
-                    return true;
-                }
-                return false;
+                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
+                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
+                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlagroundAccessible));
            }
 
 			@Override
 			public boolean isVisible() {
-				return SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
-                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType());
-			}
+                return (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
+                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())
+                        || (SearchBoxModeType.ADVANCED.equals(getModelObject().getSearchType()) && !queryPlagroundAccessible));
+            }
 		});
         searchSimple.setOutputMarkupId(true);
         searchContainer.add(searchSimple);
 
 		WebMarkupContainer searchDropdown = new WebMarkupContainer(ID_SEARCH_DROPDOWN);
 		searchDropdown.add(new VisibleEnableBehaviour() {
-			
+
 			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isVisible() {
@@ -247,8 +246,8 @@ public class SearchPanel extends BasePanel<Search> {
 			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isEnabled() {
-                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType()) ||
-                        SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
+                if (SearchBoxModeType.BASIC.equals(getModelObject().getSearchType())
+                        || SearchBoxModeType.FULLTEXT.equals(getModelObject().getSearchType())) {
                     return true;
                 }
 
