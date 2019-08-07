@@ -19,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +31,13 @@ public class TaskErrorDto implements Serializable {
     public static final String F_OBJECT_REF_NAME = "objectRefName";
     public static final String F_STATUS = "status";
     public static final String F_MESSAGE = "message";
+    public static final String F_ERROR_TIMESTAMP = "errorTimestamp";
 
     private String objectRefName;
     private OperationResultStatusType status;
     private String message;
     private String taskOid;
+    private XMLGregorianCalendar errorTimestamp;
 
     public TaskErrorDto() {
     }
@@ -48,6 +51,7 @@ public class TaskErrorDto implements Serializable {
             }
             status = execution.getStatus();
             message = extractMessages(execution);
+            errorTimestamp = execution.getTimestamp();
         }
     }
 
@@ -65,5 +69,9 @@ public class TaskErrorDto implements Serializable {
             messages.add(result.getMessage());
         }
         return StringUtils.join(messages, "; ");
+    }
+
+    public XMLGregorianCalendar getErrorTimestamp() {
+        return errorTimestamp;
     }
 }

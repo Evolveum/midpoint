@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -2564,8 +2565,15 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER_FILE);
-
+        // runPrivileged is necessary for TestImportReconAuthorizations as importObjectFromFile() is using raw operations
+        runPrivileged(() -> {
+        	try {
+				importObjectFromFile(TASK_RECONCILE_DUMMY_FILTER_FILE);
+			} catch (FileNotFoundException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+        	return null;
+        });
 
         Task taskAfter = waitForTaskFinish(TASK_RECONCILE_DUMMY_FILTER_OID, true, 40000);
         OperationStatsType statistics = taskAfter.getStoredOperationStats();

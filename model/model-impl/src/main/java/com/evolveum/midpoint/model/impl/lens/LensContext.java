@@ -21,7 +21,6 @@ import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -80,7 +79,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private ModelState state = ModelState.INITIAL;
 
-	@NotNull private final transient List<ConflictWatcher> conflictWatchers = new ArrayList<>();
+	private transient ConflictWatcher focusConflictWatcher;
 
 	private int conflictResolutionAttemptNumber;
 	
@@ -1425,20 +1424,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
 	}
 
-	@NotNull
-	public List<ConflictWatcher> getConflictWatchers() {
-		return conflictWatchers;
+	public ConflictWatcher getFocusConflictWatcher() {
+		return focusConflictWatcher;
 	}
 
-	public ConflictWatcher createAndRegisterConflictWatcher(String oid, RepositoryService repositoryService) {
-		ConflictWatcher watcher = repositoryService.createAndRegisterConflictWatcher(oid);
-		conflictWatchers.add(watcher);
-		return watcher;
+	public ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
+		if (focusConflictWatcher != null) {
+			throw new IllegalStateException("Focus conflict watcher defined twice");
+		}
+		return focusConflictWatcher = repositoryService.createAndRegisterConflictWatcher(oid);
 	}
 
 	public void unregisterConflictWatchers(RepositoryService repositoryService) {
-		conflictWatchers.forEach(w -> repositoryService.unregisterConflictWatcher(w));
-		conflictWatchers.clear();
+		if (focusConflictWatcher != null) {
+			repositoryService.unregisterConflictWatcher(focusConflictWatcher);
+			focusConflictWatcher = null;
+		}
 	}
 	
 	public boolean hasProjectionChange() {

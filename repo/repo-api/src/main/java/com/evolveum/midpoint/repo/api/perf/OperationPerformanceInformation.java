@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.api.perf;
 
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryOperationPerformanceInformationType;
 
 import java.util.Locale;
@@ -24,7 +25,7 @@ import java.util.Locale;
 /**
  *  Experimental.
  */
-public class OperationPerformanceInformation implements ShortDumpable {
+public class OperationPerformanceInformation implements ShortDumpable, Cloneable {
 
 	private int invocationCount;
 	private int executionCount;
@@ -130,6 +131,14 @@ public class OperationPerformanceInformation implements ShortDumpable {
 			return String.format(Locale.US, "%.2f%%", 0.0);
 		} else {
 			return "NaN%";
+		}
+	}
+
+	public OperationPerformanceInformation clone() {
+		try {
+			return (OperationPerformanceInformation) super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new SystemException(e);
 		}
 	}
 }

@@ -1638,7 +1638,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
 
 	@Override
-	public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
+	public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
 		return repositoryService.createAndRegisterConflictWatcher(oid);
 	}
 

@@ -330,7 +330,8 @@
 								If true then the connector ensures that the token value provided in each sync delta
 								is precise enough to guarantee correct restart of live sync after given delta.
 								(Some connectors provide token value of e.g. current timestamp, so they cannot distinguish
-								individual deltas.)
+								individual deltas. Others provide correct token values but do not guarantee correct ordering
+								of these deltas.)
 
 								EXPERIMENTAL
 							</xsd:documentation>
