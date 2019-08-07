@@ -1,0 +1,10 @@
+<query>
+    <filter>
+        <substring>
+            <matching>polyStringNorm</matching>     <!-- normalized (case insensitive) -->
+            <path>name</path>
+            <value>a</value>
+            <anchorStart>true</anchorStart>         <!-- should start with a given string -->
+        </substring>
+    </filter>
+</query>

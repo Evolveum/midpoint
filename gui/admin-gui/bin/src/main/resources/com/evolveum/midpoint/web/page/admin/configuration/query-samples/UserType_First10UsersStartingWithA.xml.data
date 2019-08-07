@@ -1,0 +1,15 @@
+<query>
+    <filter>
+        <substring>
+            <matching>polyStringNorm</matching>         <!-- normalized (case insensitive) -->
+            <path>name</path>
+            <value>a</value>
+            <anchorStart>true</anchorStart>             <!-- should start with a given string -->
+        </substring>
+    </filter>
+    <paging>    <!-- note this is NOT to be used in Advanced search box in GUI -->
+        <orderBy>name</orderBy>
+        <orderDirection>ascending</orderDirection>  <!-- this is the default -->
+        <maxSize>10</maxSize>
+    </paging>
+</query>

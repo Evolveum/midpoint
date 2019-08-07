@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <table class="table table-condensed table-striped">
+        <tr>
+            <td><wicket:message key="TaskStatePanel.executionTime"/></td>
+            <td><span wicket:id="executionTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.objectsProcessedSuccess"/></td>
+            <td><b><span wicket:id="objectsProcessedSuccess"/></b> <span wicket:id="objectsProcessedSuccessTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedSuccess"/></td>
+            <td><b><span wicket:id="lastObjectProcessedSuccess"/></b><br/>
+            <span wicket:id="lastObjectProcessedSuccessTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.objectsProcessedFailure"/></td>
+            <td><b><span wicket:id="objectsProcessedFailure"/></b> <span wicket:id="objectsProcessedFailureTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastObjectProcessedFailure"/></td>
+            <td><b><span wicket:id="lastObjectProcessedFailure"/></b><br/>
+                <span wicket:id="lastObjectProcessedFailureTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.lastError"/></td>
+            <td><span wicket:id="lastError"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.currentObjectProcessed"/></td>
+            <td><b><span wicket:id="currentObjectProcessed"/></b><br/>
+                <span wicket:id="currentObjectProcessedTime"/></td>
+        </tr>
+        <tr>
+            <td><wicket:message key="TaskStatePanel.objectsTotal"/></td>
+            <td><span wicket:id="objectsTotal"/></td>
+        </tr>
+    </table>
+</wicket:panel>
+</html>

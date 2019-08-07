@@ -1,0 +1,20 @@
+<!-- Please replace OIDs in targetRef by real OIDs of org being unassigned and assigned -->
+<mappingExecutionRequest>
+	<sourceContext>
+		<objectRef oid="00000000-0000-0000-0000-000000000002" type="UserType"/>
+		<delta>
+			<changeType>modify</changeType>
+			<objectType>UserType</objectType>
+			<itemDelta>
+				<modificationType>add</modificationType>
+				<path>parentOrgRef</path>
+				<value oid="73dd4b6f-088a-4bfb-b12d-5a9ce058c8a5" type="OrgType"/>
+			</itemDelta>
+			<itemDelta>
+				<modificationType>add</modificationType>
+				<path>parentOrgRef</path>
+				<value oid="d1bb0eaf-3cc0-4cfd-99ec-6c000c7349ba" type="OrgType"/>
+			</itemDelta>
+		</delta>
+	</sourceContext>
+</mappingExecutionRequest>

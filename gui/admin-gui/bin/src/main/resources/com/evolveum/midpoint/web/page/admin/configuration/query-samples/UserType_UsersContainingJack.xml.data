@@ -1,0 +1,9 @@
+<query>
+    <filter>
+        <substring>
+            <matching>polyStringNorm</matching>         <!-- don't distinguish JACK, jack, j.a.c.k. etc -->
+            <path>name</path>
+            <value>jack</value>
+        </substring>
+    </filter>
+</query>

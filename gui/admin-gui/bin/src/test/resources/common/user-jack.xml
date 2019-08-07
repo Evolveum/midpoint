@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user oid="b5541d3c-b2fd-11e5-88c0-4f82a8602266"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
+      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+      xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>jack</name>
+    <extension>
+        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
+        <piracy:weapon>pistol</piracy:weapon>
+        <piracy:weapon>mouth</piracy:weapon>
+        <piracy:badLuck>0</piracy:badLuck>
+    </extension>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
+        <validTo>2013-12-31T22:59:00.000+01:00</validTo>
+    </activation>
+    <fullName>Jack Sparrow</fullName>
+    <givenName>Jack</givenName>
+    <familyName>Sparrow</familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
+    <title>Captain</title>
+    <employeeNumber>001</employeeNumber>
+    <employeeType>CAPTAIN</employeeType>
+    <locality>Caribbean</locality>
+    <credentials>
+        <password>
+        	<value>
+	            <clearValue>deadmentellnotales</clearValue>
+            </value>
+        </password>
+    </credentials>
+</user>

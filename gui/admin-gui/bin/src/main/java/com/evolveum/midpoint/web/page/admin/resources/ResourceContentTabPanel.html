@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+	<div class="row form-horizontal resource-content-selection">
+		<div class="col-md-7">
+			<div class="form-group">
+				<wicket:enclosure child="intent">
+					<label class="col-md-2 control-label"><wicket:message key="ShadowType.intent"/></label>
+					<div class="col-md-4" wicket:id="intent" />
+					<wicket:enclosure child="realObjectClass">
+						<span class="col-md-6 control-label control-suffix">(<wicket:message key="ShadowType.objectClass"/>: <span wicket:id="realObjectClass"/>)</span>
+					</wicket:enclosure>
+				</wicket:enclosure>
+				<wicket:enclosure child="objectClass">
+					<label class="col-md-2 control-label"><wicket:message key="ShadowType.objectClass"/></label>
+					<div class="col-md-10" wicket:id="objectClass" />
+				</wicket:enclosure>
+			</div>
+		</div>
+
+		<div class="col-md-1"></div>
+
+		<div class="col-md-4">
+			<div class="form-group">
+				<label class="col-md-4 control-label"><wicket:message key="ResourceContentTabPanel.searchType" /></label>
+				<div class="btn-group col-md-6">
+					<a class="btn btn-sm btn-default" wicket:id="repositorySearch">
+						<wicket:message key="ResourceContentTabPanel.searchType.repository" />
+					</a>
+					<a class="btn btn-sm btn-default" wicket:id="resourceSearch">
+						<wicket:message key="ResourceContentTabPanel.searchType.resource" />
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-12">
+			<form wicket:id="mainForm">
+				<div wicket:id="table" />
+			</form>
+		</div>
+	</div>
+</wicket:panel>
+</html>

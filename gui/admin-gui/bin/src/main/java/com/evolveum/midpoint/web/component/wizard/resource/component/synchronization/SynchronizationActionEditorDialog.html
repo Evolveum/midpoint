@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="content">
+
+        <form wicket:id="mainForm" class="form-horizontal" style="margin: 15px">
+            <div wicket:id="name" class="form-group" />
+            <div wicket:id="description" class="form-group" />
+            <div wicket:id="handlerUri" class="form-group" />
+            <div wicket:id="order" class="form-group" />
+
+            <!-- TODO - add editor for action parameters (SynchronizationActionType.Parameters) -->
+
+            <div class="main-button-bar">
+                <p align="right">
+                    <a wicket:id="saveButton" class="btn btn-primary btn-sm" >
+                        <span><wicket:message key="SynchronizationActionEditorDialog.button.apply" /></span>
+                    </a>
+                    <a wicket:id="cancelButton" class="btn btn-default btn-sm" >
+                        <span><wicket:message key="SynchronizationActionEditorDialog.button.cancel" /></span>
+                    </a>
+                </p>
+            </div>
+        </form>
+
+    </div>
+</wicket:panel>

@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label wicket:id="descriptionLabel"></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="5"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label wicket:id="typeLabel"></label>
+            <i wicket:id="typeTooltip" wicket:message="title:ResourceWizard.expression.tooltip.type"/>
+        </dt>
+        <dd>
+            <select wicket:id="type" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal" wicket:id="languageContainer">
+        <dt>
+            <label><wicket:message key="ExpressionEditorPanel.label.language" /></label>
+            <i wicket:id="languageTooltip" wicket:message="title:ResourceWizard.expression.tooltip.language"/>
+        </dt>
+        <dd>
+            <select wicket:id="language" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal" wicket:id="policyRefContainer">
+        <dt>
+            <label><wicket:message key="ExpressionEditorPanel.label.valuePolicyRef" /></label>
+            <i wicket:id="policyRefTooltip" wicket:message="title:ResourceWizard.expression.tooltip.policyRef"/>
+        </dt>
+        <dd>
+            <select wicket:id="policyRef" class="form-control input-sm"></select>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label wicket:id="expressionLabel"></label>
+            <i wicket:id="expressionTooltip" wicket:message="title:ResourceWizard.expression.tooltip.expression"/>
+        </dt>
+        <dd>
+            <textarea wicket:id="expression" class="form-control input-sm" rows="5"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label></label>
+        </dt>
+        <dd>
+            <a wicket:id="update" class="btn btn-success">
+                <span><label wicket:id="updateLabel"></label></span>
+            </a>
+        </dd>
+    </dl>
+
+</wicket:panel>
+</html>
+

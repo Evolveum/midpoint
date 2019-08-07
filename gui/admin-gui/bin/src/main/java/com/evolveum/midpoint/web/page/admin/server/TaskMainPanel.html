@@ -1,0 +1,40 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+	<form wicket:id="mainForm" class="form-horizontal">
+		<div wicket:id="tabPanel" class="nav-tabs-custom" />
+        <div wicket:id="buttonPanel" class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back" />
+                <a class="btn btn-default" wicket:id="cancelEditing" />
+            </span>
+            <span class="button-group">
+                <a class="btn btn-primary" wicket:id="save"/>
+                <a class="btn btn-primary" wicket:id="edit"/>
+            </span>
+
+            <a class="btn btn-danger" wicket:id="suspend" />
+            <a class="btn btn-success" wicket:id="resume" />
+            <a class="btn btn-success" wicket:id="runNow" />
+            <a class="btn btn-danger" wicket:id="stopApproval" />
+        </div>
+	</form>
+</wicket:panel>
+</body>
+</html>

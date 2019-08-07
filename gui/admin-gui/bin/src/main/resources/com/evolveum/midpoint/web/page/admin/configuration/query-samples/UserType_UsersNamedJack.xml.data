@@ -1,0 +1,9 @@
+<query>
+    <filter>
+        <equal>
+            <matching>polyStringNorm</matching>         <!-- normalized (case insensitive) -->
+            <path>givenName</path>
+            <value>jack</value>
+        </equal>
+    </filter>
+</query>

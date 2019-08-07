@@ -1,0 +1,52 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SearchFilterPanel.label.description" /></label>
+        </dt>
+        <dd>
+            <textarea wicket:id="description" class="form-control input-sm" rows="2"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label><wicket:message key="SearchFilterPanel.label.filterClause" /></label>
+            <i wicket:id="filterClauseTooltip" wicket:message="title:SchemaHandlingStep.tooltip.filterClause"/>
+        </dt>
+        <dd>
+            <textarea wicket:id="filterClause" class="form-control input-sm" rows="10"></textarea>
+        </dd>
+    </dl>
+
+    <dl class="dl-horizontal">
+        <dt>
+            <label></label>
+        </dt>
+        <dd>
+            <a wicket:id="update" class="btn btn-success">
+                <span><wicket:message key="SearchFilterPanel.button.update" /></span>
+            </a>
+        </dd>
+    </dl>
+
+</wicket:panel>
+</html>

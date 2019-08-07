@@ -1,0 +1,28 @@
+<!-- This mapping derives a value from parent organization's name.
+     It is used here to demonstrate derivation of LDAP distinguished name
+     based on the name of parent organization (and its parent and its parent) -->
+<mapping>
+	<source>
+		<path>parentOrgRef</path>
+	</source>
+	<source>
+		<path>name</path>
+	</source>
+	<expression>
+		<script>
+			<code>
+				org1 = parentOrgRef != null ? midpoint.getOrgByOid(parentOrgRef?.oid) : null
+				org2 = org1?.parentOrgRef ? midpoint.getOrgByOid(org1?.parentOrgRef.get(0).oid) : null
+				org3 = org2?.parentOrgRef ? midpoint.getOrgByOid(org2?.parentOrgRef.get(0).oid) : null
+
+				'uid=' + name +
+				(org1 ? ',ou=' + org1?.name : '') +
+				(org2 ? ',ou=' + org2?.name : '') +
+				(org3 ? ',ou=' + org3?.name : '') + ',dc=example,dc=com'
+			</code>
+		</script>
+	</expression>
+	<target>
+		<path>description</path>
+	</target>
+</mapping>

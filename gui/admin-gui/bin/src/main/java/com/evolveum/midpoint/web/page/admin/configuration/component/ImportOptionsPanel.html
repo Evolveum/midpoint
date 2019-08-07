@@ -1,0 +1,79 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><wicket:message key="ImportOptionsPanel.options"/></label>
+
+        <div class="col-lg-10">
+            <div>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="protectedByEncryption" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.protectedByEncryption"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="fetchResourceSchema" type="checkbox" name="optionsRadios">
+                    <wicket:message key="importOptionsPanel.fetchResourceSchema"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="keepOid" type="checkbox" name="optionsRadios">
+                    <wicket:message key="importOptionsPanel.keepOid"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="overwriteExistingObject" type="checkbox" name="optionsRadios">
+                    <wicket:message key="importOptionsPanel.overwriteExistingObject"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="referentialIntegrity" type="checkbox" name="optionsRadios">
+                    <wicket:message key="importOptionsPanel.referentialIntegrity"/>
+                </label>
+            </div>
+            <div>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="summarizeErrors" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.summarizeErrors"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="summarizeSuccesses" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.summarizeSuccesses"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="validateDynamicSchema" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.validateDynamicSchema"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="validateStaticSchema" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.validateStaticSchema"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="fullProcessing" type="checkbox" name="optionsRadios" checked>
+                    <wicket:message key="importOptionsPanel.fullProcessing"/>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
+
+        <div class="col-lg-1">
+            <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
+                   class="form-control input-sm">
+        </div>
+    </div>
+</wicket:panel>
+</html>

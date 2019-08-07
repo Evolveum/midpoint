@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
+<body>
+	<wicket:panel>
+		<div wicket:id="resourcePopup" />
+		<!--<div wicket:id="assignablePopup" />
+		<div wicket:id="assignableOrgPopup" />-->
+		<div wicket:id="addOrgPopup" />
+
+		<div wicket:id="confirmDeleteOrgPopup" />
+		<div wicket:id="confirmDeleteShadowPopup" />
+		<div wicket:id="confirmDeleteAssignmentPopup" />
+
+		<div wicket:id="assignmentsPreviewPopup" />
+
+		<div class="row">
+			<div class="col-md-6">
+				<div wicket:id="focusForm" />
+			</div>
+			<div class="col-md-6">
+				<div wicket:id="shadows">
+					<div class="row assignable-header">
+						<div class="col-xs-10">
+							<input type="checkbox" wicket:id="shadowCheckAll" />
+							<h3>
+								<wicket:message key="pageAdminFocus.projections" />
+							</h3>
+						</div>
+						<div class="col-xs-2 cog" wicket:id="shadowMenu"
+							about="shadowMenu" />
+					</div>
+					<div wicket:id="shadowList">
+						<div wicket:id="shadow" />
+					</div>
+				</div>
+				
+				<div wicket:id="orgs">
+					<div class="row assignable-header">
+						<div class="col-xs-10">
+							<input type="checkbox" wicket:id="orgCheckAll" />
+							<h3>
+								<wicket:message key="pageAdminFocus.organizations" />
+							</h3>
+						</div>
+						<div class="col-xs-2 cog" wicket:id="orgMenu"
+							about="orgMenu" />
+					</div>
+					<div wicket:id="orgList">
+						<div wicket:id="org" />
+					</div>
+				</div>
+
+				<div class="row assignable-header">
+					<div wicket:id="assignmentsContainer" about="assignmentsContainer">
+						<div wicket:id="assignmentsPanel" />
+					</div>
+				</div>
+
+                <div wicket:id="tasks">
+                    <h3><wicket:message key="pageUser.tasks"/></h3>
+                    <div wicket:id="taskTable"/>
+                </div>
+			</div>
+		</div>
+		 
+	</wicket:panel>
+</body>
+</html>
+

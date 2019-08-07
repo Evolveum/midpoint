@@ -1,0 +1,132 @@
+@font-face {
+  font-family: 'font-evosome';
+  src:  url('../fonts/font-evosome.eot?8leql6');
+  src:  url('../fonts/font-evosome.eot?8leql6#iefix') format('embedded-opentype'),
+    url('../fonts/font-evosome.ttf?8leql6') format('truetype'),
+    url('../fonts/font-evosome.woff?8leql6') format('woff'),
+    url('../fonts/font-evosome.svg?8leql6#font-evosome') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.fe {
+  display: inline-block;
+  font: normal normal normal 14px/1 font-evosome !important;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.fe-assignment:before {
+  content: "\e902";
+}
+.fe-midpoint-shorter-lines:before {
+  content: "\e903";
+}
+.fe-midpoint-wheel:before {
+  content: "\e904";
+}
+.fe-midpoint-with-lines:before {
+  content: "\e905";
+}
+.fe-role-hat:before {
+  content: "\e906";
+}
+.fe-role-tie:before {
+  content: "\e907";
+}
+.fe-role-top-hat:before {
+  content: "\e908";
+}
+.fe-assignment-thicker:before {
+  content: "\e909";
+}
+.fe-lock-object:before {
+  content: "\e90e";
+}
+.fe-action-draft:before {
+  content: "\e90d";
+}
+.fe-archetype_smooth:before {
+  content: "\e918";
+}
+.fe-crown-object:before {
+  content: "\e900";
+}
+.fe-manager-tie-object:before {
+  content: "\e90b";
+}
+.fe-approver-object:before {
+  content: "\e901";
+}
+.fe-policeman-object:before {
+  content: "\e90c";
+}
+.fe-action-assign:before {
+  content: "\e90f";
+}
+.fe-assign-horizontal-A:before {
+  content: "\e910";
+}
+.fe-assign-horizontal-B:before {
+  content: "\e911";
+}
+.fe-assignment-horizontal-slim:before {
+  content: "\e912";
+}
+.fe-assignment-horizontal-thick:before {
+  content: "\e90a";
+}
+.fe-assignment-45angle-nocircle:before {
+  content: "\e919";
+}
+.fe-unemployee-object:before {
+  content: "\e913";
+}
+.fe-employee-object .path1:before {
+  content: "\e914";
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path2:before {
+  content: "\e915";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path3:before {
+  content: "\e916";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
+}
+.fe-employee-object .path4:before {
+  content: "\e917";
+  margin-left: -1em;
+  color: rgb(0, 0, 0);
+}
+.fe-case:before {
+  content: "\e91a";
+}
+.fe-case-object:before {
+  content: "\e91a";
+}
+.fe-delegate:before {
+  content: "\e91b";
+}
+.fe-request-arrow:before {
+  content: "\e91c";
+}
+.fe-handy:before {
+  content: "\e91d";
+}
+.fe-no-line:before {
+  content: "\e91e";
+}
+.fe-slash:before {
+  content: "\e91e";
+}
+.fe-file:before {
+  content: "\e91f";
+}
+.fe-no-file:before {
+  content: "\e920";
+}

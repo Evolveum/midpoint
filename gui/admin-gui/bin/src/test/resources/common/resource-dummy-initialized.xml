@@ -1,0 +1,1008 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="10000000-0000-0000-0000-000000000004"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Resource</name>
+	<operationalState>
+      <lastAvailabilityStatus>up</lastAvailabilityStatus>
+   </operationalState>
+   <connectorRef oid="2dee34c1-5a1b-4c53-bbb2-7dd5d8f45533" type="c:ConnectorType"><!-- ICF com.evolveum.icf.dummy.connector.DummyConnector v2.0 -->
+      <filter>
+         <q:and>
+            <q:equal>
+               <q:path>connectorType</q:path>
+               <q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+            </q:equal>
+            <q:equal>
+               <q:path>connectorVersion</q:path>
+               <q:value>2.0</q:value>
+            </q:equal>
+         </q:and>
+      </filter>
+   </connectorRef>
+   <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+      <icfc:resultsHandlerConfiguration>
+         <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
+         <icfc:enableFilteredResultsHandler>false</icfc:enableFilteredResultsHandler>
+         <icfc:enableAttributesToGetSearchResultsHandler>false</icfc:enableAttributesToGetSearchResultsHandler>
+      </icfc:resultsHandlerConfiguration>
+      <icfc:configurationProperties xmlns:gen99="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
+         <gen99:requireExplicitEnable>true</gen99:requireExplicitEnable>
+         <gen99:instanceId/>
+         <gen99:varyLetterCase>true</gen99:varyLetterCase>
+         <gen99:uselessString>USEless</gen99:uselessString>
+         <gen99:uselessGuardedString>
+            <t:clearValue>whatever</t:clearValue>
+         </gen99:uselessGuardedString>
+      </icfc:configurationProperties>
+   </connectorConfiguration>
+   <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
+   <schema>
+      <cachingMetadata>
+         <retrievalTimestamp>2016-01-05T17:49:22.501+01:00</retrievalTimestamp>
+         <serialNumber>fe9cd8a89075d0a7-475cee6e30f0dbec</serialNumber>
+      </cachingMetadata>
+      <definition>
+         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                     elementFormDefault="qualified"
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
+            <xsd:complexType name="GroupObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__GROUP__</ra:nativeObjectClass>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="members"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>120</a:displayOrder>
+                           <ra:frameworkAttributeName>members</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="description" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>130</a:displayOrder>
+                           <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="cc" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>140</a:displayOrder>
+                           <ra:frameworkAttributeName>cc</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId Name</a:displayName>
+                           <a:displayOrder>110</a:displayOrder>
+                           <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId UID</a:displayName>
+                           <a:displayOrder>100</a:displayOrder>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="AccountObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>__ACCOUNT__</ra:nativeObjectClass>
+                     <ra:kind>account</ra:kind>
+                     <ra:default>true</ra:default>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" name="loot" type="xsd:int">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>120</a:displayOrder>
+                           <ra:frameworkAttributeName>loot</ra:frameworkAttributeName>
+                           <ra:returnedByDefault>false</ra:returnedByDefault>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="quote"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>130</a:displayOrder>
+                           <ra:frameworkAttributeName>quote</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="description" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>140</a:displayOrder>
+                           <ra:frameworkAttributeName>description</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="treasure" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>150</a:displayOrder>
+                           <ra:frameworkAttributeName>treasure</ra:frameworkAttributeName>
+                           <ra:returnedByDefault>false</ra:returnedByDefault>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="drink"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>160</a:displayOrder>
+                           <ra:frameworkAttributeName>drink</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="location" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>170</a:displayOrder>
+                           <ra:frameworkAttributeName>location</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="internalId" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>180</a:displayOrder>
+                           <ra:frameworkAttributeName>internalId</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="water" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>190</a:displayOrder>
+                           <ra:frameworkAttributeName>water</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element name="fullname" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>200</a:displayOrder>
+                           <ra:frameworkAttributeName>fullname</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="ship" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>210</a:displayOrder>
+                           <ra:frameworkAttributeName>ship</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="interests"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>220</a:displayOrder>
+                           <ra:frameworkAttributeName>interests</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId Name</a:displayName>
+                           <a:displayOrder>110</a:displayOrder>
+                           <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" name="sea" type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>230</a:displayOrder>
+                           <ra:frameworkAttributeName>sea</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="gossip"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>240</a:displayOrder>
+                           <ra:frameworkAttributeName>gossip</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="privileges"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>250</a:displayOrder>
+                           <ra:frameworkAttributeName>privileges</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="weapon"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>260</a:displayOrder>
+                           <ra:frameworkAttributeName>weapon</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element maxOccurs="unbounded"
+                               minOccurs="0"
+                               name="title"
+                               type="xsd:string">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>270</a:displayOrder>
+                           <ra:frameworkAttributeName>title</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId UID</a:displayName>
+                           <a:displayOrder>100</a:displayOrder>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+            <xsd:complexType name="CustomprivilegeObjectClass">
+               <xsd:annotation>
+                  <xsd:appinfo>
+                     <ra:resourceObject/>
+                     <ra:identifier>icfs:uid</ra:identifier>
+                     <ra:secondaryIdentifier>icfs:name</ra:secondaryIdentifier>
+                     <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                     <ra:namingAttribute>icfs:name</ra:namingAttribute>
+                     <ra:nativeObjectClass>privilege</ra:nativeObjectClass>
+                  </xsd:appinfo>
+               </xsd:annotation>
+               <xsd:sequence>
+                  <xsd:element minOccurs="0" name="power" type="xsd:int">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayOrder>120</a:displayOrder>
+                           <ra:frameworkAttributeName>power</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element ref="icfs:name">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId Name</a:displayName>
+                           <a:displayOrder>110</a:displayOrder>
+                           <ra:frameworkAttributeName>__NAME__</ra:frameworkAttributeName>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+                  <xsd:element minOccurs="0" ref="icfs:uid">
+                     <xsd:annotation>
+                        <xsd:appinfo>
+                           <a:displayName>ConnId UID</a:displayName>
+                           <a:displayOrder>100</a:displayOrder>
+                           <a:access>read</a:access>
+                        </xsd:appinfo>
+                     </xsd:annotation>
+                  </xsd:element>
+               </xsd:sequence>
+            </xsd:complexType>
+         </xsd:schema>
+      </definition>
+   </schema>
+   <schemaHandling>
+      <objectType>
+         <kind>account</kind>
+         <intent>default</intent>
+         <displayName>Default Account</displayName>
+         <default>true</default>
+         <objectClass xmlns:qn371="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn371:AccountObjectClass</objectClass>
+         <attribute>
+            <ref>icfs:name</ref>
+            <displayName>Username</displayName>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <path>$user/name</path>
+               </source>
+               <expression>
+                  <script>
+                     <code>
+								name + iterationToken
+							</code>
+                  </script>
+               </expression>
+            </outbound>
+            <inbound>
+               <strength>weak</strength>
+               <target>
+                  <c:path>$user/name</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref>icfs:uid</c:ref>
+            <displayName>UID</displayName>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:fullname</c:ref>
+            <displayName>Full Name</displayName>
+            <outbound>
+               <source>
+                  <c:path>$user/fullName</c:path>
+               </source>
+            </outbound>
+            <inbound>
+               <strength>weak</strength>
+               <expression>
+                  <script>
+                     <allowEmptyValues>true</allowEmptyValues>
+                     <code>
+								if (input?.contains('#')) {
+                            		return null
+                        		} else {
+                            		return input
+                        		}
+							</code>
+                  </script>
+               </expression>
+               <target>
+                  <c:path>$user/fullName</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:title</c:ref>
+            <tolerant>true</tolerant>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:location</c:ref>
+            <displayName>Location</displayName>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$user/locality</c:path>
+               </source>
+            </outbound>
+            <inbound>
+               <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+               <expression>
+                  <allowEmptyValues>false</allowEmptyValues>
+                  <script>
+                     <code>'Came from ' + input</code>
+                  </script>
+               </expression>
+               <target>
+                  <c:path>description</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:ship</c:ref>
+            <displayName>Ship</displayName>
+            <inbound>
+               <expression>
+                  <script>
+                     <allowEmptyValues>false</allowEmptyValues>
+                     <code>'The crew of ' + input</code>
+                  </script>
+               </expression>
+               <target>
+                  <c:path>organizationalUnit</c:path>
+               </target>
+               <condition>
+                  <script>
+                     <code>input != null</code>
+                  </script>
+               </condition>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:loot</c:ref>
+            <displayName>Loot</displayName>
+            <fetchStrategy>explicit</fetchStrategy>
+            <outbound>
+               <channel>http://pirates.net/avast</channel>
+               <expression>
+                  <script>
+                     <code>9999 + 1</code>
+                  </script>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:weapon</c:ref>
+            <displayName>Weapon</displayName>
+            <outbound>
+               <strength>weak</strength>
+               <source>
+                  <c:path xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">declare namespace piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'; $user/extension/piracy:weapon</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:drink</c:ref>
+            <displayName>Drink</displayName>
+            <tolerant>false</tolerant>
+            <outbound>
+               <strength>strong</strength>
+               <expression>
+                  <value>rum</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:quote</c:ref>
+            <displayName>Quote</displayName>
+            <tolerant>true</tolerant>
+            <outbound>
+               <strength>strong</strength>
+               <expression>
+                  <value>Arr!</value>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:gossip</c:ref>
+            <displayName>Gossip</displayName>
+            <tolerant>true</tolerant>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:water</c:ref>
+            <limitations>
+               <ignore>true</ignore>
+            </limitations>
+            <outbound>
+               <expression>
+                  <value>fishy</value>
+               </expression>
+            </outbound>
+            <inbound>
+               <expression>
+                  <value>very FISHY</value>
+               </expression>
+               <target>
+                  <c:path>$user/fullName</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <association>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</c:ref>
+            <tolerant>false</tolerant>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <direction>objectToSubject</direction>
+            <associationAttribute xmlns:qn854="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn854:members</associationAttribute>
+            <valueAttribute>icfs:name</valueAttribute>
+         </association>
+         <association>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:priv</c:ref>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <direction>subjectToObject</direction>
+            <associationAttribute xmlns:qn551="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn551:privileges</associationAttribute>
+            <valueAttribute>icfs:name</valueAttribute>
+         </association>
+         <iteration>
+            <maxIterations>5</maxIterations>
+         </iteration>
+         <protected>
+            <icfs:name>daviejones</icfs:name>
+         </protected>
+         <protected>
+            <icfs:name>calypso</icfs:name>
+         </protected>
+         <activation>
+            <existence>
+               <outbound>
+                  <expression>
+                     <asIs/>
+                  </expression>
+               </outbound>
+            </existence>
+            <administrativeStatus>
+               <outbound/>
+               <inbound>
+                  <strength>weak</strength>
+                  <condition>
+                     <script>
+                        <code>focus?.getActivation()?.getValidFrom() == null &amp;&amp; focus?.getActivation()?.getValidTo() == null</code>
+                     </script>
+                  </condition>
+               </inbound>
+            </administrativeStatus>
+         </activation>
+         <credentials>
+            <password>
+               <outbound>
+                  <strength>weak</strength>
+                  <expression>
+                     <asIs/>
+                  </expression>
+               </outbound>
+               <inbound>
+                  <strength>weak</strength>
+                  <expression>
+                     <generate/>
+                  </expression>
+               </inbound>
+            </password>
+         </credentials>
+      </objectType>
+      <objectType>
+         <kind>account</kind>
+         <intent>test</intent>
+         <displayName>Testing Account</displayName>
+         <default>false</default>
+         <objectClass xmlns:qn931="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn931:AccountObjectClass</objectClass>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$user/name</c:path>
+               </source>
+               <expression>
+                  <script>
+                     <code>
+								'T' + name + iterationToken
+							</code>
+                  </script>
+               </expression>
+            </outbound>
+            <inbound>
+               <strength>weak</strength>
+               <expression>
+                  <script>
+                     <code>
+								input?.substring(1)
+							</code>
+                  </script>
+               </expression>
+               <target>
+                  <c:path>$user/name</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:fullname</c:ref>
+            <outbound>
+               <source>
+                  <c:path>$user/fullName</c:path>
+               </source>
+               <expression>
+                  <script>
+                     <code>fullName + ' (test)'</code>
+                  </script>
+               </expression>
+            </outbound>
+            <inbound>
+               <strength>weak</strength>
+               <target>
+                  <c:path>$user/fullName</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:location</c:ref>
+            <outbound>
+               <strength>strong</strength>
+               <source>
+                  <c:path>$user/locality</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:ship</c:ref>
+            <displayName>Ship</displayName>
+            <inbound>
+               <expression>
+                  <script>
+                     <code>'The crew of Titanicum ' + input + 'icum'</code>
+                  </script>
+               </expression>
+               <target>
+                  <c:path>organizationalUnit</c:path>
+               </target>
+               <condition>
+                  <script>
+                     <code>input != null</code>
+                  </script>
+               </condition>
+            </inbound>
+         </attribute>
+         <association>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</c:ref>
+            <outbound>
+               <expression>
+                  <value>
+                     <name xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:group</name>
+                     <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
+                  </value>
+               </expression>
+            </outbound>
+            <kind>entitlement</kind>
+            <intent>group</intent>
+            <direction>objectToSubject</direction>
+            <associationAttribute xmlns:qn196="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn196:members</associationAttribute>
+            <valueAttribute>icfs:name</valueAttribute>
+         </association>
+         <association>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:priv</c:ref>
+            <kind>entitlement</kind>
+            <intent>privilege</intent>
+            <direction>subjectToObject</direction>
+            <associationAttribute xmlns:qn175="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn175:privileges</associationAttribute>
+            <valueAttribute>icfs:name</valueAttribute>
+         </association>
+         <iteration>
+            <maxIterations>5</maxIterations>
+         </iteration>
+         <activation>
+            <administrativeStatus>
+               <outbound/>
+               <inbound>
+                  <strength>weak</strength>
+               </inbound>
+            </administrativeStatus>
+         </activation>
+         <credentials>
+            <password>
+               <outbound/>
+            </password>
+         </credentials>
+      </objectType>
+      <objectType>
+         <kind>entitlement</kind>
+         <intent>group</intent>
+         <default>true</default>
+         <objectClass xmlns:qn426="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn426:GroupObjectClass</objectClass>
+         <attribute>
+            <c:ref>icfs:name</c:ref>
+            <displayName>Groupname</displayName>
+            <exclusiveStrong>true</exclusiveStrong>
+            <outbound>
+               <source>
+                  <c:path>$focus/name</c:path>
+               </source>
+               <expression>
+                  <c:path>declare namespace t='http://prism.evolveum.com/xml/ns/public/types-3'; t:norm</c:path>
+               </expression>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:description</c:ref>
+            <outbound>
+               <source>
+                  <c:path>$focus/description</c:path>
+               </source>
+            </outbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:cc</c:ref>
+            <outbound>
+               <strength>weak</strength>
+               <source>
+                  <c:path xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">declare namespace piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'; $focus/extension/piracy:costCenter</c:path>
+               </source>
+            </outbound>
+            <inbound>
+               <target>
+                  <c:path xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">declare namespace piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'; $focus/extension/piracy:costCenter</c:path>
+               </target>
+            </inbound>
+         </attribute>
+         <attribute>
+            <c:ref xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:members</c:ref>
+            <fetchStrategy>minimal</fetchStrategy>
+         </attribute>
+      </objectType>
+      <objectType>
+         <kind>entitlement</kind>
+         <intent>privilege</intent>
+         <default>false</default>
+         <objectClass xmlns:qn759="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn759:CustomprivilegeObjectClass</objectClass>
+      </objectType>
+   </schemaHandling>
+   <capabilities>
+      <cachingMetadata>
+         <retrievalTimestamp>2016-01-05T17:49:22.504+01:00</retrievalTimestamp>
+         <serialNumber>ad58de483086a60c-a0cbfa56429029a8</serialNumber>
+      </cachingMetadata>
+      <native xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+         <cap:addRemoveAttributeValues/>
+         <cap:activation>
+            <cap:status/>
+            <cap:lockoutStatus/>
+         </cap:activation>
+         <cap:credentials>
+            <cap:password>
+               <cap:returnedByDefault>false</cap:returnedByDefault>
+            </cap:password>
+         </cap:credentials>
+         <cap:liveSync/>
+         <cap:testConnection/>
+         <cap:create/>
+         <cap:read/>
+         <cap:update/>
+         <cap:delete/>
+         <cap:script>
+            <cap:host>
+               <cap:type>resource</cap:type>
+            </cap:host>
+            <cap:host>
+               <cap:type>connector</cap:type>
+            </cap:host>
+         </cap:script>
+      </native>
+   </capabilities>
+   <scripts>
+      <script>
+         <host>resource</host>
+         <language>Logo</language>
+         <argument>
+            <script>
+               <code>
+					'user: ' + user?.getName()
+					</code>
+            </script>
+            <name>usr</name>
+         </argument>
+         <argument>
+            <script>
+               <code>
+					'account: ' + account?.getActivation()?.getAdministrativeStatus()
+					</code>
+            </script>
+            <name>acc</name>
+         </argument>
+         <argument>
+            <script>
+               <code>
+					'resource: ' + resource?.getName()
+					</code>
+            </script>
+            <name>res</name>
+         </argument>
+         <argument>
+            <value>3</value>
+            <name>size</name>
+         </argument>
+         <code>
+to spiral :size
+   if  :size &gt; 30 [stop]
+   fd :size rt 15
+   spiral :size *1.02
+end
+			</code>
+         <operation>add</operation>
+         <kind>account</kind>
+         <order>after</order>
+      </script>
+      <script>
+         <host>resource</host>
+         <language>Gibberish</language>
+         <argument>
+            <c:path>$user/costCenter</c:path>
+            <name>howMuch</name>
+         </argument>
+         <argument>
+            <value>from here to there</value>
+            <name>howLong</name>
+         </argument>
+         <argument>
+            <c:path>$user/name</c:path>
+            <name>who</name>
+         </argument>
+         <argument>
+            <c:path>$user/fullName</c:path>
+            <name>whatchacallit</name>
+         </argument>
+         <code>Beware the Jabberwock, my son!</code>
+         <operation>modify</operation>
+         <kind>account</kind>
+         <order>before</order>
+      </script>
+      <script>
+         <host>resource</host>
+         <language>Gibberish</language>
+         <code>The Jabberwock, with eyes of flame</code>
+         <operation>delete</operation>
+         <kind>account</kind>
+         <order>after</order>
+      </script>
+      <script>
+         <host>resource</host>
+         <language>Gibberish</language>
+         <argument>
+            <c:path>$focus/name</c:path>
+            <name>who</name>
+         </argument>
+         <code>The vorpal blade went snicker-snack!</code>
+         <operation>reconcile</operation>
+         <kind>account</kind>
+         <order>before</order>
+      </script>
+      <script>
+         <host>resource</host>
+         <language>Gibberish</language>
+         <argument>
+            <c:path>$shadow/activation/administrativeStatus</c:path>
+            <name>how</name>
+         </argument>
+         <code>He left it dead, and with its head</code>
+         <operation>reconcile</operation>
+         <kind>account</kind>
+         <order>after</order>
+      </script>
+   </scripts>
+   <consistency>
+      <avoidDuplicateValues>true</avoidDuplicateValues>
+      <caseIgnoreAttributeNames>true</caseIgnoreAttributeNames>
+   </consistency>
+   <synchronization>
+      <objectSynchronization>
+         <objectClass xmlns:qn237="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn237:AccountObjectClass</objectClass>
+         <kind>account</kind>
+         <intent>default</intent>
+         <enabled>true</enabled>
+         <condition>
+            <script>
+               <code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+            </script>
+         </condition>
+         <correlation>
+            <q:equal>
+               <q:path>name</q:path>
+               <expression>
+                  <c:path>declare namespace icfs='http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3'; $account/attributes/icfs:name</c:path>
+               </expression>
+            </q:equal>
+         </correlation>
+         <reaction>
+            <situation>linked</situation>
+            <synchronize>true</synchronize>
+         </reaction>
+         <reaction>
+            <situation>deleted</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unlinked</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unmatched</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+            </action>
+         </reaction>
+      </objectSynchronization>
+      <objectSynchronization>
+         <objectClass xmlns:qn258="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">qn258:AccountObjectClass</objectClass>
+         <kind>account</kind>
+         <intent>test</intent>
+         <enabled>true</enabled>
+         <condition>
+            <script>
+               <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+            </script>
+         </condition>
+         <correlation>
+            <q:equal>
+               <q:path>name</q:path>
+               <expression>
+                  <script>
+                     <code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+                  </script>
+               </expression>
+            </q:equal>
+         </correlation>
+         <reaction>
+            <situation>linked</situation>
+            <synchronize>true</synchronize>
+         </reaction>
+         <reaction>
+            <situation>deleted</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unlinked</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+            </action>
+         </reaction>
+         <reaction>
+            <situation>unmatched</situation>
+            <synchronize>true</synchronize>
+            <action>
+               <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+            </action>
+         </reaction>
+      </objectSynchronization>
+   </synchronization>
+</resource>

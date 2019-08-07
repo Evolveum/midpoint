@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:extend>
+    <form class="form-horizontal" wicket:id="mainForm">
+       
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="PageNewReport.getObjectsFrom"/></label>
+
+            <div class="col-lg-2">
+                <div wicket:id="importRadioGroup">
+                    <div class="radio">
+                        <label>
+                            <input wicket:id="fileRadio" type="radio">
+                            <wicket:message key="PageNewReport.file"/>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input wicket:id="xmlRadio" type="radio">
+                            <wicket:message key="PageNewReport.embeddedEditor"/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" wicket:id="input">
+            <div class="col-lg-12" wicket:id="inputAce">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+
+            <label class="col-lg-2 control-label" wicket:id="inputFileLabel"></label>
+            <div class="col-lg-2" wicket:id="inputFile">
+                <input wicket:id="fileInput" type="file"/>
+
+                <p class="help-block"><wicket:message key="PageNewReport.message.help"/></p>
+            </div>
+        </div>
+
+        <div class="main-button-bar" wicket:id="buttonBar">
+            <a class="btn btn-primary" wicket:id="importFileButton"/>
+            <a class="btn btn-primary" wicket:id="importXmlButton"/>
+        </div>
+    </form>
+</wicket:extend>
+</body>
+</html>

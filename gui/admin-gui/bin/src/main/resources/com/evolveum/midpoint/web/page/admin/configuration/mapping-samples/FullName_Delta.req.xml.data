@@ -1,0 +1,17 @@
+<mappingExecutionRequest>
+	<sourceContext>
+		<user>
+			<givenName>Jack</givenName>
+			<familyName>Sparrow</familyName>
+		</user>
+		<delta>
+			<changeType>modify</changeType>
+			<objectType>UserType</objectType>
+			<itemDelta>
+				<modificationType>replace</modificationType>
+				<path>givenName</path>
+				<value>JACK</value>
+			</itemDelta>
+		</delta>
+	</sourceContext>
+</mappingExecutionRequest>

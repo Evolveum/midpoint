@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<user oid="b5541d3c-b2fd-11e5-88c0-4f82a8602266" version="2"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
+      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+      xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+    <name>
+        <t:orig>jack</t:orig>
+        <t:norm>jack</t:norm>
+    </name>
+    <parentOrgRef oid="00000000-8888-6666-0000-100000000011" type="c:OrgType"/>
+    <metadata>
+        <createTimestamp>2013-05-29T13:12:36.371+02:00</createTimestamp>
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                    oid="00000000-0000-0000-0000-000000000002"
+                    type="c:UserType"/>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</createChannel>
+        <modifyTimestamp>2013-05-29T13:14:25.854+02:00</modifyTimestamp>
+        <modifierRef oid="00000000-0000-0000-0000-000000000002"/>
+        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</modifyChannel>
+    </metadata>
+    <extension>
+        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
+        <piracy:weapon>pistol</piracy:weapon>
+        <piracy:weapon>mouth</piracy:weapon>
+        <piracy:badLuck>0</piracy:badLuck>
+    </extension>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             oid="8d64f4f0-2b44-47aa-935a-63727e78c639"
+             type="c:ShadowType"/>
+    <assignment id="1">
+        <targetRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   oid="00000000-8888-6666-0000-100000000011"
+                   type="c:OrgType"/>
+    </assignment>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+        <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
+        <validTo>2013-12-31T22:59:00.000+01:00</validTo>
+        <validityStatus>in</validityStatus>
+        <disableTimestamp>2013-05-29T13:12:35.925+02:00</disableTimestamp>
+        <validityChangeTimestamp>2013-05-29T13:14:25.697+02:00</validityChangeTimestamp>
+    </activation>
+    <fullName>
+        <t:orig>Jack Sparrow</t:orig>
+        <t:norm>jack sparrow</t:norm>
+    </fullName>
+    <givenName>
+        <t:orig>Jack</t:orig>
+        <t:norm>jack</t:norm>
+    </givenName>
+    <familyName>
+        <t:orig>Sparrow</t:orig>
+        <t:norm>sparrow</t:norm>
+    </familyName>
+    <honorificPrefix>
+        <t:orig>Cpt.</t:orig>
+        <t:norm>cpt</t:norm>
+    </honorificPrefix>
+    <honorificSuffix>
+        <t:orig/>
+        <t:norm/>
+    </honorificSuffix>
+    <title>
+        <t:orig>Captain</t:orig>
+        <t:norm>captain</t:norm>
+    </title>
+    <employeeNumber>001</employeeNumber>
+    <employeeType>PIRATE</employeeType>
+    <locality>
+        <t:orig>Caribbean</t:orig>
+        <t:norm>caribbean</t:norm>
+    </locality>
+    <credentials>
+        <password>
+            <value xsi:type="t:ProtectedStringType">
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                    <ds:KeyInfo>
+                        <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                    </ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>f4XlP9TFaPky72VGpaTsvurn36elAtlHRGMAgC8CtNgtg46Vjcq0uWnGFBgb7GB5</enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </value>
+        </password>
+    </credentials>
+</user>
