@@ -60,6 +60,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 			if (getModelObject() != null && getModelObject().isMultiValue()) {
 				cssClasses = " multivalue-container";
 			}
+//			if (getModelObject() != null && getModelObject().isSingleValue()) {
+//				cssClasses = " singlevalue-container";
+//			}
 			return cssClasses;
 		}));
 		
@@ -84,9 +87,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
 			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
-			if(PrismContainerPanel.this.getModelObject() != null && PrismContainerPanel.this.getModelObject().isSingleValue()) {
-				valuePanel.add(AttributeModifier.append("class", "singlevalue-container"));
-			}
+//			if(PrismContainerPanel.this.getModelObject() != null && PrismContainerPanel.this.getModelObject().isSingleValue()) {
+//				valuePanel.add(AttributeModifier.append("class", "singlevalue-container"));
+//			}
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
 			return valuePanel;
