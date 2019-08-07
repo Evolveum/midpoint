@@ -76,7 +76,7 @@ public class TriggersAsserter<O extends ObjectType, OA extends PrismObjectAssert
 		return objectAsserter.getObject();
 	}
 	
-	private List<TriggerType> getTriggers() {
+	List<TriggerType> getTriggers() {
 		if (triggers == null) {
 			triggers = getObject().asObjectable().getTrigger();
 		}
@@ -103,6 +103,10 @@ public class TriggersAsserter<O extends ObjectType, OA extends PrismObjectAssert
 		return forTrigger(getTriggers().get(0));
 	}
 
+	public TriggerFinder<O,OA,RA> by() {
+		return new TriggerFinder<>(this);
+	}
+	
 	TriggerAsserter<TriggersAsserter<O,OA,RA>> forTrigger(TriggerType trigger) {
 		TriggerAsserter<TriggersAsserter<O,OA,RA>> asserter = new TriggerAsserter<>(trigger, this, "trigger in "+desc());
 		copySetupTo(asserter);

@@ -170,7 +170,7 @@ public class ObjectTemplateProcessor {
 		collectAutoassignMappings(context, mappings, task, result);
 
 		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
-		XMLGregorianCalendar nextRecomputeTime = collectTripleFromMappings(context, mappings, phase, focusOdo, focusOdo.getNewObject(), 
+		NextRecompute nextRecompute = collectTripleFromMappings(context, mappings, phase, focusOdo, focusOdo.getNewObject(), 
 				outputTripleMap, iteration, iterationToken, now, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
@@ -183,14 +183,14 @@ public class ObjectTemplateProcessor {
 
 		focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 
-		if (nextRecomputeTime != null) {
+		if (nextRecompute != null) {
 
 			boolean alreadyHasTrigger = false;
 			PrismObject<AH> objectCurrent = focusContext.getObjectCurrent();
 			if (objectCurrent != null) {
 				for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
 					if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
-							nextRecomputeTime.equals(trigger.getTimestamp())) {
+							nextRecompute.nextRecomputeTime.equals(trigger.getTimestamp())) {
 								alreadyHasTrigger = true;
 								break;
 					}
@@ -204,13 +204,19 @@ public class ObjectTemplateProcessor {
 				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
 				triggerDelta.addValueToAdd(triggerCVal);
 				TriggerType triggerType = triggerCVal.asContainerable();
-				triggerType.setTimestamp(nextRecomputeTime);
+				triggerType.setTimestamp(nextRecompute.nextRecomputeTime);
 				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
+				triggerType.setOriginDescription(nextRecompute.triggerOriginDescription);
 
 				focusContext.swallowToProjectionWaveSecondaryDelta(triggerDelta);
 			}
 		}
 
+	}
+	
+	class NextRecompute {
+		XMLGregorianCalendar nextRecomputeTime;
+		String triggerOriginDescription;
 	}
 	
 	// expects that object policy configuration is already set in focusContext
@@ -265,9 +271,8 @@ public class ObjectTemplateProcessor {
 		collectAutoassignMappings(context, mappings, task, result);
 
 		Map<UniformItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
-		XMLGregorianCalendar nextRecomputeTime = collectTripleFromMappings(context, mappings, ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, 
+		NextRecompute nextRecompute = collectTripleFromMappings(context, mappings, ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS, 
 				focusOdo, target, outputTripleMap, iteration, iterationToken, now, task, result);
-		
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLine(outputTripleMap));
@@ -620,7 +625,7 @@ public class ObjectTemplateProcessor {
 		return sourcePath;
 	}
 
-	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> XMLGregorianCalendar collectTripleFromMappings(
+	private <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType> NextRecompute collectTripleFromMappings(
 			LensContext<AH> context, List<FocalMappingSpec> mappings, ObjectTemplateMappingEvaluationPhaseType phase,
 			ObjectDeltaObject<AH> focusOdo, PrismObject<T> target,
 			Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap,
@@ -630,7 +635,7 @@ public class ObjectTemplateProcessor {
 
 		List<FocalMappingSpec> sortedMappings = sortMappingsByDependencies(mappings);
 		
-		XMLGregorianCalendar nextRecomputeTime = null;
+		NextRecompute nextRecompute = null;
 
 		for (FocalMappingSpec mappingSpec : sortedMappings) {
 			ObjectTemplateMappingEvaluationPhaseType mappingPhase = mappingSpec.getEvaluationPhase();
@@ -658,8 +663,10 @@ public class ObjectTemplateProcessor {
 				XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
 				LOGGER.trace("Evaluation of mapping {} delayed to {}", mapping, mappingNextRecomputeTime);
 				if (mappingNextRecomputeTime != null) {
-					if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
-						nextRecomputeTime = mappingNextRecomputeTime;
+					if (nextRecompute == null || nextRecompute.nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
+						nextRecompute = new NextRecompute();
+						nextRecompute.nextRecomputeTime = mappingNextRecomputeTime;
+						nextRecompute.triggerOriginDescription = mapping.getIdentifier();
 					}
 				}
 				continue;
@@ -687,7 +694,7 @@ public class ObjectTemplateProcessor {
 			}
 		}
 
-		return nextRecomputeTime;
+		return nextRecompute;
 	}
 
 	private <AH extends AssignmentHolderType> ObjectDeltaObject<AH> getUpdatedFocusOdo(LensContext<AH> context, ObjectDeltaObject<AH> focusOdo,

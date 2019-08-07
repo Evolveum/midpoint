@@ -797,7 +797,7 @@ public class LensUtil {
 		}
 	}
 
-	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainerClone(@NotNull AssignmentType assignmentType) throws SchemaException {
+	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainer(@NotNull AssignmentType assignmentType) throws SchemaException {
 		// Make it appear to be single-value. Therefore paths without segment IDs will work.
 		return assignmentType.asPrismContainerValue().asSingleValuedContainer(SchemaConstantsGenerated.C_ASSIGNMENT);
 	}

@@ -492,6 +492,48 @@
     	</target>
     </mapping>
     
+    <!-- MID-4630, this one is strong and has a condition -->
+    <mapping>
+    	<name>loot bomb</name>
+    	<strength>strong</strength>
+    	<source>
+    		<path>givenName</path>
+    	</source>
+    	<timeFrom>
+			<expression>
+				<script>
+					<code>
+						if (!focus?.description?.contains('gone')) {
+							// Time-constraint is inactive
+							// We do not want this constraint to be active too soon.
+							// Otherwise it will set the trigger and that would complicate other tests.
+							return null
+						}
+						javax.xml.datatype.XMLGregorianCalendar funeralTimestamp = basic.getExtensionPropertyValue(focus,'funeralTimestamp')
+						if (funeralTimestamp == null) {
+							// Always process this mapping immediately
+							return basic.longAgo()
+						}
+						def timestamp = basic.addDuration(funeralTimestamp, "P1Y")
+						timetamp = basic.roundDownToMidnight(timestamp)
+						return timestamp
+					</code>
+				</script>
+			</expression>
+		</timeFrom>
+    	<expression>
+            <value>1000000</value>    	
+    	</expression>
+    	<condition>
+    		<script>
+    			<code>givenName?.norm == 'lootjack'</code>
+    		</script>
+    	</condition>
+    	<target>
+    		<path>extension/loot</path>
+    	</target>
+    </mapping>
+    
     <!-- MID-3695 -->
     <mapping>
       <strength>strong</strength>

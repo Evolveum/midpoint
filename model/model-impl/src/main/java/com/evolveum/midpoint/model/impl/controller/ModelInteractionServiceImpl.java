@@ -1626,7 +1626,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			}
 			try {
 				ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi = 
-						new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(assignmentType));
+						new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType));
 				// TODO some special mode for verification of the validity - we don't need complete calculation here!
 				EvaluatedAssignment<UserType> assignment = assignmentEvaluator
 						.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, potentialDeputy.asObjectable(),
