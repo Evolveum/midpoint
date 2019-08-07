@@ -1,8 +1,0 @@
-<query>
-    <filter>
-        <equal>
-            <path>orgType</path>
-            <value>type1</value>
-        </equal>
-    </filter>
-</query>
