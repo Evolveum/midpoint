@@ -28,8 +28,6 @@ public enum InternalOperationClasses {
 
 	REPOSITORY_OPERATIONS("repositoryOperations", "repository operations"),
 
-	PRISM_OBJECT_CLONES("prismObjectClone", "prism object clones"),
-
 	ROLE_EVALUATIONS("roleEvaluations", "role evaluations"), 
 	
 	PRISM_OPERATIONS("prismOperations", "prism operations");

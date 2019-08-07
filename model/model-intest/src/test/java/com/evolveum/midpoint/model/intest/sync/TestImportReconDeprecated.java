@@ -20,6 +20,7 @@ import java.io.File;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.Test;
 
 /**
  * @author semancik
@@ -57,6 +58,12 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	@Override
 	public void test510ImportFromResourceDummy() throws Exception {
 		// Not relevant for deprecated syntax
+	}
+	
+	@Test
+	@Override
+    public void test520ReconResourceDummyFilter() throws Exception {
+		// Not interesting for deprecated use cases
 	}
 
 	@Override
