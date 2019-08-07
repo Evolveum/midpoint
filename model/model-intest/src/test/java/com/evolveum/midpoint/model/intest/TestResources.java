@@ -145,7 +145,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 		InternalMonitor.setTrace(InternalOperationClasses.CONNECTOR_OPERATIONS, true);
 		InternalsConfig.encryptionChecks = false;
 
-		InternalMonitor.setTrace(InternalOperationClasses.PRISM_OBJECT_CLONES, true);
+		InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 	}
 
 	/**
@@ -183,7 +183,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
         display("Resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
 		assertResourceDummy(resource, false);
 
@@ -909,7 +909,7 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
         display("Resource", resource);
         IntegrationTestTools.displayXml("Initialized dummy resource", resource);
 
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  1);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT,  0);
 
 		assertResourceDummy(resource, true);
 
