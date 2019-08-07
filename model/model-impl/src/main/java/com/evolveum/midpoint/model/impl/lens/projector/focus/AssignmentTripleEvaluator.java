@@ -485,7 +485,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 			// TODO: optimize
 			definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
 		}
-		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), definition);
+		return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), definition);
 	}
 
 	private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> createAssignmentIdiAdd(
@@ -523,7 +523,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 						.asItemDelta();
 
 		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = new ItemDeltaItem<>(
-				LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), itemDelta, null, cval.getDefinition());
+				LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), itemDelta, null, cval.getDefinition());
 		idi.recompute();
 		return idi;
 	}
@@ -532,7 +532,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 			PrismContainerValue<AssignmentType> cval, Collection<? extends ItemDelta<?, ?>> subItemDeltas)
 			throws SchemaException {
 		ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> idi = 
-				new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainerClone(cval.asContainerable()), cval.getDefinition());
+				new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), cval.getDefinition());
+		idi.setResolvePath(AssignmentHolderType.F_ASSIGNMENT);
 		idi.setSubItemDeltas(subItemDeltas);
 		idi.recompute();
 		return idi;

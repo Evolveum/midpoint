@@ -236,6 +236,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
 			itemNew = itemOld;
 			return;
 		}
+		itemNew = null;
 		if (delta != null) {
 			itemNew = delta.getItemNewMatchingPath(itemOld);
 		}
