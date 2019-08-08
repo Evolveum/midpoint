@@ -1424,11 +1424,13 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 									throw new SchemaException("Unknown object type "+specTypeQName+" in "+autzHumanReadableDesc);
 								}
 								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
-								if (!objectType.isAssignableFrom(specObjectClass)) {
+								if (objectType.equals(specObjectClass)) {
+									traceClassMatch("Authorization is applicable for object because of type exact match", specObjectClass, objectType);
+								} else if (!objectType.isAssignableFrom(specObjectClass)) {
 									traceClassMatch("Authorization not applicable for object because of type mismatch", specObjectClass, objectType);
 									continue;
 								} else {
-									traceClassMatch("Authorization is applicable for object because of type match", specObjectClass, objectType);
+									traceClassMatch("Authorization is applicable for object because of type match, adding more specific type filter", specObjectClass, objectType);
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
 									objSpecTypeFilter = prismContext.queryFactory().createType(specTypeQName, null);

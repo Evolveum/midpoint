@@ -275,7 +275,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource, prismContext);
 		requestRecord.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
-		auditHelper.audit(requestRecord, localCoordinatorTask, opResult);
+		auditHelper.audit(requestRecord, null, localCoordinatorTask, opResult);
 
 		try {
 			if (isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
@@ -349,7 +349,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		executionRecord.setMessage(requestRecord.getMessage());
-		auditHelper.audit(executionRecord, localCoordinatorTask, opResult);
+		auditHelper.audit(executionRecord, null, localCoordinatorTask, opResult);
 
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
@@ -485,7 +485,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	    executionRecord.setTarget(resource, prismContext);
 	    executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
 	    executionRecord.setMessage(ex.getMessage());
-	    auditHelper.audit(executionRecord, task, opResult);
+	    auditHelper.audit(executionRecord, null, task, opResult);
 
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});

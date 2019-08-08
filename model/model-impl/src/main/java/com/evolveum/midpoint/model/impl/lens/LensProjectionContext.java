@@ -31,12 +31,16 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
@@ -69,6 +73,8 @@ import com.evolveum.midpoint.util.DebugUtil;
  *
  */
 public class LensProjectionContext extends LensElementContext<ShadowType> implements ModelProjectionContext {
+
+	private static final Trace LOGGER = TraceManager.getTrace(LensProjectionContext.class);
 
 	private ObjectDelta<ShadowType> syncDelta;
 
@@ -146,8 +152,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * false if the context should be not taken into the account while synchronizing changes from other resource
      */
     private boolean canProject = true;
-
-
 
     /**
      * Synchronization situation as it was originally detected by the synchronization code (SynchronizationService).
@@ -1527,5 +1531,28 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (secondaryDelta != null) {
 			consumer.accept(secondaryDelta);
 		}
+	}
+
+	public PolyString resolveNameIfKnown(Class<? extends ObjectType> objectClass, String oid) {
+		if (ResourceType.class.equals(objectClass)) {
+			if (resource != null && oid.equals(resource.getOid())) {
+				return PolyString.toPolyString(resource.getName());
+			}
+		} else if (ShadowType.class.equals(objectClass)) {
+			PrismObject<ShadowType> object = getObjectAny();
+			if (object != null && oid.equals(object.getOid())) {
+				if (object.getName() != null) {
+					return object.getName();
+				} else {
+					try {
+						return ShadowUtil.determineShadowName(object);
+					} catch (SchemaException e) {
+						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine shadow name for {}", e, object);
+						return null;
+					}
+				}
+			}
+		}
+		return null;
 	}
 }

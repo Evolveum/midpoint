@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -52,7 +53,12 @@ public class AuditHelper {
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
-	public void audit(AuditEventRecord record, Task task, OperationResult parentResult) {
+	/**
+	 * @param externalNameResolver Name resolver that should be tried first. It should be fast. If it returns null it means
+	 *                             "I don't know".
+	 */
+	public void audit(AuditEventRecord record, ObjectDeltaSchemaLevelUtil.NameResolver externalNameResolver, Task task,
+			OperationResult parentResult) {
 		// TODO we could obtain names for objects that were deleted e.g. from the lens context (MID-5501)
 		if (record.getDeltas() != null) {
 			for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
@@ -65,6 +71,12 @@ public class AuditHelper {
 						if (record.getNonExistingReferencedObjects().contains(oid)) {
 							// This information could get from upper layers (not now, but maybe in the future).
 							return null;
+						}
+						if (externalNameResolver != null) {
+							PolyString externallyResolvedName = externalNameResolver.getName(objectClass, oid);
+							if (externallyResolvedName != null) {
+								return externallyResolvedName;
+							}
 						}
 						// we use null options here, in order to utilize the local or global repository cache
 						Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
