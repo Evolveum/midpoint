@@ -98,6 +98,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired private GlobalQueryCache globalQueryCache;
 	@Autowired private GlobalObjectCache globalObjectCache;
+	@Autowired private GlobalVersionCache globalVersionCache;
 	@Autowired private CacheConfigurationManager cacheConfigurationManager;
 
 	private static List<Class<?>> TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE = Arrays.asList(
@@ -646,6 +647,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		SearchResultList<PrismObject<T>> cloned = objects.clone();
 		for (PrismObject<T> object : cloned) {
 			globallyCacheObjectWithoutCloning(object);
+			globallyCacheObjectVersionWithoutCloning(object);
 		}
 		if (objects.size() <= QUERY_RESULT_SIZE_LIMIT) {
 			globalQueryCache.put(key, cloned);
@@ -921,6 +923,14 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				globallyCacheObjectWithoutCloning(objectToCache);
 			}
 		}
+		LocalVersionCache localVersionCache = getLocalVersionCache();
+		if (localVersionCache != null && localVersionCache.supportsObjectType(objectType)) {
+			localVersionCache.put(object.getOid(), object.getVersion());
+		}
+		if (globalVersionCache.isAvailable() && globalVersionCache.supportsObjectType(objectType)) {
+			globalVersionCache.put(object);
+		}
+
 	}
 
 	@Deprecated
@@ -1093,8 +1103,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 				clearQueryResultsLocally(localQueryCache, type, oid, additionalInfo, matchingRuleRegistry);
 			}
 			boolean clusterwide = TYPES_ALWAYS_INVALIDATED_CLUSTERWIDE.contains(type) ||
-					globalObjectCache.isClusterwideInvalidation(type) || globalQueryCache.isClusterwideInvalidation(type);
-			//System.out.println("invalidateCacheEntries: clusterwide = " + clusterwide + " for " + type.getSimpleName() + ":" + oid);
+					globalObjectCache.isClusterwideInvalidation(type) ||
+					globalVersionCache.isClusterwideInvalidation(type) ||
+					globalQueryCache.isClusterwideInvalidation(type);
 			cacheDispatcher.dispatchInvalidation(type, oid, clusterwide,
 					new CacheInvalidationContext(false, new RepositoryCacheInvalidationDetails(additionalInfo)));
 		} catch (Throwable t) {
@@ -1108,12 +1119,13 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	// This is what is called from cache dispatcher (on local node with the full context; on remote nodes with reduced context)
 	@Override
 	public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
-		//System.out.println("invalidate: " + type + ":" + oid + ", " + context);
 		if (type == null) {
 			globalObjectCache.clear();
+			globalVersionCache.clear();
 			globalQueryCache.clear();
 		} else {
-			globalObjectCache.remove(oid);
+			globalObjectCache.remove(type, oid);
+			globalVersionCache.remove(type, oid);
 			if (ObjectType.class.isAssignableFrom(type)) {
 				//noinspection unchecked
 				clearQueryResultsGlobally((Class<? extends ObjectType>) type, oid, context);
@@ -1334,6 +1346,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		try {
 			CachePerformanceCollector collector = CachePerformanceCollector.INSTANCE;
 			LocalVersionCache localCache = getLocalVersionCache();
+			Context globalVersionContext = new Context(globalVersionCache.getConfiguration(), type);
 			Context local = localCache != null ?
 					new Context(localCache.getConfiguration(), type) :
 					new Context(cacheConfigurationManager.getConfiguration(LOCAL_REPO_VERSION_CACHE), type);
@@ -1343,6 +1356,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					localCache.registerPass();
 				}
 				collector.registerPass(LocalVersionCache.class, type, local.statisticsLevel);
+				collector.registerPass(GlobalVersionCache.class, type, globalVersionContext.statisticsLevel);
 				log("Cache: PASS (local) getVersion {} ({})", local.tracePass, oid, type.getSimpleName());
 				if (trace != null) {
 					trace.setLocalCacheUse(createUse(CacheUseCategoryTraceType.PASS, "object type"));
@@ -1384,24 +1398,53 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 
 			CacheUseTraceType globalCacheUse;
 			String version = null;
-			// try global
-			Context global = new Context(globalObjectCache.getConfiguration(), type);
-			if (!globalObjectCache.isAvailable()) {
-				collector.registerNotAvailable(GlobalObjectCache.class, type, global.statisticsLevel);
-				log("Cache (global): NOT_AVAILABLE {} getVersion ({})", false, oid, type.getSimpleName());
+
+			// try global version cache
+			if (!globalVersionCache.isAvailable()) {
+				collector.registerNotAvailable(GlobalVersionCache.class, type, globalVersionContext.statisticsLevel);
+				log("Cache (global:version): NOT_AVAILABLE {} getVersion ({})", false, oid, type.getSimpleName());
 				globalCacheUse = createUse(CacheUseCategoryTraceType.NOT_AVAILABLE);
-			} else if (!global.supports) {
+			} else if (!globalVersionContext.supports) {
 				// caller is not interested in cached value, or global cache doesn't want to cache value
-				collector.registerPass(GlobalObjectCache.class, type, global.statisticsLevel);
-				log("Cache (global): PASS:CONFIGURATION {} getVersion ({})", global.tracePass, oid, type.getSimpleName());
+				collector.registerPass(GlobalVersionCache.class, type, globalVersionContext.statisticsLevel);
+				log("Cache (global:version): PASS:CONFIGURATION {} getVersion ({})", globalVersionContext.tracePass, oid, type.getSimpleName());
 				globalCacheUse = createUse(CacheUseCategoryTraceType.PASS, "configuration");
 			} else {
-				GlobalCacheObjectValue<T> cacheObject = globalObjectCache.get(oid);
-				if (cacheObject != null) {
+				version = globalVersionCache.get(oid);
+				if (version != null) {
+					collector.registerHit(GlobalVersionCache.class, type, globalVersionContext.statisticsLevel);
 					globalCacheUse = createUse(CacheUseCategoryTraceType.HIT);
-					version = cacheObject.getObjectVersion();
 				} else {
+					collector.registerMiss(GlobalVersionCache.class, type, globalVersionContext.statisticsLevel);
 					globalCacheUse = createUse(CacheUseCategoryTraceType.MISS);
+				}
+			}
+
+			// try global object cache (cache use information will be overwritten)
+			if (version == null) {
+				Context globalObjectContext = new Context(globalObjectCache.getConfiguration(), type);
+				if (!globalObjectCache.isAvailable()) {
+					collector.registerNotAvailable(GlobalObjectCache.class, type, globalObjectContext.statisticsLevel);
+					log("Cache (global:object): NOT_AVAILABLE {} getVersion ({})", false, oid, type.getSimpleName());
+					globalCacheUse = createUse(CacheUseCategoryTraceType.NOT_AVAILABLE);
+				} else if (!globalObjectContext.supports) {
+					// caller is not interested in cached value, or global cache doesn't want to cache value
+					collector.registerPass(GlobalObjectCache.class, type, globalObjectContext.statisticsLevel);
+					log("Cache (global:object): PASS:CONFIGURATION {} getVersion ({})", globalObjectContext.tracePass,
+							oid, type.getSimpleName());
+					globalCacheUse = createUse(CacheUseCategoryTraceType.PASS, "configuration");
+				} else {
+					GlobalCacheObjectValue<T> cacheObject = globalObjectCache.get(oid);
+					if (cacheObject != null) {
+						collector.registerHit(GlobalObjectCache.class, type, globalObjectContext.statisticsLevel);
+						globalCacheUse = createUse(CacheUseCategoryTraceType.HIT);
+						version = cacheObject.getObjectVersion();
+					} else {
+						// Is this relevant? We missed ... but we wanted only the version, not the whole object.
+						// (And we don't load the object after this miss.)
+						collector.registerMiss(GlobalObjectCache.class, type, globalObjectContext.statisticsLevel);
+						globalCacheUse = createUse(CacheUseCategoryTraceType.MISS);
+					}
 				}
 			}
 
@@ -1413,7 +1456,8 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 					repoOpEnd(startTime);
 				}
 			}
-			cacheObjectVersion(localCache, local.supports, oid, version);
+			cacheObjectVersionLocal(localCache, local.supports, oid, version);
+			cacheObjectVersionGlobal(globalVersionContext.supports, oid, type, version);
 			record(trace, localCacheUse, globalCacheUse, version);
 			return version;
 		} catch (Throwable t) {
@@ -1475,9 +1519,15 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		}
 	}
 
-	private void cacheObjectVersion(LocalVersionCache cache, boolean supports, String oid, String version) {
+	private void cacheObjectVersionLocal(LocalVersionCache cache, boolean supports, String oid, String version) {
 		if (cache != null && supports) {
 			cache.put(oid, version);
+		}
+	}
+
+	private void cacheObjectVersionGlobal(boolean supports, String oid, Class<? extends ObjectType> type, String version) {
+		if (supports) {
+			globalVersionCache.put(oid, type, version);
 		}
 	}
 
@@ -1627,6 +1677,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	public void postInit(OperationResult result) throws SchemaException {
 		repositoryService.postInit(result);     // TODO resolve somehow multiple calls to repositoryService postInit method
 		globalObjectCache.initialize();
+		globalVersionCache.initialize();
 		globalQueryCache.initialize();
 		cacheRegistry.registerCacheableService(this);
 	}
@@ -1660,6 +1711,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			return !Objects.equals(version, object.getObjectVersion());
 		} catch (ObjectNotFoundException | SchemaException ex) {
 			globalObjectCache.remove(oid);
+			globalVersionCache.remove(oid);
 			throw ex;
 		}
 	}
@@ -1676,10 +1728,12 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			PrismObject<T> object = getObjectInternal(objectClass, oid, options, result);
 			PrismObject<T> objectToCache = prepareObjectToCache(object, readOnly);
 			globallyCacheObjectWithoutCloning(objectToCache);
+			globallyCacheObjectVersionWithoutCloning(objectToCache);
 			locallyCacheObjectWithoutCloning(localCache, localCacheSupports, objectToCache);
 			return object;
 		} catch (ObjectNotFoundException | SchemaException ex) {
 			globalObjectCache.remove(oid);
+			globalVersionCache.remove(oid);
 			throw ex;
 		}
 	}
@@ -1691,6 +1745,15 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		if (cacheConfiguration != null && cacheConfiguration.supportsObjectType(type)) {
 			long ttl = System.currentTimeMillis() + getTimeToVersionCheck(typeConfiguration, cacheConfiguration);
 			globalObjectCache.put(new GlobalCacheObjectValue<>(objectToCache, ttl));
+		}
+	}
+
+	private <T extends ObjectType> void globallyCacheObjectVersionWithoutCloning(PrismObject<T> objectToCache) {
+		CacheConfiguration cacheConfiguration = globalVersionCache.getConfiguration();
+		Class<? extends ObjectType> type = objectToCache.asObjectable().getClass();
+		CacheObjectTypeConfiguration typeConfiguration = globalVersionCache.getConfiguration(type);
+		if (cacheConfiguration != null && cacheConfiguration.supportsObjectType(type)) {
+			globalVersionCache.put(objectToCache);
 		}
 	}
 
@@ -1856,6 +1919,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 						.name(LocalVersionCache.class.getName())
 						.size(LocalVersionCache.getTotalSize(localVersionCacheInstance)));
 		rv.addAll(globalObjectCache.getStateInformation());
+		rv.addAll(globalVersionCache.getStateInformation());
 		rv.addAll(globalQueryCache.getStateInformation());
 		return rv;
 	}

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.cache;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,17 +38,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  */
 @Component
-public class GlobalObjectCache extends AbstractGlobalCache {
+public class GlobalVersionCache extends AbstractGlobalCache {
 
-	private static final Trace LOGGER = TraceManager.getTrace(GlobalObjectCache.class);
+	private static final Trace LOGGER = TraceManager.getTrace(GlobalVersionCache.class);
 
-	private static final String CACHE_NAME = "objectCache";
+	private static final String CACHE_NAME = "versionCache";
 
-	private org.cache2k.Cache<String, GlobalCacheObjectValue> cache;
+	private org.cache2k.Cache<String, GlobalCacheObjectVersionValue> cache;
 
 	public void initialize() {
 		if (cache != null) {
-			LOGGER.warn("Global object cache was already initialized -- ignoring this request.");
+			LOGGER.warn("Global version cache was already initialized -- ignoring this request.");
 			return;
 		}
 		long capacity = getCapacity();
@@ -55,17 +56,17 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 			LOGGER.warn("Capacity for " + getCacheType() + " is set to 0; this cache will be disabled (until system restart)");
 			cache = null;
 		} else {
-			cache = new Cache2kBuilder<String, GlobalCacheObjectValue>() {}
+			cache = new Cache2kBuilder<String, GlobalCacheObjectVersionValue>() {}
 					.name(CACHE_NAME)
 					.entryCapacity(capacity)
 					.expiryPolicy(getExpirePolicy())
 					.storeByReference(true) // this is default in the current version of cache2k; we need this because we update TTL value for cached objects
 					.build();
-			LOGGER.info("Created global repository object cache with a capacity of {} objects", capacity);
+			LOGGER.info("Created global repository object version cache with a capacity of {} objects", capacity);
 		}
 	}
 
-	private ExpiryPolicy<String, GlobalCacheObjectValue> getExpirePolicy() {
+	private ExpiryPolicy<String, GlobalCacheObjectVersionValue> getExpirePolicy() {
 		return (key, value, loadTime, oldEntry) -> getExpiryTime(value.getObjectType());
 	}
 
@@ -81,9 +82,12 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 		return cache != null;
 	}
 
-	public <T extends ObjectType> GlobalCacheObjectValue<T> get(String oid) {
-		//noinspection unchecked
-		return cache != null ? cache.peek(oid) : null;
+	public String get(String oid) {
+		if (cache != null) {
+			GlobalCacheObjectVersionValue<?> value = cache.peek(oid);
+			return value != null ? value.getVersion() : null;
+		} else
+			return null;
 	}
 
 	public void remove(@NotNull String oid) {
@@ -99,8 +103,7 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 				cache.remove(oid);
 			} else {
 				cache.invokeAll(cache.keys(), e -> {
-					if (e.getValue() != null && e.getValue().getObjectType() != null &&
-							type.isAssignableFrom(e.getValue().getObjectType())) {
+					if (e.getValue() != null && type.isAssignableFrom(e.getValue().getObjectType())) {
 						e.remove();
 					}
 					return null;
@@ -109,15 +112,9 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 		}
 	}
 
-	public <T extends ObjectType> void put(GlobalCacheObjectValue<T> cacheObject) {
-		if (cache != null) {
-			cache.put(cacheObject.getObjectOid(), cacheObject);
-		}
-	}
-
 	@Override
 	protected CacheType getCacheType() {
-		return CacheType.GLOBAL_REPO_OBJECT_CACHE;
+		return CacheType.GLOBAL_REPO_VERSION_CACHE;
 	}
 
 	@Override
@@ -138,7 +135,7 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 				return null;
 			});
 			SingleCacheStateInformationType info = new SingleCacheStateInformationType(prismContext)
-					.name(GlobalObjectCache.class.getName())
+					.name(GlobalVersionCache.class.getName())
 					.size(size.get());
 			counts.forEach((type, count) ->
 					info.beginComponent()
@@ -147,6 +144,18 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 			return Collections.singleton(info);
 		} else {
 			return Collections.emptySet();
+		}
+	}
+
+	public <T extends ObjectType> void put(PrismObject<T> object) {
+		if (cache != null) {
+			cache.put(object.getOid(), new GlobalCacheObjectVersionValue<>(object.asObjectable().getClass(), object.getVersion()));
+		}
+	}
+
+	public void put(String oid, Class<? extends ObjectType> type, String version) {
+		if (cache != null) {
+			cache.put(oid, new GlobalCacheObjectVersionValue<>(type, version));
 		}
 	}
 }

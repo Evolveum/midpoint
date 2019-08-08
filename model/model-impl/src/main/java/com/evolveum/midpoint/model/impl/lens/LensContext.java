@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -66,7 +68,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
-	public enum ExportType {
+    public enum ExportType {
 		MINIMAL, REDUCED, OPERATIONAL, TRACE
 	}
 
@@ -97,7 +99,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private String channel;
 
 	private LensFocusContext<F> focusContext;
-	private Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
+	@NotNull private final Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
 
 	/**
 	 * EXPERIMENTAL. A trace of resource objects that once existed but were
@@ -1572,5 +1574,23 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public String getOperationQualifier() {
 		return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
+	}
+
+	public ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
+		return (objectClass, oid) -> {
+			if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
+				for (LensProjectionContext projectionContext : projectionContexts) {
+					PolyString name = projectionContext.resolveNameIfKnown(objectClass, oid);
+					if (name != null) {
+						return name;
+					}
+				}
+			} else {
+				// We could consider resolving e.g. users or roles here, but if the were fetched, they will presumably
+				// be in the local (or, for roles, even global) repository cache. However, we can reconsider this assumption
+				// if needed.
+			}
+			return null;
+		};
 	}
 }

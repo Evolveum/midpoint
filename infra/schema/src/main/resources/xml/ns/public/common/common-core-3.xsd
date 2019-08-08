@@ -18082,6 +18082,13 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="globalRepoVersionCache" type="tns:CacheSettingsType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Settings for global cache for repository objects versions. By default it is disabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="globalRepoQueryCache" type="tns:CacheSettingsType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
