@@ -1802,6 +1802,29 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return task;
 	}
 
+	protected Task createTracedTask(String operationName) {
+		Task task = createTask(operationName);
+		task.addTracingRequest(TracingRootType.CLOCKWORK_RUN);
+		task.setTracingProfile(new TracingProfileType()
+				.collectLogEntries(true)
+				.createRepoObject(false)        // to avoid influencing repo statistics
+//				.beginLoggingOverride()
+//					.beginLevelOverride()
+//						.logger("org.hibernate.SQL")
+//						.level(LoggingLevelType.TRACE)
+//					.<LoggingOverrideType>end()
+//					.beginLevelOverride()
+//						.logger("org.hibernate.type")
+//						.level(LoggingLevelType.TRACE)
+//					.<LoggingOverrideType>end()
+//				.<TracingProfileType>end()
+				.beginTracingTypeProfile()
+					.level(TracingLevelType.NORMAL)
+				.<TracingProfileType>end()
+				.fileNamePattern("trace %{timestamp} %{testNameShort} %{focusName} %{milliseconds}"));
+		return task;
+	}
+
 	protected void assertSuccess(OperationResult result) {
 		if (result.isUnknown()) {
 			result.computeStatus();

@@ -24,11 +24,15 @@ import java.util.Map;
 /**
  *
  */
-public interface PerformanceInformation extends DebugDumpable {
+public interface PerformanceInformation extends DebugDumpable, Cloneable {
 
 	void clear();
 
 	Map<String, OperationPerformanceInformation> getAllData();
 
 	RepositoryPerformanceInformationType toRepositoryPerformanceInformationType();
+
+	int getInvocationCount(String operation);
+
+	PerformanceInformation clone();
 }

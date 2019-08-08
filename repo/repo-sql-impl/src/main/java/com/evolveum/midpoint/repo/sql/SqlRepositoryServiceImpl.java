@@ -199,13 +199,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         PrismObject<T> object = null;
         try {
-        	
-		    PrismObject<T> attemptobject = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
-				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult)
-		    );
-		    object = attemptobject;
-		    invokeConflictWatchers((w) -> w.afterGetObject(attemptobject));
-		    
+            // "objectLocal" is here just to provide effectively final variable for the lambda below
+		    PrismObject<T> objectLocal = executeAttempts(oid, OP_GET_OBJECT, type, "getting",
+				    subResult, () -> objectRetriever.getObjectAttempt(type, oid, options, subResult));
+            object = objectLocal;
+		    invokeConflictWatchers((w) -> w.afterGetObject(objectLocal));
         } finally {
         	OperationLogger.logGetObject(type, oid, options, object, subResult);
         }
@@ -1255,7 +1253,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 	}
 	
     @Override
-    public ConflictWatcher createAndRegisterConflictWatcher(String oid) {
+    public ConflictWatcher createAndRegisterConflictWatcher(@NotNull String oid) {
 	    List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
 	    if (watchers == null) {
 	    	conflictWatchersThreadLocal.set(watchers = new ArrayList<>());

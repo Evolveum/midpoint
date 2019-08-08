@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -2683,6 +2684,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
     
     public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler) throws SchemaException{
+    	return initItemPanel(panelId, typeName, wrapperModel, visibilityHandler, false);
+    }
+    
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler, boolean isOnTopLevel) throws SchemaException{
+    	if (wrapperModel.getObject() instanceof PrismContainerWrapper) {
+    		((PrismContainerWrapper)wrapperModel.getObject()).setShowOnTopLevel(isOnTopLevel);
+    	}
+    	
     	Class<?> panelClass = getWrapperPanel(typeName);
     	if (panelClass == null) {
     		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);

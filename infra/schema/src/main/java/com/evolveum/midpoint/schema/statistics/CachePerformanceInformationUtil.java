@@ -98,4 +98,8 @@ public class CachePerformanceInformationUtil {
 		}
 		return sb.toString();
 	}
+
+	public static String format(Map<String, CachePerformanceCollector.CacheData> performanceMap) {
+		return performanceMap != null ? format(toCachesPerformanceInformationType(performanceMap)) : "";
+	}
 }
