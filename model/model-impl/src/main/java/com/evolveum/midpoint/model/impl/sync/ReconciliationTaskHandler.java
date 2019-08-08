@@ -598,9 +598,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		query = addQueryFromTaskIfExists(query, localCoordinatorTask);
 		query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow recon query:\n{}", query.debugDump());
-		}
+		LOGGER.trace("Shadow recon query:\n{}", query.debugDumpLazily());
 
 		long started = System.currentTimeMillis();
 
@@ -626,9 +624,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			}
 
 			if (ShadowUtil.isProtected(resourceShadow)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
-				}
+				LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
 				return localCoordinatorTask.canRun();
 			}
 

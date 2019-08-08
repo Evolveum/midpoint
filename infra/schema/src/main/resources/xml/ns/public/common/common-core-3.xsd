@@ -17637,6 +17637,17 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="shadowMetadataRecording" type="tns:MetadataRecordingStrategyType" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						How metadata in shadows should be recorded/updated.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<a:since>4.0</a:since>
+						<a:displayName>InternalsConfigurationType.shadowMetadataRecording</a:displayName>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="operationExecutionRecording" type="tns:OperationExecutionRecordingStrategyType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -17770,6 +17781,30 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	<xsd:element name="operationExecutionRecordingStrategy" type="tns:OperationExecutionRecordingStrategyType" />
+
+	<xsd:complexType name="MetadataRecordingStrategyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				How object metadata should be recorded or updated.
+				EXPERIMENTAL
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+				<a:since>4.0</a:since>
+				<a:experimental>true</a:experimental>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="skipOnModify" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Metadata are not updated when modifying an object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:element name="metadataRecordingStrategy" type="tns:MetadataRecordingStrategyType" />
 
 	<xsd:complexType name="ConstraintsCheckingStrategyType">
 		<xsd:annotation>

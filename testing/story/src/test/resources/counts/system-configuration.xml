@@ -47,13 +47,15 @@
 		<operationExecutionRecording>
 			<skipWhenSuccess>true</skipWhenSuccess>
 		</operationExecutionRecording>
+		<shadowMetadataRecording>
+			<skipOnModify>true</skipOnModify>
+		</shadowMetadataRecording>
 		<caching>
 			<profile>
 				<global>true</global>
 				<globalRepoCache>
 					<append>false</append>
 					<timeToLive>60</timeToLive>
-					<tracePass>true</tracePass>
 					<statistics>
 						<classification>perCacheAndObjectType</classification>
 					</statistics>
@@ -69,7 +71,6 @@
 					</objectTypeSettings>
 				</globalRepoCache>
 				<localRepoCache>
-					<tracePass>true</tracePass>
 					<statistics>
 						<classification>perCacheAndObjectType</classification>
 					</statistics>
