@@ -17,15 +17,21 @@ package com.evolveum.midpoint.gui.impl.prism;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author katka
@@ -53,16 +59,14 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		add(AttributeModifier.append("class", () -> {
 			String cssClasses = "";
 			
-			if (getModelObject() != null && getModelObject().isShowOnTopLevel()) {
+			if (getModelObject() != null && getModelObject().isShowOnTopLevel()
+					|| !(getParent() instanceof PrismContainerValuePanel)) {
 				cssClasses = "top-level-prism-container";
 			}
 			
 			if (getModelObject() != null && getModelObject().isMultiValue()) {
 				cssClasses = " multivalue-container";
 			}
-//			if (getModelObject() != null && getModelObject().isSingleValue()) {
-//				cssClasses = " singlevalue-container";
-//			}
 			return cssClasses;
 		}));
 		
@@ -70,7 +74,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
 	@Override
 	protected Panel createHeaderPanel() {
-		return new PrismContainerHeaderPanel<>(ID_HEADER, getModel());
+		return new PrismContainerHeaderPanel(ID_HEADER, getModel());
 	}
 	
 	@Override
@@ -87,9 +91,6 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
 			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
-//			if(PrismContainerPanel.this.getModelObject() != null && PrismContainerPanel.this.getModelObject().isSingleValue()) {
-//				valuePanel.add(AttributeModifier.append("class", "singlevalue-container"));
-//			}
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
 			return valuePanel;
@@ -102,6 +103,11 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		item.add(panel);
 		return panel;
 		 
+	}
+	
+	@Override
+	protected void customValuesPanel(ListView<PrismContainerValueWrapper<C>> values) {
+		values.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
 	}
 	
 	@Override

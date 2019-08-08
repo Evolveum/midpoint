@@ -112,7 +112,11 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 		};
 
 		values.setReuseItems(true);
+		customValuesPanel(values);
 		return values;
+	}
+
+	protected void customValuesPanel(ListView<VW> values) {
 	}
 
 	// VALUE REGION
