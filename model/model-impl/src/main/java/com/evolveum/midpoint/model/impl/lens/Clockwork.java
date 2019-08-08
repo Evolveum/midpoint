@@ -1403,7 +1403,7 @@ public class Clockwork {
 			}
 		}
 
-		auditHelper.audit(auditRecord, task, result);
+		auditHelper.audit(auditRecord, context.getNameResolver(), task, result);
 
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave

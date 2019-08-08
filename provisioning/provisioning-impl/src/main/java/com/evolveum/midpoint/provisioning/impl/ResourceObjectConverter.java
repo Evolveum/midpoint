@@ -199,7 +199,6 @@ public class ResourceObjectConverter {
 				throw new GenericConnectorException(e.getMessage(), e);
 			}
 		}
-
 	}
 
 	private boolean hasAllIdentifiers(Collection<? extends ResourceAttribute<?>> attributes,
@@ -218,8 +217,6 @@ public class ResourceObjectConverter {
 		}
 		return true;
 	}
-
-	
 
 	public AsynchronousOperationReturnValue<PrismObject<ShadowType>> addResourceObject(ProvisioningContext ctx, 
 			PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts, ConnectorOperationOptions connOptions,
@@ -255,12 +252,11 @@ public class ResourceObjectConverter {
 		checkForCapability(ctx, CreateCapabilityType.class, result);
 		
 		Collection<Operation> additionalOperations = new ArrayList<>();
-		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource,
-				result);
+		addExecuteScriptOperation(additionalOperations, ProvisioningOperationTypeType.ADD, scripts, resource, result);
 		entitlementConverter.processEntitlementsAdd(ctx, shadowClone);
 		
 		ConnectorInstance connector = ctx.getConnector(CreateCapabilityType.class, result);
-		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet = null;
+		AsynchronousOperationReturnValue<Collection<ResourceAttribute<?>>> connectorAsyncOpRet;
 		try {
 
 			if (LOGGER.isDebugEnabled()) {
@@ -305,9 +301,7 @@ public class ResourceObjectConverter {
 		computeResultStatus(result);
 		
 		AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncOpRet = AsynchronousOperationReturnValue.wrap(shadow, result);
-		if (connectorAsyncOpRet != null) {
-			asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
-		}
+		asyncOpRet.setOperationType(connectorAsyncOpRet.getOperationType());
 		return asyncOpRet;
 	}
 
