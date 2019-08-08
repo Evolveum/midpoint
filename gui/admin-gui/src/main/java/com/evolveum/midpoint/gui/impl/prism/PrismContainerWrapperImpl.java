@@ -343,8 +343,9 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return (getParent() != null && getParent().isShowMetadata());
 		}
+		boolean parentIsOnTopLevel = parent.getParent() != null && ((PrismContainerWrapper)parent.getParent()).isShowOnTopLevel();
 		
-		return isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler);
+		return isVisibleByVisibilityHandler((parentIsOnTopLevel || parent.isExpanded()), visibilityHandler);
 	}
 
 	@Override
