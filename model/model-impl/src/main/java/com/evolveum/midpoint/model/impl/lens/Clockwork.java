@@ -249,6 +249,7 @@ public class Clockwork {
 				TracingAppender.terminateCollecting();  // todo reconsider
 				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}
+			result.computeStatusIfUnknown();
 		}
 	}
 

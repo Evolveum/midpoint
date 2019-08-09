@@ -970,12 +970,9 @@ public class ShadowCache {
 		if (shadowManager.isRepositoryOnlyModification(modifications)) {
 			opState.setExecutionStatus(PendingOperationExecutionStatusType.COMPLETED);
 			LOGGER.debug("MODIFY {}: repository-only modification", repoShadow);
-			
 		} else {
 			if (shouldExecuteResourceOperationDirectly(ctx)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDump(modifications));
-				}
+				LOGGER.trace("MODIFY {}: resource modification, execution starting\n{}", repoShadow, DebugUtil.debugDumpLazily(modifications));
 
 				ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 				

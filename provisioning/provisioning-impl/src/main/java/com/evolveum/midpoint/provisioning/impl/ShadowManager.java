@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
+import java.util.Objects;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -25,7 +26,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +50,6 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterEntry;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntry;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
@@ -68,7 +70,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -81,25 +82,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FailedOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RecordPendingOperationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourcePasswordDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -121,16 +103,15 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 @Component
 public class ShadowManager {
 	
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
 
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
-	@Autowired private TaskManager taskManager;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
-	@Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
 	@Autowired private Protector protector;
+	@Autowired private ProvisioningService provisioningService;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowManager.class);
 	
@@ -1630,11 +1611,19 @@ public class ShadowManager {
 		} else {
 			modifications = internalShadowModifications;
 		}
-		addModifyMetadataDeltas(opState.getRepoShadow(), modifications);
+		if (shouldApplyModifyMetadata()) {
+			addModifyMetadataDeltas(opState.getRepoShadow(), modifications);
+		}
 		LOGGER.trace("Updating repository {} after MODIFY operation {}, {} repository shadow modifications", oldRepoShadow, opState, requestedModifications.size());
 		
 		modifyShadowAttributes(ctx, oldRepoShadow, modifications, parentResult);
+	}
 
+	private <T extends ObjectType> boolean shouldApplyModifyMetadata() {
+		SystemConfigurationType config = provisioningService.getSystemConfiguration();
+		InternalsConfigurationType internals = config != null ? config.getInternals() : null;
+		return internals == null || internals.getShadowMetadataRecording() == null ||
+				!Boolean.TRUE.equals(internals.getShadowMetadataRecording().isSkipOnModify());
 	}
 		
 	/**
@@ -1645,7 +1634,7 @@ public class ShadowManager {
 			OperationResult parentResult) 
 			throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, ExpressionEvaluationException { 
 		Collection<? extends ItemDelta> shadowChanges = extractRepoShadowChanges(ctx, shadow, modifications);
-		if (shadowChanges != null && !shadowChanges.isEmpty()) {
+		if (!shadowChanges.isEmpty()) {
 			LOGGER.trace(
 					"There are repository shadow changes, applying modifications {}",
 					DebugUtil.debugDump(shadowChanges));
@@ -1696,6 +1685,7 @@ public class ShadowManager {
 	}
 
 	@SuppressWarnings("rawtypes")
+	@NotNull
 	private Collection<? extends ItemDelta> extractRepoShadowChanges(ProvisioningContext ctx, PrismObject<ShadowType> shadow, Collection<? extends ItemDelta> objectChange)
 			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
 
@@ -1738,8 +1728,7 @@ public class ShadowManager {
 			normalizeDelta(itemDelta, objectClassDefinition);
 			repoChanges.add(itemDelta);
 		}
-		
-		
+
 		return repoChanges;
 	}
 	
@@ -2347,9 +2336,7 @@ public class ShadowManager {
 		if (modifyTimestampDelta != null) {
 			return;
 		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}", DebugUtil.debugDump(shadowChanges, 1));
-		}
+		LOGGER.debug("Metadata not found, adding minimal metadata. Modifications:\n{}", DebugUtil.debugDumpLazily(shadowChanges, 1));
 		PrismPropertyDefinition<XMLGregorianCalendar> def = repoShadow.getDefinition().findPropertyDefinition(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		modifyTimestampDelta = def.createEmptyDelta(SchemaConstants.PATH_METADATA_MODIFY_TIMESTAMP);
 		modifyTimestampDelta.setRealValuesToReplace(clock.currentTimeXMLGregorianCalendar());

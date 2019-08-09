@@ -533,4 +533,8 @@ public interface ProvisioningService {
 
 	void shutdown();
 
+	/**
+	 * Temporary and quick hack. TODO fix this
+	 */
+	SystemConfigurationType getSystemConfiguration();
 }
