@@ -1263,17 +1263,21 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			//LOGGER.info("Cache: PASS REASON: !root: {}", options);
 			return new PassReason(NON_ROOT_OPTIONS);
 		}
-		GetOperationOptions options1 = selectorOptions.getOptions();
-		// TODO FIX THIS!!!
-		if (options1 == null ||
-				options1.equals(new GetOperationOptions()) ||
-				options1.equals(createAllowNotFound()) ||
-				options1.equals(createExecutionPhase()) ||
-				options1.equals(createReadOnly()) ||
-				options1.equals(createNoFetch())) {
+		if (selectorOptions.getOptions() == null) {
 			return null;
 		}
-		if (options1.equals(createRetrieve(RetrieveOption.INCLUDE))) {
+		GetOperationOptions cloned = selectorOptions.getOptions().clone();
+
+		// Eliminate harmless options
+		cloned.setAllowNotFound(null);
+		cloned.setExecutionPhase(null);
+		cloned.setReadOnly(null);
+		cloned.setNoFetch(null);
+		cloned.setPointInTimeType(null);            // This is not used by repository anyway.
+		if (cloned.equals(GetOperationOptions.EMPTY)) {
+			return null;
+		}
+		if (cloned.equals(createRetrieve(RetrieveOption.INCLUDE))) {
 			if (SelectorOptions.isRetrievedFullyByDefault(objectType)) {
 				return null;
 			} else {
@@ -1282,7 +1286,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			}
 		}
 		//LOGGER.info("Cache: PASS REASON: other: {}", options);
-		return new PassReason(UNSUPPORTED_OPTION);
+		return new PassReason(UNSUPPORTED_OPTION, cloned.toString());
 	}
 
 	@Override
@@ -1844,20 +1848,19 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT
 	}
 
-	static class PassReason {
-		final PassReasonType type;
-		final String comment;
-		PassReason(PassReasonType type) {
+	private static class PassReason {
+		private final PassReasonType type;
+		private final String comment;
+		private PassReason(PassReasonType type) {
 			this.type = type;
 			this.comment = null;
 		}
-		@SuppressWarnings("unused")
-		PassReason(PassReasonType type, String comment) {
+		private PassReason(PassReasonType type, String comment) {
 			this.type = type;
 			this.comment = comment;
 		}
 
-		CacheUseTraceType toCacheUse() {
+		private CacheUseTraceType toCacheUse() {
 			return new CacheUseTraceType()
 					.category(CacheUseCategoryTraceType.PASS)
 					.comment(type + (comment != null ? ": " + comment : ""));
@@ -1870,7 +1873,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		private final SearchResultList<PrismObject<T>> objects = new SearchResultList<>();
 		private final ResultHandler<T> originalHandler;
 
-		CollectingHandler(ResultHandler<T> handler) {
+		private CollectingHandler(ResultHandler<T> handler) {
 			originalHandler = handler;
 		}
 
@@ -1884,11 +1887,11 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 			return originalHandler.handle(object, parentResult);
 		}
 
-		SearchResultList<PrismObject<T>> getObjects() {
+		private SearchResultList<PrismObject<T>> getObjects() {
 			return overflown ? null : objects;
 		}
 
-		boolean isResultAvailable() {
+		private boolean isResultAvailable() {
 			return !overflown;
 		}
 	}
@@ -1896,7 +1899,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	public static class RepositoryCacheInvalidationDetails implements CacheInvalidationDetails {
 		private final Object details;
 
-		RepositoryCacheInvalidationDetails(Object details) {
+		private RepositoryCacheInvalidationDetails(Object details) {
 			this.details = details;
 		}
 

@@ -171,7 +171,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 				.assertOp("addObject", 4)
 				.assertOp("audit.AuditEventRecord", 2)
 				.assertOp("getObject.RoleType", 3)
-				.assertOp("getObject.ShadowType", 9)               // todo lower this
+				.assertOp("getObject.ShadowType", 6)               // todo lower this
 				.assertOp("getObject.UserType", 2)                  // todo lower this
 				.assertOp("getVersion.ObjectType", 0)
 				.assertOp("listAccountShadowOwner.UserType", 0)
@@ -217,7 +217,7 @@ public class TestOperationCounts extends AbstractStoryTest {
 				.assertOp("addObject.UserType", 1)
 				.assertOp("addObject.ShadowType", 3)
 				.assertOp("audit.AuditEventRecord", 2)
-				.assertOp("getObject.ShadowType", 9)               // todo lower this
+				.assertOp("getObject.ShadowType", 6)               // todo lower this
 				.assertOp("getObject.UserType", 2)                  // todo lower this
 				.assertOp("getVersion.ObjectType", 0)
 				.assertOp("listAccountShadowOwner.UserType", 0)
@@ -259,11 +259,11 @@ public class TestOperationCounts extends AbstractStoryTest {
 		repoOpAsserter
 				.assertOp("addObject", 0)
 				.assertOp("audit.AuditEventRecord", 2)
-				.assertOp("getObject.ShadowType", 9)               // todo lower this
+				.assertOp("getObject.ShadowType", 0)                // this is 0 because of the global cache!
 				.assertOp("getObject.UserType", 2)                  // todo lower this
 				.assertOp("getVersion.ObjectType", 0)
 				.assertOp("listAccountShadowOwner.UserType", 0)
-				.assertOp("modifyObject.ShadowType", 3)             // todo
+				.assertOp("modifyObject.ShadowType", 0)
 				.assertOp("modifyObject.UserType", 1);              // todo
 	}
 }

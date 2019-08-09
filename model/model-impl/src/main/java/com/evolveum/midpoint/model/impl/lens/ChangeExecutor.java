@@ -1501,8 +1501,10 @@ public class ChangeExecutor {
 			securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(),
 					AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
 
-			metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
-					clock.currentTimeXMLGregorianCalendar(), task, context, result);
+			if (shouldApplyModifyMetadata(objectTypeClass, context.getSystemConfigurationType())) {
+				metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
+						clock.currentTimeXMLGregorianCalendar(), task, context, result);
+			}
 
 			if (delta.isEmpty()) {
 				// Nothing to do
@@ -1546,7 +1548,16 @@ public class ChangeExecutor {
 		}
 	}
 
-
+	private <T extends ObjectType> boolean shouldApplyModifyMetadata(Class<T> objectTypeClass, SystemConfigurationType config) {
+		if (!ShadowType.class.equals(objectTypeClass)) {
+			return true;
+		} else if (config == null || config.getInternals() == null || config.getInternals().getShadowMetadataRecording() == null) {
+			return true;
+		} else {
+			MetadataRecordingStrategyType recording = config.getInternals().getShadowMetadataRecording();
+			return !Boolean.TRUE.equals(recording.isSkipOnModify());
+		}
+	}
 
 	private String addTask(TaskType task, RepoAddOptions addOpt, OperationResult result)
 			throws ObjectAlreadyExistsException {

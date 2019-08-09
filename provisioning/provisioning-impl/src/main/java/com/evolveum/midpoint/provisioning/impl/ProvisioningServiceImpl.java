@@ -20,16 +20,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
+import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
@@ -101,7 +105,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Service(value = "provisioningService")
 @Primary
-public class ProvisioningServiceImpl implements ProvisioningService {
+public class ProvisioningServiceImpl implements ProvisioningService, SystemConfigurationChangeListener {
 	
 	private static final String OPERATION_REFRESH_SHADOW = ProvisioningServiceImpl.class.getName() +".refreshShadow";
 
@@ -111,12 +115,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired ProvisioningContextFactory ctxFactory;
 	@Autowired PrismContext prismContext;
 	@Autowired CacheConfigurationManager cacheConfigurationManager;
+	@Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
-	@Autowired(required = true)
+	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService cacheRepositoryService;
 
 	private PrismObjectDefinition<ShadowType> resourceObjectShadowDefinition;
+
+	private SystemConfigurationType systemConfiguration;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -1255,12 +1262,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
         return provisioningDiag;
     }
 
-    /*
-         * (non-Javadoc)
-         *
-         * @see
-         * com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
-         */
 	@Override
 	public void postInit(OperationResult parentResult) {
 
@@ -1277,9 +1278,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.cleanupResult();
 	}
 
+	@PostConstruct
+	public void init() {
+		systemConfigurationChangeDispatcher.registerListener(this);
+	}
+
 	@PreDestroy
     public void shutdown() {
 		connectorManager.shutdown();
+		systemConfigurationChangeDispatcher.unregisterListener(this);
 	}
 
 	@Override
@@ -1397,4 +1404,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return comparisonResult;
 	}
 
+	@Override
+	public boolean update(@Nullable SystemConfigurationType value) {
+		systemConfiguration = value;
+		return true;
+	}
+
+	@Override
+	public SystemConfigurationType getSystemConfiguration() {
+		return systemConfiguration;
+	}
 }
