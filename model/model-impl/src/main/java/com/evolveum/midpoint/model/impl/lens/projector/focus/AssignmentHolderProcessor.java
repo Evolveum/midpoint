@@ -91,7 +91,6 @@ public class AssignmentHolderProcessor {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-
 	public <O extends ObjectType, AH extends AssignmentHolderType> void processFocus(LensContext<O> context, String activityDescription,
 			XMLGregorianCalendar now, Task task, OperationResult result) 
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
@@ -127,21 +126,15 @@ public class AssignmentHolderProcessor {
 					throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, PolicyViolationException,
 					ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
 		LensFocusContext<AH> focusContext = context.getFocusContext();
-		ObjectTemplateType objectTemplate = context.getFocusTemplate();
 		PartialProcessingOptionsType partialProcessingOptions = context.getPartialProcessingOptions();
 
 		boolean resetOnRename = true; // This is fixed now. TODO: make it configurable
-		int maxIterations;
-		IterationSpecificationType iterationSpecificationType;
-		if (objectTemplate != null) {
-			iterationSpecificationType = objectTemplate.getIterationSpecification();
-			maxIterations = LensUtil.determineMaxIterations(iterationSpecificationType);
-		} else {
-			iterationSpecificationType = null;
-			maxIterations = 0;
-		}
-		LOGGER.trace("maxIterations = {}, iteration specification = {} derived from template {}", maxIterations,
-				iterationSpecificationType, objectTemplate);
+
+		boolean wasResetOnIterationSpecificationChange = false;
+		boolean iterationSpecificationInitialized = false;
+		IterationSpecificationType iterationSpecification = null;       // initializing just for the compiler not to complain
+		int maxIterations = 0;                                          // initializing just for the compiler not to complain
+
 		int iteration = focusContext.getIteration();
 		String iterationToken = focusContext.getIterationToken();
 		boolean wasResetIterationCounter = false;
@@ -157,6 +150,16 @@ public class AssignmentHolderProcessor {
 		
 		while (true) {
 
+			ObjectTemplateType objectTemplate = context.getFocusTemplate();
+
+			if (!iterationSpecificationInitialized) {
+				iterationSpecification = LensUtil.getIterationSpecification(objectTemplate);
+				maxIterations = LensUtil.determineMaxIterations(iterationSpecification);
+				LOGGER.trace("maxIterations = {}, iteration specification = {} derived from template {}", maxIterations,
+						iterationSpecification, objectTemplate);
+				iterationSpecificationInitialized = true;
+			}
+
 			ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
 			LensUtil.applyObjectPolicyConstraints(focusContext, archetypePolicy, prismContext);
 
@@ -164,7 +167,7 @@ public class AssignmentHolderProcessor {
 					null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext,
-						iterationSpecificationType, iteration, expressionFactory, variablesPreIteration, task, result);
+						iterationSpecification, iteration, expressionFactory, variablesPreIteration, task, result);
 			}
 
 			// We have to remember the token and iteration in the context.
@@ -180,7 +183,7 @@ public class AssignmentHolderProcessor {
 
 			String conflictMessage;
 			if (!LensUtil.evaluateIterationCondition(context, focusContext,
-					iterationSpecificationType, iteration, iterationToken, true, expressionFactory, variablesPreIteration, task, result)) {
+					iterationSpecification, iteration, iterationToken, true, expressionFactory, variablesPreIteration, task, result)) {
 
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
@@ -205,7 +208,6 @@ public class AssignmentHolderProcessor {
 						partialProcessingOptions::getInbound,
 						Projector.class, context, result);
 
-
 		        // ACTIVATION
 
 				medic.partialExecute("focusActivation",
@@ -215,6 +217,26 @@ public class AssignmentHolderProcessor {
 
 
 		        // OBJECT TEMPLATE (before assignments)
+
+				if (focusContext.isDelete()) {
+					LOGGER.trace("Skipping refreshing of object template and iterator specification: focus delete");
+				} else {
+					contextLoader.setFocusTemplate(context, result);
+					if (!wasResetOnIterationSpecificationChange) {
+						IterationSpecificationType newIterationSpecification = context.getFocusTemplate() != null ?
+								context.getFocusTemplate().getIterationSpecification() : null;
+						if (!java.util.Objects.equals(iterationSpecification, newIterationSpecification)) {
+							LOGGER.trace("Resetting iteration counter and token because of iteration specification change");
+							iteration = 0;
+							iterationToken = null;
+							wasResetOnIterationSpecificationChange = true;
+							wasResetIterationCounter = false;
+							iterationSpecificationInitialized = false;
+							cleanupContext(focusContext);
+							continue;
+						}
+					}
+				}
 
 				medic.partialExecute("objectTemplateBeforeAssignments",
 						(result1) -> objectTemplateProcessor.processTemplate(context,
@@ -360,7 +382,7 @@ public class AssignmentHolderProcessor {
 		        	ExpressionVariables variablesPostIteration = ModelImplUtils.getDefaultExpressionVariables(focusContext.getObjectNew(),
 		        			null, null, null, context.getSystemConfiguration(), focusContext, prismContext);
 		        	if (LensUtil.evaluateIterationCondition(context, focusContext,
-		        			iterationSpecificationType, iteration, iterationToken, false, expressionFactory, variablesPostIteration,
+		        			iterationSpecification, iteration, iterationToken, false, expressionFactory, variablesPostIteration,
 		        			task, result)) {
 	    				// stop the iterations
 	    				break;

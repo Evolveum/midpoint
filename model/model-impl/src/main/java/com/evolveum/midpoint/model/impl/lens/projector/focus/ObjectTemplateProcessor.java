@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -117,24 +118,16 @@ public class ObjectTemplateProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
 
-	@Autowired
-	private MappingFactory mappingFactory;
-
-	@Autowired
-	private PrismContext prismContext;
-
-	@Autowired
-	private ModelObjectResolver modelObjectResolver;
+	@Autowired private MappingFactory mappingFactory;
+	@Autowired private PrismContext prismContext;
+	@Autowired private ModelObjectResolver modelObjectResolver;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	@Autowired
-    private MappingEvaluator mappingEvaluator;
-
-	@Autowired
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Autowired private MappingEvaluator mappingEvaluator;
+	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
 	/**
 	 * Process focus template: application of object template where focus is both source and target.
@@ -148,7 +141,7 @@ public class ObjectTemplateProcessor {
     		return;
     	}
 
-    	ObjectTemplateType objectTemplate = determineFocusTemplate(context, result);
+    	ObjectTemplateType objectTemplate = context.getFocusTemplate();
     	String objectTemplateDesc = "(no template)";
 		if (objectTemplate != null) {
 			objectTemplateDesc = objectTemplate.toString();
@@ -219,33 +212,6 @@ public class ObjectTemplateProcessor {
 		String triggerOriginDescription;
 	}
 	
-	// expects that object policy configuration is already set in focusContext
-	private <F extends ObjectType> ObjectTemplateType determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
-		
-		if (context.getFocusTemplate() != null) {
-			return context.getFocusTemplate();
-		}
-		
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext == null) {
-			return null;
-		}
-		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
-		if (archetypePolicy == null) {
-			LOGGER.trace("No default object template (no policy)");
-			return null;
-		}
-		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
-		if (templateRef == null) {
-			LOGGER.trace("No default object template (no templateRef)");
-			return null;
-		}
-
-		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-		context.setFocusTemplate(template.asObjectable());
-	    return template.asObjectable();
-	}
-
 	/**
 	 * Processing object mapping: application of object template where focus is the source and another object is the target.
 	 * Used to map focus to personas.
