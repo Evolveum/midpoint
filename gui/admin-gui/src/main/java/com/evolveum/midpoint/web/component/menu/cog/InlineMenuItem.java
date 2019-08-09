@@ -54,6 +54,10 @@ public abstract class InlineMenuItem implements Serializable {
     public IModel<Boolean> getEnabled() {
         return enabled;
     }
+    
+    public void setEnabled(IModel<Boolean> enabled) {
+		this.enabled = enabled;
+	}
 
     public IModel<String> getLabel() {
         return label;
