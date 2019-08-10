@@ -16,21 +16,9 @@
 
 package com.evolveum.midpoint.testing.rest;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-
-import org.apache.cxf.jaxrs.provider.json.JSONProvider;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-
 import com.evolveum.midpoint.model.impl.rest.MidpointAbstractProvider;
-import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
-import jdk.nashorn.internal.ir.annotations.Ignore;
+import java.io.File;
 
 public class TestRestServiceYaml extends TestAbstractRestService {
 
