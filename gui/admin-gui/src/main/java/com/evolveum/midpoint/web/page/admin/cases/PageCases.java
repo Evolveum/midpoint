@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -125,6 +126,9 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        if (warnIfNoCaseSelected(target)){
+                            return;
+                        }
                         if (getRowModel() == null) {
                             stopCaseProcessConfirmed(target);
                         } else {
@@ -166,6 +170,9 @@ public class PageCases extends PageAdminObjectList<CaseType> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
+                        if (warnIfNoCaseSelected(target)){
+                            return;
+                        }
                         if (getRowModel() == null) {
                             deleteCaseObjectsConfirmed(target);
                         } else {
@@ -257,5 +264,13 @@ public class PageCases extends PageAdminObjectList<CaseType> {
         target.add(getFeedbackPanel());
         getObjectListPanel().refreshTable(CaseType.class, target);
         getObjectListPanel().clearCache();
+    }
+
+    private boolean warnIfNoCaseSelected(AjaxRequestTarget target){
+        if (CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects())){
+            warn(getString("PageCases.noCaseSelected"));
+            target.add(getFeedbackPanel());
+        }
+        return CollectionUtils.isEmpty(getObjectListPanel().getSelectedObjects());
     }
 }
