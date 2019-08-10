@@ -2583,9 +2583,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".setDefaultObjectTemplate");
 		setDefaultObjectTemplate(objectType, userTemplateOid, result);
-//		display("Aplying default user template result", result);
 		result.computeStatus();
-		TestUtil.assertSuccess("Aplying default object template failed (result)", result);
+		TestUtil.assertSuccess("Applying default object template failed (result)", result);
 	}
 
 

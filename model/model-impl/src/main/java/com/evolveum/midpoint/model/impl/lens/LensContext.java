@@ -68,7 +68,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LensContext.class);
 
-    public enum ExportType {
+	public enum ExportType {
 		MINIMAL, REDUCED, OPERATIONAL, TRACE
 	}
 
@@ -135,6 +135,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
 	transient private ObjectTemplateType focusTemplate;
+	private boolean focusTemplateExternallySet;       // todo serialize this
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 
 	transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
@@ -356,6 +357,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
 		this.focusTemplate = focusTemplate;
+	}
+
+	public boolean isFocusTemplateExternallySet() {
+		return focusTemplateExternallySet;
+	}
+
+	public void setFocusTemplateExternallySet(boolean focusTemplateExternallySet) {
+		this.focusTemplateExternallySet = focusTemplateExternallySet;
 	}
 
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {

@@ -200,9 +200,12 @@ public class BasicValidatorTest {
 
         System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
-        assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'"));
-        assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'givenName'"));
-        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'fullName'"));
+        assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'") ||
+                result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element '{\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\":foo}'"));
+        assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'givenName'") ||
+                result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element '{\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\":givenName}'"));
+        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'fullName'") ||
+                result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element '{\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\":fullName}'"));
     }
 
     /**

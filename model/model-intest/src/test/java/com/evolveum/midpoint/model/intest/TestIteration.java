@@ -28,6 +28,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -114,6 +116,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_FUCHSIA_NAME = "fuchsia";
 	protected static final String RESOURCE_DUMMY_FUCHSIA_NAMESPACE = MidPointConstants.NS_RI;
 
+	// Source for "changing template" test (test820)
+	protected static final File RESOURCE_DUMMY_ASSOCIATE_FILE = new File(TEST_DIR, "resource-dummy-associate.xml");
+	protected static final String RESOURCE_DUMMY_ASSOCIATE_OID = "18c109fd-1287-4a9b-9086-9ab878931ac0";
+	protected static final String RESOURCE_DUMMY_ASSOCIATE_NAME = "associate";
+
 	protected static final File TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "task-dumy-dark-violet-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
 
@@ -129,6 +136,10 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	// Iteration with token expression (sequential) and post-condition that checks for e-mail uniquness.
 	protected static final File USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE = new File(TEST_DIR, "user-template-iteration-unique-email.xml");
 	protected static final String USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_OID = "10000000-0000-0000-0000-0000000d0004";
+
+	// Simple focus iteration (to be used with "changing template" test)
+	protected static final File USER_TEMPLATE_ITERATION_ASSOCIATE_FILE = new File(TEST_DIR, "user-template-iteration-associate.xml");
+	protected static final String USER_TEMPLATE_ITERATION_ASSOCIATE_OID = "c0ee8964-0d2a-45d5-8a8e-6ee4f31e1c12";
 
 	private static final String USER_ANGELICA_NAME = "angelica";
 	private static final String ACCOUNT_SPARROW_NAME = "sparrow";
@@ -204,8 +215,12 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		initDummyResourceAd(RESOURCE_DUMMY_FUCHSIA_NAME,
 				RESOURCE_DUMMY_FUCHSIA_FILE, RESOURCE_DUMMY_FUCHSIA_OID, initTask, initResult);
 
+		initDummyResource(RESOURCE_DUMMY_ASSOCIATE_NAME,
+				RESOURCE_DUMMY_ASSOCIATE_FILE, RESOURCE_DUMMY_ASSOCIATE_OID, initTask, initResult);
+
 		addObject(USER_TEMPLATE_ITERATION_FILE);
 		addObject(USER_TEMPLATE_ITERATION_UNIQUE_EMAIL_FILE);
+		addObject(USER_TEMPLATE_ITERATION_ASSOCIATE_FILE);
 
 		addObject(USER_LARGO_FILE);
 
@@ -2264,6 +2279,55 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong "+user+" emailAddress", USER_FETTUCINI_NICKNAME + ".1" + EMAIL_SUFFIX, userAfter.asObjectable().getEmailAddress());
 	}
 
+	/**
+	 * MID-5618: When subtype is set by inbound, wrong iterator is used.
+	 */
+	@Test
+    public void test820SubtypeSetByInbound() throws Exception {
+		final String TEST_NAME = "test820SubtypeSetByInbound";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, null);
+        setDefaultObjectTemplate(UserType.COMPLEX_TYPE, "associate", USER_TEMPLATE_ITERATION_ASSOCIATE_OID, result);
+
+		DummyResourceContoller associateCtl = dummyResourceCollection.get("associate");
+		associateCtl.addAccount("u1", "jim");   // should be imported as jim-0
+		associateCtl.addAccount("u2", "jim");   // should be imported as jim-1
+
+		ObjectQuery query = prismContext.queryFor(ShadowType.class)
+				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_ASSOCIATE_OID)
+				.and().item(ShadowType.F_OBJECT_CLASS).eq(SchemaConstants.RI_ACCOUNT_OBJECT_CLASS)
+				.build();
+		SearchResultList<PrismObject<ShadowType>> shadows = provisioningService
+				.searchObjects(ShadowType.class, query, null, task, result);
+		display("shadows", shadows);
+		assertEquals("Wrong # of shadows", 2, shadows.size());
+
+		// WHEN
+        displayWhen(TEST_NAME);
+        importAccountsFromResourceTaskHandler.importSingleShadow(shadows.get(0).getOid(), task, result);
+		importAccountsFromResourceTaskHandler.importSingleShadow(shadows.get(1).getOid(), task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		ObjectQuery userQuery = prismContext.queryFor(UserType.class)
+				.item(UserType.F_SUBTYPE).eq("associate")
+				.asc(UserType.F_NAME)
+				.build();
+		SearchResultList<PrismObject<UserType>> usersAfter = repositoryService
+				.searchObjects(UserType.class, userQuery, null, result);
+		display("users", usersAfter);
+		assertEquals("Wrong # of created users", 2, usersAfter.size());
+		assertEquals("Wrong name of user 1", "jim-0", usersAfter.get(0).getName().getOrig());
+		assertEquals("Wrong name of user 2", "jim-1", usersAfter.get(1).getName().getOrig());
+	}
 
 	private PrismObject<UserType> createUser(String username, String givenName,
 			String familyName, String nickname, boolean enabled) throws SchemaException {
