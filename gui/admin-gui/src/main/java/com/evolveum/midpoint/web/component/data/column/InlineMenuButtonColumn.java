@@ -83,8 +83,9 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
     private Component getPanel(String componentId, IModel<T> rowModel,
                                int numberOfButtons, boolean isHeaderPanel) {
         List<InlineMenuItem> filteredMenuItems = new ArrayList<>();
+        List<InlineMenuItem> cloneMenuItems = cloneColumnMenuActionIfUse(menuItems);
         for (InlineMenuItem menuItem : (rowModel != null && rowModel.getObject() instanceof InlineMenuable ?
-                ((InlineMenuable)rowModel.getObject()).getMenuItems() : menuItems)){
+                ((InlineMenuable)rowModel.getObject()).getMenuItems() : cloneMenuItems)){
             if (isHeaderPanel && !menuItem.isHeaderMenuItem()){
                 continue;
             }
@@ -256,4 +257,64 @@ public class InlineMenuButtonColumn<T extends Serializable> extends AbstractColu
         }
         return false;
     }
+    
+    private List<InlineMenuItem> cloneColumnMenuActionIfUse(List<InlineMenuItem> menuItems) {
+    	List<InlineMenuItem> clonedMenuItems = new ArrayList<InlineMenuItem>(menuItems.size());
+    	for (InlineMenuItem item : menuItems) {
+    		if (item.getAction() instanceof ColumnMenuAction) {
+    			InlineMenuItem clonedItem;
+    			ColumnMenuAction clonedAction = new ColumnMenuAction() {
+					
+					@Override
+					public void onClick(AjaxRequestTarget target) {
+						((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
+						item.getAction().onClick(target);
+					}
+					
+					@Override
+					public void onSubmit(AjaxRequestTarget target) {
+						((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
+						item.getAction().onSubmit(target);
+					}
+					
+					@Override
+					public void onError(AjaxRequestTarget target) {
+						((ColumnMenuAction)item.getAction()).setRowModel(getRowModel());
+						item.getAction().onError(target);
+					}
+					
+				};
+    			if (item instanceof ButtonInlineMenuItem) {
+    				clonedItem = new ButtonInlineMenuItem(item.getLabel(), item.isSubmit()) {
+						
+						@Override
+						public InlineMenuItemAction initAction() {
+							return clonedAction;
+						}
+						
+						@Override
+						public String getButtonIconCssClass() {
+							return ((ButtonInlineMenuItem) item).getButtonIconCssClass();
+						}
+					};
+    			} else {
+    				clonedItem = new InlineMenuItem(item.getLabel(), item.isSubmit()) {
+						
+						@Override
+						public InlineMenuItemAction initAction() {
+							return clonedAction;
+						}
+					};
+    			}
+    			clonedItem.setId(item.getId());
+    			clonedItem.setVisibilityChecker(item.getVisibilityChecker());
+    			clonedItem.setVisible(item.getVisible());
+    			clonedItem.setEnabled(item.getEnabled());
+    			clonedMenuItems.add(clonedItem);
+    			continue;
+    		}
+    		clonedMenuItems.add(item);
+    	}
+		return clonedMenuItems;
+	}
 }
