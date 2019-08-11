@@ -69,9 +69,8 @@ public class QueryUtils {
 			return q.item(CaseWorkItemType.F_ASSIGNEE_REF)
 					.ref(getPotentialAssigneesForUser(principal, limitationItemName, relationRegistry))
 					.and()
-					.not()
-					.item(PrismConstants.T_PARENT, CaseType.F_STATE)
-					.eq(SchemaConstants.CASE_STATE_CLOSED);
+					.item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+					.isNull();
 		}
 	}
 
