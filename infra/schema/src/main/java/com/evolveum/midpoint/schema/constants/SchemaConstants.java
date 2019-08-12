@@ -282,8 +282,8 @@ public abstract class SchemaConstants {
 														// removing
 	public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
 	public static final ItemName MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE = new ItemName(NS_MODEL_EXTENSION, "simulateBeforeExecute");
-	public static final ItemName SYNC_TOKEN_RETRY_UNHANDLED = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
-	public static final ItemName SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
+	public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
+	public static final ItemName MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE = new ItemName(NS_MODEL_EXTENSION, "liveSyncBatchSize");
 	public static final ItemName MODEL_EXTENSION_FINISH_OPERATIONS_ONLY = new ItemName(NS_MODEL_EXTENSION, "finishOperationsOnly");
 	public static final ItemName MODEL_EXTENSION_KIND = new ItemName(NS_MODEL_EXTENSION, "kind");
 	public static final ItemName MODEL_EXTENSION_INTENT = new ItemName(NS_MODEL_EXTENSION, "intent");

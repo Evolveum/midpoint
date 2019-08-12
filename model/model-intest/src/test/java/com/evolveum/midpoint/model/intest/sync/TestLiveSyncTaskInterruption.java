@@ -140,8 +140,15 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 	}
 
 	/**
-	 * Suspends LiveSync task in the first stage when it gathers changes via ICF Sync operation.
-	 * Token should be 0, because nothing was processed yet (regardless of precise/imprecise token handling).
+	 * Original meaning of this test was:
+	 *      Suspends LiveSync task in the first stage when it gathers changes via ICF Sync operation.
+	 *      Token should be 0, because nothing was processed yet (regardless of precise/imprecise token handling).
+	 *
+	 * However, now the live sync processing is iterative: changes are fetched and then applied. So this makes no difference.
+	 * Nevertheless, it might be useful to test suspension in early stages of task run.
+	 *
+	 * When dealing with precise resources, the suspension must come before first change is fetched. So we set the delay
+	 * to 2 seconds.
 	 */
 	@Test
 	public void test100SuspendWhileIcfSync() throws Exception {
@@ -153,13 +160,13 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		OperationResult result = task.getResult();
 
 		// Resource gives out changes slowly now.
-		interruptedSyncController.getDummyResource().setOperationDelayOffset(500);
+		interruptedSyncController.getDummyResource().setOperationDelayOffset(2000);
 
 		// WHEN
 		displayWhen(TEST_NAME);
 
 		waitForTaskNextStart(TASK_SLOW_RESOURCE_OID, false, 2000, true);  // starts the task
-		boolean suspended = suspendTask(TASK_SLOW_RESOURCE_OID, 5000);
+		boolean suspended = suspendTask(TASK_SLOW_RESOURCE_OID, 10000);
 
 		// THEN
 		displayThen(TEST_NAME);
@@ -171,8 +178,8 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 	}
 
 	/**
-	 * Suspends LiveSync task in the first stage when it gathers changes via ICF Sync operation.
-	 * Token should be 0, because nothing was processed yet (regardless of precise/imprecise token handling).
+	 * The same as test100.
+	 * The delay can be smaller, as even if some changes are fetched and processed, the token will not be updated.
 	 */
 	@Test
 	public void test105SuspendWhileIcfSyncImprecise() throws Exception {
@@ -202,8 +209,12 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 	}
 
 	/**
-	 * Suspends LiveSync task in the second stage when changes are being processed.
-	 * For precise token providing resource the token should correspond to objects that were actually processed.
+	 * Original meaning of this test was:
+	 *      Suspends LiveSync task in the second stage when changes are being processed.
+	 *      For precise token providing resource the token should correspond to objects that were actually processed.
+	 *
+	 * Now, when the processing is iterative, we simply suspend the task during iterative processing of changes.
+	 * The result should be the same.
 	 */
 	@Test
 	public void test110SuspendWhileProcessing() throws Exception {
@@ -213,6 +224,9 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// GIVEN
 		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		ObjectQuery query = getStartsWithQuery(USER_P);
+		deleteUsers(query, result);
 
 		// Resource gives out changes quickly. But they are processed slowly.
 		interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
@@ -242,8 +256,12 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 	}
 
 	/**
-	 * Suspends LiveSync task in the second stage when changes are being processed.
-	 * For imprecise token providing resource the token should stay unchanged, i.e. here at 0. (MID-5513)
+	 * Original meaning of this test was:
+	 *      Suspends LiveSync task in the second stage when changes are being processed.
+	 *      For imprecise token providing resource the token should stay unchanged, i.e. here at 0. (MID-5513)
+	 *
+	 * Now, when the processing is iterative, we simply suspend the task during iterative processing of changes.
+	 * The result should be the same.
 	 */
 	@Test
 	public void test115SuspendWhileProcessingImprecise() throws Exception {
@@ -253,6 +271,9 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// GIVEN
 		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		ObjectQuery query = getStartsWithQuery(USER_I);
+		deleteUsers(query, result);
 
 		// Resource gives out changes quickly. But they are processed slowly.
 		interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(0);
@@ -293,6 +314,9 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 
+		ObjectQuery query = getStartsWithQuery(USER_P);
+		deleteUsers(query, result);
+
 		// Changes are provided and processed normally. But we will take only first 10 of them.
 		interruptedSyncController.getDummyResource().setOperationDelayOffset(0);
 		delay = 0;
@@ -310,8 +334,6 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		display("Task after", taskAfter);
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 10, token);
-
-		ObjectQuery query = getStartsWithQuery(USER_P);
 
 		assertObjects(UserType.class, query, 10);
 
@@ -359,6 +381,9 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// GIVEN
 		Task task = createTask(AbstractSynchronizationStoryTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
+
+		ObjectQuery query = getStartsWithQuery(USER_I);
+		deleteUsers(query, result);
 
 		// Changes are provided and processed normally. But we will take only first 10 of them.
 		interruptedSyncImpreciseController.getDummyResource().setOperationDelayOffset(0);

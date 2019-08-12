@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2017-2018 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,20 +17,11 @@ package com.evolveum.midpoint.provisioning.ucf.api.connectors;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ManagedConnector;
-import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -306,10 +297,10 @@ public abstract class AbstractManualConnectorInstance extends AbstractManagedCon
 	}
 
 	@Override
-	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult) {
+	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+			ChangeHandler changeHandler, OperationResult parentResult) {
 		// not supported
-		return null;
 	}
 
 	@Override

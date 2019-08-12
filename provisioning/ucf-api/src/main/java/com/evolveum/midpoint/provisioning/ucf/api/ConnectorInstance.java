@@ -310,18 +310,17 @@ public interface ConnectorInstance {
 	 * corresponds to a current state of the resource. If fetchChanges
 	 * is immediately called with this token, nothing should be returned
 	 * (Figuratively speaking, neglecting concurrent resource modifications).
-	 *
-	 * @return
-	 * @throws CommunicationException
 	 */
 	<T> PrismProperty<T> fetchCurrentToken(ObjectClassComplexTypeDefinition objectClass, StateReporter reporter, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 
 	/**
 	 * Token may be null. That means "from the beginning of history".
 	 */
-	List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+			ChangeHandler changeHandler, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
+			ObjectNotFoundException, SecurityViolationException, ExpressionEvaluationException;
 
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 

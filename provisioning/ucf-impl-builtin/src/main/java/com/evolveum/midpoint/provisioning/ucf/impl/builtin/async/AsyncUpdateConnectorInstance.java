@@ -302,9 +302,9 @@ public class AsyncUpdateConnectorInstance extends AbstractManagedConnectorInstan
 	}
 
 	@Override
-	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult) {
-		return null;
+	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+			ChangeHandler changeHandler, OperationResult parentResult) {
 	}
 
 	//endregion

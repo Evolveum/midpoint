@@ -56,6 +56,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,6 +64,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 
@@ -1757,19 +1759,21 @@ public class ResourceObjectConverter {
 		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
-	List<Change> fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
+	void fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, ChangeHandler changeHandler,
+			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
+			SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("START fetch changes, objectClass: {}", ctx.getObjectClassDefinition());
-		AttributesToReturn attrsToReturn = null;
-		if (!ctx.isWildcard()) {
+		AttributesToReturn attrsToReturn;
+		if (ctx.isWildcard()) {
+			attrsToReturn = null;
+		} else {
 			attrsToReturn = ProvisioningUtil.createAttributesToReturn(ctx);
 		}
-		
+
 		ConnectorInstance connector = ctx.getConnector(LiveSyncCapabilityType.class, parentResult);
-		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.SYNC_BATCH_SIZE);
+		Integer batchSizeInTask = ctx.getTask().getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE);
 		Integer maxChanges;
 		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
 		if (capability != null) {
@@ -1785,84 +1789,105 @@ public class ResourceObjectConverter {
 			maxChanges = null;
 		}
 
-		// get changes from the connector
-		List<Change> changes = connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, maxChanges, ctx, parentResult);
-
-		Iterator<Change> iterator = changes.iterator();
-		while (iterator.hasNext() && ctx.canRun()) {
-			Change change = iterator.next();
-			LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
-			if (change.isTokenOnly()) {
-				continue;
-			}
-			ProvisioningContext shadowCtx = ctx;
-			AttributesToReturn shadowAttrsToReturn = attrsToReturn;
-			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-			ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
-			if (changeObjectClassDefinition == null) {
-				if (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-					throw new SchemaException("No object class definition in change "+change);
-				}
-			}
-			if (ctx.isWildcard() && changeObjectClassDefinition != null) {
-				shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
-				if (shadowCtx.isWildcard()) {
-					String message = "Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta";
-					parentResult.recordFatalError(message);
-					throw new SchemaException(message);
-				}
-				change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
-				
-				shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowCtx);
-			}
-			
-			if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
-				if (currentShadow == null) {
-					// There is no current shadow in a change. Add it by fetching it explicitly.
+		AtomicInteger processed = new AtomicInteger(0);
+		ChangeHandler localHandler = new ChangeHandler() {
+			@Override
+			public boolean handleChange(Change change, OperationResult result) {
+				if (!change.isTokenOnly()) {
 					try {
-						// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
-						LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
-						currentShadow = fetchResourceObject(shadowCtx, 
-								change.getIdentifiers(), shadowAttrsToReturn, true, parentResult);	// todo consider whether it is always necessary to fetch the entitlements
-						change.setCurrentShadow(currentShadow);
-					} catch (ObjectNotFoundException ex) {
-						parentResult.recordHandledError(
-								"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
-						LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
-								+ ex.getMessage());
-						// TODO: Maybe change to DELETE instead of this?
-						iterator.remove();
-						continue;
-					}
-				} else {
-					if (ctx.isWildcard()) {
-						if (!MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
-							// re-fetch the shadow if necessary (if attributesToGet does not match)
-							ResourceObjectIdentification identification = ResourceObjectIdentification.create(shadowCtx.getObjectClassDefinition(), 
-									change.getIdentifiers());
-							identification.validatePrimaryIdenfiers();
-							LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
-							currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, parentResult);
+						if (!preprocessChange(ctx, attrsToReturn, connector, change, result)) {
+							return true;
 						}
+					} catch (Throwable t) {
+						return changeHandler.handleError(change, t, result);
 					}
-							
-					PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx,
-							currentShadow, true, parentResult);
-					change.setCurrentShadow(processedCurrentShadow);
 				}
+				return changeHandler.handleChange(change, result);
 			}
-			LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
-		}
+
+			@Override
+			public boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result) {
+				return changeHandler.handleError(change, exception, result);
+			}
+		};
+
+		// get changes from the connector
+		connector.fetchChanges(ctx.getObjectClassDefinition(), lastToken, attrsToReturn, maxChanges, ctx, localHandler, parentResult);
 
 		computeResultStatus(parentResult);
 		
-		LOGGER.trace("END fetch changes ({} changes); interrupted = {}", changes.size(), !ctx.canRun());
-		return changes;
+		LOGGER.trace("END fetch changes ({} changes); interrupted = {}", processed.get(), !ctx.canRun());
+	}
+
+	/**
+	 * @return false if this change should be skipped
+	 */
+	private boolean preprocessChange(ProvisioningContext ctx, AttributesToReturn attrsToReturn, ConnectorInstance connector,
+			Change change, OperationResult result)
+			throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException,
+			ExpressionEvaluationException, SecurityViolationException, GenericFrameworkException {
+
+		LOGGER.trace("Original change:\n{}", change.debugDumpLazily());
+		ObjectClassComplexTypeDefinition changeObjectClassDefinition = change.getObjectClassDefinition();
+		if (changeObjectClassDefinition == null && (!ctx.isWildcard() || change.getObjectDelta() == null || !change.getObjectDelta().isDelete())) {
+			throw new SchemaException("No object class definition in change "+change);
+		}
+		ProvisioningContext shadowCtx;
+		AttributesToReturn shadowAttrsToReturn;
+		if (ctx.isWildcard() && changeObjectClassDefinition != null) {
+			shadowCtx = ctx.spawn(changeObjectClassDefinition.getTypeName());
+			if (shadowCtx.isWildcard()) {
+				throw new SchemaException(
+						"Unknown object class "+changeObjectClassDefinition.getTypeName()+" found in synchronization delta");
+			}
+			change.setObjectClassDefinition(shadowCtx.getObjectClassDefinition());
+			shadowAttrsToReturn = ProvisioningUtil.createAttributesToReturn(shadowCtx);
+		} else {
+			shadowCtx = ctx;
+			shadowAttrsToReturn = attrsToReturn;
+		}
+
+		if (change.getObjectDelta() == null || !change.getObjectDelta().isDelete()) {
+			if (change.getCurrentShadow() == null) {
+				// There is no current shadow in a change. Add it by fetching it explicitly.
+				try {
+					// TODO maybe we can postpone this fetch to ShadowCache.preProcessChange where it is implemented [pmed]
+					LOGGER.trace("Re-fetching object {} because it is not in the change", change.getIdentifiers());
+					PrismObject<ShadowType> currentShadow = fetchResourceObject(shadowCtx,
+							change.getIdentifiers(), shadowAttrsToReturn, true, result);	// todo consider whether it is always necessary to fetch the entitlements
+					change.setCurrentShadow(currentShadow);
+				} catch (ObjectNotFoundException ex) {
+					result.recordHandledError(
+							"Object detected in change log no longer exist on the resource. Skipping processing this object.", ex);
+					LOGGER.warn("Object detected in change log no longer exist on the resource. Skipping processing this object "
+							+ ex.getMessage());
+					return false;    // TODO: Maybe change to DELETE instead of skipping this sync delta?
+				}
+			} else {
+				PrismObject<ShadowType> currentShadow;
+				if (ctx.isWildcard() && !MiscUtil.equals(shadowAttrsToReturn, attrsToReturn)) {
+					// re-fetch the shadow if necessary (if attributesToGet does not match)
+					ResourceObjectIdentification identification = ResourceObjectIdentification.create(
+							shadowCtx.getObjectClassDefinition(), change.getIdentifiers());
+					identification.validatePrimaryIdenfiers();
+					LOGGER.trace("Re-fetching object {} because of attrsToReturn", identification);
+					currentShadow = connector.fetchObject(identification, shadowAttrsToReturn, ctx, result);
+				} else {
+					currentShadow = change.getCurrentShadow();
+				}
+
+				PrismObject<ShadowType> processedCurrentShadow = postProcessResourceObjectRead(shadowCtx, currentShadow,
+						true, result);
+				change.setCurrentShadow(processedCurrentShadow);
+			}
+		}
+		LOGGER.trace("Processed change\n:{}", change.debugDumpLazily());
+		return true;
 	}
 
 	private void checkMaxChanges(Integer maxChangesFromTask, String reason) {
 		if (maxChangesFromTask != null && maxChangesFromTask > 0) {
-			throw new IllegalArgumentException("Cannot apply " + SchemaConstants.SYNC_BATCH_SIZE.getLocalPart() +
+			throw new IllegalArgumentException("Cannot apply " + SchemaConstants.MODEL_EXTENSION_LIVE_SYNC_BATCH_SIZE.getLocalPart() +
 					" because " + reason);
 		}
 	}

@@ -89,7 +89,6 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -2505,82 +2504,87 @@ public class ShadowCache {
 
 		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
 		boolean isSimulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
-		boolean retryUnhandledError = !Boolean.FALSE.equals(task.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED));
+		boolean retryLiveSyncErrors = !Boolean.FALSE.equals(task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
 
-		PrismProperty<?> lastTokenSeen = lastToken;
-		boolean haltingErrorEncountered = false;
-		boolean suspendEncountered = false;
+		Holder<PrismProperty<?>> lastTokenSeen = new Holder<>(lastToken);
 
 		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
 		boolean preciseTokenValue = capability != null && Boolean.TRUE.equals(capability.isPreciseTokenValue());
 
-		List<Change> changes = resouceObjectConverter.fetchChanges(ctx, lastToken, parentResult);
-		if (!ctx.canRun()) {
-			LOGGER.info("LiveSync interrupted by task suspension during change collection. Token in the task is not updated. "
-					+ "Task: {}", ctx.getTask());
-			rv.setChangesDetected(changes.size());
-			rv.setSuspendEncountered(true);
-			return rv;
-		}
-
-		LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
-
-		int processedChanges = 0;
-		int errors = 0;
-
-		if (changes.isEmpty() && lastToken != null) {
-			// Should we consider isSimulate here?
-			LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
-			task.setExtensionProperty(lastToken);
-		} else {
-			for (Change change : changes) {
+		ChangeHandler changeHandler = new ChangeHandler() {
+			@Override
+			public boolean handleChange(Change change, OperationResult result) {
 				if (!ctx.canRun()) {
-					suspendEncountered = true;
-					break;
+					return false;
 				} else if (change.isTokenOnly()) {
 					LOGGER.trace("Found token-only change: {}", change);
-					lastTokenSeen = change.getToken();
+					lastTokenSeen.setValue(change.getToken());
+					return true;
 				} else {
-					boolean isSuccess;
 					try {
-						isSuccess = processSynchronization(ctx, isSimulate, change, task, partition, parentResult);
-					} catch (Throwable t) {
-						LoggingUtils.logUnexpectedException(LOGGER, "Exception during processing object as part of live synchronization in {}", t, task);
-						isSuccess = false;
-					}
-
-					if (!isSuccess) {
-						errors++;
-					}
-					if (isSuccess || !retryUnhandledError) {
-						lastTokenSeen = change.getToken();
-						processedChanges++;
-						if (task instanceof RunningTask) {
-							((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+						if (processSynchronization(ctx, isSimulate, change, task, partition, result)) {
+							return proceed(change);
+						} else {
+							// we hope the error is already recorded in the result
+							return handleError(change, result);
 						}
-					} else {
-						// We need to retry the failed change -- so we must not update the token.
-						// Moreover, we have to stop here, so that the changes will be applied in correct order.
-						haltingErrorEncountered = true;
-						break;
+					} catch (Throwable t) {
+						return handleError(change, t, result);
 					}
 				}
 			}
 
-			if (haltingErrorEncountered) {
-				LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
-								+ "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
-						ctx.getTask(), processedChanges);
-			} else if (suspendEncountered) {
-				LOGGER.info("LiveSync was suspended during processing obtained deltas. Task: {}; processed changes: {}",
-						ctx.getTask(), processedChanges);
+			private boolean proceed(Change change) {
+				lastTokenSeen.setValue(change.getToken());
+				rv.incrementChangesProcessed();
+				if (task instanceof RunningTask) {
+					((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
+				}
+				return ctx.canRun();
 			}
 
+			@Override
+			public boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result) {
+				LoggingUtils.logUnexpectedException(LOGGER, "Exception during processing object as part of live synchronization in {}",
+						exception, task);
+				result.recordFatalError(exception);
+				return handleError(change, result);
+			}
+
+			private boolean handleError(Change change, OperationResult result) {
+				rv.incrementErrors();
+				if (retryLiveSyncErrors) {
+					// We need to retry the failed change -- so we must not update the token.
+					// Moreover, we have to stop here, so that the changes will be applied in correct order.
+					rv.setHaltingErrorEncountered(true);
+					LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
+									+ "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
+							ctx.getTask(), rv.getChangesProcessed());
+					return false;
+				} else {
+					return proceed(change);
+				}
+			}
+		};
+
+		resouceObjectConverter.fetchChanges(ctx, lastToken, changeHandler, parentResult);
+
+		if (!ctx.canRun()) {
+			LOGGER.info("LiveSync was suspended during processing. Task: {}; processed changes: {}", ctx.getTask(),
+					rv.getChangesProcessed());
+			rv.setSuspendEncountered(true);
+		}
+
+		if (rv.getChangesProcessed() == 0 && lastToken != null) {
+			// Should we consider isSimulate here?
+			LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
+			task.setExtensionProperty(lastToken);
+		} else {
 			boolean updateToken;
 			if (isSimulate) {
 				// Token should not be updated.
 				updateToken = false;
-			} else if (!haltingErrorEncountered && !suspendEncountered) {
+			} else if (!rv.isHaltingErrorEncountered() && !rv.isSuspendEncountered()) {
 				// Everything went OK.
 				updateToken = true;
 			} else if (preciseTokenValue) {
@@ -2598,17 +2602,11 @@ public class ShadowCache {
 			}
 
 			if (updateToken) {
-				task.setExtensionProperty(lastTokenSeen);
-				rv.setTaskTokenUpdatedTo(lastTokenSeen);
+				task.setExtensionProperty(lastTokenSeen.getValue());
+				rv.setTaskTokenUpdatedTo(lastTokenSeen.getValue());
 			}
 		}
 		task.flushPendingModifications(parentResult);
-		rv.setChangesDetected(changes.size());
-		rv.setChangesProcessed(processedChanges);
-		rv.setSuspendEncountered(suspendEncountered);
-		rv.setHaltingErrorEncountered(haltingErrorEncountered);
-		rv.setErrors(errors);
-		rv.setLastTokenSeen(lastTokenSeen);
 		return rv;
 	}
 
