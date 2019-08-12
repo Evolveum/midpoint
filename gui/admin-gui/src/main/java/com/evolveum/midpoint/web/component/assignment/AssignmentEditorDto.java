@@ -204,7 +204,6 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 
 		AssignmentType assignment = new AssignmentType();
 		assignment.setTargetRef(targetRef);
-		assignment.setTarget(object);
 
 		return new AssignmentEditorDto(status, assignment, pageBase);
 	}
@@ -551,6 +550,10 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 		ActivationType activation = newAssignment.getActivation();
 		if (activation == null || activation.asPrismContainerValue().isEmpty()) {
 			newAssignment.setActivation(null);
+		}
+		//hack for delegation panel. this code should be rewritten
+		if (newAssignment.getMetadata() != null && newAssignment.getMetadata().asPrismContainerValue().isEmpty()){
+			newAssignment.setMetadata(null);
 		}
 
 		if (tenantRef != null && AssignmentEditorDtoType.ROLE.equals(this.type)) {

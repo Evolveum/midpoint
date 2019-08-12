@@ -14007,6 +14007,9 @@
                        (Target OID, type and relation is matched.)
                        Note: Filter in the reference is not yet supported.
                    </xsd:documentation>
+                   <xsd:appinfo>
+                       <a:objectReferenceTargetType>tns:FocusType</a:objectReferenceTargetType>
+                   </xsd:appinfo>
                </xsd:annotation>
            </xsd:element>
            <xsd:element name="allowTransitive" type="xsd:boolean" minOccurs="0" default="false">
