@@ -3146,12 +3146,12 @@ public final class WebComponentUtil {
 		return null;
 	}
 
-	public static IModel<String> getIconUrlModel(IconType icon, boolean isErrorPage){
+	public static IModel<String> getIconUrlModel(IconType icon){
 		if (icon == null || StringUtils.isEmpty(icon.getImageUrl())){
 			return Model.of();
 		}
 		String sUrl = icon.getImageUrl();
-		if (URI.create(sUrl).isAbsolute() || isErrorPage) {
+		if (URI.create(sUrl).isAbsolute()) {
 			return Model.of(sUrl);
 		}
 
