@@ -77,7 +77,7 @@ public class ImagePanel extends Panel {
         add(image);
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
-                WebComponentUtil.getIconUrlModel(iconDisplayData.getIcon(), getPage() instanceof PageError));
+                WebComponentUtil.getIconUrlModel(iconDisplayData.getIcon()));
         customLogoImgSrc.setOutputMarkupId(true);
         customLogoImgSrc.add(new VisibleBehaviour(() -> iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getImageUrl())));
         add(customLogoImgSrc);
