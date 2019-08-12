@@ -17826,6 +17826,9 @@
 						Constraints check is skipped if there was no change in respective properties (name for focus,
 						identifiers for projection). The default is false.
 					</xsd:documentation>
+                                        <xsd:appinfo>
+						<a:displayName>ConstraintsCheckingStrategyType.skipWhenNoChange</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element name="skipWhenNoIteration" type="xsd:boolean" minOccurs="0">
@@ -17834,6 +17837,9 @@
 						Constraints check is skipped if there is no iteration defined. So we rely on the repository
 						(for focus) or the resource (for projection) to report any constraints violations. The default is false.
 					</xsd:documentation>
+                                        <xsd:appinfo>
+						<a:displayName>ConstraintsCheckingStrategyType.skipWhenNoIteration</a:displayName>
+					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>

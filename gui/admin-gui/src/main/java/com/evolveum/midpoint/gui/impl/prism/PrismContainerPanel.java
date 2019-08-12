@@ -59,8 +59,9 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		add(AttributeModifier.append("class", () -> {
 			String cssClasses = "";
 			
-			if (getModelObject() != null && getModelObject().isShowOnTopLevel()
-					|| !(getParent() instanceof PrismContainerValuePanel)) {
+			if ((getModelObject() != null && getModelObject().isShowOnTopLevel())
+					|| (!(getParent() instanceof PrismContainerValuePanel) && getParent()!=null
+					&& getParent().getParent() instanceof PrismContainerValuePanel)) {
 				cssClasses = "top-level-prism-container";
 			}
 			

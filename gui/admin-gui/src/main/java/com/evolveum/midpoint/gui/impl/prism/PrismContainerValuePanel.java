@@ -132,7 +132,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 	
 	protected LoadableDetachableModel<String> getLabelModel() {
-		return StringResourceModel.of(getModel().getObject()::getDisplayName);
+		return getPageBase().createStringResource(getModel().getObject().getDisplayName());
 	}
 
 	private void initValues() {
