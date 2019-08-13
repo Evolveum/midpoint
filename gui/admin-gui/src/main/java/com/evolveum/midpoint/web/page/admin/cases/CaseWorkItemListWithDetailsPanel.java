@@ -17,6 +17,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -96,8 +97,15 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         };
         getDetailsPanelContainer().add(cancelButton);
 
-        CaseWorkItemType workItem = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
-        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, Model.of(workItem)){
+        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL,
+                new LoadableModel<CaseWorkItemType>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected CaseWorkItemType load() {
+                        return getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
+                    }
+                }){
             private static final long serialVersionUID = 1L;
 
             @Override
