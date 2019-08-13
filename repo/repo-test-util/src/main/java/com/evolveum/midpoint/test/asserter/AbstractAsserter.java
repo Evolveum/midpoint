@@ -130,4 +130,10 @@ public abstract class AbstractAsserter<RA> {
 		other.setProtector(this.getProtector());
 		other.setClock(this.getClock());
 	}
+
+	protected void assertMinMax(String message, int expectedMin, int expectedMax, int value) {
+		if (value < expectedMin || value > expectedMax) {
+			fail(message + ": expected " + expectedMin + "-" + expectedMax + ", real value is " + value);
+		}
+	}
 }

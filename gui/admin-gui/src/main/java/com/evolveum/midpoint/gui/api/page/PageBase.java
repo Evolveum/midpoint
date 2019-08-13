@@ -30,6 +30,7 @@ import com.evolveum.midpoint.gui.api.component.result.OpResult;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -133,6 +134,7 @@ import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicies;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.*;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -164,6 +166,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
@@ -1030,8 +1033,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC,
-                WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : null).getObject());
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC){
+
+            @Override
+            protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
+                tag.put("src", WebComponentUtil.getIconUrlModel(logoModel != null ? logoModel.getObject() : (IconType) null).getObject());
+            }
+        };
         customLogoImgSrc.add(new VisibleBehaviour(() -> logoModel.getObject() != null && StringUtils.isEmpty(logoModel.getObject().getCssClass())));
 
         WebMarkupContainer customLogoImgCss = new WebMarkupContainer(ID_CUSTOM_LOGO_IMG_CSS);
@@ -2683,6 +2691,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
     
     public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler) throws SchemaException{
+    	return initItemPanel(panelId, typeName, wrapperModel, visibilityHandler, false);
+    }
+    
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemVisibilityHandler visibilityHandler, boolean isOnTopLevel) throws SchemaException{
+    	if (wrapperModel.getObject() instanceof PrismContainerWrapper) {
+    		((PrismContainerWrapper)wrapperModel.getObject()).setShowOnTopLevel(isOnTopLevel);
+    	}
+    	
     	Class<?> panelClass = getWrapperPanel(typeName);
     	if (panelClass == null) {
     		ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);

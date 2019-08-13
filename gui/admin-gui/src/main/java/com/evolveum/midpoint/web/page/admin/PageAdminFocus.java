@@ -557,15 +557,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 			assDelta = focusDelta.addModification(assDelta);
 		}
 
-		// todo remove this block [lazyman] after model is updated - it has to
-		// remove resource from accountConstruction
-		Collection<PrismContainerValue> values = assDelta.getValues(PrismContainerValue.class);
-		for (PrismContainerValue value : values) {
-			AssignmentType ass = new AssignmentType();
-			ass.setupContainerValue(value);
-			removeResourceFromAccConstruction(ass);
-		}
-
 		return assDelta;
 	}
 

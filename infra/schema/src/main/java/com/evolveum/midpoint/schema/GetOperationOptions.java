@@ -38,6 +38,8 @@ import java.util.Objects;
 public class GetOperationOptions extends AbstractOptions implements Serializable, Cloneable, ShortDumpable {
 	private static final long serialVersionUID = 1L;
 
+	public static final GetOperationOptions EMPTY = new GetOperationOptions();
+
 	/**
 	 * Specifies whether to return specific items. It is used for optimizations.
 	 * Some requests only needs a subset of items therefore fetching them all is a waste

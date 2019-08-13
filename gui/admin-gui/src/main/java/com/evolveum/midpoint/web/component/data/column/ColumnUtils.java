@@ -551,8 +551,8 @@ public class ColumnUtils {
 
 				CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
 				CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-				PrismReferenceValue refVal = caseType.getTargetRef().asReferenceValue();
-				String descriptionValue = refVal.getObject() != null ?
+				PrismReferenceValue refVal = caseType.getTargetRef() != null ? caseType.getTargetRef().asReferenceValue() : null;
+				String descriptionValue = refVal != null && refVal.getObject() != null ?
 						refVal.getObject().asObjectable().getDescription() : "";
 
 				c.add(new AttributeAppender("title", descriptionValue));

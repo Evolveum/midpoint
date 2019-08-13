@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -110,26 +113,28 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                 } else if (matchCaseType(SystemObjectsType.ARCHETYPE_MANUAL_CASE)) {
                     //todo manual case tab
                 }
-                tabs.add(
-                        new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
-                                getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
+                if (!matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)) {
 
-                            private static final long serialVersionUID = 1L;
+                    tabs.add(
+                            new CountablePanelTab(parentPage.createStringResource("PageCase.workitemsTab"),
+                                    getTabVisibility(ComponentConstants.UI_CASE_TAB_WORKITEMS_URL, false, parentPage)) {
 
-                            @Override
-                            public WebMarkupContainer createPanel(String panelId) {
-                                return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
-                            }
+                                private static final long serialVersionUID = 1L;
 
-                            @Override
-                            public String getCount() {
-                                return Integer.toString(countWorkItems());
-                            }
-                        });
+                                @Override
+                                public WebMarkupContainer createPanel(String panelId) {
+                                    return new CaseWorkitemsTabPanel(panelId, getMainForm(), getObjectModel(), parentPage);
+                                }
 
+                                @Override
+                                public String getCount() {
+                                    return Integer.toString(countWorkItems());
+                                }
+                            });
+                }
                 if (matchCaseType(SystemObjectsType.ARCHETYPE_OPERATION_REQUEST)){
                     tabs.add(
-                            new PanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
+                            new CountablePanelTab(parentPage.createStringResource("PageCase.childCasesTab"),
                                     getTabVisibility(ComponentConstants.UI_CASE_TAB_CHILD_CASES_URL, false, parentPage)) {
 
                                 private static final long serialVersionUID = 1L;
@@ -137,6 +142,11 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
                                 @Override
                                 public WebMarkupContainer createPanel(String panelId) {
                                     return new ChildCasesTabPanel(panelId, getMainForm(), getObjectModel());
+                                }
+
+                                @Override
+                                public String getCount() {
+                                    return Integer.toString(countChildrenCases());
                                 }
                             });
                 }
@@ -224,6 +234,14 @@ public class PageCase  extends PageAdminObjectDetails<CaseType> {
    private int countWorkItems(){
         List<CaseWorkItemType> workItemsList = getObjectModel().getObject().getObject().asObjectable().getWorkItem();
         return workItemsList == null ? 0 : workItemsList.size();
+    }
+
+    private int countChildrenCases(){
+        CaseType currentCase = getObjectModel().getObject().getObject().asObjectable();
+        ObjectQuery childrenCasesQuery = getPrismContext().queryFor(CaseType.class)
+                .item(CaseType.F_PARENT_REF).ref(currentCase.getOid())
+                .build();
+        return WebModelServiceUtils.countObjects(CaseType.class, childrenCasesQuery, PageCase.this);
     }
 
     private int countEvents(){

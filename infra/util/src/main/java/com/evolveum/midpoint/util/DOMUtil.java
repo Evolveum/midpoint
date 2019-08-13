@@ -163,7 +163,10 @@ public class DOMUtil {
 	static {
 		documentBuilderThreadLocal = ThreadLocal.withInitial(() -> {
 			try {
+				// Use the line below to force built-in JAXP implementation (not recommended)
+				//System.setProperty(DocumentBuilderFactory.class.getName(), "com.sun.org.apache.xerces.internal.jaxp.DocumentBuilderFactoryImpl");
 				DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+				//System.out.println("DBF = " + documentBuilderFactory.getClass().getName());
 				documentBuilderFactory.setNamespaceAware(true);
 				documentBuilderFactory.setFeature("http://xml.org/sax/features/namespaces", true);
 				// voodoo to turn off reading of DTDs during parsing. This is needed e.g. to pre-parse schemas

@@ -49,6 +49,11 @@ public class TaskInternalPerformanceTabPanel extends AbstractObjectTabPanel<Task
 			IModel<TaskDto> taskDtoModel, PageBase pageBase) {
 		super(id, mainForm, taskWrapperModel);
 		this.taskDtoModel = taskDtoModel;
+	}
+	
+	@Override
+	protected void onInitialize() {
+		super.onInitialize();
 		initLayout();
 		setOutputMarkupId(true);
 	}

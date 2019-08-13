@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -75,7 +76,8 @@ public class ImagePanel extends Panel {
         image.add(new VisibleBehaviour(() -> iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getCssClass())));
         add(image);
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC, WebComponentUtil.getIconUrlModel(iconDisplayData.getIcon()));
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
+                WebComponentUtil.getIconUrlModel(iconDisplayData.getIcon()));
         customLogoImgSrc.setOutputMarkupId(true);
         customLogoImgSrc.add(new VisibleBehaviour(() -> iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getImageUrl())));
         add(customLogoImgSrc);

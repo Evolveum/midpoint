@@ -33,9 +33,8 @@
     </scm>
 	<dependencies>
 		<dependency>
-			<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
-			<artifactId>org.apache.xerces</artifactId>
-			<version>2.9.0</version>
+			<groupId>xerces</groupId>
+			<artifactId>xercesImpl</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.reflections</groupId>

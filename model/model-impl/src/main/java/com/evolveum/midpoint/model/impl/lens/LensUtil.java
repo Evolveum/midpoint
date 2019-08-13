@@ -447,15 +447,15 @@ public class LensUtil {
         return context.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
     }
 
-    public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
-    	if (iterationSpecType != null) {
-			return iterationSpecType.getMaxIterations();
-		} else {
-			return 0;
-		}
+	public static IterationSpecificationType getIterationSpecification(ObjectTemplateType objectTemplate) {
+		return objectTemplate != null ? objectTemplate.getIterationSpecification() : null;
+	}
+
+	public static int determineMaxIterations(IterationSpecificationType iterationSpecType) {
+	    return iterationSpecType != null ? iterationSpecType.getMaxIterations() : 0;
     }
 
-    public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
+	public static <F extends ObjectType> String formatIterationToken(LensContext<F> context,
 			LensElementContext<?> accountContext, IterationSpecificationType iterationType,
 			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables,
 			Task task, OperationResult result)

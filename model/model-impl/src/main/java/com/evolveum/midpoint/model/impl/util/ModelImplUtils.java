@@ -160,7 +160,7 @@ public class ModelImplUtils {
 	// from the most to least appropriate
 	@NotNull
 	public static <O extends ObjectType> List<ObjectPolicyConfigurationType> getApplicablePolicies(
-			Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType)
+			@Nullable Class<O> objectClass, List<String> objectSubtypes, SystemConfigurationType systemConfigurationType)
 			throws ConfigurationException {
 		List<ObjectPolicyConfigurationType> rv = new ArrayList<>();
 		List<ObjectPolicyConfigurationType> typeNoSubtype = new ArrayList<>();
@@ -217,12 +217,13 @@ public class ModelImplUtils {
 		if (config == null) {
 			return Collections.emptyList();
 		}
-		PrismObject<F> object = context.getFocusContext() != null ? context.getFocusContext().getObjectAny() : null;
-		List<String> subTypes = FocusTypeUtil.determineSubTypes(object);
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        PrismObject<F> focusObject = focusContext != null ? focusContext.getObjectAny() : null;
+		Class<F> focusClass = focusContext != null ? focusContext.getObjectTypeClass() : null;
+		List<String> subTypes = FocusTypeUtil.determineSubTypes(focusObject);
 		List<ObjectPolicyConfigurationType> relevantPolicies;
 		try {
-			relevantPolicies = ModelImplUtils.getApplicablePolicies(context.getFocusContext().getObjectTypeClass(), subTypes,
-					config.asObjectable());
+			relevantPolicies = ModelImplUtils.getApplicablePolicies(focusClass, subTypes, config.asObjectable());
 		} catch (ConfigurationException e) {
 			throw new SystemException("Couldn't get relevant object policies", e);
 		}
@@ -242,12 +243,8 @@ public class ModelImplUtils {
 	/**
 	 * Resolves references contained in given PrismObject.
 	 *
-	 * @param object
-	 * @param repository
 	 * @param enforceReferentialIntegrity If true, missing reference causes fatal error when processing (if false, only warning is issued).
 	 * @param forceFilterReevaluation If true, references are reevaluated even if OID is present. (Given that filter is present as well, of course.)
-	 * @param prismContext
-	 * @param result
 	 */
 	public static <T extends ObjectType> void resolveReferences(PrismObject<T> object, RepositoryService repository,
 	    		boolean enforceReferentialIntegrity, boolean forceFilterReevaluation, EvaluationTimeType resolutionTime,

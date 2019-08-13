@@ -182,12 +182,13 @@ public class Clockwork {
 
 			int clicked = 0;
 			boolean focusConflictPresent = false;
+			ConflictResolutionType conflictResolutionPolicy = null;
 			HookOperationMode finalMode;
 
 			try {
 				context.reportProgress(new ProgressInformation(CLOCKWORK, ENTERING));
 				if (context.getFocusContext() != null && context.getFocusContext().getOid() != null) {
-					context.createAndRegisterConflictWatcher(context.getFocusContext().getOid(), repositoryService);
+					context.createAndRegisterFocusConflictWatcher(context.getFocusContext().getOid(), repositoryService);
 				}
 				FocusConstraintsChecker
 						.enterCache(cacheConfigurationManager.getConfiguration(CacheType.LOCAL_FOCUS_CONSTRAINT_CHECKER_CACHE));
@@ -217,7 +218,8 @@ public class Clockwork {
 				// One last click in FINAL state
 				finalMode = click(context, task, result);
 				if (finalMode == HookOperationMode.FOREGROUND) {
-					focusConflictPresent = checkFocusConflicts(context, task, result);
+					conflictResolutionPolicy = ModelImplUtils.getConflictResolution(context);
+					focusConflictPresent = checkFocusConflicts(context, conflictResolutionPolicy, task, result);
 				}
 			} finally {
 				context.unregisterConflictWatchers(repositoryService);
@@ -231,7 +233,7 @@ public class Clockwork {
 			// intentionally outside the "try-finally" block to start with clean caches
 			if (focusConflictPresent) {
 				assert finalMode == HookOperationMode.FOREGROUND;
-				finalMode = resolveFocusConflict(context, task, result);
+				finalMode = resolveFocusConflict(context, conflictResolutionPolicy, task, result);
 			} else if (context.getConflictResolutionAttemptNumber() > 0) {
 				LOGGER.info("Resolved update conflict on attempt number {}", context.getConflictResolutionAttemptNumber());
 			}
@@ -247,6 +249,7 @@ public class Clockwork {
 				TracingAppender.terminateCollecting();  // todo reconsider
 				LevelOverrideTurboFilter.cancelLoggingOverride();   // todo reconsider
 			}
+			result.computeStatusIfUnknown();
 		}
 	}
 
@@ -340,21 +343,22 @@ public class Clockwork {
 		return context;
 	}
 
-
-	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, Task task, OperationResult result) {
-		for (ConflictWatcher watcher : context.getConflictWatchers()) {
-			if (repositoryService.hasConflict(watcher, result)) {
-				LOGGER.debug("Found modify-modify conflict on {}", watcher);
-				return true;
-			}
+	private <F extends ObjectType> boolean checkFocusConflicts(LensContext<F> context, ConflictResolutionType resolutionPolicy,
+            Task task, OperationResult result) {
+		ConflictWatcher watcher = context.getFocusConflictWatcher();
+		if (watcher != null && resolutionPolicy != null && resolutionPolicy.getAction() != ConflictResolutionActionType.NONE &&
+				repositoryService.hasConflict(watcher, result)) {
+			LOGGER.debug("Found modify-modify conflict on {}", watcher);
+			return true;
+		} else {
+			return false;
 		}
-		return false;
 	}
 
-	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context, Task task, OperationResult result)
+	private <F extends ObjectType> HookOperationMode resolveFocusConflict(LensContext<F> context,
+			ConflictResolutionType resolutionPolicy, Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, ConfigurationException,
 			CommunicationException, SecurityViolationException, PolicyViolationException, ObjectAlreadyExistsException {
-		ConflictResolutionType resolutionPolicy = ModelImplUtils.getConflictResolution(context);
 		if (resolutionPolicy == null || resolutionPolicy.getAction() == ConflictResolutionActionType.NONE) {
 			return HookOperationMode.FOREGROUND;
 		}
@@ -1400,7 +1404,7 @@ public class Clockwork {
 			}
 		}
 
-		auditHelper.audit(auditRecord, task, result);
+		auditHelper.audit(auditRecord, context.getNameResolver(), task, result);
 
 		if (stage == AuditEventStage.EXECUTION) {
 			// We need to clean up so these deltas will not be audited again in next wave

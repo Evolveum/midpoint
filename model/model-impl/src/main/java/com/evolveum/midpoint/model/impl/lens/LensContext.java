@@ -21,13 +21,13 @@ import com.evolveum.midpoint.model.api.ProgressListener;
 import com.evolveum.midpoint.model.api.context.*;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
@@ -80,7 +81,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	private ModelState state = ModelState.INITIAL;
 
-	@NotNull private final transient List<ConflictWatcher> conflictWatchers = new ArrayList<>();
+	private transient ConflictWatcher focusConflictWatcher;
 
 	private int conflictResolutionAttemptNumber;
 	
@@ -98,7 +99,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private String channel;
 
 	private LensFocusContext<F> focusContext;
-	private Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
+	@NotNull private final Collection<LensProjectionContext> projectionContexts = new ArrayList<>();
 
 	/**
 	 * EXPERIMENTAL. A trace of resource objects that once existed but were
@@ -134,6 +135,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
 	transient private ObjectTemplateType focusTemplate;
+	private boolean focusTemplateExternallySet;       // todo serialize this
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 
 	transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
@@ -355,6 +357,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
 		this.focusTemplate = focusTemplate;
+	}
+
+	public boolean isFocusTemplateExternallySet() {
+		return focusTemplateExternallySet;
+	}
+
+	public void setFocusTemplateExternallySet(boolean focusTemplateExternallySet) {
+		this.focusTemplateExternallySet = focusTemplateExternallySet;
 	}
 
 	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
@@ -1425,20 +1435,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.conflictResolutionAttemptNumber = conflictResolutionAttemptNumber;
 	}
 
-	@NotNull
-	public List<ConflictWatcher> getConflictWatchers() {
-		return conflictWatchers;
+	public ConflictWatcher getFocusConflictWatcher() {
+		return focusConflictWatcher;
 	}
 
-	public ConflictWatcher createAndRegisterConflictWatcher(String oid, RepositoryService repositoryService) {
-		ConflictWatcher watcher = repositoryService.createAndRegisterConflictWatcher(oid);
-		conflictWatchers.add(watcher);
-		return watcher;
+	public ConflictWatcher createAndRegisterFocusConflictWatcher(@NotNull String oid, RepositoryService repositoryService) {
+		if (focusConflictWatcher != null) {
+			throw new IllegalStateException("Focus conflict watcher defined twice");
+		}
+		return focusConflictWatcher = repositoryService.createAndRegisterConflictWatcher(oid);
 	}
 
 	public void unregisterConflictWatchers(RepositoryService repositoryService) {
-		conflictWatchers.forEach(w -> repositoryService.unregisterConflictWatcher(w));
-		conflictWatchers.clear();
+		if (focusConflictWatcher != null) {
+			repositoryService.unregisterConflictWatcher(focusConflictWatcher);
+			focusConflictWatcher = null;
+		}
 	}
 	
 	public boolean hasProjectionChange() {
@@ -1571,5 +1583,23 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
 	public String getOperationQualifier() {
 		return getState() + ".e" + getExecutionWave() + "p" + getProjectionWave();
+	}
+
+	public ObjectDeltaSchemaLevelUtil.NameResolver getNameResolver() {
+		return (objectClass, oid) -> {
+			if (ResourceType.class.equals(objectClass) || ShadowType.class.equals(objectClass)) {
+				for (LensProjectionContext projectionContext : projectionContexts) {
+					PolyString name = projectionContext.resolveNameIfKnown(objectClass, oid);
+					if (name != null) {
+						return name;
+					}
+				}
+			} else {
+				// We could consider resolving e.g. users or roles here, but if the were fetched, they will presumably
+				// be in the local (or, for roles, even global) repository cache. However, we can reconsider this assumption
+				// if needed.
+			}
+			return null;
+		};
 	}
 }

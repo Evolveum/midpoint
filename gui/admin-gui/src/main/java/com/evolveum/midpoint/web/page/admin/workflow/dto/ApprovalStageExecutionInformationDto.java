@@ -72,7 +72,7 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		int stageNumber = stageIndex+1;
 		int currentStageNumber = defaultIfNull(processInfo.getCurrentStageNumber(), 0);
 		if (stageNumber <= currentStageNumber) {
-			addInformationFromRecordedStage(rv, processInfo, stageInfo.getExecutionRecord(), resolver, session, opTask, result);
+			addInformationFromRecordedStage(rv, processInfo, stageInfo.getExecutionRecord(), currentStageNumber, resolver, session, opTask, result);
 		} else {
 			addInformationFromPreviewedStage(rv, stageInfo.getExecutionPreview(), resolver, session, opTask, result);
 		}
@@ -118,8 +118,8 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 	}
 
 	private static void addInformationFromRecordedStage(ApprovalStageExecutionInformationDto rv,
-			ApprovalSchemaExecutionInformationType processInfo,
-			ApprovalStageExecutionRecordType executionRecord, ObjectResolver resolver,
+			ApprovalSchemaExecutionInformationType processInfo, ApprovalStageExecutionRecordType executionRecord,
+			int currentStageNumber, ObjectResolver resolver,
 			ObjectResolver.Session session, Task opTask, OperationResult result) {
 		for (CaseEventType event : executionRecord.getEvent()) {
 			if (event instanceof WorkItemEventType) {
@@ -158,6 +158,9 @@ public class ApprovalStageExecutionInformationDto implements Serializable {
 		}
 		// not needed after "create work item" events will be implemented
 		for (CaseWorkItemType workItem : executionRecord.getWorkItem()) {
+			if (workItem.getStageNumber() == null || workItem.getStageNumber() != currentStageNumber){
+				continue;
+			}
 			ObjectReferenceType approver = workItem.getOriginalAssigneeRef();
 			if (approver == null) {
 				LOGGER.warn("No original assignee in work item {} -- ignoring it", workItem);

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
 import org.cache2k.Cache2kBuilder;
 import org.cache2k.expiry.ExpiryPolicy;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -85,9 +86,26 @@ public class GlobalObjectCache extends AbstractGlobalCache {
 		return cache != null ? cache.peek(oid) : null;
 	}
 
-	public void remove(String oid) {
+	public void remove(@NotNull String oid) {
 		if (cache != null) {
 			cache.remove(oid);
+		}
+	}
+
+	public void remove(@NotNull Class<?> type, String oid) {
+		// todo deduplicate
+		if (cache != null) {
+			if (oid != null) {
+				cache.remove(oid);
+			} else {
+				cache.invokeAll(cache.keys(), e -> {
+					if (e.getValue() != null && e.getValue().getObjectType() != null &&
+							type.isAssignableFrom(e.getValue().getObjectType())) {
+						e.remove();
+					}
+					return null;
+				});
+			}
 		}
 	}
 

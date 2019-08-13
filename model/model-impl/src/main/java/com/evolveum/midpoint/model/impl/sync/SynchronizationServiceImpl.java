@@ -942,6 +942,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 					.getObject(ObjectTemplateType.class, syncCtx.getObjectTemplateRef().getOid(), null, parentResult)
 					.asObjectable();
 			context.setFocusTemplate(objectTemplate);
+			context.setFocusTemplateExternallySet(true);        // we do not want to override this template e.g. when subtype changes
 		}
 		
 		return context;

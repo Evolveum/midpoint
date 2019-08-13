@@ -27,7 +27,6 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.util.ClockworkInspector;
-import com.evolveum.midpoint.model.common.util.ProfilingModelInspector.PartRuntime;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryPerformanceMonitor;
@@ -184,6 +183,7 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 		lastLensContext = context;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <F extends ObjectType> ModelContext<F> getLastLensContext() {
 		return lastLensContext;
 	}
@@ -195,15 +195,11 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 		projectorMappingTotalCount++;
 	}
 
-	private void recordProjectorPartTime(ModelState state, String componenetName, Long start, Long finish) {
-		List<PartRuntime> partList = projectorPartMap.get(state);
-		if (partList == null) {
-			partList = new ArrayList<>();
-			projectorPartMap.put(state, partList);
-		}
-		PartRuntime partRuntime = findPartRuntime(partList, componenetName);
+	private void recordProjectorPartTime(ModelState state, String componentName, Long start, Long finish) {
+		List<PartRuntime> partList = projectorPartMap.computeIfAbsent(state, k -> new ArrayList<>());
+		PartRuntime partRuntime = findPartRuntime(partList, componentName);
 		if (partRuntime == null) {
-			partRuntime = new PartRuntime(componenetName);
+			partRuntime = new PartRuntime(componentName);
 			partList.add(partRuntime);
 		}
 		if (start != null) {
@@ -267,7 +263,7 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
 		if (runtimes == null) {
 			return;
 		}
-		DebugUtil.debugDumpWithLabelLn(sb, state.toString(), runtimes==null?null:runtimes.etimeStr(), indent + 2);
+		DebugUtil.debugDumpWithLabelLn(sb, state.toString(), runtimes.etimeStr(), indent + 2);
 		Runtimes projectorRuntimes = projectorTimes.get(state);
 		if (projectorRuntimes != null) {
 			DebugUtil.debugDumpWithLabelLn(sb, "projector", projectorRuntimes.etimeStr(), indent + 3);

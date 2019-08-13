@@ -244,13 +244,15 @@ public class CacheConfigurationManager {
 		}
 
 		if (profile.getGlobalRepoCache() != null) {
-			if (profile.getGlobalRepoObjectCache() != null || profile.getGlobalRepoQueryCache() != null) {
+			if (profile.getGlobalRepoObjectCache() != null || profile.getGlobalRepoVersionCache() != null || profile.getGlobalRepoQueryCache() != null) {
 				throw new SchemaException("Both globalRepoCache and specific repo caches are specified in profile " + profile.getName());
 			}
 			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_OBJECT_CACHE, profile.getGlobalRepoCache());
+			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_VERSION_CACHE, profile.getGlobalRepoCache());
 			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_QUERY_CACHE, profile.getGlobalRepoCache());
 		} else {
 			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_OBJECT_CACHE, profile.getGlobalRepoObjectCache());
+			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_VERSION_CACHE, profile.getGlobalRepoVersionCache());
 			addCacheSettings(aggregate, CacheType.GLOBAL_REPO_QUERY_CACHE, profile.getGlobalRepoQueryCache());
 		}
 

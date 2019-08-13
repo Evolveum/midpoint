@@ -50,11 +50,13 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.TaskDebugUtil;
+import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -153,15 +155,6 @@ import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.asserter.ArchetypePolicyAsserter;
-import com.evolveum.midpoint.test.asserter.DummyAccountAsserter;
-import com.evolveum.midpoint.test.asserter.DummyGroupAsserter;
-import com.evolveum.midpoint.test.asserter.FocusAsserter;
-import com.evolveum.midpoint.test.asserter.OrgAsserter;
-import com.evolveum.midpoint.test.asserter.ResourceAsserter;
-import com.evolveum.midpoint.test.asserter.RoleAsserter;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -2590,9 +2583,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".setDefaultObjectTemplate");
 		setDefaultObjectTemplate(objectType, userTemplateOid, result);
-//		display("Aplying default user template result", result);
 		result.computeStatus();
-		TestUtil.assertSuccess("Aplying default object template failed (result)", result);
+		TestUtil.assertSuccess("Applying default object template failed (result)", result);
 	}
 
 
@@ -5795,6 +5787,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected UserAsserter<Void> assertUser(String oid, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 		PrismObject<UserType> user = getUser(oid);
 		return assertUser(user, message);
+	}
+	protected RepoOpAsserter createRepoOpAsserter(PerformanceInformation performanceInformation, String details) {
+		return new RepoOpAsserter(performanceInformation, details);
+	}
+
+	protected RepoOpAsserter createRepoOpAsserter(String details) {
+		PerformanceInformation repoPerformanceInformation = repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
+		return new RepoOpAsserter(repoPerformanceInformation, details);
 	}
 	
 	protected UserAsserter<Void> assertUser(PrismObject<UserType> user, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

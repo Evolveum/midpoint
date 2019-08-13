@@ -75,7 +75,7 @@ public class AuditController implements ModelAuditService {
 	@Override
 	public void audit(AuditEventRecord record, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
 		authorize(ModelAuthorizationAction.AUDIT_RECORD, task, result);
-		auditHelper.audit(record, task, result);
+		auditHelper.audit(record, null, task, result);
 	}
 
 	@Override

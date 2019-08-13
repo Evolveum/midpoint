@@ -79,7 +79,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private static final String ID_ADD_CHILD_CONTAINER = "addChildContainer";
     private static final String ID_REMOVE_CONTAINER = "removeContainer";
     
-    private static final String ID_EXPAND_COLLAPSE_FRAGMENT = "expandCollapseFragment";
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
     private static final String ID_PROPERTIES_LABEL = "propertiesLabel";
     private static final String ID_SHOW_EMPTY_BUTTON = "showEmptyButton";
@@ -133,7 +132,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 	
 	protected LoadableDetachableModel<String> getLabelModel() {
-		return StringResourceModel.of(getModel().getObject()::getDisplayName);
+		return getPageBase().createStringResource(getModel().getObject().getDisplayName());
 	}
 
 	private void initValues() {
@@ -148,7 +147,9 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 		WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
     	propertiesLabel.setOutputMarkupId(true);
     	
-    	ListView<IW> properties = new ListView<IW>("properties", createNonContainerWrappersModel()) {
+    	IModel<List<IW>> nonContainerWrappers = createNonContainerWrappersModel();
+    	
+    	ListView<IW> properties = new ListView<IW>("properties", nonContainerWrappers) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -182,7 +183,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
 			@Override
 			public boolean isVisible() {
-				return getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
+				return nonContainerWrappers.getObject() != null && !nonContainerWrappers.getObject().isEmpty()
+						&& getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
 			}
 		});
 		add(labelShowEmpty);
@@ -333,7 +335,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 	}
 	
 	private void onExpandClick(AjaxRequestTarget target) {
-
+		
 		CVW wrapper = getModelObject();
 		wrapper.setExpanded(!wrapper.isExpanded());
 		refreshPanel(target);

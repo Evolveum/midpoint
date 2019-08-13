@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
-import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportTypeTraceOrReduced;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
 import static com.evolveum.midpoint.schema.result.OperationResult.DEFAULT;
 
@@ -30,8 +29,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import net.sf.ehcache.CacheOperationOutcomes.GetAllOutcome;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -62,7 +59,6 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -482,12 +478,10 @@ public class ContextLoader {
             }
         }
 
-		if (context.getFocusTemplate() == null) {
-			PrismObject<ObjectTemplateType> focusTemplate = determineFocusTemplate(context, result);
-			if (focusTemplate != null) {
-				context.setFocusTemplate(focusTemplate.asObjectable());
-			}
-		}
+        if (context.getFocusTemplate() == null) {
+        	// TODO is the nullity check needed here?
+	        setFocusTemplate(context, result);
+        }
 
 		if (context.getAccountSynchronizationSettings() == null) {
 		    ProjectionPolicyType globalAccountSynchronizationSettings = systemConfigurationType.getGlobalAccountSynchronizationSettings();
@@ -568,27 +562,51 @@ public class ContextLoader {
 		}
 	}
 
-    // expects that object policy configuration is already set in focusContext
-	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+	// expects that object policy configuration is already set in focusContext
+	public <F extends ObjectType> void setFocusTemplate(LensContext<F> context, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
+
+		// 1. When this method is called after inbound processing, we might want to change the existing template
+		//    (because e.g. subtype or archetype was determined and we want to move from generic to more specific template).
+		// 2. On the other hand, if focus template is set up explicitly from the outside (e.g. in synchronization section)
+		//    we probably do not want to change it here.
+		if (context.getFocusTemplate() != null && context.isFocusTemplateExternallySet()) {
+			return;
+		}
+
+		String currentOid = context.getFocusTemplate() != null ? context.getFocusTemplate().getOid() : null;
+		String newOid;
+
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
-			return null;
-		}
-		ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
-		if (archetypePolicy == null) {
-			LOGGER.trace("No default object template (no policy)");
-			return null;
-		}
-		ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
-		if (templateRef == null) {
-			LOGGER.trace("No default object template (no templateRef)");
-			return null;
+			newOid = null;
+		} else {
+			ArchetypePolicyType archetypePolicy = focusContext.getArchetypePolicyType();
+			if (archetypePolicy == null) {
+				LOGGER.trace("No default object template (no policy)");
+				newOid = null;
+			} else {
+				ObjectReferenceType templateRef = archetypePolicy.getObjectTemplateRef();
+				if (templateRef == null) {
+					LOGGER.trace("No default object template (no templateRef)");
+					newOid = null;
+				} else {
+					newOid = templateRef.getOid();
+				}
+			}
 		}
 
-		PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
-	    return template;
+		LOGGER.trace("current focus template OID = {}, new = {}", currentOid, newOid);
+		if (!java.util.Objects.equals(currentOid, newOid)) {
+			ObjectTemplateType template;
+			if (newOid != null) {
+				template = cacheRepositoryService.getObject(ObjectTemplateType.class, newOid, null, result).asObjectable();
+			} else {
+				template = null;
+			}
+			context.setFocusTemplate(template);
+		}
 	}
-
 
 	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {

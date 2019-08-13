@@ -114,7 +114,7 @@ public class AccessChecker {
 				continue;
 			}
 			QName attrName = attrDelta.getElementName();
-			LOGGER.trace("Checking attribue {} definition present in {}", attrName, objectClassDefinition);
+			LOGGER.trace("Checking attribute {} definition present in {}", attrName, objectClassDefinition);
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
 			if (attrDef == null) {
 				throw new SchemaException("Cannot find definition of attribute "+attrName+" in "+objectClassDefinition);

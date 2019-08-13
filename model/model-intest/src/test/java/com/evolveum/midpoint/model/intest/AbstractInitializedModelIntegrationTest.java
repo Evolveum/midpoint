@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.model.impl.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -38,11 +39,9 @@ import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
 import com.evolveum.midpoint.model.intest.util.CheckingProgressListener;
 import com.evolveum.midpoint.model.test.ProfilingModelInspectorManager;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -77,6 +76,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	@Autowired protected MappingFactory mappingFactory;
 	@Autowired protected Clockwork clockwork;
 	@Autowired protected ClockworkMedic clockworkMedic;
+	@Autowired protected ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
 
 	protected ProfilingModelInspectorManager profilingModelInspectorManager;
 	protected CheckingProgressListener checkingProgressListener;

@@ -75,4 +75,31 @@ public class PerformanceInformationImpl implements PerformanceInformation {
 		}
 		return sb.toString();
 	}
+
+	@Override
+	public int getInvocationCount(String operation) {
+		OperationPerformanceInformation info = operationMap.get(operation);
+		if (info != null) {
+			return info.getInvocationCount();
+		} else if (operation.contains(".")) {
+			return 0;       // we expect only single level of aggregation
+		} else {
+			String prefix = operation + ".";
+			int rv = 0;
+			for (Map.Entry<String, OperationPerformanceInformation> entry : operationMap.entrySet()) {
+				if (entry.getKey().startsWith(prefix)) {
+					rv += entry.getValue().getInvocationCount();
+				}
+			}
+			return rv;
+		}
+	}
+
+	@SuppressWarnings("MethodDoesntCallSuperMethod")
+	@Override
+	public PerformanceInformation clone() {
+		PerformanceInformationImpl clone = new PerformanceInformationImpl();
+		operationMap.forEach((op, opPerfInfo) -> clone.operationMap.put(op, opPerfInfo.clone()));
+		return clone;
+	}
 }

@@ -275,7 +275,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource, prismContext);
 		requestRecord.setMessage("Stage: " + stage + ", Work bucket: " + workBucket);
-		auditHelper.audit(requestRecord, localCoordinatorTask, opResult);
+		auditHelper.audit(requestRecord, null, localCoordinatorTask, opResult);
 
 		try {
 			if (isStage(stage, Stage.FIRST) && !scanForUnfinishedOperations(localCoordinatorTask, resourceOid, reconResult, opResult)) {
@@ -349,7 +349,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		executionRecord.setTarget(resource, prismContext);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		executionRecord.setMessage(requestRecord.getMessage());
-		auditHelper.audit(executionRecord, localCoordinatorTask, opResult);
+		auditHelper.audit(executionRecord, null, localCoordinatorTask, opResult);
 
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
@@ -485,7 +485,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 	    executionRecord.setTarget(resource, prismContext);
 	    executionRecord.setOutcome(OperationResultStatus.FATAL_ERROR);
 	    executionRecord.setMessage(ex.getMessage());
-	    auditHelper.audit(executionRecord, task, opResult);
+	    auditHelper.audit(executionRecord, null, task, opResult);
 
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}-{}", new Object[]{message, ex});
@@ -598,9 +598,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		query = addQueryFromTaskIfExists(query, localCoordinatorTask);
 		query = narrowQueryForBucket(query, localCoordinatorTask, workBucket, objectclassDef, opResult);
 
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow recon query:\n{}", query.debugDump());
-		}
+		LOGGER.trace("Shadow recon query:\n{}", query.debugDumpLazily());
 
 		long started = System.currentTimeMillis();
 
@@ -626,9 +624,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 			}
 
 			if (ShadowUtil.isProtected(resourceShadow)) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
-				}
+				LOGGER.trace("Skipping recording counter for {} because it is protected", shadow);
 				return localCoordinatorTask.canRun();
 			}
 
