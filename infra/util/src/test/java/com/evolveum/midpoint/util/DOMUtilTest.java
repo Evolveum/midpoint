@@ -290,5 +290,19 @@ public class DOMUtilTest {
 			assertEquals("BIG bada boom! wrong element QName in iteration "+i, qNameValue, qNameValueAfter);
 		}
 	}
+	@Test
+	public void testSupportStringWithSurrogates() {
+		//unicode block "CJK Unified Ideographs Extension B"
+		String targetString="\ud864\udd66";
+		boolean support=true;
+		assertEquals("length is not 2",2,targetString.length());
+		assertEquals("codePoint count is not 1",1,targetString.codePointCount(0, targetString.length()));
+		try {
+			DOMUtil.checkValidXmlChars(targetString);
+		}catch(IllegalStateException e) {
+			support=false;
+		}
+		assertTrue("Not support string with surrogates in xml",support);
+	}
 
 }

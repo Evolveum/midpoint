@@ -1400,9 +1400,8 @@
 					<meminitial>1024m</meminitial>
 					<maxmem>2048m</maxmem>
  					<showDeprecation>false</showDeprecation>
- 					<showWarnings>true</showWarnings>
-<!-- 					<verbose>true</verbose>  -->
-					<!--<showWarnings>false</showWarnings -->
+ 					<showWarnings>false</showWarnings>
+					<verbose>false</verbose>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.roles.AbstractRoleMemberPanel.QueryScope;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -140,7 +141,7 @@ public class MemberOperationsHelper {
 	
 	private static <R extends AbstractRoleType> void recomputeOrDeleteMembersPerformed(PageBase pageBase, QueryScope scope,
 			ObjectQuery query, AjaxRequestTarget target, String operation, String displayNameOfOperation) {
-		QName defaultType = FocusType.COMPLEX_TYPE;
+		QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
 		Task operationalTask = pageBase.createSimpleTask(getTaskName(displayNameOfOperation, scope));
 		
 		SearchExpressionType script = new SearchExpressionType();
