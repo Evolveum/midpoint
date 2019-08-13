@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.sync;
 
 import com.evolveum.midpoint.prism.PrismProperty;
 
 /**
  *  EXPERIMENTAL
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "WeakerAccess" })
 public class SynchronizationOperationResult {
 	private int changesProcessed;
 	private int errors;

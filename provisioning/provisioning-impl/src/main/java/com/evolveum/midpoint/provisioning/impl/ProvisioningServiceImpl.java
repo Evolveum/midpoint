@@ -26,6 +26,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.impl.sync.SynchronizationOperationResult;
+import com.evolveum.midpoint.provisioning.impl.sync.Synchronizer;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
@@ -116,6 +118,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 	@Autowired PrismContext prismContext;
 	@Autowired CacheConfigurationManager cacheConfigurationManager;
 	@Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+	@Autowired private Synchronizer synchronizer;
 
 	@Autowired
 	@Qualifier("cacheRepositoryService")
@@ -351,11 +354,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 			// getting token form task
 			PrismProperty tokenProperty = getTokenProperty(shadowCoordinates, task, result);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrint(tokenProperty));
-			}
+			LOGGER.trace("Got token property: {} from the task extension.", SchemaDebugUtil.prettyPrintLazily(tokenProperty));
 
-			liveSyncResult = shadowCache.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
+			liveSyncResult = synchronizer.synchronize(shadowCoordinates, tokenProperty, task, taskPartition, result);
 			LOGGER.debug("Synchronization of {} done, token at start {}, result: {}", resource, tokenProperty, liveSyncResult);
 
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
@@ -400,7 +401,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 		String listeningActivityHandle;
 		try {
 			LOGGER.trace("Starting listening for async updates for {}", shadowCoordinates);
-			listeningActivityHandle = shadowCache.startListeningForAsyncUpdates(shadowCoordinates, task, result);
+			listeningActivityHandle = synchronizer.startListeningForAsyncUpdates(shadowCoordinates, task, result);
 		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
@@ -419,7 +420,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 
 		try {
 			LOGGER.trace("Stopping listening for async updates for {}", listeningActivityHandle);
-			shadowCache.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
+			synchronizer.stopListeningForAsyncUpdates(listeningActivityHandle, task, result);
 		} catch (RuntimeException | Error e) {
 			ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
 			result.summarize(true);
@@ -435,7 +436,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 		result.addParam("listeningActivityHandle", listeningActivityHandle);
 
 		try {
-			AsyncUpdateListeningActivityInformationType rv = shadowCache.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
+			AsyncUpdateListeningActivityInformationType rv = synchronizer.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, task, result);
 			result.recordSuccess();
 			result.cleanupResult();
 			return rv;
@@ -460,7 +461,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
 		}
 
 		// if the token is not specified in the task, get the latest token
-		PrismProperty<?> resourceTokenProperty = shadowCache.fetchCurrentToken(shadowCoordinates, result);
+		PrismProperty<?> resourceTokenProperty = synchronizer.fetchCurrentToken(shadowCoordinates, result);
 		if (resourceTokenProperty != null && resourceTokenProperty.getValue() != null &&
 				resourceTokenProperty.getValue().getValue() != null) {
 			return resourceTokenProperty;

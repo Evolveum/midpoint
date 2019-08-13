@@ -792,11 +792,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		// setting ifc attributes from resource object attributes
-		Set<Attribute> attributes = null;
+		Set<Attribute> attributes;
 		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDump());
-			}
+			LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDumpLazily());
 			attributes = connIdConvertor.convertFromResourceObjectToConnIdAttributes(attributesContainer, ocDef);
 
 			if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
@@ -804,8 +802,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				ProtectedStringType protectedString = password.getValue();
 				GuardedString guardedPassword = ConnIdUtil.toGuardedString(protectedString, "new password", protector);
 				if (guardedPassword != null) {
-					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
-						guardedPassword));
+					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 				}
 			}
 

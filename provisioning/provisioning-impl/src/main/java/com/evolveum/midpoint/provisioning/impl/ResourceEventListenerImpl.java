@@ -21,6 +21,7 @@ import java.util.Collection;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +35,6 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -56,10 +55,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 @Component
 public class ResourceEventListenerImpl implements ResourceEventListener {
 
-
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
 
 	@Autowired private ShadowCache shadowCache;
+	@Autowired private ChangeProcessor changeProcessor;
 	@Autowired private ProvisioningContextFactory provisioningContextFactory;
 	@Autowired private ChangeNotificationDispatcher notificationManager;
 
@@ -117,7 +116,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 		LOGGER.trace("Starting to synchronize change: {}", change);
 		try {
-			shadowCache.processSynchronization(ctx, false, change, task, null, parentResult);
+			changeProcessor.processChange(ctx, false, change, task, null, parentResult);
 		} catch (EncryptionException e) {
 			// TODO: better handling
 			throw new SystemException(e.getMessage(), e);

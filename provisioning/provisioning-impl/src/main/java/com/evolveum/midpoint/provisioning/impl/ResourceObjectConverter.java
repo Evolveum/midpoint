@@ -1759,7 +1759,7 @@ public class ResourceObjectConverter {
 		return ShadowType.F_ATTRIBUTES.equivalent(itemDelta.getParentPath());
 	}
 
-	void fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, ChangeHandler changeHandler,
+	public void fetchChanges(ProvisioningContext ctx, PrismProperty<?> lastToken, ChangeHandler changeHandler,
 			OperationResult parentResult) throws SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, GenericFrameworkException, ObjectNotFoundException, ExpressionEvaluationException {
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -1892,7 +1892,7 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
+	public String startListeningForAsyncUpdates(@NotNull ProvisioningContext ctx,
 			@NotNull ChangeListener outerListener, @NotNull OperationResult parentResult) throws SchemaException,
 			CommunicationException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -1955,14 +1955,14 @@ public class ResourceObjectConverter {
 		}
 	}
 
-	void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+	public void stopListeningForAsyncUpdates(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
 		LOGGER.trace("START stop listening for async updates, handle: {}", listeningActivityHandle);
 		listeningRegistry.removeListeningActivity(listeningActivityHandle).stop();
 		computeResultStatus(parentResult);
 		LOGGER.trace("END stop listening for async updates");
 	}
 
-	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
+	public AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, @NotNull OperationResult parentResult) {
 		ListeningActivity listeningActivity = listeningRegistry.getListeningActivity(listeningActivityHandle);
 		return listeningActivity != null ? listeningActivity.getInformation() : null;
 	}

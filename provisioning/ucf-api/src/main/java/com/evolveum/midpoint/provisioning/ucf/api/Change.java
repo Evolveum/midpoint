@@ -187,4 +187,15 @@ public final class Change implements DebugDumpable {
 		return sb.toString();
 	}
 
+	public String getOid() {
+		if (objectDelta != null && objectDelta.getOid() != null) {
+			return objectDelta.getOid();
+		} else if (currentShadow.getOid() != null) {
+			return currentShadow.getOid();
+		} else if (oldShadow.getOid() != null) {
+			return oldShadow.getOid();
+		} else {
+			throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
+		}
+	}
 }

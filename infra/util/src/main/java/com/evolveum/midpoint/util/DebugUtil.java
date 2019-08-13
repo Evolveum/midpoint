@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
 
@@ -643,6 +644,15 @@ public class DebugUtil {
 			@Override
 			public String toString() {
 				return object.toString();
+			}
+		};
+	}
+
+	public static Object lazy(Supplier<Object> supplier) {
+		return new Object() {
+			@Override
+			public String toString() {
+				return String.valueOf(supplier.get());
 			}
 		};
 	}
