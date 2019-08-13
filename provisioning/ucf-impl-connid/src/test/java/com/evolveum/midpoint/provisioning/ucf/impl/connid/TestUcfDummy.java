@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.impl.schema.PrismSchemaImpl;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.util.exception.*;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
@@ -62,7 +63,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
@@ -417,9 +417,10 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
+		CollectingChangeHandler handler = new CollectingChangeHandler();
+		cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
 
-		AssertJUnit.assertEquals(0, changes.size());
+		AssertJUnit.assertEquals(0, handler.getChanges().size());
 	}
 
 	@Test
@@ -442,7 +443,9 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 		dummyResource.addAccount(newAccount);
 
 		// WHEN
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
+		CollectingChangeHandler handler = new CollectingChangeHandler();
+		cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
+		List<Change> changes = handler.getChanges();
 
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

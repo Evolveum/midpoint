@@ -18,12 +18,14 @@ package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 import static com.evolveum.midpoint.provisioning.ucf.impl.connid.ConnIdUtil.processConnIdException;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.util.exception.*;
@@ -75,16 +77,6 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
-import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorOperationOptions;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ShadowResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.connid.query.FilterInterpreter;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
@@ -140,6 +132,8 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorInstanceConnIdImpl.class);
+
+	private static final String OP_FETCH_CHANGES = ConnectorInstance.class.getName() + ".fetchChanges";
 
 	ConnectorInfo cinfo;
 	ConnectorType connectorType;
@@ -1637,104 +1631,105 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		return property;
 	}
 
-	@NotNull
 	@Override
-	public List<Change> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter, OperationResult parentResult)
+	public void fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
+			AttributesToReturn attrsToReturn, Integer maxChanges, StateReporter reporter,
+			ChangeHandler changeHandler, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
-				+ ".fetchChanges");
-		result.addArbitraryObjectAsContext("objectClass", objectClass);
-		result.addArbitraryObjectAsParam("lastToken", lastToken);
-
-		// create sync token from the property last token
-		SyncToken syncToken;
+		OperationResult result = parentResult.subresult(OP_FETCH_CHANGES)
+				.addArbitraryObjectAsContext("objectClass", objectClass)
+				.addArbitraryObjectAsParam("lastToken", lastToken)
+				.build();
 		try {
-			syncToken = getSyncToken(lastToken);
-			LOGGER.trace("Sync token created from the property last token: {}", syncToken==null?null:syncToken.getValue());
-		} catch (SchemaException ex) {
-			result.recordFatalError(ex.getMessage(), ex);
-			throw new SchemaException(ex.getMessage(), ex);
-		}
+			SyncToken syncToken = getSyncToken(lastToken);
+			LOGGER.trace("Sync token created from the property last token: {}", syncToken == null ? null : syncToken.getValue());
 
-		final List<SyncDelta> syncDeltas = new ArrayList<>();
-		// get icf object class
-		ObjectClass icfObjectClass;
-		if (objectClass == null) {
-			icfObjectClass = ObjectClass.ALL;
-		} else {
-			icfObjectClass = connIdNameMapper.objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
-		}
-
-		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
-		if (objectClass != null) {
-			convertToIcfAttrsToGet(objectClass, attrsToReturn, optionsBuilder);
-		}
-		OperationOptions options = optionsBuilder.build();
-
-		SyncResultsHandler syncHandler = delta -> {
-			LOGGER.trace("Detected sync delta: {}", delta);
-			syncDeltas.add(delta);
-			return canRun(reporter) && (maxChanges == null || maxChanges == 0 || syncDeltas.size() < maxChanges);
-		};
-
-		OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
-		connIdResult.addContext("connector", connIdConnectorFacade.getClass());
-		connIdResult.addArbitraryObjectAsParam("connIdObjectClass", icfObjectClass);
-		connIdResult.addArbitraryObjectAsParam("syncToken", syncToken);
-		connIdResult.addArbitraryObjectAsParam("syncHandler", syncHandler);
-
-		SyncToken lastReceivedToken;
-		try {
-			InternalMonitor.recordConnectorOperation("sync");
-			recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-			lastReceivedToken = connIdConnectorFacade.sync(icfObjectClass, syncToken, syncHandler, options);
-			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
-			connIdResult.recordSuccess();
-			connIdResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
-		} catch (Throwable ex) {
-			recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
-			Throwable midpointEx = processConnIdException(ex, this, connIdResult);
-			result.computeStatus();
-			// Do some kind of acrobatics to do proper throwing of checked exception
-			if (midpointEx instanceof CommunicationException) {
-				throw (CommunicationException) midpointEx;
-			} else if (midpointEx instanceof GenericFrameworkException) {
-				throw (GenericFrameworkException) midpointEx;
-			} else if (midpointEx instanceof SchemaException) {
-				throw (SchemaException) midpointEx;
-			} else if (midpointEx instanceof RuntimeException) {
-				throw (RuntimeException) midpointEx;
-			} else if (midpointEx instanceof Error) {
-				throw (Error) midpointEx;
+			// get icf object class
+			ObjectClass requestConnIdObjectClass;
+			if (objectClass == null) {
+				requestConnIdObjectClass = ObjectClass.ALL;
 			} else {
-				throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
+				requestConnIdObjectClass = connIdNameMapper
+						.objectClassToConnId(objectClass, getSchemaNamespace(), connectorType, legacySchema);
 			}
-		}
-		if (!canRun(reporter)) {
-			result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
-			return Collections.emptyList();
-		}
 
-		// convert changes from icf to midpoint Change
-		List<Change> changeList;
-		try {
-			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, resourceSchema, result);
-		} catch (SchemaException ex) {
-			result.recordFatalError(ex.getMessage(), ex);
-			throw new SchemaException(ex.getMessage(), ex);
-		}
+			OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+			if (objectClass != null) {
+				convertToIcfAttrsToGet(objectClass, attrsToReturn, optionsBuilder);
+			}
+			OperationOptions options = optionsBuilder.build();
 
-		if (lastReceivedToken != null) {
-			Change lastChange = new Change(null, getToken(lastReceivedToken));
-			LOGGER.trace("Adding last change: {}", lastChange);
-			changeList.add(lastChange);
-		}
+			OperationResult connIdResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
+			connIdResult.addContext("connector", connIdConnectorFacade.getClass());
+			connIdResult.addArbitraryObjectAsParam("objectClass", requestConnIdObjectClass);
+			connIdResult.addArbitraryObjectAsParam("syncToken", syncToken);
 
-		result.recordSuccess();
-		result.addReturn(OperationResult.RETURN_COUNT, changeList.size());
-		return changeList;
+			AtomicInteger deltasProcessed = new AtomicInteger(0);
+			SyncResultsHandler syncHandler = delta -> {
+				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+				LOGGER.trace("Detected sync delta: {}", delta);
+				OperationResult handleResult = connIdResult.createSubresult(OP_FETCH_CHANGES + ".handle");
+				Change change = null;
+				try {
+					change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
+					boolean doContinue = changeHandler.handleChange(change, handleResult);
+					int processed = deltasProcessed.incrementAndGet();
+					return doContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+				} catch (Throwable t) {
+					return changeHandler.handleError(change, t, handleResult);
+				} finally {
+					handleResult.computeStatusIfUnknown();
+					connIdResult.summarize();
+					recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+				}
+			};
+
+			SyncToken lastReceivedToken;
+			try {
+				InternalMonitor.recordConnectorOperation("sync");
+				recordIcfOperationStart(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+				lastReceivedToken = connIdConnectorFacade.sync(requestConnIdObjectClass, syncToken, syncHandler, options);
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
+				connIdResult.computeStatus();
+				connIdResult.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
+			} catch (Throwable ex) {
+				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
+				Throwable midpointEx = processConnIdException(ex, this, connIdResult);
+				result.computeStatus();
+				// Do some kind of acrobatics to do proper throwing of checked exception
+				if (midpointEx instanceof CommunicationException) {
+					throw (CommunicationException) midpointEx;
+				} else if (midpointEx instanceof GenericFrameworkException) {
+					throw (GenericFrameworkException) midpointEx;
+				} else if (midpointEx instanceof SchemaException) {
+					throw (SchemaException) midpointEx;
+				} else if (midpointEx instanceof RuntimeException) {
+					throw (RuntimeException) midpointEx;
+				} else if (midpointEx instanceof Error) {
+					throw (Error) midpointEx;
+				} else {
+					throw new SystemException("Got unexpected exception: " + ex.getClass().getName() + ": " + ex.getMessage(), ex);
+				}
+			}
+			if (!canRun(reporter)) {
+				result.recordStatus(OperationResultStatus.SUCCESS, "Interrupted by task suspension");
+			}
+
+			if (lastReceivedToken != null) {
+				Change lastChange = new Change(null, getToken(lastReceivedToken));
+				LOGGER.trace("Adding last change: {}", lastChange);
+				changeHandler.handleChange(lastChange, result);
+			}
+
+			result.recordSuccess();
+			result.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
+		} catch (Throwable t) {
+			result.recordFatalError(t);
+			throw t;
+		} finally {
+			result.computeStatusIfUnknown();
+		}
 	}
 
 	private boolean canRun(StateReporter reporter) {
@@ -2283,122 +2278,84 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	@NotNull
-	private List<Change> getChangesFromSyncDeltas(ObjectClass connIdObjClass, Collection<SyncDelta> connIdDeltas,
-			PrismSchema schema, OperationResult result)
+	private Change getChangeFromSyncDelta(ObjectClass requestConnIdObjectClass,
+			ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, OperationResult result)
 			throws SchemaException, GenericFrameworkException {
-		List<Change> changeList = new ArrayList<>();
 
-		QName objectClass = connIdNameMapper.objectClassToQname(connIdObjClass, getSchemaNamespace(), legacySchema);
-		ObjectClassComplexTypeDefinition objClassDefinition = null;
-		if (objectClass != null) {
-			objClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(objectClass);
-		}
+		ObjectClassComplexTypeDefinition deltaObjectClass;
 
-		Validate.notNull(connIdDeltas, "Sync result must not be null.");
-		for (SyncDelta icfDelta : connIdDeltas) {
-
-			ObjectClass deltaIcfObjClass = connIdObjClass;
-			QName deltaObjectClass = objectClass;
-			ObjectClassComplexTypeDefinition deltaObjClassDefinition = objClassDefinition;
-			if (objectClass == null) {
-				deltaIcfObjClass = icfDelta.getObjectClass();
-				deltaObjectClass = connIdNameMapper.objectClassToQname(deltaIcfObjClass, getSchemaNamespace(), legacySchema);
-				if (deltaIcfObjClass != null) {
-					deltaObjClassDefinition = (ObjectClassComplexTypeDefinition) schema.findComplexTypeDefinition(deltaObjectClass);
-				}
+		if (requestObjectClass != null) {
+			deltaObjectClass = requestObjectClass;
+		} else {
+			ObjectClass deltaConnIdObjectClass = connIdDelta.getObjectClass();
+			QName deltaObjectClassName = connIdNameMapper.objectClassToQname(deltaConnIdObjectClass, getSchemaNamespace(), legacySchema);
+			if (deltaConnIdObjectClass != null) {
+				deltaObjectClass = (ObjectClassComplexTypeDefinition) resourceSchema.findComplexTypeDefinitionByType(deltaObjectClassName);
+			} else {
+				deltaObjectClass = null;
 			}
-			if (deltaObjClassDefinition == null) {
-				if (icfDelta.getDeltaType() == SyncDeltaType.DELETE) {
+			if (deltaObjectClass == null) {
+				if (connIdDelta.getDeltaType() == SyncDeltaType.DELETE) {
 					// tolerate this. E.g. LDAP changelogs do not have objectclass in delete deltas.
 				} else {
-					throw new SchemaException("Got delta with object class "+deltaObjectClass+" ("+deltaIcfObjClass+") that has no definition in resource schema");
+					throw new SchemaException("Got delta with object class "+deltaObjectClassName+" ("+deltaConnIdObjectClass+") that has no definition in resource schema");
 				}
 			}
+		}
 
-			SyncDeltaType icfDeltaType = icfDelta.getDeltaType();
-			if (SyncDeltaType.DELETE.equals(icfDeltaType)) {
-				LOGGER.trace("START creating delta of type DELETE");
-				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
-				Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(icfDelta.getUid(),
-						deltaObjClassDefinition, resourceSchema);
-				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(deltaObjClassDefinition);
-				changeList.add(change);
-				LOGGER.trace("END creating delta of type DELETE");
+		Change change;
 
-			} else if (SyncDeltaType.CREATE.equals(icfDeltaType)) {
-				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjClassDefinition);
-				LOGGER.trace("Object definition: {}", objectDefinition);
+		SyncDeltaType icfDeltaType = connIdDelta.getDeltaType();
+		LOGGER.trace("START creating delta of type {}", icfDeltaType);
 
-				LOGGER.trace("START creating delta of type CREATE");
-				PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+		if (icfDeltaType == SyncDeltaType.DELETE) {
 
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
-				}
+			ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
+			Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(connIdDelta.getUid(),
+					deltaObjectClass, resourceSchema);
+			change = new Change(identifiers, objectDelta, getToken(connIdDelta.getToken()));
 
-				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
+		} else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
+			PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjectClass);
+			LOGGER.trace("Object definition: {}", objectDefinition);
+
+			PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(connIdDelta.getObject(),
+					objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
+			LOGGER.trace("Got current shadow: {}", currentShadow.debugDumpLazily());
+			Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
+
+			if (icfDeltaType == SyncDeltaType.CREATE) {
 				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
-
-				Change change = new Change(identifiers, objectDelta, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(deltaObjClassDefinition);
-				changeList.add(change);
-				LOGGER.trace("END creating delta of type CREATE");
-
-			} else if (SyncDeltaType.CREATE_OR_UPDATE.equals(icfDeltaType) ||
-					SyncDeltaType.UPDATE.equals(icfDeltaType)) {
-				PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjClassDefinition);
-				LOGGER.trace("Object definition: {}", objectDefinition);
-
-				LOGGER.trace("START creating delta of type {}", icfDeltaType);
-				PrismObject<ShadowType> currentShadow = connIdConvertor.convertToResourceObject(icfDelta.getObject(),
-						objectDefinition, false, caseIgnoreAttributeNames, legacySchema, result);
-
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
-				}
-
-				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getAllIdentifiers(currentShadow);
-
-				Change change = new Change(identifiers, currentShadow, getToken(icfDelta.getToken()));
-				change.setObjectClassDefinition(deltaObjClassDefinition);
-				changeList.add(change);
-				LOGGER.trace("END creating delta of type {}:\n{}", icfDeltaType, change.debugDump());
-
+				change = new Change(identifiers, objectDelta, getToken(connIdDelta.getToken()));
 			} else {
-				throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
+				change = new Change(identifiers, currentShadow, getToken(connIdDelta.getToken()));
 			}
 
+		} else {
+			throw new GenericFrameworkException("Unexpected sync delta type " + icfDeltaType);
 		}
-		return changeList;
+
+		change.setObjectClassDefinition(deltaObjectClass);
+		LOGGER.trace("END creating change of type {}:\n{}", icfDeltaType, change.debugDumpLazily());
+
+		return change;
 	}
 
 	private SyncToken getSyncToken(PrismProperty tokenProperty) throws SchemaException {
-		if (tokenProperty == null){
+		if (tokenProperty == null || tokenProperty.getValues().isEmpty()) {
 			return null;
-		}
-		if (tokenProperty.getValues() == null) {
-			return null;
-		}
-
-		if (tokenProperty.getValues().isEmpty()) {
-			return null;
-		}
-
-		if (tokenProperty.getValues().size() > 1) {
+		} else if (tokenProperty.getValues().size() > 1) {
 			throw new SchemaException("Unexpected number of attributes in SyncToken. SyncToken is single-value attribute and can contain only one value.");
+		} else {
+			Object tokenValue = tokenProperty.getAnyRealValue();
+			if (tokenValue != null) {
+				return new SyncToken(tokenValue);
+			} else {
+				return null;
+			}
 		}
-
-		Object tokenValue = tokenProperty.getAnyRealValue();
-		if (tokenValue == null) {
-			return null;
-		}
-
-		SyncToken syncToken = new SyncToken(tokenValue);
-		return syncToken;
 	}
 
 	private <T> PrismProperty<T> getToken(SyncToken syncToken) {

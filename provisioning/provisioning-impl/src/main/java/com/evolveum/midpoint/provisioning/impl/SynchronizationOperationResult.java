@@ -23,21 +23,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
  */
 @SuppressWarnings("unused")
 public class SynchronizationOperationResult {
-	private int changesDetected;
 	private int changesProcessed;
 	private int errors;
 	private boolean suspendEncountered;
 	private boolean haltingErrorEncountered;
 	private PrismProperty<?> lastTokenSeen;
 	private PrismProperty<?> taskTokenUpdatedTo;
-
-	public int getChangesDetected() {
-		return changesDetected;
-	}
-
-	public void setChangesDetected(int changesDetected) {
-		this.changesDetected = changesDetected;
-	}
 
 	public int getChangesProcessed() {
 		return changesProcessed;
@@ -89,12 +80,19 @@ public class SynchronizationOperationResult {
 
 	@Override
 	public String toString() {
-		return "changesDetected=" + changesDetected +
-				", changesProcessed=" + changesProcessed +
+		return "changesProcessed=" + changesProcessed +
 				", errors=" + errors +
 				", suspendEncountered=" + suspendEncountered +
 				", haltingErrorEncountered=" + haltingErrorEncountered +
 				", lastTokenSeen=" + lastTokenSeen +
 				", taskTokenUpdatedTo=" + taskTokenUpdatedTo;
+	}
+
+	public void incrementErrors() {
+		errors++;
+	}
+
+	public void incrementChangesProcessed() {
+		changesProcessed++;
 	}
 }

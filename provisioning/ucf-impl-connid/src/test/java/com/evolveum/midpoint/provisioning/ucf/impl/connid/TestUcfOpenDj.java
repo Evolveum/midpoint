@@ -394,7 +394,10 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last token", lastToken);
 		assertNotNull("No last token value", lastToken.getRealValue());
 
-		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, null, null, null, result);
+		CollectingChangeHandler handler = new CollectingChangeHandler();
+		cc.fetchChanges(accountDefinition, lastToken, null, null, null, handler, result);
+
+		List<Change> changes = handler.getChanges();
 		display("Changes", changes);
 
 		// Just one pseudo-change that updates the token
