@@ -56,9 +56,10 @@ public class ObjectClassComplexTypeDefinitionImpl extends ComplexTypeDefinitionI
 	@NotNull
 	@Override
 	public Collection<? extends ResourceAttributeDefinition<?>> getAttributeDefinitions() {
-		return getDefinitions().stream()
-				.map(def -> (ResourceAttributeDefinition<?>) def)
-				.collect(Collectors.toUnmodifiableList());
+		return Collections.unmodifiableList(
+				getDefinitions().stream()
+						.map(def -> (ResourceAttributeDefinition<?>) def)
+						.collect(Collectors.toList()));
 	}
 
 	@Override
