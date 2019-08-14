@@ -94,7 +94,7 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			objectClass = objectClassItem.getRealValue().getLocalPart();
 		}
 
-                PrismProperty<Boolean> retrySyncItem = task.getExtension().findProperty(SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED);
+		PrismProperty<Boolean> retrySyncItem = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS);
 		if (retrySyncItem == null || retrySyncItem.getRealValue() == null) {
 			retryUnhandledErr = true;
 		} else {
@@ -219,8 +219,8 @@ public class ResourceRelatedHandlerDto extends HandlerDto implements HandlerDtoE
 			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_DRY_RUN, curr.isDryRun(), prismContext);
 		}
 
-                if (orig.isRetryUnhandledErr() != curr.isRetryUnhandledErr()) {
-			addExtensionDelta(rv, SchemaConstants.SYNC_TOKEN_RETRY_UNHANDLED, curr.isRetryUnhandledErr(), prismContext);
+		if (orig.isRetryUnhandledErr() != curr.isRetryUnhandledErr()) {
+			addExtensionDelta(rv, SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS, curr.isRetryUnhandledErr(), prismContext);
 		}
 
 		if (orig.getKind() != curr.getKind()) {

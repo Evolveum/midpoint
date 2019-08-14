@@ -87,22 +87,23 @@ public class StateReporter {
 
     // we just add duration, not count (we'll do this on end)
     public void recordIcfOperationSuspend(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef) {
+        QName objectClassName = objectClassDef != null ? objectClassDef.getTypeName() : null;
         if (lastOperation != operation) {
             LOGGER.warn("Suspending operation other than current: finishing {}, last recorded {}",
                     operation, lastOperation);
-        } else if (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassDef.getTypeName())) {
+        } else if (lastObjectClass == null || !lastObjectClass.getTypeName().equals(objectClassName)) {
             LOGGER.warn("Suspending operation on object class other than current: finishing on {}, last recorded {}",
-                    objectClassDef.getTypeName(), lastObjectClass != null ? lastObjectClass.getTypeName() : "(null)");
+                    objectClassName, lastObjectClass != null ? lastObjectClass.getTypeName() : "(null)");
         } else {
             long duration = System.currentTimeMillis() - lastStarted.getTime();
             if (task != null) {
-                task.recordProvisioningOperation(resourceOid, getResourceName(), objectClassDef.getTypeName(), lastOperation, true, 0, duration);
+                task.recordProvisioningOperation(resourceOid, getResourceName(), objectClassName, lastOperation, true, 0, duration);
             } else {
                 reportNoTask(resourceOid, lastOperation);
             }
         }
         lastOperation = null;
-        recordState("Returned from " + operation + " of " + objectClassDef.getTypeName().getLocalPart() + " on " + getResourceName());
+        recordState("Returned from " + operation + " of " + getObjectClassName(objectClassDef) + " on " + getResourceName());
     }
 
     public void recordIcfOperationResume(ProvisioningOperation operation, ObjectClassComplexTypeDefinition objectClassDef) {
@@ -112,11 +113,11 @@ public class StateReporter {
         lastOperation = operation;
         lastObjectClass = objectClassDef;
         lastStarted = new Date();
-        recordState("Continuing " + operation + " of " + objectClassDef.getTypeName().getLocalPart() + " on " + getResourceName());
+        recordState("Continuing " + operation + " of " + getObjectClassName(objectClassDef) + " on " + getResourceName());
     }
 
     private String getObjectClassName(ObjectClassComplexTypeDefinition objectClassDef) {
-        return objectClassDef != null && objectClassDef.getTypeName() != null ? objectClassDef.getTypeName().getLocalPart() : "(null)";
+        return objectClassDef != null ? objectClassDef.getTypeName().getLocalPart() : "(null)";
     }
 
     private QName getObjectClassQName(ObjectClassComplexTypeDefinition objectClassDef) {

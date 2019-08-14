@@ -57,6 +57,16 @@ public class ApprovalContextUtil {
 	}
 
 	@Nullable
+	public static String getWorkItemStageInfo(CaseWorkItemType workItem) {
+		if (workItem == null) {
+			return null;
+		}
+		CaseType aCase = CaseWorkItemUtil.getCase(workItem);
+		return getStageInfo(workItem.getStageNumber(), getStageCount(aCase.getApprovalContext()),
+				getWorkItemStageName(workItem), getWorkItemStageDisplayName(workItem));
+	}
+
+	@Nullable
 	public static String getStageInfo(CaseWorkItemType workItem) {
 		if (workItem == null) {
 			return null;
@@ -64,8 +74,28 @@ public class ApprovalContextUtil {
 		return getStageInfo(CaseWorkItemUtil.getCase(workItem));
 	}
 
-	public static String getStageName(CaseWorkItemType workItem) {
-		return getStageName(CaseWorkItemUtil.getCaseRequired(workItem));
+	public static String getWorkItemStageName(CaseWorkItemType workItem) {
+		if (workItem == null){
+			return "";
+		}
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null){
+			return "";
+		}
+		ApprovalStageDefinitionType def = getStageDefinition(aCase.getApprovalContext(), workItem.getStageNumber());
+		return def != null ? def.getName() : "";
+	}
+
+	public static String getWorkItemStageDisplayName(CaseWorkItemType workItem) {
+		if (workItem == null){
+			return "";
+		}
+		CaseType aCase = CaseWorkItemUtil.getCaseRequired(workItem);
+		if (aCase.getApprovalContext() == null || workItem.getStageNumber() == null){
+			return "";
+		}
+		ApprovalStageDefinitionType def = getStageDefinition(aCase.getApprovalContext(), workItem.getStageNumber());
+		return def != null ? def.getDisplayName() : "";
 	}
 
 	public static String getStageName(CaseType aCase) {

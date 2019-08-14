@@ -1355,8 +1355,10 @@ public class DOMUtil {
         if (stringValue == null) {
             return;
         }
-        for (int i = 0; i < stringValue.length(); i++) {
-            if (!XMLChar.isValid(stringValue.charAt(i))) {
+        int codepointCount = stringValue.codePointCount(0, stringValue.length());
+        
+        for (int i = 0; i < codepointCount; i++) {
+            if (!XMLChar.isValid(stringValue.codePointAt(i))) {
                 throw new IllegalStateException("Invalid character with regards to XML (code " + ((int) stringValue.charAt(i)) + ") in '" + makeSafelyPrintable(stringValue, 200) + "'");
             }
         }

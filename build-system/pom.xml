@@ -742,7 +742,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>2.3-M1</version>
+                <version>2.3</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -1400,9 +1400,8 @@
 					<meminitial>1024m</meminitial>
 					<maxmem>2048m</maxmem>
  					<showDeprecation>false</showDeprecation>
- 					<showWarnings>true</showWarnings>
-<!-- 					<verbose>true</verbose>  -->
-					<!--<showWarnings>false</showWarnings -->
+ 					<showWarnings>false</showWarnings>
+					<verbose>false</verbose>
 				</configuration>
 			</plugin>
 			<plugin>
