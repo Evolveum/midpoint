@@ -47,6 +47,8 @@ public class MidPointUserProfilePrincipal extends MidPointPrincipal {
 	
 	private CompiledUserProfile compiledUserProfile;	
 
+	private transient int activeSessions = 0;
+
     public MidPointUserProfilePrincipal(@NotNull UserType user) {
     	super(user);
     }
@@ -85,4 +87,24 @@ public class MidPointUserProfilePrincipal extends MidPointPrincipal {
 		DebugUtil.debugDumpWithLabel(sb, "compiledUserProfile", compiledUserProfile, indent + 1);
 	}
 
+	public void setActiveSessions(int activeSessions) {
+		this.activeSessions = activeSessions;
+	}
+
+	public int getActiveSessions() {
+		return activeSessions;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof MidPointUserProfilePrincipal)) {
+			return false;
+		}
+		return getUser().equals(((MidPointUserProfilePrincipal) obj).getUser());
+	}
+
+	@Override
+	public int hashCode() {
+		return getUser().hashCode();
+	}
 }

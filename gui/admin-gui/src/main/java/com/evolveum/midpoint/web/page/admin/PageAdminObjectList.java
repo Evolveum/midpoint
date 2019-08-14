@@ -78,7 +78,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     private void initTable(Form mainForm) {
         StringValue collectionNameParameter = getCollectionNameParameterValue();
-        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
+        MainObjectListPanel<O, CompiledObjectCollectionView> userListPanel = new  MainObjectListPanel<O, CompiledObjectCollectionView>(ID_TABLE,
                 getType(), !isCollectionViewPage() ?
                 getTableId() : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE, getQueryOptions(), this) {
             private static final long serialVersionUID = 1L;

@@ -463,7 +463,7 @@ public class ColumnUtils {
 			@Override
 			public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
 									 String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-				cellItem.add(new Label(componentId, ApprovalContextUtil.getStageInfo(unwrapRowModel(rowModel))));
+				cellItem.add(new Label(componentId, ApprovalContextUtil.getWorkItemStageInfo(unwrapRowModel(rowModel))));
 			}
 
 			@Override

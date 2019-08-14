@@ -209,6 +209,8 @@ public class GuiStyleConstants {
 	public static final String YELLOW_COLOR = "color-yellow";
 	public static final String RED_COLOR = "color-red";
 	public static final String BLUE_COLOR = "color-blue";
+
+	public static final String CLASS_ICON_SIGN_OUT = "fa fa-sign-out";
 	
 	
 }
