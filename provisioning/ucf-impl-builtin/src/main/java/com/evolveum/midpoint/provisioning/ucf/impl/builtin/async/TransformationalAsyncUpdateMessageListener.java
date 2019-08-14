@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -160,8 +161,9 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			delta = null;
 		}
 		setFromDefaults(changeBean.getObject(), objectClassName);
-		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef);
-		Change change = new Change(identifiers, toPrismObject(changeBean.getObject()), null, delta);
+		Holder<Object> primaryIdentifierRealValueHolder = new Holder<>();
+		Collection<ResourceAttribute<?>> identifiers = getIdentifiers(changeBean, objectClassDef, primaryIdentifierRealValueHolder);
+		Change change = new Change(primaryIdentifierRealValueHolder.getValue(), identifiers, toPrismObject(changeBean.getObject()), null, delta);
 		change.setObjectClassDefinition(objectClassDef);
 		if (change.getCurrentShadow() == null && change.getObjectDelta() == null) {
 			change.setNotificationOnly(true);
@@ -177,8 +179,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		}
 	}
 
-	private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef)
-			throws SchemaException {
+	private Collection<ResourceAttribute<?>> getIdentifiers(UcfChangeType changeBean, ObjectClassComplexTypeDefinition ocDef,
+			Holder<Object> primaryIdentifierRealValueHolder) throws SchemaException {
 		Collection<ResourceAttribute<?>> rv = new ArrayList<>();
 		PrismContainerValue<ShadowAttributesType> attributesPcv;
 		boolean mayContainNonIdentifiers;
@@ -199,27 +201,40 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 			throw new SchemaException("Change does not contain identifiers");
 		}
 		Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toSet());
+		Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toSet());
+		Set<Object> primaryIdentifierRealValues = new HashSet<>();
 		for (Item<?,?> attribute : attributesPcv.getItems()) {
 			if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {
+				ResourceAttribute<Object> resourceAttribute;
 				if (attribute instanceof ResourceAttribute) {
-					rv.add(((ResourceAttribute) attribute).clone());
+					//noinspection unchecked
+					resourceAttribute = ((ResourceAttribute) attribute).clone();
 				} else {
-					ResourceAttributeDefinition<Object> definition = ocDef
-							.findAttributeDefinition(attribute.getElementName());
+					ResourceAttributeDefinition<Object> definition = ocDef.findAttributeDefinition(attribute.getElementName());
 					if (definition == null) {
 						throw new SchemaException("No definition of " + attribute.getElementName() + " in " + ocDef);
 					}
-					ResourceAttribute<Object> resourceAttribute = definition.instantiate();
+					resourceAttribute = definition.instantiate();
 					for (Object realValue : attribute.getRealValues()) {
 						resourceAttribute.addRealValue(realValue);
 					}
-					rv.add(resourceAttribute);
+				}
+				rv.add(resourceAttribute);
+				if (QNameUtil.matchAny(attribute.getElementName(), primaryIdentifiers)) {
+					primaryIdentifierRealValues.addAll(resourceAttribute.getRealValues());
 				}
 			} else {
 				if (!mayContainNonIdentifiers) {
 					LOGGER.warn("Attribute {} is not an identifier in {} -- ignoring it", attribute, ocDef);
 				}
 			}
+		}
+		if (primaryIdentifierRealValues.isEmpty()) {
+			LOGGER.warn("No primary identifier real value in {}", changeBean);
+		} else if (primaryIdentifierRealValues.size() > 1) {
+			LOGGER.warn("More than one primary identifier real value in {}: {}", changeBean, primaryIdentifierRealValues);
+		} else {
+			primaryIdentifierRealValueHolder.setValue(primaryIdentifierRealValues.iterator().next());
 		}
 		return rv;
 	}

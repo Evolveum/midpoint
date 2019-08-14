@@ -1699,6 +1699,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
 	public void summarize(boolean alsoSubresults) {
 
+		if (isTraced()) {
+			return;
+		}
+
 		int subresultStripThreshold = getSubresultStripThreshold();
 
 		// first phase: summarizing records if explicitly requested

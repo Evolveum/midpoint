@@ -120,6 +120,7 @@ public class ConnIdConvertor {
 		// If it will not be the case, we can safely remove subresult construction here.
 		OperationResult result = parentResult.subresult(ConnIdConvertor.class.getName() + ".convertToResourceObject")
 				.setMinor()
+				.addArbitraryObjectAsParam("uid", co.getUid())
 				.addArbitraryObjectAsParam("objectDefinition", objectDefinition)
 				.addParam("full", full)
 				.addParam("caseIgnoreAttributeNames", caseIgnoreAttributeNames)

@@ -3803,7 +3803,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+		return addObject(file, task, result, null);
+	}
+
+	protected <O extends ObjectType> PrismObject<O> addObject(File file, Task task, OperationResult result, Consumer<PrismObject<O>> customizer)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = prismContext.parseObject(file);
+		if (customizer != null) {
+			customizer.accept(object);
+		}
 		addObject(object, task, result);
 		return object;
 	}
