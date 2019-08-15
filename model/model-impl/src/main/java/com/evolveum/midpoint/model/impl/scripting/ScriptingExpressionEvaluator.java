@@ -139,6 +139,28 @@ public class ScriptingExpressionEvaluator {
         taskManager.switchToBackground(task, result);
         result.computeStatus();
     }
+    
+    /**
+     * Asynchronously executes any scripting expression.
+     *
+     * @param executeScriptCommand ExecuteScript to be executed.
+     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
+     *             (1) transient, (2) without any handler. This method puts the task into background,
+     *             and assigns IterativeScriptExecutionTaskHandler to it, to execute the script.
+     */
+    public void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException {
+        if (!task.isTransient()) {
+            throw new IllegalStateException("Task must be transient");
+        }
+        if (task.getHandlerUri() != null) {
+            throw new IllegalStateException("Task must not have a handler");
+        }
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
+        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
+        task.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+        taskManager.switchToBackground(task, result);
+        result.computeStatus();
+    }
 
 	/**
 	 * Main entry point.

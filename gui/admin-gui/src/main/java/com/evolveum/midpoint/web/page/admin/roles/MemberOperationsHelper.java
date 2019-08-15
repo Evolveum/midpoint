@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionParameterValueType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SearchExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -64,8 +65,7 @@ public class MemberOperationsHelper {
 			ObjectQuery query, Collection<QName> relations, QName type, AjaxRequestTarget target) {
 		Task operationalTask = pageBase.createSimpleTask(getTaskName("Remove", scope));
 		
-		SearchExpressionType script = new SearchExpressionType();
-		script.setType(type);
+		ExecuteScriptType script = new ExecuteScriptType();
 		ActionExpressionType expression = new ActionExpressionType();
 		expression.setType(UNASSIGN_OPERATION);
 		
@@ -89,12 +89,12 @@ public class MemberOperationsHelper {
 		script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
 				ActionExpressionType.class, expression));
 		
-		try {
-			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-		}
+//		try {
+//			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
+//		} catch (SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
+//			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
+//		}
 		
 		executeMemberOperation(pageBase, operationalTask, type, query, script, target);
 
@@ -104,8 +104,7 @@ public class MemberOperationsHelper {
     		QName relation, QName type, AjaxRequestTarget target, PageBase pageBase) {
 		Task operationalTask = pageBase.createSimpleTask("Add.members");
 		
-		SearchExpressionType script = new SearchExpressionType();
-		script.setType(type);
+		ExecuteScriptType script = new ExecuteScriptType();
 		ActionExpressionType expression = new ActionExpressionType();
 		expression.setType(ASSIGN_OPERATION);
 		
@@ -119,12 +118,12 @@ public class MemberOperationsHelper {
 		script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
 				ActionExpressionType.class, expression));
 		
-		try {
-			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-		}
+//		try {
+//			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
+//		} catch (SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
+//			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
+//		}
 		
 		executeMemberOperation(pageBase, operationalTask, type, query, script, target);
 	}
@@ -144,20 +143,19 @@ public class MemberOperationsHelper {
 		QName defaultType = AssignmentHolderType.COMPLEX_TYPE;
 		Task operationalTask = pageBase.createSimpleTask(getTaskName(displayNameOfOperation, scope));
 		
-		SearchExpressionType script = new SearchExpressionType();
-		script.setType(defaultType);
+		ExecuteScriptType script = new ExecuteScriptType();
 		ActionExpressionType expression = new ActionExpressionType();
 		expression.setType(operation);
 		
 		script.setScriptingExpression(new JAXBElement<ActionExpressionType>(SchemaConstants.S_ACTION,
 				ActionExpressionType.class, expression));
 		
-		try {
-			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
-		} catch (SchemaException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
-			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
-		}
+//		try {
+//			script.setQuery(pageBase.getQueryConverter().createQueryType(query));
+//		} catch (SchemaException e) {
+//			LoggingUtils.logUnexpectedException(LOGGER, "Can not create ObjectQuery from " + query, e);
+//			operationalTask.getResult().recordFatalError("Can not create ObjectQuery from " + query, e);
+//		}
 		
 		executeMemberOperation(pageBase, operationalTask, defaultType, query, script, target);
 
@@ -331,7 +329,7 @@ public class MemberOperationsHelper {
 	}
 	
 	protected static void executeMemberOperation(PageBase modelServiceLocator, Task operationalTask, QName type, ObjectQuery memberQuery,
-			ScriptingExpressionType script, AjaxRequestTarget target) {
+			ExecuteScriptType script, AjaxRequestTarget target) {
 
 		OperationResult parentResult = operationalTask.getResult();
 		try {
