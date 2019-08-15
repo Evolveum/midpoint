@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -141,7 +142,7 @@ public class TreeTablePanel extends BasePanel<String> {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void selectTreeItemPerformed(SelectableBean<OrgType> selected,
+			protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
 					AjaxRequestTarget target) {
 				TreeTablePanel.this.selectTreeItemPerformed(selected, target);
 			}
@@ -482,7 +483,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
 	}
 
-	private void selectTreeItemPerformed(SelectableBean<OrgType> selected, AjaxRequestTarget target) {
+	private void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {
 		if (selected.getValue() == null) {
 			return;
 		}
