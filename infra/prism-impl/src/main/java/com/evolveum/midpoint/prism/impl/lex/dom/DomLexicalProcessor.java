@@ -413,23 +413,23 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
         }
 
         @Override
-        public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+        public synchronized T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
             return parsePrimitiveElementValue(element, typeName, mode);
         }
         @Override
-        public boolean isEmpty() {
+        public synchronized boolean isEmpty() {
             return DOMUtil.isEmpty(element);
         }
         @Override
-        public String getStringValue() {
+        public synchronized String getStringValue() {
             return element.getTextContent();
         }
         @Override
-        public Map<String, String> getPotentiallyRelevantNamespaces() {
+        public synchronized Map<String, String> getPotentiallyRelevantNamespaces() {
             return DOMUtil.getAllVisibleNamespaceDeclarations(element);
         }
         @Override
-        public String toString() {
+        public synchronized String toString() {
             return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
         }
     }
@@ -438,32 +438,33 @@ public class DomLexicalProcessor implements LexicalProcessor<String> {
 
     	private Attr attr;
 
-    	public PrimitiveAttributeParser(Attr attr) {
+    	private PrimitiveAttributeParser(Attr attr) {
 			this.attr = attr;
 		}
+
 		@Override
-		public T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
+		public synchronized T parse(QName typeName, XNodeProcessorEvaluationMode mode) throws SchemaException {
 			return parsePrimitiveAttrValue(attr, typeName, mode);
 		}
 
 		@Override
-		public boolean isEmpty() {
+		public synchronized boolean isEmpty() {
 			return DOMUtil.isEmpty(attr);
 		}
 
 		@Override
-		public String getStringValue() {
+		public synchronized String getStringValue() {
 			return attr.getValue();
 		}
 
 		@Override
-		public String toString() {
+		public synchronized String toString() {
 			return "ValueParser(DOMa, " + PrettyPrinter.prettyPrint(DOMUtil.getQName(attr)) + ": "
 					+ attr.getTextContent() + ")";
 		}
 
         @Override
-        public Map<String, String> getPotentiallyRelevantNamespaces() {
+        public synchronized Map<String, String> getPotentiallyRelevantNamespaces() {
             return DOMUtil.getAllVisibleNamespaceDeclarations(attr);
         }
     }
