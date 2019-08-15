@@ -170,6 +170,15 @@ public class PageInternals extends PageAdminConfiguration {
 				return initPerformancePanel(panelId);
 			}
 		});
+		tabs.add(new AbstractTab(createStringResource("PageInternals.tab.loggedUsers")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public WebMarkupContainer getPanel(String panelId) {
+				return initLoggedUsersPanel(panelId);
+			}
+		});
 
 	    add(new TabbedPanel<>(ID_TAB_PANEL, tabs));
     }
@@ -209,4 +218,8 @@ public class PageInternals extends PageAdminConfiguration {
     private WebMarkupContainer initMemoryPanel(String panelId) {
 	    return new InternalsMemoryPanel(panelId);
     }
+
+    private WebMarkupContainer initLoggedUsersPanel(String panelId) {
+    	return new InternalsLoggedInUsersPanel(panelId);
+	}
 }

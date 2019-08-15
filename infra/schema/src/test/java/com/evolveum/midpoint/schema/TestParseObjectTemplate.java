@@ -17,17 +17,16 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -35,14 +34,14 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -80,6 +79,51 @@ public class TestParseObjectTemplate {
 	public void testParseObjectTemplateFileRoundTrip() throws Exception {
 		roundTrip("testParseObjectTemplateFileRoundTrip", OBJECT_TEMPLATE_FILE,
 				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
+	}
+
+	@Test
+	public void testAccessObjectTemplateMultithreaded() throws Exception {
+		// GIVEN
+		PrismContext prismContext = getPrismContext();
+		int THREADS = 50;
+
+		// WHEN
+		PrismObject<ObjectTemplateType> template = prismContext.parseObject(OBJECT_TEMPLATE_FILE);
+		MappingType mapping = template.asObjectable().getMapping().stream()
+				.filter(m -> "Access role assignment".equals(m.getName()))
+				.findAny().orElse(null);
+		assertNotNull("The mapping was not found", mapping);
+		AssignmentTargetSearchExpressionEvaluatorType evaluator = (AssignmentTargetSearchExpressionEvaluatorType)
+				mapping.getExpression().getExpressionEvaluator().get(0).getValue();
+
+		AtomicInteger errors = new AtomicInteger(0);
+		List<Thread> threads = new ArrayList<>(THREADS);
+		for (int i = 0; i < THREADS; i++) {
+			Thread thread = new Thread(() -> {
+				try {
+					ObjectFilter filter = prismContext.getQueryConverter().createObjectFilter(RoleType.class, evaluator.getFilter());
+					EqualFilter equalFilter = (EqualFilter) filter;
+					assertNotNull(equalFilter.getExpression());
+					ExpressionType expression = (ExpressionType) equalFilter.getExpression().getExpression();
+					ScriptExpressionEvaluatorType script = (ScriptExpressionEvaluatorType) expression.getExpressionEvaluator().get(0).getValue();
+					String code = script.getCode();
+					assertNotNull("No code", code);
+					assertEquals("Wrong code", "return memberOf.split(\";\", -1)[0]", code.trim());
+				} catch (Throwable t) {
+					errors.incrementAndGet();
+					throw new AssertionError("Got exception: " + t.getMessage(), t);
+				}
+			});
+			thread.setName("Executor #" + i);
+			thread.start();
+			threads.add(thread);
+		}
+
+		// THEN
+		waitForCompletion(threads, 20000);
+
+		assertEquals("Wrong # of errors", 0, errors.get());
+		// TODO some asserts on correct parsing maybe
 	}
 
 	@Test
@@ -238,5 +282,16 @@ public class TestParseObjectTemplate {
 		PrismAsserts.assertPropertyValue(container, propQName, expectedValues);
 	}
 
-
+	// todo deduplicate with TestUtil
+	private static void waitForCompletion(List<Thread> threads, long timeout) throws InterruptedException {
+		long start = System.currentTimeMillis();
+		while (System.currentTimeMillis() - start < timeout) {
+			boolean anyAlive = threads.stream().anyMatch(Thread::isAlive);
+			if (!anyAlive) {
+				break;
+			} else {
+				Thread.sleep(100);
+			}
+		}
+	}
 }

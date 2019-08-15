@@ -56,6 +56,8 @@ class DomToSchemaProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 
+	private static final Object SCHEMA_PARSING = new Object();
+
 	private EntityResolver entityResolver;
 	private final PrismContext prismContext;
 	private String shortDescription;
@@ -100,45 +102,51 @@ class DomToSchemaProcessor {
 	}
 
 	private XSSchemaSet parseSchema(Element schema) throws SchemaException {
-		// Make sure that the schema parser sees all the namespace declarations
-		DOMUtil.fixNamespaceDeclarations(schema);
-		try {
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
+		// Synchronization here is a brutal workaround for MID-5648. We need to synchronize on parsing schemas globally, because
+		// it looks like there are many fragments (referenced schemas) that get resolved during parsing.
+		//
+		// Unfortunately, this is not sufficient by itself -- there is a pre-processing that must be synchronized as well.
+		synchronized (SCHEMA_PARSING) {
+			// Make sure that the schema parser sees all the namespace declarations
+			DOMUtil.fixNamespaceDeclarations(schema);
+			try {
+				TransformerFactory transfac = TransformerFactory.newInstance();
+				Transformer trans = transfac.newTransformer();
+				trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
+				trans.setOutputProperty(OutputKeys.INDENT, "yes");
 
-			DOMSource source = new DOMSource(schema);
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			StreamResult result = new StreamResult(out);
+				DOMSource source = new DOMSource(schema);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				StreamResult result = new StreamResult(out);
 
-			trans.transform(source, result);
+				trans.transform(source, result);
 
-			XSOMParser parser = createSchemaParser();
-			InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
-			// XXX: hack: it's here to make entity resolver work...
-			inSource.setSystemId("SystemId");
-			// XXX: end hack
-			inSource.setEncoding("utf-8");
+				XSOMParser parser = createSchemaParser();
+				InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
+				// XXX: hack: it's here to make entity resolver work...
+				inSource.setSystemId("SystemId");
+				// XXX: end hack
+				inSource.setEncoding("utf-8");
 
-			parser.parse(inSource);
-			return parser.getResult();
+				parser.parse(inSource);
+				return parser.getResult();
 
-		} catch (SAXException e) {
-			throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
-					+ "(embedded exception " + e.getException() + ") in " + shortDescription, e);
-		} catch (TransformerException e) {
-			throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
-					+ "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
-					+ shortDescription, e);
-		} catch (RuntimeException e) {
-			// This sometimes happens, e.g. NPEs in Saxon
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("Unexpected error {} during parsing of schema:\n{}", e.getMessage(),
-						DOMUtil.serializeDOMToString(schema));
+			} catch (SAXException e) {
+				throw new SchemaException("XML error during XSD schema parsing: " + e.getMessage()
+						+ "(embedded exception " + e.getException() + ") in " + shortDescription, e);
+			} catch (TransformerException e) {
+				throw new SchemaException("XML transformer error during XSD schema parsing: " + e.getMessage()
+						+ "(locator: " + e.getLocator() + ", embedded exception:" + e.getException() + ") in "
+						+ shortDescription, e);
+			} catch (RuntimeException e) {
+				// This sometimes happens, e.g. NPEs in Saxon
+				if (LOGGER.isErrorEnabled()) {
+					LOGGER.error("Unexpected error {} during parsing of schema:\n{}", e.getMessage(),
+							DOMUtil.serializeDOMToString(schema));
+				}
+				throw new SchemaException(
+						"XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
 			}
-			throw new SchemaException(
-					"XML error during XSD schema parsing: " + e.getMessage() + " in " + shortDescription, e);
 		}
 	}
 

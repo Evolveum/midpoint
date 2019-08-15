@@ -223,10 +223,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 
 	private void recordInterrupted(OperationResult parentResult) {
 		parentResult.createSubresult(taskOperationPrefix + ".handle").recordWarning("Interrupted");
-		if (LOGGER.isWarnEnabled()) {
-            LOGGER.warn("{} {} interrupted",new Object[]{
-                    getProcessShortNameCapitalized(), getContextDesc()});
-        }
+        LOGGER.warn("{} {} interrupted", getProcessShortNameCapitalized(), getContextDesc());
 	}
 
 	public void signalAllItemsSubmitted() {
@@ -261,7 +258,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	}
 
 	public void updateOperationResult(OperationResult opResult) {
-		if (workerSpecificResults != null) {								// not null in the parallelized case
+		if (workerSpecificResults != null) {								// not null in the parallel case
 			for (OperationResult workerSpecificResult : workerSpecificResults) {
 				workerSpecificResult.computeStatus();
 				workerSpecificResult.summarize();
@@ -302,6 +299,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					request = requestQueue.poll(WORKER_THREAD_WAIT_FOR_REQUEST, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e) {
 					LOGGER.trace("Interrupted when waiting for next request", e);
+					workerTask.refreshLowLevelStatistics();
 					return;
 				}
 				workerTask.refreshLowLevelStatistics();
@@ -414,6 +412,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 					workerTask.setProgress(workerTask.getProgress()+1);
 				}
 				// todo report current op result?
+				// FIXME this should not be called from the worker task!
 				coordinatorTask.storeOperationStatsIfNeeded();  // includes flushPendingModifications
 			}
 

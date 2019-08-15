@@ -46,6 +46,9 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
      */
     private T value;
 
+    //TODO probably this should not be here. find better place if needed, e.g. subclass with specific behaviour and attributes.
+    private int activeSessions;
+
     /**
      * Result of object retrieval (or attempt of object retrieval). It case that it is not error the result is optional.
      */
@@ -78,6 +81,14 @@ public class SelectableBean<T extends Serializable> extends Selectable<T> implem
 
 	public void setResult(OperationResultType resultType) throws SchemaException {
 		this.result = OperationResult.createOperationResult(resultType);
+	}
+
+	public void setActiveSessions(int activeSessions) {
+		this.activeSessions = activeSessions;
+	}
+
+	public int getActiveSessions() {
+		return activeSessions;
 	}
 
 	public List<InlineMenuItem> getMenuItems() {

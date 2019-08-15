@@ -33,6 +33,7 @@ import java.util.Collection;
 public final class Change implements DebugDumpable {
 
     private Collection<ResourceAttribute<?>> identifiers;
+	private Object primaryIdentifierRealValue;      // we might reconsider this in the future
     private ObjectClassComplexTypeDefinition objectClassDefinition;
     private ObjectDelta<ShadowType> objectDelta;
     private PrismProperty<?> token;
@@ -48,29 +49,34 @@ public final class Change implements DebugDumpable {
 	 */
 	private boolean notificationOnly;
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, ObjectDelta<ShadowType> change, PrismProperty<?> token) {
+    public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers, ObjectDelta<ShadowType> change,
+		    PrismProperty<?> token) {
+    	this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.objectDelta = change;
         this.currentShadow = null;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismProperty<?> token) {
+    public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
+		    PrismObject<ShadowType> currentShadow, PrismProperty<?> token) {
+    	this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.objectDelta = null;
         this.currentShadow = currentShadow;
         this.token = token;
     }
 
-    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldShadow, ObjectDelta<ShadowType> objectDelta) {
+    public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
+		    PrismObject<ShadowType> currentShadow, PrismObject<ShadowType> oldShadow, ObjectDelta<ShadowType> objectDelta) {
+	    this.primaryIdentifierRealValue = primaryIdentifierRealValue;
     	this.identifiers = identifiers;
     	this.currentShadow = currentShadow;
     	this.oldShadow = oldShadow;
     	this.objectDelta = objectDelta;
     }
 
-    public Change(ObjectDelta<ShadowType> change, PrismProperty<?> token) {
-        this.objectDelta = change;
+    public Change(PrismProperty<?> token) {
         this.token = token;
     }
 
@@ -155,7 +161,7 @@ public final class Change implements DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "Change(identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
+		return "Change(uid=" + primaryIdentifierRealValue + ",identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
 				+ ", oldShadow=" + oldShadow + ", currentShadow=" + currentShadow + ")";
 	}
 
@@ -172,6 +178,8 @@ public final class Change implements DebugDumpable {
 		if (notificationOnly) {
 			sb.append(" (notification only)");
 		}
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
 		sb.append("\n");
@@ -197,5 +205,9 @@ public final class Change implements DebugDumpable {
 		} else {
 			throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
 		}
+	}
+
+	public Object getPrimaryIdentifierRealValue() {
+		return primaryIdentifierRealValue;
 	}
 }

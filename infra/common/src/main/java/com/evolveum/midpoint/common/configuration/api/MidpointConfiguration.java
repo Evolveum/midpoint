@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,13 @@ public interface MidpointConfiguration {
 	String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 	String WORKFLOW_CONFIGURATION = "midpoint.workflow";
 	String INTERNALS_CONFIGURATION = "midpoint.internals";
+	/**
+	 * Reference to midpoint-system.properties generated in system-init component.
+	 * It is generated during the build.
+	 * This file contains various system properties such midPoint version, build ID, build timestamp and so on.
+	 * This is a base path (without extension). 
+	 */
+	String MIDPOINT_SYSTEM_PROPERTIES_BASE_PATH = "midpoint-system";
 
 	String getMidpointHome();
 	

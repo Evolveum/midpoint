@@ -21,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Definition;
@@ -161,7 +162,7 @@ public class CloneUtil {
 			return null;
 		}
 		return new PolyString(orig.getOrig(), orig.getNorm(), orig.getTranslation() != null ?
-				orig.getTranslation().clone() : null, orig.getLang());
+				orig.getTranslation().clone() : null, orig.getLang() != null ? (HashMap)((HashMap)orig.getLang()).clone() : null);
 	}
 
 	private static <T> T cloneArray(T orig) {

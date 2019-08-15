@@ -742,7 +742,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>2.3-M1</version>
+                <version>2.3</version>
             </dependency>
             <!-- End connectors -->
             <dependency>
@@ -1530,14 +1530,8 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-					</execution>
-				</executions>
+				<version>3.0.1</version>
+				<!-- Used in system-init module. -->
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

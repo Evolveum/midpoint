@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -36,11 +37,14 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.RequestAttributeAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import java.util.Arrays;
 
@@ -61,6 +65,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+
+    @Autowired private SessionRegistry sessionRegistry;
 
     @Value("${auth.sso.header:SM_USER}")
     private String principalRequestHeader;
@@ -131,14 +137,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                         "/bootstrap").permitAll()
                 .anyRequest().fullyAuthenticated();
 
-        http.logout()
-                .logoutUrl("/j_spring_security_logout")
+        http.logout().clearAuthentication(true)
+                .logoutUrl("/logout")
                 .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
                 .logoutSuccessHandler(logoutHandler());
 
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .maximumSessions(1)
+                .maximumSessions(-1)
+                .sessionRegistry(sessionRegistry)
                 .maxSessionsPreventsLogin(true);
 
         http.formLogin()
@@ -246,9 +254,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public LogoutFilter requestSingleLogoutFilter() {
         LogoutFilter filter = new LogoutFilter(casServerUrl + "/logout", new SecurityContextLogoutHandler());
-        filter.setFilterProcessesUrl("/j_spring_cas_security_logout");
+        filter.setFilterProcessesUrl("/logout");
 
         return filter;
+    }
+
+    @Bean
+    public ServletListenerRegistrationBean httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean(new HttpSessionEventPublisher());
     }
 
 //    @Profile("cas")
@@ -259,5 +272,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //        return filter;
 //    }
+
+
 }
 

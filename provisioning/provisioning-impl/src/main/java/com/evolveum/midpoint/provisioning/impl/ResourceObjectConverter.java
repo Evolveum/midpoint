@@ -1793,21 +1793,23 @@ public class ResourceObjectConverter {
 		ChangeHandler localHandler = new ChangeHandler() {
 			@Override
 			public boolean handleChange(Change change, OperationResult result) {
+				processed.getAndIncrement();
 				if (!change.isTokenOnly()) {
 					try {
 						if (!preprocessChange(ctx, attrsToReturn, connector, change, result)) {
 							return true;
 						}
 					} catch (Throwable t) {
-						return changeHandler.handleError(change, t, result);
+						return changeHandler.handleError(change.getToken(), change, t, result);
 					}
 				}
 				return changeHandler.handleChange(change, result);
 			}
 
 			@Override
-			public boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result) {
-				return changeHandler.handleError(change, exception, result);
+			public boolean handleError(PrismProperty<?> token, @Nullable Change change,
+					@NotNull Throwable exception, @NotNull OperationResult result) {
+				return changeHandler.handleError(token, change, exception, result);
 			}
 		};
 

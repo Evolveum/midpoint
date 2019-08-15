@@ -16,41 +16,33 @@
 
 package com.evolveum.midpoint.provisioning.impl;
 
-import java.util.Collection;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
-import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-//import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
+import com.evolveum.midpoint.provisioning.impl.sync.ChangeProcessor;
+import com.evolveum.midpoint.provisioning.impl.sync.ProcessChangeRequest;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingStategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.util.Collection;
+import java.util.HashSet;
+
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 @Component
 public class ResourceEventListenerImpl implements ResourceEventListener {
@@ -80,9 +72,8 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 
 	@Override
 	public void notifyEvent(ResourceEventDescription eventDescription, Task task, OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException,
-			ExpressionEvaluationException, PolicyViolationException {
+			throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
+			GenericConnectorException, ExpressionEvaluationException {
 
 		Validate.notNull(eventDescription, "Event description must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -100,7 +91,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 		ProvisioningContext ctx = provisioningContextFactory.create(shadow, task, parentResult);
 		ctx.assertDefinition();
 
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+		Collection<ResourceAttribute<?>> primaryIdentifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
 
 		// TODO reconsider this
 		if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
@@ -111,16 +102,27 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
 			}
 		}
 
-		Change change = new Change(identifiers, eventDescription.getCurrentShadow(), eventDescription.getOldShadow(), eventDescription.getDelta());
+		Collection<Object> primaryIdentifierRealValues = new HashSet<>();
+		for (ResourceAttribute<?> primaryIdentifier : emptyIfNull(primaryIdentifiers)) {
+			primaryIdentifierRealValues.addAll(primaryIdentifier.getRealValues());
+		}
+		Object primaryIdentifierRealValue;
+		if (primaryIdentifierRealValues.isEmpty()) {
+			LOGGER.warn("No primary identifier in {}", eventDescription);
+			primaryIdentifierRealValue = null;
+		} else if (primaryIdentifierRealValues.size() == 1) {
+			primaryIdentifierRealValue = primaryIdentifierRealValues.iterator().next();
+		} else {
+			LOGGER.warn("More than one primary identifier real value in {}: {}", eventDescription, primaryIdentifierRealValues);
+			primaryIdentifierRealValue = null;
+		}
+		Change change = new Change(primaryIdentifierRealValue, primaryIdentifiers, eventDescription.getCurrentShadow(),
+				eventDescription.getOldShadow(), eventDescription.getDelta());
 		change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
 
 		LOGGER.trace("Starting to synchronize change: {}", change);
-		try {
-			changeProcessor.processChange(ctx, false, change, task, null, parentResult);
-		} catch (EncryptionException e) {
-			// TODO: better handling
-			throw new SystemException(e.getMessage(), e);
-		}
+		ProcessChangeRequest request = new ProcessChangeRequest(change, ctx, false);
+		changeProcessor.execute(request, task, null, parentResult);
 	}
 
 	private void applyDefinitions(ResourceEventDescription eventDescription,

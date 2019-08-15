@@ -336,23 +336,31 @@ public class RefinedResourceSchemaImpl implements RefinedResourceSchema {
 		if (resourceXsdSchema == null) {
 			return null;
 		}
-		Object userDataEntry = resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA);
-		if (userDataEntry != null) {
-			if (userDataEntry instanceof ResourceSchema) {
-				return (ResourceSchema)userDataEntry;
+
+		// Synchronization here is a workaround for MID-5648. We need to synchronize parsing here because of DOM access even
+		// before DomToSchemaProcessor (where global synchronization is done) comes into play.
+		//
+		//noinspection SynchronizationOnLocalVariableOrMethodParameter
+		synchronized (resourceXsdSchema) {
+			Object userDataEntry = resource.getUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA);
+			if (userDataEntry != null) {
+				if (userDataEntry instanceof ResourceSchema) {
+					return (ResourceSchema) userDataEntry;
+				} else {
+					throw new IllegalStateException("Expected ResourceSchema under user data key " +
+							USER_DATA_KEY_PARSED_RESOURCE_SCHEMA + "in " + resource + ", but got " + userDataEntry.getClass());
+				}
 			} else {
-				throw new IllegalStateException("Expected ResourceSchema under user data key "+
-						USER_DATA_KEY_PARSED_RESOURCE_SCHEMA+ "in "+resource+", but got "+userDataEntry.getClass());
+				InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
+				ResourceSchemaImpl parsedSchema = ResourceSchemaImpl
+						.parse(resourceXsdSchema, "resource schema of " + resource, prismContext);
+				if (parsedSchema == null) {
+					throw new IllegalStateException("Parsed schema is null: most likely an internall error");
+				}
+				resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
+				parsedSchema.setNamespace(ResourceTypeUtil.getResourceNamespace(resource));
+				return parsedSchema;
 			}
-		} else {
-			InternalMonitor.recordCount(InternalCounters.RESOURCE_SCHEMA_PARSE_COUNT);
-			ResourceSchemaImpl parsedSchema = ResourceSchemaImpl.parse(resourceXsdSchema, "resource schema of "+resource, prismContext);
-			if (parsedSchema == null) {
-				throw new IllegalStateException("Parsed schema is null: most likely an internall error");
-			}
-			resource.modifyUnfrozen(r -> r.setUserData(USER_DATA_KEY_PARSED_RESOURCE_SCHEMA, parsedSchema));
-			parsedSchema.setNamespace(ResourceTypeUtil.getResourceNamespace(resource));
-			return parsedSchema;
 		}
 	}
 

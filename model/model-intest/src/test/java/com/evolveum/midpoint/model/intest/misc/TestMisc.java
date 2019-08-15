@@ -436,7 +436,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
 	 * (and re-create connector) after every minor change to the resource. In that case change in
 	 * resource availability status can trigger quite a lot of connector re-initializations.
 	 */
-	@Test(enabled = false)
+	@Test
     public void test506ModifyResourceGetAccountJackResourceScripty() throws Exception {
 		final String TEST_NAME = "test506ModifyResourceGetAccountJackResourceScripty";
         displayTestTitle(TEST_NAME);
