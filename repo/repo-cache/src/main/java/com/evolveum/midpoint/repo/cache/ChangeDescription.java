@@ -215,6 +215,11 @@ public abstract class ChangeDescription {
         }
         try {
             return mayMatchAfterChange(filter, list, matchingRuleRegistry);
+        } catch (UnsupportedOperationException e) {
+            LOGGER.debug("Couldn't match object being changed to cached query because the filter is not (yet) supported -- "
+                    + "continuing as if there might be an overlap:\n"
+                    + "change description = {}\nfilter = {}", this, filter, e);
+            return true;
         } catch (Throwable t) {
             LOGGER.warn("Couldn't match object being changed to cached query -- continuing as if there might be an overlap:\n"
                             + "change description = {}\nfilter = {}", this, filter, t);
