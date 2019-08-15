@@ -63,6 +63,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.filter.DelegatingFilterProxy;
@@ -171,5 +174,9 @@ public abstract class AbstractSpringBootApplication extends SpringBootServletIni
 	    	return new MidPointErrorPageRegistrar();
 	    }
 
-	   
+	@Bean
+	public SessionRegistry sessionRegistry() {
+		return new SessionRegistryImpl();
+	}
+
 }

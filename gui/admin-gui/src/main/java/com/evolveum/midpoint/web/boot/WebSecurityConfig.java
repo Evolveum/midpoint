@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
@@ -64,6 +65,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private MidPointGuiAuthorizationEvaluator accessDecisionManager;
+
+    @Autowired private SessionRegistry sessionRegistry;
 
     @Value("${auth.sso.header:SM_USER}")
     private String principalRequestHeader;
@@ -143,7 +146,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .maximumSessions(-1)
-                .sessionRegistry(sessionRegistry())
+                .sessionRegistry(sessionRegistry)
                 .maxSessionsPreventsLogin(true);
 
         http.formLogin()
@@ -186,11 +189,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public MidPointAccessDeniedHandler accessDeniedHandler() {
         return new MidPointAccessDeniedHandler();
-    }
-
-    @Bean
-    public SessionRegistry sessionRegistry() {
-        return new SessionRegistryImpl();
     }
 
     @ConditionalOnMissingBean(name = "midPointAuthenticationProvider")
@@ -262,8 +260,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher() {
-        return new HttpSessionEventPublisher();
+    public ServletListenerRegistrationBean httpSessionEventPublisher() {
+        return new ServletListenerRegistrationBean(new HttpSessionEventPublisher());
     }
 
 //    @Profile("cas")
@@ -274,5 +272,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //
 //        return filter;
 //    }
+
+
 }
 
