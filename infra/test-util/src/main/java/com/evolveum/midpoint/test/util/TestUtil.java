@@ -715,4 +715,16 @@ public class TestUtil {
 	public static ItemDefinition createPrimitivePropertyDefinition(PrismContext prismContext, String name, PrimitiveType pType) {
 		return prismContext.definitionFactory().createPropertyDefinition(new ItemName(SchemaConstants.NS_C, name), pType.getQname());
 	}
+
+    public static void waitForCompletion(List<Thread> threads, long timeout) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        while (System.currentTimeMillis() - start < timeout) {
+            boolean anyAlive = threads.stream().anyMatch(Thread::isAlive);
+            if (!anyAlive) {
+                break;
+            } else {
+                Thread.sleep(100);
+            }
+        }
+    }
 }

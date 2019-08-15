@@ -23,9 +23,11 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -687,6 +689,47 @@ public class TestRefinedSchema {
         System.out.println("\nri:uid def "+riUidAttrDef.getClass());
         System.out.println(riUidAttrDef.debugDump());
 
+    }
+
+    // MID-5648
+    @Test
+    public void test200ParseFromResourceMultithreaded() throws Exception {
+        final String TEST_NAME = "test200ParseFromResourceMultithreaded";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        int THREADS = 50;
+
+        // GIVEN
+        PrismContext prismContext = createInitializedPrismContext();
+
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
+        ResourceType resourceType = resource.asObjectable();
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        AtomicInteger errors = new AtomicInteger(0);
+        List<Thread> threads = new ArrayList<>(THREADS);
+        for (int i = 0; i < THREADS; i++) {
+            Thread thread = new Thread(() -> {
+                try {
+                    RefinedResourceSchemaImpl.parse(resourceType, prismContext);
+                } catch (Throwable t) {
+                    errors.incrementAndGet();
+                    throw new AssertionError("Got exception: " + t.getMessage(), t);
+                }
+            });
+            thread.setName("Executor #" + i);
+            thread.start();
+            threads.add(thread);
+        }
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        TestUtil.waitForCompletion(threads, 20000);
+
+        assertEquals("Wrong # of errors", 0, errors.get());
+        // TODO some asserts on correct parsing maybe
     }
 
 }
