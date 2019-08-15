@@ -88,7 +88,6 @@
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.4</version>
 				<configuration>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
@@ -105,10 +104,19 @@
 					</execution>
 				</executions>
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                    	<!-- Default (main) jar is empty. We do not want to build it. -->
+                    	<id>default-jar</id>
+                    	<phase>none</phase>
+                    </execution>
+                </executions>
+			</plugin>
             <plugin>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.0.0-M1</version>
                 <configuration>
                     <includeDependencySources>true</includeDependencySources>
                     <dependencySourceIncludes>
@@ -117,7 +125,6 @@
                     <quiet>false</quiet>
                     <debug>true</debug>
                 </configuration>
-
                 <executions>
                     <execution>
                         <id>javadoc-jar</id>
@@ -159,7 +166,6 @@
  					<plugin>
  					  <groupId>org.apache.maven.plugins</groupId>
  					  <artifactId>maven-javadoc-plugin</artifactId>
- 					  <version>3.0.0-M1</version>
  					  <executions>
  				        <execution>
  				            <id>javadoc-jar</id>
@@ -175,7 +181,7 @@
  		                        <quiet>false</quiet>
  		                        <debug>true</debug>
  				                <additionalparam>-Xdoclint:none</additionalparam>
- 				                <failOnError>false</failOnError>
+ 				                <failOnError>true</failOnError>
  				            </configuration>
  				        </execution>
  				    </executions>
