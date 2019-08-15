@@ -56,6 +56,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -445,7 +446,12 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
 
         if (search.getChannel() != null) {
-            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, search.getChannel().getChannel());
+        	Channel channel = search.getChannel();
+        	if (channel.equals(Channel.IMPORT)) {
+        		parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, SchemaConstants.CHANGE_CHANNEL_IMPORT_URI);
+        	} else {
+        		parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getChannel());
+        	}
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
         parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
@@ -668,6 +674,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     if (chan.getChannel().equals(channel)) {
                         channelValue = chan;
                         break;
+                    } else if(SchemaConstants.CHANGE_CHANNEL_IMPORT_URI.equals(channel)) {
+                    	channelValue = Channel.IMPORT;
                     }
                 }
                 if (channelValue != null) {
