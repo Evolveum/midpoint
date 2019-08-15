@@ -23,7 +23,6 @@ import java.util.List;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -83,6 +82,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author lazyman
  * @author semancik
@@ -102,7 +103,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityContextManager securityContextManager;
-	@Autowired private SessionRegistry sessionRegistry;
+
+	// registry is not available e.g. during tests
+	@Autowired(required = false)
+	private SessionRegistry sessionRegistry;
 
 	//optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
 	@Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
@@ -168,51 +172,55 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 
 	@Override
 	public List<MidPointUserProfilePrincipal> getAllLoggedPrincipals() {
-		List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
-		List<MidPointUserProfilePrincipal> loggedPrincipals = new ArrayList<>();
-		for (Object principal : loggedInUsers) {
+		if (sessionRegistry != null) {
+			List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
+			List<MidPointUserProfilePrincipal> loggedPrincipals = new ArrayList<>();
+			for (Object principal : loggedInUsers) {
 
-			if (!(principal instanceof  MidPointUserProfilePrincipal)) {
-				continue;
-			}
+				if (!(principal instanceof MidPointUserProfilePrincipal)) {
+					continue;
+				}
 
-			List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
-			if (sessionInfos == null || sessionInfos.isEmpty()) {
-				continue;
+				List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+				if (sessionInfos == null || sessionInfos.isEmpty()) {
+					continue;
+				}
+				MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+				MidPointUserProfilePrincipal activePrincipal = midPointPrincipal.clone();
+				activePrincipal.setActiveSessions(sessionInfos.size());
+				loggedPrincipals.add(activePrincipal);
 			}
-			MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
-			MidPointUserProfilePrincipal activePrincipal = midPointPrincipal.clone();
-			activePrincipal.setActiveSessions(sessionInfos.size());
-			loggedPrincipals.add(activePrincipal);
+			return loggedPrincipals;
+		} else {
+			return emptyList();
 		}
-		return loggedPrincipals;
 	}
 
 	@Override
 	public void expirePrincipals(List<String> principalsOid) {
-		List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
-		for (Object principal : loggedInUsers) {
+		if (sessionRegistry != null) {
+			List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
+			for (Object principal : loggedInUsers) {
 
-			if (!(principal instanceof  MidPointUserProfilePrincipal)) {
-				continue;
+				if (!(principal instanceof MidPointUserProfilePrincipal)) {
+					continue;
+				}
+
+				MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+				if (!principalsOid.contains(midPointPrincipal.getOid())) {
+					continue;
+				}
+
+				List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+				if (sessionInfos == null || sessionInfos.isEmpty()) {
+					continue;
+				}
+
+				for (SessionInformation sessionInfo : sessionInfos) {
+					sessionInfo.expireNow();
+				}
 			}
-
-			MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
-			if (!principalsOid.contains(midPointPrincipal.getOid())) {
-				continue;
-			}
-
-			List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
-			if (sessionInfos == null || sessionInfos.isEmpty()) {
-				continue;
-			}
-
-			for (SessionInformation sessionInfo : sessionInfos) {
-				sessionInfo.expireNow();
-			}
-
 		}
-
 	}
 
 	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
