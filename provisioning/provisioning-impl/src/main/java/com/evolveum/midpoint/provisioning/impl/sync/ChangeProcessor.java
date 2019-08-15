@@ -57,16 +57,19 @@ import java.util.Collection;
 
 /**
  *  This is the common "engine" that processes changes coming from live synchronization, asynchronous updates,
- *  and model.notifyChange calls.
+ *  and model.notifyChange calls. All the auxiliary pre-processing (finding old shadow, determining object class,
+ *  etc) is placed here.
  *
- *  It is planned to be multithreaded.
+ *  This is the final stage of processing, executing given change in a single thread. It is called
+ *  from ChangeProcessingCoordinator, either in the caller thread (in single-threaded scenarios) or from worker threads/LATs
+ *  (in multi-threaded scenarios).
  */
 @Component
 public class ChangeProcessor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Synchronizer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LiveSynchronizer.class);
 
-    private static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
+    private static String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
 
     @Autowired private ShadowCaretaker shadowCaretaker;
     @Autowired private ShadowManager shadowManager;
@@ -80,49 +83,51 @@ public class ChangeProcessor {
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
 
-    /**
-     * This is the common code for processing changes coming from various sources e.g. live sync, async updates
-     * or model.notifyChange. Therefore all the auxiliary pre-processing (finding old shadow, determining object class,
-     * etc) is also placed here.
-     */
-    public boolean processChange(ProvisioningContext globalCtx, boolean isSimulate, Change change, Task task,
-            TaskPartitionDefinitionType partition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-            SecurityViolationException, PolicyViolationException, EncryptionException {
+    public void execute(ProcessChangeRequest request, Task task, TaskPartitionDefinitionType partition,
+            OperationResult parentResult) {
 
-        ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, parentResult);
-        if (ctx == null) {
-            return true;
+        ProvisioningContext globalCtx = request.getGlobalContext();
+        Change change = request.getChange();
+
+        if (change.isTokenOnly()) {
+            return;         // nothing to do here ... token management is carried out elsewhere
         }
 
-        if (change.getObjectDelta() != null) {
-            shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
-        }
-        if (change.getOldShadow() != null) {
-            shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
-        }
-        if (change.getCurrentShadow() != null) {
-            shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());  // maybe redundant
-        }
+        OperationResult result = parentResult.createMinorSubresult(OP_PROCESS_SYNCHRONIZATION);
 
-        preProcessChange(ctx, change, parentResult);
-
-        // This is the case when we want to skip processing of change because the shadow was not found nor created.
-        // The usual reason is that this is the delete delta and the object was already deleted on both resource and in repo.
-        if (change.getOldShadow() == null) {
-            assert change.isDelete();
-            LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
-                    + "deleted on the resource meantime).");
-            return true;
-        }
-
-        OperationResult result = parentResult.createSubresult(OP_PROCESS_SYNCHRONIZATION);
-
-        boolean successful;
         try {
+
+            ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, result);
+            if (ctx == null) {
+                request.setSuccess(true);
+                return;
+            }
+
+            if (change.getObjectDelta() != null) {
+                shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
+            }
+            if (change.getOldShadow() != null) {
+                shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
+            }
+            if (change.getCurrentShadow() != null) {
+                shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());  // maybe redundant
+            }
+
+            preProcessChange(ctx, change, result);
+
+            // This is the case when we want to skip processing of change because the shadow was not found nor created.
+            // The usual reason is that this is the delete delta and the object was already deleted on both resource and in repo.
+            if (change.getOldShadow() == null) {
+                assert change.isDelete();
+                LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
+                        + "deleted on the resource meantime).");
+                request.setSuccess(true);
+                return;
+            }
+
             ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
                     change, ctx.getResource(), ctx.getChannel());
-            shadowChangeDescription.setSimulate(isSimulate);
+            shadowChangeDescription.setSimulate(request.isSimulate());
 
             LOGGER.trace("Created resource object shadow change description {}",
                     SchemaDebugUtil.prettyPrintLazily(shadowChangeDescription));
@@ -148,9 +153,9 @@ public class ChangeProcessor {
                 // And we need to modify ResourceObjectChangeListener for that. Keeping all dead
                 // shadows is much easier.
                 //				deleteShadowFromRepoIfNeeded(change, result);
-                successful = true;
+                request.setSuccess(true);
             } else {
-                successful = false;
+                request.setSuccess(false);
                 saveAccountResult(change, notifyChangeResult, result);
             }
 
@@ -164,14 +169,19 @@ public class ChangeProcessor {
                 throw new SystemException(e.getMessage(), e);
             }
 
-        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
-                CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
+            if (request.isSuccess()) {
+                request.onSuccess();
+            } else {
+                request.onError(result);
+            }
+
+        } catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException | CommunicationException |
+                ConfigurationException | ExpressionEvaluationException | SecurityViolationException | EncryptionException |
+                PolicyViolationException | RuntimeException | Error e) {
             result.recordFatalError(e);
-            throw e;
+            request.setSuccess(false);
+            request.onError(e, result);
         }
-
-
-        return successful;
     }
 
     /**

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,9 +24,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Processes changes detected on a resource.
  *
- * Similar to ChangeListener.
+ * For each sync delta fetched from a resource, either handleChange or handleError is called.
+ * This is crucial for determination of last token processed.
  *
- * Differences:
+ * Note
+ * ====
+ *
+ * This interface is similar to ChangeListener but with some differences:
  *  - semantics of handleChange return value
  *  - the presence of handleChange OperationResult parameter
  *  - handleError method
@@ -35,7 +40,8 @@ import org.jetbrains.annotations.Nullable;
 public interface ChangeHandler {
 
 	/**
-	 * Called when given change has to be processed
+	 * Called when given change has to be processed.
+	 *
 	 * @param change The change.
 	 * @return false if the processing of changes has to be stopped
 	 */
@@ -43,10 +49,13 @@ public interface ChangeHandler {
 
 	/**
 	 * Called when given change cannot be prepared for processing (or created altogether).
+	 *
+	 * @param token The token, if determinable.
 	 * @param change The change, if determinable.
 	 * @param exception Exception encountered.
 	 * @param result Context of the operation.
 	 * @return false if the processing of changes has to be stopped (this is the usual case)
 	 */
-	boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result);
+	boolean handleError(@Nullable PrismProperty<?> token, @Nullable Change change, @NotNull Throwable exception,
+			@NotNull OperationResult result);
 }

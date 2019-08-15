@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -161,6 +162,17 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 				MidPointUserProfilePrincipal principal = userProfileService.getPrincipalByOid(oid);
 				addFakeAuthorization(principal);
 				return principal;
+			}
+
+			//TODO test maybe later?
+			@Override
+			public List<MidPointUserProfilePrincipal> getAllLoggedPrincipals() {
+				return null;
+			}
+
+			@Override
+			public void expirePrincipals(List<String> principalsOid) {
+				//TOTO test it
 			}
 		};
 	}

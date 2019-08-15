@@ -857,6 +857,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 	}
 
 	@Override
+	public List<MidPointUserProfilePrincipal> getLoggedInUsers() {
+		return userProfileService.getAllLoggedPrincipals();
+	}
+
+	@Override
 	public SystemConfigurationType getSystemConfiguration(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 			PrismObject<SystemConfigurationType> systemConfiguration = systemObjectCache.getSystemConfiguration(parentResult);
 			if (systemConfiguration == null) {
@@ -1797,6 +1802,12 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
 			LOGGER.error("Cannot refresh authentication for user identified with" + oid);
 			throw e;
 		}
+	}
+
+	@Override
+	public void expirePrincipals(List<String> principals) {
+		userProfileService.expirePrincipals(principals);
+
 	}
 
 	@Override

@@ -272,12 +272,16 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 				searchOptions = updateSearchOptionsWithIterationMethod(searchOptions, localCoordinatorTask);
 
 				resultHandler.createWorkerThreads(localCoordinatorTask, opResult);
-				if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
-					searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
-				} else {
-					repositoryService.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
+				try {
+					if (!useRepository) {   // todo consider honoring useRepository=true within searchIterative itself
+						searchIterative((Class<O>) type, query, searchOptions, resultHandler, localCoordinatorTask, opResult);
+					} else {
+						repositoryService
+								.searchObjectsIterative((Class<O>) type, query, resultHandler, searchOptions, true, opResult);
+					}
+				} finally {
+					resultHandler.completeProcessing(localCoordinatorTask, opResult);
 				}
-				resultHandler.completeProcessing(localCoordinatorTask, opResult);
 
 			} catch (ObjectNotFoundException e) {
 				// This is bad. The resource does not exist. Permanent problem.

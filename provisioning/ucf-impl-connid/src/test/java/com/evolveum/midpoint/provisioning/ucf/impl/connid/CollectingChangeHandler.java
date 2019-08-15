@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ChangeHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,7 +39,8 @@ class CollectingChangeHandler implements ChangeHandler {
     }
 
     @Override
-    public boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result) {
+    public boolean handleError(PrismProperty<?> token, @Nullable Change change,
+            @NotNull Throwable exception, @NotNull OperationResult result) {
         return false;
     }
 

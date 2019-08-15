@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest.sync;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,6 +35,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.function.Consumer;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -42,7 +45,7 @@ import static org.testng.AssertJUnit.assertTrue;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegrationTest {
+public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrationTest {
 
 	private static final File TEST_DIR = new File("src/test/resources/sync");
 
@@ -104,28 +107,28 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 
 		// Initial run of these tasks must come before accounts are created.
 
-		importObjectFromFile(TASK_SLOW_RESOURCE_FILE);
+		addObject(TASK_SLOW_RESOURCE_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_SLOW_RESOURCE_OID, false);
 
-		importObjectFromFile(TASK_SLOW_RESOURCE_IMPRECISE_FILE);
+		addObject(TASK_SLOW_RESOURCE_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_SLOW_RESOURCE_IMPRECISE_OID, false);
 
-		importObjectFromFile(TASK_SLOW_MODEL_FILE);
+		addObject(TASK_SLOW_MODEL_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_SLOW_MODEL_OID, false);
 
-		importObjectFromFile(TASK_SLOW_MODEL_IMPRECISE_FILE);
+		addObject(TASK_SLOW_MODEL_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_SLOW_MODEL_IMPRECISE_OID, false);
 
-		importObjectFromFile(TASK_BATCHED_FILE);
+		addObject(TASK_BATCHED_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_BATCHED_OID, false);
 
-		importObjectFromFile(TASK_BATCHED_IMPRECISE_FILE);
+		addObject(TASK_BATCHED_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
 		// Starting this task results in (expected) exception
 
-		importObjectFromFile(TASK_ERROR_FILE);
+		addObject(TASK_ERROR_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_ERROR_OID, false);
 
-		importObjectFromFile(TASK_ERROR_IMPRECISE_FILE);
+		addObject(TASK_ERROR_IMPRECISE_FILE, initTask, initResult, workerThreadsCustomizer());
 		waitForTaskFinish(TASK_ERROR_IMPRECISE_OID, false);
 
 		assertUsers(getNumberOfUsers());
@@ -133,6 +136,28 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 			interruptedSyncController.addAccount(getUserName(i, true));
 			interruptedSyncImpreciseController.addAccount(getUserName(i, false));
 		}
+	}
+
+	private Consumer<PrismObject<TaskType>> workerThreadsCustomizer() {
+		return taskObject -> {
+			int threads = getWorkerThreads();
+			if (threads != 0) {
+				//noinspection unchecked
+				PrismProperty<Integer> workerThreadsProperty = prismContext.getSchemaRegistry()
+						.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_WORKER_THREADS)
+						.instantiate();
+				workerThreadsProperty.setRealValue(threads);
+				try {
+					taskObject.addExtensionItem(workerThreadsProperty);
+				} catch (SchemaException e) {
+					throw new AssertionError(e);
+				}
+			}
+		};
+	}
+
+	int getWorkerThreads() {
+		return 0;
 	}
 
 	private String getUserName(int i, boolean precise) {
@@ -172,7 +197,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		displayThen(TEST_NAME);
 
 		assertTrue("Task was not suspended", suspended);
-		Task taskAfter = taskManager.getTask(TASK_SLOW_RESOURCE_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_OID, result);
 		display("Task after", taskAfter);
 		assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
 	}
@@ -203,7 +228,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		displayThen(TEST_NAME);
 
 		assertTrue("Task was not suspended", suspended);
-		Task taskAfter = taskManager.getTask(TASK_SLOW_RESOURCE_IMPRECISE_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_RESOURCE_IMPRECISE_OID, result);
 		display("Task after", taskAfter);
 		assertEquals("Wrong token value", (Integer) 0, taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN));
 	}
@@ -243,16 +268,25 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		displayThen(TEST_NAME);
 
 		assertTrue("Task was not suspended", suspended);
-		Task taskAfter = taskManager.getTask(TASK_SLOW_MODEL_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_OID, result);
 		display("Task after", taskAfter);
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
+		// If we are particularly unfortunate the token value could be zero in multithreaded scenario:
+		// This could occur if the first sync delta is processed only after the second, third, etc.
+		// If this happens in reality, we need to adapt the assertion here.
 		assertTrue("Token value is zero (should be greater)", token != null && token > 0);
 
 		int progress = (int) taskAfter.getProgress();
+		display("Token value", token);
 		display("Task progress", progress);
-		assertEquals("Wrong task progress", token, (Integer) progress);
+		if (getWorkerThreads() <= 1) {
+            assertEquals("Wrong task progress", token, (Integer) progress);
+        } else {
+		    assertTrue("Token is too high: " + token + ", while progress is " + progress,
+                    token <= progress);
+        }
 
-		assertObjects(UserType.class, getStartsWithQuery(USER_P), token);
+		assertObjects(UserType.class, getStartsWithQuery(USER_P), progress);
 	}
 
 	/**
@@ -290,9 +324,11 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		displayThen(TEST_NAME);
 
 		assertTrue("Task was not suspended", suspended);
-		Task taskAfter = taskManager.getTask(TASK_SLOW_MODEL_IMPRECISE_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_SLOW_MODEL_IMPRECISE_OID, result);
 		display("Task after", taskAfter);
+
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
+		display("Token value", token);
 		assertEquals("Wrong token value", (Integer) 0, token);
 
 		int progress = (int) taskAfter.getProgress();
@@ -330,7 +366,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// THEN
 		displayThen(TEST_NAME);
 
-		Task taskAfter = taskManager.getTask(TASK_BATCHED_OID, result);
+		Task taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
 		display("Task after", taskAfter);
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 10, token);
@@ -345,7 +381,7 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// THEN
 		displayThen(TEST_NAME);
 
-		taskAfter = taskManager.getTask(TASK_BATCHED_OID, result);
+		taskAfter = taskManager.getTaskWithResult(TASK_BATCHED_OID, result);
 		display("Task after", taskAfter);
 		token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 20, token);
@@ -410,7 +446,15 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 
 	/**
 	 * Errored operation or R-th object (i.e. ERROR_ON+1) with precise token values.
-	 * Should process exactly R records in the first sync run and stop. Token should point to record R-1 (=ERROR_ON), so R is fetched next.
+	 *
+	 * Single-threaded:
+	 * - Should process exactly R records in the first sync run and stop.
+	 *
+	 * Multi-threaded:
+	 * - Should process approximately R records (might be more, might be less) and stop.
+	 *
+	 * Both:
+	 * - Token should point to record R-1 (=ERROR_ON), so R is fetched next.
 	 */
 	@Test
 	public void test130Error() throws Exception {
@@ -445,7 +489,9 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) ERROR_ON, token);
 
-		assertObjects(UserType.class, query, ERROR_ON);     // 0..ERROR_ON-1
+		if (getWorkerThreads() <= 1) {
+			assertObjects(UserType.class, query, ERROR_ON);     // 0..ERROR_ON-1
+		}
 
 		// Another run - should fail the same
 
@@ -457,12 +503,14 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// THEN
 		displayThen(TEST_NAME);
 
-		taskAfter = taskManager.getTask(TASK_ERROR_OID, result);
+		taskAfter = taskManager.getTaskWithResult(TASK_ERROR_OID, result);
 		display("Task after", taskAfter);
 		token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) ERROR_ON, token);
 
-		assertObjects(UserType.class, query, ERROR_ON);
+		if (getWorkerThreads() <= 1) {
+			assertObjects(UserType.class, query, ERROR_ON);
+		}
 	}
 
 	/**
@@ -507,9 +555,11 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		Integer token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 0, token);
 
-		verbose = true;
-		assertObjects(UserType.class, query, ERROR_ON);     // 0..ERROR_ON-1
-		verbose = false;
+		if (getWorkerThreads() <= 1) {
+			verbose = true;
+			assertObjects(UserType.class, query, ERROR_ON);     // 0..ERROR_ON-1
+			verbose = false;
+		}
 
 		// Another run - should fail the same
 
@@ -521,12 +571,14 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 		// THEN
 		displayThen(TEST_NAME);
 
-		taskAfter = taskManager.getTask(TASK_ERROR_IMPRECISE_OID, result);
+		taskAfter = taskManager.getTaskWithResult(TASK_ERROR_IMPRECISE_OID, result);
 		display("Task after", taskAfter);
 		token = taskAfter.getExtensionPropertyRealValue(SchemaConstants.SYNC_TOKEN);
 		assertEquals("Wrong token value", (Integer) 0, token);
 
-		assertObjects(UserType.class, query, ERROR_ON);
+		if (getWorkerThreads() <= 1) {
+			assertObjects(UserType.class, query, ERROR_ON);
+		}
 	}
 
 	private ObjectQuery getStartsWithQuery(String s) {
@@ -541,5 +593,4 @@ public class TestLiveSyncTaskInterruption extends AbstractInitializedModelIntegr
 			repositoryService.deleteObject(UserType.class, user.getOid(), result);
 		}
 	}
-
 }

@@ -60,12 +60,16 @@
 					<expression>
 						<script>
 							<code>
-								import com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskInterruption
+								import com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics
 
-								if (input == TestLiveSyncTaskInterruption.errorOn) {
+								if (input == TestLiveSyncTaskMechanics.errorOn) {
 									throw new IllegalStateException("Got error!")
 								} else {
-									Thread.sleep(TestLiveSyncTaskInterruption.delay)
+									try {
+										Thread.sleep(TestLiveSyncTaskMechanics.delay)
+									} catch (InterruptedException e) {
+										log.warn('sleep interrupted', e)
+									}
 									input
 								}
 							</code>
@@ -73,6 +77,14 @@
 					</expression>
 					<target>
 						<path>name</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:fullname</ref>
+				<inbound>
+					<target>
+						<path>fullName</path>
 					</target>
 				</inbound>
 			</attribute>

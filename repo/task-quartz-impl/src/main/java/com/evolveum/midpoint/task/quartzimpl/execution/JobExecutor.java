@@ -651,6 +651,8 @@ mainCycle:
 
 	    TaskRunResult runResult = taskManagerImpl.getHandlerExecutor().executeHandler(task, null, handler, executionResult);
 
+	    // It is dangerous to start waiting for transient children if they were not told to finish! Make sure you signal them
+	    // to stop at appropriate place.
 	    waitForTransientChildrenAndCloseThem(executionResult);
         return runResult;
 	}

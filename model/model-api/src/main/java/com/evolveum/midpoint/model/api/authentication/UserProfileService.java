@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author semancik
@@ -51,5 +52,9 @@ public interface UserProfileService extends MidPointPrincipalManager {
 
 	@Override
     void updateUser(MidPointPrincipal principal, Collection<? extends ItemDelta<?, ?>> itemDeltas);
+
+	List<MidPointUserProfilePrincipal> getAllLoggedPrincipals();
+
+	void expirePrincipals(List<String> principalsOid);
 	
 }
