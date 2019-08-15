@@ -60,7 +60,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
-import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumnPanel;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
@@ -124,15 +123,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjectTabPanel<F> {
 	private static final long serialVersionUID = 1L;
 
-//	private static final String ID_SHADOW_LIST = "shadowList";
 	private static final String ID_SHADOW_TABLE = "shadowTable";
-//	private static final String ID_SHADOWS = "shadows";
-//	private static final String ID_SHADOWS_CONTAINER = "shadowContainer";
-//	private static final String ID_SHADOW_HEADER = "shadowHeader";
-//	private static final String ID_SHADOW = "shadow";
 	private static final String ID_SHADOW_PANEL = "shadowPanel";
-//	private static final String ID_SHADOW_MENU = "shadowMenu";
-//	private static final String ID_SHADOW_CHECK_ALL = "shadowCheckAll";
 	protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
 	
 	private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
@@ -173,12 +165,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
     		@Override
 			protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
-				return new LoadableModel<List<PrismContainerValueWrapper<ShadowType>>>(false) {
+				return new IModel<List<PrismContainerValueWrapper<ShadowType>>>() {
 					
 					private static final long serialVersionUID = 1L;
 					
 					@Override
-					protected List<PrismContainerValueWrapper<ShadowType>> load() {
+					public List<PrismContainerValueWrapper<ShadowType>> getObject() {
 						List<PrismContainerValueWrapper<ShadowType>> items = new ArrayList<PrismContainerValueWrapper<ShadowType>>();
 						for (ShadowWrapper projection : projectionModel.getObject()) {
 							items.add(projection.getValue());
@@ -589,7 +581,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create account", ex);
 			}
 		}
-		target.add(get(ID_SHADOW_TABLE));
+		target.add(getMultivalueContainerListPanel());
 	}
 	
 	private IModel<PrismContainerWrapper<ShadowType>> createEmptyShadowWrapperModel() {
