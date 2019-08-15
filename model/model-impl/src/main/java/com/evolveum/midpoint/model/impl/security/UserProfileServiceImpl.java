@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.impl.security;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +35,8 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.session.SessionInformation;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -79,6 +82,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
+import static java.util.Collections.emptyList;
+
 /**
  * @author lazyman
  * @author semancik
@@ -98,6 +103,10 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
 	@Autowired private PrismContext prismContext;
 	@Autowired private TaskManager taskManager;
 	@Autowired private SecurityContextManager securityContextManager;
+
+	// registry is not available e.g. during tests
+	@Autowired(required = false)
+	private SessionRegistry sessionRegistry;
 
 	//optional application.yml property for LDAP authentication, marks LDAP attribute name that correlates with midPoint UserType name
 	@Value("${auth.ldap.search.naming-attr:#{null}}") private String ldapNamingAttr;
@@ -160,8 +169,61 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
         	securityContextManager.clearTemporaryPrincipalOid();
         }
     }
-    
-    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
+
+	@Override
+	public List<MidPointUserProfilePrincipal> getAllLoggedPrincipals() {
+		if (sessionRegistry != null) {
+			List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
+			List<MidPointUserProfilePrincipal> loggedPrincipals = new ArrayList<>();
+			for (Object principal : loggedInUsers) {
+
+				if (!(principal instanceof MidPointUserProfilePrincipal)) {
+					continue;
+				}
+
+				List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+				if (sessionInfos == null || sessionInfos.isEmpty()) {
+					continue;
+				}
+				MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+				MidPointUserProfilePrincipal activePrincipal = midPointPrincipal.clone();
+				activePrincipal.setActiveSessions(sessionInfos.size());
+				loggedPrincipals.add(activePrincipal);
+			}
+			return loggedPrincipals;
+		} else {
+			return emptyList();
+		}
+	}
+
+	@Override
+	public void expirePrincipals(List<String> principalsOid) {
+		if (sessionRegistry != null) {
+			List<Object> loggedInUsers = sessionRegistry.getAllPrincipals();
+			for (Object principal : loggedInUsers) {
+
+				if (!(principal instanceof MidPointUserProfilePrincipal)) {
+					continue;
+				}
+
+				MidPointUserProfilePrincipal midPointPrincipal = (MidPointUserProfilePrincipal) principal;
+				if (!principalsOid.contains(midPointPrincipal.getOid())) {
+					continue;
+				}
+
+				List<SessionInformation> sessionInfos = sessionRegistry.getAllSessions(principal, false);
+				if (sessionInfos == null || sessionInfos.isEmpty()) {
+					continue;
+				}
+
+				for (SessionInformation sessionInfo : sessionInfos) {
+					sessionInfo.expireNow();
+				}
+			}
+		}
+	}
+
+	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) {
     	PrismObject<SystemConfigurationType> systemConfiguration = null;
         try {
         	// TODO: use SystemObjectCache instead?
@@ -344,3 +406,4 @@ public class UserProfileServiceImpl implements UserProfileService, UserDetailsSe
             return username; // fallback to typed-in username in case ldap value is missing
         }
 }
+

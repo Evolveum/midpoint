@@ -540,8 +540,12 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 			handler.createWorkerThreads(localCoordinatorTask, searchResult);
 			// note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
-			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, localCoordinatorTask, searchResult);
-			handler.completeProcessing(localCoordinatorTask, searchResult);
+			try {
+				provisioningService
+						.searchObjectsIterative(ShadowType.class, query, null, handler, localCoordinatorTask, searchResult);
+			} finally {
+				handler.completeProcessing(localCoordinatorTask, searchResult);
+			}
 
 			interrupted = !localCoordinatorTask.canRun();
 

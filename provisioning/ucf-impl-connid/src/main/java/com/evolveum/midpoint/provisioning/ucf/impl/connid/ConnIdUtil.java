@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-/**
- *
- */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
 import java.io.FileNotFoundException;
@@ -599,8 +596,7 @@ public class ConnIdUtil {
 		}
 		ResourceAttributeDefinition<String> uidDefinition = getUidDefinition(concreteObjectClassDefinition);
 		if (uidDefinition == null) {
-			throw new SchemaException("No definition for ConnId UID attribute found in definition "
-					+ ocDef);
+			throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
 		}
 		Collection<ResourceAttribute<?>> identifiers = new ArrayList<>(2);
 		ResourceAttribute<String> uidRoa = uidDefinition.instantiate();

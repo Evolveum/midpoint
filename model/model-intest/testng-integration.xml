@@ -95,7 +95,8 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTaskDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestObjTemplateLiveSyncTask"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskInterruption"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanicsMultithreaded"/>
         </classes>
     </test>
     <test name="Async updates" preserve-order="true" parallel="false" verbose="10">

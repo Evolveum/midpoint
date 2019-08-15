@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -59,11 +58,4 @@ public class ReindexResultHandler extends AbstractSearchIterativeResultHandler<O
         result.computeStatusIfUnknown();
         return true;
     }
-
-
-    @Override
-    public void completeProcessing(Task task, OperationResult result) {
-        super.completeProcessing(task, result);
-    }
-
 }

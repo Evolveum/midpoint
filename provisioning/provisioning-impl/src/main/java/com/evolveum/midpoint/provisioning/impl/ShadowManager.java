@@ -440,7 +440,7 @@ public class ShadowManager {
 	/**
 	 * Returns null if there's no existing (relevant) shadow and the change is DELETE.
 	 */
-    PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
+	public PrismObject<ShadowType> findOrAddShadowFromChange(ProvisioningContext ctx, Change change,
 		    OperationResult parentResult) throws SchemaException, CommunicationException,
 			ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, EncryptionException {
 

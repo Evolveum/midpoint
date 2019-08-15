@@ -383,7 +383,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 		columns.add(nameColumn);
 
 		List<IColumn<SelectableBean<O>, String>> others = createColumns();
-		columns.addAll(others);
+		if (others != null) {
+			columns.addAll(others);
+		}
 		LOGGER.trace("Finished to init columns, created columns {}", columns);
 		return columns;
 	}

@@ -14,36 +14,30 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.provisioning.impl.sync;
 
 import com.evolveum.midpoint.prism.PrismProperty;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *  EXPERIMENTAL
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({ "unused", "WeakerAccess" })
 public class SynchronizationOperationResult {
-	private int changesProcessed;
-	private int errors;
-	private boolean suspendEncountered;
-	private boolean haltingErrorEncountered;
+	private AtomicInteger changesProcessed = new AtomicInteger(0);
+	private AtomicInteger errors = new AtomicInteger(0);
+	private volatile boolean suspendEncountered;
+	private volatile boolean haltingErrorEncountered;
 	private PrismProperty<?> lastTokenSeen;
 	private PrismProperty<?> taskTokenUpdatedTo;
 
 	public int getChangesProcessed() {
-		return changesProcessed;
-	}
-
-	public void setChangesProcessed(int changesProcessed) {
-		this.changesProcessed = changesProcessed;
+		return changesProcessed.get();
 	}
 
 	public int getErrors() {
-		return errors;
-	}
-
-	public void setErrors(int errors) {
-		this.errors = errors;
+		return errors.get();
 	}
 
 	public boolean isSuspendEncountered() {
@@ -80,19 +74,19 @@ public class SynchronizationOperationResult {
 
 	@Override
 	public String toString() {
-		return "changesProcessed=" + changesProcessed +
-				", errors=" + errors +
+		return "changesProcessed=" + changesProcessed.get() +
+				", errors=" + errors.get() +
 				", suspendEncountered=" + suspendEncountered +
 				", haltingErrorEncountered=" + haltingErrorEncountered +
 				", lastTokenSeen=" + lastTokenSeen +
 				", taskTokenUpdatedTo=" + taskTokenUpdatedTo;
 	}
 
-	public void incrementErrors() {
-		errors++;
+	public int incrementErrors() {
+		return errors.incrementAndGet();
 	}
 
-	public void incrementChangesProcessed() {
-		changesProcessed++;
+	public int incrementChangesProcessed() {
+		return changesProcessed.incrementAndGet();
 	}
 }

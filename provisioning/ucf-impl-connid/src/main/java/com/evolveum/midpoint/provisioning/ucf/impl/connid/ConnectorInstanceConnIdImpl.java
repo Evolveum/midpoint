@@ -792,11 +792,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		}
 
 		// setting ifc attributes from resource object attributes
-		Set<Attribute> attributes = null;
+		Set<Attribute> attributes;
 		try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDump());
-			}
+			LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDumpLazily());
 			attributes = connIdConvertor.convertFromResourceObjectToConnIdAttributes(attributesContainer, ocDef);
 
 			if (shadowType.getCredentials() != null && shadowType.getCredentials().getPassword() != null) {
@@ -804,8 +802,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				ProtectedStringType protectedString = password.getValue();
 				GuardedString guardedPassword = ConnIdUtil.toGuardedString(protectedString, "new password", protector);
 				if (guardedPassword != null) {
-					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
-						guardedPassword));
+					attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 				}
 			}
 
@@ -1669,7 +1666,10 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			SyncResultsHandler syncHandler = delta -> {
 				recordIcfOperationSuspend(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 				LOGGER.trace("Detected sync delta: {}", delta);
-				OperationResult handleResult = connIdResult.createSubresult(OP_FETCH_CHANGES + ".handle");
+				OperationResult handleResult = connIdResult.subresult(OP_FETCH_CHANGES + ".handle")
+						.addArbitraryObjectAsParam("uid", delta.getUid())
+						.setMinor()
+						.build();
 				Change change = null;
 				try {
 					change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
@@ -1677,10 +1677,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 					int processed = deltasProcessed.incrementAndGet();
 					return doContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
 				} catch (Throwable t) {
-					return changeHandler.handleError(change, t, handleResult);
+					PrismProperty<?> token = delta.getToken() != null ? getToken(delta.getToken()) : null;
+					handleResult.recordFatalError(t);
+					return changeHandler.handleError(token, change, t, handleResult);
 				} finally {
 					handleResult.computeStatusIfUnknown();
-					connIdResult.summarize();
+					handleResult.cleanupResult();
+					connIdResult.summarize(true);
 					recordIcfOperationResume(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 				}
 			};
@@ -1692,10 +1695,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 				lastReceivedToken = connIdConnectorFacade.sync(requestConnIdObjectClass, syncToken, syncHandler, options);
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass);
 				connIdResult.computeStatus();
+				connIdResult.cleanupResult();
 				connIdResult.addReturn(OperationResult.RETURN_COUNT, deltasProcessed.get());
 			} catch (Throwable ex) {
 				recordIcfOperationEnd(reporter, ProvisioningOperation.ICF_SYNC, objectClass, ex);
 				Throwable midpointEx = processConnIdException(ex, this, connIdResult);
+				connIdResult.computeStatusIfUnknown();
+				connIdResult.cleanupResult();
 				result.computeStatus();
 				// Do some kind of acrobatics to do proper throwing of checked exception
 				if (midpointEx instanceof CommunicationException) {
@@ -1717,7 +1723,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			}
 
 			if (lastReceivedToken != null) {
-				Change lastChange = new Change(null, getToken(lastReceivedToken));
+				Change lastChange = new Change(getToken(lastReceivedToken));
 				LOGGER.trace("Adding last change: {}", lastChange);
 				changeHandler.handleChange(lastChange, result);
 			}
@@ -2311,11 +2317,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 		if (icfDeltaType == SyncDeltaType.DELETE) {
 
 			ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
-			Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(connIdDelta.getUid(),
-					deltaObjectClass, resourceSchema);
-			change = new Change(identifiers, objectDelta, getToken(connIdDelta.getToken()));
+			Uid uid = connIdDelta.getUid();
+			Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
+			change = new Change(uid.getUidValue(), identifiers, objectDelta, getToken(connIdDelta.getToken()));
 
 		} else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
+
+			Uid uid = connIdDelta.getUid() != null ? connIdDelta.getUid() : connIdDelta.getObject().getUid();
 
 			PrismObjectDefinition<ShadowType> objectDefinition = toShadowDefinition(deltaObjectClass);
 			LOGGER.trace("Object definition: {}", objectDefinition);
@@ -2328,9 +2336,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 			if (icfDeltaType == SyncDeltaType.CREATE) {
 				ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
 				objectDelta.setObjectToAdd(currentShadow);
-				change = new Change(identifiers, objectDelta, getToken(connIdDelta.getToken()));
+				change = new Change(uid.getUidValue(), identifiers, objectDelta, getToken(connIdDelta.getToken()));
 			} else {
-				change = new Change(identifiers, currentShadow, getToken(connIdDelta.getToken()));
+				change = new Change(uid.getUidValue(), identifiers, currentShadow, getToken(connIdDelta.getToken()));
 			}
 
 		} else {
@@ -2359,6 +2367,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	private <T> PrismProperty<T> getToken(SyncToken syncToken) {
+		//noinspection unchecked
 		T object = (T) syncToken.getValue();
 		return createTokenProperty(object);
 	}
@@ -2366,7 +2375,6 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	private <T> PrismProperty<T> createTokenProperty(T object) {
 		QName type = XsdTypeMapper.toXsdType(object.getClass());
 
-		//noinspection unchecked
 		MutablePrismPropertyDefinition<T> propDef = prismContext.definitionFactory().createPropertyDefinition(SchemaConstants.SYNC_TOKEN, type);
 		propDef.setDynamic(true);
 		propDef.setMaxOccurs(1);

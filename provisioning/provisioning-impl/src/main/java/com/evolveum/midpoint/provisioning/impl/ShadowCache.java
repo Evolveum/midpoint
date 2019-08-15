@@ -34,9 +34,7 @@ import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandler;
 import com.evolveum.midpoint.provisioning.impl.errorhandling.ErrorHandlerLocator;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -49,20 +47,16 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -108,7 +102,6 @@ import java.util.Optional;
 @Component
 public class ShadowCache {
 	
-	public static String OP_PROCESS_SYNCHRONIZATION = ShadowCache.class.getName() + ".processSynchronization";
 	public static String OP_DELAYED_OPERATION = ShadowCache.class.getName() + ".delayedOperation";
 	public static String OP_OPERATION_RETRY = ShadowCache.class.getName() + ".operationRetry";
 	public static String OP_RESOURCE_OPERATION = ShadowCache.class.getName() + ".resourceOperation";
@@ -122,7 +115,7 @@ public class ShadowCache {
 	@Autowired private Clock clock;
 	@Autowired private PrismContext prismContext;
 	@Autowired private SchemaHelper schemaHelper;
-	@Autowired private ResourceObjectConverter resouceObjectConverter;
+	@Autowired private ResourceObjectConverter resourceObjectConverter;
 	@Autowired private ShadowCaretaker shadowCaretaker;
 	@Autowired private MatchingRuleRegistry matchingRuleRegistry;
 	@Autowired private RelationRegistry relationRegistry;
@@ -153,7 +146,7 @@ public class ShadowCache {
 		return prismContext;
 	}
 
-	PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
+	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 					throws ObjectNotFoundException, CommunicationException, SchemaException,
 					ConfigurationException, SecurityViolationException, ExpressionEvaluationException, EncryptionException {
@@ -273,7 +266,7 @@ public class ShadowCache {
 			
 			try {
 				
-				resourceShadow = resouceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
+				resourceShadow = resourceObjectConverter.getResourceObject(ctx, identifiers, true, parentResult);
 				
 			} catch (ObjectNotFoundException e) {
 				// This may be OK, e.g. for connectors that have running async add operation.
@@ -563,7 +556,7 @@ public class ShadowCache {
 	
 				// RESOURCE OPERATION: add
 				AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
-						resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, false, parentResult);
+						resourceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, false, parentResult);
 				opState.processAsyncResult(asyncReturnValue);
 				addedShadow = asyncReturnValue.getReturnValue();
 
@@ -593,7 +586,8 @@ public class ShadowCache {
 						
 						LOGGER.trace("ADD {}: retrying resource operation without uniqueness check (previous dead shadow found), execution starting", shadowToAdd);
 						AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue = 
-								resouceObjectConverter.addResourceObject(ctx, shadowToAdd, scripts, connOptions, true, parentResult);
+								resourceObjectConverter
+										.addResourceObject(ctx, shadowToAdd, scripts, connOptions, true, parentResult);
 						opState.processAsyncResult(asyncReturnValue);
 						addedShadow = asyncReturnValue.getReturnValue();
 					
@@ -978,7 +972,8 @@ public class ShadowCache {
 				try {
 				
 					AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
-							resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
+							resourceObjectConverter
+									.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
 					
 					Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
@@ -1062,7 +1057,8 @@ public class ShadowCache {
 			}
 
 			AsynchronousOperationReturnValue<Collection<PropertyDelta<PrismPropertyValue>>> asyncReturnValue =
-					resouceObjectConverter.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
+					resourceObjectConverter
+							.modifyResourceObject(ctx, repoShadow, scripts, connOptions, modifications, now, parentResult);
 			opState.processAsyncResult(asyncReturnValue);
 			
 			Collection<PropertyDelta<PrismPropertyValue>> sideEffectChanges = asyncReturnValue.getReturnValue();
@@ -1174,7 +1170,8 @@ public class ShadowCache {
 				
 				try {
 					
-					AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
+					AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
+							.deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);
 					opState.processAsyncResult(asyncReturnValue);
 					
 					resourceManager.modifyResourceAvailabilityStatus(ctx.getResource().asPrismObject(),
@@ -1240,7 +1237,8 @@ public class ShadowCache {
 			ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 			try {
 				
-				AsynchronousOperationResult asyncReturnValue = resouceObjectConverter.deleteResourceObject(ctx, shadow, scripts, connOptions , parentResult);
+				AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
+						.deleteResourceObject(ctx, shadow, scripts, connOptions , parentResult);
 				opState.processAsyncResult(asyncReturnValue);
 				
 			} catch (Exception ex) {
@@ -1364,7 +1362,7 @@ public class ShadowCache {
 			
 			AsynchronousOperationResult refreshAsyncResult;
 			try {
-				refreshAsyncResult = resouceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
+				refreshAsyncResult = resourceObjectConverter.refreshOperationStatus(ctx, repoShadow, asyncRef, parentResult);
 			} catch (CommunicationException e) {
 				LOGGER.debug("Communication error while trying to refresh pending operation of {}. Skipping refresh of this operation.", repoShadow, e);
 				parentResult.recordPartialError(e);
@@ -1980,7 +1978,7 @@ public class ShadowCache {
                     if (!objResult.isSuccess() && !objResult.isHandledError()) {
                         Collection<? extends ItemDelta> shadowModificationType = prismContext.deltaFactory().property()
                                 .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
-                                        getResourceObjectShadowDefinition(), objResult.createOperationResultType());
+                                        getShadowDefinition(), objResult.createOperationResultType());
                         try {
 							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
 							repositoryService.modifyObject(ShadowType.class, resultShadow.getOid(),
@@ -2019,7 +2017,7 @@ public class ShadowCache {
 
 		boolean fetchAssociations = SelectorOptions.hasToLoadPath(ShadowType.F_ASSOCIATION, options);
 
-		return resouceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
+		return resourceObjectConverter.searchResourceObjects(ctx, resultHandler, attributeQuery,
 				fetchAssociations, parentResult);
 
 	}
@@ -2342,8 +2340,8 @@ public class ShadowCache {
 		Task task = taskManager.createTaskInstance();
 		notifyResourceObjectChangeListeners(shadowChangeDescription, task, task.getResult());
 	}
-	
-	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change, Task task,
+
+	public void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change, Task task,
 			OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, task, parentResult);
 	}
@@ -2484,515 +2482,36 @@ public class ShadowCache {
 
 	}
 
-	///////////////////////////////////////////////////////////////////////////
-	// TODO: maybe split this to a separate class
-	///////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * @param lastToken This is the value obtained either from the task (if exists) or current token fetched from the resource.
-	 *                  Note that these two cases are radically different.
-	 */
-	@NotNull
-	public SynchronizationOperationResult synchronize(ResourceShadowDiscriminator shadowCoordinates, PrismProperty<?> lastToken,
-			Task task, TaskPartitionDefinitionType partition, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException,
-			SecurityViolationException, ObjectAlreadyExistsException, ExpressionEvaluationException {
-
-		SynchronizationOperationResult rv = new SynchronizationOperationResult();
-
-		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
-
-		final ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-		boolean isSimulate = partition != null && partition.getStage() == ExecutionModeType.SIMULATE;
-		boolean retryLiveSyncErrors = !Boolean.FALSE.equals(task.getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS));
-
-		Holder<PrismProperty<?>> lastTokenSeen = new Holder<>(lastToken);
-
-		LiveSyncCapabilityType capability = ctx.getEffectiveCapability(LiveSyncCapabilityType.class);
-		boolean preciseTokenValue = capability != null && Boolean.TRUE.equals(capability.isPreciseTokenValue());
-
-		ChangeHandler changeHandler = new ChangeHandler() {
-			@Override
-			public boolean handleChange(Change change, OperationResult result) {
-				if (!ctx.canRun()) {
-					return false;
-				} else if (change.isTokenOnly()) {
-					LOGGER.trace("Found token-only change: {}", change);
-					lastTokenSeen.setValue(change.getToken());
-					return true;
-				} else {
-					try {
-						if (processSynchronization(ctx, isSimulate, change, task, partition, result)) {
-							return proceed(change);
-						} else {
-							// we hope the error is already recorded in the result
-							return handleError(change, result);
-						}
-					} catch (Throwable t) {
-						return handleError(change, t, result);
-					}
-				}
-			}
-
-			private boolean proceed(Change change) {
-				lastTokenSeen.setValue(change.getToken());
-				rv.incrementChangesProcessed();
-				if (task instanceof RunningTask) {
-					((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
-				}
-				return ctx.canRun();
-			}
-
-			@Override
-			public boolean handleError(@Nullable Change change, @NotNull Throwable exception, @NotNull OperationResult result) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Exception during processing object as part of live synchronization in {}",
-						exception, task);
-				result.recordFatalError(exception);
-				return handleError(change, result);
-			}
-
-			private boolean handleError(Change change, OperationResult result) {
-				rv.incrementErrors();
-				if (retryLiveSyncErrors) {
-					// We need to retry the failed change -- so we must not update the token.
-					// Moreover, we have to stop here, so that the changes will be applied in correct order.
-					rv.setHaltingErrorEncountered(true);
-					LOGGER.info("LiveSync encountered an error and 'retryLiveSyncErrors' is set to true: so exiting now with "
-									+ "the hope that the error will be cleared on the next task run. Task: {}; processed changes: {}",
-							ctx.getTask(), rv.getChangesProcessed());
-					return false;
-				} else {
-					return proceed(change);
-				}
-			}
-		};
-
-		resouceObjectConverter.fetchChanges(ctx, lastToken, changeHandler, parentResult);
-
-		if (!ctx.canRun()) {
-			LOGGER.info("LiveSync was suspended during processing. Task: {}; processed changes: {}", ctx.getTask(),
-					rv.getChangesProcessed());
-			rv.setSuspendEncountered(true);
-		}
-
-		if (rv.getChangesProcessed() == 0 && lastToken != null) {
-			// Should we consider isSimulate here?
-			LOGGER.trace("No changes to synchronize on {}", ctx.getResource());
-			task.setExtensionProperty(lastToken);
-		} else {
-			boolean updateToken;
-			if (isSimulate) {
-				// Token should not be updated.
-				updateToken = false;
-			} else if (!rv.isHaltingErrorEncountered() && !rv.isSuspendEncountered()) {
-				// Everything went OK.
-				updateToken = true;
-			} else if (preciseTokenValue) {
-				// Something was wrong but we can continue on latest change.
-				LOGGER.info("Capability of providing precise token values is present. Token is updated so the processing will "
-						+ "continue where it was stopped. New token value is '{}'", lastTokenSeen);
-				updateToken = true;
-			} else {
-				// Something was wrong and we must restart from the beginning.
-				LOGGER.info("Capability of providing precise token values is NOT present. Token will not be updated so the "
-								+ "processing will restart from the beginning at next task run. So token value stays as it was: '{}'",
-						lastToken);
-				// So we will not update the token.
-				updateToken = false;
-			}
-
-			if (updateToken) {
-				task.setExtensionProperty(lastTokenSeen.getValue());
-				rv.setTaskTokenUpdatedTo(lastTokenSeen.getValue());
-			}
-		}
-		task.flushPendingModifications(parentResult);
-		return rv;
-	}
-
-	String startListeningForAsyncUpdates(ResourceShadowDiscriminator shadowCoordinates, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			ExpressionEvaluationException {
-		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
-
-		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, task, parentResult);
-		ChangeListener listener = change -> {
-			try {
-				boolean success = processSynchronization(ctx, false, change, task, null, parentResult);
-				if (task instanceof RunningTask) {
-					((RunningTask) task).incrementProgressAndStoreStatsIfNeeded();
-				}
-				return success;
-			} catch (Throwable t) {
-				throw new SystemException("Couldn't process async update: " + t.getMessage(), t);
-			}
-		};
-		return resouceObjectConverter.startListeningForAsyncUpdates(ctx, listener, parentResult);
-	}
-
-	void stopListeningForAsyncUpdates(String listeningActivityHandle, Task task, OperationResult parentResult) {
-		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
-		resouceObjectConverter.stopListeningForAsyncUpdates(listeningActivityHandle, parentResult);
-	}
-
-	AsyncUpdateListeningActivityInformationType getAsyncUpdatesListeningActivityInformation(@NotNull String listeningActivityHandle, Task task, OperationResult parentResult) {
-		return resouceObjectConverter.getAsyncUpdatesListeningActivityInformation(listeningActivityHandle, parentResult);
-	}
-
-
-	/**
-	 * This is the common code for processing changes coming from various sources e.g. live sync, async updates
-	 * or model.notifyChange. Therefore all the auxiliary pre-processing (finding old shadow, determining object class,
-	 * etc) is also placed here.
-	 */
-	boolean processSynchronization(ProvisioningContext globalCtx, boolean isSimulate, Change change, Task task,
-			TaskPartitionDefinitionType partition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
-			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, ExpressionEvaluationException,
-			SecurityViolationException, PolicyViolationException, EncryptionException {
-
-		ProvisioningContext ctx = determineProvisioningContext(globalCtx, change, parentResult);
-		if (ctx == null) {
-			return true;
-		}
-
-		if (change.getObjectDelta() != null) {
-			shadowCaretaker.applyAttributesDefinition(ctx, change.getObjectDelta());
-		}
-		if (change.getOldShadow() != null) {
-			shadowCaretaker.applyAttributesDefinition(ctx, change.getOldShadow());
-		}
-		if (change.getCurrentShadow() != null) {
-			shadowCaretaker.applyAttributesDefinition(ctx, change.getCurrentShadow());  // maybe redundant
-		}
-
-		preProcessChange(ctx, change, parentResult);
-
-		// This is the case when we want to skip processing of change because the shadow was not found nor created.
-		// The usual reason is that this is the delete delta and the object was already deleted on both resource and in repo.
-		if (change.getOldShadow() == null) {
-			assert change.isDelete();
-			LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
-					+ "deleted on the resource meantime).");
-			return true;
-		}
-
-		OperationResult result = parentResult.createSubresult(OP_PROCESS_SYNCHRONIZATION);
-		
-		boolean successful;
-		try {
-			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
-					change, ctx.getResource(), ctx.getChannel());
-			shadowChangeDescription.setSimulate(isSimulate);
-
-			LOGGER.trace("Created resource object shadow change description {}",
-					SchemaDebugUtil.prettyPrintLazily(shadowChangeDescription));
-			OperationResult notifyChangeResult = result.createMinorSubresult(ShadowCache.class.getName() + ".notifyChange");
-			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription.toString());
-	
-			try {
-				notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
-				notifyChangeResult.computeStatusIfUnknown();
-			} catch (RuntimeException ex) {
-				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
-				throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
-			}
-	
-			notifyChangeResult.computeStatus("Error in notify change operation.");
-			
-			if (notifyChangeResult.isSuccess() || notifyChangeResult.isHandledError()) {
-				// Do not delete dead shadows. Keep dead shadow around because they contain results
-				// of the synchronization. Usual shadow refresh process should delete them eventually.
-				// TODO: review. Maybe make this configuration later on.
-				// But in that case model (SynchronizationService) needs to know whether shadow is
-				// going to be deleted or whether it stays. Model needs to adjust links accordingly.
-				// And we need to modify ResourceObjectChangeListener for that. Keeping all dead
-				// shadows is much easier.
-//				deleteShadowFromRepoIfNeeded(change, result);
-				successful = true;
-			} else {
-				successful = false;
-				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
-			}
-	
-			if (result.isUnknown()) {
-				result.computeStatus();
-			}
-
-			try {
-				validateResult(notifyChangeResult, task, partition);
-			} catch (PreconditionViolationException e) {
-				throw new SystemException(e.getMessage(), e);
-			}
-
-		} catch (SchemaException | ObjectNotFoundException | ObjectAlreadyExistsException |
-				CommunicationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
-			result.recordFatalError(e);
-			throw e;
-		}
-
-
-		return successful;
-	}
-
-	/**
-	 * Returns null if the context cannot be determined because the change is DELETE and there's no shadow in repo.
-	 *
-	 * As a side effect it may fill-in change.oldShadow.
-	 */
-	@Nullable
-	private ProvisioningContext determineProvisioningContext(ProvisioningContext globalCtx, Change change,
-			OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException, ObjectNotFoundException,
-			ExpressionEvaluationException, EncryptionException {
-		if (change.getObjectClassDefinition() == null) {
-			if (!change.isDelete()) {
-				throw new SchemaException("No object class definition in change " + change);
-			} else {
-				// A specialty for DELETE changes: we try to determine the object class if not specified in the change
-				// It is needed e.g. for some LDAP servers doing live synchronization.
-				if (change.getOldShadow() == null) {
-					PrismObject<ShadowType> existing = shadowManager.findOrAddShadowFromChange(globalCtx, change, parentResult);
-					if (existing == null) {
-						LOGGER.debug("No old shadow for delete synchronization event {}, we probably did not know about "
-								+ "that object anyway, so well be ignoring this event", change);
-						return null;
-					} else {
-						change.setOldShadow(existing);
-					}
-				}
-				return globalCtx.spawn(change.getOldShadow());
-			}
-		} else {
-			return globalCtx.spawn(change.getObjectClassDefinition().getTypeName());
-		}
-	}
-
-	private void validateResult(OperationResult result, Task task, TaskPartitionDefinitionType partition)
-			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
-			SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException,
-			PreconditionViolationException {
-
-		if (result.isSuccess() || result.isHandledError()) {
-			return;
-		}
-
-		Throwable ex = RepoCommonUtils.getResultException(result);
-		ErrorSelectorType selector = partition != null ? partition.getErrorCriticality() : null;
-		CriticalityType criticality = ExceptionUtil.getCriticality(selector, ex, CriticalityType.PARTIAL);
-		RepoCommonUtils.processErrorCriticality(task, criticality, ex, result);
-	}
-
-	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(
-			Change change, ResourceType resourceType, String channel) {
-		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
-		shadowChangeDescription.setResource(resourceType.asPrismObject());
-		shadowChangeDescription.setOldShadow(change.getOldShadow());
-		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
-		shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
-		return shadowChangeDescription;
-	}
-
-	@SuppressWarnings("rawtypes")
-	private void saveAccountResult(ResourceObjectShadowChangeDescription shadowChangeDescription,
-			Change change, OperationResult notifyChangeResult, OperationResult parentResult)
-					throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-
-		Collection<? extends ItemDelta> shadowModification = createShadowResultModification(change,
-				notifyChangeResult);
-		String oid = getOidFromChange(change);
-		// maybe better error handling is needed
-		try {
-			ConstraintsChecker.onShadowModifyOperation(shadowModification);
-			repositoryService.modifyObject(ShadowType.class, oid, shadowModification, parentResult);
-		} catch (SchemaException ex) {
-			parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(),
-					ex);
-			// throw ex;
-		} catch (ObjectNotFoundException ex) {
-			parentResult.recordWarning("Couldn't modify object: object not found: " + ex.getMessage(), ex);
-			// throw ex;
-		} catch (ObjectAlreadyExistsException ex) {
-			parentResult.recordPartialError(
-					"Couldn't modify object: object already exists: " + ex.getMessage(), ex);
-			// throw ex;
-		}
-
-	}
-
-	private PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition() {
-		// if (resourceObjectShadowDefinition == null) {
+	private PrismObjectDefinition<ShadowType> getShadowDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		// }
-		// return resourceObjectShadowDefinition;
 	}
 
-	@SuppressWarnings("rawtypes")
-	private Collection<? extends ItemDelta> createShadowResultModification(Change change,
-			OperationResult shadowResult) {
-		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
-
-		Collection<ItemDelta> modifications = new ArrayList<>();
-		PropertyDelta resultDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_RESULT,
-				shadowDefinition, shadowResult.createOperationResultType());
-		modifications.add(resultDelta);
-		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-			PropertyDelta failedOperationTypeDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-					ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
-			modifications.add(failedOperationTypeDelta);
-		}
-		return modifications;
-	}
-
-	private String getOidFromChange(Change change) {
-		String shadowOid;
-		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null) {
-			shadowOid = change.getObjectDelta().getOid();
-		} else {
-			if (change.getCurrentShadow().getOid() != null) {
-				shadowOid = change.getCurrentShadow().getOid();
-			} else {
-				if (change.getOldShadow().getOid() != null) {
-					shadowOid = change.getOldShadow().getOid();
-				} else {
-					throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
-				}
-			}
-		}
-		return shadowOid;
-	}
-
-	private void deleteShadowFromRepoIfNeeded(Change change, OperationResult parentResult)
-			throws ObjectNotFoundException {
-		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
-				&& change.getOldShadow() != null) {
-			LOGGER.trace("Deleting detected shadow object form repository.");
-			try {
-				repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
-						parentResult);
-				LOGGER.debug("Shadow object successfully deleted form repository.");
-			} catch (ObjectNotFoundException ex) {
-				// What we want to delete is already deleted. Not a big problem.
-				LOGGER.debug("Shadow object {} already deleted from repository ({})", change.getOldShadow(),
-						ex);
-				parentResult.recordHandledError(
-						"Shadow object " + change.getOldShadow() + " already deleted from repository", ex);
-			}
-
-		}
-	}
-
-	/**
-	 * Manages repository representation of the shadow affected by the change.
-	 * Polishes the change itself.
-	 *
-	 * Does no synchronization.
-	 */
-	private void preProcessChange(ProvisioningContext ctx, Change change, OperationResult parentResult)
-			throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
-			ObjectNotFoundException, GenericConnectorException, ExpressionEvaluationException, EncryptionException {
-
-		if (change.getOldShadow() == null) {
-			PrismObject<ShadowType> repoShadow = shadowManager.findOrAddShadowFromChange(ctx, change, parentResult);
-			if (repoShadow != null) {
-				shadowCaretaker.applyAttributesDefinition(ctx, repoShadow);
-				change.setOldShadow(repoShadow);
-			} else {
-				assert change.isDelete();
-				LOGGER.debug("No old shadow for synchronization event {}, the shadow must be gone in the meantime "
-								+ "(this is probably harmless)", change);
-				return;
-			}
-		}
-
-		@NotNull PrismObject<ShadowType> oldShadow = change.getOldShadow();
-		LOGGER.trace("Processing change, old shadow: {}", ShadowUtil.shortDumpShadow(oldShadow));
-
-		ProvisioningUtil.setProtectedFlag(ctx, oldShadow, matchingRuleRegistry, relationRegistry);
-
-		if (change.getCurrentShadow() == null && !change.isDelete()) {
-			// Temporary measure: let us determine the current shadow; either by fetching it from the resource
-			// (if possible) or by taking cached values and applying the delta. In the future we might implement
-			// pure delta changes that do not need to know the current state.
-			if (change.isAdd()) {
-				change.setCurrentShadow(change.getObjectDelta().getObjectToAdd().clone());
-			} else {
-				if (ctx.getCachingStrategy() == CachingStategyType.PASSIVE) {
-					PrismObject<ShadowType> currentShadow = oldShadow.clone();
-					if (change.getObjectDelta() != null) {
-						change.getObjectDelta().applyTo(currentShadow);
-					}
-					change.setCurrentShadow(currentShadow);
-				} else {
-					// no caching; let us retrieve the object from the resource
-					Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-							.doNotDiscovery().build();
-					PrismObject<ShadowType> currentShadow;
-					try {
-						currentShadow = getShadow(oldShadow.getOid(), oldShadow, options, ctx.getTask(), parentResult);
-					} catch (ObjectNotFoundException e) {
-						// The object on the resource does not exist (any more?).
-						LOGGER.warn("Object {} does not exist on the resource any more", oldShadow);
-						throw e;            // TODO
-					}
-					change.setCurrentShadow(currentShadow);
-				}
-			}
-		}
-		assert change.getCurrentShadow() != null || change.isDelete();
-		if (change.getCurrentShadow() != null) {
-			PrismObject<ShadowType> currentShadow = completeShadow(ctx, change.getCurrentShadow(), oldShadow, false, parentResult);
-			change.setCurrentShadow(currentShadow);
-			// TODO: shadowState
-			shadowManager.updateShadow(ctx, currentShadow, oldShadow, null, parentResult);
-		}
-
-		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-			change.getObjectDelta().setOid(oldShadow.getOid());
-		}
-
-		if (change.isDelete()) {
-			PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-			if (currentShadow == null) {
-				currentShadow = oldShadow.clone();
-				change.setCurrentShadow(currentShadow);         // todo why is this? [pmed]
-			}
-			if (!ShadowUtil.isDead(currentShadow) || ShadowUtil.isExists(currentShadow)) {
-				shadowManager.markShadowTombstone(currentShadow, parentResult);
-			}
-		}
-	}
-
-	PrismProperty<?> fetchCurrentToken(ResourceShadowDiscriminator shadowCoordinates,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-					SchemaException, ConfigurationException, ExpressionEvaluationException {
-		Validate.notNull(parentResult, "Operation result must not be null.");
-
-		InternalMonitor.recordCount(InternalCounters.PROVISIONING_ALL_EXT_OPERATION_COUNT);
-
-		ProvisioningContext ctx = ctxFactory.create(shadowCoordinates, null, parentResult);
-
-		LOGGER.trace("Getting last token");
-		PrismProperty<?> lastToken = null;
-		try {
-			lastToken = resouceObjectConverter.fetchCurrentToken(ctx, parentResult);
-		} catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException | ExpressionEvaluationException e) {
-			parentResult.recordFatalError(e.getMessage(), e);
-			throw e;
-		}
-
-		LOGGER.trace("Got last token: {}", SchemaDebugUtil.prettyPrint(lastToken));
-		parentResult.recordSuccess();
-		return lastToken;
-	}
-
+//	private void deleteShadowFromRepoIfNeeded(Change change, OperationResult parentResult)
+//			throws ObjectNotFoundException {
+//		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
+//				&& change.getOldShadow() != null) {
+//			LOGGER.trace("Deleting detected shadow object form repository.");
+//			try {
+//				repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
+//						parentResult);
+//				LOGGER.debug("Shadow object successfully deleted form repository.");
+//			} catch (ObjectNotFoundException ex) {
+//				// What we want to delete is already deleted. Not a big problem.
+//				LOGGER.debug("Shadow object {} already deleted from repository ({})", change.getOldShadow(),
+//						ex);
+//				parentResult.recordHandledError(
+//						"Shadow object " + change.getOldShadow() + " already deleted from repository", ex);
+//			}
+//
+//		}
+//	}
 
 	/**
 	 * Make sure that the shadow is complete, e.g. that all the mandatory fields
 	 * are filled (e.g name, resourceRef, ...) Also transforms the shadow with
 	 * respect to simulated capabilities. 
 	 */
-	private PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
+	public PrismObject<ShadowType> completeShadow(ProvisioningContext ctx,
 			PrismObject<ShadowType> resourceShadow, PrismObject<ShadowType> repoShadow, boolean isDoDiscovery,
 			OperationResult parentResult)
 					throws SchemaException, ConfigurationException, ObjectNotFoundException,
@@ -3125,7 +2644,7 @@ public class ShadowCache {
 										identifierContainer, parentResult);
 								if (entitlementRepoShadow == null) {
 
-									entitlementShadow = resouceObjectConverter.locateResourceObject(
+									entitlementShadow = resourceObjectConverter.locateResourceObject(
 											ctxEntitlement, entitlementIdentifiers, parentResult);
 
 									// Try to look up repo shadow again, this

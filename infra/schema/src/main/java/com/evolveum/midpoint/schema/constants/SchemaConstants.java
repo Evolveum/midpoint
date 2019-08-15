@@ -253,6 +253,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final String CHANGE_CHANNEL_DISCOVERY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DISCOVERY);
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
+	public static final String CHANGE_CHANNEL_IMPORT_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_IMPORT);
 	public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_PROVISIONING_CHANNEL, "delNotUpdatedShadows");
 	public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
 
