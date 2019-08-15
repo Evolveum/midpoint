@@ -67,7 +67,7 @@ import java.util.Collection;
 @Component
 public class ChangeProcessor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(LiveSynchronizer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ChangeProcessor.class);
 
     private static String OP_PROCESS_SYNCHRONIZATION = ChangeProcessor.class.getName() + ".processSynchronization";
 
@@ -122,6 +122,7 @@ public class ChangeProcessor {
                 LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was "
                         + "deleted on the resource meantime).");
                 request.setSuccess(true);
+                // Are we OK with the result being automatically computed here? (i.e. most probably SUCCESS?)
                 return;
             }
 
@@ -181,6 +182,8 @@ public class ChangeProcessor {
             result.recordFatalError(e);
             request.setSuccess(false);
             request.onError(e, result);
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
