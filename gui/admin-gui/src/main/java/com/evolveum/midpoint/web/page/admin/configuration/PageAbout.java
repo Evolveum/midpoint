@@ -98,8 +98,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
     private static final String POST_INIT = DOT_CLASS + "postInit";
 
+    private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
-    private static final String ID_REVISION = "revision";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
@@ -153,11 +153,11 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
+        Label revision = new Label(ID_BUILD, createStringResource("midpoint.system.build"));
         revision.setRenderBodyOnly(true);
         add(revision);
 
-        Label build = new Label(ID_BUILD, createStringResource("PageAbout.build"));
+        Label build = new Label(ID_BUILD_TIMESTAMP, createStringResource("midpoint.system.buildTimestamp"));
         build.setRenderBodyOnly(true);
         add(build);
 

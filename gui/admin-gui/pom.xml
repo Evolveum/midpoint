@@ -102,6 +102,23 @@
                 </includes>
             </testResource>
         </testResources>
+        <plugins>
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
+				<executions>
+					<execution>
+						<goals>
+							<goal>revision</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<verbose>false</verbose>
+					<offline>true</offline>
+				</configuration>
+			</plugin>
+		</plugins>
     </build>
 
     <dependencies>

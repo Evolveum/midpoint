@@ -1530,14 +1530,8 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>revision</goal>
-						</goals>
-					</execution>
-				</executions>
+				<version>3.0.1</version>
+				<!-- Used in system-init module. -->
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
