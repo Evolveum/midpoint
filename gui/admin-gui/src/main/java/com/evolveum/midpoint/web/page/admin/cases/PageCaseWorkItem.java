@@ -172,7 +172,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
 			result.recordFatalError(getString("PageCaseWorkItem.couldNotGetCase"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get case because it does not exist. (It might have been already completed or deleted.)", ex);
 		} catch (RuntimeException ex) {
-			result.recordFatalError("Couldn't get case.", ex);
+			result.recordFatalError(getString("PageCaseWorkItem.couldNotGetCase.runtime"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get case.", ex);
 		}
 		showResult(result, false);

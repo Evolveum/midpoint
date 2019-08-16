@@ -111,7 +111,7 @@ public class PageTaskController implements Serializable {
 			result.recomputeStatus();
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't save task.", ex);
+			result.recordFatalError(parentPage.createStringResource("PageTaskController.message.savePerformed.fatalError").getString(), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task modifications", ex);
 		}
 		afterSave(target, result);
@@ -230,7 +230,8 @@ public class PageTaskController implements Serializable {
 			result.computeStatusIfUnknown();
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
-			result.recordFatalError("Couldn't stop approval process instance " + instanceId + ": " + e.getMessage(), e);
+			result.recordFatalError(
+					parentPage.createStringResource("PageTaskController.message.stopApprovalProcessPerformed.fatalError", instanceId, e.getMessage()).getString(), e);
 		}
 		afterStateChangingOperation(target, result);
 	}

@@ -571,7 +571,7 @@ public class MappingEditorDialog extends ModalWindow {
 					task, result);
 			result.recomputeStatus();
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't load password policies.", e);
+			result.recordFatalError(getString("MappingEditorDialog.message.createPasswordPolicyList.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
 		}
 

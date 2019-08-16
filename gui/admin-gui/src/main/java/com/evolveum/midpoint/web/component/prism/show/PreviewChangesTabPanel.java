@@ -144,7 +144,8 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
                 result.computeStatus();
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't prepare approval information", t);
-                result.recordFatalError("Couldn't prepare approval information: " + t.getMessage(), t);
+                result.recordFatalError(
+                		createStringResource("PreviewChangesTabPanel.message.prepareApproval.fatalError", t.getMessage()).getString(), t);
             }
             if (WebComponentUtil.showResultInPage(result)) {
                 getPageBase().showResult(result);

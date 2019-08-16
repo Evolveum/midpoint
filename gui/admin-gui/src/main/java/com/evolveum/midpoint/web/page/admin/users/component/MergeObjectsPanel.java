@@ -243,7 +243,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
                     mergeObjectModel.getObject().getOid(), mergeWithObjectModel.getObject().getOid(), currentMergeType, task, result);
         } catch (Exception ex) {
             result.recomputeStatus();
-            result.recordFatalError("Couldn't get merge object for preview.", ex);
+            result.recordFatalError(getString("MergeObjectsPanel.message.getMergeObjectsResult.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get merge object for preview", ex);
             pageBase.showResult(result);
         }

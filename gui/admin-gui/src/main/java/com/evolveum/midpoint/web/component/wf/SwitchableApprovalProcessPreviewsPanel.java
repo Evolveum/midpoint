@@ -88,7 +88,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 					result.computeStatus();
 				} catch (Throwable t) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get approval schema execution information for {}", t, getModelObject());
-					opTask.getResult().recordFatalError("Couldn't get approval schema execution information: " + t.getMessage(), t);
+					opTask.getResult().recordFatalError(
+							createStringResource("SwitchableApprovalProcessPreviewsPanel.message.approvalSchemaExecution.fatalError",t.getMessage()).getString(), t);
 				}
 				if (WebComponentUtil.showResultInPage(result)) {
 					parentPage.showResult(result);
@@ -125,7 +126,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 			result.computeStatus();
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create approval process execution information for {}", t, getModelObject());
-			opTask.getResult().recordFatalError("Couldn't create approval process execution information: " + t.getMessage(), t);
+			opTask.getResult().recordFatalError(
+					createStringResource("SwitchableApprovalProcessPreviewsPanel.message.createApprovalProcess.fatalError", t.getMessage()).getString(), t);
 		}
 		if (WebComponentUtil.showResultInPage(result)) {
 			;
