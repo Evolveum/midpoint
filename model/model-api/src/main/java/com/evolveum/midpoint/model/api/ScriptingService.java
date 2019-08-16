@@ -72,7 +72,22 @@ public interface ScriptingService {
      */
     void evaluateExpressionInBackground(ScriptingExpressionType expression, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
     void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
-
+    
+    /**
+     * Asynchronously executes any scripting expression.
+     *
+     * @param executeScriptCommand ExecuteScript to be executed.
+     * @param task Task in context of which the script should execute.
+     *             The task should be "clean", i.e. (1) transient, (2) without any handler.
+     *             This method puts the task into background, and assigns IterativeScriptExecutionTaskHandler
+     *             to it, to execute the script.
+     * @param parentResult
+     * @throws SchemaException
+     * @throws ConfigurationException 
+     * @throws CommunicationException 
+     */
+    void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException;
+    
     /**
      * Synchronously executes any scripting expression (with no input data).
      *

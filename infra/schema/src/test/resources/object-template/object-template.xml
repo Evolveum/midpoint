@@ -15,10 +15,11 @@
   ~ limitations under the License.
   -->
 <objectTemplate oid="10000000-0000-0000-0000-000000000002"
-   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+				xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+				xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+				xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+				xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Default User Template</name>
     <includeRef oid="10000000-0000-0000-0000-000000000998" type="c:ObjectTemplateType" />
     <includeRef oid="10000000-0000-0000-0000-000000000999" type="ObjectTemplateType" />
@@ -62,4 +63,83 @@
             <path>assignment</path>
         </target>
     </mapping>
+
+	<mapping>
+		<name>Access role assignment</name>
+		<strength>strong</strength>
+		<source>
+			<path>extension/memberOf</path>
+		</source>
+		<expression>
+			<assignmentTargetSearch>
+				<targetType>c:RoleType</targetType>
+				<filter>
+					<q:equal>
+						<q:path>c:name</q:path>
+						<expression>
+							<script>
+								<code>
+									return memberOf.split(";", -1)[0]
+								</code>
+							</script>
+						</expression>
+					</q:equal>
+				</filter>
+				<populate>
+					<populateItem>
+						<expression>
+							<script>
+								<code>
+									return memberOf.split(";", -1)[1]
+								</code>
+							</script>
+						</expression>
+						<target>
+							<path>extension/recStatus</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<script>
+								<code>
+									import com.evolveum.midpoint.prism.xml.XmlTypeConverter
+
+									String val = memberOf.split(";",-1)[2]
+									if (val == null || val.isEmpty()) {
+									return null
+									}
+
+									long milis = Long.parseLong(val)
+									Date date = new Date(milis)
+									return XmlTypeConverter.createXMLGregorianCalendar(date)
+								</code>
+							</script>
+						</expression>
+						<target>
+							<path>extension/validityEnd</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<value>XXXX</value>
+						</expression>
+						<target>
+							<path>subtype</path>
+						</target>
+					</populateItem>
+				</populate>
+			</assignmentTargetSearch>
+		</expression>
+		<target>
+			<path>assignment</path>
+		</target>
+		<condition>
+			<script>
+				<code>
+					return memberOf != null
+				</code>
+			</script>
+		</condition>
+	</mapping>
+
 </objectTemplate>
