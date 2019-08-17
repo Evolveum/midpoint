@@ -329,7 +329,7 @@ public class PageAbout extends PageAdminConfiguration {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get repo diagnostics", ex);
-            result.recordFatalError("Couldn't get repo diagnostics.", ex);
+            result.recordFatalError(getString("PageAbout.message.loadRepoDiagModel.fatalError"), ex);
         }
         result.recomputeStatus();
 
@@ -350,7 +350,7 @@ public class PageAbout extends PageAdminConfiguration {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get provisioning diagnostics", ex);
-            result.recordFatalError("Couldn't get provisioning diagnostics.", ex);
+            result.recordFatalError(getString("PageAbout.message.loadProvisioningDiagModel.fatalError"), ex);
         }
         result.recomputeStatus();
 
@@ -471,7 +471,7 @@ public class PageAbout extends PageAdminConfiguration {
 			
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete all objects.", ex);
+			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError"), ex);
 
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
 		}
@@ -496,7 +496,7 @@ public class PageAbout extends PageAdminConfiguration {
 						getModelService().executeChanges(deltaCollection, null, task, result);
 					} catch (Exception ex) {
 						result.recomputeStatus();
-						result.recordFatalError("Couldn't delete task.", ex);
+						result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
 			
 						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
 					} 
@@ -522,14 +522,10 @@ public class PageAbout extends PageAdminConfiguration {
 			
 
 		} catch (Exception ex) {
-        result.recomputeStatus();
-        result.recordFatalError("Couldn't import initial objects.", ex);
-
-        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
+			result.recomputeStatus();
+			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
         }
-
-
-
         showResult(result);
 		target.add(getFeedbackPanel());
     }

@@ -197,7 +197,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 			result.recordFatalError(getString("PageWorkItem.couldNotGetWorkItem"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item because it does not exist. (It might have been already completed or deleted.)", ex);
         } catch (CommonException|RuntimeException ex) {
-            result.recordFatalError("Couldn't get work item.", ex);
+            result.recordFatalError(getString("PageWorkItem.message.couldNotGetWorkItem.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get work item.", ex);
         }
         showResult(result, false);
@@ -336,7 +336,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 				dropPowerOfAttorneyIfRequested(result);
 			}
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't save work item.", ex);
+            result.recordFatalError(getString("PageWorkItem.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
         }
 		processResult(target, result, false);
@@ -373,7 +373,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 				dropPowerOfAttorneyIfRequested(result);
 			}
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't delegate work item.", ex);
+			result.recordFatalError(getString("PageWorkItem.message.delegateConfirmedPerformed.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
 		}
 		processResult(target, result, false);
@@ -386,7 +386,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             workflowService.claimWorkItem(workItemDtoModel.getObject().getWorkItemId(), task, result);
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
+            result.recordFatalError(getString("PageWorkItem.message.claimPerformed.fatalError"), e);
         }
 		processResult(target, result, true);
 	}
@@ -398,7 +398,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             workflowService.releaseWorkItem(WorkItemId.of(workItemDtoModel.getObject().getWorkItem()), task, result);
         } catch (SecurityViolationException | ObjectNotFoundException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
+            result.recordFatalError(getString("PageWorkItem.message.releasePerformed.fatalError"), e);
         }
         processResult(target, result, true);
     }

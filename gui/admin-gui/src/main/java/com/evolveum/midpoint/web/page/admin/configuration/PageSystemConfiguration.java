@@ -419,7 +419,7 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
 			while(task.isClosed()) {TimeUnit.SECONDS.sleep(1);}
 		} catch ( InterruptedException ex) {
 			result.recomputeStatus();
-	        result.recordFatalError("Couldn't use sleep", ex);
+	        result.recordFatalError(getString("PageSystemConfiguration.message.saveOrPreviewPerformed.fatalError"), ex);
 
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't use sleep", ex);
 		}

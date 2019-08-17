@@ -110,7 +110,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
             LOGGER.debug("Found {} sub-orgs.", orgs);
         } catch (CommonException|RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load children", ex);
-            result.recordFatalError("Unable to load children for unit", ex);
+            result.recordFatalError(getPageBase().createStringResource("OrgTreeProvider.message.getChildren.fatalError").getString(), ex);
         } finally {
             result.computeStatus();
         }
@@ -170,7 +170,7 @@ public class OrgTreeProvider extends SortableTreeProvider<SelectableBean<OrgType
                 childrenCache.put(nodeOid, children);
             } catch (CommonException|RuntimeException ex) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load children", ex);
-                result.recordFatalError("Unable to load children for unit", ex);
+                result.recordFatalError(getPageBase().createStringResource("OrgTreeProvider.message.getChildren.fatalError").getString(), ex);
                 children = new ArrayList<>();
             } finally {
                 result.computeStatus();

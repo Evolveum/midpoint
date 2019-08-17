@@ -124,7 +124,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't init download link", ex);
-            result.recordFatalError("Couldn't init download link", ex);
+            result.recordFatalError(getPage().createStringResource("PageDebugDownloadBehaviour.message.initFile.fatalError").getString(), ex);
         } finally {
             if (writer != null) {
                 IOUtils.closeQuietly(writer);

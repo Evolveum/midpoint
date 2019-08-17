@@ -111,7 +111,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing wf-related tasks", ex);
-            result.recordFatalError("Couldn't list wf-related tasks.", ex);
+            result.recordFatalError(getPage().createStringResource("ProcessInstanceDtoProvider.message.internalIterator.fatalError").getString(), ex);
         }
 
         if (result.isUnknown()) {
@@ -151,9 +151,8 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
             ObjectQuery query = getObjectQuery();
             count = getModel().countObjects(TaskType.class, query, null, opTask, result);
         } catch (Exception ex) {
-            String msg = "Couldn't count process instances";
-            LoggingUtils.logUnexpectedException(LOGGER, msg, ex);
-            result.recordFatalError(msg, ex);
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count process instances", ex);
+            result.recordFatalError(getPage().createStringResource("ProcessInstanceDtoProvider.message.internalSize.fatalError").getString(), ex);
         }
 
         if (result.isUnknown()) {

@@ -497,7 +497,7 @@ public class NameStep extends WizardStep {
 
         } catch (RuntimeException|SchemaException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);
-            result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
+            result.recordFatalError(createStringResource("NameStep.message.saveResource.fatalError", ex.getMessage()).getString(), ex);
         } finally {
             result.computeStatusIfUnknown();
             setResult(result);

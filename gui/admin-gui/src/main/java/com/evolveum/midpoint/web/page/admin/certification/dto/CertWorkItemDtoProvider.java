@@ -85,7 +85,7 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
                 getAvailableData().add(new CertWorkItemDto(workItem, getPage()));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list decisions.", ex);
+            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -113,7 +113,8 @@ public class CertWorkItemDtoProvider extends BaseSortableDataProvider<CertWorkIt
             ObjectQuery query = getQuery().clone();
             count = acs.countOpenWorkItems(query, notDecidedOnly, null, task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects: " + ex.getMessage(), ex);
+            result.recordFatalError(
+            		getPage().createStringResource("CertWorkItemDtoProvider.message.internalSize.fatalError", ex.getMessage()).getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects: " + ex.getMessage(), ex);
         } finally {
             result.computeStatusIfUnknown();

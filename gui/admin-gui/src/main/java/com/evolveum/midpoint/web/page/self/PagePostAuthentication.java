@@ -143,7 +143,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 		try {
 			objectWrapper = factory.createObjectWrapper(userModel.getObject().asPrismObject(), ItemStatus.NOT_CHANGED, context);
 		} catch (SchemaException e) {
-			result.recordFatalError("Could not perform post authentication. Please, contact system administrator."); //TODO localization
+			result.recordFatalError(getString("PagePostAuthentication.message.couldntPerformPostAuth.fatalError"));
 			showResult(result);
 			throw new RestartResponseException(PageLogin.class);
 		}
@@ -194,7 +194,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 			result.recordSuccessIfUnknown();
 		} catch (SchemaException e) {
 			LoggingUtils.logException(LOGGER, "Error during saving user.", e);
-			result.recordFatalError("Could not save user.", e);
+			result.recordFatalError(getString("PagePostAuthentication.message.submitRegistration.fatalError"), e);
 		}
 		
 		result.computeStatus();

@@ -445,7 +445,8 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
 				getReportManager().deleteReportOutput(output, subresult);
 				subresult.recordSuccess();
 			} catch (Exception e) {
-				subresult.recordFatalError("Cannot delete report " + WebComponentUtil.getName(output) + ". Reason: " + e.getMessage(), e);
+				subresult.recordFatalError(
+						getString("PageCreatedReports.message.deleteSelectedConfirmedPerformed.fatalError", WebComponentUtil.getName(output), e.getMessage()), e);
 				LOGGER.error("Cannot delete report {}. Reason: {}", WebComponentUtil.getName(output), e.getMessage(), e);
 				continue;
 			}

@@ -277,7 +277,7 @@ public class ResourceDependencyEditor extends BasePanel<List<ResourceObjectTypeD
             resources = getPageBase().getModelService().searchObjects(ResourceType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException|RuntimeException e){
-            result.recordFatalError("Couldn't get resource list.", e);
+            result.recordFatalError(getString("ResourceDependencyEditor.message.createResourceList.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list.", e);
         }
 

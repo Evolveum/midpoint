@@ -79,7 +79,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
                 getAvailableData().add(new CaseWorkItemDto(workItem));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list case work items.", ex);
+            result.recordFatalError(getPage().createStringResource("CaseWorkItemDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list case work items", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -111,7 +111,7 @@ public class CaseWorkItemDtoProvider extends BaseSortableDataProvider<CaseWorkIt
             Collection<SelectorOptions<GetOperationOptions>> resolveNames = createCollection(createResolveNames());
             count = modelService.countContainers(CaseWorkItemType.class, query, resolveNames, task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+            result.recordFatalError(getPage().createStringResource("CaseWorkItemDtoProvider.message.internalSize.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();

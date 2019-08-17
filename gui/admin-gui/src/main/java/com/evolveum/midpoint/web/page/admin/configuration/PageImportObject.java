@@ -353,7 +353,7 @@ public class PageImportObject extends PageAdminConfiguration {
 
 			result.recomputeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't import file.", ex);
+			result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
 		} finally {
 			if (stream != null) {

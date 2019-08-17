@@ -874,9 +874,9 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 			info(getString("pageDebugList.messsage.deleteAllOfType", dto.getType()));
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete objects of type " + dto.getType(), ex);
+			result.recordFatalError(getString("pageDebugList.messsage.notDeleteObjects", dto.getType()), ex);
 
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete objects of type " + dto.getType(), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "" + dto.getType(), ex);
 		}
 
 		showResult(result);
@@ -988,7 +988,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 			info(getString("pageDebugList.messsage.deleteAllShadowsStarted", dto.getResource().getName()));
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete shadows.", ex);
+			result.recordFatalError(getString("pageDebugList.messsage.notDeleteShadows"), ex);
 
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete shadows", ex);
 		}

@@ -187,7 +187,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             PrismObject<F> object = WebModelServiceUtils.reconstructObject(type, oid, eventIdentifier, task, result);
             return object;
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't restruct object.", ex);
+            result.recordFatalError(getPageBase().createStringResource("ObjectHistoryTabPanel.message.getReconstructedObject.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't restruct object", ex);
         }
         return null;

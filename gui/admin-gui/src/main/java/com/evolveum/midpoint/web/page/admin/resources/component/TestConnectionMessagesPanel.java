@@ -74,7 +74,7 @@ public class TestConnectionMessagesPanel extends BasePanel {
             try {
                 result = parentPage.getModelService().testResource(resourceOid, task);
             } catch (ObjectNotFoundException e) {
-                result.recordFatalError("Failed to test resource connection", e);
+                result.recordFatalError(getString("TestConnectionMessagesPanel.message.testConnection.fatalError"), e);
             }
 
             for (OperationResult subresult: result.getSubresults()) {

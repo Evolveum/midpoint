@@ -331,7 +331,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
 			result.recordSuccess();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get object.", ex);
+			result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
 		}
 
@@ -366,8 +366,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 		try {
 			wrapper = factory.createObjectWrapper(object, itemStatus, context);
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get user.", ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
+			result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
 			try {
 				wrapper = factory.createObjectWrapper(object, itemStatus, context);
 			} catch (SchemaException e) {

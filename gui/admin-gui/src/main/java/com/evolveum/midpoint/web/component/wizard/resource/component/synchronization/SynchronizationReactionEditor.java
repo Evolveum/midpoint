@@ -263,7 +263,7 @@ public class SynchronizationReactionEditor extends BasePanel<SynchronizationReac
             templates = getPageBase().getModelService().searchObjects(ObjectTemplateType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException|RuntimeException e){
-            result.recordFatalError("Couldn't load object templates from repository. ", e);
+            result.recordFatalError(getString("SynchronizationReactionEditor.message.createObjectTemplateList.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object templates from repository", e);
         }
 
