@@ -1220,6 +1220,8 @@ public final class WebComponentUtil {
 			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
 			if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
 				displayName = resourceItemDefinition.getDisplayName();
+			} else {
+				return prismContainerValue.getParent().getPath().last().toString();
 			}
 		} else if (prismContainerValue.canRepresent(MappingType.class)) {
 			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
