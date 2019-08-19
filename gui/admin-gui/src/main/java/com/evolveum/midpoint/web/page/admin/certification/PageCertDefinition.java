@@ -128,7 +128,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
-			result.recordFatalError("Couldn't get definition.", ex);
+			result.recordFatalError(getString("PageCertDefinition.message.loadDefinition.fatalError"), ex);
 		}
 		result.recomputeStatus();
 
@@ -267,7 +267,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			}
 			result.computeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't save object: " + ex.getMessage(), ex);
+			result.recordFatalError(getString("PageCertDefinition.message.savePerformed.fatalError", ex.getMessage()), ex);
 		}
 
 		showResult(result);

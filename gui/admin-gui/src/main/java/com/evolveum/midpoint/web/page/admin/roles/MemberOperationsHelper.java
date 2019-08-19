@@ -77,7 +77,7 @@ public class MemberOperationsHelper {
 			value.applyDefinition(def);
 		} catch (SchemaException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Can not aply definition " + def, e);
-			operationalTask.getResult().recordFatalError("Can not aply definition " + def, e);
+			operationalTask.getResult().recordFatalError(pageBase.createStringResource("MemberOperationsHelper.message.unassignMembersPerformed.fatalError", def).getString(), e);
 		}
 		expression.parameter(new ActionParameterValueType().name(ROLE_PARAMETER).value(
 				new RawType(value, DOMUtil.XSD_STRING, pageBase.getPrismContext())));

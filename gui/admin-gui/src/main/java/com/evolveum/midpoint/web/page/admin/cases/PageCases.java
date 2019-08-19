@@ -255,7 +255,7 @@ public class PageCases extends PageAdminObjectList<CaseType> {
                 getWorkflowService().cancelCase(caseObject.getOid(), task, result);
             } catch (Exception ex){
                 LOGGER.error("Couldn't stop case process, ", ex.getLocalizedMessage());
-                result.recordFatalError("Couldn't stop case process, ", ex);
+                result.recordFatalError(createStringResource("PageCases.message.stopCaseProcessConfirmed.fatalError").getString(), ex);
             }
         });
         result.computeStatusComposite();

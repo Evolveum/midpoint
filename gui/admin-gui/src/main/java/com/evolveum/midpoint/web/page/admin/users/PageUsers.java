@@ -433,7 +433,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 				subResult.computeStatus();
 			} catch (Exception ex) {
 				subResult.recomputeStatus();
-				subResult.recordFatalError("Couldn't delete user.", ex);
+				subResult.recordFatalError(getString("PageUsers.message.delete.fatalError"), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete user", ex);
 			}
 		}
@@ -494,7 +494,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 				opResult.computeStatusIfUnknown();
 			} catch (Exception ex) {
 				opResult.recomputeStatus();
-				opResult.recordFatalError("Couldn't unlock user " + user + ".", ex);
+				opResult.recordFatalError(getString("PageUsers.message.unlock.fatalError", user), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't unlock user " + user + ".", ex);
 			}
 		}
@@ -527,7 +527,7 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 				opResult.computeStatusIfUnknown();
 			} catch (Exception ex) {
 				opResult.recomputeStatus();
-				opResult.recordFatalError("Couldn't reconcile user " + user + ".", ex);
+				opResult.recordFatalError(getString("PageUsers.message.reconcile.fatalError", user), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile user " + user + ".", ex);
 			}
 		}
@@ -592,10 +592,10 @@ public class PageUsers extends PageAdminObjectList<UserType> {
 			} catch (Exception ex) {
 				subResult.recomputeStatus();
 				if (enabling) {
-					subResult.recordFatalError("Couldn't enable user.", ex);
+					subResult.recordFatalError(getString("PageUsers.message.enable.fatalError"), ex);
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't enable user", ex);
 				} else {
-					subResult.recordFatalError("Couldn't disable user.", ex);
+					subResult.recordFatalError(getString("PageUsers.message.disable.fatalError"), ex);
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't disable user", ex);
 				}
 			}

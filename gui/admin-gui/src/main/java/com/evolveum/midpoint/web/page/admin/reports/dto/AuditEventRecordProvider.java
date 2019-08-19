@@ -121,7 +121,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		try {
 			count = (int) getAuditService().countObjects(query, parameters, task, result);
 		} catch (Exception e) {
-			result.recordFatalError("Cannot count audit records: " + e.getMessage(), e);
+			result.recordFatalError(
+					getPage().createStringResource("AuditEventRecordProvider.message.internalSize.fatalError", e.getMessage()).getString(), e);
 			LoggingUtils.logException(LOGGER, "Cannot count audit records: " + e.getMessage(), e);
 		}
 
@@ -151,7 +152,8 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 		try {
 			auditRecords = getAuditService().listRecords(query, parameters, task, result);
 		} catch (Exception e) {
-			result.recordFatalError("Cannot search audit records: " + e.getMessage(), e);
+			result.recordFatalError(
+					getPage().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);
 			LoggingUtils.logException(LOGGER, "Cannot search audit records: " + e.getMessage(), e);
 		}
 		if (auditRecords == null) {

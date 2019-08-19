@@ -121,12 +121,12 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 					nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
 		} catch (AuthenticationException ex) {
 			getSession().error(getString(ex.getMessage()));
-			result.recordFatalError("Failed to validate user", ex);
+			result.recordFatalError(getString("PageRegistrationConfirmation.message.failedValidUser.fatalError"), ex);
 			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
 			throw ex;
 		} catch (Exception ex) {
 			getSession().error(createStringResource("PageRegistrationConfirmation.authnetication.failed").getString());
-			result.recordFatalError("Failed to confirm registration", ex);
+			result.recordFatalError(getString("PageRegistrationConfirmation.message.failedconfirmRegistration.fatalError"), ex);
 			LoggingUtils.logException(LOGGER, "Failed to confirm registration", ex);
 			throw ex;
 		} finally {
@@ -155,7 +155,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				return null;
 			}, administrator);
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't assign default roles", e);
+			result.recordFatalError(getString("PageRegistrationConfirmation.message.assignDefaultRoles.fatalError"), e);
 			throw e;
 		} finally {
 			result.computeStatusIfUnknown();
@@ -177,7 +177,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				return null;
 			}, administrator);
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't remove nonce and set lifecycle state", e);
+			result.recordFatalError(getString("PageRegistrationConfirmation.message.removeNonceAndSetLifecycleState.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't remove nonce and set lifecycle state", e);
 			throw e;
 		} finally {
@@ -208,7 +208,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
 				return null;
 			}, administrator);
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't assign additional role", e);
+			result.recordFatalError(getString("PageRegistrationConfirmation.message.assignAdditionalRoleIfPresent.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't assign additional role", e);
 			throw e;
 		} finally {

@@ -391,7 +391,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 		try {
 			userDelta = prepareUserDelta(task, result);
 		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-			result.recordFatalError("Failed to create delta for user: " + e.getMessage(), e);
+			result.recordFatalError(getString("PageSelfRegistration.message.saveUser.fatalError", e.getMessage()), e);
 			return;
 		}
 		userDelta.setPrismContext(getPrismContext());

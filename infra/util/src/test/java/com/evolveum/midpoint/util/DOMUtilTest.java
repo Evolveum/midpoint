@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -43,6 +44,7 @@ public class DOMUtilTest {
 	private static final QName QNAME_ATTR_QNAME = new QName(ELEMENT_NS, "qname");
 
 	private static final String XSD_TYPE_FILENAME = "src/test/resources/domutil/xsi-type.xml";
+	private static final String WHITESPACES_FILENAME = "src/test/resources/domutil/whitespaces.xml";
 	private static final String QNAMES_FILENAME = "src/test/resources/domutil/qnames.xml";
 	private static final String FIX_NAMESPACE_FILENAME = "src/test/resources/domutil/fix-namespace.xml";
 
@@ -211,6 +213,57 @@ public class DOMUtilTest {
 
 		AssertJUnit.assertTrue("Failed to detect xsi:type", DOMUtil.hasXsiType(el1));
 
+	}
+
+    @Test
+	public void testWhitespaces() {
+		System.out.println("===[ testWhitespaces ]===");
+		// GIVEN
+		Document doc = DOMUtil.parseFile(WHITESPACES_FILENAME);
+
+		// WHEN
+	    String serialized = DOMUtil.serializeDOMToString(doc);
+	    System.out.println(serialized);
+
+	    // THEN
+	    Node firstChild = doc.getDocumentElement().getFirstChild();
+	    System.out.println("firstChild: " + firstChild);
+	    Node firstChildSibling = firstChild.getNextSibling();
+	    System.out.println("firstChildSibling: " + firstChildSibling);
+	    //assertTrue("First child should be Element, it is " + firstChild, firstChild instanceof Element);
+
+	    int lines = countLines(serialized);
+	    assertTrue("Too many lines: " + lines, lines < 20);
+	}
+
+    @Test
+	public void testFormatting() {
+		System.out.println("===[ testFormatting ]===");
+		// GIVEN
+		Document doc = DOMUtil.getDocument();
+	    Element root = DOMUtil.createElement(doc, new QName("root"));
+	    doc.appendChild(root);
+	    Element child1 = DOMUtil.createSubElement(root, new QName("child1"));
+	    Element child2 = DOMUtil.createSubElement(root, new QName("child2"));
+	    Element child3 = DOMUtil.createSubElement(root, new QName("child3"));
+	    child1.setTextContent("text1");
+	    child2.setTextContent("text2");
+	    child3.setTextContent("text3");
+
+	    // WHEN
+	    String serialized = DOMUtil.serializeDOMToString(doc);
+	    System.out.println(serialized);
+
+	    // THEN
+
+	    int lines = countLines(serialized);
+	    assertEquals("Wrong # of lines", 5, lines);
+	    assertTrue("Missing indentation", serialized.contains("    <child1>"));
+	    //assertTrue("Too many lines: " + lines, lines < 20);
+	}
+
+	private int countLines(String s) {
+		return s.split("\r\n|\r|\n").length;
 	}
 
 	@Test

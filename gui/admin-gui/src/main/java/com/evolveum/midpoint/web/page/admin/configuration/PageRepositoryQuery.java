@@ -418,7 +418,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 			storage.setSearch(search);
 			setResponsePage(listPageClass);
 		} catch (CommonException | RuntimeException e) {
-			result.recordFatalError("Couldn't parse query: " + e.getMessage(), e);
+			result.recordFatalError(getString("PageRepositoryQuery.message.couldNotParseQuery", e.getMessage()), e);
 			showResult(result);
 			target.add(this);
 		}
@@ -495,7 +495,7 @@ public class PageRepositoryQuery extends PageAdminConfiguration {
 				dto.setQueryResultObject(null);
 			}
         } catch (CommonException | RuntimeException e) {
-            result.recordFatalError("Couldn't execute query", e);
+            result.recordFatalError(getString("PageRepositoryQuery.message.couldNotExecuteQuery"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute query", e);
             dto.setQueryResultText(e.getMessage());
 			dto.setQueryResultObject(e);

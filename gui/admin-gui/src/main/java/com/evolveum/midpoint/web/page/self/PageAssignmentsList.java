@@ -580,7 +580,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             }
         } catch (SchemaException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to prepare delta for operation " + OPERATION_REQUEST_ASSIGNMENTS, e);
-            result.recordFatalError("Failed to prepare delta for operation " + OPERATION_REQUEST_ASSIGNMENTS, e);
+            result.recordFatalError(getString("PageAssignmentsList.message.prepareDelta.fatalError", OPERATION_REQUEST_ASSIGNMENTS), e);
         }
         return delta;
 

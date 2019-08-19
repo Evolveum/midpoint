@@ -81,7 +81,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
                 getAvailableData().add(new CertCaseDto(_case, getPage(), task, result));
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't list decisions.", ex);
+            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalIterator.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't list decisions", ex);
         } finally {
             result.computeStatusIfUnknown();
@@ -109,7 +109,7 @@ public class CertCaseDtoProvider extends BaseSortableDataProvider<CertCaseOrWork
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             count = countCases(campaignOid, null, getPage().getPrismContext(), task, result);
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't count objects.", ex);
+            result.recordFatalError(getPage().createStringResource("CertCaseDtoProvider.message.internalSize.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         } finally {
             result.computeStatusIfUnknown();

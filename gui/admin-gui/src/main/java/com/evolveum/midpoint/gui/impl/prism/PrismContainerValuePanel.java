@@ -448,7 +448,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 				((List) getModelObject().getItems()).add(iw);
 			} catch (SchemaException e) {
 				OperationResult result = ctx.getResult();
-				result.recordFatalError("Cannot create container wrapper for " + container, e);
+				result.recordFatalError(createStringResource("PrismContainerValuePanel.message.prepareNewContainers.fatalError", container).getString(), e);
 				getPageBase().showResult(ctx.getResult());
 			}
 		});

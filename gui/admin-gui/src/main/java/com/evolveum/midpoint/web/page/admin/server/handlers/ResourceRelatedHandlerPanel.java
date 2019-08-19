@@ -242,7 +242,7 @@ public class ResourceRelatedHandlerPanel<D extends ResourceRelatedHandlerDto> ex
 			resources = parentPage.getModelService().searchObjects(ResourceType.class, null, null, task, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get resource list.", ex);
+			result.recordFatalError(getString("ResourceRelatedHandlerPanel.message.createResourceList.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
 		}
 

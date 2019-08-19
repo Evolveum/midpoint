@@ -138,7 +138,7 @@ public class PageAccount extends PageAdmin {
 			//TODO: fetch result???
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create wrapper for shadow {}", account);
-			result.recordFatalError("Cannot create ");
+			result.recordFatalError(getString("PageAccount.message.loadAccount.fatalError"));
 			throw new RestartResponseException(PageResources.class);
 		}
 		
@@ -286,7 +286,7 @@ public class PageAccount extends PageAdmin {
 			getModelService().executeChanges(deltas, null, task, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't save account.", ex);
+			result.recordFatalError(getString("PageAccount.message.savePerformed.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save account", ex);
 		}
 

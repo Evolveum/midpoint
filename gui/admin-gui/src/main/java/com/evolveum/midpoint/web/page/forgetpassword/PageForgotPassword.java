@@ -451,7 +451,7 @@ public class PageForgotPassword extends PageRegistrationBase {
 
 					WebModelServiceUtils.save(nonceDelta, result, task, PageForgotPassword.this);
 				} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
-					result.recordFatalError("Failed to generate nonce for user");
+					result.recordFatalError(getString("PageForgotPassword.message.saveUserNonce.fatalError"));
 					LoggingUtils.logException(LOGGER, "Failed to generate nonce for user: " + e.getMessage(),
 							e);
 				}

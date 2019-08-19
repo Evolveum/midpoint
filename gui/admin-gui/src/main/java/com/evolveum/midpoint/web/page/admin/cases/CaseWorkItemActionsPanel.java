@@ -162,7 +162,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 WebComponentUtil.dropPowerOfAttorneyIfRequested(result, getPowerDonor(), getPageBase());
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't delegate work item.", ex);
+            result.recordFatalError(getString("CaseWorkItemActionsPanel.message.delegateConfirmedPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delegate work item", ex);
         }
         getPageBase().processResult(target, result, false);

@@ -100,7 +100,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             }
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing tasks", ex);
-            result.recordFatalError("Couldn't list tasks.", ex);
+            result.recordFatalError(getPage().createStringResource("TaskDtoProvider.message.internalIterator.fatalError").getString(), ex);
         } finally {
             if (result.hasUnknownStatus()) {
                 result.recomputeStatus();
@@ -145,7 +145,7 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting tasks", ex);
-            result.recordFatalError("Couldn't count tasks.", ex);
+            result.recordFatalError(getPage().createStringResource("TaskDtoProvider.message.internalSize.fatalError").getString(), ex);
         }
         if (!result.isSuccess()) {
             getPage().showResult(result);

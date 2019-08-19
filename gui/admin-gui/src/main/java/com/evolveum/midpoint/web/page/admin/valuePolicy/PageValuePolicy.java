@@ -160,7 +160,7 @@ public class PageValuePolicy extends PageAdmin {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
-            result.recordFatalError("Couldn't get definition.", ex);
+            result.recordFatalError(getString("PageValuePolicy.message.loadValuePolicy.fatalError"), ex);
         }
         result.recomputeStatus();
 
@@ -259,7 +259,7 @@ public class PageValuePolicy extends PageAdmin {
             getModelService().executeChanges(deltas, null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't save value policy.", ex);
+            result.recordFatalError(getString("PageValuePolicy.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save value policy", ex);
         }
         if (!result.isSuccess()) {

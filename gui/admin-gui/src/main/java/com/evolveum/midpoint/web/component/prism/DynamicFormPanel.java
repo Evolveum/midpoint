@@ -139,7 +139,7 @@ public class DynamicFormPanel<O extends ObjectType> extends BasePanel<PrismObjec
 					context);
 			result.recordSuccess();
 		} catch (SchemaException e) {
-			result.recordFatalError("Cannot initialize form, " + e.getMessage());
+			result.recordFatalError(createStringResource("DynamicFormPanel.message.createObjectWrapper.fatalError", e.getMessage()).getString());
 			getPageBase().showResult(result);
 			
 		}

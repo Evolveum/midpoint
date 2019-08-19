@@ -218,7 +218,7 @@ public class ExpressionVariableEditorDialog extends ModalWindow {
 					result);
 			result.recomputeStatus();
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't load objects from repository.", e);
+			result.recordFatalError("ExpressionVariableEditorDialog.message.createObjectReferenceListDeprecated.fatalError", e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load objects from repository", e);
 		}
 

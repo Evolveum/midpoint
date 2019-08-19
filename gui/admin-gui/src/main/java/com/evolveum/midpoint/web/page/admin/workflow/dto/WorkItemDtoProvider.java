@@ -138,13 +138,13 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
                     getAvailableData().add(new WorkItemDto(item, getPage()));
                 } catch (Exception e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work item {}", e, item);
-                    result.recordFatalError("Couldn't list work item.", e);
+                    result.recordFatalError(getPage().createStringResource("WorkItemDtoProvider.message.couldNotListWorkItem").getString(), e);
                 }
             }
 
         } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing work items", ex);
-            result.recordFatalError("Couldn't list work items.", ex);
+            result.recordFatalError(getPage().createStringResource("WorkItemDtoProvider.message.couldNotListWorkItem").getString(), ex);
         }
 
         if (result.isUnknown()) {
