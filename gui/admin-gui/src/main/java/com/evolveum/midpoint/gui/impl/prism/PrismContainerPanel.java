@@ -28,6 +28,7 @@ import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerPanelContext;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -92,6 +93,14 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 			PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> valuePanel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getVisibilityHandler());
 			valuePanel.setOutputMarkupId(true);
 			valuePanel.add(new VisibleBehaviour(() -> getModelObject() != null && (getModelObject().isExpanded() || getModelObject().isSingleValue())));
+			valuePanel.add(AttributeModifier.append("class", () -> {
+				String cssClasses = "";
+				if (getModelObject() != null && getModelObject().isMultiValue()
+						&& item.getModelObject() != null && ValueStatus.ADDED.equals(item.getModelObject().getStatus())) {
+					cssClasses = " new-value-background";
+				}
+				return cssClasses;
+			}));
 			item.add(valuePanel);
 			item.setOutputMarkupId(true);
 			return valuePanel;
