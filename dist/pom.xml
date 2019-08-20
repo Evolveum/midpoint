@@ -133,30 +133,10 @@
 		          </execution>
 		        </executions>
 	        </plugin>
-	        <plugin>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <includeDependencySources>true</includeDependencySources>
-                    <dependencySourceIncludes>
-                        <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
-                    </dependencySourceIncludes>
-                    <quiet>false</quiet>
-                    <debug>true</debug>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>javadoc-jar</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
     <modules>
         <module>midpoint-api</module>
+        <module>javadoc</module>
     </modules>
 </project>
