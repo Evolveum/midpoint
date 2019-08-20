@@ -133,9 +133,9 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					if (attributeDefinition.isIgnored()) {
 						continue;
 					}
-					LOGGER.debug("Processing refined attribute definition for {}", attributeDefinition.getName());
+					LOGGER.debug("Processing refined attribute definition for {}", attributeDefinition.getItemName());
 					ResourceDataItem attrItem = model.findResourceItem(resource.getOid(), kind, intent, getObjectClassName(refinedDefinition),
-							ItemPath.create(attributeDefinition.getName()));
+							ItemPath.create(attributeDefinition.getItemName()));
 					if (attributeDefinition.getOutboundMappingType() != null) {
 						processOutboundMapping(model, attrItem, attributeDefinition.getOutboundMappingType(), null);
 					}
@@ -231,8 +231,8 @@ public class DataModelVisualizerImpl implements DataModelVisualizer {
 					if (attributeDefinition.isIgnored()) {
 						continue;
 					}
-					LOGGER.debug("Registering refined attribute definition for {}", attributeDefinition.getName());
-					ResourceDataItem attrItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, attributeDefinition.getName());
+					LOGGER.debug("Registering refined attribute definition for {}", attributeDefinition.getItemName());
+					ResourceDataItem attrItem = new ResourceDataItem(model, resource.getOid(), kind, intent, refinedResourceSchema, refinedDefinition, attributeDefinition.getItemName());
 					attrItem.setRefinedAttributeDefinition(attributeDefinition);
 					// TODO check the name
 					model.registerDataItem(attrItem);

@@ -427,7 +427,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 			for (RefinedAttributeDefinition<?> auxRAttrDef: auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
 				boolean add = true;
 				for (RefinedAttributeDefinition def: defs) {
-					if (def.getName().equals(auxRAttrDef.getName())) {
+					if (def.getItemName().equals(auxRAttrDef.getItemName())) {
 						add = false;
 						break;
 					}

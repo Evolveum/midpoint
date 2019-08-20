@@ -707,7 +707,7 @@ public class ResourceTypeUtil {
 			PrismObject<ResourceType> resource) throws SchemaException {
 		Set<QName> attributeNames = new HashSet<>();
 		for (ResourceAttributeDefinition<?> attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
-			QName attrName = attributeDefinition.getName();
+			QName attrName = attributeDefinition.getItemName();
 			if (attributeNames.contains(attrName)) {
 				throw new SchemaException("Duplicate definition of attribute "+attrName+" in object class "+objectClassDefinition.getTypeName()+" in resource schema of "+resource);
 			}

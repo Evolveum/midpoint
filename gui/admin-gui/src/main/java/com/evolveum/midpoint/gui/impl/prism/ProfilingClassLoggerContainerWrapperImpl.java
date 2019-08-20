@@ -38,7 +38,7 @@ public class ProfilingClassLoggerContainerWrapperImpl<C extends Containerable> e
 	}
 	
 	@Override
-	public ItemName getName() {
+	public ItemName getItemName() {
 		return ItemName.fromQName(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH);
 	}
 	

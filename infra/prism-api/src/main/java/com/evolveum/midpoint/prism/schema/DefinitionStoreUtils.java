@@ -59,7 +59,7 @@ public class DefinitionStoreUtils {
 			} else {
 				if (exceptionIfAmbiguous) {
 					throw new IllegalArgumentException(message + ": " +
-							list.stream().map(ItemDefinition::getName).collect(Collectors.toList()));
+							list.stream().map(ItemDefinition::getItemName).collect(Collectors.toList()));
 				} else {
 					return null;
 				}

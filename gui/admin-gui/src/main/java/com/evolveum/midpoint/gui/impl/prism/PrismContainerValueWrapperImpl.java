@@ -314,7 +314,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	protected <IW extends ItemWrapper<?, ?, ?, ?>> void collectExtensionItems(ItemWrapper<?, ?, ?, ?> item, boolean containers, List<IW> itemWrappers) {
-		if (!ObjectType.F_EXTENSION.equals(item.getName())) {
+		if (!ObjectType.F_EXTENSION.equals(item.getItemName())) {
 			return;
 		}
 		
@@ -392,9 +392,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	        }
 	        IW matching = null;
 	        for (ItemWrapper<?, ?, ?, ?> item : items) {
-	            if (QNameUtil.match(subName, item.getName())) {
+	            if (QNameUtil.match(subName, item.getItemName())) {
 	                if (matching != null) {
-	                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getName()) : "";
+	                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getItemName()) : "";
 	                    throw new SchemaException("More than one items matching " + subName + " in container " + containerName);
 	                } else {
 	                    matching = (IW) item;

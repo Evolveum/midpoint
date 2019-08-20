@@ -546,7 +546,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         if (propertyDefinition == null) {
             throw new IllegalArgumentException("No property definition");
         }
-        return findProperty(propertyDefinition.getName());
+        return findProperty(propertyDefinition.getItemName());
     }
 
     public <X extends Containerable> PrismContainer<X> findContainer(QName containerName) {
@@ -608,7 +608,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         if (itemDefinition == null) {
             throw new IllegalArgumentException("No item definition");
         }
-        return findItem(itemDefinition.getName(), type);
+        return findItem(itemDefinition.getItemName(), type);
     }
 
     public boolean containsItem(ItemPath path, boolean acceptEmptyItem) throws SchemaException {
@@ -800,7 +800,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     }
 
     public <X> PrismProperty<X> findOrCreateProperty(PrismPropertyDefinition propertyDef) throws SchemaException {
-        PrismProperty<X> property = findItem(propertyDef.getName(), PrismProperty.class);
+        PrismProperty<X> property = findItem(propertyDef.getItemName(), PrismProperty.class);
         if (property != null) {
             return property;
         }

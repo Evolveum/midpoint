@@ -428,26 +428,26 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         }
 
         for (RefinedAttributeDefinition<?> identifier : identifiers) {
-            PrismProperty property = attributesContainer.getValue().findProperty(identifier.getName());
+            PrismProperty property = attributesContainer.getValue().findProperty(identifier.getItemName());
             if (property == null || property.size() == 0) {
-                checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getName());
+                checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "No value for identifier " + identifier.getItemName());
                 continue;
             }
             if (property.size() > 1) {
                 // we don't expect multi-valued identifiers
                 checkResult.recordError(
-						ShadowStatistics.OTHER_FAILURE, new SchemaException("Multi-valued identifier " + identifier.getName() + " with values " + property.getValues()));
+						ShadowStatistics.OTHER_FAILURE, new SchemaException("Multi-valued identifier " + identifier.getItemName() + " with values " + property.getValues()));
                 continue;
             }
             // size == 1
             String value = (String) property.getValue().getValue();
             if (value == null) {
-                checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "Null value for identifier " + identifier.getName());
+                checkResult.recordWarning(ShadowStatistics.OTHER_FAILURE, "Null value for identifier " + identifier.getItemName());
                 continue;
             }
             if (checkUniqueness) {
                 if (!checkDuplicatesOnPrimaryIdentifiersOnly || primaryIdentifiers.contains(identifier)) {
-                    addIdentifierValue(checkResult, context, identifier.getName(), value, shadow);
+                    addIdentifierValue(checkResult, context, identifier.getItemName(), value, shadow);
                 }
             }
             if (checkNormalization) {
@@ -580,7 +580,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         } catch (SchemaException e) {
             checkResult.recordError(
 					ShadowStatistics.OTHER_FAILURE, new SchemaException("Couldn't retrieve matching rule for identifier " +
-                    identifier.getName() + " (rule name = " + matchingRuleQName + ")"));
+                    identifier.getItemName() + " (rule name = " + matchingRuleQName + ")"));
             return;
         }
 
@@ -588,7 +588,7 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         if (!(normalizedValue instanceof String)) {
             checkResult.recordError(
 					ShadowStatistics.OTHER_FAILURE, new SchemaException("Normalized value is not a string, it's " + normalizedValue.getClass() +
-                    " (identifier " + identifier.getName() + ", value " + value));
+                    " (identifier " + identifier.getItemName() + ", value " + value));
             return;
         }
         if (value.equals(normalizedValue)) {
@@ -597,11 +597,11 @@ public class ShadowIntegrityCheckResultHandler extends AbstractSearchIterativeRe
         String normalizedStringValue = (String) normalizedValue;
 
         checkResult.recordError(ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE,
-                new SchemaException("Non-normalized value of identifier " + identifier.getName()
+                new SchemaException("Non-normalized value of identifier " + identifier.getItemName()
                         + ": " + value + " (normalized form: " + normalizedValue + ")"));
 
         if (fixNormalization) {
-            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getName()));
+            PropertyDelta delta = identifier.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, identifier.getItemName()));
             delta.setRealValuesToReplace(normalizedStringValue);
             checkResult.addFixDelta(delta, ShadowStatistics.NON_NORMALIZED_IDENTIFIER_VALUE);
         }

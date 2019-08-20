@@ -308,7 +308,7 @@ public class ReconciliationProcessor {
 		for (QName deleteAuxOcName: deletedAuxObjectClassNames) {
 			ObjectClassComplexTypeDefinition auxOcDef = refinedResourceSchema.findObjectClassDefinition(deleteAuxOcName);
 			for (ResourceAttributeDefinition auxAttrDef: auxOcDef.getAttributeDefinitions()) {
-				QName auxAttrName = auxAttrDef.getName();
+				QName auxAttrName = auxAttrDef.getItemName();
 				if (attributesToDelete.contains(auxAttrName)) {
 					continue;
 				}
@@ -483,7 +483,7 @@ public class ReconciliationProcessor {
 				// value. Skip it.
 				// we cannot override it as it might have been legally
 				// changed directly on the projection resource object
-				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong", shouldBeRealValue, attributeDefinition.getName().getLocalPart());
+				LOGGER.trace("Skipping reconciliation of value {} of the attribute {}: the mapping is not strong", shouldBeRealValue, attributeDefinition.getItemName().getLocalPart());
 				continue;
 			}
 			if (!isInValues(valueMatcher, shouldBeRealValue, arePValues)) {
@@ -781,7 +781,7 @@ public class ReconciliationProcessor {
 
 		for (PrismPropertyValue<T> isPValue : arePValues) {
 			if (matchPattern(attributeDefinition.getTolerantValuePattern(), isPValue, valueMatcher)){
-				LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getName().getLocalPart());
+				LOGGER.trace("Reconciliation: KEEPING value {} of the attribute {}: match with tolerant value pattern." , isPValue, attributeDefinition.getItemName().getLocalPart());
 				continue;
 			}
 
@@ -911,14 +911,14 @@ public class ReconciliationProcessor {
 		ItemDelta existingDelta = null;
 		if (projCtx.getSecondaryDelta() != null) {
 			existingDelta = projCtx.getSecondaryDelta().findItemDelta(
-					ItemPath.create(parentPath, attrDef.getName()));
+					ItemPath.create(parentPath, attrDef.getItemName()));
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,
-					PrettyPrinter.prettyPrint(attrDef.getName()), value, reason);
+					PrettyPrinter.prettyPrint(attrDef.getItemName()), value, reason);
 		}
 
-		PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(parentPath, attrDef.getName(), attrDef);
+		PropertyDelta<T> attrDelta = prismContext.deltaFactory().property().create(parentPath, attrDef.getItemName(), attrDef);
 		PrismPropertyValue<T> pValue = prismContext.itemFactory().createPropertyValue(value, OriginType.RECONCILIATION,
 				originObject);
 		if (changeType == ModificationType.ADD) {

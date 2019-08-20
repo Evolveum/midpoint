@@ -102,7 +102,7 @@ public class ResourceContentResourcePanel extends ResourceContentPanel {
 	}
 	
 	private ItemName getAttributeName(ResourceAttributeDefinition def) {
-		return def.getName();
+		return def.getItemName();
 	}
 
 	@Override

@@ -300,8 +300,8 @@ public abstract class AbstractHigherUnitTest {
 		ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(objectClass);
 		if (ocDef.getSecondaryIdentifiers().isEmpty()) {
 			ResourceAttributeDefinition idDef = ocDef.getPrimaryIdentifiers().iterator().next();
-			PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getName());
-			assertNotNull("No primary identifier ("+idDef.getName()+") attribute in shadow for "+username, idProp);
+			PrismProperty<String> idProp = attributesContainer.findProperty(idDef.getItemName());
+			assertNotNull("No primary identifier ("+idDef.getItemName()+") attribute in shadow for "+username, idProp);
 			if (nameMatchingRule == null) {
 				assertEquals("Unexpected primary identifier in shadow for "+username, username, idProp.getRealValue());
 			} else {
@@ -319,9 +319,9 @@ public abstract class AbstractHigherUnitTest {
 			}
 			List<String> wasValues = new ArrayList<>();
 			for (ResourceAttributeDefinition idSecDef: ocDef.getSecondaryIdentifiers()) {
-				PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
+				PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
 				wasValues.addAll(idProp.getRealValues());
-				assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+username, idProp);
+				assertNotNull("No secondary identifier ("+idSecDef.getItemName()+") attribute in shadow for "+username, idProp);
 				if (nameMatchingRule == null) {
 					if (username.equals(idProp.getRealValue())) {
 						found = true;
@@ -350,8 +350,8 @@ public abstract class AbstractHigherUnitTest {
     	ObjectClassComplexTypeDefinition ocDef = rSchema.findObjectClassDefinition(shadow.asObjectable().getObjectClass());
     	ResourceAttributeDefinition idSecDef = ocDef.getSecondaryIdentifiers().iterator().next();
     	PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
-		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getName());
-		assertNotNull("No secondary identifier ("+idSecDef.getName()+") attribute in shadow for "+expectedIdentifier, idProp);
+		PrismProperty<String> idProp = attributesContainer.findProperty(idSecDef.getItemName());
+		assertNotNull("No secondary identifier ("+idSecDef.getItemName()+") attribute in shadow for "+expectedIdentifier, idProp);
 		if (nameMatchingRule == null) {
 			assertEquals("Unexpected secondary identifier in shadow for "+expectedIdentifier, expectedIdentifier, idProp.getRealValue());
 		} else {

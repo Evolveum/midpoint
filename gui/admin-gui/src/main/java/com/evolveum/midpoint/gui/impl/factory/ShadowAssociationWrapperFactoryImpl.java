@@ -99,7 +99,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	@Override
 	public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def,
 			WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
+		ItemName name = def.getItemName();
 		
 		PrismContainer<C> childItem = (PrismContainer) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;

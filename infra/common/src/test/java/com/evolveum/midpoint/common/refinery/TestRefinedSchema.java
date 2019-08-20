@@ -199,7 +199,7 @@ public class TestRefinedSchema {
 
         RefinedAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
-        assertEquals("Wrong account displayNameAttribute", new QName(resourceType.getNamespace(), "uid"), displayNameAttributeDef.getName());
+        assertEquals("Wrong account displayNameAttribute", new QName(resourceType.getNamespace(), "uid"), displayNameAttributeDef.getItemName());
 
         // This is compatibility with PrismContainerDefinition, it should work well
         Collection<? extends ItemDefinition> propertyDefinitions = rAccountDef.getDefinitions();
@@ -229,7 +229,7 @@ public class TestRefinedSchema {
 
 	        RefinedAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
 	        assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
-	        assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getName());
+	        assertEquals("Wrong entitlement displayNameAttribute", new QName(resourceType.getNamespace(), "cn"), entDisplayNameAttributeDef.getItemName());
 
 	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
         }
@@ -287,7 +287,7 @@ public class TestRefinedSchema {
     		return;
     	}
 		if (!(attrDef instanceof LayerRefinedAttributeDefinition)) {
-			AssertJUnit.fail("Expected that definition of attribute "+attrDef.getName()+" in layer "+expectedLayer
+			AssertJUnit.fail("Expected that definition of attribute "+attrDef.getItemName()+" in layer "+expectedLayer
 					+" will be LayerRefinedAttributeDefinition, but it is "+attrDef.getClass()+": "+attrDef);
 		}
 		assertEquals("Wrong layer in "+attrDef, expectedLayer, ((LayerRefinedAttributeDefinition)attrDef).getLayer());
@@ -513,7 +513,7 @@ public class TestRefinedSchema {
                                     boolean hasOutbound, boolean ignore, boolean canCreate, boolean canRead, boolean canUpdate,
                                     LayerType sourceLayer, LayerType validationLayer) {
         for (RefinedAttributeDefinition def : attrDefs) {
-            if (def.getName().equals(name)) {
+            if (def.getItemName().equals(name)) {
                 assertEquals("Attribute " + name + " ("+sourceLayer+") type mismatch", typeName, def.getTypeName());
                 assertEquals("Attribute " + name + " ("+sourceLayer+") minOccurs mismatch", minOccurs, def.getMinOccurs());
                 assertEquals("Attribute " + name + " ("+sourceLayer+") maxOccurs mismatch", maxOccurs, def.getMaxOccurs());
@@ -646,7 +646,7 @@ public class TestRefinedSchema {
         RefinedAttributeDefinition<?> displayNameAttributeDef = rAccountDef.getDisplayNameAttribute();
         assertNotNull("No account displayNameAttribute", displayNameAttributeDef);
         assertEquals("Wrong account displayNameAttribute", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "dn"),
-        		displayNameAttributeDef.getName());
+        		displayNameAttributeDef.getItemName());
 
         // This is compatibility with PrismContainerDefinition, it should work well
         Collection<? extends ItemDefinition> propertyDefinitions = rAccountDef.getDefinitions();
@@ -671,7 +671,7 @@ public class TestRefinedSchema {
         RefinedAttributeDefinition<?> entDisplayNameAttributeDef = rEntDef.getDisplayNameAttribute();
         assertNotNull("No entitlement displayNameAttribute", entDisplayNameAttributeDef);
         assertEquals("Wrong entitlement displayNameAttribute", new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "dn"),
-        		entDisplayNameAttributeDef.getName());
+        		entDisplayNameAttributeDef.getItemName());
 
         assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getAssociationDefinitions().size());
 

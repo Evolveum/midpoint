@@ -140,13 +140,13 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	@NotNull
 	@Override
     public PrismProperty<T> instantiate() {
-        return instantiate(getName());
+        return instantiate(getItemName());
     }
 
     @NotNull
 	@Override
     public PrismProperty<T> instantiate(QName name) {
-        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
         return new PrismPropertyImpl<>(name, this, prismContext);
     }
 
@@ -178,7 +178,7 @@ public class PrismPropertyDefinitionImpl<T> extends ItemDefinitionImpl<PrismProp
 	@NotNull
 	@Override
 	public PrismPropertyDefinitionImpl<T> clone() {
-		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
+		PrismPropertyDefinitionImpl<T> clone = new PrismPropertyDefinitionImpl<>(getItemName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}

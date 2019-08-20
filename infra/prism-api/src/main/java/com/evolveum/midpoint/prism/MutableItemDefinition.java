@@ -40,7 +40,7 @@ public interface MutableItemDefinition<I extends Item> extends ItemDefinition<I>
 	void setDynamic(boolean value);
 
 	// use with care
-	void setName(QName name);
+	void setItemName(QName name);
 
 	void setReadOnly();
 

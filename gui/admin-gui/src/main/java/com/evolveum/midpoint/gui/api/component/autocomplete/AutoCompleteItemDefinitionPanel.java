@@ -52,7 +52,7 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 			protected Iterator<String> getChoices(String input) {
 				List<String> defsAsString = new ArrayList<>();
 				for (ItemDefinition<?> def : listChoices(input).values()) {
-					defsAsString.add(def.getName().getLocalPart());
+					defsAsString.add(def.getItemName().getLocalPart());
 				}
 				return defsAsString.iterator();
 

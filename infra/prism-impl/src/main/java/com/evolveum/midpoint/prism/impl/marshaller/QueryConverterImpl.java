@@ -278,7 +278,7 @@ public class QueryConverterImpl implements QueryConverter {
 
 		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd);
 		if (itemDefinition != null) {
-			itemName = itemDefinition.getName();
+			itemName = itemDefinition.getItemName();
 		}
 
 		if (valueXnode != null) {

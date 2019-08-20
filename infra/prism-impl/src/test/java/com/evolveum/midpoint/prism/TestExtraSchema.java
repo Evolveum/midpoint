@@ -207,7 +207,7 @@ public class TestExtraSchema {
 
 	private void assertDefinitionOrder(List<? extends ItemDefinition> definitions, QName elementName, int i) {
 		assertEquals("Wrong definition, expected that "+PrettyPrinter.prettyPrint(elementName)+" definition will be at index " +
-				i + " but there was a "+definitions.get(i).getName()+" instead", elementName, definitions.get(i).getName());
+				i + " but there was a "+definitions.get(i).getItemName()+" instead", elementName, definitions.get(i).getItemName());
 	}
 
 	/**

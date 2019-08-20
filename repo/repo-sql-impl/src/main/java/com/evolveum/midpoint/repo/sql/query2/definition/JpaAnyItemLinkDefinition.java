@@ -31,7 +31,7 @@ public class JpaAnyItemLinkDefinition extends JpaLinkDefinition<JpaDataNodeDefin
 
     JpaAnyItemLinkDefinition(ItemDefinition<?> itemDefinition, String jpaName, CollectionSpecification collectionSpecification,
             RObjectExtensionType ownerType, JpaDataNodeDefinition targetDefinition) {
-        super(itemDefinition.getName(), jpaName, collectionSpecification, false, targetDefinition);
+        super(itemDefinition.getItemName(), jpaName, collectionSpecification, false, targetDefinition);
         this.ownerType = ownerType;
         this.itemDefinition = itemDefinition;
     }

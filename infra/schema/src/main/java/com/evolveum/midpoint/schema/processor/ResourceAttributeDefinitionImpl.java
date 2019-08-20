@@ -57,13 +57,13 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	@NotNull
 	@Override
 	public ResourceAttribute<T> instantiate() {
-		return instantiate(getName());
+		return instantiate(getItemName());
 	}
 
 	@NotNull
 	@Override
 	public ResourceAttribute<T> instantiate(QName name) {
-        name = addNamespaceIfApplicable(name, this.name);
+        name = addNamespaceIfApplicable(name, this.itemName);
 		return new ResourceAttributeImpl<>(name, this, prismContext);
 	}
 
@@ -166,7 +166,7 @@ public class ResourceAttributeDefinitionImpl<T> extends PrismPropertyDefinitionI
 	@NotNull
 	@Override
 	public ResourceAttributeDefinitionImpl<T> clone() {
-		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<>(getName(), getTypeName(), getPrismContext());
+		ResourceAttributeDefinitionImpl<T> clone = new ResourceAttributeDefinitionImpl<>(getItemName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}

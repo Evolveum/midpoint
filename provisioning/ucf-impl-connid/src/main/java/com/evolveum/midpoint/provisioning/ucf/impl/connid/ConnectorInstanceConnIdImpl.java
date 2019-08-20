@@ -1133,7 +1133,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 						throw new ObjectNotFoundException("Returned delta attribute with name: "+ name +" for which, has not been found ResourceAttributeDefinition.");
 					}
 					PropertyDelta<Object> delta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES,
-							definition.getName()), definition);
+							definition.getItemName()), definition);
 					if(attrDeltaSideEffect.getValuesToReplace() != null){
 						delta.setRealValuesToReplace(attrDeltaSideEffect.getValuesToReplace().get(0));
 					} else {
@@ -1426,14 +1426,14 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createNameDelta(Name name, ResourceAttributeDefinition nameDefinition) {
-		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getName()),
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, nameDefinition.getItemName()),
 				nameDefinition);
 		uidDelta.setRealValuesToReplace(name.getNameValue());
 		return uidDelta;
 	}
 	
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getName()),
+		PropertyDelta<String> uidDelta = prismContext.deltaFactory().property().create(ItemPath.create(ShadowType.F_ATTRIBUTES, uidDefinition.getItemName()),
 				uidDefinition);
 		uidDelta.setRealValuesToReplace(uid.getUidValue());
 		return uidDelta;

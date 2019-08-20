@@ -193,7 +193,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resource.getOid())
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass"))
-				.and().itemWithDef(getIcfNameDefinition(), ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()).eq(ACCOUNT_FETTUCINI_NAME)
+				.and().itemWithDef(getIcfNameDefinition(), ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getItemName()).eq(ACCOUNT_FETTUCINI_NAME)
 				.build();
 
 		// WHEN

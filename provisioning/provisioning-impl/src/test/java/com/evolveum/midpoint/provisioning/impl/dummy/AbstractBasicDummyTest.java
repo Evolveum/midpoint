@@ -1116,7 +1116,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
 		assertFalse("wrong isReturnDefaultAttributes", attributesToReturn.isReturnDefaultAttributes());
 		Collection<String> attrs = new ArrayList<>();
 		for (ResourceAttributeDefinition attributeToReturnDef: attributesToReturn.getAttributesToReturn()) {
-			attrs.add(attributeToReturnDef.getName().getLocalPart());
+			attrs.add(attributeToReturnDef.getItemName().getLocalPart());
 		}
 		// No "memebers" attribute here
 		PrismAsserts.assertSets("Wrong attribute to return", attrs, "uid", "name", "description", "cc");

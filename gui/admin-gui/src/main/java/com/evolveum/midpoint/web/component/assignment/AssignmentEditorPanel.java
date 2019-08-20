@@ -909,13 +909,13 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
 	private ResourceAttributeDefinitionType findOrCreateValueConstruction(PrismPropertyDefinition attrDef,
 			List<ResourceAttributeDefinitionType> attrConstructions) {
 		for (ResourceAttributeDefinitionType construction : attrConstructions) {
-			if (attrDef.getName().equals(construction.getRef())) {
+			if (attrDef.getItemName().equals(construction.getRef())) {
 				return construction;
 			}
 		}
 
 		ResourceAttributeDefinitionType construction = new ResourceAttributeDefinitionType();
-		construction.setRef(new ItemPathType(ItemPath.create(attrDef.getName())));
+		construction.setRef(new ItemPathType(ItemPath.create(attrDef.getItemName())));
 
 		return construction;
 	}

@@ -34,7 +34,7 @@ public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerCo
 	
 	private static ItemVisibility checkVisibility(ItemWrapper itemWrapper, ItemVisibilityHandler visibilitytHandler) {
 
-		if(itemWrapper.getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
+		if(itemWrapper.getItemName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
 			return ItemVisibility.HIDDEN;
 		}
 		return visibilitytHandler != null ? visibilitytHandler.isVisible(itemWrapper) : ItemVisibility.AUTO;

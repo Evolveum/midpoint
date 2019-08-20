@@ -281,7 +281,7 @@ public class ConnIdConvertor {
 				}
 
 				if (caseIgnoreAttributeNames) {
-					qname = attributeDefinition.getName();            // normalized version
+					qname = attributeDefinition.getItemName();            // normalized version
 				}
 
 				ResourceAttribute<Object> resourceAttribute = attributeDefinition.instantiate(qname);
@@ -330,7 +330,7 @@ public class ConnIdConvertor {
 				throw new SchemaException("No definition for ConnId UID attribute found in definition "
 						+ ocDef);
 			}
-			if (attributesContainer.getValue().findItem(uidDefinition.getName()) == null) {
+			if (attributesContainer.getValue().findItem(uidDefinition.getItemName()) == null) {
 				ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
 				uidRoa.setRealValue(uid.getUidValue());
 				attributesContainer.getValue().add(uidRoa);

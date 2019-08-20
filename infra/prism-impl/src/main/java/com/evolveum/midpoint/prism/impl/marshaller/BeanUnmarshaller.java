@@ -530,7 +530,7 @@ public class BeanUnmarshaller {
 																	.isAssignableFrom(valueClass)))
 											.findFirst();
 									if (itemDefOpt.isPresent()) {
-										jaxbElementName = itemDefOpt.get().getName();
+										jaxbElementName = itemDefOpt.get().getItemName();
 									} else {
 										LOGGER.warn("Heterogeneous list member with unknown element name '" + elementName + "': "  + value);
 										jaxbElementName = elementName;        // unqualified

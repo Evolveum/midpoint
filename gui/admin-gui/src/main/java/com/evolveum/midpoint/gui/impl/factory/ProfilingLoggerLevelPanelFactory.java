@@ -62,7 +62,7 @@ public class ProfilingLoggerLevelPanelFactory implements GuiComponentFactory<Pri
 	
 	@Override
 	public <IW extends ItemWrapper> boolean match(IW wrapper) {
-		return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getName().equals(ClassLoggerConfigurationType.F_LEVEL);
+		return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
 	}
 
 	@Override

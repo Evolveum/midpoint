@@ -102,7 +102,7 @@ public class ACAttributeDto implements Serializable {
 
     public String getName() {
         String name = definition.getDisplayName();
-        return StringUtils.isNotEmpty(name) ? name : definition.getName().getLocalPart();
+        return StringUtils.isNotEmpty(name) ? name : definition.getItemName().getLocalPart();
     }
 
     public boolean isEmpty() {
@@ -129,7 +129,7 @@ public class ACAttributeDto implements Serializable {
         if (construction != null && construction.getRef() != null) {
             attrConstruction.setRef(construction.getRef());         // preserves original ref (including xmlns prefix!) - in order to avoid false deltas when comparing old and new values
         } else {
-            attrConstruction.setRef(new ItemPathType(definition.getName()));
+            attrConstruction.setRef(new ItemPathType(definition.getItemName()));
         }
         MappingType outbound;
         if (construction != null && construction.getOutbound() != null) {

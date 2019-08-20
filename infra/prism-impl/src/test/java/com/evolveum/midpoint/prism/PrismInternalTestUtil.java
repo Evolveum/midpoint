@@ -406,7 +406,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 					new QName(NS_FOO, "dummy"),           // element name
 					DOMUtil.XSD_STRING                 // type name
 					);
-			PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
+			PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getItemName());
 			assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
 		} else {
 			assertNull("Value #1 has XNode present", value1.getXnode());
@@ -414,7 +414,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		}
         RawType value2 = accountConstructionType.getValue().get(1).clone();
         assertNotNull("Value #2 has no XNode present", value2.getXnode());
-        PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getName());
+        PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getItemName());
         PrismContainerValue<UserType> prismUserValue2 = (PrismContainerValue<UserType>) prismValue2;
         assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new ItemName(NS_FOO, "fullName")).getRealValue());
 

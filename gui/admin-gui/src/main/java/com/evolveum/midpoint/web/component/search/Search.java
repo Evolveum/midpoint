@@ -116,8 +116,8 @@ public class Search implements Serializable, DebugDumpable {
     public SearchItem addItem(ItemDefinition def) {
         boolean isPresent = false;
         for (ItemDefinition itemDefinition : availableDefinitions){
-            if (itemDefinition.getName() != null &&
-                    itemDefinition.getName().equals(def.getName())){
+            if (itemDefinition.getItemName() != null &&
+                    itemDefinition.getItemName().equals(def.getItemName())){
                 isPresent = true;
                 break;
             }
@@ -128,7 +128,7 @@ public class Search implements Serializable, DebugDumpable {
 
         SearchItemDefinition itemToRemove = null;
         for (SearchItemDefinition entry : allDefinitions) {
-            if (entry.getDef().getName().equals(def.getName())) {
+            if (entry.getDef().getItemName().equals(def.getItemName())) {
                 itemToRemove = entry;
                 break;
             }

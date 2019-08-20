@@ -58,7 +58,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-		return new PrismObjectImpl<>(getName(), this, prismContext);
+		return new PrismObjectImpl<>(getItemName(), this, prismContext);
 	}
 
 	@NotNull
@@ -67,14 +67,14 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 		if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
 		return new PrismObjectImpl<>(name, this, prismContext);
 	}
 
 	@NotNull
 	@Override
 	public PrismObjectDefinitionImpl<O> clone() {
-		PrismObjectDefinitionImpl<O> clone = new PrismObjectDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);
+		PrismObjectDefinitionImpl<O> clone = new PrismObjectDefinitionImpl<>(itemName, complexTypeDefinition, prismContext, compileTimeClass);
 		copyDefinitionData(clone);
 		return clone;
 	}
@@ -136,7 +136,7 @@ public class PrismObjectDefinitionImpl<O extends Objectable> extends PrismContai
 
 
 	private ItemName getExtensionQName() {
-		String namespace = getName().getNamespaceURI();
+		String namespace = getItemName().getNamespaceURI();
 		return new ItemName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
 	}
 

@@ -331,7 +331,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	
 	protected ItemPath getDeltaPathForStatus(ItemStatus status) {
 		if (ItemStatus.ADDED == status) {
-			return getName();
+			return getItemName();
 		}
 		
 		return getPath();

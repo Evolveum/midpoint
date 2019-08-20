@@ -308,7 +308,7 @@ public class SearchFactory {
         }
         
         for (ItemDefinition def : (List<ItemDefinition>) ext.getDefinitions()) {
-        	ItemPath itemPath = ItemPath.create(extensionPath, def.getName());
+        	ItemPath itemPath = ItemPath.create(extensionPath, def.getItemName());
         	
         	if (!isIndexed(def)) {
             	continue;

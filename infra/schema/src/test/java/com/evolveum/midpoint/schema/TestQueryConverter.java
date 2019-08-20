@@ -284,7 +284,7 @@ public class TestQueryConverter {
 			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
 			ItemPath namePath = UserType.F_NAME;
 			PrismPropertyDefinition ppd = getUserDefinition().findPropertyDefinition(namePath);
-			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getName(), ppd.getTypeName(), namePath);
+			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), ppd.getItemName(), ppd.getTypeName(), namePath);
 			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), PrismTestUtil.createPolyString("some name identificator"));
 //			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 //					prismContext.path(ConnectorType.F_CONNECTOR_TYPE));
