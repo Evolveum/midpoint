@@ -186,7 +186,7 @@ public class SchemaToDomProcessor {
 			addComplexTypeDefinition(complexTypeDefinition,complexTypeParent);
 		}
 
-		Element elementElement = addElementDefinition(definition.getName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
+		Element elementElement = addElementDefinition(definition.getItemName(), definition.getTypeName(), definition.getMinOccurs(), definition.getMaxOccurs(),
 				elementParent);
 
 		if (complexTypeDefinition == null || !complexTypeDefinition.isContainerMarker()) {
@@ -205,12 +205,12 @@ public class SchemaToDomProcessor {
 		// Add to document first, so following methods will be able to resolve namespaces
 		parent.appendChild(property);
 
-		String attrNamespace = definition.getName().getNamespaceURI();
+		String attrNamespace = definition.getItemName().getNamespaceURI();
 		if (attrNamespace != null && attrNamespace.equals(getNamespace())) {
-			setAttribute(property, "name", definition.getName().getLocalPart());
+			setAttribute(property, "name", definition.getItemName().getLocalPart());
 			setQNameAttribute(property, "type", definition.getTypeName());
 		} else {
-			setQNameAttribute(property, "ref", definition.getName());
+			setQNameAttribute(property, "ref", definition.getItemName());
 		}
 
 		if (definition.getMinOccurs() != 1) {
@@ -274,12 +274,12 @@ public class SchemaToDomProcessor {
 		// Add to document first, so following methods will be able to resolve namespaces
 		parent.appendChild(property);
 
-		String attrNamespace = definition.getName().getNamespaceURI();
+		String attrNamespace = definition.getItemName().getNamespaceURI();
 		if (attrNamespace != null && attrNamespace.equals(getNamespace())) {
-			setAttribute(property, "name", definition.getName().getLocalPart());
+			setAttribute(property, "name", definition.getItemName().getLocalPart());
 			setQNameAttribute(property, "type", definition.getTypeName());
 		} else {
-			setQNameAttribute(property, "ref", definition.getName());
+			setQNameAttribute(property, "ref", definition.getItemName());
 		}
 
 		if (definition.getCompositeObjectElementName() == null) {
@@ -325,7 +325,7 @@ public class SchemaToDomProcessor {
 		appinfo = createElement(new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
 
-		addAnnotation(A_OBJECT_REFERENCE, definition.getName(), appinfo);
+		addAnnotation(A_OBJECT_REFERENCE, definition.getItemName(), appinfo);
 		if (definition.isComposite()) {
 			addAnnotation(A_COMPOSITE, definition.isComposite(), appinfo);
 		}

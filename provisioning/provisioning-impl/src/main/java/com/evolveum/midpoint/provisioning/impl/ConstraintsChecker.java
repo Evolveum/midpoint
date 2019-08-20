@@ -159,7 +159,7 @@ public class ConstraintsChecker {
 			Collection<? extends ResourceAttributeDefinition> uniqueAttributeDefs = getUniqueAttributesDefinitions();
 			LOGGER.trace("Checking uniqueness of attributes: {}", uniqueAttributeDefs);
 			for (ResourceAttributeDefinition attrDef : uniqueAttributeDefs) {
-				PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getName());
+				PrismProperty<?> attr = attributesContainer.findProperty(attrDef.getItemName());
 				LOGGER.trace("Attempt to check uniqueness of {} (def {})", attr, attrDef);
 				if (attr == null) {
 					continue;
@@ -204,7 +204,7 @@ public class ConstraintsChecker {
 
 		//TODO: set matching rule instead of null
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName())
+				.itemWithDef(identifier.getDefinition(), ShadowType.F_ATTRIBUTES, identifier.getDefinition().getItemName())
 						.eq(PrismValueCollectionsUtil.cloneCollection(identifierValues))
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(accountDefinition.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
@@ -221,7 +221,7 @@ public class ConstraintsChecker {
 
 		RefinedObjectClassDefinition objectClassDefinition = provisioningContext.getObjectClassDefinition();
 		ResourceType resourceType = provisioningContext.getResource();
-		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues(), cacheConfigurationManager)) {
+		if (useCache && Cache.isOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getItemName(), identifier.getValues(), cacheConfigurationManager)) {
 			return true;
 		}
 
@@ -237,7 +237,7 @@ public class ConstraintsChecker {
 		}
 		if (foundObjects.isEmpty()) {
 			if (useCache) {
-				Cache.setOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+				Cache.setOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getItemName(), identifier.getValues());
 			}
 			return true;
 		}
@@ -264,7 +264,7 @@ public class ConstraintsChecker {
 			// we do not cache "OK" here because the violation confirmer could depend on attributes/items that are not under our observations
 		} else {
 			if (useCache) {
-				Cache.setOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getName(), identifier.getValues());
+				Cache.setOk(resourceType.getOid(), oid, objectClassDefinition.getTypeName(), identifier.getDefinition().getItemName(), identifier.getValues());
 			}
 			return true;
 		}
@@ -325,11 +325,11 @@ public class ConstraintsChecker {
 			return false;
 		} else {
 			for (RefinedAttributeDefinition<?> definition : getUniqueAttributesDefinitions()) {
-				Object oldItem = shadowObjectOld.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
-				Object newItem = shadowObject.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getName()));
+				Object oldItem = shadowObjectOld.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()));
+				Object newItem = shadowObject.find(ItemPath.create(ShadowType.F_ATTRIBUTES, definition.getItemName()));
 				if (!Objects.equals(oldItem, newItem)) {
 					LOGGER.trace("Uniqueness check will not be skipped because identifier {} values do not match: old={}, new={}",
-							definition.getName(), oldItem, newItem);
+							definition.getItemName(), oldItem, newItem);
 					return false;
 				}
 			}

@@ -94,7 +94,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 	@NotNull
 	public ItemName getElementName() {
 		if (definition != null) {
-			return definition.getName();		// this is more precise, as the name in path can be unqualified
+			return definition.getItemName();		// this is more precise, as the name in path can be unqualified
 		}
 		if (fullPath.isEmpty()) {
 			throw new IllegalStateException("Empty full path in filter "+this);
@@ -469,7 +469,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 			}
 		}
 		if (definition != null && ItemPath.isName(last)) {
-			if (!QNameUtil.match(definition.getName(), ItemPath.toName(last))) {
+			if (!QNameUtil.match(definition.getItemName(), ItemPath.toName(last))) {
 				throw new IllegalArgumentException("Last segment of item path (" + fullPath.lastName() + ") "
 						+ "does not match item name from the definition: " + definition);
 			}

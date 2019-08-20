@@ -508,7 +508,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
 				if (Name.NAME.equals(icfName)) {
 					nameDefinition = attrDef;
-					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
+					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getItemName())) {
 						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = attrDef;
 						hasUidDefinition = true;
@@ -540,7 +540,7 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
 				} else {
 					// Check conflict with UID definition
-					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getName())) {
+					if (uidDefinition != null && attrXsdName.equals(uidDefinition.getItemName())) {
 						attrDef.setDisplayOrder(ConnectorFactoryConnIdImpl.ICFS_UID_DISPLAY_ORDER);
 						uidDefinition = attrDef;
 						hasUidDefinition = true;
@@ -615,8 +615,8 @@ public class ConnIdCapabilitiesAndSchemaParser {
 
 			// Add schema annotations
 			ocDef.toMutable().setNativeObjectClass(objectClassInfo.getType());
-			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getName());
-			ocDef.toMutable().setNamingAttribute(nameDefinition.getName());
+			ocDef.toMutable().setDisplayNameAttribute(nameDefinition.getItemName());
+			ocDef.toMutable().setNamingAttribute(nameDefinition.getItemName());
 			ocDef.toMutable().setAuxiliary(objectClassInfo.isAuxiliary());
 
 			LOGGER.trace("  ... converted object class {}: {}", objectClassInfo.getType(), ocDef);

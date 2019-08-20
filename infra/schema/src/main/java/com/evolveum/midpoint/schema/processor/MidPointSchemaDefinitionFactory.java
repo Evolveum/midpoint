@@ -182,19 +182,19 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 
 		// displayName, identifier, secondaryIdentifier
 		for (ResourceAttributeDefinition identifier : definition.getPrimaryIdentifiers()) {
-			processor.addRefAnnotation(MidPointConstants.RA_IDENTIFIER, identifier.getName(), appinfo);
+			processor.addRefAnnotation(MidPointConstants.RA_IDENTIFIER, identifier.getItemName(), appinfo);
 		}
 		for (ResourceAttributeDefinition identifier : definition.getSecondaryIdentifiers()) {
-			processor.addRefAnnotation(MidPointConstants.RA_SECONDARY_IDENTIFIER,identifier.getName(),appinfo);
+			processor.addRefAnnotation(MidPointConstants.RA_SECONDARY_IDENTIFIER,identifier.getItemName(),appinfo);
 		}
 		if (definition.getDisplayNameAttribute() != null) {
-			processor.addRefAnnotation(MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE, definition.getDisplayNameAttribute().getName(), appinfo);
+			processor.addRefAnnotation(MidPointConstants.RA_DISPLAY_NAME_ATTRIBUTE, definition.getDisplayNameAttribute().getItemName(), appinfo);
 		}
 		if (definition.getDescriptionAttribute() != null) {
-			processor.addRefAnnotation(MidPointConstants.RA_DESCRIPTION_ATTRIBUTE, definition.getDescriptionAttribute().getName(), appinfo);
+			processor.addRefAnnotation(MidPointConstants.RA_DESCRIPTION_ATTRIBUTE, definition.getDescriptionAttribute().getItemName(), appinfo);
 		}
 		if (definition.getNamingAttribute() != null) {
-			processor.addRefAnnotation(MidPointConstants.RA_NAMING_ATTRIBUTE, definition.getNamingAttribute().getName(), appinfo);
+			processor.addRefAnnotation(MidPointConstants.RA_NAMING_ATTRIBUTE, definition.getNamingAttribute().getItemName(), appinfo);
 		}
 		// TODO: what to do with native object class, composite
 		// // nativeObjectClass

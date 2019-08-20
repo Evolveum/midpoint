@@ -110,7 +110,7 @@ public class Property implements Serializable, Comparable<Property> {
 		}
         String name = def.getDisplayName();		// TODO this is always null here, isn't it?
         if (StringUtils.isEmpty(name)) {
-            name = def.getName().getLocalPart();
+            name = def.getItemName().getLocalPart();
         }
         return name;
     }

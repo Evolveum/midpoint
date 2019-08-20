@@ -230,7 +230,7 @@ public class ConnectorFactoryBuiltinImpl implements ConnectorFactory {
 			}
 		}
 		return configurationContainerDef.createPropertyDefinition(
-				new QName(configurationContainerDef.getName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
+				new QName(configurationContainerDef.getItemName().getNamespaceURI(), propName), propType, minOccurs, maxOccurs);
 	}
 
 	@Override

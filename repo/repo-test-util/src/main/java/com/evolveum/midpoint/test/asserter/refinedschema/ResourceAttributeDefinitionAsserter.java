@@ -115,7 +115,7 @@ public class ResourceAttributeDefinitionAsserter<T,RA> extends PrismPropertyDefi
 	}
 	
 	protected String desc() {
-		return descWithDetails("resource attribute definition " + PrettyPrinter.prettyPrint(getDefinition().getName()));
+		return descWithDetails("resource attribute definition " + PrettyPrinter.prettyPrint(getDefinition().getItemName()));
 	}
 
 	public ResourceAttributeDefinitionAsserter<T,RA> display() {

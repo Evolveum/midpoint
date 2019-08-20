@@ -47,7 +47,7 @@ public class ValueMatcher<T> {
 		try {
 			matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 		} catch (SchemaException e) {
-			throw new SchemaException(e.getMessage()+", defined for attribute "+rAttrDef.getName(), e);
+			throw new SchemaException(e.getMessage()+", defined for attribute "+rAttrDef.getItemName(), e);
 		}
 		return new ValueMatcher<>(matchingRule);
 	}

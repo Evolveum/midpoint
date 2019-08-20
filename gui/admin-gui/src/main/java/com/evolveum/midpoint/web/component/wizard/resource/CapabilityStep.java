@@ -310,7 +310,7 @@ public class CapabilityStep extends WizardStep {
 								if (schema != null) {
 									ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 									for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
-										choices.add(attribute.getName());
+										choices.add(attribute.getItemName());
 									}
 								}
 							} catch (CommonException | RuntimeException e) {

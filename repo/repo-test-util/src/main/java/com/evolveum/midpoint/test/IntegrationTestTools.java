@@ -341,13 +341,13 @@ public class IntegrationTestTools {
         assertNotNull("No object class definition in attributes definition", objectClassDef);
         assertEquals("Wrong object class in attributes definition", objectClass, objectClassDef.getTypeName());
         ResourceAttributeDefinition primaryIdDef = objectClassDef.getPrimaryIdentifiers().iterator().next();
-        ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getName());
-        assertNotNull("No primary ID "+primaryIdDef.getName()+" in "+account, primaryIdAttr);
+        ResourceAttribute<?> primaryIdAttr = rAttributesContainer.findAttribute(primaryIdDef.getItemName());
+        assertNotNull("No primary ID "+primaryIdDef.getItemName()+" in "+account, primaryIdAttr);
         assertAttributeDefinition(primaryIdAttr, DOMUtil.XSD_STRING, 0, 1, true, false, false, expetcedAttributeDefinitionClass);
 
         ResourceAttributeDefinition secondaryIdDef = objectClassDef.getSecondaryIdentifiers().iterator().next();
-        ResourceAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getName());
-        assertNotNull("No secondary ID "+secondaryIdDef.getName()+" in "+account, secondaryIdAttr);
+        ResourceAttribute<Object> secondaryIdAttr = rAttributesContainer.findAttribute(secondaryIdDef.getItemName());
+        assertNotNull("No secondary ID "+secondaryIdDef.getItemName()+" in "+account, secondaryIdAttr);
         assertAttributeDefinition(secondaryIdAttr, DOMUtil.XSD_STRING, 1, 1, true, true, true, expetcedAttributeDefinitionClass);
     }
 
@@ -690,8 +690,8 @@ public class IntegrationTestTools {
 			Collection<? extends ResourceAttributeDefinition> identifierDefs = objectClassDef.getPrimaryIdentifiers();
 			assertFalse("No identifiers for "+objectClassDef, identifierDefs == null || identifierDefs.isEmpty());
 			for (ResourceAttributeDefinition idDef: identifierDefs) {
-				String id = ShadowUtil.getSingleStringAttributeValue(shadowType, idDef.getName());
-				assertNotNull("No identifier "+idDef.getName()+" in "+shadowType, id);
+				String id = ShadowUtil.getSingleStringAttributeValue(shadowType, idDef.getItemName());
+				assertNotNull("No identifier "+idDef.getItemName()+" in "+shadowType, id);
 			}
 		}
 
@@ -756,7 +756,7 @@ public class IntegrationTestTools {
 	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, ObjectClassComplexTypeDefinition objectClassDef, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
 
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-		QName identifierName = objectClassDef.getPrimaryIdentifiers().iterator().next().getName();
+		QName identifierName = objectClassDef.getPrimaryIdentifiers().iterator().next().getItemName();
 		PrismProperty<String> identifier = attributesContainer.findProperty(ItemName.fromQName(identifierName));
 		if (identifier == null) {
 			throw new SchemaException("No identifier in "+resourceShadow);
@@ -769,7 +769,7 @@ public class IntegrationTestTools {
 		PrismPropertyDefinition<String> identifierDef = identifier.getDefinition();
 		return prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(ShadowUtil.getResourceOid(resourceShadow))
-				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef).eq(identifierValue)
+				.and().item(ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName()), identifierDef).eq(identifierValue)
 				.build();
 	}
 

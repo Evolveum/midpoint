@@ -225,7 +225,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 			if (itemDefinition != null
 					&& !(itemDefinition instanceof PrismPropertyDefinition && ((PrismPropertyDefinition) itemDefinition).isAnyType())) {
                 if (itemName == null) {
-                    itemName = itemDefinition.getName();
+                    itemName = itemDefinition.getItemName();
                 }
                 checkPrismContext();
 				Item<IV,ID> subItem = prismContext.parserFor(getRootXNode(itemName)).name(itemName).definition(itemDefinition).parseItem();
@@ -286,7 +286,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
 
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition) throws SchemaException {
         Validate.notNull(itemDefinition);
-        return getParsedItem(itemDefinition, itemDefinition.getName());
+        return getParsedItem(itemDefinition, itemDefinition.getItemName());
     }
 
     public <IV extends PrismValue,ID extends ItemDefinition> Item<IV,ID> getParsedItem(ID itemDefinition, QName itemName) throws SchemaException {

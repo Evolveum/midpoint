@@ -1411,9 +1411,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismContainerDefinition<?> extensionDefinition = userDef.getExtensionDefinition();
 		List<? extends ItemDefinition> extensionDefs = extensionDefinition.getComplexTypeDefinition().getDefinitions();
 		for (ItemDefinition itemDefinition : extensionDefs) {
-			if (itemDefinition.getName().equals(piracyShip)) {
+			if (itemDefinition.getItemName().equals(piracyShip)) {
 				//iterator.remove();	// not possible as the collection is unmodifiable
-				itemDefinition.toMutable().setName(piracyShipBroken);
+				itemDefinition.toMutable().setItemName(piracyShipBroken);
 			}
 		}
 	}

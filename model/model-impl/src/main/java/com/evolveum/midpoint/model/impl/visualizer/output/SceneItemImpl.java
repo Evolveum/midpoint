@@ -121,7 +121,7 @@ public class SceneItemImpl implements SceneItem, DebugDumpable {
 			sb.append(" ITEM");
 			final ItemDefinition def = sourceItem.getDefinition();
 			if (def != null) {
-				sb.append(" DEF(").append(def.getName().getLocalPart()).append("/").append(def.getDisplayName()).append(":").append(def.getDisplayOrder()).append(")");
+				sb.append(" DEF(").append(def.getItemName().getLocalPart()).append("/").append(def.getDisplayName()).append(":").append(def.getDisplayOrder()).append(")");
 			}
 		}
 		if (operational) {

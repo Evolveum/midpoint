@@ -200,8 +200,8 @@ public class TransformationalAsyncUpdateMessageListener implements AsyncUpdateMe
 		} else {
 			throw new SchemaException("Change does not contain identifiers");
 		}
-		Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toSet());
-		Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toSet());
+		Set<ItemName> identifiers = ocDef.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
+		Set<ItemName> primaryIdentifiers = ocDef.getPrimaryIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toSet());
 		Set<Object> primaryIdentifierRealValues = new HashSet<>();
 		for (Item<?,?> attribute : attributesPcv.getItems()) {
 			if (QNameUtil.matchAny(attribute.getElementName(), identifiers)) {

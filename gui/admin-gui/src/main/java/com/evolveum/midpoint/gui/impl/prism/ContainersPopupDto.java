@@ -40,7 +40,7 @@ public class ContainersPopupDto implements Serializable {
 			return def.getDisplayName();
 		}
 		
-		return def.getName().getLocalPart();
+		return def.getItemName().getLocalPart();
 	}
 	
 	public PrismContainerDefinition<?> getDef() {

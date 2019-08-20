@@ -95,7 +95,7 @@ public class CanonicalItemPathImpl implements CanonicalItemPath {
 				if (def instanceof PrismContainerDefinition) {
 					def = ((PrismContainerDefinition) def).findItemDefinition(name);
 					if (def != null && !QNameUtil.hasNamespace(name)) {
-						name = def.getName();
+						name = def.getItemName();
 					}
 				}
 				addToSegments(name);

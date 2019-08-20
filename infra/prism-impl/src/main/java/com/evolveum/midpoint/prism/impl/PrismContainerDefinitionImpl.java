@@ -119,7 +119,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	}
 
     protected String getSchemaNamespace() {
-        return getName().getNamespaceURI();
+        return getItemName().getNamespaceURI();
     }
 
     @Override
@@ -204,7 +204,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
 	public <ID extends ItemDefinition> ID findNamedItemDefinition(@NotNull QName firstName, @NotNull ItemPath rest, @NotNull Class<ID> clazz) {
 
 	    for (ItemDefinition def : getDefinitions()) {
-		    if (QNameUtil.match(firstName, def.getName())) {
+		    if (QNameUtil.match(firstName, def.getItemName())) {
 			    return (ID) def.findItemDefinition(rest, clazz);
 		    }
 	    }
@@ -267,7 +267,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     @NotNull
 	@Override
     public PrismContainer<C> instantiate() throws SchemaException {
-        return instantiate(getName());
+        return instantiate(getItemName());
     }
 
     @NotNull
@@ -276,7 +276,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     	if (isAbstract()) {
 			throw new SchemaException("Cannot instantiate abstract definition "+this);
 		}
-        elementName = DefinitionUtil.addNamespaceIfApplicable(elementName, this.name);
+        elementName = DefinitionUtil.addNamespaceIfApplicable(elementName, this.itemName);
         return new PrismContainerImpl<>(elementName, this, prismContext);
     }
 
@@ -299,7 +299,7 @@ public class PrismContainerDefinitionImpl<C extends Containerable> extends ItemD
     @NotNull
 	@Override
     public PrismContainerDefinitionImpl<C> clone() {
-        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<>(name, complexTypeDefinition, prismContext, compileTimeClass);
+        PrismContainerDefinitionImpl<C> clone = new PrismContainerDefinitionImpl<>(itemName, complexTypeDefinition, prismContext, compileTimeClass);
         copyDefinitionData(clone);
         return clone;
     }

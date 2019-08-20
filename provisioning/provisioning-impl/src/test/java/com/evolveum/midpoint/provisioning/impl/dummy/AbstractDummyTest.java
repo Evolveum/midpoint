@@ -272,7 +272,7 @@ public abstract class AbstractDummyTest extends AbstractProvisioningIntegrationT
 		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getName()).eq(getWillRepoIcfName())
+				.itemWithDef(itemDef, ShadowType.F_ATTRIBUTES, itemDef.getItemName()).eq(getWillRepoIcfName())
 				.build();
 
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "

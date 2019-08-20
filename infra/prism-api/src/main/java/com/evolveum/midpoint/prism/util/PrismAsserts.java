@@ -178,7 +178,7 @@ public class PrismAsserts {
 	public static <T extends Objectable> void assertObjectDefinition(PrismObjectDefinition<T> objDef, QName elementName,
 			QName typeName, Class<T> compileTimeClass) {
 		assertNotNull("No definition", objDef);
-		assertEquals("Wrong elementName for "+objDef, elementName, objDef.getName());
+		assertEquals("Wrong elementName for "+objDef, elementName, objDef.getItemName());
 		assertEquals("Wrong typeName for "+objDef, typeName, objDef.getTypeName());
 		assertEquals("Wrong compileTimeClass for " + objDef, compileTimeClass, objDef.getCompileTimeClass());
 	}
@@ -1001,7 +1001,7 @@ public class PrismAsserts {
 		EqualFilter filter = (EqualFilter) objectFilter;
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
 		if (filter.getDefinition() != null){
-			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getItemName());
 			assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		}
 		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
@@ -1020,7 +1020,7 @@ public class PrismAsserts {
 			ItemPath path) {
 		assertTrue("Wrong filter class: " + objectFilter.getClass(), objectFilter instanceof RefFilter);
 		RefFilter filter = (RefFilter) objectFilter;
-		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getItemName());
 		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		assertPathEquivalent("Wrong filter path", path, filter.getFullPath());
 	}

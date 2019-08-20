@@ -110,7 +110,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
 		return getAttributeDefinitions().stream()
 				.filter(attrDef -> attrDef.getOutboundMappingType() != null)
-				.map(attrDef -> attrDef.getName())
+				.map(attrDef -> attrDef.getItemName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
 
@@ -118,7 +118,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
 		return getAttributeDefinitions().stream()
 				.filter(attrDef -> CollectionUtils.isNotEmpty(attrDef.getInboundMappingTypes()))
-				.map(attrDef -> attrDef.getName())
+				.map(attrDef -> attrDef.getItemName())
 				.collect(Collectors.toCollection(HashSet::new));
 	}
 
@@ -184,7 +184,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 			if (original == null) {
 				return null;
 			}
-			value = findAttributeDefinition(original.getName());
+			value = findAttributeDefinition(original.getItemName());
 			setter.accept(value);
 		}
 		return value;
@@ -975,8 +975,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             		attrContextDescription);
             rOcDef.processIdentifiers(rAttrDef, objectClassDef);
 
-            if (rOcDef.containsAttributeDefinition(rAttrDef.getName())) {
-                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in " + attrContextDescription);
+            if (rOcDef.containsAttributeDefinition(rAttrDef.getItemName())) {
+                throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getItemName() + " in " + attrContextDescription);
             }
             rOcDef.add(rAttrDef);
 
@@ -1102,8 +1102,8 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 			return;
 		}
 		for (ResourceAttributeDefinition road : ocDef.getAttributeDefinitions()) {
-            String attrContextDescription = road.getName() + ", in " + contextDescription;
-            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getName(), schemaHandlingObjectTypeDefinitionType,
+            String attrContextDescription = road.getItemName() + ", in " + contextDescription;
+            ResourceAttributeDefinitionType attrDefType = findAttributeDefinitionType(road.getItemName(), schemaHandlingObjectTypeDefinitionType,
             		attrContextDescription);
             // We MUST NOT skip ignored attribute definitions here. We must include them in the schema as
             // the shadows will still have that attributes and we will need their type definition to work
@@ -1116,11 +1116,11 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
             	processIdentifiers(rAttrDef, ocDef);
             }
 
-            if (containsAttributeDefinition(rAttrDef.getName())) {
+            if (containsAttributeDefinition(rAttrDef.getItemName())) {
             	if (auxiliary) {
             		continue;
             	} else {
-            		throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getName() + " in "+kind+" type " +
+            		throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getItemName() + " in "+kind+" type " +
                 		intent + ", in " + contextDescription);
             	}
             }
@@ -1136,7 +1136,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 	}
 
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
-		QName attrName = rAttrDef.getName();
+		QName attrName = rAttrDef.getItemName();
 		
 		if (objectClassDef.isPrimaryIdentifier(attrName)) {
 			((Collection)getPrimaryIdentifiers()).add(rAttrDef);
@@ -1417,7 +1417,7 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 				.filter(p -> p.isSingleName())
 				.map(p -> p.asSingleName())
 				.collect(Collectors.toList());
-		attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
+		attributeDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getItemName()));
 		associationDefinitions.removeIf(itemDefinition -> !QNameUtil.contains(names, itemDefinition.getName()));
 	}
 

@@ -69,7 +69,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 	@Override
 	public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
 			ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
+		ItemName name = def.getItemName();
 		
 		PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
@@ -99,7 +99,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 		
 		for (ItemDefinition<?> def : value.getDefinition().getDefinitions()) {
 			
-			Item<?,?> childItem = value.findItem(def.getName());
+			Item<?,?> childItem = value.findItem(def.getItemName());
 			
 			if (childItem == null && def instanceof PrismContainerDefinition) {
 				LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");

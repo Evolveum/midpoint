@@ -126,29 +126,29 @@ public class SchemaProcessorTest {
 		// THEN
 
 		PrismPropertyDefinition number1def = newSchema.findItemDefinitionByElementName(new ItemName(SCHEMA_NS,"number1"), PrismPropertyDefinition.class);
-		assertEquals(new ItemName(SCHEMA_NS,"number1"),number1def.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"number1"),number1def.getItemName());
 		assertEquals(DOMUtil.XSD_INT,number1def.getTypeName());
 
 		PrismContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new ItemName(SCHEMA_NS,"ContainerType"));
 		assertEquals(new ItemName(SCHEMA_NS,"ContainerType"),newContainerDef.getTypeName());
 
 		PrismPropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"login"));
-		assertEquals(new ItemName(SCHEMA_NS,"login"), loginDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"login"), loginDef.getItemName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertTrue("Read flag is wrong",loginDef.canRead());
 		assertTrue("Create flag is wrong",loginDef.canAdd());
 		assertTrue("Update flag is wrong",loginDef.canModify());
 
 		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"password"));
-		assertEquals(new ItemName(SCHEMA_NS,"password"), passwdDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"password"), passwdDef.getItemName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
 		PrismPropertyDefinition credDef = newContainerDef.findPropertyDefinition(new ItemName(SchemaConstants.NS_C,"credentials"));
-		assertEquals(new ItemName(SchemaConstants.NS_C,"credentials"), credDef.getName());
+		assertEquals(new ItemName(SchemaConstants.NS_C,"credentials"), credDef.getItemName());
 		assertEquals(new ItemName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 
 		PrismPropertyDefinition countDef = newContainerDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"counter"));
-		assertEquals(new ItemName(SCHEMA_NS,"counter"), countDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"counter"), countDef.getItemName());
 		assertEquals(DOMUtil.XSD_INT, countDef.getTypeName());
 		assertTrue("Read flag is wrong",countDef.canRead());
 		assertFalse("Create flag is wrong",countDef.canAdd());
@@ -170,7 +170,7 @@ public class SchemaProcessorTest {
 		ResourceAttributeDefinitionImpl xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		containerDefinition.addPrimaryIdentifier(xloginDef);
 		xloginDef.setNativeAttributeName("LOGIN");
-		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
+		containerDefinition.setDisplayNameAttribute(xloginDef.getItemName());
 		// ... and local property with a type from another schema
 		ResourceAttributeDefinitionImpl xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
@@ -211,12 +211,12 @@ public class SchemaProcessorTest {
 		assertTrue(newObjectClassDef.isDefaultInAKind());
 
 		PrismPropertyDefinition loginDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"login"));
-		assertEquals(new ItemName(SCHEMA_NS,"login"), loginDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"login"), loginDef.getItemName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertFalse(loginDef.isIgnored());
 
 		PrismPropertyDefinition passwdDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"password"));
-		assertEquals(new ItemName(SCHEMA_NS,"password"), passwdDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"password"), passwdDef.getItemName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
@@ -226,7 +226,7 @@ public class SchemaProcessorTest {
 //		assertFalse(credDef.isIgnored());
 
 		PrismPropertyDefinition sepDef = newObjectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NS,"sep"));
-		assertEquals(new ItemName(SCHEMA_NS,"sep"), sepDef.getName());
+		assertEquals(new ItemName(SCHEMA_NS,"sep"), sepDef.getItemName());
 		assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
 		assertTrue(sepDef.isIgnored());
 

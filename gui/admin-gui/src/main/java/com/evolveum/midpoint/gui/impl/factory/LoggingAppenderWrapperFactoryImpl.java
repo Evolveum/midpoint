@@ -45,7 +45,7 @@ public class LoggingAppenderWrapperFactoryImpl<T> extends PrismPropertyWrapperFa
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof PrismPropertyDefinition
-				&& QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_APPENDER);
+				&& QNameUtil.match(def.getItemName(), ClassLoggerConfigurationType.F_APPENDER);
 	}
 	
 	@Override

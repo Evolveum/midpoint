@@ -49,7 +49,7 @@ public class LoggingPackageWrapperFactoryImpl<T> extends PrismPropertyWrapperFac
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		return def instanceof PrismPropertyDefinition
-				&& QNameUtil.match(def.getName(), ClassLoggerConfigurationType.F_PACKAGE);
+				&& QNameUtil.match(def.getItemName(), ClassLoggerConfigurationType.F_PACKAGE);
 	}
 
 	@Override

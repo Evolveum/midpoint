@@ -2270,7 +2270,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(RESOURCE_DUMMY_OID)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(new QName(ResourceTypeUtil.getResourceNamespace(resourceType), SchemaConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME))
-				.and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq("Sea Monkey")
+				.and().itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq("Sea Monkey")
 				.and().item(ShadowType.F_DEAD).eq(true)
 				.build();
 		display("Query", query);
@@ -2289,7 +2289,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition<T> attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attrVal)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attrVal)
 				.buildFilter();
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, true, false, expectedAccountNames);
 	}
@@ -2302,8 +2302,8 @@ public class TestDummy extends AbstractBasicDummyTest {
         ResourceAttributeDefinition<T> attr1Def = objectClassDef.findAttributeDefinition(attr1QName);
         ResourceAttributeDefinition<T> attr2Def = objectClassDef.findAttributeDefinition(attr2QName);
 		ObjectFilter filter = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getName()).eq(attr1Val)
-				.or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getName()).eq(attr2Val)
+				.itemWithDef(attr1Def, ShadowType.F_ATTRIBUTES, attr1Def.getItemName()).eq(attr1Val)
+				.or().itemWithDef(attr2Def, ShadowType.F_ATTRIBUTES, attr2Def.getItemName()).eq(attr2Val)
 				.buildFilter();
         testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, false, true, expectedAccountNames);
     }
@@ -4064,7 +4064,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 		ResourceAttributeDefinition fullnameAttrDef = defaultAccountDefinition.findAttributeDefinition("fullname");
 		ResourceAttribute fullnameAttr = fullnameAttrDef.instantiate();
 		PropertyDelta fullnameDelta = fullnameAttr.createDelta(ItemPath.create(ShadowType.F_ATTRIBUTES,
-				fullnameAttrDef.getName()));
+				fullnameAttrDef.getItemName()));
 		fullnameDelta.setRealValuesToReplace("Good Daemon");
 		((Collection) modifications).add(fullnameDelta);
 
