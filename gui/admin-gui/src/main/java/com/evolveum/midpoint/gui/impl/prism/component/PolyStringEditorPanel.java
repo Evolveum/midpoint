@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import org.apache.commons.collections.CollectionUtils;
@@ -208,12 +209,34 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
         final DropDownChoicePanel<String> languageChoicePanel = new DropDownChoicePanel<String>(ID_LANGUAGES_LIST, Model.of(),
                 getLanguageChoicesModel(), true);
-        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         languageChoicePanel.setOutputMarkupId(true);
         languageEditorContainer.add(languageChoicePanel);
 
         final TextPanel<String> newLanguageValue = new TextPanel<String>(ID_VALUE_TO_ADD, Model.of());
-        newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
+        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
+        newLanguageValue.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
         newLanguageValue.setOutputMarkupId(true);
         languageEditorContainer.add(newLanguageValue);
 
@@ -247,8 +270,23 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
                         listItem.add(languageName);
 
                         TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(getLanguageValueByKey(listItem.getModelObject())));
-                        translation.add(new EnableBehaviour(() -> false));
+                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), translation.getBaseFormComponent().getValue());
+                            }
+                        });
                         translation.setOutputMarkupId(true);
+                        translation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), newLanguageValue.getBaseFormComponent().getValue());
+                            }
+                        });
                         listItem.add(translation);
 
                         AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_LANGUAGE_BUTTON) {
