@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint API Distribution</name>
-    <artifactId>midpoint-api</artifactId>
+    <name>midPoint JavaDoc</name>
+    <artifactId>javadoc</artifactId>
     <packaging>jar</packaging>
     <parent>
         <artifactId>parent</artifactId>
@@ -48,62 +48,32 @@
         <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <dependencies>
-   	<dependency>
+   		<dependency>
+            <groupId>com.evolveum.midpoint.gui</groupId>
+            <artifactId>admin-gui</artifactId>
+            <version>4.0-SNAPSHOT</version>
+            <type>war</type>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-annotations-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+   		<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>model-api</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>4.0-SNAPSHOT</version>
-            <scope>compile</scope>
-        </dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>prism-api</artifactId>
-			<version>4.0-SNAPSHOT</version>
-		</dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.evolveum.midpoint.infra</groupId>-->
-            <!--<artifactId>prism-impl</artifactId>-->
-            <!--<version>4.0-SNAPSHOT</version>-->
-            <!--<scope>compile</scope>-->
-        <!--</dependency>-->
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>util</artifactId>
+            <artifactId>model-impl</artifactId>
             <version>4.0-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-					<!-- <finalName>midpoint-${version}</finalName> -->
-				</configuration>
-				<executions>
-					<execution>
-						<id>make-assembly</id>
-						<phase>package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -117,6 +87,9 @@
                     	<!-- Test jar is empty. We do not want to build it. -->
                     	<id>test-jar</id>
                     	<phase>none</phase>
+                    	<configuration>
+                    		<skipIfEmpty>true</skipIfEmpty>
+                    	</configuration>
                     </execution>
                 </executions>
 			</plugin>
@@ -124,10 +97,15 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <includeDependencySources>true</includeDependencySources>
+                    <includeTransitiveDependencySources>true</includeTransitiveDependencySources>
                     <dependencySourceIncludes>
                         <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
                     </dependencySourceIncludes>
-                    <quiet>false</quiet>
+                    <isOffline>true</isOffline>
+                    <doctitle>midPoint Aggregate JavaDoc</doctitle>
+                    <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
+ 				    <additionalparam>-Xdoclint:none</additionalparam>
+                    <quiet>true</quiet>
                     <debug>false</debug>
                 </configuration>
                 <executions>
@@ -158,13 +136,19 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-enforcer-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
     <profiles>
     	<profile>
 			<id>java8</id>
 			<activation>
-		      <jdk>[1.8,)</jdk>
+		      <jdk>(,1.8]</jdk>
 		    </activation>
 			<build>
 				<plugins>
@@ -174,19 +158,12 @@
  					  <executions>
  				        <execution>
  				            <id>javadoc-jar</id>
- 				            <phase>package</phase>
+ 				            <phase>none</phase>
  				            <goals>
  				                <goal>jar</goal>
  				            </goals>
  				            <configuration>
- 				            	<includeDependencySources>true</includeDependencySources>
- 		                        <dependencySourceIncludes>
- 		                            <dependencySourceInclude>com.evolveum.*:*</dependencySourceInclude>
- 		                        </dependencySourceIncludes>
- 		                        <quiet>false</quiet>
- 		                        <debug>false</debug>
- 				                <additionalparam>-Xdoclint:none</additionalparam>
- 				                <failOnError>true</failOnError>
+ 		                        <skip>true</skip>
  				            </configuration>
  				        </execution>
  				    </executions>
