@@ -429,6 +429,7 @@ public class ExpressionUtil {
         if (values == null) {
             values = prismContext.xnodeFactory().map();        // todo [med] this has no effect on the map node!
         }
+        expression.getExpressionEvaluator().add(element);
         return values;
     }
 
