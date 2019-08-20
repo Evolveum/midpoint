@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -128,15 +129,14 @@ public class ExpressionHandler {
 	}
 
 	// TODO: refactor - this method is also in SchemaHandlerImpl
-	private ResourceType resolveResource(ShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
-			 {
-		if (shadow.getResource() != null) {
-			return shadow.getResource();
-		}
-
+	private ResourceType resolveResource(ShadowType shadow, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " doesn't have defined resource.");
+		}
+		PrismObject<ResourceType> resource = ref.asReferenceValue().getObject();
+		if (resource != null) {
+			return resource.asObjectable();
 		}
 		if (ref.getOid() == null) {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " defines null resource OID.");

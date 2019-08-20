@@ -2500,27 +2500,31 @@ public final class WebComponentUtil {
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
 																	 ShadowType shadowType) {
-//
-		ResourceType resource = shadowType.getResource();
-
+		ObjectReferenceType resourceRef = shadowType.getResourceRef();
+		if (resourceRef == null) {
+			//TODO: what to return if we don't have resource available?
+			return ItemVisibility.AUTO;
+		}
+		PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return ItemVisibility.AUTO;
 		}
+		ResourceType resourceType = resource.asObjectable();
 		
 		CompositeRefinedObjectClassDefinition ocd = null;
 
 		try {
-			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
 		}
-		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
 
 
 		if (SchemaConstants.PATH_ACTIVATION.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isActivationCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2528,7 +2532,7 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isActivationStatusCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2536,7 +2540,7 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isActivationLockoutStatusCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2544,7 +2548,7 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_ACTIVATION_VALID_FROM.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationValidityFromCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isActivationValidityFromCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2552,7 +2556,7 @@ public final class WebComponentUtil {
 		}
 
 		if (SchemaConstants.PATH_ACTIVATION_VALID_TO.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isActivationValidityToCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isActivationValidityToCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2560,7 +2564,7 @@ public final class WebComponentUtil {
 		}
 		
 		if (SchemaConstants.PATH_PASSWORD.equivalent(itemWrapper.getPath())) {
-			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+			if (ResourceTypeUtil.isPasswordCapabilityEnabled(resourceType, resourceObjectTypeDefinitionType)) {
 				return ItemVisibility.AUTO;
 			} else {
 				return ItemVisibility.HIDDEN;
@@ -2580,16 +2584,20 @@ public final class WebComponentUtil {
 	}
 
 	public static boolean isActivationSupported(ShadowType shadowType) {
-		ResourceType resource = shadowType.getResource();
-
+		ObjectReferenceType resourceRef = shadowType.getResourceRef();
+		if (resourceRef == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+		PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return true;
 		}
 
-		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
 
-		if (ResourceTypeUtil.isActivationCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+		if (ResourceTypeUtil.isActivationCapabilityEnabled(resource.asObjectable(), resourceObjectTypeDefinitionType)) {
 			return true;
 		}
 
@@ -2598,16 +2606,20 @@ public final class WebComponentUtil {
 	}
 
 	public static boolean isPasswordSupported(ShadowType shadowType) {
-		ResourceType resource = shadowType.getResource();
-
+		ObjectReferenceType resourceRef = shadowType.getResourceRef();
+		if (resourceRef == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+		PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
 			return true;
 		}
 
-		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource.asPrismObject(), shadowType.getKind(), shadowType.getIntent());
+		ResourceObjectTypeDefinitionType resourceObjectTypeDefinitionType = ResourceTypeUtil.findObjectTypeDefinition(resource, shadowType.getKind(), shadowType.getIntent());
 
-		if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource, resourceObjectTypeDefinitionType)) {
+		if (ResourceTypeUtil.isPasswordCapabilityEnabled(resource.asObjectable(), resourceObjectTypeDefinitionType)) {
 			return true;
 		}
 
@@ -2617,17 +2629,21 @@ public final class WebComponentUtil {
 
 
 	public static boolean isAssociationSupported(ShadowType shadowType) {
-		ResourceType resource = shadowType.getResource();
-
+		ObjectReferenceType resourceRef = shadowType.getResourceRef();
+		if (resourceRef == null) {
+			//TODO: what to return if we don't have resource available?
+			return true;
+		}
+		PrismObject<ResourceType> resource = resourceRef.asReferenceValue().getObject();
 		if (resource == null) {
 			//TODO: what to return if we don't have resource available?
-			return false;
+			return true;
 		}
 
 		CompositeRefinedObjectClassDefinition ocd = null;
 
 		try {
-			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource.asPrismObject());
+			RefinedResourceSchema resourceSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			ocd = resourceSchema.determineCompositeObjectClassDefinition(shadowType.asPrismObject());
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot find refined definition for {} in {}", shadowType, resource);
@@ -3031,11 +3047,10 @@ public final class WebComponentUtil {
 	}
 
 	public static PrismObject<ResourceType> getConstructionResource(ConstructionType construction, String operation, PageBase pageBase){
-		ResourceType resource = construction.getResource();
-		if (resource != null){
-			return resource.asPrismObject();
-		}
 		ObjectReferenceType resourceRef = construction.getResourceRef();
+		if (resourceRef.asReferenceValue().getObject() != null) {
+			return resourceRef.asReferenceValue().getObject();
+		}
 		OperationResult result = new OperationResult(operation);
 		Task task = pageBase.createSimpleTask(operation);
 		return WebModelServiceUtils.resolveReferenceNoFetch(resourceRef, pageBase, task, result);

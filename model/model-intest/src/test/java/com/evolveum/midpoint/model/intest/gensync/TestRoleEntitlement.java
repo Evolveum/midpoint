@@ -300,7 +300,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
 		Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-				.item(UserType.F_LINK).resolve()
+				.item(UserType.F_LINK_REF).resolve()
 				.build();
 
 		// WHEN
@@ -311,7 +311,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
-        ShadowType shadow = roleType.getLink().get(0);
+        ShadowType shadow = (ShadowType) roleType.getLinkRef().get(0).asReferenceValue().getObject().asObjectable();
         assertDummyGroupShadowModel(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();
@@ -330,8 +330,8 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
 
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-                        prismContext.toUniformPath(UserType.F_LINK),
-                        prismContext.toUniformPath(ItemPath.create(UserType.F_LINK, ShadowType.F_RESOURCE))
+                        prismContext.toUniformPath(UserType.F_LINK_REF),
+                        prismContext.toUniformPath(ItemPath.create(UserType.F_LINK_REF, ShadowType.F_RESOURCE_REF))
                 );
 
         // WHEN
@@ -342,10 +342,10 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
-        ShadowType shadow = roleType.getLink().get(0);
+        ShadowType shadow = (ShadowType) roleType.getLinkRef().get(0).asReferenceValue().getObject().asObjectable();
         assertDummyGroupShadowModel(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
 
-        assertNotNull("Resource in account was not resolved", shadow.getResource());
+        assertNotNull("Resource in account was not resolved", shadow.getResourceRef().asReferenceValue().getObject());
 
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -362,7 +362,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
 	    Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder()
-		        .item(UserType.F_LINK)
+		        .item(UserType.F_LINK_REF)
 		                .resolve()
 		                .noFetch()
 		        .build();
@@ -375,7 +375,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         PrismReferenceValue linkRef = getSingleLinkRef(role);
         assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
         assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
-        ShadowType shadow = roleType.getLink().get(0);
+        ShadowType shadow = (ShadowType) roleType.getLinkRef().get(0).asReferenceValue().getObject().asObjectable();
         assertDummyGroupShadowRepo(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
 
         result.computeStatus();

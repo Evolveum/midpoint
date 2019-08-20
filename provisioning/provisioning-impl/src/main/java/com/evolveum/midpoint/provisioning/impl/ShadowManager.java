@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1435,13 +1435,6 @@ public class ShadowManager {
         	}
         	// TODO: other credential types - later
         }
-
-		// additional check if the shadow doesn't contain resource, if yes,
-		// convert to the resource reference.
-		if (repoShadowType.getResource() != null) {
-			repoShadowType.setResource(null);
-			repoShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
-		}
 
 		// if shadow does not contain resource or resource reference, create it
 		// now

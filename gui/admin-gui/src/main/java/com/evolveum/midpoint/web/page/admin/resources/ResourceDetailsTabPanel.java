@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -298,7 +298,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		InfoBoxType infoBoxType = new InfoBoxType(backgroundColor, icon, parentPage.getString(messageKey));
 
-		ConnectorType connectorType = resource.getConnector();
+		ConnectorType connectorType = (ConnectorType) resource.getConnectorRef().asReferenceValue().getObject().asObjectable();
 		if (connectorType == null) {
 			// Connector not found. Probably bad connectorRef reference.
 			infoBoxType.setNumber("--");

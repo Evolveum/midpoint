@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -56,29 +56,8 @@
     	</activation>
     </assignment>
 
-    <!-- Account as composite object, resource as reference -->
-    <link oid="2f9b9299-6f45-498f-aaaa-000000001111">
-    	<name>jsparrow</name>
-    	<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
-    	<!-- Faux object class, it does not even have a prefix -->
-    	<objectClass>AccountObjectClass</objectClass>
-    </link>
-    
-    <!-- Account as composite object, resource as composite object -->
-    <link oid="2f9b9299-6f45-498f-aaaa-000000002222">
-    	<name>captain</name>
-    	<resource oid="2f9b9299-5555-5555-5555-000000002222">
-    		<name>Rum Supply System</name>
-    		<connectorRef oid="2f9b9299-cccc-cccc-cccc-000000002222"/>
-    		<connectorConfiguration>
-    		</connectorConfiguration>
-    		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222</namespace>
-    	</resource>
-    	<!-- Faux object class, it does not even have a prefix -->
-    	<objectClass>AccountObjectClass</objectClass>
-    </link>
-    
-    <!-- Account as reference -->
+    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111"/>
+    <linkRef oid="2f9b9299-6f45-498f-aaaa-000000002222"/>
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000003333" type="ShadowType">
     	<description>This is third accountRef</description>
     	<filter>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -283,9 +283,7 @@ public class AssignmentsUtil {
 		if (assignment.getConstruction() != null) {
 			// account assignment through account construction
 			ConstructionType construction = assignment.getConstruction();
-			if (construction.getResource() != null) {
-				sb.append(WebComponentUtil.getName(construction.getResource()));
-			} else if (construction.getResourceRef() != null) {
+			if (construction.getResourceRef() != null) {
 				sb.append(WebComponentUtil.getName(construction.getResourceRef()));
 			}
 			return sb.toString();
@@ -307,9 +305,7 @@ public class AssignmentsUtil {
 			}
 		}
 
-		if (assignment.getTarget() != null) {
-			sb.append(WebComponentUtil.getEffectiveName(assignment.getTarget(), OrgType.F_DISPLAY_NAME));
-		} else if (isNotEmptyRef(assignment.getTargetRef())) {
+		if (isNotEmptyRef(assignment.getTargetRef())) {
 			sb.append(WebComponentUtil.getEffectiveName(assignment.getTargetRef(), OrgType.F_DISPLAY_NAME, pageBase, "loadTargetName"));
 		}
 
@@ -410,9 +406,10 @@ public class AssignmentsUtil {
     }
 
     public static AssignmentEditorDtoType getType(AssignmentType assignment) {
-		if (assignment.getTarget() != null) {
+    	ObjectReferenceType targetRef = assignment.getTargetRef();
+		if (targetRef.asReferenceValue().getObject() != null) {
 			// object assignment
-			return AssignmentEditorDtoType.getType(assignment.getTarget().getClass());
+			return AssignmentEditorDtoType.getType(targetRef.asReferenceValue().getObject().getCompileTimeClass());
 		} else if (assignment.getTargetRef() != null) {
 			return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
 		}
@@ -477,9 +474,10 @@ public class AssignmentsUtil {
         if (assignment.getConstruction() != null) {
             return ConstructionType.COMPLEX_TYPE;
         }
-        if (assignment.getTarget() != null) {
+        ObjectReferenceType targetRef = assignment.getTargetRef();
+		if (targetRef.asReferenceValue().getObject() != null) {
             // object assignment
-            return assignment.getTarget().asPrismObject().getComplexTypeDefinition().getTypeName();
+            return targetRef.asReferenceValue().getObject().getComplexTypeDefinition().getTypeName();
         } else if (assignment.getTargetRef() != null) {
             return assignment.getTargetRef().getType();
         }

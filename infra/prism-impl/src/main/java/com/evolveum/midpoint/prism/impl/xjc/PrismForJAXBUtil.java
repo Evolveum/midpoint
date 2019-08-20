@@ -351,6 +351,14 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
+	
+	public static Objectable getReferenceObjectable(PrismReferenceValue rval) {
+		PrismObject object = rval.getObject();
+		if (object == null) {
+			return null;
+		}
+		return object.asObjectable();
+	}
 
     public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {
         if (filterType != null) {

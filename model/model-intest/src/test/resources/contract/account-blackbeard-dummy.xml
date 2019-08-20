@@ -14,24 +14,21 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-161161116666" 
+<shadow 
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
 		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
-    <name>blackbeard</name>
-
-    <fullName>Edward Teach</fullName>
-    <givenName>Edward</givenName>
-    <familyName>Teach</familyName>
-
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>QueenAnne</clearValue>
-            </value>
-        </password>
-    </credentials>
-</user>
+	<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
+	    <icfs:name>blackbeard</icfs:name>
+	    <ri:fullname>Edward Teach</ri:fullname>
+	</attributes>
+	<activation>
+	    <administrativeStatus>enabled</administrativeStatus>
+	</activation>
+</shadow>

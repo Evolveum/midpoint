@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,7 +117,7 @@ public class PageAccount extends PageAdmin {
 		OperationResult result = task.getResult();
 
 		Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-				.item(ShadowType.F_RESOURCE).resolve()
+				.item(ShadowType.F_RESOURCE_REF).resolve()
                 .build();
 		StringValue oid = parameters != null ? parameters.get(OnePageParameterEncoder.PARAMETER) : null;
 		PrismObject<ShadowType> account = WebModelServiceUtils.loadObject(ShadowType.class, oid.toString(), options,
@@ -247,7 +247,7 @@ public class PageAccount extends PageAdmin {
 				PrismObject<ShadowType> account = accountModel.getObject().getObject();
 				String accName = WebComponentUtil.getName(account);
 
-				ResourceType resource = account.asObjectable().getResource();
+				ResourceType resource = (ResourceType) account.asObjectable().getResourceRef().asReferenceValue().getObject().asObjectable();
 				String name = WebComponentUtil.getName(resource);
 
 				//TODO: refactor

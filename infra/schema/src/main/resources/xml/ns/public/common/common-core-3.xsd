@@ -251,13 +251,6 @@
                 </xsd:annotation>
             </xsd:element>
             
-	        <xsd:element name="parentOrg" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
-	            <xsd:annotation>
-	                <xsd:appinfo>
-	        			<a:objectReference>tns:parentOrgRef</a:objectReference>
-	        		</xsd:appinfo>
-	            </xsd:annotation>
-	        </xsd:element>
 	        <xsd:element name="parentOrgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
@@ -2459,6 +2452,7 @@
                             <xsd:documentation>
                                 Set of task's subtasks.
                                 TRANSIENT attribute. In the repository the parent-child relationship is stored using "parent" property.
+                                TODO: do we still need this? 
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:objectReference>tns:subtaskRef</a:objectReference>
@@ -2482,17 +2476,6 @@
                                 Dependent tasks, i.e. tasks that wait for the completion of this task.
                                 Task identifiers (not OIDs) are used here.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="dependentTask" type="tns:TaskType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Dependent tasks, i.e. tasks that wait for the completion of this task.
-                                TRANSIENT attribute. In the repository only the identifiers are stored (see "dependent" attribute).
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReference>tns:dependentTaskRef</a:objectReference>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="dependentTaskRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
@@ -4386,14 +4369,6 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
 
-                    <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:linkRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -5412,19 +5387,6 @@
         
             <xsd:choice>
 
-                <xsd:element name="target" type="tns:ObjectType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Target of assignment or inducement. This is the role, org or service that is assigned.
-                        </xsd:documentation>
-                        <xsd:appinfo>
-                    		<a:objectReference>tns:targetRef</a:objectReference>
-                            <a:displayName>AssignmentType.target</a:displayName>
-                            <a:help>AssignmentType.target.help</a:help>
-                    	</xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
-
                 <xsd:element name="targetRef" type="c:ObjectReferenceType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
@@ -6216,16 +6178,6 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                 	<xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
-                    <xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                "Composite" version of the ConnectorType reference. See below for more details.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:connectorRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11688,17 +11640,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="connectorHost" type="tns:ConnectorHostType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Connector host that hosts this connector.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:connectorHostRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="connectorHostRef" type="c:ObjectReferenceType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11709,7 +11650,6 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
                     <xsd:element ref="tns:schema" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -11823,17 +11763,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-					<a:displayName>ShadowType.resource</a:displayName>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Resource that this resource object shadow belongs to.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:resourceRef</a:objectReference>
 					<a:displayName>ShadowType.resource</a:displayName>
                     		</xsd:appinfo>
                         </xsd:annotation>
@@ -14452,28 +14381,16 @@
 			<xsd:extension base="tns:AbstractConstructionType">
 				<xsd:sequence>
 					 <xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
-					 <xsd:choice>
-					     <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
-					         <xsd:annotation>
-					             <xsd:documentation>
-					                 Reference to a resource that should host the implied account.
-					             </xsd:documentation>
-					             <xsd:appinfo>
-					         		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
-					         	</xsd:appinfo>
-					         </xsd:annotation>
-					     </xsd:element>
-					     <xsd:element name="resource" type="tns:ResourceType" minOccurs="0">
-					         <xsd:annotation>
-					             <xsd:documentation>
-					                 Resource that should host the implied resource object.
-					             </xsd:documentation>
-					             <xsd:appinfo>
-					         		<a:objectReference>tns:resourceRef</a:objectReference>
-					         	</xsd:appinfo>
-					         </xsd:annotation>
-					     </xsd:element>
-					 </xsd:choice>
+				     <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
+				         <xsd:annotation>
+				             <xsd:documentation>
+				                 Reference to a resource that should host the implied account.
+				             </xsd:documentation>
+				             <xsd:appinfo>
+				         		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+				         	</xsd:appinfo>
+				         </xsd:annotation>
+				     </xsd:element>
 					 <xsd:choice>
 					     <xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
 					         <xsd:annotation>
@@ -16096,21 +16013,6 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="globalPasswordPolicy" type="tns:ValuePolicyType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                System-global password policy settings. These will be used if there is no specific settings 
-                                (e.g. per account)
-
-                                DEPRECATED: use equivalent setting in security policy
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:globalPasswordPolicyRef</a:objectReference>
-                    			<a:deprecated>true</a:deprecated>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="globalPasswordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -16151,23 +16053,7 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="defaultUserTemplate" type="tns:ObjectTemplateType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                User template that will be used "universally" in all situations regarding user internal
-                                consistency.
-                                </p>
 
-                                <p>DEPRECATED: use objectTemplate instead.</p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReference>tns:defaultUserTemplateRef</a:objectReference>
-                    			<a:deprecated/>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="defaultUserTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -24365,16 +24251,6 @@
                 <xsd:sequence>
             		<xsd:element name="filePath" type="xsd:string"/>
             		<xsd:element name="exportType" type="tns:ExportType"/>
-            		<xsd:element name="report" type="tns:ReportType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Report which is assigned. 
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReference>tns:reportRef</a:objectReference>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>   
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>

@@ -752,7 +752,7 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 	}
 
 	private void validateResourceInShadow(ShadowType shadow, ResourceType resource) {
-		if (shadow.getResource() != null || shadow.getResourceRef() != null) {
+		if (shadow.getResourceRef() != null) {
 			return;
 		}
 

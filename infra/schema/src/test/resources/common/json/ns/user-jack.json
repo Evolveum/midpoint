@@ -29,24 +29,11 @@
         "http://prism.evolveum.com/xml/ns/public/types-3#clearValue" : "openS3zam3"
       }
     },
-    "link" : [ {
-      "oid" : "2f9b9299-6f45-498f-aaaa-000000001111",
-      "name" : "jsparrow",
-      "resourceRef" : { "oid" : "2f9b9299-5555-5555-5555-000000001111" },
-      "objectClass" : "AccountObjectClass"
+    "linkRef" : [ {
+      "oid" : "2f9b9299-6f45-498f-aaaa-000000001111"
     }, {
-      "oid" : "2f9b9299-6f45-498f-aaaa-000000002222",
-      "name" : "captain",
-      "resource" : {
-        "oid" : "2f9b9299-5555-5555-5555-000000001111",
-        "name" : "Rum Supply System",
-        "connectorRef" : { "oid" : "2f9b9299-cccc-cccc-cccc-000000002222" },
-        "connectorConfiguration" : { },
-        "namespace" : "http://midpoint.evolveum.com/xml/ns/public/resource/instance/2f9b9299-5555-5555-5555-000000002222"
-      },
-      "objectClass" : "AccountObjectClass"
-    } ],
-    "linkRef" : {
+      "oid" : "2f9b9299-6f45-498f-aaaa-000000002222"
+	}, {
       "oid" : "2f9b9299-6f45-498f-aaaa-000000003333",
       "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType",
       "description" : "This is third accountRef",
@@ -57,7 +44,7 @@
           "value" : [ "org.identityconnectors.ldap.LdapConnector" ]
         }
       }
-    },
+    } ],
     "assignment" : [ {
       "id" : 111,
       "extension" : {

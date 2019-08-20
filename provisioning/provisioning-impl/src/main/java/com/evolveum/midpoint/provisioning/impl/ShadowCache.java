@@ -2126,7 +2126,14 @@ public class ShadowCache {
 		}
 
 		resourceShadow.setOid(repoShadow.getOid());
-		resourceShadow.asObjectable().setResource(ctx.getResource());
+		ObjectReferenceType resourceRef = resourceShadow.asObjectable().getResourceRef();
+		if (resourceRef == null) {
+			resourceRef = new ObjectReferenceType();
+			resourceRef.asReferenceValue().setObject(ctx.getResource().asPrismObject());
+			resourceShadow.asObjectable().setResourceRef(resourceRef);
+		} else {
+			resourceRef.asReferenceValue().setObject(ctx.getResource().asPrismObject());
+		}
 
 		if (isDoDiscovery) {
 			// We have object for which there was no shadow. Which means that midPoint haven't known about this shadow before.
@@ -2550,9 +2557,6 @@ public class ShadowCache {
 		resultShadowType.setName(new PolyStringType(ShadowUtil.determineShadowName(resourceShadow)));
 		if (resultShadowType.getObjectClass() == null) {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
-		}
-		if (resultShadowType.getResource() == null) {
-			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(ctx.getResource(), prismContext));
 		}
 
 		// Attributes

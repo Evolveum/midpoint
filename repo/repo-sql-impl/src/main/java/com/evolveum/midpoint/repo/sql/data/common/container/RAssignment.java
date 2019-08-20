@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -472,10 +472,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             RActivation activation = new RActivation();
             RActivation.fromJaxb(jaxb.getActivation(), activation, repositoryContext);
             repo.setActivation(activation);
-        }
-
-        if (jaxb.getTarget() != null) {
-            LOGGER.warn("Target from assignment type won't be saved. It should be translated to target reference.");
         }
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), repositoryContext.relationRegistry));

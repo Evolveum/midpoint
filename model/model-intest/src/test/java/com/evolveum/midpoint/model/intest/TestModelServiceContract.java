@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -621,7 +621,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-		        .item(UserType.F_LINK).resolve()
+		        .item(UserType.F_LINK_REF).resolve()
 		        .build();
 
 		// WHEN
@@ -640,8 +640,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType shadow = userJackType.getLink().get(0);
+        ShadowType shadow = (ShadowType) accountRefValue.getObject().asObjectable();
         assertDummyAccountShadowModel(shadow.asPrismObject(), accountOid, "jack", "Jack Sparrow");
 
         result.computeStatus();
@@ -662,8 +661,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-		        .item(UserType.F_LINK).resolve()
-		        .item(UserType.F_LINK, ShadowType.F_RESOURCE).resolve()
+		        .item(UserType.F_LINK_REF).resolve()
+		        .item(UserType.F_LINK_REF, ShadowType.F_RESOURCE_REF).resolve()
 		        .build();
 
 		// WHEN
@@ -682,11 +681,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType shadow = userJackType.getLink().get(0);
+        ShadowType shadow = (ShadowType) accountRefValue.getObject().asObjectable();
         assertDummyAccountShadowModel(shadow.asPrismObject(), accountOid, "jack", "Jack Sparrow");
 
-        assertNotNull("Resource in account was not resolved", shadow.getResource());
+        assertNotNull("Resource in account was not resolved", shadow.getResourceRef().asReferenceValue().getObject());
 
         assertSuccess("getObject result", result);
 
@@ -709,7 +707,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         getOpts.setResolve(true);
         getOpts.setNoFetch(true);
 		Collection<SelectorOptions<GetOperationOptions>> options =
-        	SelectorOptions.createCollection(prismContext.toUniformPath(UserType.F_LINK), getOpts);
+        	SelectorOptions.createCollection(prismContext.toUniformPath(UserType.F_LINK_REF), getOpts);
 
 		// WHEN
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
@@ -727,8 +725,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
-        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType shadow = userJackType.getLink().get(0);
+        ShadowType shadow = (ShadowType) accountRefValue.getObject().asObjectable();
         assertDummyAccountShadowRepo(shadow.asPrismObject(), accountOid, "jack");
 
         result.computeStatus();
@@ -2940,6 +2937,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-blackbeard-dummy.xml"));
+        ObjectReferenceType linkRef = new ObjectReferenceType();
+        linkRef.asReferenceValue().setObject(account);
+		user.asObjectable().getLinkRef().add(linkRef);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -2949,8 +2950,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		modelService.executeChanges(deltas, null, task, result);
 
 		// THEN
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
