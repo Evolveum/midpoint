@@ -302,7 +302,7 @@ public class ConfigurationStep extends WizardStep {
 			}
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error occurred during saving changes", ex);
-            result.recordFatalError("Couldn't save configuration changes.", ex);
+            result.recordFatalError(getString("ConfigurationStep.message.saveConfiguration.fatalError"), ex);
         } finally {
             result.computeStatusIfUnknown();
             setResult(result);

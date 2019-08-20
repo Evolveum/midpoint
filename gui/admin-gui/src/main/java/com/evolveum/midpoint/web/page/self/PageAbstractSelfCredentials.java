@@ -179,14 +179,14 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                         subResult.recordSuccessIfUnknown();
                     } catch (Exception ex) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load account", ex);
-                        subResult.recordFatalError("Couldn't load account.", ex);
+                        subResult.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccount.fatalError"), ex);
                     }
                 }
             }
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load accounts", ex);
-            result.recordFatalError("Couldn't load accounts", ex);
+            result.recordFatalError(getString("PageAbstractSelfCredentials.message.couldntLoadAccounts.fatalError"), ex);
         } finally {
             result.recomputeStatus();
         }
@@ -309,7 +309,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     }
                 } catch (Exception ex) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check password", ex);
-                    checkPasswordResult.recordFatalError("Couldn't check password." + ex.getMessage(), ex);
+                    checkPasswordResult.recordFatalError(
+                    		getString("PageAbstractSelfCredentials.message.onSavePerformed.fatalError", ex.getMessage()), ex);
                     target.add(getFeedbackPanel());
                     return;
                 } finally {
@@ -442,7 +443,8 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load credentials policy", ex);
-            result.recordFatalError("Couldn't load credentials policy." + ex.getMessage(), ex);
+            result.recordFatalError(
+            		getString("PageAbstractSelfCredentials.message.getPasswordCredentialsPolicy.fatalError", ex.getMessage()), ex);
         } finally {
             result.computeStatus();
         }

@@ -189,9 +189,14 @@ public class DOMUtil {
 
 		transformerThreadLocal = ThreadLocal.withInitial(() -> {
 			try {
+				//setTransformerFactoryIfPresent("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl");            // too many whitespaces in Java11
+				//setTransformerFactoryIfPresent("org.apache.xalan.xsltc.trax.TransformerFactoryImpl");                             // too few whitespaces
+				setTransformerFactoryIfPresent("org.apache.xalan.processor.TransformerFactoryImpl");                               // a bit slower
 				TransformerFactory transformerFactory = TransformerFactory.newInstance();
+				//System.out.println("TF = " + transformerFactory.getClass().getName());
 				Transformer trans = transformerFactory.newTransformer();
 				trans.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");      // XALAN-specific
+				trans.setParameter(OutputKeys.INDENT, "yes");
 				trans.setParameter(OutputKeys.ENCODING, "utf-8");
 				return trans;
 			} catch (TransformerConfigurationException e) {
@@ -200,7 +205,18 @@ public class DOMUtil {
 		});
 	}
 
-    public static String serializeDOMToString(org.w3c.dom.Node node) {
+	private static void setTransformerFactoryIfPresent(String className) {
+		String propertyName = TransformerFactory.class.getName();
+		try {
+			Class.forName(className);
+			System.setProperty(propertyName, className);
+		} catch (ClassNotFoundException e) {
+			System.out.println("Class '" + className + "' not present, using default transformer factory");
+			System.clearProperty(className);
+		}
+	}
+
+	public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
 	}
 
@@ -652,19 +668,25 @@ public class DOMUtil {
         // We DO NOT WANT to use default namespace for QNames. QNames without prefix are NOT considered by midPoint to belong to the default namespace.
 		String prefix = element.lookupPrefix(namespaceUri);
 		if (prefix == null) {
-            // generate random prefix
-            boolean gotIt = false;
-            for (int i=0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
-                prefix = generatePrefix();
-                if (element.lookupNamespaceURI(prefix) == null) {
-                    // the prefix is free
-                    gotIt = true;
-                    break;
-                }
-            }
-            if (!gotIt) {
-                throw new IllegalStateException("Unable to generate unique prefix for namespace "+namespaceUri+" even after "+RANDOM_ATTR_PREFIX_MAX_ITERATIONS+" attempts");
-            }
+			if (StringUtils.isEmpty(namespaceUri)) {
+				prefix = "";            // empty namespace cannot have non-empty prefix
+			} else {
+				// generate random prefix
+				boolean gotIt = false;
+				for (int i = 0; i < RANDOM_ATTR_PREFIX_MAX_ITERATIONS; i++) {
+					prefix = generatePrefix();
+					if (element.lookupNamespaceURI(prefix) == null) {
+						// the prefix is free
+						gotIt = true;
+						break;
+					}
+				}
+				if (!gotIt) {
+					throw new IllegalStateException(
+							"Unable to generate unique prefix for namespace " + namespaceUri + " even after "
+									+ RANDOM_ATTR_PREFIX_MAX_ITERATIONS + " attempts");
+				}
+			}
             setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
 		}
 		return prefix;

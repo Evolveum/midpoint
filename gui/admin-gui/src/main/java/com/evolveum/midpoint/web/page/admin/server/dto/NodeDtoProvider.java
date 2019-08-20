@@ -68,7 +68,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when listing nodes", ex);
-            result.recordFatalError("Couldn't list nodes.", ex);
+            result.recordFatalError(getPage().createStringResource("NodeDtoProvider.message.internalIterator.fatalError").getString(), ex);
         }
 
 		setSelectedOids(selectedOids);
@@ -108,7 +108,7 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
             result.recomputeStatus();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unhandled exception when counting nodes", ex);
-            result.recordFatalError("Couldn't count nodes.", ex);
+            result.recordFatalError(getPage().createStringResource("NodeDtoProvider.message.internalSize.fatalError").getString(), ex);
         }
 
         if (!result.isSuccess()) {

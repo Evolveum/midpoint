@@ -332,7 +332,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		} catch (Exception ex) {
 
 
-			result.recordFatalError("Couldn't load system configuration.", ex);
+			result.recordFatalError(getString("PageMyPasswordQuestions.message.couldNotLoadSysConfig"), ex);
 		}
 
 
@@ -484,7 +484,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 
 			result.recordSuccess();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get user.", ex);
+			result.recordFatalError(getString("PageMyPasswordQuestions.message.loadUserWrapper.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user PageMyQuestions", ex);
 		}
 
@@ -502,7 +502,7 @@ public class PageMyPasswordQuestions extends PageAdminHome {
 		try{
 			wrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);
 		} catch (Exception ex){
-			result.recordFatalError("Couldn't get user.", ex);
+			result.recordFatalError(getString("PageMyPasswordQuestions.message.loadUserWrapper.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
 				wrapper = factory.createObjectWrapper(user, ItemStatus.NOT_CHANGED, context);

@@ -137,7 +137,7 @@ public class SchemaStep extends WizardStep {
 			result.computeStatusIfUnknown();
 		} catch (CommonException|RuntimeException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reload the schema", e);
-			result.recordFatalError("Couldn't reload the schema: " + e.getMessage(), e);
+			result.recordFatalError(createStringResource("SchemaStep.message.reload.fatalError", e.getMessage()).getString(), e);
 		}
 
 //		if (result.isSuccess()) {

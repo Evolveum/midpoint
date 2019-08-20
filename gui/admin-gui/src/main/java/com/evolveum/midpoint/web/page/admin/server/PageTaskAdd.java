@@ -631,7 +631,7 @@ public class PageTaskAdd extends PageAdminTasks {
             resources = getModelService().searchObjects(ResourceType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't get resource list.", ex);
+            result.recordFatalError(getString("PageTaskAdd.message.createResourceList.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get resource list", ex);
         }
 
@@ -667,7 +667,7 @@ public class PageTaskAdd extends PageAdminTasks {
             setResponsePage(PageTasks.class);
         } catch (Exception ex) {
             result.recomputeStatus();
-            result.recordFatalError("Unable to save task.", ex);
+            result.recordFatalError(getString("PageTaskAdd.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't add new task", ex);
         }
         showResult(result);

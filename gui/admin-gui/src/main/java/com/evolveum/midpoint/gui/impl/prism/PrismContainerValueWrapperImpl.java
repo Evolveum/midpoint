@@ -123,6 +123,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		if (getParent().isSingleValue()) {
 			return getParent().getDisplayName();
 		}
+		
+		if (getParent().isMultiValue() && ValueStatus.ADDED.equals(getStatus())) {
+			String name;
+			Class<C> cvalClass = getNewValue().getCompileTimeClass();
+			if (cvalClass != null) {
+				name = cvalClass.getSimpleName() + ".details.newValue";
+			} else {
+				name = "ContainerPanel.containerProperties";
+			}
+			return name;
+		}
+		
 		return WebComponentUtil.getDisplayName(getNewValue());
 	}
 	

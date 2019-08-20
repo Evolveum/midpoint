@@ -241,7 +241,7 @@ public class PageMergeObjects<F extends FocusType> extends PageAdminFocus {
 
         } catch (Exception ex){
             result.recomputeStatus();
-            result.recordFatalError("Couldn't merge objects.", ex);
+            result.recordFatalError(getString("PageMergeObjects.message.saveOrPreviewPerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't merge objects", ex);
             showResult(result);
         }

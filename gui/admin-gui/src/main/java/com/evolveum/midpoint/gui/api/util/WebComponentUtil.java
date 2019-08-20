@@ -1220,6 +1220,8 @@ public final class WebComponentUtil {
 			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
 			if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
 				displayName = resourceItemDefinition.getDisplayName();
+			} else {
+				return prismContainerValue.getParent().getPath().last().toString();
 			}
 		} else if (prismContainerValue.canRepresent(MappingType.class)) {
 			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
@@ -3414,7 +3416,7 @@ public final class WebComponentUtil {
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception e){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
-			result.recordFatalError("Couldn't save task.", e);
+			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveTask").getString(), e);
 		}
 		result.recomputeStatus();
 	}
@@ -3576,7 +3578,7 @@ public final class WebComponentUtil {
 					dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
 				}
 			} catch (Exception ex) {
-				result.recordFatalError("Couldn't save work item.", ex);
+				result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveWorkItem").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
 			}
 		}

@@ -479,7 +479,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
 			// handling section
 			getModelService().getObject(ResourceType.class, resourceType.getOid(), null, task, result);
 		} catch (Exception ex) {
-			result.recordFatalError("Failed to test resource connection", ex);
+			result.recordFatalError(createStringResource("PageResources.message.testResourcePerformed.fatalError").getString(), ex);
 		}
 
 		// a bit of hack: result of TestConnection contains a result of

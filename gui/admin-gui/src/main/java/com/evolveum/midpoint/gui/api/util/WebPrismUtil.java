@@ -82,7 +82,7 @@ public class WebPrismUtil {
 
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create new value for {}", itemWrapper, e);
-			result.recordFatalError("Cannot create value wrapper for " + newValue + ". Reason: " + e.getMessage(), e);
+			result.recordFatalError(pageBase.createStringResource("WebPrismUtil.message.createNewValueWrapper.fatalError", newValue, e.getMessage()).getString(), e);
 			target.add(pageBase.getFeedbackPanel());
 		}
 

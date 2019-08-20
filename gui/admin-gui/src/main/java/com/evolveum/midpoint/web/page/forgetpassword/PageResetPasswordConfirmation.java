@@ -123,7 +123,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
 		} catch (AuthenticationException ex) {
 			getSession()
 					.error(getString(ex.getMessage()));
-			result.recordFatalError("Failed to validate user");
+			result.recordFatalError(getString("PageResetPasswordConfirmation.message.authenticateUser.fatalError"));
 			LoggingUtils.logException(LOGGER, ex.getMessage(), ex);
 			 return null;
 		} catch (Exception ex) {
