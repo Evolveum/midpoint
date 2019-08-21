@@ -563,12 +563,12 @@ public class SchemaTransformer {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
-				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getName());
+				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getItemName());
 				if (subDef.isElaborate()) {
 					LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
 					continue;
 				}
-				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
+				if (!subDef.getItemName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
 					applySecurityConstraintsItemDef(subDef, definitionsSeen, subPath, securityConstraints,
 					    readDecision, addDecision, modifyDecision, phase);
 				}

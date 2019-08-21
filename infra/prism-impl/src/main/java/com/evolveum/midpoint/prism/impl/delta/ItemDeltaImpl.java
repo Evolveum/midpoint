@@ -75,7 +75,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 		}
         //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
-		this.elementName = itemDefinition.getName();
+		this.elementName = itemDefinition.getItemName();
 		this.parentPath = ItemPath.EMPTY_PATH;
 		this.definition = itemDefinition;
 	}

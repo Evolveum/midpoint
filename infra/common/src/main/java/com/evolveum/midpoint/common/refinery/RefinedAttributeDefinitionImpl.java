@@ -71,7 +71,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     private boolean isVolatilityTrigger = false;
 
     protected RefinedAttributeDefinitionImpl(ResourceAttributeDefinition<T> attrDef, PrismContext prismContext) {
-        super(attrDef.getName(), attrDef.getTypeName(), prismContext);
+        super(attrDef.getItemName(), attrDef.getTypeName(), prismContext);
         this.attributeDefinition = attrDef;
     }
 
@@ -252,8 +252,8 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @NotNull
-	public ItemName getName() {
-        return attributeDefinition.getName();
+	public ItemName getItemName() {
+        return attributeDefinition.getItemName();
     }
 
     @NotNull

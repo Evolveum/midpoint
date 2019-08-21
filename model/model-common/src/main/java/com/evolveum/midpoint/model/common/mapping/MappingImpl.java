@@ -197,7 +197,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 
 	public QName getItemName() {
 		if (outputDefinition != null) {
-			return outputDefinition.getName();
+			return outputDefinition.getItemName();
 		}
 		return null;
 	}
@@ -608,7 +608,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (outputPath != null) {
 			name = outputPath.lastName().getLocalPart();
 		} else {
-			name = outputDefinition.getName().getLocalPart();
+			name = outputDefinition.getItemName().getLocalPart();
 		} 
 		if (originalTargetValues == null) {
 			throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
@@ -1493,7 +1493,7 @@ public class MappingImpl<V extends PrismValue,D extends ItemDefinition> implemen
 		if (outputDefinition == null) {
 			return null;
 		}
-		return SchemaDebugUtil.prettyPrint(outputDefinition.getName());
+		return SchemaDebugUtil.prettyPrint(outputDefinition.getItemName());
 	}
 
 	private String toStringStrength() {

@@ -90,12 +90,12 @@ public class ItemInfo<ID extends ItemDefinition> {
 			info.itemName = itemNameExplicit;
 		} else if (itemNameFromSource != null) {
 			if (QNameUtil.noNamespace(itemNameFromSource) && definition != null) {
-				info.itemName = new QName(definition.getName().getNamespaceURI(), itemNameFromSource.getLocalPart());
+				info.itemName = new QName(definition.getItemName().getNamespaceURI(), itemNameFromSource.getLocalPart());
 			} else {
 				info.itemName = itemNameFromSource;
 			}
 		} else if (definition != null) {
-			info.itemName = definition.getName();
+			info.itemName = definition.getItemName();
 		} else {
 			info.itemName = itemNameDefault;
 		}
@@ -178,7 +178,7 @@ public class ItemInfo<ID extends ItemDefinition> {
 
 	private static <ID extends ItemDefinition> ID augmentWithItemName(ID definition, Class<ID> definitionClass,
 			SchemaRegistry schemaRegistry, QName itemName) throws SchemaException {
-		if (itemName == null || definition != null && QNameUtil.match(definition.getName(), itemName)) {        // just an optimization to avoid needless lookups
+		if (itemName == null || definition != null && QNameUtil.match(definition.getItemName(), itemName)) {        // just an optimization to avoid needless lookups
 			return definition;
 		}
 		ID defFromItemName = DefinitionStoreUtils.getOne(
@@ -271,7 +271,7 @@ public class ItemInfo<ID extends ItemDefinition> {
 			info.itemName = value.getParent().getElementName();
 		}
 		if (info.itemName == null && info.itemDefinition != null) {
-			info.itemName = info.itemDefinition.getName();
+			info.itemName = info.itemDefinition.getItemName();
 		}
 
 		// item type

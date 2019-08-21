@@ -628,7 +628,7 @@ public class ObjectRetriever {
 
 		RObject<?> rObject = null;
 		for (ItemDefinition<?> itemDefinition : getIndexOnlyExtensionItems(prismObject)) {
-			if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getName()),
+			if (SelectorOptions.hasToLoadPath(ItemPath.create(ObjectType.F_EXTENSION, itemDefinition.getItemName()),
 					retrieveOptions, false)) {
 				LOGGER.trace("We have to load index-only extension item {}", itemDefinition);
 				if (rObject == null) {

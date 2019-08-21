@@ -464,7 +464,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
             if (objectType.getObjectClass().equals(def.getTypeName()) ||
                     objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
                 for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                    ItemPath itemPath = attributeDefinition.getName();
+                    ItemPath itemPath = attributeDefinition.getItemName();
                     ItemPathType itemPathType = new ItemPathType(itemPath);
                     if (!references.contains(itemPathType)) {
                         references.add(itemPathType);

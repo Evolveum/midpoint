@@ -288,10 +288,10 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 	@Override
 	public void merge(ComplexTypeDefinition otherComplexTypeDef) {
 		for (ItemDefinition otherItemDef: otherComplexTypeDef.getDefinitions()) {
-			ItemDefinition existingItemDef = findItemDefinition(otherItemDef.getName());
+			ItemDefinition existingItemDef = findItemDefinition(otherItemDef.getItemName());
 			if (existingItemDef != null) {
 				LOGGER.warn("Overwriting existing definition {} by {} (in {})", existingItemDef, otherItemDef, this);
-				replaceDefinition(otherItemDef.getName(), otherItemDef.clone());
+				replaceDefinition(otherItemDef.getItemName(), otherItemDef.clone());
 			} else {
 				add(otherItemDef.clone());
 			}
@@ -380,13 +380,13 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 	public void replaceDefinition(QName itemName, ItemDefinition newDefinition) {
 		for (int i=0; i<itemDefinitions.size(); i++) {
 			ItemDefinition itemDef = itemDefinitions.get(i);
-			if (itemDef.getName().equals(itemName)) {
+			if (itemDef.getItemName().equals(itemName)) {
 				if (!itemDef.getClass().isAssignableFrom(newDefinition.getClass())) {
 					throw new IllegalArgumentException("The provided definition of class "+newDefinition.getClass().getName()+" does not match existing definition of class "+itemDef.getClass().getName());
 				}
-				if (!itemDef.getName().equals(newDefinition.getName())) {
+				if (!itemDef.getItemName().equals(newDefinition.getItemName())) {
 					newDefinition = newDefinition.clone();
-					((ItemDefinitionImpl) newDefinition).setName(itemName);
+					((ItemDefinitionImpl) newDefinition).setItemName(itemName);
 				}
 				// Make sure this is set, not add. set will keep correct ordering
 				itemDefinitions.set(i, newDefinition);
@@ -519,7 +519,7 @@ public class ComplexTypeDefinitionImpl extends TypeDefinitionImpl implements Mut
 		}
 		for (Iterator<ItemDefinition> iterator = itemDefinitions.iterator(); iterator.hasNext(); ) {
 			ItemDefinition<?> itemDef = iterator.next();
-			ItemPath itemPath = itemDef.getName();
+			ItemPath itemPath = itemDef.getItemName();
 			if (!ItemPathCollectionsUtil.containsSuperpathOrEquivalent(paths, itemPath)) {
 				iterator.remove();
 			} else if (itemDef instanceof PrismContainerDefinition) {

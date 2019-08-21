@@ -457,8 +457,8 @@ public class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefinedAttri
 
 	@Override
 	@NotNull
-	public ItemName getName() {
-		return refinedAttributeDefinition.getName();
+	public ItemName getItemName() {
+		return refinedAttributeDefinition.getItemName();
 	}
 
 	@Override

@@ -460,7 +460,7 @@ public class PrismUnmarshaller {
             ItemDefinition contentDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
             isComposite = contentDefinition instanceof PrismObjectDefinition;
         } else {
-            isComposite = !QNameUtil.match(itemName, definition.getName());
+            isComposite = !QNameUtil.match(itemName, definition.getItemName());
         }
 
 
@@ -489,7 +489,7 @@ public class PrismUnmarshaller {
 			if (!pc.isAllowMissingRefTypes() && !allowMissingRefTypesOverride) {
 				type = definition.getTargetTypeName();
 				if (type == null) {
-					throw new SchemaException("Target type in reference " + definition.getName() +
+					throw new SchemaException("Target type in reference " + definition.getItemName() +
 							" not specified in reference nor in the schema");
 				}
 			}
@@ -500,7 +500,7 @@ public class PrismUnmarshaller {
             QName defTargetType = definition.getTargetTypeName();
             if (defTargetType != null) {
                 if (!(prismContext.getSchemaRegistry().isAssignableFrom(defTargetType, type))) {
-                    throw new SchemaException("Target type specified in reference " + definition.getName() +
+                    throw new SchemaException("Target type specified in reference " + definition.getItemName() +
                     		" (" + type + ") does not match target type in schema (" + defTargetType + ")");
                 }
             }

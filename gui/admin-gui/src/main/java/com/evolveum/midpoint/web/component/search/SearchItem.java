@@ -86,7 +86,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
         String key = definition.getDisplayName();
         if (StringUtils.isEmpty(key)) {
             StringBuilder sb = new StringBuilder();
-            sb.append(search.getType().getSimpleName()).append('.').append(definition.getName().getLocalPart());
+            sb.append(search.getType().getSimpleName()).append('.').append(definition.getItemName().getLocalPart());
             key =  sb.toString();
         }
 
@@ -101,7 +101,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
             return name;
         }
 
-        return definition.getName().getLocalPart();
+        return definition.getItemName().getLocalPart();
     }
 
     public Type getType() {

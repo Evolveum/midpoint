@@ -155,7 +155,7 @@ public class ResourceObjectConverter {
 			RefinedAttributeDefinition<String> secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
 			ResourceAttribute<?> secondaryIdentifier = null;
 			for (ResourceAttribute<?> identifier: identifiers) {
-				if (identifier.getElementName().equals(secondaryIdentifierDef.getName())) {
+				if (identifier.getElementName().equals(secondaryIdentifierDef.getItemName())) {
 					secondaryIdentifier = identifier;
 				}
 			}
@@ -175,7 +175,7 @@ public class ResourceObjectConverter {
                 secondaryIdentifierValue = null;
             }
             ObjectQuery query = prismContext.queryFor(ShadowType.class)
-					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()).eq(secondaryIdentifierValue)
+					.itemWithDef(secondaryIdentifierDef, ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getItemName()).eq(secondaryIdentifierValue)
 					.build();
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<>();
 			ShadowResultHandler handler = new ShadowResultHandler() {
@@ -209,7 +209,7 @@ public class ResourceObjectConverter {
 		for (RefinedAttributeDefinition identifierDef: identifierDefs) {
 			boolean found = false;
 			for(ResourceAttribute<?> attribute: attributes) {
-				if (attribute.getElementName().equals(identifierDef.getName()) && !attribute.isEmpty()) {
+				if (attribute.getElementName().equals(identifierDef.getItemName()) && !attribute.isEmpty()) {
 					found = true;
 				}
 			}

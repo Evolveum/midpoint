@@ -169,7 +169,7 @@ public class DataModelUtil {
 						"Couldn't verify item path '" + path + "' because specific focus type (user, role, org, ...) is not defined for kind=" + rctx.kind + ", intent=" + rctx.intent, null, null));
 			} else {
 				return new PathResolutionResult(new Issue(Issue.Severity.WARNING, CAT_ITEM_PATH, C_NO_OBJECT_DEFINITION,
-						"No definition for '" + path + "' in " + def.getName().getLocalPart(), null, null));
+						"No definition for '" + path + "' in " + def.getItemName().getLocalPart(), null, null));
 			}
 		}
 	}

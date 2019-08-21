@@ -59,7 +59,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	@Override
 	public IW createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
+		ItemName name = def.getItemName();
 
 
 		I childItem = null;
@@ -180,7 +180,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
 	
 	protected boolean canCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
 		if (!context.isCreateOperational() && def.isOperational()) {
-			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getName());
+			LOGGER.trace("Skipping creating wrapper for {}, because it is operational.", def.getItemName());
 			return false;
 		}
 		

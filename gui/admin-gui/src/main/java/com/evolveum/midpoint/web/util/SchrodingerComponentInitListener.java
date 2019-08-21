@@ -90,7 +90,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             PrismPropertyWrapper iw = (PrismPropertyWrapper) ppp.getModel().getObject();
             String key = iw.getDisplayName();
 
-            QName qname = iw.getName();
+            QName qname = iw.getItemName();
 
             writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
             writeDataAttribute(component, ATTR_QNAME, qnameToString(qname));

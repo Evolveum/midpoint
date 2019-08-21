@@ -346,8 +346,8 @@ public class RAnyConverter {
      */
     public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
-        if (!isIndexed(definition, definition.getName(), true, prismContext)) {
-            throw new QueryException("Can't query non-indexed value for '" + definition.getName()
+        if (!isIndexed(definition, definition.getItemName(), true, prismContext)) {
+            throw new QueryException("Can't query non-indexed value for '" + definition.getItemName()
                     + "', definition " + definition);
         }
         QName typeName = definition.getTypeName();

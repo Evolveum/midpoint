@@ -58,7 +58,7 @@ public class ValueOperation extends Operation {
 		}
 		if (valueFilter.getParentPath().equivalent(ShadowType.F_ATTRIBUTES)) {
 			try {
-				QName propName = valueFilter.getDefinition().getName();
+				QName propName = valueFilter.getDefinition().getItemName();
 				String icfName = icfNameMapper.convertAttributeNameToConnId(propName, getInterpreter()
 						.getObjectClassDefinition(), "(attribute in the filter)");
 				
@@ -135,7 +135,7 @@ public class ValueOperation extends Operation {
 		} else if (valueFilter.getParentPath().equivalent(ShadowType.F_ACTIVATION)) {
 			
 			if (objectFilter instanceof EqualFilter) {
-				QName propName = valueFilter.getDefinition().getName();
+				QName propName = valueFilter.getDefinition().getItemName();
 				EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
 				List<PrismPropertyValue<T>> values = eq.getValues();
 				if (values.size() != 1) {

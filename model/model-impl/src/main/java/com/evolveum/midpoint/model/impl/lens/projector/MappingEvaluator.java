@@ -636,7 +636,7 @@ public class MappingEvaluator {
 			@Override
 			public ValuePolicyType resolve() {
 				// TODO need to switch to ObjectValuePolicyEvaluator
-				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+				if (outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
 					ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);
 					if (passwordPolicy == null) {
 						return null;
@@ -652,7 +652,7 @@ public class MappingEvaluator {
 								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
 								try {
 									ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class,
-											null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", task, new OperationResult("Resolving value policy"));
+											null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+" value", task, new OperationResult("Resolving value policy"));
 									if (valuePolicyType != null) {
 										return valuePolicyType;
 									}

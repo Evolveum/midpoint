@@ -568,7 +568,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 				// This is maybe not that important, but just for a sake of
 				// completeness
-				assertNotEmpty("No name for " + rdef.getTypeName(), rdef.getName());
+				assertNotEmpty("No name for " + rdef.getTypeName(), rdef.getItemName());
 			}
 		}
 

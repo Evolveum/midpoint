@@ -128,14 +128,4 @@ public class ConstructionAssignmentPanel extends AssignmentPanel {
         return Model.of();
     }
 
-    @Override
-    protected ItemVisibility getAssignmentBasicTabVisibity(ItemWrapper<?, ?, ?, ?> itemWrapper, ItemPath parentAssignmentPath, ItemPath assignmentPath, AssignmentType prismContainerValue) {
-        if (itemWrapper.getPath().containsNameExactly(AssignmentType.F_CONSTRUCTION)) {
-            return ItemVisibility.AUTO;
-        } else {
-            return super.getAssignmentBasicTabVisibity(itemWrapper, parentAssignmentPath, assignmentPath, prismContainerValue);
-        }
-
-    }
-
 }

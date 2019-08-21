@@ -72,7 +72,7 @@ public class PrismPropertyDefinitionAsserter<T,RA> extends PrismDefinitionAssert
 	}
 		
 	protected String desc() {
-		return descWithDetails("property definition " + PrettyPrinter.prettyPrint(getDefinition().getName()));
+		return descWithDetails("property definition " + PrettyPrinter.prettyPrint(getDefinition().getItemName()));
 	}
 
 	public PrismPropertyDefinitionAsserter<T,RA> display() {

@@ -143,7 +143,7 @@ public class OutboundProcessor {
 			}
 
 			MappingImpl.Builder<PrismPropertyValue<?>,RefinedAttributeDefinition<?>> builder = mappingFactory.createMappingBuilder(outboundMappingType,
-			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
+			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName())
 			        + " in " + projCtx.getResource());
 			builder = builder.originObject(projCtx.getResource())
 					.originType(OriginType.OUTBOUND);
@@ -283,7 +283,7 @@ public class OutboundProcessor {
 							ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
 							try {
 								ValuePolicyType valuePolicyType = mappingBuilder.getObjectResolver().resolve(ref, ValuePolicyType.class,
-										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", task, new OperationResult("Resolving value policy"));
+										null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value", task, new OperationResult("Resolving value policy"));
 								if (valuePolicyType != null) {
 									return valuePolicyType;
 								}

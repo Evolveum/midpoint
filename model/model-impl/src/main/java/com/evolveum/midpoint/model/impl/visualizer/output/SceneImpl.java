@@ -172,7 +172,7 @@ public class SceneImpl implements Scene, DebugDumpable {
 			sb.append(" VAL");
 		}
 		if (sourceDefinition != null) {
-			sb.append(" DEF(").append(sourceDefinition.getName().getLocalPart()).append("/").append(sourceDefinition.getDisplayName()).append(")");
+			sb.append(" DEF(").append(sourceDefinition.getItemName().getLocalPart()).append("/").append(sourceDefinition.getDisplayName()).append(")");
 		}
 		if (sourceDelta != null) {
 			sb.append(" DELTA");

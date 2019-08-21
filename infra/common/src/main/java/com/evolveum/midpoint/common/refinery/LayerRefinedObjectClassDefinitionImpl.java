@@ -113,7 +113,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	}
 
 	private <X> LayerRefinedAttributeDefinition<X> substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition<?> attributeDef) {
-		return findAttributeDefinition(attributeDef.getName());
+		return findAttributeDefinition(attributeDef.getItemName());
     }
 
     private Collection<LayerRefinedAttributeDefinition<?>> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition<?>> attributes) {
@@ -246,7 +246,7 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
     @Override
 	public <X> LayerRefinedAttributeDefinition<X> findAttributeDefinition(@NotNull QName elementQName) {
         for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
-            if (QNameUtil.match(definition.getName(), elementQName)) {
+            if (QNameUtil.match(definition.getItemName(), elementQName)) {
 	            //noinspection unchecked
 	            return definition;
             }

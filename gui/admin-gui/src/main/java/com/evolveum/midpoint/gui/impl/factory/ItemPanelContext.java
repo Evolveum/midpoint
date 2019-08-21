@@ -66,7 +66,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
 	}
 	
 	public ItemName getDefinitionName() {
-		return unwrapWrapperModel().getName();
+		return unwrapWrapperModel().getItemName();
 	}
 	
 	public Component getParentComponent() {

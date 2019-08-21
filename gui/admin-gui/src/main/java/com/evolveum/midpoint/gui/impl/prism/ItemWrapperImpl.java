@@ -113,7 +113,7 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 		LOGGER.trace("Start computing delta for {}", newItem);
 		D delta = null;
 		if (parent != null && ValueStatus.ADDED == parent.getStatus()) {
-			delta = (D) createEmptyDelta(getName()); 
+			delta = (D) createEmptyDelta(getItemName()); 
 		} else {
 			delta = (D) createEmptyDelta(getPath());
 		}
@@ -455,8 +455,8 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	
 
 	@Override
-	public ItemName getName() {
-		return getItemDefinition().getName();
+	public ItemName getItemName() {
+		return getItemDefinition().getItemName();
 	}
 
 	@Override

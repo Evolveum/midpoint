@@ -151,7 +151,7 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
 				PrismPropertyDefinition<?> definition = getDefinition();
 				if (definition != null) {
 					// We clone here to avoid modifying original data structure.
-					Object parsedObjectRealValue = ((RawType) objectRealValue).clone().getParsedRealValue(definition, definition.getName());
+					Object parsedObjectRealValue = ((RawType) objectRealValue).clone().getParsedRealValue(definition, definition.getItemName());
 					//noinspection unchecked
 					return matchingRule.match((T1) filterRealValue, (T1) parsedObjectRealValue);
 				} else {

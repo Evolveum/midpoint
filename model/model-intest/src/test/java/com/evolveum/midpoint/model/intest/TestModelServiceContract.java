@@ -2480,7 +2480,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         ConstructionType accountConstruction = createAccountConstruction(RESOURCE_DUMMY_OID, null);
         ResourceAttributeDefinitionType radt = new ResourceAttributeDefinitionType();
-        radt.setRef(new ItemPathType(gossipDefinition.getName()));
+        radt.setRef(new ItemPathType(gossipDefinition.getItemName()));
         MappingType outbound = new MappingType();
         radt.setOutbound(outbound);
 

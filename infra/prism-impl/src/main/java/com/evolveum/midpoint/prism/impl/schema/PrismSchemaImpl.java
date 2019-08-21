@@ -124,7 +124,7 @@ public class PrismSchemaImpl implements MutablePrismSchema {
 		definitions.add(def);
 		if (def instanceof ItemDefinition) {
 			ItemDefinition<?> itemDef = (ItemDefinition<?>) def;
-			itemDefinitionMap.put(itemDef.getName(), itemDef);
+			itemDefinitionMap.put(itemDef.getItemName(), itemDef);
 			QName typeName = def.getTypeName();
 			if (QNameUtil.isUnqualified(typeName)) {
 				throw new IllegalArgumentException("Item definition (" + itemDef + ") of unqualified type " + typeName + " cannot be added to " + this);
