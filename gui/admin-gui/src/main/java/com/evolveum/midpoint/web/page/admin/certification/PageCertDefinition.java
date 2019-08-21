@@ -124,7 +124,7 @@ public class PageCertDefinition extends PageAdminCertification {
 					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			AccessCertificationDefinitionType definition = PrismObjectValue.asObjectable(definitionObject);
-			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
+			definitionDto = new CertDefinitionDto(definition, this);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
@@ -146,7 +146,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
-		return new CertDefinitionDto(definition, this, getPrismContext());
+		return new CertDefinitionDto(definition, this);
 	}
 	//endregion
 

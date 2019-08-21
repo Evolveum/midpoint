@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -58,7 +59,8 @@ public class SystemConfigPanel extends BasePanel<PrismObjectWrapper<SystemConfig
     
     protected void initLayout() {
     	try {
-			Panel panel = getPageBase().initItemPanel(ID_SYSTEM_CONFIG, SystemConfigurationType.COMPLEX_TYPE, getModel(), itemWrapper -> getBasicTabVisibity(itemWrapper));
+			ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> getBasicTabVisibity(itemWrapper));
+			Panel panel = getPageBase().initItemPanel(ID_SYSTEM_CONFIG, SystemConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
 			add(panel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create basic panel for system configuration.");
