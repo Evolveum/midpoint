@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -82,16 +83,16 @@ public class CertDefinitionDto implements Serializable {
     //private List<AccessCertificationResponseType> stopReviewOn, advanceToNextStageOn;
     private ObjectViewDto<UserType> owner;
 
-    public CertDefinitionDto(AccessCertificationDefinitionType definition, PageBase page, PrismContext prismContext)
+    public CertDefinitionDto(AccessCertificationDefinitionType definition, ModelServiceLocator modelServiceLocator)
             throws SchemaException {
         this.oldDefinition = definition.clone();
         this.definition = definition;
         owner = loadOwnerReference(definition.getOwnerRef());
 
-        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), page.getPrismContext());
+        definitionScopeDto = createDefinitionScopeDto(definition.getScopeDefinition(), modelServiceLocator.getPrismContext());
         stageDefinition = new ArrayList<>();
         for (AccessCertificationStageDefinitionType stageDef : definition.getStageDefinition()) {
-            stageDefinition.add(createStageDefinitionDto(stageDef, prismContext));
+            stageDefinition.add(createStageDefinitionDto(stageDef, modelServiceLocator));
         }
         stageDefinition.sort(Comparator.comparing(StageDefinitionDto::getNumber));
         if (definition.getRemediationDefinition() != null) {
@@ -315,9 +316,9 @@ public class CertDefinitionDto implements Serializable {
     }
 
     private StageDefinitionDto createStageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj,
-            PrismContext prismContext)
+                                                        ModelServiceLocator serviceLocator)
             throws SchemaException {
-        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, prismContext);
+        StageDefinitionDto dto = new StageDefinitionDto(stageDefObj, serviceLocator);
         return dto;
     }
 
@@ -416,10 +417,10 @@ public class CertDefinitionDto implements Serializable {
 			}
 			reviewerObject.getReviewerExpression().addAll(CloneUtil.cloneCollectionMembers(reviewerDto.getReviewerExpressionList()));
             reviewerObject.getDefaultReviewerRef().clear();
-            //TODO TODO TODO
-//            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
-//            reviewerObject.getAdditionalReviewerRef().clear();
-//            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
+
+            reviewerObject.getDefaultReviewerRef().addAll(reviewerDto.getDefaultReviewersAsObjectReferenceList(prismContext));
+            reviewerObject.getAdditionalReviewerRef().clear();
+            reviewerObject.getAdditionalReviewerRef().addAll(reviewerDto.getAdditionalReviewersAsObjectReferenceList(prismContext));
         }
         return reviewerObject;
     }

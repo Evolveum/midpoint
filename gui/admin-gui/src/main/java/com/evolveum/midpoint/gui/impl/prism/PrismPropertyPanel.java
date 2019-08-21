@@ -67,8 +67,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 	 * @param id
 	 * @param model
 	 */
-	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, visibilitytHandler);
+	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 	}
 
 

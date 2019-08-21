@@ -61,12 +61,12 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	private static final String ID_REMOVE_BUTTON = "removeButton";
 	private static final String ID_BUTTON_CONTAINER = "buttonContainer";
 	
-	private ItemVisibilityHandler visibilityHandler;
+	private ItemPanelSettings itemPanelSettings;
 	
 	
-	public ItemPanel(String id, IModel<IW> model, ItemVisibilityHandler visibilityHandler) {
+	public ItemPanel(String id, IModel<IW> model, ItemPanelSettings itemPanelSettings) {
 		super(id, model);
-		this.visibilityHandler = visibilityHandler;
+		this.itemPanelSettings = itemPanelSettings;
 	}
 
 	@Override
@@ -88,6 +88,9 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	}
 	
 	protected boolean getHeaderVisibility() {
+		if (!isHeaderVisible()) {
+			return false;
+		}
 		return getParent().findParent(AbstractItemWrapperColumnPanel.class) == null;
 	}
 
@@ -104,7 +107,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 				GuiComponentFactory componentFactory = getPageBase().getRegistry()
 						.findValuePanelFactory(ItemPanel.this.getModelObject());
 
-				Component panel = createValuePanel(item, componentFactory, visibilityHandler);
+				Component panel = createValuePanel(item, componentFactory, getVisibilityHandler());
 				panel.add(new EnableBehaviour(() -> !ItemPanel.this.getModelObject().isReadOnly()));
 				createButtons(item);
 			}
@@ -287,6 +290,29 @@ public abstract class ItemPanel<VW extends PrismValueWrapper, IW extends ItemWra
 	    }
 	  
 	 public ItemVisibilityHandler getVisibilityHandler() {
-		return visibilityHandler;
+	 	if (itemPanelSettings == null) {
+	 		return null;
+		}
+	 	return itemPanelSettings.getVisibilityHandler();
+	}
+
+	protected boolean isShowOnTopLevel() {
+	 	if (itemPanelSettings == null) {
+	 		return false;
+		}
+	 	return itemPanelSettings.isShowOnTopLevel();
+	}
+
+
+	protected boolean isHeaderVisible() {
+	 	if (itemPanelSettings == null) {
+	 		return true;
+		}
+
+	 	return itemPanelSettings.isHeaderVisible();
+	}
+
+	public ItemPanelSettings getSettings() {
+	 	return itemPanelSettings;
 	}
 }

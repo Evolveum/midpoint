@@ -30,7 +30,7 @@
     		<label>System Role</label>
     		<pluralLabel>System Roles</pluralLabel>
     		<icon>
-    			<cssClass>fa fa-street-view</cssClass>
+    			<cssClass>fe fe-role_icon</cssClass>
     			<color>red</color>
     		</icon>
     	</display>

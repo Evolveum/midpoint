@@ -86,9 +86,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
-		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
 		containerValueWrapper.setShowEmpty(context.isShowEmpty());
-		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 		for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
@@ -98,6 +96,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
 		parent.setVirtual(context.getVirtualItemSpecification() != null);
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
 		return containerValueWrapper;
 	}
 	
@@ -147,7 +146,12 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	}
 	
 	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
-			if (value.isEmpty()) {
+
+		if (context.getVirtualItemSpecification() != null) {
+			return true;
+		}
+
+		if (value.isEmpty()) {
 			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
 		}
 		

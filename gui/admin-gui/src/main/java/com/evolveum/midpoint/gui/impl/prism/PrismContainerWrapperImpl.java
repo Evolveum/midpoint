@@ -74,16 +74,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	}
 
 	@Override
-	public void setShowOnTopLevel(boolean setShowOnTopLevel) {
-		this.showOnTopLevel = setShowOnTopLevel;
-	}
-
-	@Override
-	public boolean isShowOnTopLevel() {
-		return showOnTopLevel;
-	}
-	
-	@Override
 	public Class<C> getCompileTimeClass() {
 		return getItemDefinition().getCompileTimeClass();
 	}
@@ -343,9 +333,8 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 		if (getComplexTypeDefinition().getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
 			return (getParent() != null && getParent().isShowMetadata());
 		}
-		boolean parentIsOnTopLevel = parent.getParent() != null && ((PrismContainerWrapper)parent.getParent()).isShowOnTopLevel();
-		
-		return isVisibleByVisibilityHandler((parentIsOnTopLevel || parent.isExpanded()), visibilityHandler);
+
+		return isVisibleByVisibilityHandler(parent.isExpanded(), visibilityHandler);
 	}
 
 	@Override

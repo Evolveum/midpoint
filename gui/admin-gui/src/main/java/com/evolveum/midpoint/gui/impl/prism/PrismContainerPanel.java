@@ -48,8 +48,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 	 * @param id
 	 * @param model
 	 */
-	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, visibilitytHandler);
+	public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 	}
 	
 	@Override
@@ -60,8 +60,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 		add(AttributeModifier.append("class", () -> {
 			String cssClasses = "";
 			
-			if ((getModelObject() != null && getModelObject().isShowOnTopLevel())
-					|| (!(getParent() instanceof PrismContainerValuePanel) && getParent()!=null
+			if (isShowOnTopLevel() || (getModelObject() != null && getModelObject().isVirtual()) || (!(getParent() instanceof PrismContainerValuePanel) && getParent()!=null
 					&& getParent().getParent() instanceof PrismContainerValuePanel)) {
 				cssClasses = "top-level-prism-container";
 			}

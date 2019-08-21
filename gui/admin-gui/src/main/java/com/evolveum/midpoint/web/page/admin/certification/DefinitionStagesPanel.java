@@ -201,7 +201,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 		return new AbstractTab(new Model<>(definitionDto.getName())) {
 			@Override
 			public WebMarkupContainer getPanel(String panelId) {
-				return new DefinitionStagePanel(panelId, new Model(definitionDto), parentPage);
+				return new DefinitionStagePanel(panelId, new Model(definitionDto));
 			}
 		};
 	}
@@ -212,7 +212,7 @@ public class DefinitionStagesPanel extends BasePanel<List<StageDefinitionDto>> {
 			AccessCertificationStageDefinitionType def = new AccessCertificationStageDefinitionType(parentPage.getPrismContext());
 			def.setNumber(getModel().getObject().size() + 1);
 			def.setName(DEFAULT_STAGE_NAME_PREFIX + def.getNumber());
-			return new StageDefinitionDto(def, parentPage.getPrismContext());
+			return new StageDefinitionDto(def, parentPage);
 		} catch (SchemaException e) {
 			throw new IllegalStateException(e);
 		}

@@ -56,8 +56,8 @@ public class ExpressionPropertyPanel extends PrismPropertyPanel<ExpressionType> 
 
 	private boolean isExpanded;
 
-	public ExpressionPropertyPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, visibilitytHandler);
+	public ExpressionPropertyPanel(String id, IModel<PrismPropertyWrapper<ExpressionType>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 		isExpanded = model.getObject() != null && CollectionUtils.isNotEmpty(model.getObject().getValues());
 		//todo how to set displayOrder ? to display expression property the last, in the same way as containers
 	}
