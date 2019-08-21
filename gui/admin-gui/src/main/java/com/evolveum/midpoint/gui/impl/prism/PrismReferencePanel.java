@@ -54,8 +54,8 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 	private static final String ID_VALUE = "value";
 	private static final String ID_FEEDBACK = "feedback";
 
-	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemVisibilityHandler visibilityHandler) {
-		super(id, model, visibilityHandler);
+	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 	}
 	
 	@Override

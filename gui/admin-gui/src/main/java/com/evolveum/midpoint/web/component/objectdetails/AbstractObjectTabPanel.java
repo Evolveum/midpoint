@@ -17,6 +17,8 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -140,7 +142,10 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 		
 		try {
 			//FIXME : really always visible?
-			Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), wrapper -> ItemVisibility.VISIBLE);
+			ItemPanelSettingsBuilder settingsBuilder = new ItemPanelSettingsBuilder();
+			settingsBuilder.visibilityHandler(wrapper -> ItemVisibility.VISIBLE);
+
+			Panel panel = getPageBase().initItemPanel(id, typeName, PrismPropertyWrapperModel.fromContainerWrapper(getObjectWrapperModel(), propertyPath), settingsBuilder.build());
 			parentComponent.add(panel);
 			return panel;
 		} catch (SchemaException e) {

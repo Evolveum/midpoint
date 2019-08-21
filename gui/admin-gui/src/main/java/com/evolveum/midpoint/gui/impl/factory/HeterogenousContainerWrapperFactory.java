@@ -93,6 +93,8 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 			PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
+		containerValueWrapper.setShowEmpty(context.isShowEmpty());
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
 		containerValueWrapper.setHeterogenous(true);
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
@@ -116,6 +118,24 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		return containerValueWrapper;
+	}
+
+	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
+		if (value.isEmpty()) {
+			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
+		}
+
+		return true;
+	}
+
+	private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
+		for (ItemDefinition def : definitions) {
+			if (def.isEmphasized()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	protected List<PrismContainerValueWrapper<C>> createValuesWrapper(PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context) throws SchemaException {

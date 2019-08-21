@@ -106,9 +106,6 @@
 .fe-case:before {
   content: "\e91a";
 }
-.fe-case-object:before {
-  content: "\e91a";
-}
 .fe-delegate:before {
   content: "\e91b";
 }
@@ -121,12 +118,12 @@
 .fe-no-line:before {
   content: "\e91e";
 }
-.fe-slash:before {
-  content: "\e91e";
-}
 .fe-file:before {
   content: "\e91f";
 }
 .fe-no-file:before {
   content: "\e920";
+}
+.fe-role_icon:before {
+  content: "\e921";
 }

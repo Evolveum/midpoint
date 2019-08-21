@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -101,8 +102,8 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 		add(profilingEnabledNote);
 
 		try {
-			getProfilingModel().getObject().setShowOnTopLevel(true);
-			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), null);
+			ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+			Panel panel = getPageBase().initItemPanel(ID_PROFILING, ProfilingConfigurationType.COMPLEX_TYPE, getProfilingModel(), builder.build());
 			add(panel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);
@@ -111,8 +112,8 @@ public class ProfilingConfigurationTabPanel extends BasePanel<PrismContainerWrap
 
     	PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> profilingLogger = PrismContainerWrapperModel.fromContainerWrapper(getLoggingModel(), ItemPath.create(ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH));
     	try {
-    		profilingLogger.getObject().setShowOnTopLevel(true);
-			Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, null);
+    		ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().showOnTopLevel(true);
+			Panel logger = getPageBase().initItemPanel(ID_PROFILING_LOGGER, ProfilingClassLoggerWrapperFactoryImpl.PROFILING_LOGGER_PATH, profilingLogger, builder.build());
 			add(logger);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create profiling panel. Reason: {}", e.getMessage(), e);

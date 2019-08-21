@@ -1,20 +1,25 @@
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_ADDITIONAL_REVIEWER_REF;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType.F_DEFAULT_REVIEWER_REF;
 
 /**
  * Created by Kate on 15.12.2015.
@@ -40,13 +45,12 @@ public class AccessCertificationReviewerDto implements Serializable {
     private boolean useObjectApprover;
     private ManagerSearchDto useObjectManager;
     private boolean useObjectManagerPresent;
-    
-    //TODO TODO TODO
-//    private ReferenceWrapper defaultReviewers;
-//    private ReferenceWrapper additionalReviewers;
+
+    private ItemWrapper defaultReviewers;
+    private ItemWrapper additionalReviewers;
     private List<ExpressionType> reviewerExpressionList;
 
-	public AccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewerType, PrismContext prismContext) throws SchemaException {
+	public AccessCertificationReviewerDto(AccessCertificationReviewerSpecificationType reviewerType, ModelServiceLocator pageBase) throws SchemaException {
 		final PrismReference defaultReviewersReference;
 		final PrismReference additionalReviewersReference;
 		if (reviewerType != null) {
@@ -64,21 +68,24 @@ public class AccessCertificationReviewerDto implements Serializable {
 		} else {
 			useObjectManager = new ManagerSearchDto(null);
 			useObjectManagerPresent = false;
-			PrismReferenceDefinition defReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+			PrismReferenceDefinition defReviewerDef = pageBase.getPrismContext().getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
 					PrismReferenceDefinition.class,
 					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_DEFAULT_REVIEWER_REF);
 			defaultReviewersReference = defReviewerDef.instantiate();
-			PrismReferenceDefinition additionalReviewerDef = prismContext.getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
+			PrismReferenceDefinition additionalReviewerDef = pageBase.getPrismContext().getSchemaRegistry().findItemDefinitionByFullPath(AccessCertificationDefinitionType.class,
 					PrismReferenceDefinition.class,
 					AccessCertificationDefinitionType.F_STAGE_DEFINITION, AccessCertificationStageDefinitionType.F_REVIEWER_SPECIFICATION, F_ADDITIONAL_REVIEWER_REF);
 			additionalReviewersReference = additionalReviewerDef.instantiate();
 			reviewerExpressionList = new ArrayList<>();
 		}
-	
-		
-		//TODO TODO TODO
-//		setDefaultReviewers(new ReferenceWrapper(null, defaultReviewersReference, false, ValueStatus.NOT_CHANGED, prismContext));
-//		setAdditionalReviewers(new ReferenceWrapper(null, additionalReviewersReference, false, ValueStatus.NOT_CHANGED, prismContext));
+
+
+        Task task = pageBase.createSimpleTask("Create reviewers wrappers");
+        OperationResult result = task.getResult();
+        WrapperContext ctx = new WrapperContext(task, result);
+		setDefaultReviewers(pageBase.createItemWrapper(defaultReviewersReference, ItemStatus.NOT_CHANGED, ctx));
+        setAdditionalReviewers(pageBase.createItemWrapper(additionalReviewersReference, ItemStatus.NOT_CHANGED, ctx));
+
 	}
 
 	public String getName() {
@@ -154,29 +161,29 @@ public class AccessCertificationReviewerDto implements Serializable {
 		this.reviewerExpressionList = reviewerExpressionList;
 	}
 
-	//TODO TODO TODO
-//	public ReferenceWrapper getDefaultReviewers() {
-//        return defaultReviewers;
-//    }
-//
-//    public void setDefaultReviewers(ReferenceWrapper defaultReviewers) {
-//        this.defaultReviewers = defaultReviewers;
-//    }
-//
-//    public ReferenceWrapper getAdditionalReviewers() {
-//        return additionalReviewers;
-//    }
-//
-//    public void setAdditionalReviewers(ReferenceWrapper additionalReviewers) {
-//        this.additionalReviewers = additionalReviewers;
-//    }
-//
-//    public List<ObjectReferenceType> getDefaultReviewersAsObjectReferenceList(PrismContext prismContext) throws SchemaException {
-//        return ObjectTypeUtil.getAsObjectReferenceTypeList(defaultReviewers.getUpdatedItem(prismContext));
-//    }
-//
-//    public List<ObjectReferenceType> getAdditionalReviewersAsObjectReferenceList(PrismContext prismContext) throws SchemaException {
-//        return ObjectTypeUtil.getAsObjectReferenceTypeList(additionalReviewers.getUpdatedItem(prismContext));
-//    }
+
+	public ItemWrapper getDefaultReviewers() {
+        return defaultReviewers;
+    }
+
+    public void setDefaultReviewers(ItemWrapper defaultReviewers) {
+        this.defaultReviewers = defaultReviewers;
+    }
+
+    public ItemWrapper getAdditionalReviewers() {
+        return additionalReviewers;
+    }
+
+    public void setAdditionalReviewers(ItemWrapper additionalReviewers) {
+        this.additionalReviewers = additionalReviewers;
+    }
+
+    public List<ObjectReferenceType> getDefaultReviewersAsObjectReferenceList(PrismContext prismContext) throws SchemaException {
+        return ObjectTypeUtil.getAsObjectReferenceTypeList((PrismReference)defaultReviewers.getItem());
+    }
+
+    public List<ObjectReferenceType> getAdditionalReviewersAsObjectReferenceList(PrismContext prismContext) throws SchemaException {
+        return ObjectTypeUtil.getAsObjectReferenceTypeList((PrismReference) additionalReviewers.getItem());
+    }
 
 }

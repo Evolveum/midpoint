@@ -1186,7 +1186,17 @@ public final class WebComponentUtil {
 		} else if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)) {
 			UserInterfaceFeatureType userInterfaceFeature = (UserInterfaceFeatureType) prismContainerValue.asContainerable();
 			String identifier = userInterfaceFeature.getIdentifier();
-			if (StringUtils.isNotEmpty(identifier)) {
+
+			if (StringUtils.isBlank(identifier)) {
+				DisplayType uifDisplay = userInterfaceFeature.getDisplay();
+				if (uifDisplay != null) {
+					displayName = WebComponentUtil.getOrigStringFromPoly(uifDisplay.getLabel());
+				}
+
+				if (displayName == null) {
+					displayName = "UserInterfaceFeatureType.containerTitle";
+				}
+			} else {
 				displayName = identifier;
 			}
 		} else if (prismContainerValue.canRepresent(GuiObjectColumnType.class)) {
