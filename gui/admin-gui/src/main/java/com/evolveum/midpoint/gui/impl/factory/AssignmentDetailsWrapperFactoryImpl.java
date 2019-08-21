@@ -47,5 +47,9 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 		}
 		return false;
 	}
-	
+
+	@Override
+	public int getOrder() {
+		return super.getOrder() - 10;
+	}
 }
