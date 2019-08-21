@@ -47,7 +47,7 @@
     		<label>Business Role</label>
     		<pluralLabel>Business Roles</pluralLabel>
     		<icon>
-    			<cssClass>fa fa-street-view</cssClass>
+    			<cssClass>fe fe-role_icon</cssClass>
     			<color>green</color>
     		</icon>
     	</display>
