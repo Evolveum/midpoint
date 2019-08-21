@@ -18,6 +18,7 @@ package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -61,8 +62,9 @@ public class ContainerOfSystemConfigurationPanel<C extends Containerable> extend
     protected void initLayout() {
 
     	try {
-			Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), wrapper -> getVisibity(wrapper.getPath()));
-			getModelObject().setShowOnTopLevel(true);
+			ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(wrapper -> getVisibity(wrapper.getPath())).showOnTopLevel(true);
+			Panel panel = getPageBase().initItemPanel(ID_CONTAINER, typeName, getModel(), builder.build());
+//			getModelObject().setShowOnTopLevel(true);
 			add(panel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for {}, {}", typeName, e.getMessage(), e);

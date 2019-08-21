@@ -27,5 +27,5 @@ import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 @FunctionalInterface
 public interface ItemVisibilityHandler extends Serializable{
 
-	public ItemVisibility isVisible(ItemWrapper wrapper);
+	ItemVisibility isVisible(ItemWrapper wrapper);
 }

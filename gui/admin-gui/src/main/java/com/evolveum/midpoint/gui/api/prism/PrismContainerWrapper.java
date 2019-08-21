@@ -41,17 +41,13 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
 	
 	boolean isExpanded();
 	
-	void setShowOnTopLevel(boolean setShowOnTopLevel);
-	
-	boolean isShowOnTopLevel();
-	
+
 	ItemStatus getStatus();
 
 	void setVirtual(boolean virtual);
 	boolean isVirtual();
-	
-//	ItemWrapper<?, ?, ?,?> findItem(ItemPath path);
-	
+
+
 	<T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
 	<X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
 	<R extends Referencable> PrismReferenceWrapper<R> findReference(ItemPath path) throws SchemaException;

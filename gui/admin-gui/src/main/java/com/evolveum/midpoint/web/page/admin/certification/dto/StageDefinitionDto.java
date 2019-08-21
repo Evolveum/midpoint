@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -56,7 +57,7 @@ public class StageDefinitionDto implements Serializable {
     private List<AccessCertificationResponseType> advanceToNextStageOnRaw;
     private List<WorkItemTimedActionsType> timedActionsTypes;
 
-	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, PrismContext prismContext) throws SchemaException {
+	public StageDefinitionDto(AccessCertificationStageDefinitionType stageDefObj, ModelServiceLocator modelServiceLocator) throws SchemaException {
 		if (stageDefObj != null) {
 			setNumber(stageDefObj.getNumber());
 			setName(stageDefObj.getName());
@@ -67,14 +68,14 @@ public class StageDefinitionDto implements Serializable {
 			setDeadlineRounding(stageDefObj.getDeadlineRounding());
 			setNotifyBeforeDeadline(convertDurationListToString(stageDefObj.getNotifyBeforeDeadline()));
 			setNotifyOnlyWhenNoDecision(Boolean.TRUE.equals(stageDefObj.isNotifyOnlyWhenNoDecision()));
-			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), prismContext));
+			setReviewerDto(new AccessCertificationReviewerDto(stageDefObj.getReviewerSpecification(), modelServiceLocator));
 			setOutcomeStrategy(stageDefObj.getOutcomeStrategy());
 			setOutcomeIfNoReviewers(stageDefObj.getOutcomeIfNoReviewers());
 			setStopReviewOnRaw(new ArrayList<>(stageDefObj.getStopReviewOn()));
 			setAdvanceToNextStageOnRaw(new ArrayList<>(stageDefObj.getAdvanceToNextStageOn()));
 			setTimedActionsTypes(new ArrayList<>(stageDefObj.getTimedActions()));
 		} else {
-			setReviewerDto(new AccessCertificationReviewerDto(null, prismContext));
+			setReviewerDto(new AccessCertificationReviewerDto(null, modelServiceLocator));
 		}
 	}
 

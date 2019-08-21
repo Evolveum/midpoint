@@ -18,6 +18,12 @@ package com.evolveum.midpoint.web.page.admin.certification;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -27,6 +33,7 @@ import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -83,9 +90,14 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
     private static final String ID_STOP_REVIEW_ON_HELP = "stopReviewOnHelp";
 
     // TODO remove pageBase from the constructor -- replace with delayed layout initialization
-    public DefinitionStagePanel(String id, IModel<StageDefinitionDto> model, PageBase pageBase) {
+    public DefinitionStagePanel(String id, IModel<StageDefinitionDto> model) {
         super(id, model);
-        initLayout(pageBase);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout(getPageBase());
     }
 
     protected void initLayout(PageBase pageBase) {
@@ -161,20 +173,22 @@ public class DefinitionStagePanel extends BasePanel<StageDefinitionDto> {
 		useObjectManagerDetails.add(allowSelf);
 		useObjectManagerDetails.add(WebComponentUtil.createHelp(ID_USE_OBJECT_MANAGER_ALLOW_SELF_HELP));
 
-		//TODO TODO TODO
-//		PrismPropertyPanel defaultOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_DEFAULT_REVIEWER_REF,
-//                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS),
-//                null);
-//        defaultOwnerRefPanel.setLabelContainerVisible(false);
-//        add(defaultOwnerRefPanel);
-//		add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
-//
-//		PrismPropertyPanel additionalOwnerRefPanel = new NoOffsetPrismReferencePanel(ID_ADDITIONAL_REVIEWER_REF,
-//                new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS),
-//                null);
-//        additionalOwnerRefPanel.setLabelContainerVisible(false);
-//        add(additionalOwnerRefPanel);
-		add(WebComponentUtil.createHelp(ID_ADDITIONAL_REVIEWER_REF_HELP));
+
+		try {
+		    ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(iw -> ItemVisibility.AUTO);
+            Panel defaultOwnerRefPanel = pageBase.initItemPanel(ID_DEFAULT_REVIEWER_REF, ObjectReferenceType.COMPLEX_TYPE,
+                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_DEFAULT_REVIEWERS), builder.build());
+            add(defaultOwnerRefPanel);
+            add(WebComponentUtil.createHelp(ID_DEFAULT_REVIEWER_REF_HELP));
+
+            Panel additionalOwnerRefPanel = pageBase.initItemPanel(ID_ADDITIONAL_REVIEWER_REF, ObjectReferenceType.COMPLEX_TYPE,
+                    new PropertyModel<>(getModel(), StageDefinitionDto.F_REVIEWER_DTO + "." + AccessCertificationReviewerDto.F_ADDITIONAL_REVIEWERS), builder.build());
+            add(additionalOwnerRefPanel);
+            add(WebComponentUtil.createHelp(ID_ADDITIONAL_REVIEWER_REF_HELP));
+        } catch (SchemaException e) {
+
+        }
+
 
         DropDownChoice outcomeStrategy1 =
                 new DropDownChoice<>(ID_OUTCOME_STRATEGY,

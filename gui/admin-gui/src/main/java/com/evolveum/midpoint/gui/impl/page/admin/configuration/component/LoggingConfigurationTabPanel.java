@@ -23,6 +23,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
@@ -117,8 +119,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     
     protected void initLayout() {
     	try {
-    		getModelObject().setShowOnTopLevel(true);
-    		Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
+//    		getModelObject().setShowOnTopLevel(true);
+			ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
+			builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath())).showOnTopLevel(true);
+    		Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
 			add(loggingPanel);
 		} catch (SchemaException e) {
 			LOGGER.error("Cannot create panel for logging: {}", e.getMessage(), e);
