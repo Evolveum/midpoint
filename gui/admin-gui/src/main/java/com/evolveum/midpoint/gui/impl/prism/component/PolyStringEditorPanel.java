@@ -284,7 +284,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
                             @Override
                             protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), newLanguageValue.getBaseFormComponent().getValue());
+                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), translation.getBaseFormComponent().getValue());
                             }
                         });
                         listItem.add(translation);
@@ -354,6 +354,10 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             public List<String> getObject() {
                 Map<String, String> languagesMap = isPolyStringLangNotNull() ? getModelObject().getLang() : new HashMap<>();
                 List<String> languagesList = new ArrayList<>(languagesMap.keySet());
+                String valueToExclude = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
+                if (StringUtils.isNotEmpty(valueToExclude)) {
+                    languagesList.remove(valueToExclude);
+                }
                 Collections.sort(languagesList);
                 return languagesList;
             }
@@ -443,5 +447,9 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             return null;
         }
         return getModelObject().getLang().get(key);
+    }
+
+    private DropDownChoicePanel<String> getLanguagesChoicePanel(){
+        return (DropDownChoicePanel<String>)get(ID_FULL_DATA_CONTAINER).get(ID_LANGUAGE_EDITOR).get(ID_LANGUAGES_LIST);
     }
 }
