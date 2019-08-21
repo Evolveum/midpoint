@@ -29,6 +29,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,7 +70,7 @@ public class UploadDownloadPanel extends InputPanel {
         	public String[] getInputAsArray() {
         		List<String> input = new ArrayList<>();
         		try {
-					input.add(new String (getStream().readAllBytes()));
+					input.add(new String (IOUtils.toByteArray(getStream())));
 				} catch (IOException e) {
 					LOGGER.error("Unable to define file content type, ", e.getLocalizedMessage());
 				}
