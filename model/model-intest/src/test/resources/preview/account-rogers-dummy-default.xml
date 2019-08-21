@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-11c1c1c1c11c" 
+<shadow
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
@@ -22,40 +22,10 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
-    <name>capsize</name>
-
-    <assignment>
-        <construction>
-            <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-        </construction>
-    </assignment>
-
-    <assignment>
-        <construction>
-            <resourceRef oid="10000000-0000-0000-0000-000000000104"/>
-        </construction>
-    </assignment>
-
-    <assignment>
-        <construction>
-            <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
-        </construction>
-    </assignment>
-    
-    <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    </activation>
-
-    <fullName>Kate Capsize</fullName>
-    <givenName>Kate</givenName>
-    <familyName>Capsize</familyName>
-    <honorificPrefix>Captain</honorificPrefix>
-        
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>noTrespaSSing</clearValue>
-            </value>
-        </password>
-    </credentials>
-</user>
+    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+    <objectClass>ridummy:AccountObjectClass</objectClass>
+    <attributes>
+        <ridummy:fullname>Rum Rogers Sr.</ridummy:fullname>
+        <ridummy:ship>The Sea Monkey</ridummy:ship>
+    </attributes>
+</shadow>

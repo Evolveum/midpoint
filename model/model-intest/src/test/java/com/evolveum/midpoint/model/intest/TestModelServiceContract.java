@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -2937,10 +2938,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-blackbeard-account-dummy.xml"));
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-blackbeard-dummy.xml"));
-        ObjectReferenceType linkRef = new ObjectReferenceType();
-        linkRef.asReferenceValue().setObject(account);
-		user.asObjectable().getLinkRef().add(linkRef);
+        addAccountLinkRef(user,new File(TEST_DIR, "account-blackbeard-dummy.xml"));
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -3013,7 +3011,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSteadyResources();
     }
 
-
 	@Test
     public void test210AddUserMorganWithAssignment() throws Exception {
 		final String TEST_NAME = "test210AddUserMorganWithAssignment";
@@ -3026,18 +3023,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-morgan-assignment-dummy.xml"));
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
         displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		executeChanges(userDelta, null, task, result);
 
 		// THEN
 		displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
@@ -3114,8 +3109,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
 		// THEN
         displayThen(TEST_NAME);
-		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+		assertSuccess(result);
         // Strong mappings
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
 

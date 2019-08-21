@@ -73,6 +73,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	private static final String USER_BLACKBEARD_OID = "c0c010c0-d34d-b33f-f00d-161161116666";
 
 	static final File USER_ROGERS_FILE = new File(TEST_DIR, "user-rogers.xml");
+	static final File ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE = new File(TEST_DIR, "account-rogers-dummy-default.xml");
+	static final File ACCOUNT_ROGERS_DUMMY_LEMON_FILE = new File(TEST_DIR, "account-rogers-dummy-lemon.xml");
 
 	private static String accountOid;
 
@@ -1734,6 +1736,9 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_CAPSIZE_FILE);
+        addAccountLinkRef(user, ACCOUNT_CAPSIZE_DUMMY_DEFAULT_FILE);
+        addAccountLinkRef(user, ACCOUNT_CAPSIZE_DUMMY_RED_FILE);
+        addAccountLinkRef(user, ACCOUNT_CAPSIZE_DUMMY_BLUE_FILE);
         ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 
@@ -1744,8 +1749,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         display("Preview context", modelContext);
 		assertNotNull("Null model context", modelContext);
 
-		result.computeStatus();
-        TestUtil.assertSuccess(result);
+		assertSuccess(result);
 
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
@@ -1823,6 +1827,8 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_ROGERS_FILE);
+		addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_DEFAULT_FILE);
+		addAccountLinkRef(user, ACCOUNT_ROGERS_DUMMY_LEMON_FILE);
 		ObjectDelta<UserType> userDelta = DeltaFactory.Object.createAddDelta(user);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 

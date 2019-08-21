@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1996,6 +1996,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 		PrismObject<CaseType> caseClosed = repositoryService.getObject(CaseType.class, caseOid, null, result);
 		display("Case closed", caseClosed);
+	}
+	
+	/**
+	 * Parses and adds full account into user as an object in linkRef.
+	 */
+	protected void addAccountLinkRef(PrismObject<UserType> user, File accountFile) throws SchemaException, IOException {
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+        ObjectReferenceType linkRef = new ObjectReferenceType();
+        linkRef.asReferenceValue().setObject(account);
+		user.asObjectable().getLinkRef().add(linkRef);
 	}
 
 	protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {

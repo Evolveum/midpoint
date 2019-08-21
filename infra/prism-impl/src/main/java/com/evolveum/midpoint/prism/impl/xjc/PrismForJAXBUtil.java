@@ -279,6 +279,7 @@ public final class PrismForJAXBUtil {
                 reference.getValue().setTargetType(value.getTargetType());
                 reference.getValue().setFilter(value.getFilter());
                 reference.getValue().setDescription(value.getDescription());
+                reference.getValue().setObject(value.getObject());
             }
         }
     }

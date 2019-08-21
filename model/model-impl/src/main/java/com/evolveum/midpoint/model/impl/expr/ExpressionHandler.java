@@ -39,6 +39,8 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +56,8 @@ import java.util.Collection;
  */
 @Component
 public class ExpressionHandler {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandler.class);
 
 	@Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 	@Autowired private ExpressionFactory expressionFactory;
@@ -134,7 +138,7 @@ public class ExpressionHandler {
 		if (ref == null) {
 			throw new ExpressionEvaluationException("Resource shadow object " + shadow + " doesn't have defined resource.");
 		}
-		PrismObject<ResourceType> resource = ref.asReferenceValue().getObject();
+		PrismObject<ResourceType> resource = ref.getObject();
 		if (resource != null) {
 			return resource.asObjectable();
 		}

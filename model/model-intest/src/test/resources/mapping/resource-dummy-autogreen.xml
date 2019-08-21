@@ -119,20 +119,20 @@
 											throw new AssertionError("No 'projection' or 'configuration' variable present")	// MID-4760
 										}
 
-										if (assignment.target != null) {
-				                        	log.info("### (title) target roleType " + assignment.target.roleType)
-				                        	inRange = 'auto'.equals(assignment.target.roleType)
-				                        	log.info("########## (title) inRange: " + inRange)
-				                        	return inRange
-				                        }
-				                        
 				                        if (assignment.targetRef != null) {
-				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-				                        	log.info("### (title) role name " + role.name.orig)
-				                        	log.info("### (title) role.roleType " + role.roleType)
-				                        	inRange = ('auto')?.equals(role.roleType)
-				                        	log.info("########## (title) inRange: " + inRange)
-				                        	return inRange
+				                        	if (assignment.targetRef.object == null) {
+					                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
+					                        	log.info("### (title) role name " + role.name.orig)
+					                        	log.info("### (title) role.roleType " + role.roleType)
+					                        	inRange = ('auto')?.equals(role.roleType)
+					                        	log.info("########## (title) inRange: " + inRange)
+					                        	return inRange
+				                        	} else {
+					                        	log.info("### (title) target roleType " + assignment.targetRef.objectable.roleType)
+					                        	inRange = 'auto'.equals(assignment.targetRef.objectable.roleType)
+					                        	log.info("########## (title) inRange: " + inRange)
+					                        	return inRange
+				                        	}
 				                        }
 				                    </code>
 				                </script>
@@ -181,20 +181,20 @@
 				                        import com.evolveum.midpoint.schema.constants.*
 				                        import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 				                        
-				                        if (assignment.target != null) {
-				                        	log.info("### (association) target roleType " + assignment.target.roleType)
-				                        	inRange = 'auto'.equals(assignment.target.roleType)
-				                        	log.info("########## (association) inRange: " + inRange)
-				                        	return inRange
-				                        }
-				                        
 				                        if (assignment.targetRef != null) {
-				                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
-				                        	log.info("### (association) role name " + role.name.orig)
-				                        	log.info("### (association) role.roleType " + role.roleType)
-				                        	inRange = ('auto').equals(role.roleType)
-				                        	log.info("########## (association) inRange: " + inRange)
-				                        	return inRange
+				                        	if (assignment.targetRef.object == null) {
+					                        	role = midpoint.getObject(RoleType.class, assignment.targetRef.oid)
+					                        	log.info("### (association) role name " + role.name.orig)
+					                        	log.info("### (association) role.roleType " + role.roleType)
+					                        	inRange = ('auto').equals(role.roleType)
+					                        	log.info("########## (association) inRange: " + inRange)
+					                        	return inRange
+				                        	} else {
+					                        	log.info("### (association) target roleType " + assignment.targetRef.objectable.roleType)
+					                        	inRange = 'auto'.equals(assignment.targetRef.objectable.roleType)
+					                        	log.info("########## (association) inRange: " + inRange)
+					                        	return inRange
+				                        	}
 				                        }
 				                    </code>
 				                </script>

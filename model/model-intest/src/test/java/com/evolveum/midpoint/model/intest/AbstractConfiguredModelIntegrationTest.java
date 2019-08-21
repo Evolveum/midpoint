@@ -367,6 +367,9 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	static final File USER_CAPSIZE_FILE = new File(COMMON_DIR, "user-capsize.xml");
 	protected static final String USER_CAPSIZE_OID = "c0c010c0-d34d-b33f-f00d-11c1c1c1c11c";
 	protected static final String USER_CAPSIZE_USERNAME = "capsize";
+	static final File ACCOUNT_CAPSIZE_DUMMY_DEFAULT_FILE = new File(COMMON_DIR, "account-capsize-dummy-default.xml");
+	static final File ACCOUNT_CAPSIZE_DUMMY_RED_FILE = new File(COMMON_DIR, "account-capsize-dummy-red.xml");
+	static final File ACCOUNT_CAPSIZE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "account-capsize-dummy-blue.xml");
 
 	protected static final File USER_DRAKE_FILE = new File(COMMON_DIR, "user-drake.xml");
 	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1";
