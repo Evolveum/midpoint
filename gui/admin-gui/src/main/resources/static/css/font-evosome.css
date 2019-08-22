@@ -115,7 +115,7 @@
 .fe-handy:before {
   content: "\e91d";
 }
-.fe-no-line:before {
+.fe-slash:before {
   content: "\e91e";
 }
 .fe-file:before {
