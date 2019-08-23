@@ -29,6 +29,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
@@ -43,6 +44,8 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -72,13 +75,11 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 	
 	public ValueChoosePanel(String id, IModel<R> value) {
 		super(id, value);
-		setOutputMarkupId(true);		
+		setOutputMarkupId(true);
+		initLayer();
 	}
 	
-	@Override
-	protected void onInitialize() {
-		super.onInitialize();
-		
+	private void initLayer() {
 		WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
 
 		textWrapper.setOutputMarkupId(true);
@@ -94,10 +95,11 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 		});
 		text.add(AttributeAppender.append("title", textModel));
 		text.setRequired(isRequired());
-		text.setEnabled(false);
+		text.setEnabled(true);
 		textWrapper.add(text);
 
-		FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+		FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
+		feedback.setFilter(new ComponentFeedbackMessageFilter(text));
 		textWrapper.add(feedback);
 
 		AjaxLink<String> edit = new AjaxLink<String>(ID_EDIT) {
@@ -187,58 +189,14 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 			public String getObject() {
 				R prv = model.getObject();
 
-//				if (ort instanceof PrismReferenceValue) {
-//					PrismReferenceValue prv = (PrismReferenceValue) ort;
-//					return prv == null ? null
-//							: (prv.getTargetName() != null
-//									? (prv.getTargetName().getOrig() + (prv.getTargetType() != null
-//											? ": " + prv.getTargetType().getLocalPart() : ""))
-//									: prv.getOid());
-//				} else if (ort instanceof ObjectReferenceType) {
-//					Referencable prv = (Referencable) ort;
 					return prv == null ? null
 							: (prv.getTargetName() != null ? (prv.getTargetName().getOrig()
 									+ (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
 									: prv.getOid());
-//				} else if (ort instanceof ObjectViewDto) {
-//					return ((ObjectViewDto) ort).getName();
-//				}
-//				return ort != null ? ort.toString() : null;
-//=======
-//				T ort = (T) model.getObject();
-//				if (ort == null){
-//					return createStringResource("ValueChoosePanel.undefined").getString();
-//				}
-//
-//				if (ort instanceof PrismReferenceValue) {
-//					PrismReferenceValue prv = (PrismReferenceValue) ort;
-//					if (StringUtils.isEmpty(prv.getOid())){
-//						return createStringResource("ValueChoosePanel.undefined").getString();
-//					}
-//					ObjectReferenceType objectReferenceType = new ObjectReferenceType();
-//					objectReferenceType.setupReferenceValue((PrismReferenceValue) ort);
-//					String targetObjectName = WebComponentUtil.getName(objectReferenceType,
-//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
-//					return StringUtils.isNotEmpty(targetObjectName)
-//									? (targetObjectName + (prv.getTargetType() != null ? ": " + prv.getTargetType().getLocalPart() : ""))
-//									: prv.getOid();
-//				} else if (ort instanceof ObjectReferenceType) {
-//					ObjectReferenceType prv = (ObjectReferenceType) ort;
-//					if (StringUtils.isEmpty(prv.getOid())){
-//						return createStringResource("ValueChoosePanel.undefined").getString();
-//					}
-//					String targetObjectName = WebComponentUtil.getName(prv,
-//							ValueChoosePanel.this.getPageBase(), OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME);
-//
-//					return StringUtils.isNotEmpty(targetObjectName) ?
-//							(targetObjectName + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
-//							: prv.getOid();
-//				} else if (ort instanceof ObjectViewDto) {
-//					return ((ObjectViewDto) ort).getName();
-//				}
-//				return ort != null ? ort.toString() : null;
-//>>>>>>> origin/master
-
+			}
+			
+			@Override
+			public void setObject(String object) {
 			}
 		};
 	}
@@ -332,4 +290,9 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 	protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
 	}
 
+	
+    public FormComponent<String> getBaseFormComponent() {
+        return (FormComponent<String>) getTextWrapperComponent().get(ID_TEXT);
+    }
+	
 }

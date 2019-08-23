@@ -76,7 +76,7 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 		}
 		
 		PrismContext prismContext = serviceLocator.getPrismContext();
-		T valueToValidate = validatable.getValue();
+		Object valueToValidate = getValueToValidate(validatable);
 		String contextDesc = " form component expression validation ";
     	PrismPropertyDefinition<OperationResultType> outputDefinition = prismContext.definitionFactory().createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME,
 			    OperationResultType.COMPLEX_TYPE);
@@ -148,6 +148,10 @@ public class ExpressionValidator<T> implements INullAcceptingValidator<T> {
 	
 	protected <O extends ObjectType> O getObjectType() {
 		return null;
+	}
+	
+	protected Object getValueToValidate(IValidatable<T> validatable) {
+		return validatable.getValue();
 	}
 
 }
