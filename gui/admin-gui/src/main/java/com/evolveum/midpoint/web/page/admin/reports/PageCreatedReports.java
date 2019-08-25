@@ -331,7 +331,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target) {
+                    public void onClick(AjaxRequestTarget target) {
                         deleteAllPerformed(target, ReportDeleteDialogDto.Operation.DELETE_ALL);
                     }
                 };
@@ -347,7 +347,7 @@ public class PageCreatedReports extends PageAdminObjectList<ReportOutputType> {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target) {
+                    public void onClick(AjaxRequestTarget target) {
                         deleteSelectedPerformed(target, ReportDeleteDialogDto.Operation.DELETE_SELECTED, null);
                     }
                 };

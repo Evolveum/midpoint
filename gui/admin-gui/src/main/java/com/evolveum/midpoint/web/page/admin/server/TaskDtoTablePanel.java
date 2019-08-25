@@ -441,7 +441,7 @@ public class TaskDtoTablePanel extends BasePanel {
 
 		columns.addAll(initCustomTaskColumns());
 
-		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<>(createTasksInlineMenu(false, null),
+		IColumn<TaskDto, String> menuColumn = new InlineMenuButtonColumn<>(createTasksInlineMenu(true, null),
 				getPageBase());
 		columns.add(menuColumn);
 

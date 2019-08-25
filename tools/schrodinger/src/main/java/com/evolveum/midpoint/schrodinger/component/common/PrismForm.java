@@ -73,7 +73,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
-        SelenideElement property = findProperty(name);
+        SelenideElement property = $(Schrodinger.byDataResourceKey(name));
 
         $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
@@ -88,8 +88,7 @@ public class PrismForm<T> extends Component<T> {
 
 
     public PrismForm<T> setFileForUploadAsAttributeValue(String name, File file) {
-        SelenideElement property = findProperty(name);
-        property.$(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
+        $(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
 
         return this;
     }

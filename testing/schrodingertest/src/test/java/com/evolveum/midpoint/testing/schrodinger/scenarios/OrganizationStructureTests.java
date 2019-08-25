@@ -21,11 +21,11 @@ public class OrganizationStructureTests extends TestBase {
 
     private static File CSV_TARGET_FILE;
 
-    private static final File CSV_RESOURCE_ADVANCED_SYNC = new File("../../samples/resources/csv/resource-csv-groups.xml");
+    private static final File CSV_RESOURCE_ADVANCED_SYNC = new File("./src/test/resources/csv/resource-csv-groups.xml");
 
-    private static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-groups.csv");
+    private static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/csv/midpoint-groups.csv");
     private static final File ORG_ACCOUNT_INDUCEMENT_FILE = new File("./src/test/resources/org-account-inducement.xml");
-    private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("../../samples/org/org-monkey-island-simple.xml");
+    private static final File ORG_MONKEY_ISLAND_SOURCE_FILE = new File("./src/test/resources/csv/org-monkey-island-simple.xml");
 
     private static final String TEST_USER_GUYBRUSH_NAME = "guybrush";
 
