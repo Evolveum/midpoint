@@ -93,7 +93,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	}
 	
 	@Override
-	public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status) {
+	public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status, WrapperContext context) {
 		return new PrismObjectValueWrapperImpl<O>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
 	}
 	

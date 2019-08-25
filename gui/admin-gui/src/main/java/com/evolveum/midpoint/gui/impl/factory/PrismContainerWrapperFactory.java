@@ -31,7 +31,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 public interface PrismContainerWrapperFactory<C extends Containerable> extends ItemWrapperFactory<PrismContainerWrapper<C>, PrismContainerValueWrapper<C>, PrismContainerValue<C>>{
 
 	
-	PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status);
+	PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context);
 	
 	
 }

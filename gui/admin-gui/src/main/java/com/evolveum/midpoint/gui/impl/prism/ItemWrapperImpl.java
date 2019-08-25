@@ -111,6 +111,11 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
 	@Override
 	public <D extends ItemDelta<PV, ID>> Collection<D> getDelta() throws SchemaException {
 		LOGGER.trace("Start computing delta for {}", newItem);
+
+		if (isOperational()) {
+			return null;
+		}
+
 		D delta = null;
 		if (parent != null && ValueStatus.ADDED == parent.getStatus()) {
 			delta = (D) createEmptyDelta(getItemName()); 

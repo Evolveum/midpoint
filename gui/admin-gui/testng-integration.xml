@@ -20,7 +20,8 @@
         <classes>
         	<class name="com.evolveum.midpoint.web.TestCleanStartup"/>
         	<class name="com.evolveum.midpoint.gui.TestIntegrationObjectWrapperFactory"/>
-<!--        	<class name="com.evolveum.midpoint.web.TestIntegrationSecurity"/>-->
+            <class name="com.evolveum.midpoint.gui.TestWrapperDelta"/>
+        	<class name="com.evolveum.midpoint.web.TestIntegrationSecurity"/>
         </classes>
     </test>
 </suite>

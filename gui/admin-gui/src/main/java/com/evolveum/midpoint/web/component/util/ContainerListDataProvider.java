@@ -16,7 +16,9 @@
 package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.PrismContainerWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -92,7 +94,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
             PrismContainerWrapperFactoryImpl containerFactory = new PrismContainerWrapperFactoryImpl();
 
             for (C object : list) {
-                getAvailableData().add(containerFactory.createContainerValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED));
+                WrapperContext context = new WrapperContext(task, result);
+                getAvailableData().add(containerFactory.createContainerValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);

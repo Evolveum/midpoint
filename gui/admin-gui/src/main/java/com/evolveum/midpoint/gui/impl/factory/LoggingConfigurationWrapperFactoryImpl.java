@@ -100,7 +100,7 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 	@Override
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
-		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
+		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
 		containerValueWrapper.setExpanded(!value.isEmpty());
 		
 		
@@ -139,7 +139,7 @@ public class LoggingConfigurationWrapperFactoryImpl<C extends Containerable> ext
 	}
 	
 	@Override
-	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status) {
+	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
 		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
 	}
 	

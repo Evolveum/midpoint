@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import static com.evolveum.midpoint.web.AdminGuiTestConstants.*;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -40,6 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 public abstract class AbstractInitializedGuiIntegrationTest extends AbstractGuiIntegrationTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedGuiIntegrationTest.class);
+
+//	protected final static String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+//	protected final static ItemName PIRACY_WEAPON = new ItemName(PIRACY_NS, "weapon");
+
 
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
