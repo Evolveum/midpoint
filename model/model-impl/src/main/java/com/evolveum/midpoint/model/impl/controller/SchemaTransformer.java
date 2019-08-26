@@ -288,6 +288,14 @@ public class SchemaTransformer {
 			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
     	
     	PrismObject<O> object = elementContext.getObjectAny();
+
+    	if (object == null ) {
+    		if (elementContext.getDelta() == null) {
+    			return null;
+			} else {
+				throw new IllegalArgumentException("Cannot apply schema and security of null object");
+			}
+		}
     	GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
     	authorizeOptions(getOptions, object, null, phase, task, result);
     	
