@@ -62,6 +62,7 @@ public class WorkItemHelper {
 		}
 		event.setTimestamp(XmlTypeConverter.createXMLGregorianCalendar(new Date()));
 		event.setExternalWorkItemId(workItemId.asString());
+		event.setWorkItemId(workItemId.id);
 		event.setOriginalAssigneeRef(workItem.getOriginalAssigneeRef());
 		event.setStageNumber(workItem.getStageNumber());
 		event.setEscalationLevel(workItem.getEscalationLevel());
