@@ -632,8 +632,6 @@ public class AbstractWfTestPolicy extends AbstractWfTest {
 		assertNull("Unexpected fetch result in wf subtask: " + context, subcase.getFetchResult());
 		ApprovalContextType wfc = subcase.getApprovalContext();
 		assertNotNull("Missing workflow context in wf subtask: " + context, wfc);
-		// TODO-WF
-//		assertNotNull("No process ID in wf subtask: " + subtaskName, wfc.getCaseOid());
 		assertEquals("Wrong process ID name in subtask: " + context, expectedTask.processName, subcase.getName().getOrig());
 		if (expectedTask.targetOid != null) {
 			assertEquals("Wrong target OID in subtask: " + context, expectedTask.targetOid, subcase.getTargetRef().getOid());

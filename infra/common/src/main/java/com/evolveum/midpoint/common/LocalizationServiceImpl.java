@@ -98,6 +98,12 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
     @Override
+    public String translate(LocalizableMessage msg, Locale locale, String defaultMessage) {
+        String rv = translate(msg, locale);
+        return rv != null ? rv : defaultMessage;
+    }
+
+    @Override
     public String translate(LocalizableMessage msg, Locale locale) {
         if (msg == null) {
             return null;

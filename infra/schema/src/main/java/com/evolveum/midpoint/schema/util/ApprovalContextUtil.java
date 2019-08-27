@@ -287,9 +287,9 @@ public class ApprovalContextUtil {
 				.collect(Collectors.toList());
 	}
 
-	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull CaseType aCase, @NotNull String workItemId, Class<T> clazz) {
+	public static <T extends WorkItemEventType> List<T> getWorkItemEvents(@NotNull CaseType aCase, long workItemId, Class<T> clazz) {
 		return aCase.getEvent().stream()
-				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId.equals(((WorkItemEventType) e).getExternalWorkItemId()))
+				.filter(e -> clazz.isAssignableFrom(e.getClass()) && workItemId == ((WorkItemEventType) e).getWorkItemId())
 				.map(e -> (T) e)
 				.collect(Collectors.toList());
 	}

@@ -184,17 +184,6 @@ public class TaskMainPanel extends Panel {
 					}
 				});
 		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeApprovalsVisible(parentPage);
-					}
-				});
-		tabs.add(
 				new AbstractTab(parentPage.createStringResource("pageTaskEdit.operation")) {
 					@Override
 					public WebMarkupContainer getPanel(String panelId) {
@@ -360,21 +349,5 @@ public class TaskMainPanel extends Panel {
 			}
 		});
 		buttonPanel.add(runNow);
-
-		AjaxButton stopApproval = new AjaxButton(ID_STOP_APPROVAL, parentPage.createStringResource("pageTaskEdit.button.stopApprovalProcess")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().stopApprovalProcessPerformed(target);
-			}
-		};
-		stopApproval.add(new VisibleEnableBehaviour() {
-
-			@Override
-			public boolean isVisible() {
-				return visibility.computeStopVisible(parentPage);
-			}
-		});
-		buttonPanel.add(stopApproval);
 	}
-
 }

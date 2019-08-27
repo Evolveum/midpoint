@@ -124,10 +124,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	protected IModel<String> createPageTitleModel() {
 		TaskDto taskDto = taskDtoModel != null ? taskDtoModel.getObject() : null;
 		String suffix;
-		if (taskDto != null && taskDto.isWorkflowParent()) {
+		if (taskDto != null && taskDto.isWorkflow()) {
 			suffix = ".wfOperation";
-		} else if (taskDto != null && taskDto.isWorkflowChild()) {
-			suffix = ".wfRequest";
 		} else {
 			suffix = "";
 		}

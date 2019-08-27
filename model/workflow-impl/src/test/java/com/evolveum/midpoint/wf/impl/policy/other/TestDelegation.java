@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
@@ -143,9 +144,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		assertEquals("Wrong midpoint-assignee values", new HashSet<>(Arrays.asList(userLead1Oid, userLead2Oid)),
 				new HashSet<>(assigneeOids));
 
-		// TODO-WF
-//		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(aCase.asObjectable().getApprovalContext(), workItemId, WorkItemDelegationEventType.class);
-//		assertEquals("Wrong # of delegation events", 1, events.size());
+		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+		assertEquals("Wrong # of delegation events", 1, events.size());
 		// TODO check content
 	}
 
@@ -183,9 +183,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		List<String> assigneeOids = getAssigneeOids(fullWorkItem);
 		assertEquals("Wrong assignees", Collections.singleton(userLead3Oid), new HashSet<>(assigneeOids));
 
-		// TODO-WF
-//		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(aCase.asObjectable().getApprovalContext(), workItemId, WorkItemDelegationEventType.class);
-//		assertEquals("Wrong # of delegation events", 2, events.size());
+		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+		assertEquals("Wrong # of delegation events", 2, events.size());
 		// TODO check content
 	}
 
@@ -216,9 +215,8 @@ public class TestDelegation extends AbstractWfTestPolicy {
 		System.out.println("Full work item: " + fullWorkItem);
 		assertEquals("Wrong # of assignees", 0, getAssigneeOids(fullWorkItem).size());
 
-		// TODO-WF
-//		List<WorkItemDelegationEventType> events = WfContextUtil.getWorkItemEvents(aCase.asObjectable().getApprovalContext(), workItemId, WorkItemDelegationEventType.class);
-//		assertEquals("Wrong # of delegation events", 3, events.size());
+		List<WorkItemDelegationEventType> events = ApprovalContextUtil.getWorkItemEvents(aCase.asObjectable(), workItemId.id, WorkItemDelegationEventType.class);
+		assertEquals("Wrong # of delegation events", 3, events.size());
 		// TODO check content
 	}
 }

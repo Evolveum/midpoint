@@ -159,8 +159,6 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
         Task opTask = taskManager.createTaskInstance();
         display("rootCase", rootCase);
         assertHasArchetypes(rootCase.asPrismObject(), SystemObjectsType.ARCHETYPE_OPERATION_REQUEST.value());
-        // TODO-WF
-//        assertTrue("unexpected process instance id in root task", rootTaskType.getApprovalContext() == null || rootTaskType.getApprovalContext().getCaseOid() == null);
 
         assertEquals("Wrong # of wf subcases w.r.t processNames (" + Arrays.asList(processNames) + ")", processNames.length, subcases.size());
         int i = 0;
@@ -212,8 +210,6 @@ public class TestUserChangeApprovalLegacy extends AbstractWfTestLegacy {
             display("Subtask #"+(i+1)+": ", subcase);
             ApprovalContextType wfc = subcase.getApprovalContext();
             assertNotNull("Missing workflow context in wf subcase: " + subcase, wfc);
-            // TODO-WF
-//            assertNotNull("No process ID in wf subcase: " + subcase, wfc.getCaseOid());
             assertEquals("Wrong process ID name in subcase: " + subcase, processNames[i++], subcase.getName().getOrig());
             assertNotNull("Missing process start time in subcase: " + subcase, CaseTypeUtil.getStartTimestamp(subcase));
             assertNotNull("Missing process end time in subcase: " + subcase, subcase.getCloseTimestamp());
