@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3" 
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -398,11 +399,21 @@
             	<associationAttribute>ri:uniqueMembers</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-			<protected>
-				<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+            <protected>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
 			</protected>
 			<protected>
-				<icfs:name>uid=root,ou=Administrators,dc=example,dc=com</icfs:name>
+				<filter>
+					<q:equal>
+						<q:path>attributes/name</q:path>
+						<q:value>uid=root,ou=Administrators,dc=example,dc=com</q:value>
+					</q:equal>
+				</filter>
 			</protected>
 		</objectType>
 		<objectType>
@@ -438,26 +449,36 @@
 			</correlation>
 			<reaction>
 				<situation>linked</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+				</action>
 			</reaction>
 			<reaction>
 				<situation>deleted</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount</handlerUri>
+				</action>
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount</handlerUri>
+				</action>
 			</reaction>
 			<reaction>
 				<situation>unlinked</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+				</action>
 			</reaction>
 			<reaction>
 				<situation>unmatched</situation>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
-					<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
 				</action>
-				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+				<action>
+					<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount</handlerUri>
+				</action>
 			</reaction>
 		</objectSynchronization>
 	</synchronization>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,7 +134,7 @@ public class TestJaxbParsing {
         account.revive(prismContext);
 
         System.out.println("Parsed account:");
-        System.out.println(account.debugDump());
+        System.out.println(account.debugDump(1));
 
         account.checkConsistence();
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
@@ -146,11 +146,25 @@ public class TestJaxbParsing {
     }
 
     @Test
-    public void testParseExpressionFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
+    public void testParseModernRoleFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
+    	System.out.println("\n\n ===[ testParseModernRoleFromJaxb ]===\n");
+    	testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role.xml"));
+    }
+
+    /**
+     * Test of parsing role with elements that were removed in 4.0.
+     */
+    @Test
+    public void testParseLegacyRoleFromJaxb() throws SchemaException, SAXException, IOException, JAXBException {
+    	System.out.println("\n\n ===[ testParseLegacyRoleFromJaxb ]===\n");
+    	testParseRoleFromJaxb(new File(TestConstants.COMMON_DIR, "role-legacy.xml"));
+    }
+
+    public void testParseRoleFromJaxb(File file) throws SchemaException, SAXException, IOException, JAXBException {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        RoleType roleType = PrismTestUtil.parseObjectable(new File(TestConstants.COMMON_DIR, "role.xml"), RoleType.class);
+        RoleType roleType = PrismTestUtil.parseObjectable(file, RoleType.class);
 
         // WHEN
 
@@ -159,17 +173,15 @@ public class TestJaxbParsing {
 
         // THEN
         System.out.println("Parsed role:");
-        System.out.println(role.debugDump());
+        System.out.println(role.debugDump(1));
 
         role.checkConsistence();
         assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
-        PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
-        Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
-        PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());
-        String code = ((ScriptExpressionEvaluatorType) o).getCode();
-        PrismAsserts.assertEquals("Incorrect code parsed", "midpoint.oid2ort(user.getOid())", code);
+        
+        // TODO: more asserts?
     }
 
+    
     @Test
     public void testParseGenericObjectFromJaxb() throws Exception {
         System.out.println("\n\n ===[ testParseGenericObjectFromJaxb ]===\n");
@@ -254,22 +266,6 @@ public class TestJaxbParsing {
 
     private String dumpResult(String data, JAXBElement jaxb) {
         return "Parsed expression evaluator: "  + data + " as " + jaxb + " (name=" + jaxb.getName() + ", declaredType=" + jaxb.getDeclaredType() + ", value=" + jaxb.getValue() + ")";
-    }
-
-    @Test
-    public void testParseValueFilterWithAny() throws Exception {
-
-        PrismContext prismContext = PrismTestUtil.getPrismContext();
-
-        Document doc = DOMUtil.parseFile(new File(TestConstants.COMMON_DIR, "value-filter-with-any.xml"));
-        Element rootElement = DOMUtil.getFirstChildElement(doc);
-
-        // WHEN
-
-        Object parsedObject = prismContext.parserFor(rootElement).parseRealValue();
-
-        // THEN
-        System.out.println("Parsed object: "  + parsedObject);
     }
 
 }

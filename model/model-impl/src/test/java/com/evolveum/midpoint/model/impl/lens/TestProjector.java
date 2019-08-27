@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,9 @@ public class TestProjector extends AbstractLensTest {
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
 		addObject(ORG_BRETHREN_FILE);
 		addObject(ROLE_MUTINIER_FILE);
+		
+		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+		
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
@@ -1049,24 +1052,8 @@ public class TestProjector extends AbstractLensTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 
-    	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_GLOBAL_FILE);
-    	ObjectDelta delta = DeltaFactory.Object.createAddDelta(passPolicy);
-    	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-    	deltas.add(delta);
-    	modelService.executeChanges(deltas, null, task, result);
-
-    	deltas = new ArrayList<>();
-    	ObjectDelta refDelta = prismContext.deltaFactory().object()
-			    .createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF,
-					    passPolicy);
-    	// We need to execute this using repo. Otherwise logging config will be ruined
-    	repositoryService.modifyObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, refDelta.getModifications(), result);
-
-    	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
-    	assertNotNull(passPol);
-    	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
-    	assertNotNull("No global password policy", sysConfig.asObjectable().getGlobalPasswordPolicyRef());
-    	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
+        addObject(PASSWORD_POLICY_GLOBAL_FILE);
+        applyPasswordPolicy(PASSWORD_POLICY_GLOBAL_OID, SECURITY_POLICY_OID, task, result);
 
         // GIVEN
         LensContext<UserType> context = createUserLensContext();

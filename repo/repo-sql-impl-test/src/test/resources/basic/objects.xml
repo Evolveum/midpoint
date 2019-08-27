@@ -531,8 +531,13 @@
 					<maxIterations>5</maxIterations>
 				</iteration>
 				<protected>
-		               <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
-		           </protected>
+					<filter>
+						<q:equal>
+							<q:path>attributes/name</q:path>
+							<q:value>uid=idm,ou=Administrators,dc=example,dc=com</q:value>
+						</q:equal>
+					</filter>
+	           </protected>
 			</objectType>
 		</schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -578,12 +583,14 @@
             </correlation>
             <reaction>
                 <situation>linked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                <action>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser</handlerUri>
+                </action>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
-                    <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+                <action>
+                	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser</handlerUri>
                 </action>
             </reaction>
 </objectSynchronization>

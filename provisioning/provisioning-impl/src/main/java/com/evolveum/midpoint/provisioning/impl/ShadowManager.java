@@ -319,13 +319,6 @@ public class ShadowManager {
 		for (PrismObject<ShadowType> shadow: results){
 			ShadowType repoShadowType = shadow.asObjectable();
 			if (shadow != null) {
-				if (repoShadowType.getFailedOperationType() == null){
-					LOGGER.trace("Found shadow is ok, returning null");
-					continue;
-				} 
-				if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
-					continue;
-				}
 				conflictingShadows.add(shadow);
 			}
 		}

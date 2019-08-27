@@ -1110,9 +1110,6 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 				String handlerUri = actionDef.getHandlerUri();
 				if (handlerUri == null) {
-					handlerUri = actionDef.getRef();
-				}
-				if (handlerUri == null) {
 					LOGGER.error("Action definition in resource {} doesn't contain handler URI", syncCtx.getResource());
 					throw new ConfigurationException(
 							"Action definition in resource " + syncCtx.getResource() + " doesn't contain handler URI");

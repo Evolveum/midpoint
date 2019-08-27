@@ -95,6 +95,11 @@ public class LayerRefinedObjectClassDefinitionImpl implements LayerRefinedObject
 	public ItemProcessing getProcessing() {
     	return refinedObjectClassDefinition.getProcessing();
 	}
+    
+    @Override
+	public List<SchemaMigration> getSchemaMigrations() {
+		return refinedObjectClassDefinition.getSchemaMigrations();
+	}
 
 	public boolean isEmphasized() {
 		return refinedObjectClassDefinition.isEmphasized();

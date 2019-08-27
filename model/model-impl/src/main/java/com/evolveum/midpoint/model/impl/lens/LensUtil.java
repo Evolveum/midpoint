@@ -774,27 +774,6 @@ public class LensUtil {
 			}
 		}
 
-		// Deprecated
-		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
-			if (focusDelta != null) {
-				if (focusDelta.isAdd()) {
-					PolyStringType namePolyType = focusObjectNew.asObjectable().getName();
-					if (namePolyType != null) {
-						// name delta is OK, but it has to match
-						if (focusObjectNew.getOid() != null) {
-							if (!focusObjectNew.getOid().equals(namePolyType.getOrig())) {
-								throw new PolicyViolationException("Cannot set name to a value different than OID in name-oid bound mode");
-							}
-						}
-					}
-				} else {
-					PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
-					if (nameDelta != null) {
-						throw new PolicyViolationException("Cannot change name in name-oid bound mode");
-					}
-				}
-			}
-		}
 	}
 
 	public static PrismContainer<AssignmentType> createAssignmentSingleValueContainer(@NotNull AssignmentType assignmentType) throws SchemaException {
@@ -917,21 +896,6 @@ public class LensUtil {
 		((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
 		CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
 	}
-
-	public static void triggerConstraintLegacy(EvaluatedPolicyRuleTrigger trigger, Collection<String> policySituations,
-			LocalizationService localizationService) throws PolicyViolationException {
-
-		LOGGER.debug("Legacy policy rule triggered: {}", trigger);
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Legacy Policy rule triggered:\n{}", trigger.debugDump(1));
-		}
-
-		if (trigger.getConstraint().getEnforcement() == null || trigger.getConstraint().getEnforcement() == PolicyConstraintEnforcementType.ENFORCE) {
-			throw localizationService.translate(new PolicyViolationException(trigger.getMessage()));
-		}
-	}
-
-
 
 	public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
 			 PolicyExceptionType policyException) {
@@ -1138,25 +1102,6 @@ public class LensUtil {
 					focusContext.swallowToSecondaryDelta(propDelta);
 					focusContext.recompute();
 				}
-			}
-		}
-
-		// Deprecated
-		if (BooleanUtils.isTrue(archetypePolicy.isOidNameBoundMode())) {
-			// Generate the name now - unless it is already present
-			PolyStringType focusNewName = focusNew.asObjectable().getName();
-			if (focusNewName == null) {
-				String newValue = focusNew.getOid();
-				if (newValue == null) {
-					newValue = OidUtil.generateOid();
-				}
-				LOGGER.trace("Generating new name (bound to OID): {}", newValue);
-				PrismObjectDefinition<AH> focusDefinition = focusContext.getObjectDefinition();
-				PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
-				PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(FocusType.F_NAME);
-				nameDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(new PolyString(newValue), OriginType.USER_POLICY, null));
-				focusContext.swallowToSecondaryDelta(nameDelta);
-				focusContext.recompute();
 			}
 		}
 	}

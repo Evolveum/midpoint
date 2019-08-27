@@ -5330,9 +5330,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected void assertNoPostponedOperation(PrismObject<ShadowType> shadow) {
-		Item<PrismValue, ItemDefinition> objectChangeItem = shadow.findItem(ShadowType.F_OBJECT_CHANGE);
-		if (objectChangeItem != null) {
-			AssertJUnit.fail("Expected no postponed operation in "+shadow+", but found one: "+objectChangeItem);
+		List<PendingOperationType> pendingOperations = shadow.asObjectable().getPendingOperation();
+		if (!pendingOperations.isEmpty()) {
+			AssertJUnit.fail("Expected no pending operations in "+shadow+", but found one: "+pendingOperations);
 		}
 	}
 

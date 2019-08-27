@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,13 +154,6 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest {
 		AssertJUnit.assertNotNull(afterRecon);
 
 		ShadowType afterReconShadow = afterRecon.asObjectable();
-
-		if (afterReconShadow.getResult() != null) {
-			OperationResult beforeScriptResult = OperationResult
-					.createOperationResult(afterReconShadow.getResult());
-			display("result in shadow: " + beforeScriptResult);
-			AssertJUnit.fail("Operation in shadow not null, recocniliation failed. ");
-		}
 
 		PrismObject<FocusType> user = repositoryService.searchShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
 		AssertJUnit.assertNotNull("Owner for account " + shadow.asPrismObject() + " not found. Some probelm in recon occured.", user);

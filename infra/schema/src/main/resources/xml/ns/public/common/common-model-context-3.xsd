@@ -529,65 +529,41 @@
 
 	<!-- IMPORTANT: when adding attributes here, update also PolicyRuleTypeUtil.triggerCollectionsEqual -->
     <xsd:complexType name="EvaluatedPolicyRuleTriggerType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:schemaMigration>
+            		<a:element>tns:constraint</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:assignmentPath</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:directOwnerRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:directOwnerDisplayName</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+    		</xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:int" minOccurs="0" />
             <xsd:element name="triggerId" type="xsd:int" minOccurs="0" />       <!-- not 'id' to avoid collisions with container identifiers -->
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintName" type="xsd:string" minOccurs="0" />
             <xsd:element name="constraintKind" type="tns:PolicyConstraintKindType" minOccurs="0" />
-            <xsd:element name="constraint" type="tns:AbstractPolicyConstraintType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="message" type="tns:LocalizableMessageType" minOccurs="0" />
             <xsd:element name="shortMessage" type="tns:LocalizableMessageType" minOccurs="0" />
             <xsd:element name="presentationOrder" type="xsd:int" minOccurs="0" />
             <xsd:element name="final" type="xsd:boolean" minOccurs="0" />
             <xsd:element name="hidden" type="xsd:boolean" minOccurs="0" />
-			<xsd:element name="assignmentPath" type="tns:AssignmentPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-			<xsd:element name="directOwnerRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="directOwnerDisplayName" type="t:PolyStringType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Moved to EvaluatedPolicyRuleType. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.7</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 	<xsd:element name="evaluatedPolicyRuleTrigger" type="tns:EvaluatedPolicyRuleTriggerType" />
@@ -709,24 +685,17 @@
 	<xsd:element name="evaluatedCollectionStatsTrigger" type="tns:EvaluatedCollectionStatsTriggerType" />
 
 	<xsd:complexType name="EvaluatedPolicyRuleType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<a:schemaMigration>
+            		<a:element>tns:policyRule</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+			</xsd:appinfo>
+		</xsd:annotation>
         <xsd:sequence>
             <!-- TODO use some kind of pointer here (otherwise it produces very long data e.g. in trigger info in assignments) -->
-			<xsd:element name="policyRule" type="tns:PolicyRuleType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						DO NOT USE
-
-						Keeping only because some "pre-3.6" code stored some data here. So we're not deleting
-						it to avoid schema exceptions.
-						Will be replaced by something more compact in the future (something like a reference to the rule).
-					</xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:deprecatedSince>3.6</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
             <xsd:element name="ruleName" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

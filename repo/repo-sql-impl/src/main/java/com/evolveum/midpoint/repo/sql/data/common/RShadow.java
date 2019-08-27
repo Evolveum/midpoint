@@ -284,8 +284,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
 
-        RUtil.copyResultFromJAXB(ShadowType.F_RESULT, jaxb.getResult(), repo, repositoryContext.prismContext);
-
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
                     RSynchronizationSituation.class));
@@ -294,10 +292,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), repositoryContext.relationRegistry));
 
-        repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());
         repo.setDead(jaxb.isDead());
-        repo.setFailedOperationType(RUtil.getRepoEnumValue(jaxb.getFailedOperationType(), RFailedOperationType.class));
 
         if (jaxb.getAttributes() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.ATTRIBUTES, generatorResult);

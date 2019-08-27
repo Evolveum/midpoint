@@ -118,6 +118,10 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 		return structuralObjectClassDefinition.getProcessing();
 	}
 
+	public List<SchemaMigration> getSchemaMigrations() {
+		return structuralObjectClassDefinition.getSchemaMigrations();
+	}
+
 	@Override
 	public boolean isEmphasized() {
 		return structuralObjectClassDefinition.isEmphasized();

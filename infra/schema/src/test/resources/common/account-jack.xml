@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<account oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3aaaa" 
+<shadow oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3aaaa" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
@@ -43,4 +43,4 @@
 		<ri:givenName>Jack</ri:givenName>
 		<ri:sn>Sparrow</ri:sn>
 	</attributes>
-</account>
+</shadow>

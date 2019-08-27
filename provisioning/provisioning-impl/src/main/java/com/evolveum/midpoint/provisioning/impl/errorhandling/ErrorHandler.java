@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -210,16 +210,7 @@ public abstract class ErrorHandler {
 		if (resource.getConsistency() == null) {
 			return true;
 		}
-		
-		if (resource.getConsistency().isPostpone() == null) {
-			Integer operationRetryMaxAttempts = resource.getConsistency().getOperationRetryMaxAttempts();
-			if (operationRetryMaxAttempts == null) {
-				return true;
-			}
-			return operationRetryMaxAttempts != 0;
-		}
-		
-		return resource.getConsistency().isPostpone();
+		return false;
 	}
 	
 	protected boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {

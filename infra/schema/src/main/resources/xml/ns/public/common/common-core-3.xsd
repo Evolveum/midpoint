@@ -2399,6 +2399,13 @@
                 and
                 <a href="https://wiki.evolveum.com/display/midPoint/Task">wiki:Task</a>.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:canRunOnNode</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
@@ -2747,29 +2754,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="canRunOnNode" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                <p>
-									Whether a task is constrained to be run on a particular node,
-									i.e. it will *not* be executed on a different node.
-									If this attribute is not specified, the task will be executed on any available node.
-                                </p>
-                                <p>
-									(There may be other constraints on the node(s) where this task may be run,
-									determined e.g. by task handler.)
-								</p>
-                                <p>
-									DEPRECATED. This attribute is not used. Please use executionConstraints/group instead.
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
 					<xsd:element name="executionConstraints" type="tns:TaskExecutionConstraintsType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -2935,6 +2919,16 @@
 			<xsd:appinfo>
 				<a:since>3.5</a:since>
 				<a:container>true</a:container>
+            	<a:schemaMigration>
+            		<a:element>tns:allowedNode</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:disallowedNode</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -2972,33 +2966,6 @@
 						<a:displayName>TaskExecutionConstraintsType.secondaryGroup</a:displayName>
 						<a:displayOrder>120</a:displayOrder>
 						<a:since>3.7.1</a:since>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="allowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Node(s) that this task is allowed to be executed on. If not specified, the task is allowed
-						to be executed on any cluster node (if not restricted by disallowedNode item).
-						DEPRECATED and UNUSED. Use NodeType.taskExecutionLimitations instead.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.7</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="disallowedNode" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						Node(s) that this task is not allowed to be executed on.
-						DEPRECATED and UNUSED. Use NodeType.taskExecutionLimitations instead.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.7</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -3504,20 +3471,6 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OTHER_TASKS"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="workflow">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The task is waiting for a workflow process (that it monitors/shadows) to be finished.
-						DEPRECATED. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.8</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-                        <jaxb:typesafeEnumMember name="WORKFLOW"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4610,6 +4563,13 @@
             	in the IDM solutions (employees, customers, partners, etc.) Custom extensions are possible by utilizing
             	the "extension" container.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:result</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:FocusType">
@@ -4943,21 +4903,6 @@
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:element>
-
-                    <xsd:element name="result" type="tns:OperationResultType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                User's result for the operation. e.g. set by recompute status.
-								DEPRECATED. Use ObjectType.operationExecution instead.
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.6</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -5301,6 +5246,11 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:displayName>AssignmentType.assignment</a:displayName>
+            	<a:schemaMigration>
+            		<a:element>tns:trigger</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -5576,21 +5526,6 @@
 							<a:displayName>AssignmentType.policySituation</a:displayName>
 							<a:help>AssignmentType.policySituation.help</a:help>
 						</xsd:appinfo>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            
-            <xsd:element name="trigger" type="tns:EvaluatedPolicyRuleTriggerType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-						DEPRECATED. DO NOT USE.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:since>3.6</a:since>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.7</a:deprecatedSince>
-						<a:operational>true</a:operational>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6506,6 +6441,16 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+            	<a:schemaMigration>
+            		<a:element>tns:assignmentPolicyEnforcement</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:pagedSearches</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6611,18 +6556,6 @@
             </xsd:element>
             <xsd:element name="dependency" type="tns:ResourceObjectTypeDependencyType" minOccurs="0" maxOccurs="unbounded"/>
          	<xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
-         	<xsd:element name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Currently not implemented.
-                    </xsd:documentation>
-                     <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:deprecatedSince>3.9</a:deprecatedSince>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="volatility" type="tns:ResourceObjectVolatilityType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -6672,21 +6605,6 @@
                     <xsd:appinfo>
 		            	<a:since>3.6</a:since>
 		            </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="pagedSearches" minOccurs="0" type="xsd:anyType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Placeholder for old-style specification of paged searches.
-                        Kept here just to avoid parsing errors when reading the configuration.
-                        DEPRECATED. The value is ignored.
-                        TODO remove before release
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated/>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
-                        <a:rawType/>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="configuredCapabilities" type="c:CapabilityCollectionType" minOccurs="0" maxOccurs="1">
@@ -6758,6 +6676,11 @@
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
+            	<a:schemaMigration>
+            		<a:element>tns:postpone</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -6890,19 +6813,6 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-        	<xsd:element name="postpone" type="xsd:boolean" minOccurs="0" default="true">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				Postpone the operation in case that an error is encountered. The operation
-        				will be re-tried later (consistency mechanism).
-        				DEPRECATED. Use operationRetryMaxAttempts instead.
-        			</xsd:documentation>
-        			<xsd:appinfo>
-        				<a:deprecated>true</a:deprecated>
-        				<a:plannedRemoval>4.0</a:plannedRemoval>
-        			</xsd:appinfo>
-        		</xsd:annotation>
-        	</xsd:element>
         	<xsd:element name="discovery" type="xsd:boolean" minOccurs="0" default="true"/>
             <xsd:element name="connectorErrorCriticality" type="tns:ErrorSelectorType" minOccurs="0">
             	<xsd:annotation>
@@ -8469,6 +8379,18 @@
      			Resource object pattern. This data structure defines a pattern that is used to match resource
      			objects using a native identifier(s). This may be primary or secondary identifier.
      		</xsd:documentation>
+     		<xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>icfs:name</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>icfs:uid</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
      	</xsd:annotation>
      	<xsd:sequence>
      		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
@@ -8481,30 +8403,6 @@
      					The minOccurs=0 is here only for compatibility and it will be changed to minOccurs=1
      					when the deprecated syntax is removed.
      				</xsd:documentation>
-     			</xsd:annotation>
-     		</xsd:element>
-     		<xsd:element ref="icfs:name" minOccurs="0" maxOccurs="1">
-     			<xsd:annotation>
-     				<xsd:documentation>
-     					ICF name of the protected object. If the object matches this value then it is considered protected.
-     					DEPRECATED. Use filter instead.
-     				</xsd:documentation>
-     				<xsd:appinfo>
-     					<a:deprecated/>
-     					<a:plannedRemoval>4.0</a:plannedRemoval>
-     				</xsd:appinfo>
-     			</xsd:annotation>
-     		</xsd:element>
-     		<xsd:element ref="icfs:uid" minOccurs="0" maxOccurs="1">
-     			<xsd:annotation>
-     				<xsd:documentation>
-     					ICF UID of the protected object. If the object matches this value then it is considered protected.
-     					DEPRECATED. Use filter instead.
-     				</xsd:documentation>
-     				<xsd:appinfo>
-     					<a:deprecated/>
-     					<a:plannedRemoval>4.0</a:plannedRemoval>
-     				</xsd:appinfo>
      			</xsd:annotation>
      		</xsd:element>
      	</xsd:sequence>
@@ -9361,6 +9259,26 @@
             <xsd:appinfo>
             	<a:container/>
 				<a:displayName>MappingType.details</a:displayName>
+            	<a:schemaMigration>
+            		<a:element>tns:tolerant</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:inputFilter</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:outputFilter</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:range</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -9445,51 +9363,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="tolerant" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	<p>
-	                        When set to true, allows attribute/property values that are set outside
-	                        of this mapping. I. e. it allows other values than those set by this mapping.
-                        </p>
-                        <p>
-	                        The default value for tolerant setting depends on when the mapping is used.
-	                        It is assumed to be false for all mappings. However, for outbound mappings
-	                        the real behavior of reconciliation is determined by the tolerance of the
-	                        attribute and not tolerance of the mapping (see below).
-	                        This default setting was chosen to maintain behaviour
-	                        which is compatible with previous midPoint versions.
-                        </p>
-                        <p>
-                        	Note: Mapping tolerance is an interim feature. In fact it is mostly
-                        	redundant. The same behavior can be achieved by using mapping
-                        	range. However, mapping range is not fully supported in all mappings
-                        	and all situations. Therefore mapping tolerance can be used in the
-                        	meantime to achieve the desired functionality. However, mapping
-                        	tolerance will get deprecated in the midPoint version in which
-                        	mapping range achieve full functionality. Therefore it is recommended
-                        	to use mapping tolerance only as a last resort. It is recommended
-                        	to use mapping range instead of tolerance if the range can be used.
-                        </p>
-                        <p>
-							Note: Do not confuse with tolerant setting that applies to the
-							resource attribute (schemaHandling). If in doubt, use that other
-							setting instead. That resource attribute tolerance is usually the
-							right answer.
-						</p>
-						<p>
-                        	Support for this setting is currently EXPERIMENTAL.
-                       	</p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:since>3.4</a:since>
-						<a:displayName>MappingType.tolerant</a:displayName>
-						<a:experimental>true</a:experimental>
-						<a:deprecated>true</a:deprecated>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>                    
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="strength" minOccurs="0" type="tns:MappingStrengthType" default="normal">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -9570,45 +9443,6 @@
                     </xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
-			<xsd:element name="inputFilter" type="tns:ValueFilterType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-						<a:displayName>MappingType.inputFilter</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="outputFilter" type="tns:ValueFilterType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-						<a:displayName>MappingType.outputFilter</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-            <xsd:element name="range" minOccurs="0" type="tns:ValueSetSpecificationType">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                        	Specifies the range of the mapping (in mathematical sense). I.e. this specifies the values
-                        	that the mapping can produce. Range specification makes sense only for authoritative mappings.
-                        	If the range is specified then the mapping will scan existing values of the target property.
-                        	It will look for values that are there and that are also in the range of the mapping. If such
-                        	values are not in the expression results, then such values will be removed (placed in the minus set).
-                        </p>
-                        <p>
-                        	DEPRECATED. Do not use. Use the set definition in mapping target instead.
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:deprecated>true</a:deprecated>
-						<a:displayName>MappingType.range</a:displayName>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
@@ -9816,82 +9650,6 @@
         </xsd:restriction>
     </xsd:simpleType>
         
-    <xsd:complexType name="ValueFilterType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Defines value filter. The value filters are supposed to take a
-                single value of a specific type and return a single value of
-                the same type. Filters are used to transforms values, e.g.
-                to clean up illegal characters, to do charset transcoding, etc.
-
-                Note:
-                Strictly speaking, filters should be used for things like
-                transliteration of national characters, case conversions, etc.
-                They should not be used to "technical" transformations such as
-                character set conversions. Connector should do that and connector                
-                should return nice, clean unicode strings. But some connectors
-                are faulty and the ability of filters to do "technical" things
-                may come handy.
-            </xsd:documentation>
-            <xsd:appinfo>
-            	<a:deprecated>true</a:deprecated>
-				<a:plannedRemoval>4.0</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Filter parameters.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:any>
-        </xsd:sequence>
-        <xsd:attribute name="type" type="xsd:anyURI">
-            <xsd:annotation>
-                <xsd:documentation>
-                    URI identifying the type of the filter. This is a identifier
-                    of the filter code. Individual filters may plug-in under a
-                    specific URI.
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
-    </xsd:complexType>
-    
-    <xsd:complexType name="ValueSetSpecificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies set of prism item values. E.g. specifies a set of string values,
-                container values (e.g. assignments) and so on. It is used at places where
-                we need to select particular values based on a flexible set of criteria.
-                
-                DEPRECATED. Do not use. Use ValueSetDefinitionType.
-            </xsd:documentation>
-            <xsd:appinfo>
-            	<a:deprecated>true</a:deprecated>
-            	<a:plannedRemoval>4.0</a:plannedRemoval>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="isInSetExpression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-           		<xsd:annotation>
-           			<xsd:documentation>
-           				Expression that is evaluated for each candidate value. 
-           				The value is passed to the expression in the 'input' variable.
-           				If this expression returns true then the value is part of the set.
-           				If it returns false (or no value) then the value is not part of the set. 
-           			</xsd:documentation>
-           		</xsd:annotation>
-           	</xsd:element>
-           	<!-- More criteria specification may come here in the future.
-           	     E.g. expression that generates all possible values, 
-           	     reference to lookup that has all the values, 
-           	     query that works on top of the values,
-           	     string patterns, etc. -->
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="ExpressionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -10426,6 +10184,13 @@
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+	            <a:schemaMigration>
+            		<a:element>tns:allowEmptyValues</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+           	</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
@@ -10453,17 +10218,6 @@
                         well for most cases. It may be set to false as an optimization.
                         Note: default setting for this property may be overridden in specific expression evaluators.
                     </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="allowEmptyValues" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        DEPRECATED. Used allowEmptyValues in ExpressionType instead.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:deprecated>true</a:deprecated>
-                    	<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
 			<xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
@@ -10675,6 +10429,13 @@
 	                and skipping them results in fewer search operations.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+	            <a:schemaMigration>
+            		<a:element>tns:searchOnResource</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+           	</xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:TransformExpressionEvaluatorType">
@@ -10693,17 +10454,6 @@
 		        		</xsd:annotation>
 		        	</xsd:element>
 		        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
-		        	</xsd:element>
-		        	<xsd:element name="searchOnResource" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                DEPRECATED, use searchStrategy instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:deprecated/>
-                                <a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
 		        	</xsd:element>
                     <xsd:element name="searchStrategy" type="tns:ObjectSearchStrategyType" minOccurs="0" maxOccurs="1">
                     </xsd:element>
@@ -10790,6 +10540,18 @@
 	                and skipping them results in fewer search operations.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:relation</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:activation</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
         	<xsd:extension base="tns:SearchObjectExpressionEvaluatorType">
@@ -10804,30 +10566,6 @@
     						</xsd:appinfo>
     					</xsd:annotation>
     				</xsd:element>
-		        	<xsd:element name="relation" type="xsd:QName" minOccurs="0" maxOccurs="1">
-		        		<xsd:annotation>
-		        			<xsd:documentation>
-		        				DEPRECATED. Use assignmentProperties instead.
-		        			</xsd:documentation>
-		        			<xsd:appinfo>
-		        				<a:deprecated>true</a:deprecated>
-		        				<a:deprecatedSince>3.7</a:deprecatedSince>
-		        				<a:plannedRemoval>4.0</a:plannedRemoval>
-		        			</xsd:appinfo>
-		        		</xsd:annotation>
-		        	</xsd:element>
-		        	<xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-		        		<xsd:annotation>
-		        			<xsd:documentation>
-		        				DEPRECATED. Use assignmentProperties instead.
-		        			</xsd:documentation>
-		        			<xsd:appinfo>
-		        				<a:deprecated>true</a:deprecated>
-		        				<a:deprecatedSince>3.7</a:deprecatedSince>
-		        				<a:plannedRemoval>4.0</a:plannedRemoval>
-		        			</xsd:appinfo>
-		        		</xsd:annotation>
-		        	</xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
         </xsd:complexContent>
@@ -11405,6 +11143,23 @@
 	            Several actions may be defined for a specific reaction. All of them will be
 	            executed however the ordering is not guaranteed.
 	        </xsd:documentation>
+	        <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:userTemplateRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:objectTemplateRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:ref</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
 	    </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
@@ -11426,43 +11181,7 @@
         			</xsd:sequence>
         		</xsd:complexType>
             </xsd:element>
-        	<xsd:element name="userTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
-        			</xsd:documentation>
-        			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                    	<a:deprecated/>
-                    	<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-        		</xsd:annotation>
-        	</xsd:element>
-        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
-        			</xsd:documentation>
-        			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                    	<a:deprecated/>
-                    	<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-        		</xsd:annotation>
-        	</xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="ref" type="xsd:anyURI" use="optional">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Action identifier (URL)
-                    DEPRECATED. Use handlerUri element instead.
-                </xsd:documentation>
-                <xsd:appinfo>
-                	<a:deprecated/>
-                	<a:plannedRemoval>4.0</a:plannedRemoval>
-                </xsd:appinfo>
-            </xsd:annotation>
-        </xsd:attribute>
     </xsd:complexType>
    
     <xsd:complexType name="ResourceObjectShadowChangeDescriptionType">
@@ -11752,6 +11471,28 @@
                 with a lot of cached or fetched data. The actual content of this object depends on usage:
                 on the specific interface and operation used and even on the system state and configuration.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:result</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:objectChange</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:attemptNumber</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:failedOperationType</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
@@ -11767,55 +11508,6 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="result" type="tns:OperationResultType"  minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Result describing if shadow was successfully processed, or not. If not, the errors should  be saved.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-     				</xsd:element>
-     				<xsd:element name="objectChange" type="t:ObjectDeltaType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Description of changes that happened to an resource object shadow.
-								This is still used in midPoint 3.6 for consistency mechanism. However, it is
-								deprecated. Later midPoint versions will use pendingOperation instead.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-     				</xsd:element>
-     				<xsd:element name="attemptNumber" type="xsd:int" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Description of number of attempts made for the resolving account consistency issues. 
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-     				</xsd:element>
-     				<xsd:element name="failedOperationType" type="tns:FailedOperationTypeType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Description of operation during the processing of account failed. 
-								This is still used in midPoint 3.6 for consistency mechanism. However, it is
-								deprecated. Later midPoint versions will use pendingOperation instead.
-							</xsd:documentation>
-							 <xsd:appinfo>
-		                    	<a:displayName>ShadowType.failedOperationType</a:displayName>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-		                    </xsd:appinfo>
-						</xsd:annotation>
-     				</xsd:element>
      				<xsd:element name="dead" type="xsd:boolean" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -12061,17 +11753,6 @@
     </xsd:complexType>
 	<!-- let's put shadow first, to be matched before "account" -->
 	<xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
-    <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
-     	<xsd:annotation>
-     		<xsd:documentation>
-     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
-     		</xsd:documentation>
-     		<xsd:appinfo>
-      			<a:deprecated>true</a:deprecated>
-      			<a:plannedRemoval>4.0</a:plannedRemoval>
-      		</xsd:appinfo>
-     	</xsd:annotation>
-     </xsd:element>
 
     <xsd:simpleType name="ShadowKindType">
         <xsd:annotation>
@@ -12548,6 +12229,48 @@
 	                roles to assign to them (entitlements).
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:exclusion</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:ownerRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:approverRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:approverExpression</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:approvalSchema</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:approvalProcess</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:automaticallyApproved</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:policyConstraints</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:FocusType">
@@ -12696,22 +12419,6 @@
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-					<xsd:element name="exclusion" type="tns:ExclusionPolicyConstraintType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								<p>
-									Specification of excluded roles (part of Segregation of Duties policy).
-								</p>
-								<p>
-									DEPRECATED. Use policyConstraints instead.
-								</p>
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="riskLevel" type="xsd:string" minOccurs="0">
                     	<xsd:annotation>
                     		<xsd:documentation>
@@ -12725,108 +12432,6 @@
                             </xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-					<xsd:element name="ownerRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Owner of this role. The owner is a person (or group) that is responsible for maintenance of
-	                                role definition.
-	                                This reference may point to object of type UserType of OrgType.
-                                </p>
-                            </xsd:documentation>
-                             <xsd:appinfo>
-                                <a:displayName>AbstractRoleType.owner</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.7</a:deprecatedSince>
-                                <a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-					<xsd:element name="approverRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Approvers for this role. The approver is a person (or group) that approves assignment
-	                                of this role to other users.
-	                                This reference may point to object of type UserType of OrgType.
-                                </p>
-                            </xsd:documentation>
-                             <xsd:appinfo>
-                                <a:displayName>AbstractRoleType.approver</a:displayName>
-                                <a:deprecated>true</a:deprecated>
-                                <a:deprecatedSince>3.7</a:deprecatedSince>
-                                <a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="approverExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Approvers for this role. If specified, the expression(s) are evaluated and the result
-	                                is used as a set of approvers (UserType, OrgType, RoleType, or any combination of them).
-	                                May be used with approverRef element(s).
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                More complex (multi-level) approval schema. If used, it overrides both
-	                                approverRef and approverExpression elements.
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="approvalProcess" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Name of custom approval process. If used, it overrides
-	                                approverRef, approverExpression, and approvalSchema elements.
-                                </p>
-								<p>
-	                                For explicitness, only one of approverRef(s)/approverExpression(s),
-	                                approvalSchema and approvalProcess should be specified.
-                                </p>
-                                <p>
-                                    THIS PROPERTY (approvalProcess) IS NOT SUPPORTED YET.
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="automaticallyApproved" type="c:ExpressionType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-	                                Condition specifying when the assignment is automatically approved (e.g. "user is
-	                                from Board of Directors"). This is an expression that should yield a boolean value.
-                                </p>
-                            </xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="condition" type="tns:MappingType" minOccurs="0">
 		               <xsd:annotation>
 		                   <xsd:documentation>
@@ -12838,25 +12443,6 @@
 		                   </xsd:documentation>
 		               </xsd:annotation>
 		           </xsd:element>
-		           <xsd:element name="policyConstraints" type="tns:PolicyConstraintsType" minOccurs="0" maxOccurs="1">
-						<xsd:annotation>
-							<xsd:documentation>
-								<p>
-									Set of governance, risk management, compliance (GRC) and similar policy constraints
-									that influence the identity model.
-								</p>
-								<p>
-									DEPRECATED. Use the policy rules in the assignments/inducements instead.
-								</p>
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:since>3.1.1</a:since>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.5</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="adminGuiConfiguration" type="tns:AdminGuiConfigurationType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -14627,14 +14213,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object">
-		<xsd:annotation>
-			<xsd:appinfo>
-				<a:deprecated>true</a:deprecated>
-				<a:plannedRemoval>4.0</a:plannedRemoval>
-			</xsd:appinfo>
-		</xsd:annotation>
-	</xsd:element>
 	<xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     
     <xsd:complexType name="ObjectTemplateItemDefinitionType">
@@ -14738,6 +14316,13 @@
 	            	difference: Orgs are designed for grouping, roles are designed for flexible policy definition.
             	</p>
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:passwordPolicyRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AbstractRoleType">
@@ -14843,28 +14428,6 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
-                    <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                	Reference to the password policy settings which will be used for generate/validate password for this organization.
-                                	Use either securityPolicyRef or passwordPolicyRef in orgs. Do not use both at the same time. This is not supported.
-                                </p>
-                            	<p>
-                                	DEPRECATED. Use securityPolicyRef instead.
-                                </p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                    			<a:displayName>OrgType.passwordPolicy</a:displayName>
-                                <a:displayOrder>240</a:displayOrder>
-                                <a:deprecated>true</a:deprecated>
-                                <a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -14998,6 +14561,11 @@
 			<xsd:appinfo>
 				<a:container/>
             	<a:since>4.0</a:since>
+            	<a:schemaMigration>
+            		<a:element>tns:oidNameBoundMode</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -15026,17 +14594,6 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:displayName>ObjectPolicyConfigurationType.propertyConstraint</a:displayName>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
-				<xsd:annotation>
-					<xsd:documentation>
-						A mode in which OID and name of the specified object are the same.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<a:deprecated>true</a:deprecated>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
@@ -15278,20 +14835,28 @@
     <!-- The following clauses belong to the operation support. -->
 
     <xsd:complexType name="ValuePolicyType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:schemaMigration>
+            		<a:element>tns:lifetime</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:minOccurs</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:maxOccurs</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+    		</xsd:appinfo>
+    	</xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
-                    <xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			DEPRECATED. Use the lifetime settings in security policy.
-                    		</xsd:documentation>
-                    		<xsd:appinfo>
-                    			<a:deprecated>true</a:deprecated>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="stringPolicy" type="tns:StringPolicyType" minOccurs="1" maxOccurs="1"/>
                     <xsd:element name="prohibitedValues" type="tns:ProhibitedValuesType" minOccurs="0" maxOccurs="1">
                     	<xsd:annotation>
@@ -15300,40 +14865,10 @@
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="minOccurs" type="xsd:string" minOccurs="0" default="0">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			Minimal number of value occurrences. minOccurs set to zero means that the value
-                    			is optional.
-                    			E.g. when applied to passwords the minOccurs=0 means that the policy will
-                    			accept no password at all. But it will still validate the password using
-                    			stringPolicy if a password is present.
-                    			DEPRECATED. Use equivalent setting in security policy instead.
-                    		</xsd:documentation>
-                    		<xsd:appinfo>
-                    			<a:deprecated>true</a:deprecated>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			Maximal number of value occurrences.
-                    			If not specified then the default schema limitation is imposed.
-                    			DEPRECATED. Use equivalent setting in security policy instead.
-                    		</xsd:documentation>
-                    		<xsd:appinfo>
-                    			<a:deprecated>true</a:deprecated>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    
     <xsd:element name="valuePolicy" type="tns:ValuePolicyType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="PasswordLifeTimeType">
@@ -15996,6 +15531,28 @@
                 Holds global system configuration setting. There will be just one object of
                 this type in the system. It will have a well-known OID.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:globalPasswordPolicyRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:defaultUserTemplateRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:objectTemplate</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:defaultHostname</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="tns:AssignmentHolderType">
@@ -16010,20 +15567,6 @@
                             </xsd:documentation>
 							<xsd:appinfo>
 								<a:displayName>SystemConfigurationType.globalAccountSynchronizationSettings</a:displayName>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="globalPasswordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Reference to the global password policy settings.
-
-                                DEPRECATED: use equivalent setting in security policy
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-                    			<a:deprecated>true</a:deprecated>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -16054,40 +15597,6 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <xsd:element name="defaultUserTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	<p>
-                                Reference to the default user template that will be used "universally" in all
-                                situations regarding user internal consistency.
-                                </p>
-
-								<p>DEPRECATED: use objectTemplate instead.</p>
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                    			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                    			<a:deprecated/>
-                    			<a:plannedRemoval>4.0</a:plannedRemoval>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
-                    <xsd:element name="objectTemplate" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
-	                    <xsd:annotation>
-							<xsd:documentation>
-								Definition of default object templates for a individual object type. The templates will be used
-								"universally" during all operations with specified object types - unless the templates are overridden
-								in other definitions (e.g. in resource).
-								
-								DEPRECATED. Use defaultObjectPolicyConfiguration instead.
-							</xsd:documentation>
-							<xsd:appinfo>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-						</xsd:annotation>
-                    </xsd:element>
-                    
                     <xsd:element name="defaultObjectPolicyConfiguration" type="tns:ObjectPolicyConfigurationType" minOccurs="0" maxOccurs="unbounded">
 	                    <xsd:annotation>
 							<xsd:documentation>
@@ -16219,23 +15728,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    
-                    <xsd:element name="defaultHostname" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Hostname that will be used as a public hostname for the midPoint deployment.
-                                E.g. it will be used in URLs that point to the midPoint in notification mails.
-								DEPRECATED. Use infrastructure/defaultHostname instead.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                            	<a:since>3.5</a:since>
-								<a:deprecated>true</a:deprecated>
-								<a:deprecatedSince>3.6</a:deprecatedSince>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
+                                        
                     <xsd:element name="deploymentInformation" type="tns:DeploymentInformationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -21203,16 +20696,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="assignment">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ASSIGNMENT"/>
-						<a:deprecated>true</a:deprecated>
-						<a:deprecatedSince>3.7</a:deprecatedSince>
-						<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
             <xsd:enumeration value="hasAssignment">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -22099,24 +21582,21 @@
 			</xsd:documentation>
 			<xsd:appinfo>
 				<a:container/>
+            	<a:schemaMigration>
+            		<a:element>tns:passwordPolicyRef</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            	<a:schemaMigration>
+            		<a:element>tns:passwordHistoryLength</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:CredentialPolicyType">
 				<xsd:sequence>
-					<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-					    <xsd:annotation>
-					        <xsd:documentation>
-					            Reference to the password policy settings.
-					            DEPRECATED. Use valuePolicyRef instead.
-					        </xsd:documentation>
-					        <xsd:appinfo>
-								<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
-								<a:deprecated>true</a:deprecated>
-								<a:plannedRemoval>4.0</a:plannedRemoval>
-							</xsd:appinfo>
-					    </xsd:annotation>
-					</xsd:element>
 					<xsd:element name="passwordChangeSecurity" type="c:PasswordChangeSecurityType" minOccurs="0" default="oldPassword">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -22125,21 +21605,6 @@
 								when administrator changes password of other user.
 							</xsd:documentation>
 						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="passwordHistoryLength" type="xsd:int" minOccurs="0" maxOccurs="1">
-					    <xsd:annotation>
-					        <xsd:documentation>
-					            The number of entries to keep in the password history. Also specifies the
-					            number of past passwords that will be checked before accepting a new password
-					            change.
-					            DEPRECATED. use historyLength instead.
-					            This is not even implemented. It does not work.
-					        </xsd:documentation>
-					        <xsd:appinfo>
-					        	<a:deprecated>true</a:deprecated>
-					        	<a:plannedRemoval>4.0</a:plannedRemoval>
-					        </xsd:appinfo>
-					    </xsd:annotation>
 					</xsd:element>
 				</xsd:sequence>
 			</xsd:extension>
@@ -23447,6 +22912,11 @@
             </xsd:documentation>
             <xsd:appinfo>
 				<a:container/>
+				<a:schemaMigration>
+            		<a:element>tns:resourceObjectChangeListener</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
 			</xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -23514,17 +22984,6 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<a:displayName>ProfilingConfigurationType.synchronizationService</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="resourceObjectChangeListener" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        This profiling option is currently not supported. It was partially replaced by synchronizationService property.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:deprecated>true</a:deprecated>
-                        <a:plannedRemoval>4.0</a:plannedRemoval>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -24613,6 +24072,11 @@
             <xsd:appinfo>
                 <a:container/>
                 <a:since>3.6</a:since>
+                <a:schemaMigration>
+            		<a:element>tns:includeDefaultLists</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
             </xsd:appinfo>
         </xsd:annotation>
        		<xsd:sequence>
@@ -24643,19 +24107,6 @@
 							<a:displayName>GuiObjectListViewsType.objectCollectionView</a:displayName>
 							<a:since>4.0</a:since>
 						</xsd:appinfo>
-           			</xsd:annotation>
-           		</xsd:element>
-           		<xsd:element name="includeDefaultLists" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
-           			<xsd:annotation>
-           				<xsd:documentation>
-           					If set to true then all the default lists will be displayed (all users, all roles, ...)
-           					Note: NOT YET IMPLEMENTED. Probably will never get implemented.
-           					Note: in fact name of this element is wrong. It should be includeDefaultViews or includeDefaultListViews.
-           				</xsd:documentation>
-           				<xsd:appinfo>
-           					<a:deprecated>true</a:deprecated>
-           					<a:plannedRemoval>4.0</a:plannedRemoval>
-           				</xsd:appinfo>
            			</xsd:annotation>
            		</xsd:element>
            	</xsd:sequence>	
@@ -26003,35 +25454,21 @@
             <xsd:documentation>
                 Abstract supertype for all form items.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:schemaMigration>
+            		<a:element>tns:widget</a:element>
+            		<a:version>4.0</a:version>
+            		<a:operation>removed</a:operation>
+            	</a:schemaMigration>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="binding" type="tns:VariableBindingDefinitionType" minOccurs="0" />
             <xsd:element name="display" type="tns:FormItemDisplayType" minOccurs="0" />
-            <xsd:element name="widget" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the UI widget that should be used to display this item.
-                        Normally, the widget will be chosen automatically based on the type
-                        of the backing item (see "ref" element). The "widget" element can be
-                        used to override this default behavior. It is used for default included
-                        types like text, label, combo, password, checkbox, etc. or class name for
-                        custom implementation.
-                        
-                        NOTE: widget was never really working it will probably not work. It is deprecated
-                        now. Later on it will be replaced by an equivalent setting in FormItemDisplayType.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:deprecated>true</a:deprecated>
-                    	<a:plannedRemoval>4.0</a:plannedRemoval>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <!-- Note: available values are defined by the "set" in the binding. -->
-            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0">
-            	
-            </xsd:element>
+            <xsd:element name="validation" type="tns:FormItemValidationType" minOccurs="0"/>
             <!-- TODO: condition -->
         </xsd:sequence>
     </xsd:complexType>

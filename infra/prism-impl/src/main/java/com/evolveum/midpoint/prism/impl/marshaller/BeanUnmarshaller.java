@@ -875,38 +875,16 @@ public class BeanUnmarshaller {
 		}
 	}
 
-	private QName getRealElementName(XNodeImpl node, QName key, ParsingContext pc) throws SchemaException {
-		if (node.getElementName() == null) {
-			return key;
-		}
-		String elementNS = node.getElementName().getNamespaceURI();
-		String keyNS = key.getNamespaceURI();
-		if (StringUtils.isNotEmpty(elementNS) && StringUtils.isNotEmpty(keyNS) && !elementNS.equals(keyNS)) {
-			pc.warnOrThrow(LOGGER, "Namespaces for actual element (" + node.getElementName()
-					+ ") and it's place in schema (" + key + " are different.");
-			return key;		// fallback
-		} else {
-			return node.getElementName();
-		}
-	}
-
 	private <T> void unmarshalToAnyUsingGetterIfExists(@NotNull T bean, @NotNull QName key, @NotNull XNodeImpl node,
 			@NotNull ParsingContext pc, String propName) throws SchemaException {
 		Method elementMethod = inspector.findAnyMethod(bean.getClass());
 		if (elementMethod != null) {
 			unmarshallToAnyUsingGetter(bean, elementMethod, key, node, pc);
 		} else {
-			pc.warnOrThrow(LOGGER, "No field "+propName+" in class "+bean.getClass()+" (and no element method in object factory too)");
+			pc.warnOrThrow(LOGGER, "No field '"+propName+"' in class "+bean.getClass()+" (and no element method in object factory too)");
 		}
 	}
-//
-//		if (prismContext != null && bean instanceof Revivable) {
-//			((Revivable)bean).revive(prismContext);
-//		}
-//
-//		return bean;
-//	}
-//
+
 	// Prepares value to be stored into the bean - e.g. converts PolyString->PolyStringType, wraps a value to JAXB if specified, ...
 	private Object wrapInJaxbElement(Object propVal, Object objectFactory, Method factoryMethod, String propName,
 			Class beanClass, ParsingContext pc) {

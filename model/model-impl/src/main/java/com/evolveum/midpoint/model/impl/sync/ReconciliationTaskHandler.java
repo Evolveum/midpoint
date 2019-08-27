@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -755,8 +755,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 		opResult.addParam("reconciled", true);
 
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.block().not().item(ShadowType.F_FAILED_OPERATION_TYPE).isNull().endBlock()
-				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
 				.build();
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, opResult);
 
@@ -787,17 +786,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 				task.recordIterativeOperationEnd(shadow.asObjectable(), started, ex);
 				processedFailure++;
 				opResult.recordFatalError("Failed to finish operation with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()) +". Reason: " + ex.getMessage(), ex);
-				Collection<? extends ItemDelta> modifications = prismContext.deltaFactory().property()
-						.createModificationReplacePropertyCollection(ShadowType.F_ATTEMPT_NUMBER,
-								shadow.getDefinition(), shadow.asObjectable().getAttemptNumber() + 1);
-				try {
-                    repositoryService.modifyObject(ShadowType.class, shadow.getOid(), modifications,
-							provisioningResult);
-					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, null);
-				} catch (Exception e) {
-					task.recordObjectActionExecuted(shadow, null, null, ChangeType.MODIFY, SchemaConstants.CHANGE_CHANNEL_RECON_URI, e);
-                    LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
-				}
 			} finally {
 				task.markObjectActionExecutedBoundary();
 				RepositoryCache.exit();

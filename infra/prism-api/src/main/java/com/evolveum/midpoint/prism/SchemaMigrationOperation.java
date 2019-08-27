@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.evolveum.midpoint.prism;
 
-package com.evolveum.midpoint.common.filter;
-
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
+ * @author semancik
  *
- * @author Igor Farinic
  */
-public interface FilterManager<T extends Filter> {
+public enum SchemaMigrationOperation {
+	
+	REMOVED;
+	
+	public static SchemaMigrationOperation parse(String s) throws SchemaException {
+		if (s == null) {
+			return null;
+		}
+		switch (s) {
+			case "removed":
+				return REMOVED;
+			default:
+				throw new SchemaException("Unknown schema migration operation "+s);
+		}
+	}
 
-	void setFilterMapping(Map<String, Class<T>> filterMap);
-
-	Filter getFilterInstance(String uri);
-
-	Filter getFilterInstance(String uri, List<Object> parameters);
 }

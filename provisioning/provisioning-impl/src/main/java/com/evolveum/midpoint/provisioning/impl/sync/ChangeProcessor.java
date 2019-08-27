@@ -139,7 +139,6 @@ public class ChangeProcessor {
                 shadowCache.notifyResourceObjectChangeListeners(shadowChangeDescription, ctx.getTask(), notifyChangeResult);
                 notifyChangeResult.computeStatusIfUnknown();
             } catch (RuntimeException ex) {
-                saveAccountResult(change, notifyChangeResult, result);
                 throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
             }
 
@@ -157,7 +156,6 @@ public class ChangeProcessor {
                 request.setSuccess(true);
             } else {
                 request.setSuccess(false);
-                saveAccountResult(change, notifyChangeResult, result);
             }
 
             if (result.isUnknown()) {
@@ -310,37 +308,6 @@ public class ChangeProcessor {
         shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
         shadowChangeDescription.setSourceChannel(channel != null ? channel : SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
         return shadowChangeDescription;
-    }
-
-    private void saveAccountResult(Change change, OperationResult notifyChangeResult, OperationResult parentResult) {
-        Collection<? extends ItemDelta> shadowModification = createShadowResultModification(change, notifyChangeResult);
-        String oid = change.getOid();
-        // maybe better error handling is needed
-        try {
-            ConstraintsChecker.onShadowModifyOperation(shadowModification);
-            repositoryService.modifyObject(ShadowType.class, oid, shadowModification, parentResult);
-        } catch (SchemaException ex) {
-            parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
-        } catch (ObjectNotFoundException ex) {
-            parentResult.recordWarning("Couldn't modify object: object not found: " + ex.getMessage(), ex);
-        } catch (ObjectAlreadyExistsException ex) {
-            parentResult.recordPartialError("Couldn't modify object: object already exists: " + ex.getMessage(), ex);
-        }
-    }
-
-    private Collection<? extends ItemDelta> createShadowResultModification(Change change, OperationResult shadowResult) {
-        PrismObjectDefinition<ShadowType> shadowDefinition = getShadowDefinition();
-
-        Collection<ItemDelta> modifications = new ArrayList<>();
-        PropertyDelta resultDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(ShadowType.F_RESULT,
-                shadowDefinition, shadowResult.createOperationResultType());
-        modifications.add(resultDelta);
-        if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
-            PropertyDelta failedOperationTypeDelta = prismContext.deltaFactory().property().createModificationReplaceProperty(
-                    ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
-            modifications.add(failedOperationTypeDelta);
-        }
-        return modifications;
     }
 
     private void validateResult(OperationResult result, Task task, TaskPartitionDefinitionType partition)

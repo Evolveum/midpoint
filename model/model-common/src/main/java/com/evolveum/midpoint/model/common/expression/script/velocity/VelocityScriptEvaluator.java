@@ -78,11 +78,6 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 			throw new ExpressionEvaluationException("No script code in " + context.getContextDescription());
 		}
 
-		boolean allowEmptyValues = false;
-		if (context.getExpressionType().isAllowEmptyValues() != null) {
-			allowEmptyValues = context.getExpressionType().isAllowEmptyValues();
-		}
-
 		StringWriter resultWriter = new StringWriter();
 		try {
 			InternalMonitor.recordCount(InternalCounters.SCRIPT_EXECUTION_COUNT);
@@ -117,9 +112,7 @@ public class VelocityScriptEvaluator extends AbstractScriptEvaluator {
 		}
 
 		List<V> pvals = new ArrayList<>();
-		if (allowEmptyValues || !ExpressionUtil.isEmpty(evalResult)) {
-			pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
-		}
+		pvals.add((V) ExpressionUtil.convertToPrismValue(evalResult, context.getOutputDefinition(), context.getContextDescription(), getPrismContext()));
 		return pvals;
 	}
 

@@ -1,5 +1,5 @@
 /*
-  * Copyright (c) 2010-2017 Evolveum
+  * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -357,8 +357,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.addObject(roleLdap, null, parentResult);
 
         RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, null, parentResult).asObjectable();
-        assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
-        assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
+        assertNotNull("null role", ldapRole);
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
                 ObjectModificationType.COMPLEX_TYPE);
@@ -378,36 +377,6 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .build();
         SearchResultList<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, parentResult);
         assertEquals("Wrong # of returned users", 1, users.size());
-    }
-
-    @Test
-    public void test110ModifyDeleteObjectChangeFromAccount() throws Exception {
-    	final String TEST_NAME = "test110ModifyDeleteObjectChangeFromAccount";
-    	TestUtil.displayTestTitle(TEST_NAME);
-
-        OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
-        PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
-        String oid = repositoryService.addObject(accShadow, null, parentResult);
-        System.out.println("\nAcc shadow");
-        System.out.println(accShadow.debugDump());
-
-        accShadow.asObjectable().setObjectChange(null);
-
-        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
-        System.out.println("\nRepo shadow");
-        System.out.println(repoShadow.debugDump());
-        prismContext.adopt(repoShadow);
-        prismContext.adopt(accShadow);
-        AssertJUnit.assertTrue("repo shadow must have full definitions", repoShadow.hasCompleteDefinition());
-        AssertJUnit.assertTrue("shadow must have full definitions", repoShadow.hasCompleteDefinition());
-        ObjectDelta d = repoShadow.diff(accShadow);
-        System.out.println("\nDelta");
-        System.out.println(d.debugDump());
-
-        repositoryService.modifyObject(ShadowType.class, oid, d.getModifications(), getModifyOptions(), parentResult);
-
-        PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
-        AssertJUnit.assertNull(afterModify.asObjectable().getObjectChange());
     }
 
     /**

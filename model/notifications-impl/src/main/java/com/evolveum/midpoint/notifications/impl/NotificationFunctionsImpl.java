@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -353,10 +353,11 @@ public class NotificationFunctionsImpl implements NotificationFunctions {
 			Collection<PrismPropertyValue<ObjectDeltaType>> changes = null;
 			if (shadowDelta.getModifications() != null) {
 				for (ItemDelta itemDelta : shadowDelta.getModifications()) {
-					if (itemDelta.getPath().equivalent(ShadowType.F_OBJECT_CHANGE)) {
-						changes = itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty() ?
-								itemDelta.getValuesToAdd() : itemDelta.getValuesToReplace();
-					}
+					// TODO: get list of changes from pendingOperations
+//					if (itemDelta.getPath().equivalent(ShadowType.F_OBJECT_CHANGE)) {
+//						changes = itemDelta.getValuesToAdd() != null && !itemDelta.getValuesToAdd().isEmpty() ?
+//								itemDelta.getValuesToAdd() : itemDelta.getValuesToReplace();
+//					}
 				}
 			}
 

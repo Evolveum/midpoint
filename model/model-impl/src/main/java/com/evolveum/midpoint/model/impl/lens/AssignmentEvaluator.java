@@ -862,10 +862,6 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 			if (adminGuiConfiguration != null && !ctx.evalAssignment.getAdminGuiConfigurations().contains(adminGuiConfiguration)) {
 				ctx.evalAssignment.addAdminGuiConfiguration(adminGuiConfiguration);
 			}
-			PolicyConstraintsType policyConstraints = ((AbstractRoleType)targetType).getPolicyConstraints();
-			if (policyConstraints != null) {
-				ctx.evalAssignment.addLegacyPolicyConstraints(policyConstraints, ctx.assignmentPath.clone(), targetType, prismContext);
-			}
 		}
 		
 		LOGGER.trace("Evaluating segment target DONE for {}", segment);

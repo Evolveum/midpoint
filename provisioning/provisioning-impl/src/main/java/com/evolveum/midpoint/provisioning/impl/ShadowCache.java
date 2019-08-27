@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1229,25 +1229,19 @@ public class ShadowCache {
 			OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 		ProvisioningOperationState<AsynchronousOperationResult> opState = new ProvisioningOperationState<>();
 		opState.setRepoShadow(shadow);
-		
-		if (shadow.asObjectable().getFailedOperationType() == null
-				|| (shadow.asObjectable().getFailedOperationType() != null
-						&& FailedOperationTypeType.ADD != shadow.asObjectable().getFailedOperationType())) {
+		ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+		try {
 			
-			ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
+			AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
+					.deleteResourceObject(ctx, shadow, scripts, connOptions , parentResult);
+			opState.processAsyncResult(asyncReturnValue);
+			
+		} catch (Exception ex) {
 			try {
-				
-				AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
-						.deleteResourceObject(ctx, shadow, scripts, connOptions , parentResult);
-				opState.processAsyncResult(asyncReturnValue);
-				
-			} catch (Exception ex) {
-				try {
-					handleDeleteError(ctx, shadow, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError(e);
-					throw new SystemException(e.getMessage(), e);
-				}
+				handleDeleteError(ctx, shadow, options, opState, ex, parentResult.getLastSubresult(), task, parentResult);
+			} catch (ObjectAlreadyExistsException e) {
+				parentResult.recordFatalError(e);
+				throw new SystemException(e.getMessage(), e);
 			}
 		}
 		
@@ -1975,29 +1969,6 @@ public class ShadowCache {
 					objResult.computeStatus();
 					objResult.recordSuccessIfUnknown();
 
-                    if (!objResult.isSuccess() && !objResult.isHandledError()) {
-                        Collection<? extends ItemDelta> shadowModificationType = prismContext.deltaFactory().property()
-                                .createModificationReplacePropertyCollection(ShadowType.F_RESULT,
-                                        getShadowDefinition(), objResult.createOperationResultType());
-                        try {
-							ConstraintsChecker.onShadowModifyOperation(shadowModificationType);
-							repositoryService.modifyObject(ShadowType.class, resultShadow.getOid(),
-                                    shadowModificationType, objResult);
-                        } catch (ObjectNotFoundException ex) {
-                        	objResult.recordFatalError("Saving of result to " + resultShadow
-                                    + " shadow failed: Not found: " + ex.getMessage(), ex);
-                        } catch (ObjectAlreadyExistsException ex) {
-                        	objResult.recordFatalError("Saving of result to " + resultShadow
-                                    + " shadow failed: Already exists: " + ex.getMessage(), ex);
-                        } catch (SchemaException ex) {
-                        	objResult.recordFatalError("Saving of result to " + resultShadow
-                                    + " shadow failed: Schema error: " + ex.getMessage(), ex);
-                        } catch (RuntimeException e) {
-                        	objResult.recordFatalError("Saving of result to " + resultShadow
-                                    + " shadow failed: " + e.getMessage(), e);
-                        	throw e;
-                        }
-                    }
                 } catch (RuntimeException | Error e) {
                 	objResult.recordFatalError(e);
                 	throw e;
@@ -3060,37 +3031,6 @@ public class ShadowCache {
 		}
 		sb.append(")");
 		return sb.toString();
-	}
-
-	
-	// ----------------------- LEGACY ------ to be removed later (MID-4780)
-	
-	private void cleanLegacyShadowInRepository(PrismObject<ShadowType> shadow, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException{
-		
-		// TODO
-		
-//		PrismObject<ShadowType> repoShadowBefore = getRepositoryService().getObject(ShadowType.class, shadow.getOid(), null, parentResult);
-//		List<ItemDelta<?, ?>> itemDeltas =
-//				createShadowLegacyCleanupAndReconciliationDeltas(shadow, repoShadowBefore);
-//
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("Cleaning up repository shadow:\n{}\nThe current object is:\n{}\nAnd computed deltas are:\n{}",
-//					repoShadowBefore.debugDumpLazily(), shadow.debugDumpLazily(), DebugUtil.debugDumpLazily(itemDeltas));
-//		}
-//		
-//		try {
-//			ConstraintsChecker.onShadowModifyOperation(itemDeltas);
-//			getRepositoryService().modifyObject(ShadowType.class, shadow.getOid(), itemDeltas, parentResult);
-//		} catch (SchemaException ex) {
-//			parentResult.recordFatalError("Couldn't clean-up shadow: schema violation: " + ex.getMessage(), ex);
-//			throw ex;
-//		} catch (ObjectAlreadyExistsException ex) {
-//			parentResult.recordFatalError("Couldn't clean-up shadow: shadow already exists: " + ex.getMessage(), ex);
-//			throw ex;
-//		} catch (ObjectNotFoundException ex) {
-//			parentResult.recordFatalError("Couldn't clean-up shadow: shadow not found: " + ex.getMessage(), ex);
-//			throw ex;
-//		}
 	}
 
 }

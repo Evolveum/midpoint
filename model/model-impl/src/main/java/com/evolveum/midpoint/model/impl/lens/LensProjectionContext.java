@@ -1483,8 +1483,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	OperationResultType fetchResult = shadowType.getFetchResult();
         if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
-                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)
-                    && (getObjectAny().asObjectable().getFailedOperationType() == null || getObjectAny().asObjectable().getFailedOperationType() != FailedOperationTypeType.ADD)) {                 // todo what about other kinds of status? [e.g. in-progress]
+                    || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
            	setFullShadow(false);
         } else {
             setFullShadow(true);

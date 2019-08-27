@@ -1531,8 +1531,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_YELLOW_OID, null, task, result);
 		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, null, task, result);
 		unassignOrg(USER_JACK_OID, ORG_GOVERNOR_OFFICE_OID, SchemaConstants.ORG_MANAGER, task, result);
-		modifyObjectReplaceReference(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, task, result);
 
 		// WHEN
 		displayWhen(TEST_NAME);

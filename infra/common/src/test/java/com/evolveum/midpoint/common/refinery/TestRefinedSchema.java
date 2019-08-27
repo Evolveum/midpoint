@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.EqualFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -54,6 +56,8 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -90,11 +94,13 @@ public class TestRefinedSchema {
 	private static final QName OBJECT_CLASS_INETORGPERSON_QNAME = new QName(MidPointConstants.NS_RI, "inetOrgPerson");
 
 	private final RelationRegistry relationRegistry = new RelationRegistryDummyImpl();
+	private MatchingRuleRegistry matchingRuleRegistry;
 
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		resetPrismContext(MidPointPrismContextFactory.FACTORY);
+		matchingRuleRegistry = MatchingRuleRegistryFactory.createRegistry();
 	}
 
     @Test
@@ -457,8 +463,8 @@ public class TestRefinedSchema {
         assertFalse("Empty protectedAccounts", protectedAccounts.isEmpty());
         assertEquals("Unexpected number of protectedAccounts", 2, protectedAccounts.size());
         Iterator<ResourceObjectPattern> iterator = protectedAccounts.iterator();
-        assertDeprecatedProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com", rAccount);
-        assertDeprecatedProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com", rAccount);
+        assertProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com", rAccount);
+        assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com", rAccount);
     }
 
     private void assertAttributeDefs(ResourceAttributeContainerDefinition attrsDef, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
@@ -532,13 +538,12 @@ public class TestRefinedSchema {
         Assert.fail("Attribute " + name + " not found");
     }
 
-	private void assertDeprecatedProtectedAccount(String message, ResourceObjectPattern protectedPattern, String identifierValue, RefinedObjectClassDefinition rAccount) throws SchemaException {
-		Collection<ResourceAttribute<?>> identifiers = protectedPattern.getIdentifiers();
-		assertNotNull("Null identifiers in "+message, identifiers);
-		assertEquals("Wrong number identifiers in "+message, 1, identifiers.size());
-		ResourceAttribute<?> identifier = identifiers.iterator().next();
-		assertNotNull("Null identifier in "+message, identifier);
-		assertEquals("Wrong identifier value in "+message, identifier.getRealValue(), identifierValue);
+	private void assertProtectedAccount(String message, ResourceObjectPattern protectedPattern, String identifierValue, RefinedObjectClassDefinition rAccount) throws SchemaException {
+		ObjectFilter filter = protectedPattern.getObjectFilter();
+		assertNotNull("Null objectFilter in "+message, filter);
+		assertTrue("Wrong filter class "+filter.getClass().getSimpleName()+" in "+message, filter instanceof EqualFilter);
+		assertNotNull("Null filter path in "+message, ((EqualFilter)filter).getPath());
+		assertEquals("Wrong filter value in "+message, identifierValue, ((EqualFilter<String>)filter).getValues().iterator().next().getValue());
 
 		// Try matching
 		PrismObject<ShadowType> shadow = rAccount.getObjectDefinition().instantiate();
@@ -550,9 +555,9 @@ public class TestRefinedSchema {
 		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
 		attributesContainer.add(confusingAttr2);
 
-		assertTrue("Test attr not matched in "+message, protectedPattern.matches(shadow, null, relationRegistry));
+		assertTrue("Test attr not matched in "+message, protectedPattern.matches(shadow, matchingRuleRegistry, relationRegistry));
 		nameAttr.setRealValue("huhulumululul");
-		assertFalse("Test attr nonsense was matched in "+message, protectedPattern.matches(shadow, null, relationRegistry));
+		assertFalse("Test attr nonsense was matched in "+message, protectedPattern.matches(shadow, matchingRuleRegistry, relationRegistry));
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
