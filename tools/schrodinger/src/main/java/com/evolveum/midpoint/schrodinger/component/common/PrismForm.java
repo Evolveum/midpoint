@@ -22,7 +22,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.configuration.ObjectCollectionViewsPanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -216,8 +215,12 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    private SelenideElement findProperValueContainer() {
-        return null;
+    private SelenideElement findPropertyValueInput(String name) {
+        Selenide.sleep(5000);
+
+        return  $(Schrodinger.byElementAttributeValue("div", "contains",
+                Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
     }
 
     public SelenideElement findProperty(String name) {
