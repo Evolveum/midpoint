@@ -50,6 +50,8 @@ public class PrismReferenceValueWrapperImpl<T extends Referencable> extends Pris
 		value.setTargetType(realValue.getTargetType());
 		value.setRelation(realValue.getRelation());
 		value.setFilter(realValue.getFilter());
+
+		setStatus(ValueStatus.MODIFIED);
 	}
 	
 	public boolean isEditEnabled() {
