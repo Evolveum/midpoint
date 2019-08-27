@@ -106,7 +106,7 @@ public class BasicProvisioningTest  extends TestBase {
                 .and()
                     .clickByName(USER_NAME)
                         .selectTabProjections()
-                            .clickCog()
+                            .clickHeaderActionDropDown()
                                 .addProjection()
                                     .table()
                                         .selectCheckboxByName(ImportResourceTest.RESOURCE_NAME)

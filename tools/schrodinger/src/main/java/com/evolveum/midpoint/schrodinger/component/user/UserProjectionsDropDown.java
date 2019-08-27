@@ -13,9 +13,9 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by matus on 5/2/2018.
  */
-public class UserProjectionsCog<T> extends DropDown<T> {
+public class UserProjectionsDropDown<T> extends DropDown<T> {
 
-    public UserProjectionsCog(T parent, SelenideElement parentElement) {
+    public UserProjectionsDropDown(T parent, SelenideElement parentElement) {
         super(parent, parentElement);
     }
 
@@ -56,7 +56,7 @@ public class UserProjectionsCog<T> extends DropDown<T> {
         return new FocusSetProjectionModal<>(this.getParent(), actualModal);
     }
 
-    public ConfirmationModal<UserProjectionsCog<T>> delete() {
+    public ConfirmationModal<UserProjectionsDropDown<T>> delete() {
         $(Schrodinger.byElementValue("a", "data-s-id", "menuItemLink", "\n" +
                 "        Delete")).waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 

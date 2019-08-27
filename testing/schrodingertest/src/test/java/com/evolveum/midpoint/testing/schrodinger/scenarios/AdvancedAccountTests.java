@@ -44,7 +44,7 @@ public class AdvancedAccountTests extends TestBase {
               .and()
               .clickByName(ScenariosCommons.TEST_USER_RAPHAEL_NAME)
                 .selectTabProjections()
-                  .clickCog()
+                  .clickHeaderActionDropDown()
                     .addProjection()
                       .table()
                         .search()
