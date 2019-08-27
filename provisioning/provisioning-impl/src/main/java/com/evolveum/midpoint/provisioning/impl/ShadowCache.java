@@ -169,9 +169,7 @@ public class ShadowCache {
 		// have a fully cached object from the resource.
 		if (repositoryShadow == null) {
 			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDump());
-			}
+			LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDumpLazily());
 		}
 
 		// Sanity check
