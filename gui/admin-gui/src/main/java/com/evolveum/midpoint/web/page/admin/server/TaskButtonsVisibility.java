@@ -67,15 +67,6 @@ class TaskButtonsVisibility implements Serializable {
         return runNowVisible;
     }
 
-	public boolean computeStopVisible(PageTaskEdit parentPage) {
-		final TaskDto taskDto = parentPage.getTaskDto();
-		stopVisible = !parentPage.isEdit()
-				&& taskDto.isWorkflowChild()
-				&& !taskDto.isClosed()
-				&& parentPage.canStop();
-		return stopVisible;
-	}
-
 	public void computeAll(PageTaskEdit parentPage) {
 		computeBackVisible(parentPage);
 		computeEditVisible(parentPage);
@@ -84,7 +75,6 @@ class TaskButtonsVisibility implements Serializable {
 		computeSuspendVisible(parentPage);
 		computeResumeVisible(parentPage);
 		computeRunNowVisible(parentPage);
-		computeStopVisible(parentPage);
 	}
 
 	public boolean isBackVisible() {

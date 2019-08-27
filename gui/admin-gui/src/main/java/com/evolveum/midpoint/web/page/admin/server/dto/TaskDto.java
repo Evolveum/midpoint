@@ -97,18 +97,12 @@ public class TaskDto extends Selectable implements InlineMenuable {
     public static final String F_PARENT_TASK_OID = "parentTaskOid";
 	public static final String F_OWNER_NAME = "ownerName";
 	public static final String F_OWNER_OID = "ownerOid";
-    @Deprecated public static final String F_WORKFLOW_DELTAS_IN = "workflowDeltasIn";
-	@Deprecated public static final String F_WORKFLOW_DELTAS_OUT = "workflowDeltasOut";
-    public static final String F_CHANGE_BEING_APPROVED = "changesBeingApproved";
     public static final String F_IDENTIFIER = "identifier";
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
     public static final String F_WORKER_THREADS = "workerThreads";
     public static final String F_OP_RESULT = "opResult";
-	public static final String F_WORKFLOW_CONTEXT = "workflowContext";
-	public static final String F_WORK_ITEMS = "workItems";
-	public static final String F_WORKFLOW_REQUESTS = "workflowRequests";
 	public static final String F_RECURRING = "recurring";
 	public static final String F_BOUND = "bound";
 	public static final String F_INTERVAL = "interval";
@@ -142,11 +136,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 	private List<OperationResult> opResult;
 	private OperationResult taskOperationResult;
 	private ModelOperationStatusDto modelOperationStatusDto;
-
-	private List<TaskChangesDto> changesCategorizationList;
-	private List<ProcessInstanceDto> workflowRequests;
-	private List<SceneDto> workflowDeltasIn, workflowDeltasOut;
-	private TaskChangesDto changesBeingApproved;
 
 	// related objects
 	private TaskType parentTaskType;
@@ -203,15 +192,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		        // TODO make sure that op result contains the error (in common cases it is there)
 	        }
         }
-		if (options.isRetrieveWorkflowContext()) {
-			// TODO fill-in "cheap" wf attributes not only when this option is set
-			try {
-				fillInWorkflowAttributes(taskType, modelInteractionService, workflowManager, pageBase.getPrismContext(), opTask, thisOpResult);
-			} catch (CommonException | RuntimeException e) {
-				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve workflow-related attributes from task {}", e, taskType);
-				// TODO make sure that op result contains the error (in common cases it is there)
-			}
-		}
         thisOpResult.computeStatusIfUnknown();
 
         fillFromExtension();
@@ -371,46 +351,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			PrismContext prismContext, Task opTask,
 			OperationResult thisOpResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
-        workflowDeltasIn = retrieveDeltasToApprove(taskType, modelInteractionService, opTask, thisOpResult);
-		// TODO workflowDeltasOut = retrieveResultingDeltas(taskType, modelInteractionService, opTask, thisOpResult);
-
-		final TaskType rootTask;
-		if (parentTaskType == null) {
-			rootTask = taskType;
-		} else {
-			rootTask = parentTaskType;
-		}
-
-		ApprovalContextType wfc = null; //taskType.getApprovalContext();
-		if (wfc != null && parentTaskType != null) {
-			ChangesByState changesByState = null; //workflowManager.getChangesByState(taskType, rootTask, modelInteractionService, prismContext, thisOpResult);
-			List<TaskChangesDto> changeCategories = Collections.emptyList();
-			// was:
-					// computeChangesCategorizationList(changesByState, wfc.getObjectRefOrClone(),
-					// modelInteractionService, prismContext, opTask, thisOpResult);
-			if (changeCategories.size() > 1) {
-				throw new IllegalStateException("More than one task change category for task " + taskType + ": " + changeCategories);
-			} else if (changeCategories.size() == 1) {
-				changesBeingApproved = changeCategories.get(0);
-			}
-		}
-
-		workflowRequests = new ArrayList<>();
-		// TODO-WF
-//		for (TaskType wfSubtask : rootTask.getSubtask()) {
-//			final WfContextType subWfc = wfSubtask.getApprovalContext();
-//			if (subWfc != null && subWfc.getCaseOid() != null) {
-//				if (this.getOid() == null || !this.getOid().equals(wfSubtask.getOid())) {
-//					workflowRequests.add(new ProcessInstanceDto(wfSubtask, WebComponentUtil.getShortDateTimeFormat(pageBase)));
-//				}
-//			}
-//		}
-
-		//ChangesByState changesByState = workflowManager.getChangesByState(rootTask, modelInteractionService, prismContext, opTask, thisOpResult);
-		this.changesCategorizationList = Collections.emptyList();
-		// was:
-				// computeChangesCategorizationList(changesByState, wfc != null ? wfc.getObjectRefOrClone() : null,
-				// modelInteractionService, prismContext, opTask, thisOpResult);
 	}
 
 
@@ -429,30 +369,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return new TaskChangesDto(sceneDto);
 	}
 
-	private List<SceneDto> retrieveDeltasToApprove(TaskType taskType, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        ApprovalContextType wfc = null; //taskType.getApprovalContext();
-        if (wfc == null) {
-            return null;
-        }
-        //WfPrimaryChangeProcessorStateType pcps = (WfPrimaryChangeProcessorStateType) wfc.getProcessorSpecificState();
-        return Collections.emptyList();
-        //was:
-		      //  objectTreeDeltasToDeltaDtoList(pcps.getDeltasToApprove(), taskType.asPrismObject().getPrismContext(), modelInteractionService,
-				//				wfc.getObjectRefOrClone(), opTask, thisOpResult);
-    }
-
-	private SceneDto retrieveDeltaToProcess(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-		ApprovalContextType wfc = aCase.getApprovalContext();
-		if (wfc == null) {
-			return null;
-		}
-		Scene scene = SceneUtil.visualizeObjectTreeDeltas(wfc.getDeltasToApprove(), "", aCase.asPrismObject().getPrismContext(),
-				modelInteractionService, aCase.getObjectRef(), opTask, thisOpResult);
-		return new SceneDto(scene);
-	}
-
     private List<SceneDto> objectTreeDeltasToDeltaDtoList(ObjectTreeDeltasType deltas, PrismContext prismContext, ModelInteractionService modelInteractionService,
 						ObjectReferenceType objectRef, Task opTask, OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
         List<SceneDto> retval = new ArrayList<>();
@@ -464,16 +380,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 			retval.add(new SceneDto(scene));
 		}
         return retval;
-    }
-
-    private List<SceneDto> retrieveResultingDeltas(CaseType aCase, ModelInteractionService modelInteractionService, Task opTask,
-			OperationResult thisOpResult) throws SchemaException, ExpressionEvaluationException {
-        ApprovalContextType wfc = aCase.getApprovalContext();
-        if (wfc == null) {
-            return null;
-        }
-        return objectTreeDeltasToDeltaDtoList(wfc.getResultingDeltas(), aCase.asPrismObject().getPrismContext(), modelInteractionService,
-				aCase.getObjectRef(), opTask, thisOpResult);
     }
 
     //endregion
@@ -867,15 +773,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
         return modelOperationStatusDto;
     }
 
-	public TaskChangesDto getChangesForIndex(int index) {
-		int realIndex = index-1;
-		return realIndex < changesCategorizationList.size() ? changesCategorizationList.get(realIndex) : null;
-	}
-
-	public List<TaskChangesDto> getChangesCategorizationList() {
-		return changesCategorizationList;
-	}
-
 	public void addChildTaskDto(TaskDto taskDto) {
         if (taskDto.getOid() != null) {
             subtasks.add(taskDto);
@@ -890,33 +787,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 
     public List<TaskDto> getTransientSubtasks() {
         return transientSubtasks;
-    }
-
-    public String getWorkflowProcessInstanceId() {
-    	// TODO-WF
-	    throw new UnsupportedOperationException("TODO");
-        //return taskType.getApprovalContext() != null ? taskType.getApprovalContext().getCaseOid() : null;
-    }
-
-    public boolean isWorkflowProcessInstanceFinished() {
-	    // TODO-WF
-	    throw new UnsupportedOperationException("TODO");
-//        return taskType.getApprovalContext() != null ?
-//				taskType.getApprovalContext().getEndTimestamp() != null : false;
-    }
-
-    @Deprecated
-	public List<SceneDto> getWorkflowDeltasIn() {
-        return workflowDeltasIn;
-    }
-
-	public TaskChangesDto getChangesBeingApproved() {
-        return changesBeingApproved;
-    }
-
-	@Deprecated
-    public List<SceneDto> getWorkflowDeltasOut() {
-        return workflowDeltasOut;
     }
 
     public String getParentTaskName() {
@@ -968,10 +838,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return rv;
 	}
 
-	public List<ProcessInstanceDto> getWorkflowRequests() {
-		return workflowRequests;
-	}
-
 	public String getObjectType() {
 		QName type = getExtensionPropertyRealValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, QName.class);
 		return type != null ? type.getLocalPart() : null;
@@ -995,14 +861,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		} catch (SchemaException e) {
 			throw new SystemException("Couldn't serialize delta: " + e.getMessage(), e);
 		}
-	}
-
-	public String getProcessInstanceId() {
-		// TODO-WF
-		throw new UnsupportedOperationException("TODO");
-//
-//		WfContextType wfc = getApprovalContext();
-//		return wfc != null ? wfc.getCaseOid() : null;
 	}
 
 	public Boolean isExecuteInRawMode() {
@@ -1075,18 +933,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 				!modelOperationStatusDto.equals(taskDto.modelOperationStatusDto) :
 				taskDto.modelOperationStatusDto != null)
 			return false;
-		if (changesCategorizationList != null ?
-				!changesCategorizationList.equals(taskDto.changesCategorizationList) :
-				taskDto.changesCategorizationList != null)
-			return false;
-		if (workflowRequests != null ? !workflowRequests.equals(taskDto.workflowRequests) : taskDto.workflowRequests != null)
-			return false;
-		if (workflowDeltasIn != null ? !workflowDeltasIn.equals(taskDto.workflowDeltasIn) : taskDto.workflowDeltasIn != null)
-			return false;
-		if (workflowDeltasOut != null ? !workflowDeltasOut.equals(taskDto.workflowDeltasOut) : taskDto.workflowDeltasOut != null)
-			return false;
-		if (changesBeingApproved != null ? !changesBeingApproved.equals(taskDto.changesBeingApproved) : taskDto.changesBeingApproved != null)
-			return false;
 		if (parentTaskType != null ? !parentTaskType.equals(taskDto.parentTaskType) : taskDto.parentTaskType != null)
 			return false;
 		if (objectRefType != taskDto.objectRefType)
@@ -1114,11 +960,6 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		result = 31 * result + (opResult != null ? opResult.hashCode() : 0);
 		result = 31 * result + (taskOperationResult != null ? taskOperationResult.hashCode() : 0);
 		result = 31 * result + (modelOperationStatusDto != null ? modelOperationStatusDto.hashCode() : 0);
-		result = 31 * result + (changesCategorizationList != null ? changesCategorizationList.hashCode() : 0);
-		result = 31 * result + (workflowRequests != null ? workflowRequests.hashCode() : 0);
-		result = 31 * result + (workflowDeltasIn != null ? workflowDeltasIn.hashCode() : 0);
-		result = 31 * result + (workflowDeltasOut != null ? workflowDeltasOut.hashCode() : 0);
-		result = 31 * result + (changesBeingApproved != null ? changesBeingApproved.hashCode() : 0);
 		result = 31 * result + (parentTaskType != null ? parentTaskType.hashCode() : 0);
 		result = 31 * result + (objectRefType != null ? objectRefType.hashCode() : 0);
 		result = 31 * result + (objectRefName != null ? objectRefName.hashCode() : 0);
@@ -1178,24 +1019,8 @@ public class TaskDto extends Selectable implements InlineMenuable {
 		return TaskCategory.EXECUTE_CHANGES.equals(getCategory());
 	}
 
-	public boolean isWorkflowCategory() {
-		return TaskCategory.WORKFLOW.equals(getCategory());
-	}
-
-	public boolean isWorkflowChild() {
-		return false;
-//		// TODO-WF
-//		throw new UnsupportedOperationException("TODO");
-//
-//		return isWorkflowCategory() && getApprovalContext() != null && getApprovalContext().getCaseOid() != null;
-	}
-
-	public boolean isWorkflowParent() {
-		return isWorkflowCategory() && getParentTaskOid() == null;
-	}
-
 	public boolean isWorkflow() {
-		return isWorkflowChild() || isWorkflowParent();		// "task0" is not among these
+		return TaskCategory.WORKFLOW.equals(getCategory());
 	}
 
 	public boolean isLiveSync() {

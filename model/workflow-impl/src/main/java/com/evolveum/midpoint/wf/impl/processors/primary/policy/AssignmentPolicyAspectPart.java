@@ -317,7 +317,7 @@ public class AssignmentPolicyAspectPart {
 		if (main.useDefaultProcessName(processName)) {
 			processName = createDefaultProcessName(ctx, assignmentMode, target);
 		}
-		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
+		String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault(), "(unnamed)");
 
 		PcpStartInstruction instruction =
 				PcpStartInstruction

@@ -34,7 +34,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskEditableState;
-import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstances;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.ObjectUtils;
@@ -215,24 +214,6 @@ public class PageTaskController implements Serializable {
 	void runNowPerformed(AjaxRequestTarget target) {
 		String oid = parentPage.getTaskDto().getOid();
 		OperationResult result = TaskOperationUtils.runNowPerformed(parentPage.getTaskService(), Collections.singletonList(oid), parentPage);
-		afterStateChangingOperation(target, result);
-	}
-
-	void stopApprovalProcessPerformed(AjaxRequestTarget target) {
-		String instanceId = parentPage.getTaskDto().getProcessInstanceId();
-		if (instanceId == null) {
-			return;
-		}
-		Task task = parentPage.createSimpleTask(PageProcessInstances.OPERATION_STOP_PROCESS_INSTANCE);
-		OperationResult result = task.getResult();
-		try {
-			parentPage.getWorkflowService().cancelCase(instanceId, task, result);
-			result.computeStatusIfUnknown();
-		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException | ObjectAlreadyExistsException e) {
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't stop approval process instance {}", e, instanceId);
-			result.recordFatalError(
-					parentPage.createStringResource("PageTaskController.message.stopApprovalProcessPerformed.fatalError", instanceId, e.getMessage()).getString(), e);
-		}
 		afterStateChangingOperation(target, result);
 	}
 

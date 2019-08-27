@@ -20,7 +20,6 @@ class TaskTabsVisibility implements Serializable {
     private boolean subtasksAndThreadsVisible;
     private boolean progressVisible;
     private boolean environmentalPerformanceVisible;
-    private boolean approvalsVisible;
     private boolean operationVisible;
     private boolean resultVisible;
     private boolean errorsVisible;
@@ -77,15 +76,6 @@ class TaskTabsVisibility implements Serializable {
         return environmentalPerformanceVisible;
     }
 
-    public boolean computeApprovalsVisible(PageTaskEdit parentPage) {
-        approvalsVisible = !parentPage.isEdit()
-				&& false //parentPage.isReadable(TaskType.F_WORKFLOW_CONTEXT)
-				&& (parentPage.getTaskDto().isWorkflowChild() || parentPage.getTaskDto().isWorkflowParent());
-                //&& parentPage.getTaskDto().getTaskType().getApprovalContext() != null
-                //&& parentPage.getTaskDto().getWorkflowDeltaIn() != null;
-        return approvalsVisible;
-    }
-
 	public boolean computeOperationVisible(PageTaskEdit parentPage) {
 		operationVisible = !parentPage.isEdit()
 				&& parentPage.isReadable(TaskType.F_MODEL_OPERATION_CONTEXT)
@@ -118,7 +108,6 @@ class TaskTabsVisibility implements Serializable {
 		computeSubtasksAndThreadsVisible(parentPage);
 		computeProgressVisible(parentPage);
 		computeEnvironmentalPerformanceVisible(parentPage);
-		computeApprovalsVisible(parentPage);
 		computeOperationVisible(parentPage);
 		computeResultVisible(parentPage);
 		computeErrorsVisible(parentPage);
@@ -142,10 +131,6 @@ class TaskTabsVisibility implements Serializable {
 
 	public boolean isEnvironmentalPerformanceVisible() {
 		return environmentalPerformanceVisible;
-	}
-
-	public boolean isApprovalsVisible() {
-		return approvalsVisible;
 	}
 
 	public boolean isOperationVisible() {
@@ -179,8 +164,6 @@ class TaskTabsVisibility implements Serializable {
 			return false;
 		if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
 			return false;
-		if (approvalsVisible != that.approvalsVisible)
-			return false;
 		if (operationVisible != that.operationVisible)
 			return false;
 		if (errorsVisible != that.errorsVisible)
@@ -196,7 +179,6 @@ class TaskTabsVisibility implements Serializable {
 		result = 31 * result + (subtasksAndThreadsVisible ? 1 : 0);
 		result = 31 * result + (progressVisible ? 1 : 0);
 		result = 31 * result + (environmentalPerformanceVisible ? 1 : 0);
-		result = 31 * result + (approvalsVisible ? 1 : 0);
 		result = 31 * result + (operationVisible ? 1 : 0);
 		result = 31 * result + (resultVisible ? 1 : 0);
 		result = 31 * result + (errorsVisible ? 1 : 0);

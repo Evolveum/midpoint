@@ -1266,7 +1266,11 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		if (selectorOptions.getOptions() == null) {
 			return null;
 		}
-		GetOperationOptions cloned = selectorOptions.getOptions().clone();
+        Long staleness = selectorOptions.getOptions().getStaleness();
+		if (staleness != null && staleness == 0) {
+		    return new PassReason(ZERO_STALENESS_REQUESTED);
+        }
+        GetOperationOptions cloned = selectorOptions.getOptions().clone();
 
 		// Eliminate harmless options
 		cloned.setAllowNotFound(null);
@@ -1274,7 +1278,9 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		cloned.setReadOnly(null);
 		cloned.setNoFetch(null);
 		cloned.setPointInTimeType(null);            // This is not used by repository anyway.
-		cloned.setStaleness(null);                  // This is not used by repository anyway.
+        // We know the staleness is not zero, so caching is (in principle) allowed.
+        // More detailed treatment of staleness is not yet available.
+		cloned.setStaleness(null);
 		if (cloned.equals(GetOperationOptions.EMPTY)) {
 			return null;
 		}
@@ -1846,7 +1852,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 	}
 
 	enum PassReasonType {
-		NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT
+		NOT_CACHEABLE_TYPE, MULTIPLE_OPTIONS, NON_ROOT_OPTIONS, UNSUPPORTED_OPTION, INCLUDE_OPTION_PRESENT, ZERO_STALENESS_REQUESTED
 	}
 
 	private static class PassReason {

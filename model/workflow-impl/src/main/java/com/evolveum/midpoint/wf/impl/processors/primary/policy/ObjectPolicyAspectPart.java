@@ -179,7 +179,7 @@ public class ObjectPolicyAspectPart {
 			if (main.useDefaultProcessName(processName)) {
 				processName = createDefaultProcessName(ctx, deltaToApprove);
 			}
-			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault());
+			String processNameInDefaultLocale = localizationService.translate(processName, Locale.getDefault(), "(unnamed)");
 
 			PcpStartInstruction instruction =
 					PcpStartInstruction
