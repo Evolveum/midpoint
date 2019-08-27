@@ -55,7 +55,6 @@ public class TaskMainPanel extends Panel {
 	private static final String ID_SUSPEND = "suspend";
 	private static final String ID_RESUME = "resume";
 	private static final String ID_RUN_NOW = "runNow";
-	private static final String ID_STOP_APPROVAL = "stopApproval";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
