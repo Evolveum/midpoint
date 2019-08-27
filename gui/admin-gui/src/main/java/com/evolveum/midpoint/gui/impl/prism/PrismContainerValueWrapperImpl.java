@@ -25,8 +25,10 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -98,7 +100,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		
 		return null;
 	}
-	
+
 	@Override
 	public <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException {
 		if (delta == null) {

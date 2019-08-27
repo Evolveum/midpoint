@@ -1274,6 +1274,7 @@ public class RepositoryCache implements RepositoryService, Cacheable {
 		cloned.setReadOnly(null);
 		cloned.setNoFetch(null);
 		cloned.setPointInTimeType(null);            // This is not used by repository anyway.
+		cloned.setStaleness(null);                  // This is not used by repository anyway.
 		if (cloned.equals(GetOperationOptions.EMPTY)) {
 			return null;
 		}

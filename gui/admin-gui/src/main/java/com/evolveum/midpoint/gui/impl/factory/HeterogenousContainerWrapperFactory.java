@@ -211,7 +211,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 
 	@Override
 	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
-			PrismContainerValue<C> objectValue, ValueStatus status) {
+			PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -26,21 +26,16 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.MutablePrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * @author katka
@@ -49,8 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrapperImpl<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapper<C>, Serializable{
 
 	private static final long serialVersionUID = 1L;
-	
-	private boolean showOnTopLevel;
+
+	private static final transient Trace LOGGER = TraceManager.getTrace(PrismContainerWrapperImpl.class);
 	
 	private boolean expanded;
 
@@ -223,101 +218,116 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 	
 	protected <C extends Containerable> void cleanupEmptyContainers(PrismContainer<C> container) {
 		List<PrismContainerValue<C>> values = container.getValues();
-		List<PrismContainerValue<C>> valuesToBeRemoved = new ArrayList<>();
-		for (PrismContainerValue<C> value : values) {
-			Collection<Item<?,?>> items = value.getItems();
-			if (items != null) {
-				Iterator<Item<?,?>> iterator = items.iterator();
-				while (iterator.hasNext()) {
-					Item<?,?> item = iterator.next();
+		Iterator<PrismContainerValue<C>> valueIterator = values.iterator();
+		while (valueIterator.hasNext()) {
+			PrismContainerValue<C> value = valueIterator.next();
 
-					if (item instanceof PrismContainer) {
-						cleanupEmptyContainers((PrismContainer) item);
-
-						if (item.isEmpty()) {
-							iterator.remove();
-						}
-					} else {
-//						cleanupEmptyItem()
-					}
-				}
-			}
-
-			if (items == null || value.isEmpty()) {
-				valuesToBeRemoved.add(value);
+			PrismContainerValue<C> valueAfter = cleanupEmptyContainerValue(value);
+			if (valueAfter == null || valueAfter.isIdOnly() || valueAfter.isEmpty()) {
+				valueIterator.remove();
 			}
 		}
-
-		container.removeAll(valuesToBeRemoved);
 	}
-	
-	@Override
-	public <D extends ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>>> Collection<D> getDelta() throws SchemaException {
-		
-		Collection<D> deltas = new ArrayList<D>();
-		
-		
-		ContainerDelta<C> delta = createEmptyDelta(getDeltaPathForStatus(getStatus()));
-		
-		switch (getStatus()) {
-		
-		case ADDED:
-			for (PrismContainerValueWrapper<C> pVal : getValues()) {
-				PrismContainerValue<C> valueToAdd = pVal.getValueToAdd();
-				if (valueToAdd != null) {
-					delta.addValueToAdd(valueToAdd);
+
+	protected <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
+			Collection<Item<?, ?>> items = value.getItems();
+
+			if (items != null) {
+				Iterator<Item<?, ?>> iterator = items.iterator();
+				while (iterator.hasNext()) {
+					Item<?, ?> item = iterator.next();
+
+					cleanupEmptyValues(item);
+					if (item.isEmpty()) {
+						iterator.remove();
+					}
+
 				}
+
+
 			}
-			
-			if (delta.isEmpty()) {
+
+			if (value.getItems() == null || value.getItems().isEmpty()) {
 				return null;
 			}
-			
-			return (Collection) MiscUtil.createCollection(delta);
-		case NOT_CHANGED:
-			
-			for (PrismContainerValueWrapper<C> pVal : getValues()) {
-				switch (pVal.getStatus()) {
-					case ADDED: 
-						PrismContainerValue<C> valueToAdd = pVal.getValueToAdd();
-						if (valueToAdd != null) {
-							delta.addValueToAdd(valueToAdd);
-						}
-						break;
-					case NOT_CHANGED:
-						for (ItemWrapper iw : pVal.getItems()) {
-							Collection iwDetlas = iw.getDelta();
-							if (iwDetlas != null && !iwDetlas.isEmpty()) {
-								deltas.addAll(iwDetlas);
-							}
-						}
-						break;
-						
-					case DELETED:
-						delta.addValueToDelete(pVal.getOldValue().clone());
-						break;
+
+			return value;
+
+	}
+
+	private <T> void cleanupEmptyValues(Item item) {
+		if (item instanceof PrismContainer) {
+			cleanupEmptyContainers((PrismContainer) item);
+		}
+
+		if (item instanceof  PrismProperty) {
+			PrismProperty<T> property = (PrismProperty) item;
+			List<PrismPropertyValue<T>> pVals = property.getValues();
+			if (pVals == null || pVals.isEmpty()) {
+				return;
+			}
+
+			Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
+			while (iterator.hasNext()) {
+				PrismPropertyValue<T> pVal = iterator.next();
+				if (pVal == null || pVal.isEmpty() || pVal.getRealValue() == null) {
+					iterator.remove();
 				}
 			}
-			
-			break;
-		case DELETED :
-			for (PrismContainerValueWrapper<C> pVal : getValues()) {
-				delta.addValueToDelete(pVal.getOldValue().clone());
-			}
-			break;
-			
 		}
-		
-		if (!delta.isEmpty()) {
-			deltas.add((D) delta);
-		}
-		
-		if (deltas.isEmpty()) {
+	}
+
+	@Override
+	public <D extends ItemDelta<PrismContainerValue<C>, PrismContainerDefinition<C>>> Collection<D> getDelta() throws SchemaException {
+
+		if (isOperational()) {
 			return null;
 		}
-		
+
+		Collection<D> deltas = new ArrayList<>();
+		for (PrismContainerValueWrapper<C> pVal : getValues()) {
+			LOGGER.trace("Processing delta for value:\n {}", pVal);
+			ContainerDelta delta = createEmptyDelta(getPath());
+			switch (pVal.getStatus()) {
+				case ADDED:
+
+					PrismContainerValue<C> valueToAdd = pVal.getNewValue().clone();
+					if (valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
+						break;
+					}
+
+					valueToAdd = cleanupEmptyContainerValue(valueToAdd);
+					if (valueToAdd == null || valueToAdd.isEmpty() || valueToAdd.isIdOnly()) {
+						LOGGER.trace("Value is empty, skipping delta creation.");
+						break;
+					}
+
+					delta.addValueToAdd(valueToAdd);
+					deltas.add((D) delta);
+					LOGGER.trace("Computed delta: \n {}", delta.debugDump());
+					break;
+				case NOT_CHANGED:
+					for (ItemWrapper iw : pVal.getItems()) {
+						LOGGER.trace("Start computing modifications for {}", iw);
+						Collection subDeltas = iw.getDelta();
+						if (CollectionUtils.isNotEmpty(subDeltas)) {
+							LOGGER.trace("No deltas computed for {}", iw);
+							deltas.addAll(subDeltas);
+						}
+						LOGGER.trace("Computed deltas:\n {}", subDeltas);
+					}
+
+					break;
+				case DELETED:
+					delta.addValueToDelete(pVal.getOldValue().clone());
+					deltas.add((D) delta);
+					LOGGER.trace("Computed delta: \n {}", delta.debugDump());
+					break;
+			}
+		}
 		return deltas;
 	}
+
 	
 	protected ItemPath getDeltaPathForStatus(ItemStatus status) {
 		if (ItemStatus.ADDED == status) {

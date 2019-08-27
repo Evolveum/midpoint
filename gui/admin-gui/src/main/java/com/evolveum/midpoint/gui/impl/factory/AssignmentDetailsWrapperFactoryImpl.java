@@ -37,7 +37,7 @@ public class AssignmentDetailsWrapperFactoryImpl<C extends Containerable> extend
 	@Override
 	public boolean match(ItemDefinition<?> def) {
 		QName typeName = def.getTypeName();
-		return ConstructionType.COMPLEX_TYPE.equals(typeName) || PersonaConstructionType.COMPLEX_TYPE.equals(typeName) || MappingsType.COMPLEX_TYPE.equals(typeName) || PolicyRuleType.COMPLEX_TYPE.equals(typeName);
+		return PersonaConstructionType.COMPLEX_TYPE.equals(typeName) || MappingsType.COMPLEX_TYPE.equals(typeName) || PolicyRuleType.COMPLEX_TYPE.equals(typeName);
 	}
 
 	@Override
