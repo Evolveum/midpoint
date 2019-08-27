@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
 
+import static com.codeborne.selenide.Selectors.byText;
 import static com.codeborne.selenide.Selenide.$;
 
 /**
@@ -58,15 +59,23 @@ public class Table<T> extends Component<T> {
         return this;
     }
 
-    public boolean currentTableContains(String name) {
+    public boolean currentTableContains(String elementValue) {
+        return currentTableContains("Span", elementValue);
+    }
+
+    public boolean currentTableContains(String elementName, String elementValue) {
 
         // TODO replate catch Throwable with some less generic error
         try {
-            return $(Schrodinger.byElementValue("Span", name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
+            return $(Schrodinger.byElementValue(elementName, elementValue)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
         } catch (Throwable t) {
             return false;
         }
 
+    }
+
+    public boolean containsText(String value){
+        return $(byText(value)).waitUntil(Condition.visible, MidPoint.TIMEOUT_MEDIUM_6_S).is(Condition.visible);
     }
 
     public boolean buttonToolBarExists(){
