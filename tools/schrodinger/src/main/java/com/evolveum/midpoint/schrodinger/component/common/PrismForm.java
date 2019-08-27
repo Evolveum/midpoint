@@ -22,7 +22,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.Component;
-import com.evolveum.midpoint.schrodinger.component.configuration.ObjectCollectionViewsPanel;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 import org.openqa.selenium.By;
 
@@ -73,7 +72,7 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> changeAttributeValue(String name, String oldValue, String newValue) {
-        SelenideElement property = findProperty(name);
+        SelenideElement property = $(Schrodinger.byDataResourceKey(name));
 
         $(By.className("prism-properties")).waitUntil(Condition.appears,MidPoint.TIMEOUT_MEDIUM_6_S);
 
@@ -88,8 +87,7 @@ public class PrismForm<T> extends Component<T> {
 
 
     public PrismForm<T> setFileForUploadAsAttributeValue(String name, File file) {
-        SelenideElement property = findProperty(name);
-        property.$(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
+        $(By.cssSelector("input.form-object-value-binary-file-input")).uploadFile(file);
 
         return this;
     }
@@ -217,8 +215,12 @@ public class PrismForm<T> extends Component<T> {
         return this;
     }
 
-    private SelenideElement findProperValueContainer() {
-        return null;
+    private SelenideElement findPropertyValueInput(String name) {
+        Selenide.sleep(5000);
+
+        return  $(Schrodinger.byElementAttributeValue("div", "contains",
+                Schrodinger.DATA_S_QNAME, "#" + name)).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+
     }
 
     public SelenideElement findProperty(String name) {

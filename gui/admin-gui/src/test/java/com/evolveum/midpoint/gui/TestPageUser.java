@@ -19,6 +19,7 @@ import static org.testng.Assert.assertNotNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.web.component.objectdetails.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.tester.FormTester;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,10 +41,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.AbstractGuiIntegrationTest;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusPersonasTabPanel;
-import com.evolveum.midpoint.web.component.objectdetails.FocusTasksTabPanel;
-import com.evolveum.midpoint.web.component.objectdetails.ObjectHistoryTabPanel;
-import com.evolveum.midpoint.web.component.objectdetails.UserDelegationsTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -65,11 +62,11 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 	private static final String TAB_ACTIVATION = "mainPanel:mainForm:tabPanel:panel:activation";
 	private static final String TAB_PASSWORD = "mainPanel:mainForm:tabPanel:panel:password";
 	private static final String MAIN_FORM = "mainPanel:mainForm";
-	
-	private static final String PATH_FORM_NAME = "tabPanel:panel:main:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValue:input";
+
+	private static final String PATH_FORM_NAME = "tabPanel:panel:main:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:originValueContainer:origValueWithButton:origValue:input";
 	private static final String PATH_FORM_ADMINISTRATIVE_STATUS = "tabPanel:panel:activation:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:input";
-	private static final String PATH_PASSWORD_NEW = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:inputContainer:password1";
-	private static final String PATH_PASSWORD_NEW_REPEAT = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:valueContainer:form:input:inputContainer:password2";
+	private static final String PATH_PASSWORD_NEW = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:passwordPanel:inputContainer:password1";
+	private static final String PATH_PASSWORD_NEW_REPEAT = "tabPanel:panel:password:values:0:value:propertiesLabel:properties:0:property:values:0:passwordPanel:inputContainer:password2";
 	private static final String FORM_SAVE = "save";
 	
 	public static final File USER_EMPTY_WITH_FAKE_PROJECTION_FILE = new File(COMMON_DIR, "user-empty-with-fake-projection.xml");
@@ -103,7 +100,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 	public void test001testBasicTab() {
 		PageUser pageUser = renderPage();
 		
-		tester.assertComponent(TAB_MAIN, PrismObjectValuePanel.class);
+		tester.assertComponent(TAB_MAIN, PrismContainerPanel.class);
 		
 		tester.assertComponent(TAB_ACTIVATION, PrismContainerPanel.class);
 		
@@ -118,9 +115,9 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		FormTester formTester = tester.newFormTester(MAIN_FORM);
 		formTester.setValue(PATH_FORM_NAME, "newUser");
 		formTester.select(PATH_FORM_ADMINISTRATIVE_STATUS, 2);//index 2 is ActivationStatusType.ENABLED
-//		formTester.setValue(PATH_PASSWORD_NEW, "n3wP4ss"); //TODO uncomment when save with password will be OK
-//		formTester.setValue(PATH_PASSWORD_NEW_REPEAT, "n3wP4ss");
-		
+		formTester.setValue(PATH_PASSWORD_NEW, "n3wP4ss"); //TODO uncomment when save with password will be OK
+		formTester.setValue(PATH_PASSWORD_NEW_REPEAT, "n3wP4ss");
+
 		formTester = formTester.submit(FORM_SAVE);
 		
 		Thread.sleep(5000);
@@ -174,7 +171,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		
 		clickOnTab(3);
 		String panel = "mainPanel:mainForm:tabPanel:panel";
-		tester.assertComponent(panel, FocusTasksTabPanel.class);
+		tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
 	}
 	
 	@Test
@@ -183,7 +180,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		
 		clickOnTab(4);
 		String panel = "mainPanel:mainForm:tabPanel:panel";
-		tester.assertComponent(panel, FocusPersonasTabPanel.class);
+		tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
 	}
 	
 	@Test
@@ -192,7 +189,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		
 		clickOnTab(5);
 		String panel = "mainPanel:mainForm:tabPanel:panel";
-		tester.assertComponent(panel, UserDelegationsTabPanel.class);
+		tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
 	}
 	
 	@Test
@@ -201,7 +198,7 @@ public class TestPageUser extends AbstractGuiIntegrationTest {
 		
 		clickOnTab(6);
 		String panel = "mainPanel:mainForm:tabPanel:panel";
-		tester.assertComponent(panel, AssignmentTablePanel.class);
+		tester.assertComponent(panel, AssignmentHolderTypeDetailsTabPanel.class);
 	}
 	
 	private void clickOnTab(int order) {

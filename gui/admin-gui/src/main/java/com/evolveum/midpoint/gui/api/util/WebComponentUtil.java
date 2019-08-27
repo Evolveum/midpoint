@@ -1987,10 +1987,6 @@ public final class WebComponentUtil {
 					assignmentHolder.getParentOrgRef().add(ref.clone());
 				}
 
-				// The same problem as above TODO MID-3234
-				if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
-					assignmentHolder.getArchetypeRef().add(ref.clone());
-				}
 			});
 		}
 

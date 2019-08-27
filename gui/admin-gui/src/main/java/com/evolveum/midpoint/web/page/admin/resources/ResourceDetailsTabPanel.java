@@ -274,7 +274,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 		String messageKey = "PageResource.resource.availabilityUnknown";
 		String backgroundColor = "bg-gray";
-		String icon = "fa-question";
+		String icon = "fa fa-question";
 
 		OperationalStateType operationalState = resource.getOperationalState();
 		if (operationalState != null) {
@@ -283,15 +283,15 @@ public class ResourceDetailsTabPanel extends Panel {
 				if (lastAvailabilityStatus == AvailabilityStatusType.UP) {
 					messageKey = "PageResource.resource.up";
 					backgroundColor = "bg-green";
-					icon = "fa-power-off";
+					icon = "fa fa-power-off";
 				} else if (lastAvailabilityStatus == AvailabilityStatusType.DOWN) {
 					backgroundColor = "bg-red";
 					messageKey = "PageResource.resource.down";
-					icon = "fa-ban";
+					icon = "fa fa-ban";
 				} else if (lastAvailabilityStatus == AvailabilityStatusType.BROKEN) {
 					backgroundColor = "bg-yellow";
 					messageKey = "PageResource.resource.broken";
-					icon = "fa-warning";
+					icon = "fa fa-warning";
 				}
 			}
 		}
@@ -323,7 +323,7 @@ public class ResourceDetailsTabPanel extends Panel {
 	private InfoBoxPanel createSchemaStatusInfo(ResourceType resource) {
 
 		String backgroundColor = "bg-gray";
-		String icon = "fa-times";
+		String icon = "fa fa-times";
 		String numberMessage = null;
 		String description = null;
 
@@ -333,7 +333,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
 			if (refinedSchema != null) {
 				backgroundColor = "bg-purple";
-				icon = "fa-cubes";
+				icon = "fa fa-cubes";
 				int numObjectTypes = 0;
 				List<? extends RefinedObjectClassDefinition> refinedDefinitions = refinedSchema
 						.getRefinedDefinitions();
@@ -356,7 +356,7 @@ public class ResourceDetailsTabPanel extends Panel {
 			}
 		} catch (SchemaException e) {
 			backgroundColor = "bg-danger";
-			icon = "fa-warning";
+			icon = "fa fa-warning";
 			numberMessage = parentPage.getString("PageResource.resource.schemaError");
 		}
 
@@ -694,7 +694,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
 	private enum SourceTarget {
 
-		NOT_DEFINED("fa-square-o"), SOURCE("fa-sign-in"), TARGET("fa-sign-out"), SOURCE_TARGET("fa-exchange");
+		NOT_DEFINED("fa fa-square-o"), SOURCE("fa fa-sign-in"), TARGET("fa fa-sign-out"), SOURCE_TARGET("fa fa-exchange");
 
 		private String cssClass;
 

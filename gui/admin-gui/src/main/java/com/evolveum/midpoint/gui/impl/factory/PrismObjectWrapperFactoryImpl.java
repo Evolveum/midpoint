@@ -23,6 +23,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledUserProfile;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -50,7 +52,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author katka
@@ -71,7 +76,13 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	@Autowired protected ModelInteractionService modelInteractionService;
 
 	public PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, ItemStatus status, WrapperContext context) throws SchemaException {
-		applySecurityConstraints(object, context);
+
+		try {
+			applySecurityConstraints(object, context);
+		} catch (CommunicationException | ObjectNotFoundException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException e) {
+			context.getResult().recordFatalError("Cannot create object wrapper for " + object + ". An eeror occured: " + e.getMessage(), e);
+			throw new SchemaException(e.getMessage(), e);
+		}
 		if (context.getObjectStatus() == null) {
 			context.setObjectStatus(status);
 		}
@@ -93,7 +104,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	}
 	
 	@Override
-	public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status) {
+	public PrismObjectValueWrapper<O> createContainerValueWrapper(PrismContainerWrapper<O> objectWrapper, PrismContainerValue<O> objectValue, ValueStatus status, WrapperContext context) {
 		return new PrismObjectValueWrapperImpl<O>((PrismObjectWrapper<O>) objectWrapper, (PrismObjectValue<O>) objectValue, status);
 	}
 	
@@ -188,19 +199,93 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
 	 * 
 	 * apply security constraint to the object, update wrapper context with additional information, e.g. shadow related attributes, ...
 	 */
-	protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) {
+	protected void applySecurityConstraints(PrismObject<O> object, WrapperContext context) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 		AuthorizationPhaseType phase = context.getAuthzPhase();
 		Task task = context.getTask();
 		OperationResult result = context.getResult();
-			try {
-					PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
-					object.applyDefinition(objectDef, true);
-			} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
-						| CommunicationException | SecurityViolationException e) {
-					// TODO Auto-generated catch block
-					//TODO error handling
-			}		
+
+		ObjectReferenceType archetypesToBeAdded = null;
+		if (AssignmentHolderType.class.isAssignableFrom(object.getCompileTimeClass())) {
+			archetypesToBeAdded = listArchetypes((PrismObject) object);
+			if (archetypesToBeAdded != null) {
+				applyArchetypes((PrismObject) object, archetypesToBeAdded);
+			}
+		}
+
+		try {
+			PrismObjectDefinition<O> objectDef = modelInteractionService.getEditObjectDefinition(object, phase, task, result);
+			object.applyDefinition(objectDef, true);
+		} catch (SchemaException | ConfigurationException | ObjectNotFoundException | ExpressionEvaluationException
+			| CommunicationException | SecurityViolationException e) {
+			throw e;
+		} finally {
+		    if (archetypesToBeAdded != null) {
+				cleanupArchetypesToBeAdded((PrismObject) object, archetypesToBeAdded);
+			}
+		}
 		
+	}
+
+	private <AH extends AssignmentHolderType> void applyArchetypes(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
+		PrismReference archetypeRef = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
+
+		if (archetypeRef == null) {
+			archetypeRef = object.findOrCreateReference(AssignmentHolderType.F_ARCHETYPE_REF);
+		}
+
+		if (CollectionUtils.isNotEmpty(archetypeRef.getValues())) {
+			throw new SchemaException("Cannot apply new archetype to the object with already assigned archetype.");
+		}
+
+		archetypeRef.getValues().add(ref.asReferenceValue());
+	}
+
+	private <AH extends  AssignmentHolderType> void cleanupArchetypesToBeAdded(PrismObject<AH> object, ObjectReferenceType ref) throws SchemaException {
+		//Now we expect thet object can have just one archetyperef, so if something was added, we just remove it.
+
+		PrismReference archetype = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
+		if (archetype == null) {
+			return;
+		}
+
+		if (archetype.getValues() != null && archetype.getValues().size() > 1) {
+			throw new SchemaException("More then one archetype ref found, but this is not supported.");
+		}
+
+		object.removeReference(AssignmentHolderType.F_ARCHETYPE_REF);
+	}
+
+	private <AH extends AssignmentHolderType> ObjectReferenceType listArchetypes(PrismObject<AH> object) throws SchemaException {
+		PrismContainer<AssignmentType> assignmentContainer = object.findContainer(AssignmentHolderType.F_ASSIGNMENT);
+		Collection<AssignmentType> assignments = null;
+		if (assignmentContainer != null) {
+			assignments = assignmentContainer.getRealValues();
+		}
+
+		if (CollectionUtils.isEmpty(assignments)) {
+			return null;
+		}
+
+		List<AssignmentType> archetypeAssignments = assignments.stream().filter(a -> a.getTargetRef() != null && QNameUtil.match(ArchetypeType.COMPLEX_TYPE, a.getTargetRef().getType())).collect(Collectors.toList());
+
+		if (archetypeAssignments.size() > 1) {
+			throw new SchemaException("More then one archetype assignment not supported.");
+		}
+
+		if (CollectionUtils.isEmpty(archetypeAssignments)) {
+			return null;
+		}
+
+		AssignmentType archetypeAssignment = archetypeAssignments.iterator().next();
+
+		PrismReference existingArchetypeRefs = object.findReference(AssignmentHolderType.F_ARCHETYPE_REF);
+		if (existingArchetypeRefs == null || CollectionUtils.isEmpty(existingArchetypeRefs.getRealValues())) {
+			return archetypeAssignment.getTargetRef();
+		}
+
+		return null;
+
+
 	}
 	
 

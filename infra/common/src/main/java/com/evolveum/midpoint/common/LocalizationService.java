@@ -32,6 +32,8 @@ public interface LocalizationService {
 
     String translate(LocalizableMessage msg, Locale locale);
 
+    String translate(LocalizableMessage msg, Locale locale, String defaultMessage);
+
     default String translate(LocalizableMessage msg) {
         return translate(msg, Locale.getDefault());
     }

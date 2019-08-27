@@ -55,7 +55,6 @@ public class TaskMainPanel extends Panel {
 	private static final String ID_SUSPEND = "suspend";
 	private static final String ID_RESUME = "resume";
 	private static final String ID_RUN_NOW = "runNow";
-	private static final String ID_STOP_APPROVAL = "stopApproval";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
@@ -181,17 +180,6 @@ public class TaskMainPanel extends Panel {
 					@Override
 					public boolean isVisible() {
 						return visibility.computeInternalPerformanceVisible(parentPage);
-					}
-				});
-		tabs.add(
-				new AbstractTab(parentPage.createStringResource("pageTaskEdit.approvals")) {
-					@Override
-					public WebMarkupContainer getPanel(String panelId) {
-						return new TaskApprovalsTabPanel(panelId, getMainForm(), objectModel, taskDtoModel);
-					}
-					@Override
-					public boolean isVisible() {
-						return visibility.computeApprovalsVisible(parentPage);
 					}
 				});
 		tabs.add(
@@ -360,21 +348,5 @@ public class TaskMainPanel extends Panel {
 			}
 		});
 		buttonPanel.add(runNow);
-
-		AjaxButton stopApproval = new AjaxButton(ID_STOP_APPROVAL, parentPage.createStringResource("pageTaskEdit.button.stopApprovalProcess")) {
-			@Override
-			public void onClick(AjaxRequestTarget target) {
-				parentPage.getController().stopApprovalProcessPerformed(target);
-			}
-		};
-		stopApproval.add(new VisibleEnableBehaviour() {
-
-			@Override
-			public boolean isVisible() {
-				return visibility.computeStopVisible(parentPage);
-			}
-		});
-		buttonPanel.add(stopApproval);
 	}
-
 }

@@ -26,7 +26,7 @@
     <logger name="org.hibernate.engine.jdbc.batch.internal.BatchingBatch" level="OFF"/>
 	<logger name="com.evolveum.midpoint.web" level="TRACE" />
 	<logger name="com.evolveum.midpoint.gui" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model" level="TRACE" />
 <!-- 	<logger name="org.apache.wicket" level="TRACE" /> -->
 <!-- 	<logger name="org.springframework" level="TRACE" /> -->
 <!-- 	<logger name="org.apache.wicket" level="TRACE" /> -->

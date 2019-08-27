@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+
+<resource 	oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+       	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+
+
+    	<!-- Resource name. It will be displayed in GUI.  -->
+	<name>CSV (target with groups)</name>
+    <description>CSV resource with "groups" attribute using single identifier (login)</description>
+     
+	<connectorRef type="ConnectorType">
+		<filter>
+	        <q:equal>
+			<q:path>c:connectorType</q:path>
+	          <q:value>com.evolveum.polygon.connector.csv.CsvConnector</q:value>
+	        </q:equal>
+	      </filter>
+	</connectorRef>
+
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector">
+		<icfc:configurationProperties>
+				<icfi:filePath>/var/tmp/midpoint-groups.csv</icfi:filePath>
+				<icfi:encoding>utf-8</icfi:encoding>
+				<icfi:quote>"</icfi:quote>
+				<icfi:quoteMode>ALL</icfi:quoteMode>
+				<icfi:fieldDelimiter>,</icfi:fieldDelimiter>
+				<icfi:multivalueDelimiter>;</icfi:multivalueDelimiter>
+				<icfi:uniqueAttribute>login</icfi:uniqueAttribute>
+				<icfi:passwordAttribute>password</icfi:passwordAttribute>
+			</icfc:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+	</connectorConfiguration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<schemaHandling>
+
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<objectType>
+                <!-- Readable name for the account type -->
+				<displayName>Default Account</displayName>
+				<default>true</default>
+                <!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>ri:login</ref>
+
+					<displayName>Login</displayName>
+
+					<limitations>
+						<minOccurs>0</minOccurs>
+					</limitations>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+				</attribute>
+
+				<attribute>
+					<ref>ri:firstname</ref>
+					<displayName>First name</displayName>
+					<description>Definition of Firstname attribute handling.</description>
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:lastname</ref>
+					<displayName>Last name</displayName>
+					<description>Definition of Lastname attribute handling.</description>
+					<outbound>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:groups</ref>
+					<displayName>Groups</displayName>
+					<!-- CSV connector does not know about multivalue, so pretend this attribute is multivalue. -->
+					<limitations>
+						<minOccurs>0</minOccurs>
+						<maxOccurs>-1</maxOccurs>
+					</limitations>
+				</attribute>
+				
+				<activation>
+					<administrativeStatus>
+						<outbound/>
+					</administrativeStatus>
+				</activation>
+				
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>
+
+			</objectType>
+		</schemaHandling>
+
+		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<configured>
+				<cap:activation>
+					<cap:status>
+						<cap:attribute>ri:disabled</cap:attribute>
+						<cap:enableValue>false</cap:enableValue>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:status>
+				</cap:activation>
+			</configured>
+		</capabilities>
+		<synchronization>
+			<objectSynchronization>
+				<!--
+	                The synchronization for this resource is enabled.
+	                It will be used to correctly run discovery when account already exists.
+	                 -->
+				<enabled>true</enabled>
+
+				<correlation>
+					<q:description>
+	                    Correlation expression is a search query.
+	                    Following search query will look for users that have "name"
+	                    equal to the "login" attribute of the account. Simply speaking,
+	                    it will look for match in usernames in the IDM and the resource.
+	                    The correlation rule always looks for users, so it will not match
+	                    any other object type.
+					</q:description>
+					<q:equal>
+						<q:path>c:name</q:path>
+						<expression>
+							<path>$account/attributes/ri:login</path>
+						</expression>
+					</q:equal>
+				</correlation>
+
+				<!-- Confirmation rule may be here, but as the search above will
+	                 always return at most one match, the confirmation rule is not needed. -->
+
+				<!-- Following section describes reactions to a situations.
+	                 The setting here assumes that this resource is authoritative,
+	                 therefore all accounts created on the resource should be
+	                 reflected as new users in IDM.
+	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+	             -->
+				<reaction>
+					<situation>linked</situation>
+					<synchronize>true</synchronize>
+				</reaction>
+				<reaction>
+					<situation>deleted</situation>
+					<synchronize>true</synchronize>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+					</action>
+				</reaction>
+				<reaction>
+					<situation>unlinked</situation>
+					<synchronize>true</synchronize>
+					<action>
+						<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+					</action>
+				</reaction>
+				<reaction>
+					<situation>unmatched</situation>
+					<!-- No reaction here, resource is NOT authoritative -->
+				</reaction>
+			</objectSynchronization>
+		</synchronization>
+</resource>
+

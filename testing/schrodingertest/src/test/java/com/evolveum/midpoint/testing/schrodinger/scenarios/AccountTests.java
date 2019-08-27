@@ -21,9 +21,9 @@ public class AccountTests extends TestBase {
 
     private static File CSV_TARGET_FILE;
 
-    private static final File CSV_RESOURCE_MEDIUM = new File("../../samples/resources/csv/resource-csv-username.xml");
+    private static final File CSV_RESOURCE_MEDIUM = new File("./src/test/resources/csv/resource-csv-username.xml");
 
-    protected static final File CSV_INITIAL_SOURCE_FILE = new File("../../samples/resources/csv/midpoint-username.csv");
+    protected static final File CSV_INITIAL_SOURCE_FILE = new File("./src/test/resources/csv/midpoint-username.csv");
 
     protected static final String IMPORT_CSV_RESOURCE_DEPENDENCY= "importCsvResource";
     protected static final String CREATE_MP_USER_DEPENDENCY= "createMidpointUser";
@@ -118,7 +118,7 @@ public class AccountTests extends TestBase {
                 .and()
                 .clickByName(TEST_USER_MIKE_NAME)
                     .selectTabProjections()
-                    .clickCog()
+                    .clickHeaderActionDropDown()
                     .addProjection()
                             .table()
                             .selectCheckboxByName(CSV_RESOURCE_NAME)
@@ -244,7 +244,7 @@ public class AccountTests extends TestBase {
                             .table()
                             .selectCheckboxByName(CSV_RESOURCE_NAME)
                         .and()
-                            .clickCog()
+                            .clickHeaderActionDropDown()
                             .delete()
                                 .clickYes()
                         .and()

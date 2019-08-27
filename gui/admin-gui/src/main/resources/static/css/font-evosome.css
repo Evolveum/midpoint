@@ -11,7 +11,7 @@
 
 .fe {
   display: inline-block;
-  font: normal normal normal 14px/1 font-evosome !important;
+  font: normal normal normal 14px/1 font-evosome;
   font-size: inherit;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
@@ -103,7 +103,7 @@
   margin-left: -1em;
   color: rgb(0, 0, 0);
 }
-.fe-case:before {
+.fe-case-object:before {
   content: "\e91a";
 }
 .fe-delegate:before {
@@ -115,7 +115,7 @@
 .fe-handy:before {
   content: "\e91d";
 }
-.fe-no-line:before {
+.fe-slash:before {
   content: "\e91e";
 }
 .fe-file:before {

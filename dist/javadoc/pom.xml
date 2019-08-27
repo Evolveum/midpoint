@@ -104,7 +104,7 @@
                     <isOffline>true</isOffline>
                     <doctitle>midPoint Aggregate JavaDoc</doctitle>
                     <windowtitle>midPoint Aggregate JavaDoc</windowtitle>
- 				    <additionalparam>-Xdoclint:none</additionalparam>
+ 				    <doclint>none</doclint>
                     <quiet>true</quiet>
                     <debug>false</debug>
                 </configuration>

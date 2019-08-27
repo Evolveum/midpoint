@@ -421,6 +421,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 			@Override
 			protected DisplayType getIconDisplayType(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel){
 				AssignmentType assignment = rowModel.getObject().getRealValue();
+				LOGGER.trace("Create icon for AssignmentType: " + assignment);
 				if (assignment != null && assignment.getTargetRef() != null && StringUtils.isNotEmpty(assignment.getTargetRef().getOid())){
 					List<ObjectType> targetObjectList = WebComponentUtil.loadReferencedObjectList(Arrays.asList(assignment.getTargetRef()), OPERATION_LOAD_ASSIGNMENTS_TARGET_OBJ,
 							AssignmentPanel.this.getPageBase());
@@ -452,7 +453,9 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
 			@Override
 			protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+				LOGGER.trace("Create name for AssignmentType: " + rowModel.getObject().getRealValue());
 				String name = AssignmentsUtil.getName(rowModel.getObject(), getParentPage());
+				LOGGER.trace("Name for AssignmentType: " + name);
 				if (StringUtils.isBlank(name)) {
 					return createStringResource("AssignmentPanel.noName");
 				}

@@ -10878,7 +10878,7 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-             <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" default="false">
+            <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" default="false">
             	<xsd:annotation>
             		<xsd:documentation>
             			If set to true, applicable synchronization reactions will propagate changes only form/to source 
@@ -11117,6 +11117,19 @@
             <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="reconcileAll" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
+                        from all resource with the state of the midPoint repository. This may require additional read and
+                        recompute, therefore may be slightly less efficient.
+
+                        If set to false, attribute values will not be reconciled.
+
+                        If set to true, the full user reconciliation will be done.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="limitPropagation" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
             	<xsd:annotation>
