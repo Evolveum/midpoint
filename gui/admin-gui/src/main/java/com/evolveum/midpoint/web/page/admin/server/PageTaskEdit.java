@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -355,7 +356,9 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 				wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
 //				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, ContainerStatus.MODIFYING, task);
 			} catch (SchemaException e) {
-				throw new SystemException(e.getMessage(), e);
+				result.recordFatalError(e.getMessage(), e);
+				showResult(result, false);
+				throw new RestartResponseException(PageTasks.class);
 			}
 		}
 		showResult(result, false);
