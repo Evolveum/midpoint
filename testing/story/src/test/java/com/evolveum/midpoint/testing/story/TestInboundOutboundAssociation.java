@@ -103,6 +103,8 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 		setDefaultObjectTemplate(RoleType.COMPLEX_TYPE, SUBTYPE_GROUP, OBJECT_TEMPLATE_ROLE_GROUP_OID, initResult);
 		
 		addObject(TASK_DUMMY_DIR_LIVESYNC_FILE);
+
+		importObjectFromFile(USER_MANCOMB_FILE, initResult);
 	}
 	
 	@Test
@@ -539,6 +541,34 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
 		
 		assertDummyGroupByName(RESOURCE_DUMMY_DIR_NAME, GROUP_PIRATES_NAME)
 			.assertNoMembers();
+	}
+
+	/**
+	 * MID-5635
+	 */
+	@Test
+	public void test200MancombAssignAccount() throws Exception {
+		final String TEST_NAME = "test200MancombAssignAccount";
+		displayTestTitle(TEST_NAME);
+
+		Task task = createTask(TEST_NAME);
+		OperationResult result = task.getResult();
+
+		// WHEN
+		displayWhen(TEST_NAME);
+		assignAccountToUser(USER_MANCOMB_OID, RESOURCE_DUMMY_DIR_OID, "default", task, result);
+
+		// THEN
+		displayThen(TEST_NAME);
+		assertSuccess(result);
+
+		display("dir after", getDummyResourceDir());
+		assertUserAfter(USER_MANCOMB_OID)
+				.assignments()
+					.assertAssignments(1);
+
+		assertDummyAccount(RESOURCE_DUMMY_DIR_NAME, USER_MANCOMB_USERNAME);
+
 	}
 
 	private String groupRoleName(String groupName) {
