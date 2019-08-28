@@ -3042,7 +3042,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void dumpTaskAndSubtasks(TaskType task, int level) throws SchemaException {
 		String xml = prismContext.xmlSerializer().serialize(task.asPrismObject());
 		display("Task (level " + level + ")", xml);
-		for (TaskType subtask : task.getSubtask()) {
+		for (TaskType subtask : TaskTypeUtil.getResolvedSubtasks(task)) {
 			dumpTaskAndSubtasks(subtask, level + 1);
 		}
 	}
