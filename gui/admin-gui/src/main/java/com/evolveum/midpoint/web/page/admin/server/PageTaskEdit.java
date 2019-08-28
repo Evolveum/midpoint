@@ -348,7 +348,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
 		} catch (Exception ex) {
 			result.recordFatalError(getString("PageTaskEdit.message.loadObjectWrapper.fatalError"), ex);
-			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load task", ex);
 			try {
 				WrapperContext context = new WrapperContext(task, result);
 				wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);

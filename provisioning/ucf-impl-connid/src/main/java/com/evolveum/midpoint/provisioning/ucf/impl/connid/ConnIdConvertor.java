@@ -327,8 +327,7 @@ public class ConnIdConvertor {
 			ObjectClassComplexTypeDefinition ocDef = attributesContainerDefinition.getComplexTypeDefinition();
 			ResourceAttributeDefinition<String> uidDefinition = ConnIdUtil.getUidDefinition(ocDef);
 			if (uidDefinition == null) {
-				throw new SchemaException("No definition for ConnId UID attribute found in definition "
-						+ ocDef);
+				throw new SchemaException("No definition for ConnId UID attribute found in definition " + ocDef);
 			}
 			if (attributesContainer.getValue().findItem(uidDefinition.getItemName()) == null) {
 				ResourceAttribute<String> uidRoa = uidDefinition.instantiate();
@@ -337,7 +336,10 @@ public class ConnIdConvertor {
 			}
 
 			return shadowPrism;
-
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw new SchemaException("Couldn't convert resource object from ConnID to midPoint: uid=" + co.getUid() + ", name="
+					+ co.getName() + ", class=" + co.getObjectClass() + ": " + e.getMessage(), e);
 		} catch (Throwable t) {
 			result.recordFatalError(t);
 			throw t;
