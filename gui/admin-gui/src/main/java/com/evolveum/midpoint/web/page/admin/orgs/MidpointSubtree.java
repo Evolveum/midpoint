@@ -86,11 +86,6 @@ public class MidpointSubtree extends Panel {
             }
 
             @Override
-            public long getPageCount() {
-                return 10;
-            }
-
-            @Override
             public long getViewSize() {
                 return 20;
             }
