@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -34,7 +35,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class TreeSelectableBean<T extends Serializable> extends SelectableBean<T> {
+public class TreeSelectableBean<T extends Serializable> extends SelectableBean<T> implements IPageable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TreeSelectableBean.class);
 
@@ -64,5 +65,20 @@ public class TreeSelectableBean<T extends Serializable> extends SelectableBean<T
 
 	public void setCount(long count) {
 		this.count = count;
+	}
+
+	@Override
+	public long getCurrentPage() {
+		return 0;
+	}
+
+	@Override
+	public void setCurrentPage(long page) {
+
+	}
+
+	@Override
+	public long getPageCount() {
+		return 10;
 	}
 }

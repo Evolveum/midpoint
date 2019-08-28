@@ -22,6 +22,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
@@ -105,7 +106,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
 
     protected TreeSelectableBean<OrgType> getRootFromProvider() {
-        TableTree<TreeSelectableBean<OrgType>, String> tree = getTree();
+        MidpointNestedTree tree = getTree();
         ITreeProvider<TreeSelectableBean<OrgType>> provider = tree.getProvider();
         Iterator<? extends TreeSelectableBean<OrgType>> iterator = provider.getRoots();
 
@@ -130,8 +131,8 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         target.add(page.getFeedbackPanel());
     }
 
-    protected TableTree<TreeSelectableBean<OrgType>, String> getTree() {
-        return (TableTree<TreeSelectableBean<OrgType>, String>) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+    protected MidpointNestedTree getTree() {
+        return (MidpointNestedTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
     protected WebMarkupContainer getOrgChildContainer() {

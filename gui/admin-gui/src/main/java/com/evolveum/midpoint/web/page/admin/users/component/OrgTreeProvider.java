@@ -97,14 +97,21 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
     private long lastFetchOperation = 0;
     private Map<String, List<TreeSelectableBean<OrgType>>> childrenCache = new HashMap<>();        // key is the node OID
 
-    public long size() {
+    public long size(TreeSelectableBean<OrgType> node) {
         Task task = getPageBase().createSimpleTask(LOAD_ORG_UNITS);
         OperationResult result = task.getResult();
+
+        String nodeOid = null;
+        if (node != null) {
+            nodeOid =node.getValue().getOid();
+        } else {
+            nodeOid = rootOid.getObject();
+        }
 
         Integer orgs = null;
         try {
             ObjectQuery query = getPageBase().getPrismContext().queryFor(OrgType.class)
-                    .isDirectChildOf(selected.getOid())
+                    .isDirectChildOf(nodeOid)
                     .build();
 
             orgs = getModelService().countObjects(OrgType.class, query, null, task, result);
@@ -207,8 +214,8 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
 //
 //        return paging;
 
-        Integer o = WebComponentUtil.safeLongToInteger(node.getOffset());
-        Integer size = WebComponentUtil.safeLongToInteger(node.getCount());
+        Integer o = WebComponentUtil.safeLongToInteger(offset);
+        Integer size = WebComponentUtil.safeLongToInteger(count);
         return getPageBase().getPrismContext().queryFactory().createPaging(o, size, orderings);
     }
 
