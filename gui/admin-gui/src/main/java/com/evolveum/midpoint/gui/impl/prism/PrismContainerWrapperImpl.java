@@ -275,6 +275,22 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 				}
 			}
 		}
+
+		if (item instanceof PrismReference) {
+			PrismReference ref = (PrismReference) item;
+			List<PrismReferenceValue> values = ref.getValues();
+			if (values == null || values.isEmpty()) {
+				return;
+			}
+
+			Iterator<PrismReferenceValue> iterator = values.iterator();
+			while (iterator.hasNext()) {
+				PrismReferenceValue rVal = iterator.next();
+				if (rVal == null || rVal.isEmpty()) {
+					iterator.remove();
+				}
+			}
+		}
 	}
 
 	@Override
