@@ -69,7 +69,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 	@Override
 	public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent,
 			ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
+		ItemName name = def.getItemName();
 		
 		PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
@@ -93,13 +93,15 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 			PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
 		PrismContainerValueWrapper<C> containerValueWrapper = new PrismContainerValueWrapperImpl<C>(parent, value, status);
+		containerValueWrapper.setShowEmpty(context.isShowEmpty());
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
 		containerValueWrapper.setHeterogenous(true);
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 		
 		for (ItemDefinition<?> def : value.getDefinition().getDefinitions()) {
 			
-			Item<?,?> childItem = value.findItem(def.getName());
+			Item<?,?> childItem = value.findItem(def.getItemName());
 			
 			if (childItem == null && def instanceof PrismContainerDefinition) {
 				LOGGER.trace("Skipping craeting wrapper for {}, only property and refernce wrappers are created for heterogenous containers.");
@@ -116,6 +118,24 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 		
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		return containerValueWrapper;
+	}
+
+	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
+		if (value.isEmpty()) {
+			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
+		}
+
+		return true;
+	}
+
+	private boolean containsEmphasizedItems(List<? extends ItemDefinition> definitions) {
+		for (ItemDefinition def : definitions) {
+			if (def.isEmphasized()) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 	
 	protected List<PrismContainerValueWrapper<C>> createValuesWrapper(PrismContainerWrapper<C> itemWrapper, PrismContainer<C> item, WrapperContext context) throws SchemaException {
@@ -191,7 +211,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
 
 	@Override
 	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper,
-			PrismContainerValue<C> objectValue, ValueStatus status) {
+			PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
 		// TODO Auto-generated method stub
 		return null;
 	}

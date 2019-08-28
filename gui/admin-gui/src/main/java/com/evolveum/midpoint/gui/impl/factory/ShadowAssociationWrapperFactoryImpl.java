@@ -99,7 +99,7 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 	@Override
 	public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def,
 			WrapperContext context) throws SchemaException {
-		ItemName name = def.getName();
+		ItemName name = def.getItemName();
 		
 		PrismContainer<C> childItem = (PrismContainer) parent.getNewValue().findItem(name);
 		ItemStatus status = ItemStatus.NOT_CHANGED;
@@ -179,10 +179,12 @@ public class ShadowAssociationWrapperFactoryImpl<C extends Containerable> extend
 			} else {
 	    		return super.createWrapper(parent, childContainer, status);
 			}
-	    	
+
+	    	WrapperContext context = new WrapperContext(task, result);
+	    	context.setShowEmpty(ItemStatus.ADDED == status);
 	    	PrismContainerValueWrapper<ShadowAssociationType> shadowValueWrapper = createContainerValueWrapper(associationWrapper,
 	    			associationTransformed.createNewValue(), 
-	    			ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED);
+	    			ItemStatus.ADDED == status ? ValueStatus.ADDED : ValueStatus.NOT_CHANGED, context);
 			
 			List<ItemWrapper<?,?,?,?>> items = new ArrayList<>();
 			for (RefinedAssociationDefinition refinedAssocationDefinition: refinedAssociationDefinitions) {

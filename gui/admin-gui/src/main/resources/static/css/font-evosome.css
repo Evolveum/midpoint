@@ -11,7 +11,7 @@
 
 .fe {
   display: inline-block;
-  font: normal normal normal 14px/1 font-evosome !important;
+  font: normal normal normal 14px/1 font-evosome;
   font-size: inherit;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
@@ -103,9 +103,6 @@
   margin-left: -1em;
   color: rgb(0, 0, 0);
 }
-.fe-case:before {
-  content: "\e91a";
-}
 .fe-case-object:before {
   content: "\e91a";
 }
@@ -118,9 +115,6 @@
 .fe-handy:before {
   content: "\e91d";
 }
-.fe-no-line:before {
-  content: "\e91e";
-}
 .fe-slash:before {
   content: "\e91e";
 }
@@ -129,4 +123,7 @@
 }
 .fe-no-file:before {
   content: "\e920";
+}
+.fe-role_icon:before {
+  content: "\e921";
 }

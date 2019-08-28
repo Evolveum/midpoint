@@ -494,7 +494,7 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
 	protected <T> ObjectFilter createAttributeFilter(String attrName, T attrVal) throws SchemaException {
 		ResourceAttributeDefinition<T> ldapAttrDef = accountObjectClassDefinition.findAttributeDefinition(attrName);
         return prismContext.queryFor(ShadowType.class)
-				.itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getName()).eq(attrVal)
+				.itemWithDef(ldapAttrDef, ShadowType.F_ATTRIBUTES, ldapAttrDef.getItemName()).eq(attrVal)
 				.buildFilter();
 	}
 

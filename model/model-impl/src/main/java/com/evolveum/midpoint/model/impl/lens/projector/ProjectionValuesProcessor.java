@@ -441,13 +441,13 @@ public class ProjectionValuesProcessor {
 		}
 		RefinedObjectClassDefinition oOcDef = projectionContext.getCompositeObjectClassDefinition();
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getPrimaryIdentifiers()) {
-			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
 				return true;
 			}
 		}
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getSecondaryIdentifiers()) {
-			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getName());
+			ItemPath identifierPath = ItemPath.create(ShadowType.F_ATTRIBUTES, identifierDef.getItemName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {
 				return true;
 			}

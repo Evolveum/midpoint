@@ -80,7 +80,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 					}
 					ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
 					shadowAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
-					shadowAssociationType.setName(refWrapper.getName());
+					shadowAssociationType.setName(refWrapper.getItemName());
 					shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef((PrismReferenceValue) updatedRefValue.getNewValue()));
 					delta.addValueToAdd(shadowAssociationType.asPrismContainerValue());
 				}
@@ -108,7 +108,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 					}
 					ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
 					shadowAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
-					shadowAssociationType.setName(refWrapper.getName());
+					shadowAssociationType.setName(refWrapper.getItemName());
 					shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef((PrismReferenceValue) updatedRefValue.getNewValue()));
 			
 					switch (updatedRefValue.getStatus()) {
@@ -141,7 +141,7 @@ public class ShadowAssociationWrapperImpl extends PrismContainerWrapperImpl<Shad
 					}
 					ShadowAssociationType shadowAssociationType = new ShadowAssociationType();
 					shadowAssociationType.asPrismContainerValue().applyDefinition(getItemDefinition());
-					shadowAssociationType.setName(refWrapper.getName());
+					shadowAssociationType.setName(refWrapper.getItemName());
 					shadowAssociationType.setShadowRef(ObjectTypeUtil.createObjectRef((PrismReferenceValue) updatedRefValue.getNewValue()));
 					delta.addValueToDelete(shadowAssociationType.asPrismContainerValue());
 				}

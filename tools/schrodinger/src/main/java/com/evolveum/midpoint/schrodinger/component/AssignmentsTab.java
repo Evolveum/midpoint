@@ -74,7 +74,7 @@ public class AssignmentsTab<P extends AssignmentHolderDetailsPage> extends Compo
     }
 
     public FocusSetAssignmentsModal<AssignmentsTab<P>> clickAddAssignemnt() {
-        $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment"))
+        $(Schrodinger.byElementAttributeValue("i", "class", "fe fe-assignment "))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         SelenideElement modalElement = $(Schrodinger.byElementAttributeValue("div", "aria-labelledby", "Select object(s)"))

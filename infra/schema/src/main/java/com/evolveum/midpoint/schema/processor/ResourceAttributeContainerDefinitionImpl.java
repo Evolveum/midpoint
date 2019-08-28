@@ -288,20 +288,20 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate() {
-		return instantiate(getName());
+		return instantiate(getItemName());
 	}
 
 	@NotNull
 	@Override
 	public ResourceAttributeContainer instantiate(QName name) {
-        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
 		return new ResourceAttributeContainerImpl(name, this, prismContext);
 	}
 
 	@NotNull
 	@Override
 	public ResourceAttributeContainerDefinitionImpl clone() {
-		ResourceAttributeContainerDefinitionImpl clone = new ResourceAttributeContainerDefinitionImpl(name,
+		ResourceAttributeContainerDefinitionImpl clone = new ResourceAttributeContainerDefinitionImpl(itemName,
 				(ObjectClassComplexTypeDefinition)complexTypeDefinition.clone(), prismContext);
 		copyDefinitionData(clone);
 		return clone;
@@ -328,7 +328,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 
 	@Override
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		ItemName elementQName = new ItemName(getName().getNamespaceURI(),elementLocalname);
+		ItemName elementQName = new ItemName(getItemName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);
 	}
 
@@ -386,7 +386,7 @@ public class ResourceAttributeContainerDefinitionImpl extends PrismContainerDefi
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+		sb.append(getClass().getSimpleName()).append(":").append(getItemName()).append(" (").append(getTypeName()).append(")");
 		if (isDefaultInAKind()) {
 			sb.append(" def");
 		}

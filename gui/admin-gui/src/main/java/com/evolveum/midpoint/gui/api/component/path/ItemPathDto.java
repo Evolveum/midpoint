@@ -51,9 +51,9 @@ public class ItemPathDto implements Serializable{
 
 	public void setItemDef(ItemDefinition<?> itemDef) {
 		if (parentPath == null) {
-			this.path = itemDef.getName();
+			this.path = itemDef.getItemName();
 		} else {
-			this.path = parentPath.toItemPath().append(itemDef.getName());
+			this.path = parentPath.toItemPath().append(itemDef.getItemName());
 		}
 		this.itemDef = itemDef;
 	}
@@ -71,12 +71,12 @@ public class ItemPathDto implements Serializable{
 			if (itemDef == null) {
 				return path;
 			}
-			this.path = itemDef.getName();
+			this.path = itemDef.getItemName();
 		} else {
 			if (itemDef == null) {
 				return parentPath.toItemPath();
 			}
-			this.path = parentPath.toItemPath().append(itemDef.getName());
+			this.path = parentPath.toItemPath().append(itemDef.getItemName());
 		}
 		return path;
 

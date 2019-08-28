@@ -190,7 +190,7 @@ public abstract class AbstractOrgTabPanel extends BasePanel {
             }
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Unable to load org. unit", ex);
-            result.recordFatalError("Unable to load org unit", ex);
+            result.recordFatalError(getString("AbstractOrgTabPanel.message.loadOrgRoots.fatalError"), ex);
         } finally {
             result.computeStatus();
         }

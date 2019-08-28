@@ -513,7 +513,7 @@ public class ObjectDeltaUpdater {
             // todo consider simply returning with no action
             throw new IllegalStateException("Cannot process definition-less extension item: " + delta);
         }
-        RAnyConverter.ValueType valueType = RAnyConverter.getValueType(definition, definition.getName(),
+        RAnyConverter.ValueType valueType = RAnyConverter.getValueType(definition, definition.getItemName(),
                 RAnyConverter.areDynamicsOfThisKindIndexed(objectExtensionType), prismContext);
         if (valueType == null) {
             return;

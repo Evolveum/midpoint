@@ -98,8 +98,8 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String OPERATION_DELETE_TASK = DOT_CLASS + "deleteTask";
     private static final String POST_INIT = DOT_CLASS + "postInit";
 
+    private static final String ID_BUILD_TIMESTAMP = "buildTimestamp";
     private static final String ID_BUILD = "build";
-    private static final String ID_REVISION = "revision";
     private static final String ID_PROPERTY = "property";
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
@@ -153,11 +153,11 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
+        Label revision = new Label(ID_BUILD, createStringResource("midpoint.system.build"));
         revision.setRenderBodyOnly(true);
         add(revision);
 
-        Label build = new Label(ID_BUILD, createStringResource("PageAbout.build"));
+        Label build = new Label(ID_BUILD_TIMESTAMP, createStringResource("midpoint.system.buildTimestamp"));
         build.setRenderBodyOnly(true);
         add(build);
 
@@ -329,7 +329,7 @@ public class PageAbout extends PageAdminConfiguration {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get repo diagnostics", ex);
-            result.recordFatalError("Couldn't get repo diagnostics.", ex);
+            result.recordFatalError(getString("PageAbout.message.loadRepoDiagModel.fatalError"), ex);
         }
         result.recomputeStatus();
 
@@ -350,7 +350,7 @@ public class PageAbout extends PageAdminConfiguration {
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get provisioning diagnostics", ex);
-            result.recordFatalError("Couldn't get provisioning diagnostics.", ex);
+            result.recordFatalError(getString("PageAbout.message.loadProvisioningDiagModel.fatalError"), ex);
         }
         result.recomputeStatus();
 
@@ -471,7 +471,7 @@ public class PageAbout extends PageAdminConfiguration {
 			
 		} catch (Exception ex) {
 			result.recomputeStatus();
-			result.recordFatalError("Couldn't delete all objects.", ex);
+			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.allObject.fatalError"), ex);
 
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete all objects", ex);
 		}
@@ -496,7 +496,7 @@ public class PageAbout extends PageAdminConfiguration {
 						getModelService().executeChanges(deltaCollection, null, task, result);
 					} catch (Exception ex) {
 						result.recomputeStatus();
-						result.recordFatalError("Couldn't delete task.", ex);
+						result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.task.fatalError"), ex);
 			
 						LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete task", ex);
 					} 
@@ -522,14 +522,10 @@ public class PageAbout extends PageAdminConfiguration {
 			
 
 		} catch (Exception ex) {
-        result.recomputeStatus();
-        result.recordFatalError("Couldn't import initial objects.", ex);
-
-        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
+			result.recomputeStatus();
+			result.recordFatalError(getString("PageAbout.message.resetStateToInitialConfig.import.fatalError"), ex);
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import initial objects", ex);
         }
-
-
-
         showResult(result);
 		target.add(getFeedbackPanel());
     }

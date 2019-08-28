@@ -85,10 +85,8 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	@Override
 	public PrismContainerValueWrapper<C> createValueWrapper(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, ValueStatus status, WrapperContext context)
 			throws SchemaException {
-		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status);
-		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
+		PrismContainerValueWrapper<C> containerValueWrapper = createContainerValueWrapper(parent, value, status, context);
 		containerValueWrapper.setShowEmpty(context.isShowEmpty());
-		
 		
 		List<ItemWrapper<?,?,?,?>> wrappers = new ArrayList<>();
 		for (ItemDefinition<?> def : getItemDefinitions(parent, value)) {
@@ -98,6 +96,7 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 		containerValueWrapper.getItems().addAll((Collection) wrappers);
 		containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
 		parent.setVirtual(context.getVirtualItemSpecification() != null);
+		containerValueWrapper.setExpanded(shouldBeExpanded(parent, value, context));
 		return containerValueWrapper;
 	}
 	
@@ -142,12 +141,17 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 	}
 	
 	@Override
-	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status) {
+	public PrismContainerValueWrapper<C> createContainerValueWrapper(PrismContainerWrapper<C> objectWrapper, PrismContainerValue<C> objectValue, ValueStatus status, WrapperContext context) {
 		return new PrismContainerValueWrapperImpl<C>(objectWrapper, objectValue, status);
 	}
 	
 	protected boolean shouldBeExpanded(PrismContainerWrapper<C> parent, PrismContainerValue<C> value, WrapperContext context) {
-			if (value.isEmpty()) {
+
+		if (context.getVirtualItemSpecification() != null) {
+			return true;
+		}
+
+		if (value.isEmpty()) {
 			return context.isShowEmpty() || containsEmphasizedItems(parent.getDefinitions());
 		}
 		

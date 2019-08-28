@@ -25,8 +25,10 @@ import java.util.Locale;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
@@ -98,7 +100,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		
 		return null;
 	}
-	
+
 	@Override
 	public <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException {
 		if (delta == null) {
@@ -123,6 +125,18 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 		if (getParent().isSingleValue()) {
 			return getParent().getDisplayName();
 		}
+		
+		if (getParent().isMultiValue() && ValueStatus.ADDED.equals(getStatus())) {
+			String name;
+			Class<C> cvalClass = getNewValue().getCompileTimeClass();
+			if (cvalClass != null) {
+				name = cvalClass.getSimpleName() + ".details.newValue";
+			} else {
+				name = "ContainerPanel.containerProperties";
+			}
+			return name;
+		}
+		
 		return WebComponentUtil.getDisplayName(getNewValue());
 	}
 	
@@ -302,7 +316,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	}
 	
 	protected <IW extends ItemWrapper<?, ?, ?, ?>> void collectExtensionItems(ItemWrapper<?, ?, ?, ?> item, boolean containers, List<IW> itemWrappers) {
-		if (!ObjectType.F_EXTENSION.equals(item.getName())) {
+		if (!ObjectType.F_EXTENSION.equals(item.getItemName())) {
 			return;
 		}
 		
@@ -380,9 +394,9 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
 	        }
 	        IW matching = null;
 	        for (ItemWrapper<?, ?, ?, ?> item : items) {
-	            if (QNameUtil.match(subName, item.getName())) {
+	            if (QNameUtil.match(subName, item.getItemName())) {
 	                if (matching != null) {
-	                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getName()) : "";
+	                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getItemName()) : "";
 	                    throw new SchemaException("More than one items matching " + subName + " in container " + containerName);
 	                } else {
 	                    matching = (IW) item;

@@ -24,9 +24,13 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -59,7 +63,20 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     private void initLayout(final boolean isReadOnly) {
-        final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
+        final FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+        	public String[] getInputAsArray() {
+        		List<String> input = new ArrayList<>();
+        		try {
+					input.add(new String (IOUtils.toByteArray(getStream())));
+				} catch (IOException e) {
+					LOGGER.error("Unable to define file content type, ", e.getLocalizedMessage());
+				}
+        		return input.toArray(new String[input.size()]);
+        	}
+        };
         Form form = this.findParent(Form.class);
         fileUpload.add(new AjaxFormSubmitBehavior(form, "change") {
 			private static final long serialVersionUID = 1L;

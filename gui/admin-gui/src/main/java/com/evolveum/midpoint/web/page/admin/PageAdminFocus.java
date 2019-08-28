@@ -316,7 +316,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				result, createLoadOptionForShadowWrapper());
 		
 		if (projection == null) {
-			result.recordFatalError("Cannot full projection for " + shadowWrapperValue.getRealValue());
+			result.recordFatalError(getString("PageAdminFocus.message.loadFullShadow.fatalError", shadowWrapperValue.getRealValue()));
 			showResult(result);
 			target.add(getFeedbackPanel());
 			return;
@@ -521,7 +521,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 	protected ContainerDelta handleAssignmentDeltas(ObjectDelta<F> focusDelta,
 			List<AssignmentEditorDto> assignments, PrismContainerDefinition def,
 													boolean isDelegation) throws SchemaException {
-		ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getName(), def);
+		ContainerDelta assDelta = getPrismContext().deltaFactory().container().create(ItemPath.EMPTY_PATH, def.getItemName(), def);
 
 		for (AssignmentEditorDto assDto : assignments) {
 			PrismContainerValue newValue = assDto.getNewValue(getPrismContext());
@@ -595,7 +595,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 							options, task, result);
 				}
 			} catch (Exception ex) {
-				result.recordFatalError("Failed to execute delete operation with force.");
+				result.recordFatalError(getString("PageAdminFocus.message.executeForceDelete.fatalError"));
 				LoggingUtils.logUnexpectedException(LOGGER, "Failed to execute delete operation with force", ex);
 				return false;
 			}
@@ -739,7 +739,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
 				deltas.add(delta);
 				
 			} catch (Exception ex) {
-				result.recordFatalError("Couldn't compute account delta.", ex);
+				result.recordFatalError(getString("PageAdminFocus.message.getShadowModifyDeltas.fatalError"), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't compute account delta", ex);
 			}
 		}

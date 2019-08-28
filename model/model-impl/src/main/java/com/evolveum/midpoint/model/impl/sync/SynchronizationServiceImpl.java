@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -781,7 +782,8 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 
 		SynchronizationSituationType newSituation = syncCtx.getSituation();
 
-		if (syncCtx.getReaction() == null) {
+		SynchronizationReactionType reaction = syncCtx.getReaction();
+		if (reaction == null) {
 			LOGGER.trace("No reaction is defined for situation {} in {}", syncCtx.getSituation(), syncCtx.getResource());
 			eventInfo.setNewSituation(newSituation);
 			return;
@@ -800,14 +802,17 @@ public class SynchronizationServiceImpl implements SynchronizationService {
 		options.setReconcile(doReconciliation);
 		options.setLimitPropagation(syncCtx.isLimitPropagation());
 
-		final boolean willSynchronize = isSynchronize(syncCtx.getReaction());
+		final boolean willSynchronize = isSynchronize(reaction);
 		LensContext<F> lensContext = null;
 		
 		OperationResult parentResult = syncCtx.getResult();
 		Task task = syncCtx.getTask();
 		if (willSynchronize) {
 			lensContext = createLensContext(syncCtx, change, options, parentResult);
+			lensContext.setDoReconciliationForAllProjections(BooleanUtils.isTrue(reaction.isReconcileAll()));
 		}
+
+
 
 		if (LOGGER.isTraceEnabled() && lensContext != null) {
 			LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"

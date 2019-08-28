@@ -783,9 +783,9 @@ public class TestResources extends AbstractConfiguredModelIntegrationTest {
 
 	private void assertConfigurationPropertyDefinition(PrismPropertyDefinition propDef, QName expectedType,
 			int expectedMinOccurs, int expectedMaxOccurs, String expectedDisplayName, String expectedHelp) {
-		PrismAsserts.assertDefinition(propDef, propDef.getName(), expectedType, expectedMinOccurs, expectedMaxOccurs);
-		assertEquals("Wrong displayName in "+propDef.getName()+" definition", expectedDisplayName, propDef.getDisplayName());
-		assertEquals("Wrong help in "+propDef.getName()+" definition", expectedHelp, propDef.getHelp());
+		PrismAsserts.assertDefinition(propDef, propDef.getItemName(), expectedType, expectedMinOccurs, expectedMaxOccurs);
+		assertEquals("Wrong displayName in "+propDef.getItemName()+" definition", expectedDisplayName, propDef.getDisplayName());
+		assertEquals("Wrong help in "+propDef.getItemName()+" definition", expectedHelp, propDef.getHelp());
 	}
 
 	private void assertResource(PrismObject<ResourceType> resource, boolean expectSchema) {

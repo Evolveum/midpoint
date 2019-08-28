@@ -116,7 +116,7 @@ public class DotModel {
 					if (attrDef.isIgnored()) {
 						continue;
 					}
-					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getName());
+					ResourceDataItem item = dataModel.findResourceItem(resource.getOid(), def.getKind(), def.getIntent(), getObjectClassName(def), attrDef.getItemName());
 					previousNodeName = addResourceItem(itemsShown, indent, sb1, previousNodeName, item);
 				}
 				for (RefinedAssociationDefinition assocDef : def.getAssociationDefinitions()) {

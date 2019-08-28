@@ -201,7 +201,7 @@ public final class ResourceAttributeContainerImpl extends PrismContainerImpl imp
 		Collection<ResourceAttribute<?>> attributes = new ArrayList<>(definitions.size());
 		for (ResourceAttributeDefinition attrDef : definitions) {
 			for (ResourceAttribute<?> property : getAttributes()){
-				if (attrDef.getName().equals(property.getElementName())){
+				if (attrDef.getItemName().equals(property.getElementName())){
 					property.setDefinition(attrDef);
 					attributes.add(property);
 				}

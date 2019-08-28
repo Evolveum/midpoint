@@ -195,7 +195,7 @@ public class PageEvaluateMapping extends PageAdminConfiguration {
 			dto.setResultText(response.getResponse());
 
         } catch (CommonException | RuntimeException e) {
-            result.recordFatalError("Couldn't execute mapping", e);
+            result.recordFatalError(getString("PageEvaluateMapping.message.executeMappingPerformed.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't execute mapping", e);
 			StringWriter sw = new StringWriter();
 			PrintWriter pw = new PrintWriter(sw);

@@ -22,6 +22,8 @@ import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -54,27 +56,39 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
         IModel<Boolean> shadowSelectModel = Model.of(false);
         IModel<Boolean> assocTargetSearchSelectModel = Model.of(false);
 
-        CheckBox shadowRefCheckbox = new CheckBox(ID_SHADOW_REF_CHECKBOX, shadowSelectModel);
-        shadowRefCheckbox.setOutputMarkupId(true);
-        shadowRefCheckbox.add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+        AjaxCheckBox shadowRefCheckbox = new AjaxCheckBox(ID_SHADOW_REF_CHECKBOX, shadowSelectModel){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                shadowSelectModel.setObject(true);
                 target.add(ExpressionTypeSelectPopup.this);
             }
-        });
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+            }
+        };
+        shadowRefCheckbox.setOutputMarkupId(true);
         shadowRefCheckbox.add(new EnableBehaviour(() -> !assocTargetSearchSelectModel.getObject()));
         add(shadowRefCheckbox);
 
-        CheckBox associationTargetSearchCheckbox = new CheckBox(ID_ASSOCIATION_TARGET_SEARCH_CHECKBOX, assocTargetSearchSelectModel);
-        associationTargetSearchCheckbox.setOutputMarkupId(true);
-        associationTargetSearchCheckbox.add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+        AjaxCheckBox associationTargetSearchCheckbox = new AjaxCheckBox(ID_ASSOCIATION_TARGET_SEARCH_CHECKBOX, assocTargetSearchSelectModel){
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                assocTargetSearchSelectModel.setObject(true);
-                target.add(ExpressionTypeSelectPopup.this);
+               target.add(ExpressionTypeSelectPopup.this);
             }
-        });
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+            }
+        };
+        associationTargetSearchCheckbox.setOutputMarkupId(true);
         associationTargetSearchCheckbox.add(new EnableBehaviour(() -> !shadowSelectModel.getObject()));
         add(associationTargetSearchCheckbox);
 
@@ -87,6 +101,12 @@ public abstract class ExpressionTypeSelectPopup extends BasePanel implements Pop
                 ExpressionValueTypes expressionType = getShadowRefCheckbox().getModelObject() ? ExpressionValueTypes.SHADOW_REF_EXPRESSION :
                         (getAssociationTargetSearchCheckbox().getModelObject() ? ExpressionValueTypes.ASSOCIATION_TARGET_SEARCH_EXPRESSION : null);
                 addExpressionPerformed(target, expressionType);
+            }
+
+            @Override
+            protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                super.updateAjaxAttributes(attributes);
+                attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
             }
         };
         add(select);

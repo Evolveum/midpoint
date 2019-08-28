@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.testing.schrodinger.scenarios;
 
 import com.codeborne.selenide.Selenide;
+import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.page.resource.ListResourcesPage;
 import com.evolveum.midpoint.schrodinger.page.task.ListTasksPage;
 import com.evolveum.midpoint.schrodinger.page.user.ListUsersPage;
@@ -139,9 +140,9 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabProjections()
                             .table()
-                                .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                                    .selectHeaderCheckBox()
                         .and()
-                            .clickCog()
+                            .clickHeaderActionDropDown()
                                 .delete()
                                 .clickYes()
                         .and()
@@ -151,7 +152,7 @@ public class SynchronizationTests extends TestBase {
                             .isSuccess();
 
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        Selenide.sleep(MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
         usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -165,7 +166,7 @@ public class SynchronizationTests extends TestBase {
                 .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                       .selectTabProjections()
                         .table()
-                        .currentTableContains(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
+                        .containsText(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
         );
 
     }
@@ -174,7 +175,7 @@ public class SynchronizationTests extends TestBase {
     public void alreadyLinkedResourceAccountModified() throws IOException {
 
         FileUtils.copyFile(CSV_UPDATED_SOURCE_FILE,CSV_TARGET_FILE);
-        Selenide.sleep(3000);
+        Selenide.sleep(10000);
 
         ListUsersPage usersPage = basicPage.listUsers();
         Assert.assertTrue(
@@ -188,7 +189,7 @@ public class SynchronizationTests extends TestBase {
                     .clickByName(ScenariosCommons.TEST_USER_DON_NAME)
                         .selectTabBasic()
                             .form()
-                                .compareInputAttributeValue("Given name","Donato")
+                                .compareInputAttributeValue("givenName","Donato")
         );
     }
 
@@ -333,7 +334,7 @@ public class SynchronizationTests extends TestBase {
                                 .table()
                                 .selectCheckboxByName(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME)
                             .and()
-                                .clickCog()
+                                .clickHeaderActionDropDown()
                                     .delete()
                                     .clickYes()
                             .and()

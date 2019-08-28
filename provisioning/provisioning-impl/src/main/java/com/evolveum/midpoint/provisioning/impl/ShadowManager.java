@@ -580,7 +580,7 @@ public class ShadowManager {
 
 			String normalizedIdentifierValue = (String) getNormalizedAttributeValue(identifierValue, rAttrDef);
 			PrismPropertyDefinition<String> def = (PrismPropertyDefinition<String>) identifier.getDefinition();
-			q = q.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(normalizedIdentifierValue).and();
+			q = q.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(normalizedIdentifierValue).and();
 		}
 
 		if (identifiers.size() < 1) {
@@ -617,7 +617,7 @@ public class ShadowManager {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
 			return prismContext.queryFor(ShadowType.class)
-					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
+					.itemWithDef(def, ShadowType.F_ATTRIBUTES, def.getItemName()).eq(getNormalizedValue(identifier, ctx.getObjectClassDefinition()))
 					.and().item(ShadowType.F_OBJECT_CLASS).eq(resourceShadow.getPropertyRealValue(ShadowType.F_OBJECT_CLASS, QName.class))
 					.and().item(ShadowType.F_RESOURCE_REF).ref(ctx.getResourceOid())
 					.build();
@@ -1796,9 +1796,9 @@ public class ShadowManager {
 		RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
 		CachingStategyType cachingStrategy = ProvisioningUtil.getCachingStrategy(ctx);
 		for (RefinedAttributeDefinition attrDef: objectClassDefinition.getAttributeDefinitions()) {
-			if (ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrDef.getName(), cachingStrategy)) {
-				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getName());
-				PrismProperty<Object> repoAttr = repoShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+			if (ProvisioningUtil.shouldStoreAttributeInShadow(objectClassDefinition, attrDef.getItemName(), cachingStrategy)) {
+				ResourceAttribute<Object> resourceAttr = ShadowUtil.getAttribute(resourceShadow, attrDef.getItemName());
+				PrismProperty<Object> repoAttr = repoShadow.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName()));
 				PropertyDelta attrDelta;
 				if (resourceAttr == null && repoAttr == null) {
 					continue;
@@ -1806,7 +1806,7 @@ public class ShadowManager {
 				ResourceAttribute<Object> normalizedResourceAttribute = resourceAttr.clone();
 				normalizeAttribute(normalizedResourceAttribute, attrDef);
 				if (repoAttr == null) {
-					attrDelta = attrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getName()));
+					attrDelta = attrDef.createEmptyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, attrDef.getItemName()));
 					attrDelta.setValuesToReplace(PrismValueCollectionsUtil.cloneCollection(normalizedResourceAttribute.getValues()));
 				} else {
 					attrDelta = repoAttr.diff(normalizedResourceAttribute);
@@ -1888,7 +1888,7 @@ public class ShadowManager {
 				if (attrDef == null) {
 					throw new SchemaException("No definition of " + currentResourceAttrProperty.getElementName() + " in " + ocDef);
 				}
-				if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy)) {
+				if (ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy)) {
 					if (!currentResourceItem.isIncomplete()) {
 						MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(attrDef.getMatchingRuleQName(), attrDef.getTypeName());
 						PrismProperty<Object> oldRepoAttributeProperty = oldRepoAttributesContainer.findProperty(currentResourceAttrProperty.getElementName());
@@ -1967,7 +1967,7 @@ public class ShadowManager {
 				RefinedAttributeDefinition<Object> attrDef = ocDef.findAttributeDefinition(oldRepoAttrProperty.getElementName());
 				PrismProperty<Object> currentAttribute = currentResourceAttributesContainer.findProperty(oldRepoAttrProperty.getElementName());
 				// note: incomplete attributes with no values are not here: they are found in currentResourceAttributesContainer
-				if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getName(), cachingStrategy) ||
+				if (attrDef == null || !ProvisioningUtil.shouldStoreAttributeInShadow(ocDef, attrDef.getItemName(), cachingStrategy) ||
 						currentAttribute == null) {
 					// No definition for this property it should not be there or no current value: remove it from the shadow
 					PropertyDelta<?> oldRepoAttrPropDelta = oldRepoAttrProperty.createDelta();

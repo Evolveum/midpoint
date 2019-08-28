@@ -100,7 +100,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 	@Override
 	public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
 		return clazz.isAssignableFrom(this.getClass()) &&
-				(QNameUtil.match(elementQName, getName(), caseInsensitive) ||
+				(QNameUtil.match(elementQName, getItemName(), caseInsensitive) ||
 						QNameUtil.match(elementQName, getCompositeObjectElementName(), caseInsensitive));
 	}
 
@@ -118,13 +118,13 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 	@NotNull
 	@Override
     public PrismReference instantiate() {
-        return instantiate(getName());
+        return instantiate(getItemName());
     }
 
     @NotNull
 	@Override
     public PrismReference instantiate(QName name) {
-        name = DefinitionUtil.addNamespaceIfApplicable(name, this.name);
+        name = DefinitionUtil.addNamespaceIfApplicable(name, this.itemName);
         return new PrismReferenceImpl(name, this, prismContext);
     }
 
@@ -165,7 +165,7 @@ public class PrismReferenceDefinitionImpl extends ItemDefinitionImpl<PrismRefere
 	@NotNull
 	@Override
 	public PrismReferenceDefinition clone() {
-    	PrismReferenceDefinitionImpl clone = new PrismReferenceDefinitionImpl(getName(), getTypeName(), getPrismContext());
+    	PrismReferenceDefinitionImpl clone = new PrismReferenceDefinitionImpl(getItemName(), getTypeName(), getPrismContext());
     	copyDefinitionData(clone);
     	return clone;
 	}

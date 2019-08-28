@@ -161,7 +161,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
                     result.recomputeStatus();
                 } catch (Exception ex) {
-                    result.recordFatalError("Couldn't load object.", ex);
+                    result.recordFatalError(getString("WebModelUtils.couldntLoadObject"), ex);
                 }
 
                 showResult(result, false);
@@ -346,7 +346,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 result.computeStatus();
             }
         } catch (Exception ex) {
-            result.recordFatalError("Couldn't save object.", ex);
+            result.recordFatalError(getString("WebModelUtils.couldntSaveObject"), ex);
         }
 
         if (result.isError()) {

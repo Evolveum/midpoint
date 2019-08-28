@@ -445,13 +445,13 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
                 if(objectType != null && def.getTypeName().equals(objectType.getObjectClass())){
 
                     for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                        references.add(attributeDefinition.getName());
+                        references.add(attributeDefinition.getItemName());
                     }
                 }
             } else {
 
                 for(ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
-                    references.add(attributeDefinition.getName());
+                    references.add(attributeDefinition.getItemName());
                 }
             }
         }

@@ -619,7 +619,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.build();
@@ -734,7 +734,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
 		RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(attributeValue)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(attributeValue)
 				.and().item(ShadowType.F_OBJECT_CLASS).eq(rAccountDef.getObjectClassDefinition().getTypeName())
 				.and().item(ShadowType.F_RESOURCE_REF).ref(resourceType.getOid())
 				.build();

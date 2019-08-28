@@ -125,17 +125,17 @@ public class TestResourceSchema {
         assertTrue("Not a default account", accDef.isDefaultInAKind());
 
         PrismPropertyDefinition<String> loginAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "login"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getName());
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "login"), loginAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_STRING, loginAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", loginAttrDef.isIgnored());
 
         PrismPropertyDefinition<Integer> groupAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "group"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getName());
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "group"), groupAttrDef.getItemName());
         assertEquals(DOMUtil.XSD_INT, groupAttrDef.getTypeName());
         assertFalse("Ignored while it should not be", groupAttrDef.isIgnored());
 
         PrismPropertyDefinition<String> ufoAttrDef = accDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE, "ufo"));
-        assertEquals(new ItemName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getName());
+        assertEquals(new ItemName(SCHEMA_NAMESPACE, "ufo"), ufoAttrDef.getItemName());
         assertTrue("Not ignored as it should be", ufoAttrDef.isIgnored());
 
         ObjectClassComplexTypeDefinition groupDef = schema.findObjectClassDefinition(new ItemName(SCHEMA_NAMESPACE, "GroupObjectClass"));
@@ -239,11 +239,11 @@ public class TestResourceSchema {
 		assertTrue("AccountObjectClass class not a DEFAULT account", objectClassDef.isDefaultInAKind());
 
 		PrismPropertyDefinition<String> loginDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"login"));
-		assertEquals(new ItemName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
+		assertEquals(new ItemName(SCHEMA_NAMESPACE,"login"), loginDef.getItemName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 
 		PrismPropertyDefinition<ProtectedStringType> passwdDef = objectClassDef.findPropertyDefinition(new ItemName(SCHEMA_NAMESPACE,"password"));
-		assertEquals(new ItemName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
+		assertEquals(new ItemName(SCHEMA_NAMESPACE,"password"), passwdDef.getItemName());
 		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
 //		PrismContainerDefinition<CredentialsType> credDef = objectClassDef.findContainerDefinition(new SingleNamePath(SchemaConstants.NS_C,"credentials"));
@@ -342,7 +342,7 @@ public class TestResourceSchema {
 		((Collection)containerDefinition.getPrimaryIdentifiers()).add(icfUidDef);
 		ResourceAttributeDefinitionImpl<String> xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
 		xloginDef.setNativeAttributeName("LOGIN");
-		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
+		containerDefinition.setDisplayNameAttribute(xloginDef.getItemName());
 		// ... and local property with a type from another schema
 		ResourceAttributeDefinitionImpl<String> xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");

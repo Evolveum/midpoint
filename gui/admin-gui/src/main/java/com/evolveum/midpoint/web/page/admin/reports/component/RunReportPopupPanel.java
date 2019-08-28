@@ -546,7 +546,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
             }
         } catch (SchemaException | ClassNotFoundException e) {
             OperationResult result = new OperationResult("Parameters serialization");
-            result.recordFatalError("Could not serialize parameters");
+            result.recordFatalError(getString("RunReportPopupPanel.message.runConfirmPerformed.fatalError"));
             getPageBase().showResult(result);
             return;
         }

@@ -295,11 +295,11 @@ public class WebModelServiceUtils {
 				LOGGER.debug("{} {} does not exist", type.getSimpleName(), oid, e);
 				return null;
 			} else {
-				subResult.recordFatalError("WebModelUtils.couldntLoadObject", e);
+				subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadObject").getString(), e);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", e);
 			}
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
@@ -417,7 +417,7 @@ public class WebModelServiceUtils {
                 objects.addAll(list);
             }
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntSearchObjects").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't search objects", ex);
         } finally {
             subResult.computeStatus();
@@ -441,7 +441,7 @@ public class WebModelServiceUtils {
 			count = page.getModelService().countObjects(type, query, null, task, parentResult);
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| ConfigurationException | CommunicationException | ExpressionEvaluationException ex) {
-			parentResult.recordFatalError("WebModelUtils.couldntCountObjects", ex);
+			parentResult.recordFatalError(page.createStringResource("WebModelUtils.couldntCountObjects").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
 		}
 
@@ -478,7 +478,7 @@ public class WebModelServiceUtils {
 
             page.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), options, task, subResult);
         } catch (Exception ex) {
-            subResult.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
+            subResult.recordFatalError(page.createStringResource("WebModelUtils.couldntDeleteObject").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
         } finally {
             subResult.computeStatus();

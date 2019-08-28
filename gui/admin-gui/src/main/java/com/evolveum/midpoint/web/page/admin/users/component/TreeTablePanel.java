@@ -203,7 +203,7 @@ public class TreeTablePanel extends BasePanel<String> {
 					managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
 				} catch (SchemaException e) {
 					LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
-					searchManagersResult.recordFatalError("Cannot create wrapper for: " + manager, e);
+					searchManagersResult.recordFatalError(getString("TreeTablePanel.message.createManagerPanel.fatalError", manager), e);
 					getPageBase().showResult(searchManagersResult);
 					continue;
 				}
@@ -558,7 +558,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
-			result.recordFatalError("Failed to move organization unit " + toMove, e);
+			result.recordFatalError(getString("TreeTablePanel.message.moveConfirmPerformed.fatalError", toMove), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
 		}
 
@@ -600,7 +600,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		} catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
 				| ExpressionEvaluationException | CommunicationException | ConfigurationException
 				| PolicyViolationException | SecurityViolationException e) {
-			result.recordFatalError("Failed to move organization unit " + toMove, e);
+			result.recordFatalError(getString("TreeTablePanel.message.moveConfirmPerformed.fatalError", toMove), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
 		}
 
@@ -688,7 +688,7 @@ public class TreeTablePanel extends BasePanel<String> {
 		} catch (SchemaException | ObjectNotFoundException | SecurityViolationException
 				| ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
 			LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
-			result.recordFatalError("Could not count members for org " + orgToDelete.getValue(), e);
+			result.recordFatalError(getString("TreeTablePanel.message.hasChildren.fatalError", orgToDelete.getValue()), e);
 			return false;
 		}
 	}

@@ -37,6 +37,7 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -213,7 +214,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
 			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new AccessDeniedException("web.security.provider.access.denied");
+			throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
 		}
 
 		// Password age
@@ -231,7 +232,7 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 		// Authorizations
 		if (!hasAnyAuthorization(principal)) {
 			recordAuthenticationFailure(principal, connEnv, "no authorizations");
-			throw new AccessDeniedException("web.security.provider.access.denied");
+			throw new InternalAuthenticationServiceException("web.security.provider.access.denied");
 		}
 
 		PreAuthenticatedAuthenticationToken token = new PreAuthenticatedAuthenticationToken(principal, null, principal.getAuthorities());
@@ -257,19 +258,19 @@ public abstract class AuthenticationEvaluatorImpl<C extends AbstractCredentialTy
 			throw new UsernameNotFoundException("web.security.provider.invalid");
 		} catch (SchemaException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "schema error");
-			throw new AccessDeniedException("web.security.provider.invalid");
+			throw new InternalAuthenticationServiceException("web.security.provider.invalid");
 		} catch (CommunicationException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "communication error");
-			throw new AccessDeniedException("web.security.provider.invalid");
+			throw new InternalAuthenticationServiceException("web.security.provider.invalid");
 		} catch (ConfigurationException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "configuration error");
-			throw new AccessDeniedException("web.security.provider.invalid");
+			throw new InternalAuthenticationServiceException("web.security.provider.invalid");
 		} catch (SecurityViolationException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "security violation");
-			throw new AccessDeniedException("web.security.provider.invalid");
+			throw new InternalAuthenticationServiceException("web.security.provider.invalid");
 		} catch (ExpressionEvaluationException e) {
 			recordAuthenticationFailure(enteredUsername, connEnv, "expression error");
-			throw new AccessDeniedException("web.security.provider.invalid");
+			throw new InternalAuthenticationServiceException("web.security.provider.invalid");
 		}
 
 

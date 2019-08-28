@@ -169,9 +169,7 @@ public class ShadowCache {
 		// have a fully cached object from the resource.
 		if (repositoryShadow == null) {
 			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDump());
-			}
+			LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDumpLazily());
 		}
 
 		// Sanity check
@@ -1421,10 +1419,10 @@ public class ShadowCache {
 						// If naming attribute is present in delta...
 						ResourceAttributeDefinition namingAttribute = resourceAttrDefinition.getNamingAttribute();
 						if (namingAttribute != null) {
-							if (pendingDelta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getName()))) {
+							if (pendingDelta.hasItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName()))) {
 
 								// Retrieve a possible changed name per the defined naming attribute for the resource
-								ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getName()));
+								ItemDelta namingAttributeDelta = pendingDelta.findItemDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, namingAttribute.getItemName()));
 								Collection<?> valuesToReplace = namingAttributeDelta.getValuesToReplace();
 								Optional<?> valueToReplace = valuesToReplace.stream().findFirst();
 

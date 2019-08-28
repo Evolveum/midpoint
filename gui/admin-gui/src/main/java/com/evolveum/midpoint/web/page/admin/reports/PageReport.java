@@ -309,7 +309,7 @@ public class PageReport extends PageAdmin {
 			}
 
         } catch (Exception e) {
-            result.recordFatalError("Couldn't save report.", e);
+            result.recordFatalError(getString("PageReport.message.couldNotSaveReport"), e);
 
         } finally {
             result.computeStatusIfUnknown();

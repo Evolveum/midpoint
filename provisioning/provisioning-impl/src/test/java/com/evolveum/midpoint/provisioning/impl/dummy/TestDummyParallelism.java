@@ -750,7 +750,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(OBJECTCLAS_GROUP_LOCAL_NAME);
 		ResourceAttributeDefinition<String> attrDef = objectClassDef.findAttributeDefinition(SchemaConstants.ICFS_NAME);
 		ObjectFilter nameFilter = prismContext.queryFor(ShadowType.class)
-				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getName()).eq(groupName)
+				.itemWithDef(attrDef, ShadowType.F_ATTRIBUTES, attrDef.getItemName()).eq(groupName)
 				.buildFilter();
 		
 		query.setFilter(ObjectQueryUtil.filterAnd(query.getFilter(), nameFilter, prismContext));

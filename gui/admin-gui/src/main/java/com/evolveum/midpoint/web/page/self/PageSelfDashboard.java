@@ -318,7 +318,7 @@ public class PageSelfDashboard extends PageSelf {
             List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
             callableResult.setValue(workItems);
         } catch (Exception e) {
-            result.recordFatalError("Couldn't get list of work items.", e);
+            result.recordFatalError(getString("PageSelfDashboard.message.loadWorkItems.fatalError"), e);
         }
 
         result.recordSuccessIfUnknown();
@@ -362,7 +362,7 @@ public class PageSelfDashboard extends PageSelf {
             cases.forEach(caseObj -> list.add(caseObj.asObjectable()));
             callableResult.setValue(list);
         } catch (Exception e) {
-            result.recordFatalError("Couldn't get list of work items.", e);
+            result.recordFatalError(getString("PageSelfDashboard.message.loadWorkItems.fatalError"), e);
         }
 
         result.recordSuccessIfUnknown();

@@ -168,7 +168,7 @@ public class ProvisioningUtil {
 			if (fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
 				explicit.add(attributeDefinition);
 			} else if (hasMinimal && (fetchStrategy != AttributeFetchStrategyType.MINIMAL ||
-					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getName()), ctx.getGetOperationOptions(), false))) {
+					SelectorOptions.hasToLoadPath(ctx.getPrismContext().toUniformPath(attributeDefinition.getItemName()), ctx.getGetOperationOptions(), false))) {
 				explicit.add(attributeDefinition);
 			}
 		}
@@ -455,7 +455,7 @@ public class ProvisioningUtil {
 		if (attributesDefinition == null) {
 			throw new IllegalStateException("No definition for " + attributes);
 		}
-		List<QName> identifiers = attributesDefinition.getAllIdentifiers().stream().map(ItemDefinition::getName).collect(Collectors.toList());
+		List<QName> identifiers = attributesDefinition.getAllIdentifiers().stream().map(ItemDefinition::getItemName).collect(Collectors.toList());
 		List<QName> outstandingInRepo;
 		PrismContainer<?> repoAttributes = repoShadowBefore.findContainer(ShadowType.F_ATTRIBUTES);
 		if (repoAttributes != null) {

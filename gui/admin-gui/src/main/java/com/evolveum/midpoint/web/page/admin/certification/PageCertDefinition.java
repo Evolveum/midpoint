@@ -124,11 +124,11 @@ public class PageCertDefinition extends PageAdminCertification {
 					WebModelServiceUtils.loadObject(AccessCertificationDefinitionType.class, definitionOid, options,
 							PageCertDefinition.this, task, result);
 			AccessCertificationDefinitionType definition = PrismObjectValue.asObjectable(definitionObject);
-			definitionDto = new CertDefinitionDto(definition, this, getPrismContext());
+			definitionDto = new CertDefinitionDto(definition, this);
 			result.recordSuccessIfUnknown();
 		} catch (Exception ex) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get definition", ex);
-			result.recordFatalError("Couldn't get definition.", ex);
+			result.recordFatalError(getString("PageCertDefinition.message.loadDefinition.fatalError"), ex);
 		}
 		result.recomputeStatus();
 
@@ -146,7 +146,7 @@ public class PageCertDefinition extends PageAdminCertification {
 		stage.setNumber(1);
 		stage.setReviewerSpecification(new AccessCertificationReviewerSpecificationType(getPrismContext()));
 		definition.getStageDefinition().add(stage);
-		return new CertDefinitionDto(definition, this, getPrismContext());
+		return new CertDefinitionDto(definition, this);
 	}
 	//endregion
 
@@ -267,7 +267,7 @@ public class PageCertDefinition extends PageAdminCertification {
 			}
 			result.computeStatus();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't save object: " + ex.getMessage(), ex);
+			result.recordFatalError(getString("PageCertDefinition.message.savePerformed.fatalError", ex.getMessage()), ex);
 		}
 
 		showResult(result);

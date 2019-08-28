@@ -41,11 +41,11 @@ public class AttributeDto implements Serializable {
     }
 
     public String getName() {
-        return definition.getName().getLocalPart();
+        return definition.getItemName().getLocalPart();
     }
 
     public String getfNameCaseInsensitive() {
-        return StringUtils.lowerCase(definition.getName().getLocalPart());
+        return StringUtils.lowerCase(definition.getItemName().getLocalPart());
     }
 
     public String getMinMaxOccurs() {

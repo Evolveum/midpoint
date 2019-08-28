@@ -34,7 +34,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.TaskWfChildPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ApprovalProcessExecutionInformationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 
@@ -79,7 +78,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 			@Override
 			protected ApprovalSchemaExecutionInformationType load() {
 				String taskOid = getModelObject();
-				Task opTask = parentPage.createSimpleTask(TaskWfChildPanel.class.getName() + ".loadApprovalExecutionModel");
+				Task opTask = parentPage.createSimpleTask(SwitchableApprovalProcessPreviewsPanel.class.getName() + ".loadApprovalExecutionModel");
 				OperationResult result = opTask.getResult();
 				ApprovalSchemaExecutionInformationType rv = null;
 				try {
@@ -88,7 +87,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 					result.computeStatus();
 				} catch (Throwable t) {
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get approval schema execution information for {}", t, getModelObject());
-					opTask.getResult().recordFatalError("Couldn't get approval schema execution information: " + t.getMessage(), t);
+					opTask.getResult().recordFatalError(
+							createStringResource("SwitchableApprovalProcessPreviewsPanel.message.approvalSchemaExecution.fatalError",t.getMessage()).getString(), t);
 				}
 				if (WebComponentUtil.showResultInPage(result)) {
 					parentPage.showResult(result);
@@ -113,7 +113,7 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 	@Nullable
 	private ApprovalProcessExecutionInformationDto createApprovalProcessExecutionInformationDto(
 			PageBase parentPage, boolean wholeProcess) {
-		Task opTask = parentPage.createSimpleTask(TaskWfChildPanel.class.getName() + ".createApprovalProcessExecutionInformationDto");
+		Task opTask = parentPage.createSimpleTask(SwitchableApprovalProcessPreviewsPanel.class.getName() + ".createApprovalProcessExecutionInformationDto");
 		OperationResult result = opTask.getResult();
 		ApprovalSchemaExecutionInformationType info = approvalExecutionInfoModel.getObject();
 		ApprovalProcessExecutionInformationDto rv = null;
@@ -125,7 +125,8 @@ public class SwitchableApprovalProcessPreviewsPanel extends BasePanel<String> { 
 			result.computeStatus();
 		} catch (Throwable t) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't create approval process execution information for {}", t, getModelObject());
-			opTask.getResult().recordFatalError("Couldn't create approval process execution information: " + t.getMessage(), t);
+			opTask.getResult().recordFatalError(
+					createStringResource("SwitchableApprovalProcessPreviewsPanel.message.createApprovalProcess.fatalError", t.getMessage()).getString(), t);
 		}
 		if (WebComponentUtil.showResultInPage(result)) {
 			;

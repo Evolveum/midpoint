@@ -90,8 +90,8 @@ public class ModificationDto implements Serializable {
             if (delta.getDefinition().getDisplayName() != null) {
                 return delta.getDefinition().getDisplayName();
             }
-            if (delta.getDefinition().getName() != null) {
-                return delta.getDefinition().getName().getLocalPart();
+            if (delta.getDefinition().getItemName() != null) {
+                return delta.getDefinition().getItemName().getLocalPart();
             }
         }
         ItemPath path = delta.getPath();

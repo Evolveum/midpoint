@@ -119,7 +119,7 @@ public class ConnIdNameMapper {
 		if (specialAttributeMapIcf.containsKey(icfAttrName)) {
 			for (ResourceAttributeDefinition attributeDefinition: ocDef.getAttributeDefinitions()) {
 				if (icfAttrName.equals(attributeDefinition.getFrameworkAttributeName())) {
-					return attributeDefinition.getName();
+					return attributeDefinition.getItemName();
 				}
 			}
 			// fallback, compatibility
@@ -133,12 +133,12 @@ public class ConnIdNameMapper {
 	public QName convertAttributeNameToQName(String icfAttrName, ResourceAttributeDefinition attrDef) {
 		if (specialAttributeMapIcf.containsKey(icfAttrName)) {
 			if (icfAttrName.equals(attrDef.getFrameworkAttributeName())) {
-				return attrDef.getName();
+				return attrDef.getItemName();
 			}
 			// fallback, compatibility
 			return specialAttributeMapIcf.get(icfAttrName);
 		}
-		return attrDef.getName();
+		return attrDef.getItemName();
 	}
 
 	public String convertAttributeNameToConnId(PropertyDelta<?> attributeDelta, ObjectClassComplexTypeDefinition ocDef)
@@ -183,7 +183,7 @@ public class ConnIdNameMapper {
 			return attrDef.getFrameworkAttributeName();
 		}
 
-		QName attrQName = attrDef.getName();
+		QName attrQName = attrDef.getItemName();
 		if (specialAttributeMapMp.containsKey(attrQName)) {
 			return specialAttributeMapMp.get(attrQName);
 		}

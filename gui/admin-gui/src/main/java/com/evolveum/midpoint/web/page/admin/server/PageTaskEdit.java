@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -124,10 +125,8 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 	protected IModel<String> createPageTitleModel() {
 		TaskDto taskDto = taskDtoModel != null ? taskDtoModel.getObject() : null;
 		String suffix;
-		if (taskDto != null && taskDto.isWorkflowParent()) {
+		if (taskDto != null && taskDto.isWorkflow()) {
 			suffix = ".wfOperation";
-		} else if (taskDto != null && taskDto.isWorkflowChild()) {
-			suffix = ".wfRequest";
 		} else {
 			suffix = "";
 		}
@@ -165,7 +164,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 					.build();
 			taskType = getModelService().getObject(TaskType.class, taskOid, options, operationTask, result).asObjectable();
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get task.", ex);
+			result.recordFatalError(getString("PageTaskEdit.message.loadTaskType.fatalError"), ex);
 		}
 		return taskType;
 	}
@@ -330,7 +329,7 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			objectWrapperModel.setObject(newWrapper);
 		} catch (SchemaException|RuntimeException|Error e) {
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't refresh task {}", e, oldTaskDto);
-			result.recordFatalError("Couldn't refresh task: " + e.getMessage(), e);
+			result.recordFatalError(getString("PageTaskEdit.message.refreshTaskModels.fatalError", e.getMessage()), e);
 		}
 		result.computeStatusIfUnknown();
 		if (!result.isSuccess()) {
@@ -348,14 +347,16 @@ public class PageTaskEdit extends PageAdmin implements Refreshable {
 			WrapperContext context = new WrapperContext(task, result);
 			wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
 		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get user.", ex);
+			result.recordFatalError(getString("PageTaskEdit.message.loadObjectWrapper.fatalError"), ex);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load user", ex);
 			try {
 				WrapperContext context = new WrapperContext(task, result);
 				wrapper = owf.createObjectWrapper(object, ItemStatus.NOT_CHANGED, context);
 //				wrapper = owf.createObjectWrapper("pageAdminFocus.focusDetails", null, object, null, null, ContainerStatus.MODIFYING, task);
 			} catch (SchemaException e) {
-				throw new SystemException(e.getMessage(), e);
+				result.recordFatalError(e.getMessage(), e);
+				showResult(result, false);
+				throw new RestartResponseException(PageTasks.class);
 			}
 		}
 		showResult(result, false);

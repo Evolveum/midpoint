@@ -1252,7 +1252,7 @@ public class InboundProcessor {
 
 			@Override
 			public ValuePolicyType resolve() {
-				if (!outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+				if (!outputDefinition.getItemName().equals(PasswordType.F_VALUE)) {
 					return null;
 				}
 				ValuePolicyType passwordPolicy = credentialsProcessor.determinePasswordPolicy(context.getFocusContext(), task, result);

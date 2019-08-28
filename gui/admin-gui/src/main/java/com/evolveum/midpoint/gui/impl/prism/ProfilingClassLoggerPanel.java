@@ -28,13 +28,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
  */
 public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerConfigurationType> {
 
-	public ProfilingClassLoggerPanel(String id, IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, itemWrapper -> checkVisibility(itemWrapper, visibilitytHandler));
+	public ProfilingClassLoggerPanel(String id, IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model, ItemPanelSettings settings) {
+		super(id, model, new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkVisibility(itemWrapper, settings.getVisibilityHandler())).build());
 	}
 	
 	private static ItemVisibility checkVisibility(ItemWrapper itemWrapper, ItemVisibilityHandler visibilitytHandler) {
 
-		if(itemWrapper.getName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
+		if(itemWrapper.getItemName().equals(ClassLoggerConfigurationType.F_PACKAGE)) {
 			return ItemVisibility.HIDDEN;
 		}
 		return visibilitytHandler != null ? visibilitytHandler.isVisible(itemWrapper) : ItemVisibility.AUTO;

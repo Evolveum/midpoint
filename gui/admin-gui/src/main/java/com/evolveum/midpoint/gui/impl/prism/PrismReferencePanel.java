@@ -27,17 +27,27 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.validation.IValidatable;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.impl.factory.ItemRealValueModel;
 import com.evolveum.midpoint.gui.impl.factory.PrismReferencePanelContext;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -49,13 +59,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 public class PrismReferencePanel<R extends Referencable> extends ItemPanel<PrismReferenceValueWrapperImpl<R>, PrismReferenceWrapper<R>>{
 
 	private static final long serialVersionUID = 1L;
+	private static final Trace LOGGER = TraceManager.getTrace(PrismReferencePanel.class);
 	
 	private static final String ID_HEADER = "header";
 	private static final String ID_VALUE = "value";
 	private static final String ID_FEEDBACK = "feedback";
 
-	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemVisibilityHandler visibilityHandler) {
-		super(id, model, visibilityHandler);
+	public PrismReferencePanel(String id, IModel<PrismReferenceWrapper<R>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 	}
 	
 	@Override
@@ -75,7 +86,7 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 			item.add(panel);
 			return panel;
 		} else {
-			FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+			FeedbackAlerts feedback = new FeedbackAlerts(ID_FEEDBACK);
 			feedback.setOutputMarkupId(true);
 			item.add(feedback);
 			ValueChoosePanel<R> panel = new ValueChoosePanel<R>(ID_VALUE, new ItemRealValueModel<>(item.getModel())) {
@@ -101,6 +112,14 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 					return item.getModelObject().isEditEnabled();
 					
 				}
+				
+				@Override
+				protected <O extends ObjectType> void choosePerformed(AjaxRequestTarget target, O object) {
+					super.choosePerformed(target, object);
+					getBaseFormComponent().validate();
+					target.add(getPageBase().getFeedbackPanel());
+					target.add(feedback);
+				}
 
 				@Override
 				public List<QName> getSupportedTypes() {
@@ -122,6 +141,17 @@ public class PrismReferencePanel<R extends Referencable> extends ItemPanel<Prism
 
 			};
 			
+			ExpressionValidator<String> expressionValidator = new ExpressionValidator<String>(
+					LambdaModel.of(getModel().getObject()::getFormComponentValidator), getPageBase()) {
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				protected Object getValueToValidate(IValidatable<String> validatable) {
+					return item.getModelObject().getRealValue();
+				}
+			};
+			panel.getBaseFormComponent().add(expressionValidator);
 			feedback.setFilter(new ComponentFeedbackMessageFilter(panel));
 			item.add(panel);
 			

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,9 +55,9 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl implements MutableItemDefinition<I> {
-
 	private static final long serialVersionUID = -2643332934312107274L;
-	@NotNull protected ItemName name;
+	
+	@NotNull protected ItemName itemName;
 	private int minOccurs = 1;
     private int maxOccurs = 1;
     private boolean operational = false;
@@ -78,12 +78,12 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 *
-	 * @param name definition name (element Name)
+	 * @param itemName definition name (element Name)
 	 * @param typeName type name (XSD complex or simple type)
 	 */
-	ItemDefinitionImpl(@NotNull QName name, @NotNull QName typeName, @NotNull PrismContext prismContext) {
+	ItemDefinitionImpl(@NotNull QName itemName, @NotNull QName typeName, @NotNull PrismContext prismContext) {
 		super(typeName, prismContext);
-		this.name = ItemName.fromQName(name);     // todo
+		this.itemName = ItemName.fromQName(itemName);     // todo
 	}
 
 	/**
@@ -103,17 +103,17 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	 */
 	@Override
 	@NotNull
-	public ItemName getName() {
-		return name;
+	public ItemName getItemName() {
+		return itemName;
 	}
 
-	public void setName(@NotNull QName name) {
-		this.name = ItemName.fromQName(name); // todo
+	public void setItemName(@NotNull QName name) {
+		this.itemName = ItemName.fromQName(name); // todo
 	}
 
     @Override
 	public String getNamespace() {
-    	return getName().getNamespaceURI();
+    	return getItemName().getNamespaceURI();
     }
 
     /**
@@ -302,7 +302,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz,
 			boolean caseInsensitive) {
 		return clazz.isAssignableFrom(this.getClass())
-				&& QNameUtil.match(elementQName, getName(), caseInsensitive);
+				&& QNameUtil.match(elementQName, getItemName(), caseInsensitive);
 	}
 
 	@Override
@@ -310,7 +310,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		if (otherDef == null) {
 			return;
 		}
-		setName(otherDef.getName());
+		setItemName(otherDef.getItemName());
 		setMinOccurs(otherDef.getMinOccurs());
 		setMaxOccurs(otherDef.getMaxOccurs());
 	}
@@ -355,7 +355,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 
 	protected void copyDefinitionData(ItemDefinitionImpl<I> clone) {
 		super.copyDefinitionData(clone);
-		clone.name = this.name;
+		clone.itemName = this.itemName;
 		clone.minOccurs = this.minOccurs;
 		clone.maxOccurs = this.maxOccurs;
 		clone.dynamic = this.dynamic;
@@ -400,7 +400,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((itemName == null) ? 0 : itemName.hashCode());
         result = prime * result + maxOccurs;
         result = prime * result + minOccurs;
         result = prime * result + (canAdd ? 1231 : 1237);
@@ -418,10 +418,10 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		if (getClass() != obj.getClass())
 			return false;
 		ItemDefinitionImpl other = (ItemDefinitionImpl) obj;
-		if (name == null) {
-			if (other.name != null)
+		if (itemName == null) {
+			if (other.itemName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!itemName.equals(other.itemName))
 			return false;
 		if (maxOccurs != other.maxOccurs)
             return false;
@@ -441,7 +441,7 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
 		StringBuilder sb = new StringBuilder();
 		sb.append(getDebugDumpClassName());
 		sb.append(":");
-		sb.append(PrettyPrinter.prettyPrint(getName()));
+		sb.append(PrettyPrinter.prettyPrint(getItemName()));
 		sb.append(" ");
 		debugDumpShortToString(sb);
 		return sb.toString();

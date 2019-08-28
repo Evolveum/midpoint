@@ -35,6 +35,7 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
@@ -120,6 +121,7 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.ChangesByState;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
@@ -619,7 +621,10 @@ public final class WebComponentUtil {
 		PrismObject<TaskType> prismTask = task.asPrismObject();
 		QueryType queryType = pageBase.getQueryConverter().createQueryType(query);
 		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_QUERY).addRealValue(queryType);
-		prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE).setRealValue(applicableType);
+		
+		if (applicableType != null) {
+			prismTask.findOrCreateProperty(SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE).setRealValue(applicableType);
+		}
 
 		if (delta != null) {
 			ObjectDeltaType deltaBean = DeltaConvertor.toObjectDeltaType(delta);
@@ -633,15 +638,15 @@ public final class WebComponentUtil {
 		return task;
 	}
 	
-	public static void executeBulkAction(PageBase pageBase, ScriptingExpressionType script, Task task, OperationResult result ) 
+	public static void iterativeExecuteBulkAction(PageBase pageBase, ExecuteScriptType script, Task task, OperationResult result ) 
 			throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException{
 		
-		pageBase.getScriptingService().evaluateExpressionInBackground(script, task, result);
+		pageBase.getScriptingService().evaluateIterativeExpressionInBackground(script, task, result);
 	}
 	
 	public static void executeMemberOperation(Task operationalTask, QName type, ObjectQuery memberQuery,
-			ScriptingExpressionType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
+			ExecuteScriptType script, OperationResult parentResult, PageBase pageBase) throws SchemaException {
 
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 		operationalTask.setOwner(owner.getUser().asPrismObject());
@@ -653,9 +658,22 @@ public final class WebComponentUtil {
 		schedule.setMisfireAction(MisfireActionType.EXECUTE_IMMEDIATELY);
 		operationalTask.makeSingle(schedule);
 		operationalTask.setName(WebComponentUtil.createPolyFromOrigString(parentResult.getOperation()));
-	
+		
+		PrismPropertyDefinition propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+		PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
+		QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
+		queryProperty.setRealValue(queryType);
+		operationalTask.addExtensionProperty(queryProperty);
+		
+		PrismPropertyDefinition propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
+		PrismProperty<QName> typeProperty = propertyDefType.instantiate();
+		typeProperty.setRealValue(type);
+		operationalTask.addExtensionProperty(typeProperty);
+		
 		try {
-			executeBulkAction(pageBase, script, operationalTask, parentResult);
+			iterativeExecuteBulkAction(pageBase, script, operationalTask, parentResult);
 			parentResult.recordInProgress();
 			parentResult.setBackgroundTaskOid(operationalTask.getOid());
 			pageBase.showResult(parentResult);
@@ -665,6 +683,16 @@ public final class WebComponentUtil {
 			parentResult.recordFatalError(pageBase.createStringResource("WebComponentUtil.message.startPerformed.fatalError.submit").getString(), e);
 	        LoggingUtils.logUnexpectedException(LOGGER, "Couldn't submit bulk action to execution", e);
 		}
+		
+//		ModelExecuteOptions options = TaskCategory.EXECUTE_CHANGES.equals(category)
+//				? ModelExecuteOptions.createReconcile()		// This was originally in ExecuteChangesTaskHandler, now it's transferred through task extension.
+//				: null;
+//		TaskType task = WebComponentUtil.createSingleRecurrenceTask(parentResult.getOperation()+2, type,
+//				memberQuery, null, null, TaskCategory.BULK_ACTIONS, pageBase);
+//		PrismObject<TaskType> prismTask = task.asPrismObject();
+//		prismTask.findOrCreateProperty(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.SE_EXECUTE_SCRIPT)).setRealValue(script);
+//		
+//		WebModelServiceUtils.runTask(task, operationalTask, parentResult, pageBase);
 	}
 
 	public static boolean isAuthorized(String... action) {
@@ -1158,7 +1186,17 @@ public final class WebComponentUtil {
 		} else if (prismContainerValue.canRepresent(UserInterfaceFeatureType.class)) {
 			UserInterfaceFeatureType userInterfaceFeature = (UserInterfaceFeatureType) prismContainerValue.asContainerable();
 			String identifier = userInterfaceFeature.getIdentifier();
-			if (StringUtils.isNotEmpty(identifier)) {
+
+			if (StringUtils.isBlank(identifier)) {
+				DisplayType uifDisplay = userInterfaceFeature.getDisplay();
+				if (uifDisplay != null) {
+					displayName = WebComponentUtil.getOrigStringFromPoly(uifDisplay.getLabel());
+				}
+
+				if (displayName == null) {
+					displayName = "UserInterfaceFeatureType.containerTitle";
+				}
+			} else {
 				displayName = identifier;
 			}
 		} else if (prismContainerValue.canRepresent(GuiObjectColumnType.class)) {
@@ -1192,6 +1230,8 @@ public final class WebComponentUtil {
 			ResourceItemDefinitionType resourceItemDefinition = (ResourceItemDefinitionType) prismContainerValue.asContainerable();
 			if (resourceItemDefinition.getDisplayName() != null && !resourceItemDefinition.getDisplayName().isEmpty()) {
 				displayName = resourceItemDefinition.getDisplayName();
+			} else {
+				return prismContainerValue.getParent().getPath().last().toString();
 			}
 		} else if (prismContainerValue.canRepresent(MappingType.class)) {
 			MappingType mapping = (MappingType) prismContainerValue.asContainerable();
@@ -1947,10 +1987,6 @@ public final class WebComponentUtil {
 					assignmentHolder.getParentOrgRef().add(ref.clone());
 				}
 
-				// The same problem as above TODO MID-3234
-				if (ref.getType() != null && ArchetypeType.COMPLEX_TYPE.equals(ref.getType())) {
-					assignmentHolder.getArchetypeRef().add(ref.clone());
-				}
 			});
 		}
 
@@ -3386,7 +3422,7 @@ public final class WebComponentUtil {
 			pageBase.getModelService().executeChanges(WebComponentUtil.createDeltaCollection(delta), null, task, result);
 		} catch (Exception e){
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save task.", e);
-			result.recordFatalError("Couldn't save task.", e);
+			result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveTask").getString(), e);
 		}
 		result.recomputeStatus();
 	}
@@ -3548,7 +3584,7 @@ public final class WebComponentUtil {
 					dropPowerOfAttorneyIfRequested(result, powerDonor, pageBase);
 				}
 			} catch (Exception ex) {
-				result.recordFatalError("Couldn't save work item.", ex);
+				result.recordFatalError(pageBase.createStringResource("WebModelUtils.couldntSaveWorkItem").getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save work item", ex);
 			}
 		}

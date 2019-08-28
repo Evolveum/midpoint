@@ -98,7 +98,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
 			LOGGER.debug("Threads:\n{}", dump);
 			resultModel.setObject(dump);
 		} catch (CommonException | RuntimeException e) {
-			result.recordFatalError("Couldn't get threads", e);
+			result.recordFatalError(getString("InternalsThreadsPanel.message.executeShowAllThreads.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get threads", e);
 		} finally {
 			result.computeStatus();
@@ -116,7 +116,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
 			LOGGER.debug("Running tasks' threads:\n{}", dump);
 			resultModel.setObject(dump);
 		} catch (CommonException | RuntimeException e) {
-			result.recordFatalError("Couldn't get tasks' threads", e);
+			result.recordFatalError(getString("InternalsThreadsPanel.message.executeShowTasksThreads.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't get tasks' threads", e);
 		} finally {
 			result.computeStatus();
@@ -133,7 +133,7 @@ public class InternalsThreadsPanel extends BasePanel<Void> {
 			String info = getPageBase().getTaskService().recordRunningTasksThreadsDump(SchemaConstants.USER_REQUEST_URI, task, result);
 			resultModel.setObject(info);
 		} catch (CommonException | RuntimeException e) {
-			result.recordFatalError("Couldn't record tasks' threads", e);
+			result.recordFatalError(getString("InternalsThreadsPanel.message.executeRecordTasksThreads.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record tasks' threads", e);
 		} finally {
 			result.computeStatus();

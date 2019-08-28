@@ -26,11 +26,6 @@
                 	<i class="fa fa-language" style="float:right;cursor: pointer;" wicket:id="showHideLanguagesLocalized"/>
                 </div>
     		</div>
-           <!-- <a class="col-md-1" wicket:id="showHideLanguagesLocalized" style="padding-left: 0px !important; height: 30px !important;">
-                <div class="form-control" style="border-left: none !important; height: 30px !important;  background-color:#eee;">
-                	<i class="fa fa-language"  style="float:right;"/>
-                </div> 
-            </a> --> 
         </div>
     </div>
     <div wicket:id="originValueContainer" class="row prism-property">
@@ -42,23 +37,31 @@
                 	<i class="fa fa-language" style="float:right;cursor: pointer;" wicket:id="showHideLanguagesOrig"/>
                 </div>
     		</div>
-           <!-- <a class="col-md-1" wicket:id="showHideLanguagesOrig" style="padding-left: 0px !important; height: 30px !important;">
-                <div class="form-control" style="border-left: none !important; height: 30px !important;">
-                	<i class="fa fa-language" style="float:right;"/>
-                </div> 
-            </a> --> 
         </div>
     </div>
     <div wicket:id="fullDataContainer">
-         <div class="row prism-property">
+       <div class="row prism-property">
              <div class="col-md-3" style="padding-left: 0px !important;"><wicket:message key="PolyStringEditorPanel.keyLabel" /></div>
              <div class="col-md-9" style="padding: 0px !important;" wicket:id="keyValue"/>
          </div>
+        <div class="row prism-property">
+            <div class="col-md-3" style="padding-left: 0px !important;"><wicket:message key="PolyStringEditorPanel.languagesList" /></div>
+        </div>
+        <div wicket:id="languageEditor" class="row prism-property">
+            <div class="col-md-3" style="padding-left: 0px !important;" wicket:id="languagesList" />
+            <div class="col-md-8" style="padding: 0px !important;" wicket:id="valueToAdd"/>
+            <div class="col-md-1">
+                <a class="btn btn-box-tool" wicket:id="addLanguageValue"><i class="fa fa-plus-circle"/></a>
+            </div>
+        </div>
         <div wicket:id="languagesRepeater" class="row prism-property">
              <div class="col-md-3" style="padding-left: 0px !important;" wicket:id="languageName" />
-             <div class="col-md-9" style="padding: 0px !important;" wicket:id="translation"/>
-         </div>
-          <div wicket:id="addLanguage" class="show-empty-button" />
+             <div class="col-md-8" style="padding: 0px !important;" wicket:id="translation"/>
+            <div class="col-md-1">
+                <a class="btn btn-box-tool" wicket:id="removeLanguageButton"><i class="fa fa-minus-circle"/></a>
+            </div>
+        </div>
+          <!--<div wicket:id="addLanguage" class="show-empty-button" />-->
     </div>
 
 </wicket:panel>

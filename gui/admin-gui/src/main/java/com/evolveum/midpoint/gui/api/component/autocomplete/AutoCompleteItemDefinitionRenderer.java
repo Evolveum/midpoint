@@ -12,7 +12,7 @@ public class AutoCompleteItemDefinitionRenderer extends AbstractAutoCompleteRend
 
 	@Override
 	protected String getTextValue(ItemDefinition<?> object) {
-		return object.getName().getLocalPart();
+		return object.getItemName().getLocalPart();
 	}
 
 	@Override

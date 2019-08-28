@@ -553,6 +553,15 @@ public class MappingEditorDialog extends ModalWindow {
 		};
 		save.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
 		form.add(save);
+		
+		setCloseButtonCallback(new CloseButtonCallback() {
+			
+			@Override
+			public boolean onCloseButtonClicked(AjaxRequestTarget target) {
+				cancelPerformed(target);
+				return true;
+			}
+		});
 	}
 
 	private PageBase getPageBase() {
@@ -571,7 +580,7 @@ public class MappingEditorDialog extends ModalWindow {
 					task, result);
 			result.recomputeStatus();
 		} catch (CommonException|RuntimeException e) {
-			result.recordFatalError("Couldn't load password policies.", e);
+			result.recordFatalError(getString("MappingEditorDialog.message.createPasswordPolicyList.fatalError"), e);
 			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
 		}
 

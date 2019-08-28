@@ -102,7 +102,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	 */
 	default boolean isPrimaryIdentifier(QName attrName) {
 		return getPrimaryIdentifiers().stream()
-				.anyMatch(idDef -> QNameUtil.match(idDef.getName(), attrName));
+				.anyMatch(idDef -> QNameUtil.match(idDef.getItemName(), attrName));
 	}
 
 	/**
@@ -128,7 +128,7 @@ public interface ObjectClassComplexTypeDefinition extends ComplexTypeDefinition 
 	 */
 	default boolean isSecondaryIdentifier(QName attrName) {
 		return getSecondaryIdentifiers().stream()
-				.anyMatch(idDef -> QNameUtil.match(idDef.getName(), attrName));
+				.anyMatch(idDef -> QNameUtil.match(idDef.getItemName(), attrName));
 	}
 
 	/**

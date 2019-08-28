@@ -43,8 +43,8 @@ public class ResourceAttributeDefinitionPanel<T> extends PrismPropertyPanel<T> {
 	 * @param id
 	 * @param model
 	 */
-	public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, (IModel)model, visibilitytHandler);
+	public ResourceAttributeDefinitionPanel(String id, IModel<ResourceAttributeWrapper<T>> model, ItemPanelSettings settings) {
+		super(id, (IModel)model, settings);
 	}
 	
 	@Override

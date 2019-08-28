@@ -25,12 +25,15 @@ import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -39,10 +42,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by honchar
@@ -65,9 +65,14 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     private static final String ID_SHOW_HIDE_LANGUAGES_ORIG = "showHideLanguagesOrig";
     private static final String ID_SHOW_HIDE_LANGUAGES_LOCALIZED = "showHideLanguagesLocalized";
     private static final String ID_LOCALIZED_VALUE_WITH_BUTTON = "localizedValueWithButton";
-    private static final String ID_ADD_LANGUAGE = "addLanguage";
+    private static final String ID_LANGUAGE_EDITOR = "languageEditor";
+    private static final String ID_LANGUAGES_LIST = "languagesList";
+    private static final String ID_VALUE_TO_ADD = "valueToAdd";
+    private static final String ID_ADD_LANGUAGE_VALUE_BUTTON = "addLanguageValue";
+    private static final String ID_REMOVE_LANGUAGE_BUTTON = "removeLanguageButton";
 
     private boolean showFullData = false;
+    private final StringBuilder currentlySelectedLang = new StringBuilder();
 
     public PolyStringEditorPanel(String id, IModel<PolyString> model){
         super(id, model);
@@ -195,112 +200,124 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
             }
         });
         keyValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-//        {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-//                onValueUpdated();
-//            }
-//        });
-//        keyValue.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            protected void onUpdate(final AjaxRequestTarget target) {
-//                onValueUpdated();
-//            }
-//        });
         keyValue.setOutputMarkupId(true);
         fullDataContainer.add(keyValue);
 
-        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
-        IModel<List<String>> languagesListModel = getLanguagesListModel();
-        ListView<String> languagesContainer =
-                new ListView<String>(ID_LANGUAGES_REPEATER, languagesListModel) {
-                    private static final long serialVersionUID = 1L;
+        IModel<String> langChoiceModel = Model.of();
+        WebMarkupContainer languageEditorContainer = new WebMarkupContainer(ID_LANGUAGE_EDITOR);
+        languageEditorContainer.setOutputMarkupId(true);
+        languageEditorContainer.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(getLanguageChoicesModel().getObject())));
+        fullDataContainer.add(languageEditorContainer);
 
-                    @Override
-                    protected void populateItem(ListItem<String> listItem) {
-//                        if (StringUtils.isEmpty(listItem.getModelObject())){
-//                            TextPanel<String> languageName = new TextPanel<String>(ID_LANGUAGE_NAME, listItem.getModel());
-//                            languageName.getBaseFormComponent().setOutputMarkupId(true);
-//                            listItem.add(languageName);
-//                        } else {
-//                            Label languageName = new Label(ID_LANGUAGE_NAME, Model.of(listItem.getModelObject()));
-//                            languageName.setOutputMarkupId(true);
-//                            listItem.add(languageName);
-//                        }
+        final DropDownChoicePanel<String> languageChoicePanel = new DropDownChoicePanel<String>(ID_LANGUAGES_LIST, langChoiceModel,
+                getLanguageChoicesModel(), true);
+        languageChoicePanel.setOutputMarkupId(true);
+        languageChoicePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
+        languageChoicePanel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            private static final long serialVersionUID = 1L;
 
-                        IModel<String> oldLanguageValueModel = listItem.getModel();
-
-                        List<String> allLanguagesList =  new ArrayList<>();
-                        MidPointApplication.AVAILABLE_LOCALES.forEach(locale -> {
-                            allLanguagesList.add(locale.getLocale().getLanguage());
-                        });
-
-                        DropDownChoicePanel<String> languageChoicePanel = new DropDownChoicePanel<String>(ID_LANGUAGE_NAME, new IModel<String>() {
-                            @Override
-                            public String getObject() {
-                                return listItem.getModelObject();
-                            }
-
-                            @Override
-                            public void setObject(String object) {
-                                removeLanguageValue(oldLanguageValueModel.getObject());
-                                updateLanguageValue(object, ((TextPanel<String>)listItem.get(ID_TRANSLATION)).getBaseFormComponent().getValue());
-                                oldLanguageValueModel.setObject(object);
-                            }
-
-                            @Override
-                            public void detach() {
-
-                            }
-
-                        },
-                                Model.ofList(allLanguagesList), true);
-                        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                        languageChoicePanel.setOutputMarkupId(true);
-                        listItem.add(languageChoicePanel);
-
-                        TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, new IModel<String>() {
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public String getObject() {
-                                return languagesMap.get(listItem.getModelObject());
-                            }
-
-                            @Override
-                            public void setObject(String object) {
-                                updateLanguageValue(oldLanguageValueModel.getObject(), object);
-                            }
-
-                            @Override
-                            public void detach() {
-
-                            }
-                        });
-                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                        translation.setOutputMarkupId(true);
-                        listItem.add(translation);
-
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                removeLanguageValue(currentlySelectedLang.toString());
+                clearSelectedLanguageValue();
+                currentlySelectedLang.append(getLanguagesChoicePanel().getBaseFormComponent().getModelObject());
             }
-        };
-        languagesContainer.setOutputMarkupId(true);
-        fullDataContainer.add(languagesContainer);
+        });
+        languageEditorContainer.add(languageChoicePanel);
 
-        AjaxButton addLanguageButton = new AjaxButton(ID_ADD_LANGUAGE, createStringResource("PolyStringEditorPanel.addLanguage")) {
+        final TextPanel<String> newLanguageValue = new TextPanel<String>(ID_VALUE_TO_ADD, Model.of());
+        newLanguageValue.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
+        languageChoicePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
+        newLanguageValue.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                updateLanguageValue(languageChoicePanel.getBaseFormComponent().getModelObject(), newLanguageValue.getBaseFormComponent().getValue());
+            }
+        });
+        newLanguageValue.setOutputMarkupId(true);
+        languageEditorContainer.add(newLanguageValue);
+
+        AjaxLink<Void> addLanguageButton = new AjaxLink<Void>(ID_ADD_LANGUAGE_VALUE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addNewLanguagePerformed(target);
+                updateLanguageValue(languageChoicePanel.getModel().getObject(),
+                        newLanguageValue.getBaseFormComponent().getModelObject());
+                languageChoicePanel.getModel().setObject(null);
+                newLanguageValue.getBaseFormComponent().getModel().setObject(null);
+                clearSelectedLanguageValue();
+                target.add(PolyStringEditorPanel.this);
             }
         };
         addLanguageButton.add(AttributeAppender.append("style", "cursor: pointer;"));
         addLanguageButton.setOutputMarkupId(true);
-        fullDataContainer.add(addLanguageButton);
+        languageEditorContainer.add(addLanguageButton);
+
+        Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
+        ListView<String> languagesContainer =
+                new ListView<String>(ID_LANGUAGES_REPEATER, getLanguagesListModel()) {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void populateItem(ListItem<String> listItem) {
+
+                        TextPanel<String> languageName = new TextPanel<String>(ID_LANGUAGE_NAME, listItem.getModel());
+                        languageName.add(new EnableBehaviour(() -> false));
+                        languageName.setOutputMarkupId(true);
+                        listItem.add(languageName);
+
+                        TextPanel<String> translation = new TextPanel<String>(ID_TRANSLATION, Model.of(getLanguageValueByKey(listItem.getModelObject())));
+                        translation.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour(){
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget target) {
+                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), translation.getBaseFormComponent().getValue());
+                            }
+                        });
+                        translation.setOutputMarkupId(true);
+                        translation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                                updateLanguageValue(languageName.getBaseFormComponent().getValue(), translation.getBaseFormComponent().getValue());
+                            }
+                        });
+                        listItem.add(translation);
+
+                        AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_LANGUAGE_BUTTON) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void onClick(AjaxRequestTarget target) {
+                                removeLanguageValue(listItem.getModelObject());
+                                target.add(PolyStringEditorPanel.this);
+                            }
+                        };
+                        removeButton.setOutputMarkupId(true);
+                        listItem.add(removeButton);
+            }
+        };
+        languagesContainer.setOutputMarkupId(true);
+        fullDataContainer.add(languagesContainer);
 
         AjaxButton showHideLanguagesButton = new AjaxButton(ID_SHOW_HIDE_LANGUAGES_ORIG) {
 
@@ -326,14 +343,39 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
                 getModelObject().getTranslation().getKey() : "";
     }
 
-    private LoadableModel<List<String>> getLanguagesListModel(){
-        return new LoadableModel<List<String>>() {
+    private IModel<List<String>> getLanguageChoicesModel(){
+        return new IModel<List<String>>() {
+            @Override
+            public List<String> getObject() {
+                List<String> allLanguagesList =  new ArrayList<>();
+                String currentlySelectedLang = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
+                MidPointApplication.AVAILABLE_LOCALES.forEach(locale -> {
+                    String localeValue = locale.getLocale().getLanguage();
+                    if (!isPolyStringLangNotNull()) {
+                        allLanguagesList.add(localeValue);
+                    } else if (!languageExists(localeValue) || localeValue.equals(currentlySelectedLang)){
+                        allLanguagesList.add(locale.getLocale().getLanguage());
+                    }
+                });
+                return allLanguagesList;
+            }
+        };
+    }
+
+    private IModel<List<String>> getLanguagesListModel(){
+        return new IModel<List<String>>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<String> load() {
-                Map<String, String> languagesMap = getModelObject() != null && getModelObject().getLang() != null ? getModelObject().getLang() : new HashMap<>();
-                return new ArrayList<>(languagesMap.keySet());
+            public List<String> getObject() {
+                Map<String, String> languagesMap = isPolyStringLangNotNull() ? getModelObject().getLang() : new HashMap<>();
+                List<String> languagesList = new ArrayList<>(languagesMap.keySet());
+                String valueToExclude = getLanguagesChoicePanel().getBaseFormComponent().getModel().getObject();
+                if (StringUtils.isNotEmpty(valueToExclude)) {
+                    languagesList.remove(valueToExclude);
+                }
+                Collections.sort(languagesList);
+                return languagesList;
             }
         };
     }
@@ -382,6 +424,9 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
     //todo refactor with PolyStringWrapper
     private void updateLanguageValue(String language, String value){
+        if (StringUtils.isEmpty(language)){
+            return;
+        }
         if (getModelObject() == null){
             Map<String, String> languagesMap = new HashMap<>();
             languagesMap.put("", "");
@@ -399,12 +444,32 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
     }
 
     private void removeLanguageValue(String language){
-        if (getModelObject() == null){
-            return;
-        }
-        if (getModelObject().getLang() == null){
+        if (!isPolyStringLangNotNull()){
             return;
         }
         getModelObject().getLang().remove(language);
+    }
+
+    private boolean isPolyStringLangNotNull(){
+        return getModelObject() != null && getModelObject().getLang() != null;
+    }
+
+    private boolean languageExists(String value){
+        return isPolyStringLangNotNull() && getModelObject().getLang().containsKey(value);
+    }
+
+    private String getLanguageValueByKey(String key){
+        if (!isPolyStringLangNotNull()){
+            return null;
+        }
+        return getModelObject().getLang().get(key);
+    }
+
+    private DropDownChoicePanel<String> getLanguagesChoicePanel(){
+        return (DropDownChoicePanel<String>)get(ID_FULL_DATA_CONTAINER).get(ID_LANGUAGE_EDITOR).get(ID_LANGUAGES_LIST);
+    }
+
+    private void clearSelectedLanguageValue(){
+        currentlySelectedLang.delete(0, currentlySelectedLang.length());
     }
 }

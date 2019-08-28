@@ -118,7 +118,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 		if (itemName != null) {
 			nameToUse = itemName;
 		} else if (itemDefinition != null) {
-			nameToUse = itemDefinition.getName();
+			nameToUse = itemDefinition.getItemName();
 		} else if (value.getParent() != null) {
 			nameToUse = value.getParent().getElementName();
 		} else {

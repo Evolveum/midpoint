@@ -67,8 +67,8 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 	 * @param id
 	 * @param model
 	 */
-	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemVisibilityHandler visibilitytHandler) {
-		super(id, model, visibilitytHandler);
+	public PrismPropertyPanel(String id, IModel<PrismPropertyWrapper<T>> model, ItemPanelSettings settings) {
+		super(id, model, settings);
 	}
 
 
@@ -161,7 +161,7 @@ public class PrismPropertyPanel<T> extends ItemPanel<PrismPropertyValueWrapper<T
 				if (formComponent instanceof TextField) {
 					formComponent.add(new AttributeModifier("size", "42"));
 				}
-				formComponent.add(new AjaxFormComponentUpdatingBehavior("blur") {
+				formComponent.add(new AjaxFormComponentUpdatingBehavior("change") {
 
 					private static final long serialVersionUID = 1L;
 

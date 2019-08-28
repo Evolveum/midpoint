@@ -79,7 +79,7 @@ public class InternalsMemoryPanel extends BasePanel<Void> {
 			String information = getPageBase().getModelDiagnosticService().getMemoryInformation(task, result);
 			informationModel.setObject(information);
 		} catch (Throwable t) {
-			result.recordFatalError("Couldn't get memory information", t);
+			result.recordFatalError(getString("InternalsMemoryPanel.message.executeShow.fatalError"), t);
 			informationModel.setObject(ExceptionUtil.printStackTrace(t));
 		} finally {
 			result.computeStatusIfUnknown();

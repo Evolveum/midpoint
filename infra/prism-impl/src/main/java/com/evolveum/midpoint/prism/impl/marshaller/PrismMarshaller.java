@@ -239,7 +239,7 @@ public class PrismMarshaller {
 		if (!SerializationContext.isSerializeForExport(ctx) || definition == null || !definition.isRuntimeSchema()) {
 			return false;
 		}
-		QName itemName = definition.getName();
+		QName itemName = definition.getItemName();
 		if (StringUtils.isEmpty(itemName.getNamespaceURI())) {
 			return true;            // ambiguous item name - let's put xsi:type, to be on the safe side
 		}
@@ -312,7 +312,7 @@ public class PrismMarshaller {
 			// ordering-sensitive. We need to keep that ordering otherwise the resulting
 			// document won't pass schema validation
 			for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
-				ItemName elementName = itemDef.getName();
+				ItemName elementName = itemDef.getItemName();
 				Item<?,?> item = containerVal.findItem(elementName);
 				if (item != null) {
 					if (!shouldSkipItem(itemsToSkip, elementName, itemDef, ctx)) {

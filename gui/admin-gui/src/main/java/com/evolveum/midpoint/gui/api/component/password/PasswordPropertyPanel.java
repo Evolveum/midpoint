@@ -32,8 +32,8 @@ public class PasswordPropertyPanel  extends PrismPropertyPanel<ProtectedStringTy
 
     private static final String ID_PASSWORD_PANEL= "passwordPanel";
 
-    public PasswordPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemVisibilityHandler visibilitytHandler){
-        super(id, model, visibilitytHandler);
+    public PasswordPropertyPanel(String id, IModel<PrismPropertyWrapper<ProtectedStringType>> model, ItemPanelSettings settings){
+        super(id, model, settings);
     }
 
     @Override

@@ -143,7 +143,7 @@ public class RExtItem {
 	}
 
 	public static RExtItem.Key createKeyFromDefinition(ItemDefinition<?> definition) {
-		String name = RUtil.qnameToString(definition.getName());
+		String name = RUtil.qnameToString(definition.getItemName());
 		String type = RUtil.qnameToString(definition.getTypeName());
 		RItemKind kind = RItemKind.getTypeFromItemDefinitionClass(definition.getClass());
 		return new Key(name, type, kind);

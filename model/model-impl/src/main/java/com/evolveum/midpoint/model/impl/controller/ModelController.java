@@ -2078,11 +2078,17 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, parentResult);
     }
-
+    
     @Override
     public void evaluateExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         checkScriptingAuthorization(task, parentResult);
         scriptingExpressionEvaluator.evaluateExpressionInBackground(executeScriptCommand, task, parentResult);
+    }
+    
+    @Override
+    public void evaluateIterativeExpressionInBackground(ExecuteScriptType executeScriptCommand, Task task, OperationResult parentResult) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
+        checkScriptingAuthorization(task, parentResult);
+        scriptingExpressionEvaluator.evaluateIterativeExpressionInBackground(executeScriptCommand, task, parentResult);
     }
 
     @Override

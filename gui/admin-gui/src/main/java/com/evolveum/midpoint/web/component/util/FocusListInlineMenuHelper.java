@@ -218,7 +218,7 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				subResult.computeStatus();
 			} catch (RuntimeException ex) {
 				subResult.recomputeStatus();
-				subResult.recordFatalError("Couldn't delete object.", ex);
+				subResult.recordFatalError("FocusListInlineMenuHelper.message.delete.fatalError", ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete object", ex);
 			}
 		}
@@ -256,10 +256,10 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 			} catch (CommonException|RuntimeException ex) {
 				subResult.recomputeStatus();
 				if (enabling) {
-					subResult.recordFatalError("Couldn't enable object.", ex);
+					subResult.recordFatalError("FocusListInlineMenuHelper.message.enable.fatalError", ex);
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't enable object", ex);
 				} else {
-					subResult.recordFatalError("Couldn't disable object.", ex);
+					subResult.recordFatalError("FocusListInlineMenuHelper.message.disable.fatalError", ex);
 					LoggingUtils.logUnexpectedException(LOGGER, "Couldn't disable object", ex);
 				}
 			}
@@ -291,7 +291,8 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
 				opResult.computeStatusIfUnknown();
 			} catch (CommonException|RuntimeException ex) {
 				opResult.recomputeStatus();
-				opResult.recordFatalError("Couldn't reconcile object " + object + ".", ex);
+				opResult.recordFatalError(
+						parentPage.createStringResource("FocusListInlineMenuHelper.message.reconcile.fatalError", object).getString(), ex);
 				LoggingUtils.logUnexpectedException(LOGGER, "Couldn't reconcile object " + object + ".", ex);
 			}
 		}

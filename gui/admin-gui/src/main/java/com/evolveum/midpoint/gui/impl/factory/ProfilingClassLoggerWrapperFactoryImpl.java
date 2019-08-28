@@ -109,7 +109,7 @@ public class ProfilingClassLoggerWrapperFactoryImpl extends PrismContainerWrappe
 	
 	@Override
 	public PrismContainerValueWrapper<ClassLoggerConfigurationType> createContainerValueWrapper(PrismContainerWrapper<ClassLoggerConfigurationType> objectWrapper,
-			PrismContainerValue<ClassLoggerConfigurationType> objectValue, ValueStatus status) {
+			PrismContainerValue<ClassLoggerConfigurationType> objectValue, ValueStatus status, WrapperContext context) {
 		
 		ClassLoggerConfigurationType logger = (ClassLoggerConfigurationType) objectValue.getRealValue();
 		logger.setPackage(LOGGER_PROFILING);

@@ -465,11 +465,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
          */
         layeredROCD = layeredROCD.clone();
         for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
-			ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
+			ItemPath attributePath = ItemPath.create(ShadowType.F_ATTRIBUTES, rAttrDef.getItemName());
 			AuthorizationDecisionType attributeReadDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_GET, attributesReadDecision, phase);
 			AuthorizationDecisionType attributeAddDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_ADD, attributesAddDecision, phase);
 			AuthorizationDecisionType attributeModifyDecision = schemaTransformer.computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.AUTZ_ACTIONS_URLS_MODIFY, attributesModifyDecision, phase);
-			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getName(), attributeReadDecision,
+			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", rAttrDef.getItemName(), attributeReadDecision,
 					attributeAddDecision, attributeModifyDecision);
 			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
 				((LayerRefinedAttributeDefinitionImpl) rAttrDef).setOverrideCanRead(false);

@@ -643,7 +643,7 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
 	}
 
 	/**
-	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in millisecods.
+	 * Requirement how stale or fresh the retrieved data should be. It specifies maximum age of the value in milliseconds.
 	 * The default value is zero, which means that a fresh value must always be returned. This means that caches that do
 	 * not guarantee fresh value cannot be used. If non-zero value is specified then such caches may be used. In case that
 	 * Long.MAX_VALUE is specified then the caches are always used and fresh value is never retrieved.

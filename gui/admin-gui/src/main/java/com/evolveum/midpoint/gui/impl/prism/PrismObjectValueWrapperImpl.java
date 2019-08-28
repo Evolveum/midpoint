@@ -48,6 +48,7 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 
 	public PrismObjectValueWrapperImpl(PrismObjectWrapper<O> parent, PrismObjectValue<O> pcv, ValueStatus status) {
 		super(parent, pcv, status);
+		setExpanded(true);
 	}
 	
 	@Override
@@ -73,10 +74,5 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
 	@Override
 	public String getDisplayName() {
 		return new StringResourceModel("prismContainer.mainPanelDisplayName").getString();
-	}
-
-	@Override
-	public boolean isExpanded() {
-		return true;
 	}
 }

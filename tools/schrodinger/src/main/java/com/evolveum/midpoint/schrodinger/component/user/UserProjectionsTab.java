@@ -36,14 +36,16 @@ public class UserProjectionsTab extends Component<UserPage> {
         super(parent, parentElement);
     }
 
-    public UserProjectionsCog<UserProjectionsTab> clickCog() {
+    public UserProjectionsDropDown<UserProjectionsTab> clickHeaderActionDropDown() {
 
-        $(Schrodinger.byElementAttributeValue("a", "about", "dropdownMenu"))
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(By.tagName("thead"))
+                .$(Schrodinger.byDataId("inlineMenuPanel"))
+                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
 
         SelenideElement dropDownMenu = $(Schrodinger.byElementAttributeValue("ul", "class", "dropdown-menu pull-right"));
 
-        return new UserProjectionsCog<>(this, dropDownMenu);
+        return new UserProjectionsDropDown<>(this, dropDownMenu);
     }
 
     public AbstractTable<UserProjectionsTab> table() {

@@ -37,7 +37,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  *
  */
 @Component
-@Priority(1000)
 public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -66,6 +65,6 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
 
 			}
 		};
-	}	
+	}
 	
 }

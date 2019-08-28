@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
@@ -56,6 +57,7 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(buildSource(SchemaConstants.BUNDLE_NAME, classLoader));
         sources.add(buildSource("localization/Midpoint", null));
         sources.add(buildSource(SchemaConstants.SCHEMA_LOCALIZATION_PROPERTIES_RESOURCE_BASE_PATH, null));
+        sources.add(buildSource(MidpointConfiguration.MIDPOINT_SYSTEM_PROPERTIES_BASE_PATH, null));
 
         // model security messages as fallback
         ResourceBundleMessageSource modelSecurity = new CachedResourceBundleMessageSource();
@@ -93,6 +95,12 @@ public class LocalizationServiceImpl implements LocalizationService {
         }
 
         return defaultMessage;
+    }
+
+    @Override
+    public String translate(LocalizableMessage msg, Locale locale, String defaultMessage) {
+        String rv = translate(msg, locale);
+        return rv != null ? rv : defaultMessage;
     }
 
     @Override

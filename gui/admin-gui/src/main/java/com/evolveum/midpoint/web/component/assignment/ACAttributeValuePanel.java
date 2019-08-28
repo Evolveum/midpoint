@@ -134,7 +134,7 @@ public class ACAttributeValuePanel extends BasePanel<ACValueConstructionDto> {
             panel = new TextPanel<>(id, new PropertyModel<>(getModel(), baseExpression),
                 type);
 
-            if (ObjectType.F_NAME.equals(definition.getName())) {
+            if (ObjectType.F_NAME.equals(definition.getItemName())) {
                 panel.getBaseFormComponent().setRequired(true);
             }
         }

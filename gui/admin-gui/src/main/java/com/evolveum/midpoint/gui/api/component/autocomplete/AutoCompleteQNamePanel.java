@@ -44,18 +44,21 @@ import javax.xml.namespace.QName;
  *
  *  @author semancik
  * */
-public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
+public abstract class AutoCompleteQNamePanel<T extends QName> extends AbstractAutoCompletePanel {
 	private static final long serialVersionUID = 1L;
 
 	private static final String ID_INPUT = "input";
-	private Map<String, QName> choiceMap = null;
+	private Map<String, T> choiceMap = null;
 
-    public AutoCompleteQNamePanel(String id, final IModel<QName> model) {
+	private IModel<T> model;
+
+    public AutoCompleteQNamePanel(String id, final IModel<T> model) {
     	super(id);
+    	this.model = model;
     	initLayout(model);
     }
 
-    private void initLayout(final IModel<QName> model) {
+    private void initLayout(final IModel<T> model) {
     	setOutputMarkupId(true);
 
         AutoCompleteSettings autoCompleteSettings = createAutoCompleteSettings();
@@ -67,7 +70,11 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 				model.setObject(convertToQname(object));
 			}
 
-        };
+			@Override
+			public String getObject() {
+				return (model.getObject() != null) ? model.getObject().getLocalPart() : null;
+			}
+		};
 
 		// The inner autocomplete field is always String. Non-string auto-complete fields are problematic
         final AutoCompleteTextField<String> input = new AutoCompleteTextField<String>(ID_INPUT, stringModel, String.class, autoCompleteSettings) {
@@ -87,17 +94,17 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 			protected void onUpdate(AjaxRequestTarget target) {
 				String inputString = stringModel.getObject();
 				if (StringUtils.isBlank(inputString)) {
-					QName modelObject = model.getObject();
+					T modelObject = model.getObject();
 					if (modelObject != null) {
 						model.setObject(null);
 						AutoCompleteQNamePanel.this.onChange(target);
 					}
 				} else {
-					QName inputQName = convertToQname(stringModel.getObject());
+					T inputQName = convertToQname(stringModel.getObject());
 					if (inputQName == null) {
 						// We have some input, but it does not match any QName. Just do nothing.
 					} else {
-						QName modelObject = model.getObject();
+						T modelObject = model.getObject();
 						if (inputQName.equals(modelObject)) {
 							model.setObject(inputQName);
 							AutoCompleteQNamePanel.this.onChange(target);
@@ -112,9 +119,9 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
 
 
     private Iterator<String> getIterator(String input) {
-    	Map<String, QName> choiceMap = getChoiceMap();
+    	Map<String, T> choiceMap = getChoiceMap();
     	List<String> selected = new ArrayList<>(choiceMap.size());
-    	for (Entry<String, QName> entry: choiceMap.entrySet()) {
+    	for (Entry<String, T> entry: choiceMap.entrySet()) {
     		String key = entry.getKey();
     		if (StringUtils.startsWithIgnoreCase(key, input.toLowerCase())) {
     			selected.add(key);
@@ -123,11 +130,11 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
     	return selected.iterator();
     }
 
-    private Map<String, QName> getChoiceMap() {
+    private Map<String, T> getChoiceMap() {
     	if (choiceMap == null) {
-    		Collection<QName> choices = loadChoices();
+    		Collection<T> choices = loadChoices();
     		choiceMap = new HashMap<>();
-    		for (QName choice: choices) {
+    		for (T choice: choices) {
     			// TODO: smarter initialization of the map
     			choiceMap.put(choice.getLocalPart(), choice);
     		}
@@ -135,13 +142,13 @@ public abstract class AutoCompleteQNamePanel extends AbstractAutoCompletePanel {
     	return choiceMap;
     }
 
-	private QName convertToQname(String input) {
-		Map<String, QName> choiceMap = getChoiceMap();
+	private T convertToQname(String input) {
+		Map<String, T> choiceMap = getChoiceMap();
 		return choiceMap.get(input);
 	}
 
 
-    public abstract Collection<QName> loadChoices();
+    public abstract Collection<T> loadChoices();
 
     protected void onChange(AjaxRequestTarget target) {
     	// Nothing to do by default. For use in subclasses

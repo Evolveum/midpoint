@@ -288,6 +288,14 @@ public class SchemaTransformer {
 			AuthorizationPhaseType phase, Task task, OperationResult result) throws SecurityViolationException, SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException {
     	
     	PrismObject<O> object = elementContext.getObjectAny();
+
+    	if (object == null ) {
+    		if (elementContext.getDelta() == null) {
+    			return null;
+			} else {
+				throw new IllegalArgumentException("Cannot apply schema and security of null object");
+			}
+		}
     	GetOperationOptions getOptions = ModelExecuteOptions.toGetOperationOptions(context.getOptions());
     	authorizeOptions(getOptions, object, null, phase, task, result);
     	
@@ -563,12 +571,12 @@ public class SchemaTransformer {
 			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
 			List<? extends ItemDefinition> subDefinitions = ((PrismContainerDefinition<?>)containerDefinition).getDefinitions();
 			for (ItemDefinition subDef: subDefinitions) {
-				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getName());
+				ItemPath subPath = ItemPath.create(nameOnlyItemPath, subDef.getItemName());
 				if (subDef.isElaborate()) {
 					LOGGER.trace("applySecurityConstraints(itemDef): {}: skip (elaborate)", subPath);
 					continue;
 				}
-				if (!subDef.getName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
+				if (!subDef.getItemName().equals(ShadowType.F_ATTRIBUTES)) { // Shadow attributes have special handling
 					applySecurityConstraintsItemDef(subDef, definitionsSeen, subPath, securityConstraints,
 					    readDecision, addDecision, modifyDecision, phase);
 				}

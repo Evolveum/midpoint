@@ -115,10 +115,10 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 		}
 		for (ItemDefinition<?> def : definitions) {
 			if (StringUtils.isBlank(input)) {
-				toSelect.put(def.getName().getLocalPart(), def);
+				toSelect.put(def.getItemName().getLocalPart(), def);
 			} else {
-				if (def.getName().getLocalPart().startsWith(input)) {
-					toSelect.put(def.getName().getLocalPart(), def);
+				if (def.getItemName().getLocalPart().startsWith(input)) {
+					toSelect.put(def.getItemName().getLocalPart(), def);
 				}
 			}
 		}

@@ -296,7 +296,7 @@ public class AssignmentEditorDto extends SelectableBean implements Comparable<As
 						}
 
 						if (ItemPathTypeUtil.asSingleNameOrFail(attribute.getRef())
-								.equals(propertyDef.getName())) {
+								.equals(propertyDef.getItemName())) {
 							acAtrList.add(ACAttributeDto.createACAttributeDto(propertyDef, attribute,
 									prismContext));
 							break;

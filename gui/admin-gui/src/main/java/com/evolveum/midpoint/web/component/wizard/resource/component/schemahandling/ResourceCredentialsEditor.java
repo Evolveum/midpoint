@@ -242,7 +242,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null, task, result);
             result.recomputeStatus();
         } catch (CommonException |RuntimeException e) {
-            result.recordFatalError("Couldn't load password policies.", e);
+            result.recordFatalError(getString("ResourceCredentialsEditor.message.createPasswordPolicyList.fatalError"), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
 

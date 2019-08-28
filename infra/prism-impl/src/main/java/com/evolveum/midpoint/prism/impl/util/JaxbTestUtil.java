@@ -707,8 +707,8 @@ public class JaxbTestUtil {
 		}
 		PrismObjectDefinition<?> definition = prismObject.getDefinition();
 		if (definition != null) {
-			if (definition.getName() != null) {
-				return definition.getName();
+			if (definition.getItemName() != null) {
+				return definition.getItemName();
 			}
 		}
 		throw new IllegalStateException("Cannot determine element name of "+objectable);
@@ -718,8 +718,8 @@ public class JaxbTestUtil {
         PrismContainerValue prismContainerValue = containerable.asPrismContainerValue();
         PrismContainerDefinition<?> definition = prismContainerValue.getParent() != null ? prismContainerValue.getParent().getDefinition() : null;
         if (definition != null) {
-            if (definition.getName() != null) {
-                return definition.getName();
+            if (definition.getItemName() != null) {
+                return definition.getItemName();
             }
         }
         throw new IllegalStateException("Cannot determine element name of " + containerable + " (parent = " + prismContainerValue.getParent() + ", definition = " + definition + ")");

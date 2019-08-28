@@ -310,7 +310,7 @@ public class CapabilityStep extends WizardStep {
 								if (schema != null) {
 									ObjectClassComplexTypeDefinition def = schema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
 									for (ResourceAttributeDefinition attribute : def.getAttributeDefinitions()) {
-										choices.add(attribute.getName());
+										choices.add(attribute.getItemName());
 									}
 								}
 							} catch (CommonException | RuntimeException e) {
@@ -409,7 +409,7 @@ public class CapabilityStep extends WizardStep {
             }
         } catch (CommonException|RuntimeException e){
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save capabilities", e);
-            result.recordFatalError("Couldn't save capabilities", e);
+            result.recordFatalError(getString("CapabilityStep.message.cantSaveCaps"), e);
         } finally {
             result.computeStatusIfUnknown();
             setResult(result);
