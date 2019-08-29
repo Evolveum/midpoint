@@ -47,11 +47,6 @@ public class MidpointSubtree extends Panel {
         AbstractPageableView<TreeSelectableBean<OrgType>> branches = new AbstractPageableView<TreeSelectableBean<OrgType>>("branches") {
             private static final long serialVersionUID = 1L;
 
-//            @Override
-//            protected Iterator<IModel<TreeSelectableBean<OrgType>>> getItemModels() {
-//                return new ModelIterator();
-//            }
-
             @Override
             protected Iterator<IModel<TreeSelectableBean<OrgType>>> getItemModels(long offset, long size) {
                 return new ModelIterator(offset, size);

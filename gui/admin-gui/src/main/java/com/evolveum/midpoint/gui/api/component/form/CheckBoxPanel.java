@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.gui.api.component.form;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -40,6 +41,10 @@ public class CheckBoxPanel extends Panel {
 	private static final String ID_CHECK = "check";
 	private static final String ID_LABEL = "label";
 
+	public CheckBoxPanel(String id, IModel<Boolean> checkboxModel) {
+	    this(id, checkboxModel, null, null, null);
+    }
+
     public CheckBoxPanel(String id, IModel<Boolean> checkboxModel, final IModel<Boolean> visibilityModel, 
     		IModel<String> labelModel, IModel<String> tooltipModel) {
         super(id);
@@ -61,6 +66,7 @@ public class CheckBoxPanel extends Panel {
             }
         };
         check.setOutputMarkupId(true);
+
         if (visibilityModel != null) {
 	        check.add(new VisibleEnableBehaviour() {
 	        	private static final long serialVersionUID = 1L;
@@ -74,6 +80,7 @@ public class CheckBoxPanel extends Panel {
         container.add(check);
         
 		Label label = new Label(ID_LABEL, labelModel);
+		label.add(new VisibleBehaviour(() -> labelModel != null));
 		label.setRenderBodyOnly(true);
 		container.add(label);
         

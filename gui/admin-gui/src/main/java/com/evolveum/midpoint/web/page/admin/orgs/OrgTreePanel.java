@@ -70,6 +70,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import org.apache.wicket.model.PropertyModel;
 
 public class OrgTreePanel extends AbstractTreeTablePanel {
 	private static final long serialVersionUID = 1L;
@@ -164,7 +165,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected List<InlineMenuItem> createInlineMenuItems(OrgType org) {
+			protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org) {
 				return createTreeChildrenMenu(org);
 			}
 
@@ -173,29 +174,29 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				return OrgTreePanel.this.getCustomFilter();
 			}
 		};
-		List<IColumn<TreeSelectableBean<OrgType>, String>> columns = new ArrayList<>();
-
-		if (selectable) {
-			columns.add(new CheckBoxHeaderColumn<TreeSelectableBean<OrgType>>() {
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel) {
-					return OrgTreePanel.this.getCheckBoxValueModel(rowModel);
-				}
-
-				@Override
-				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TreeSelectableBean<OrgType>> rowModel, IModel<Boolean> selected) {
-					super.onUpdateRow(target, table, rowModel, selected);
-					rowModel.getObject().setSelected(selected.getObject());
-					onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
-				}
-			});
-		}
-
-		columns.add(new TreeColumn<>(
-            createStringResource("TreeTablePanel.hierarchy")));
-		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
+//		List<IColumn<TreeSelectableBean<OrgType>, String>> columns = new ArrayList<>();
+//
+//		if (selectable) {
+//			columns.add(new CheckBoxHeaderColumn<TreeSelectableBean<OrgType>>() {
+//				private static final long serialVersionUID = 1L;
+//
+//				@Override
+//				protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel) {
+//					return OrgTreePanel.this.getCheckBoxValueModel(rowModel);
+//				}
+//
+//				@Override
+//				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TreeSelectableBean<OrgType>> rowModel, IModel<Boolean> selected) {
+//					super.onUpdateRow(target, table, rowModel, selected);
+//					rowModel.getObject().setSelected(selected.getObject());
+//					onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
+//				}
+//			});
+//		}
+//
+//		columns.add(new TreeColumn<>(
+//            createStringResource("TreeTablePanel.hierarchy")));
+//		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
 			private static final long serialVersionUID = 1L;
@@ -234,29 +235,71 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			}
 		};
 
-		MidpointNestedTree tree = new MidpointNestedTree(ID_TREE, provider) {
+		MidpointNestedTree tree = new MidpointNestedTree(ID_TREE, provider, treeStateMode) {
 
 
 			@Override
 			protected Component newContentComponent(String id, IModel<TreeSelectableBean<OrgType>> model) {
-				return new SelectableFolderContent(id, this, model, selected) {
-					private static final long serialVersionUID = 1L;
+//				return new SelectableFolderContent(id, this, model, selected) {
+//					private static final long serialVersionUID = 1L;
+//
+//					@Override
+//					protected void onClick(Optional<AjaxRequestTarget> target) {
+//						super.onClick(target);
+//
+//						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
+//
+//						selectTreeItemPerformed(selected.getObject(), target.get());
+//
+//						Component component = get("table");
+//						if (component != null) {
+//							target.get().add(component);
+//						}
+//					}
+//				};
+				return new OrgTreeFolderContent(id, model, selectable, selected, this, getOrgTreeStateStorage()) {
 
 					@Override
-					protected void onClick(Optional<AjaxRequestTarget> target) {
-						super.onClick(target);
+					protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected, AjaxRequestTarget target) {
+						OrgTreePanel.this.selectTreeItemPerformed(selected, target);
+					}
 
-						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
+					@Override
+					protected IModel<Boolean> getCheckboxModel(IModel<TreeSelectableBean<OrgType>> org) {
+						return OrgTreePanel.this.getCheckBoxValueModel(org);
+					}
 
-						selectTreeItemPerformed(selected.getObject(), target.get());
-
-						Component component = get("table");
-						if (component != null) {
-							target.get().add(component);
-						}
+					@Override
+					protected void onUpdateCheckbox(AjaxRequestTarget target) {
+						selected = getModel();
+						onOrgTreeCheckBoxSelectionPerformed(target, selected);
 					}
 				};
 			}
+
+			@Override
+			public void collapse(TreeSelectableBean<OrgType> collapsedItem) {
+				super.collapse(collapsedItem);
+
+				Set<TreeSelectableBean<OrgType>> items = OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
+				if (items != null && items.contains(collapsedItem)) {
+					items.remove(collapsedItem);
+				}
+				OrgTreePanel.this.setExpandedItems((TreeStateSet) items, getOrgTreeStateStorage());
+				OrgTreePanel.this.setCollapsedItem(collapsedItem, getOrgTreeStateStorage());
+			}
+
+			@Override
+			protected void onModelChanged() {
+				super.onModelChanged();
+
+				TreeStateSet<TreeSelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
+				boolean isInverse = getOrgTreeStateStorage() != null ? getOrgTreeStateStorage().isInverse() : items.isInverse();
+				if (!isInverse) {
+					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
+				}
+			}
+
 		};
 //		TableTree<TreeSelectableBean<OrgType>, String> tree = new TableTree<TreeSelectableBean<OrgType>, String>(
 //				ID_TREE, columns, provider, 20, treeStateMode) {
@@ -383,7 +426,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
 //		tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
 		tree.add(new WindowsTheme());
-		// tree.add(AttributeModifier.replace("class", "tree-midpoint"));
+//		tree.add(AttributeModifier.replace("class", "tree-midpoint"));
 		treeContainer.add(tree);
 	}
 
@@ -512,7 +555,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 		return null;
 	}
 
-	protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+	protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
 		return new ArrayList<>();
 	}
 
@@ -584,7 +627,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	}
 
 	protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
-		return Model.of(rowModel.getObject().isSelected());
+		return new PropertyModel<>(rowModel, TreeSelectableBean.F_SELECTED);
 	}
 
 	protected void onOrgTreeCheckBoxSelectionPerformed(AjaxRequestTarget target, IModel<TreeSelectableBean<OrgType>> rowModel){}

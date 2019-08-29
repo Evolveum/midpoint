@@ -72,7 +72,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            protected List<InlineMenuItem> createTreeChildrenMenu(OrgType org) {
+            protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
                 return new ArrayList<>();
             }
 

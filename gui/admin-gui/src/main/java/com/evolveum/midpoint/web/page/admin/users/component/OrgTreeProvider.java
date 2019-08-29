@@ -237,11 +237,11 @@ public class OrgTreeProvider extends SortableTreeProvider<TreeSelectableBean<Org
             org.getParentOrg().add(parent.getValue());
         }
         TreeSelectableBean<OrgType> orgDto = new TreeSelectableBean<>(org);
-        orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto.getValue()));
+        orgDto.getMenuItems().addAll(createInlineMenuItems(orgDto));
         return orgDto;
     }
 
-    protected List<InlineMenuItem> createInlineMenuItems(OrgType org){
+    protected List<InlineMenuItem> createInlineMenuItems(TreeSelectableBean<OrgType> org){
     	return null;
     }
 
