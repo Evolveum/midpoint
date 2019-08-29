@@ -53,6 +53,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -634,7 +635,7 @@ public class SchemaTransformer {
     		return null;
     	}
     	ObjectReferenceType objectTemplateRef = archetypePolicy.getObjectTemplateRef();
-    	if (objectTemplateRef == null) {
+    	if (objectTemplateRef == null || StringUtils.isEmpty(objectTemplateRef.getOid())) {
     		return null;
     	}
     	PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, result);

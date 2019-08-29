@@ -356,7 +356,7 @@ public class AssignmentsUtil {
         }
 
         ObjectReferenceType targetRefObj = assignmentType.getTargetRef();
-        if (targetRefObj != null && !SchemaConstants.ORG_DEFAULT.equals(targetRefObj.getRelation())){
+        if (targetRefObj != null && !SchemaConstants.ORG_DEFAULT.equals(targetRefObj.getRelation())) {
             sb.append(pageBase.createStringResource("AbstractRoleAssignmentPanel.relationLabel").getString());
             sb.append(": ");
             String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());
@@ -365,7 +365,7 @@ public class AssignmentsUtil {
                     pageBase.createStringResource(targetRefObj.getRelation().getLocalPart()).getString());
         }
     	ObjectReferenceType tenantRef = assignmentType.getTenantRef();
-		if (tenantRef != null && !tenantRef.asReferenceValue().isEmpty()) {
+		if (tenantRef != null && tenantRef.getOid() != null) {
 			String tenantDisplayName = WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
 			if (StringUtils.isNotEmpty(tenantDisplayName)){
                 if (StringUtils.isNotEmpty(sb.toString())){
@@ -378,7 +378,7 @@ public class AssignmentsUtil {
 		}
 
 		ObjectReferenceType orgRef = assignmentType.getOrgRef();
-		if (orgRef != null && !orgRef.asReferenceValue().isEmpty()) {
+		if (orgRef != null && orgRef.getOid() != null) {
 			String orgDisplayName = WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
             if (StringUtils.isNotEmpty(orgDisplayName)){
                 if (StringUtils.isNotEmpty(sb.toString())){
