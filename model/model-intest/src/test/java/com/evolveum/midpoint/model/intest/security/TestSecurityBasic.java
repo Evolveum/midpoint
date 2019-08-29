@@ -3087,124 +3087,50 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         assertGlobalStateUntouched();
 	}
 
-	@Test
-    public void test290AutzJackRoleOwnerAssign() throws Exception {
-		final String TEST_NAME = "test290AutzJackRoleOwnerAssign";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_ASSIGN_OID);
-        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
-
-        PrismObject<UserType> user = getUser(USER_JACK_OID);
-        assertAssignments(user, 1);
-        assertLinks(user, 0);
-        
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-
-        login(USER_JACK_USERNAME);
-
-        // WHEN
-        displayWhen(TEST_NAME);
-
-        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
-        assertAddDeny();
-        assertModifyDeny();
-        assertDeleteDeny();
-
-        user = getUser(USER_JACK_OID);
-        assertAssignments(user, 1);
-        assertAssignedRole(user, ROLE_ROLE_OWNER_ASSIGN_OID);
-
-        assertAllow("assign application role 1 to jack",
-        		(task,result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
-
-        user = getUser(USER_JACK_OID);
-        assertAssignments(user, 2);
-        assertAssignedRole(user, ROLE_APPLICATION_1_OID);
-
-        assertDeny("assign application role 2 to jack", 
-        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result));
-
-        assertAllow("unassign application role 1 from jack",
-        		(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
-
-        user = getUser(USER_JACK_OID);
-        assertAssignments(user, 1);
-
-        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
-        assertRoleTypes(spec);
-        assertFilter(spec.getFilter(), TypeFilter.class);
-        assertEquals("Wrong type filter type", RoleType.COMPLEX_TYPE, ((TypeFilter)spec.getFilter()).getType());
-        ObjectFilter subfilter = ((TypeFilter)spec.getFilter()).getFilter();
-        assertFilter(subfilter, RefFilter.class);
-        assertEquals(1, ((RefFilter)subfilter).getValues().size());
-        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
-
-        assertGlobalStateUntouched();
-	}
-
-	@Test
-    public void test292AutzJackRoleOwnerFullControl() throws Exception {
-		final String TEST_NAME = "test292AutzJackRoleOwnerFullControl";
-        displayTestTitle(TEST_NAME);
-        // GIVEN
-        cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_FULL_CONTROL_OID);
-
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-
-        login(USER_JACK_USERNAME);
-
-        // WHEN
-        displayWhen(TEST_NAME);
-
-        assertGetAllow(UserType.class, USER_JACK_OID);
-		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
-
-		assertSearch(UserType.class, null, 1);
-		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
-		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
-
-        assertAddDeny();
-        assertModifyDeny();
-        assertDeleteDeny();
-
-		assertSearch(RoleType.class, null, 2);
-
-		// TODO
-
-//        PrismObject<UserType> user = getUser(USER_JACK_OID);
-//        assertAssignments(user, 2);
-//        assertAssignedRole(user, ROLE_ROLE_OWNER_FULL_CONTROL_OID);
+//	@Test
+//    public void test290AutzJackRoleOwnerAssign() throws Exception {
+//		final String TEST_NAME = "test290AutzJackRoleOwnerAssign";
+//        displayTestTitle(TEST_NAME);
+//        // GIVEN
+//        cleanupAutzTest(USER_JACK_OID);
+//        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_ASSIGN_OID);
+//        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null);
 //
-//        assertAllow("assign application role 1 to jack", new Attempt() {
-//			@Override
-//			public void run(Task task, OperationResult result) throws Exception {
-//				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-//			}
-//		});
+//        PrismObject<UserType> user = getUser(USER_JACK_OID);
+//        assertAssignments(user, 1);
+//        assertLinks(user, 0);
+//        
+//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+//
+//        login(USER_JACK_USERNAME);
+//
+//        // WHEN
+//        displayWhen(TEST_NAME);
+//
+//        assertReadAllow(NUMBER_OF_ALL_USERS + 1);
+//        assertAddDeny();
+//        assertModifyDeny();
+//        assertDeleteDeny();
 //
 //        user = getUser(USER_JACK_OID);
-//        assertAssignments(user, 3);
+//        assertAssignments(user, 1);
+//        assertAssignedRole(user, ROLE_ROLE_OWNER_ASSIGN_OID);
+//
+//        assertAllow("assign application role 1 to jack",
+//        		(task,result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
+//
+//        user = getUser(USER_JACK_OID);
+//        assertAssignments(user, 2);
 //        assertAssignedRole(user, ROLE_APPLICATION_1_OID);
 //
-//        assertDeny("assign application role 2 to jack", new Attempt() {
-//			@Override
-//			public void run(Task task, OperationResult result) throws Exception {
-//				assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result);
-//			}
-//		});
+//        assertDeny("assign application role 2 to jack", 
+//        		(task, result) -> assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result));
 //
-//        assertAllow("unassign application role 1 from jack", new Attempt() {
-//			@Override
-//			public void run(Task task, OperationResult result) throws Exception {
-//				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
-//			}
-//		});
+//        assertAllow("unassign application role 1 from jack",
+//        		(task,result) -> unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result));
 //
 //        user = getUser(USER_JACK_OID);
-//        assertAssignments(user, 2);
+//        assertAssignments(user, 1);
 //
 //        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
 //        assertRoleTypes(spec);
@@ -3214,9 +3140,83 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 //        assertFilter(subfilter, RefFilter.class);
 //        assertEquals(1, ((RefFilter)subfilter).getValues().size());
 //        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
-
-        assertGlobalStateUntouched();
-	}
+//
+//        assertGlobalStateUntouched();
+//	}
+//
+//	@Test
+//    public void test292AutzJackRoleOwnerFullControl() throws Exception {
+//		final String TEST_NAME = "test292AutzJackRoleOwnerFullControl";
+//        displayTestTitle(TEST_NAME);
+//        // GIVEN
+//        cleanupAutzTest(USER_JACK_OID);
+//        assignRole(USER_JACK_OID, ROLE_ROLE_OWNER_FULL_CONTROL_OID);
+//
+//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+//
+//        login(USER_JACK_USERNAME);
+//
+//        // WHEN
+//        displayWhen(TEST_NAME);
+//
+//        assertGetAllow(UserType.class, USER_JACK_OID);
+//		assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+//
+//		assertSearch(UserType.class, null, 1);
+//		assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+//		assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+//
+//        assertAddDeny();
+//        assertModifyDeny();
+//        assertDeleteDeny();
+//
+//		assertSearch(RoleType.class, null, 2);
+//
+//		// TODO
+//
+////        PrismObject<UserType> user = getUser(USER_JACK_OID);
+////        assertAssignments(user, 2);
+////        assertAssignedRole(user, ROLE_ROLE_OWNER_FULL_CONTROL_OID);
+////
+////        assertAllow("assign application role 1 to jack", new Attempt() {
+////			@Override
+////			public void run(Task task, OperationResult result) throws Exception {
+////				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
+////			}
+////		});
+////
+////        user = getUser(USER_JACK_OID);
+////        assertAssignments(user, 3);
+////        assertAssignedRole(user, ROLE_APPLICATION_1_OID);
+////
+////        assertDeny("assign application role 2 to jack", new Attempt() {
+////			@Override
+////			public void run(Task task, OperationResult result) throws Exception {
+////				assignRole(USER_JACK_OID, ROLE_APPLICATION_2_OID, task, result);
+////			}
+////		});
+////
+////        assertAllow("unassign application role 1 from jack", new Attempt() {
+////			@Override
+////			public void run(Task task, OperationResult result) throws Exception {
+////				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
+////			}
+////		});
+////
+////        user = getUser(USER_JACK_OID);
+////        assertAssignments(user, 2);
+////
+////        RoleSelectionSpecification spec = getAssignableRoleSpecification(getUser(USER_JACK_OID));
+////        assertRoleTypes(spec);
+////        assertFilter(spec.getFilter(), TypeFilter.class);
+////        assertEquals("Wrong type filter type", RoleType.COMPLEX_TYPE, ((TypeFilter)spec.getFilter()).getType());
+////        ObjectFilter subfilter = ((TypeFilter)spec.getFilter()).getFilter();
+////        assertFilter(subfilter, RefFilter.class);
+////        assertEquals(1, ((RefFilter)subfilter).getValues().size());
+////        assertEquals("Wrong OID in ref filter", USER_JACK_OID, ((RefFilter)subfilter).getValues().get(0).getOid());
+//
+//        assertGlobalStateUntouched();
+//	}
 
 	@Test
     public void test295AutzJackAssignOrgRelation() throws Exception {

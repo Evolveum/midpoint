@@ -22,7 +22,6 @@
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
-        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractDeprecated"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractCaching"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
@@ -124,7 +123,6 @@
             <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDefaultHashing"/>
             <!-- TestPasswordNone works only partially. It needs to be updated. -->
             <!-- <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>  -->
-            <class name="com.evolveum.midpoint.model.intest.password.TestPasswordDeprecated"/>
         </classes>
     </test>
     <!--

@@ -16,7 +16,7 @@
   -->
 
  
-<account oid="dbb0c37d-9ee6-44a4-8d39-016dbce1cccc"
+<shadow oid="dbb0c37d-9ee6-44a4-8d39-016dbce1cccc"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -37,4 +37,4 @@
 			</value>
 		</password>
 	</credentials>
-</account>
+</shadow>

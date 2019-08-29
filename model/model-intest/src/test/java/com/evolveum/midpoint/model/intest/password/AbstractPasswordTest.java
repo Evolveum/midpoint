@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 	protected static final File SECURITY_POLICY_PASSWORD_STORAGE_NONE_FILE = new File(TEST_DIR, "security-policy-password-storage-none.xml");
 	protected static final String SECURITY_POLICY_PASSWORD_STORAGE_NONE_OID = "2997a20a-0423-11e7-af65-a7ab7d19442c";
+	
+	protected static final File SECURITY_POLICY_GOVERNOR_FILE = new File(TEST_DIR, "security-policy-governor.xml");
+	protected static final String SECURITY_POLICY_GOVERNOR_OID = "12344321-0000-0000-0055-000000000003";
 
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_BAD = "No1";
 	protected static final String USER_JACK_EMPLOYEE_NUMBER_NEW_GOOD = "pir321";
@@ -193,19 +196,40 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // GIVEN
         Task task = createTask(TEST_NAME);
         OperationResult result = task.getResult();
-        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
 		// WHEN
         PrismObject<ObjectType> passwordPolicy = addObject(PASSWORD_POLICY_GLOBAL_FILE, task, result);
 
 		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+        assertSuccess(result);
 
         assertEquals("Wrong OID after add", PASSWORD_POLICY_GLOBAL_OID, passwordPolicy.getOid());
 
 		// Check object
         PrismObject<ValuePolicyType> valuePolicy = repositoryService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, result);
+
+        // TODO: more asserts
+	}
+	
+	@Test
+    public void test012AddSecurityPolicy() throws Exception {
+		final String TEST_NAME = "test012AddSecurityPolicy";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+		// WHEN
+        PrismObject<SecurityPolicyType> securityPolicy = addObject(SECURITY_POLICY_GOVERNOR_FILE, task, result);
+
+		// THEN
+        assertSuccess(result);
+
+        assertEquals("Wrong OID after add", SECURITY_POLICY_GOVERNOR_OID, securityPolicy.getOid());
+
+		// Check object
+        PrismObject<SecurityPolicyType> securityPolicyAfter = repositoryService.getObject(SecurityPolicyType.class, SECURITY_POLICY_GOVERNOR_OID, null, result);
 
         // TODO: more asserts
 	}
@@ -312,11 +336,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
 		// WHEN
-        TestUtil.displayWhen(TEST_NAME);
+        displayWhen(TEST_NAME);
         addObject(USER_HERMAN_FILE, task, result);
 
 		// THEN
-        TestUtil.displayThen(TEST_NAME);
+        displayThen(TEST_NAME);
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
 
@@ -1473,13 +1497,13 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		assertEquals("Wrong # of parentOrgRefs", 2, jack.getParentOrgRef().size());
 
 		ObjectDelta<OrgType> orgDelta = prismContext.deltaFor(OrgType.class)
-				.item(OrgType.F_PASSWORD_POLICY_REF).replace(itemFactory().createReferenceValue(PASSWORD_POLICY_GLOBAL_OID))
+				.item(OrgType.F_SECURITY_POLICY_REF).replace(itemFactory().createReferenceValue(SECURITY_POLICY_GOVERNOR_OID))
 				.asObjectDelta(ORG_GOVERNOR_OFFICE_OID);
 		executeChanges(orgDelta, null, task, result);
 
 		OrgType govOffice = getObject(OrgType.class, ORG_GOVERNOR_OFFICE_OID).asObjectable();
 		display("governor's office", govOffice);
-		assertEquals("Wrong OID of password policy ref", PASSWORD_POLICY_GLOBAL_OID, govOffice.getPasswordPolicyRef().getOid());
+		assertEquals("Wrong OID of security policy ref", SECURITY_POLICY_GOVERNOR_OID, govOffice.getSecurityPolicyRef().getOid());
 
 		try {
 			// WHEN
@@ -1584,11 +1608,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		prepareTest();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_VALID_2, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -1649,7 +1673,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		try {
 			// WHEN+THEN
-			TestUtil.displayWhen(TEST_NAME);
+			displayWhen(TEST_NAME);
 			try {
 				modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
 				fail("unexpected success");
@@ -1684,13 +1708,12 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		prepareTest();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, PASSWORD_VALUE_PATH, task, result /*, no value */);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		TestUtil.assertSuccess(result);
+		displayThen(TEST_NAME);
+		assertSuccess(result);
 
 		PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
 		display("User after change execution", userAfter);
@@ -1733,11 +1756,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		prepareTest();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_JACK_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -1836,11 +1859,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		prepareTest();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result, "emp0000");
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -1870,11 +1893,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		prepareTest();
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		modifyUserReplace(USER_JACK_OID, UserType.F_EMPLOYEE_NUMBER, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -2414,11 +2437,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		addObject(userBefore, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -2696,11 +2719,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		recomputeUser(USER_RAPP_OID, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -2760,11 +2783,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 		display("User before", userBefore);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		assignAccountToUser(USER_RAPP_OID, RESOURCE_DUMMY_LIFECYCLE_OID, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -2816,11 +2839,11 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         shadowDelta.addModificationReplaceProperty(ObjectType.F_LIFECYCLE_STATE, SchemaConstants.LIFECYCLE_ACTIVE);
 
 		// WHEN
-		TestUtil.displayWhen(TEST_NAME);
+		displayWhen(TEST_NAME);
 		executeChanges(shadowDelta, null, task, result);
 
 		// THEN
-		TestUtil.displayThen(TEST_NAME);
+		displayThen(TEST_NAME);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 
@@ -3969,7 +3992,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
 		try {
 			// WHEN+THEN
-			TestUtil.displayWhen(TEST_NAME);
+			displayWhen(TEST_NAME);
 			try {
 				UserType user = new UserType(prismContext).name("passwordless");
 				addObject(user.asPrismObject(), task, result);

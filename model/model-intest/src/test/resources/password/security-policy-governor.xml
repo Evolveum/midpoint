@@ -15,20 +15,13 @@
   ~ limitations under the License.
   -->
 
-<securityPolicy oid="28bf845a-b107-11e3-85bc-001e8c717e5b" 
+<securityPolicy oid="12344321-0000-0000-0055-000000000003" 
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
-	<name>Security Policy</name>
+	<name>Security Policy: Governor</name>
 	<credentials>
-		<securityQuestions>
-			<question>
-				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
-				<enabled>true</enabled>
-				<questionText>How much wood would a woodchuck chuck if woodchuck could chuck wood?</questionText>
-			</question>
-			<question>
-				<identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q002</identifier>
-				<questionText>What is your mother's best friend's uncle's grandaughter's dog's mother maiden name?</questionText>
-			</question>
-		</securityQuestions>
+		<password>
+			<!-- "Global" password policy -->
+			<valuePolicyRef oid="12344321-0000-0000-0000-000000000003"/>
+		</password>
 	</credentials>
 </securityPolicy>

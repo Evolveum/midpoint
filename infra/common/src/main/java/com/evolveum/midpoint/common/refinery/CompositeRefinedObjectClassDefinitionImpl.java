@@ -351,8 +351,13 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
 	}
 
 	@Override
+	@Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		return structuralObjectClassDefinition.getPasswordPolicy();
+	}
+
+	public ObjectReferenceType getSecurityPolicyRef() {
+		return structuralObjectClassDefinition.getSecurityPolicyRef();
 	}
 
 	@Override

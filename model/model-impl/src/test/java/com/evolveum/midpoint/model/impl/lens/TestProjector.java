@@ -92,7 +92,7 @@ public class TestProjector extends AbstractLensTest {
 		addObject(ORG_BRETHREN_FILE);
 		addObject(ROLE_MUTINIER_FILE);
 		
-		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
+//		repoAddObjectFromFile(SECURITY_POLICY_FILE, initResult);
 		
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);

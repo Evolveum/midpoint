@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceConsistencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -207,10 +208,15 @@ public abstract class ErrorHandler {
 	}
 	
 	protected boolean isOperationRetryEnabled(ResourceType resource) {
-		if (resource.getConsistency() == null) {
+		ResourceConsistencyType consistency = resource.getConsistency();
+		if (consistency == null) {
 			return true;
 		}
-		return false;
+		Integer operationRetryMaxAttempts = consistency.getOperationRetryMaxAttempts();
+		if (operationRetryMaxAttempts == null) {
+			return true;
+		}
+		return operationRetryMaxAttempts != 0;
 	}
 	
 	protected boolean isCompletePostponedOperations(ProvisioningOperationOptions options) {

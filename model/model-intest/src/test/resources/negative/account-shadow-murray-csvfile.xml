@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<account oid="ef2bc95b-76e0-1111-d3ad-3d4f12120666"
+<shadow oid="ef2bc95b-76e0-1111-d3ad-3d4f12120666"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
@@ -30,4 +30,4 @@
 	<attributes>
 		<ri:username xsi:type="xsd:string">murray</ri:username>
 	</attributes>
-</account>
+</shadow>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum
+  ~ Copyright (c) 2010-2019 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -443,10 +443,18 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="projectionSecurityPolicyRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>c:SecurityPolicyType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="accountPasswordPolicy" type="c:ValuePolicyType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:objectReference>tns:accountPasswordPolicyRef</a:objectReference>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -454,7 +462,7 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:objectReferenceTargetType>c:ValuePolicyType</a:objectReferenceTargetType>
-                                <a:composite>true</a:composite>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

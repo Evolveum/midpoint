@@ -6595,6 +6595,18 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="securityPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>
+                        	Reference to the object type security policy settings.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:SecurityPolicyType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="lifecycle" minOccurs="0" type="tns:ResourceObjectLifecycleDefinitionType">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8167,10 +8179,16 @@
             <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Reference to the account type password policy settings.
+                    	<p>
+                        	Reference to the account type password policy settings.
+                        </p>
+                        <p>
+                        	DEPRECATED: use securityPolicyRef in objectType element instead.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
             			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+            			<a:deprecated>true</a:deprecated>
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

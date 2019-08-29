@@ -506,7 +506,17 @@ public class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefin
 		return password.getFetchStrategy();
 	}
 
+	
 	@Override
+	public ObjectReferenceType getSecurityPolicyRef() {
+		if (schemaHandlingObjectTypeDefinitionType == null) {
+			return null;
+		}
+		return schemaHandlingObjectTypeDefinitionType.getSecurityPolicyRef();
+	}
+	
+	@Override
+	@Deprecated
 	public ObjectReferenceType getPasswordPolicy() {
 		ResourcePasswordDefinitionType password = getPasswordDefinition();
 		if (password == null || password.getPasswordPolicyRef() == null){

@@ -224,11 +224,21 @@
           "maxIterations" : 5
         },
         "protected" : [ {
-          "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3",
-          "name" : "daviejones"
+	        "filter" : {
+	        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+	          "equal" : [ {
+	            "path" : "attributes/name",
+	            "value" : "daviejones"
+	          } ]
+	        }
         }, {
-          "@ns" : "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3",
-          "name" : "calypso"
+	        "filter" : {
+	        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+	          "equal" : [ {
+	            "path" : "attributes/name",
+	            "value" : "calypso"
+	          } ]
+	        }
         } ],
         "activation" : {
           "existence" : {
