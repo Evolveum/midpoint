@@ -464,8 +464,17 @@ public class PrismValuePanel extends BasePanel<ValueWrapper> {
 		
 		ObjectWrapper<O> objectWrapper = cWrapper.getObjectWrapper();
 		PrismObject<O> newObject = objectWrapper.getObject().clone();
-		
+
 		try {
+
+			if (objectWrapper.getObjectDelta() != null && objectWrapper.getObjectDelta().isAdd()) {
+				PrismObject<O> objectToAdd = objectWrapper.getObjectDelta().getObjectToAdd();
+				if (objectToAdd == null) {
+					return null;
+				}
+				return objectToAdd.asObjectable();
+			}
+
 			objectWrapper.getObjectDelta().applyTo(newObject);
 		} catch (SchemaException e) {
 			return null;
