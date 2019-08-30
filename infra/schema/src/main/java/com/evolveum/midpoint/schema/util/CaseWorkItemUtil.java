@@ -70,4 +70,8 @@ public class CaseWorkItemUtil {
         }
         return null;
     }
+
+    public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem){
+        return workItem != null && workItem.getCloseTimestamp() == null;
+    }
 }

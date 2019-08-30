@@ -25,6 +25,7 @@ import java.util.function.Function;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
@@ -40,8 +41,10 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchFormPanel;
@@ -84,8 +87,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.IsolatedCheckBoxPanel;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.cases.dto.CaseWorkItemDtoProvider;
@@ -173,6 +174,17 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
                 private static final long serialVersionUID = 1L;
 
                 @Override
+                protected List<InlineMenuItem> createRowActions() {
+                    List<InlineMenuItem> menu = super.createRowActions();
+
+                    List<InlineMenuItem> additionalMenu = PageCaseWorkItems.this.createRowActions();
+                    if (additionalMenu != null){
+                        menu.addAll(additionalMenu);
+                    }
+                    return menu;
+                }
+
+                @Override
                 protected ObjectFilter getCaseWorkItemsFilter(){
                     return PageCaseWorkItems.this.getCaseWorkItemsFilter();
                 }
@@ -186,8 +198,12 @@ public class PageCaseWorkItems extends PageAdminCaseWorkItems {
         return null;
     }
 
-    private Table getCaseWorkItemsTable() {
-        return (Table) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
+    protected List<InlineMenuItem> createRowActions(){
+        return new ArrayList<>();
+    }
+
+    protected CaseWorkItemsPanel getCaseWorkItemsTable() {
+        return (CaseWorkItemsPanel) get(createComponentPath(ID_CASE_WORK_ITEMS_TABLE));
     }
 
     //todo peace of old code. not sure if it should be implemented

@@ -75,7 +75,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private void initLayout(){
         WebMarkupContainer actionButtonsContainer = new WebMarkupContainer(ID_ACTION_BUTTONS);
         actionButtonsContainer.setOutputMarkupId(true);
-        actionButtonsContainer.add(new VisibleBehaviour(() -> !isParentCaseClosed()));
+        actionButtonsContainer.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(CaseWorkItemActionsPanel.this.getModelObject())));
         add(actionButtonsContainer);
 
         AjaxButton workItemApproveButton = new AjaxButton(ID_WORK_ITEM_APPROVE_BUTTON, getApproveButtonTitleModel()) {
