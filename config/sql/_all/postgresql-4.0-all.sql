@@ -176,12 +176,6 @@ CREATE TABLE m_assignment_ext_string (
 CREATE TABLE m_assignment_extension (
   owner_id        INT4        NOT NULL,
   owner_owner_oid VARCHAR(36) NOT NULL,
-  booleansCount   INT2,
-  datesCount      INT2,
-  longsCount      INT2,
-  polysCount      INT2,
-  referencesCount INT2,
-  stringsCount    INT2,
   PRIMARY KEY (owner_owner_oid, owner_id)
 );
 CREATE TABLE m_assignment_policy_situation (
@@ -289,10 +283,11 @@ CREATE TABLE m_case_wi (
 CREATE TABLE m_case_wi_reference (
   owner_id        INT4         NOT NULL,
   owner_owner_oid VARCHAR(36)  NOT NULL,
+  reference_type  INT4         NOT NULL,
   relation        VARCHAR(157) NOT NULL,
   targetOid       VARCHAR(36)  NOT NULL,
   targetType      INT4,
-  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
 );
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR(36) NOT NULL,
@@ -316,16 +311,13 @@ CREATE TABLE m_focus_policy_situation (
 );
 CREATE TABLE m_object (
   oid                   VARCHAR(36) NOT NULL,
-  booleansCount         INT2,
   createChannel         VARCHAR(255),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR(157),
   creatorRef_targetOid  VARCHAR(36),
   creatorRef_type       INT4,
-  datesCount            INT2,
   fullObject            BYTEA,
   lifecycleState        VARCHAR(255),
-  longsCount            INT2,
   modifierRef_relation  VARCHAR(157),
   modifierRef_targetOid VARCHAR(36),
   modifierRef_type      INT4,
@@ -334,9 +326,6 @@ CREATE TABLE m_object (
   name_norm             VARCHAR(255),
   name_orig             VARCHAR(255),
   objectTypeClass       INT4,
-  polysCount            INT2,
-  referencesCount       INT2,
-  stringsCount          INT2,
   tenantRef_relation    VARCHAR(157),
   tenantRef_targetOid   VARCHAR(36),
   tenantRef_type        INT4,
