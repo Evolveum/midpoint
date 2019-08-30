@@ -756,6 +756,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
 		ObjectQuery query = prismContext.queryFor(ShadowType.class)
 				.item(ShadowType.F_RESOURCE_REF).ref(resourceOid)
+				.and()
+				.exists(ShadowType.F_PENDING_OPERATION)
 				.build();
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(ShadowType.class, query, null, opResult);
 

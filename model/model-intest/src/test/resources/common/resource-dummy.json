@@ -82,9 +82,9 @@
           "inbound" : [ {
             "strength" : "weak",
             "expression" : {
+              "allowEmptyValues" : true,
               "script" : [ {
                 "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
-                "allowEmptyValues" : true,
                 "code" : "\n\t\t\t\t\t\t\t\tif (input?.contains('#')) {\n                            \t\treturn null\n                        \t\t} else {\n                            \t\treturn input\n                        \t\t}\n\t\t\t\t\t\t\t"
               } ]
             },
@@ -122,9 +122,9 @@
           "displayName" : "Ship",
           "inbound" : [ {
             "expression" : {
+              "allowEmptyValues" : false,
               "script" : [ {
                 "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ScriptExpressionEvaluatorType",
-                "allowEmptyValues" : false,
                 "code" : "'The crew of ' + input"
               } ]
             },
@@ -225,19 +225,19 @@
         },
         "protected" : [ {
 	        "filter" : {
-	        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-	          "equal" : [ {
+	          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+	          "equal" : {
 	            "path" : "attributes/name",
 	            "value" : "daviejones"
-	          } ]
+	          }
 	        }
         }, {
 	        "filter" : {
-	        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-	          "equal" : [ {
+	          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
+	          "equal" : {
 	            "path" : "attributes/name",
 	            "value" : "calypso"
-	          } ]
+	          }
 	        }
         } ],
         "activation" : {
