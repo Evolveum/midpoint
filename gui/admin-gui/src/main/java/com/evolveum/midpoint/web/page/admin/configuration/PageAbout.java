@@ -443,10 +443,6 @@ public class PageAbout extends PageAdminConfiguration {
 				resetStateToInitialConfig(target);
 			}
 
-			@Override
-			public boolean getLabelEscapeModelStrings() {
-				return false;
-			}
 		};
 	}
     
