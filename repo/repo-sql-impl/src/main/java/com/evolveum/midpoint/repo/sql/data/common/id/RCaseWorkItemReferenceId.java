@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
+import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -29,6 +31,7 @@ public class RCaseWorkItemReferenceId implements Serializable {
     private Integer ownerId;
     private String targetOid;
     private String relation;
+    private RCaseWorkItemReferenceOwner referenceType;
 
     public RCaseWorkItemReferenceId() {
     }
@@ -65,6 +68,14 @@ public class RCaseWorkItemReferenceId implements Serializable {
         this.relation = relation;
     }
 
+    public RCaseWorkItemReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RCaseWorkItemReferenceOwner referenceType) {
+        this.referenceType = referenceType;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -75,12 +86,13 @@ public class RCaseWorkItemReferenceId implements Serializable {
         return Objects.equals(ownerOwnerOid, that.ownerOwnerOid) &&
                 Objects.equals(ownerId, that.ownerId) &&
                 Objects.equals(targetOid, that.targetOid) &&
-                Objects.equals(relation, that.relation);
+                Objects.equals(relation, that.relation) &&
+                Objects.equals(referenceType, that.referenceType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOwnerOid, ownerId, targetOid, relation);
+        return Objects.hash(ownerOwnerOid, ownerId, targetOid, relation, referenceType);
     }
 
     @Override
@@ -90,6 +102,7 @@ public class RCaseWorkItemReferenceId implements Serializable {
                 ", ownerId=" + ownerId +
                 ", targetOid='" + targetOid + '\'' +
                 ", relation='" + relation + '\'' +
+                ", referenceType='" + referenceType + '\'' +
                 '}';
     }
 }

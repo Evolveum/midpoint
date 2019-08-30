@@ -176,12 +176,6 @@ CREATE TABLE m_assignment_ext_string (
 CREATE TABLE m_assignment_extension (
   owner_id        INT                                   NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount   SMALLINT,
-  datesCount      SMALLINT,
-  longsCount      SMALLINT,
-  polysCount      SMALLINT,
-  referencesCount SMALLINT,
-  stringsCount    SMALLINT,
   PRIMARY KEY (owner_owner_oid, owner_id)
 );
 CREATE TABLE m_assignment_policy_situation (
@@ -289,10 +283,11 @@ CREATE TABLE m_case_wi (
 CREATE TABLE m_case_wi_reference (
   owner_id        INT                                    NOT NULL,
   owner_owner_oid NVARCHAR(36) COLLATE database_default  NOT NULL,
+  reference_type  INT                                    NOT NULL,
   relation        NVARCHAR(157) COLLATE database_default NOT NULL,
   targetOid       NVARCHAR(36) COLLATE database_default  NOT NULL,
   targetType      INT,
-  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
 );
 CREATE TABLE m_connector_target_system (
   connector_oid    NVARCHAR(36) COLLATE database_default NOT NULL,
@@ -316,16 +311,13 @@ CREATE TABLE m_focus_policy_situation (
 );
 CREATE TABLE m_object (
   oid                   NVARCHAR(36) COLLATE database_default NOT NULL,
-  booleansCount         SMALLINT,
   createChannel         NVARCHAR(255) COLLATE database_default,
   createTimestamp       DATETIME2,
   creatorRef_relation   NVARCHAR(157) COLLATE database_default,
   creatorRef_targetOid  NVARCHAR(36) COLLATE database_default,
   creatorRef_type       INT,
-  datesCount            SMALLINT,
   fullObject            VARBINARY(MAX),
   lifecycleState        NVARCHAR(255) COLLATE database_default,
-  longsCount            SMALLINT,
   modifierRef_relation  NVARCHAR(157) COLLATE database_default,
   modifierRef_targetOid NVARCHAR(36) COLLATE database_default,
   modifierRef_type      INT,
@@ -334,9 +326,6 @@ CREATE TABLE m_object (
   name_norm             NVARCHAR(255) COLLATE database_default,
   name_orig             NVARCHAR(255) COLLATE database_default,
   objectTypeClass       INT,
-  polysCount            SMALLINT,
-  referencesCount       SMALLINT,
-  stringsCount          SMALLINT,
   tenantRef_relation    NVARCHAR(157) COLLATE database_default,
   tenantRef_targetOid   NVARCHAR(36) COLLATE database_default,
   tenantRef_type        INT,

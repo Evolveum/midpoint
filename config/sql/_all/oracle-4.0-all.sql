@@ -176,12 +176,6 @@ CREATE TABLE m_assignment_ext_string (
 CREATE TABLE m_assignment_extension (
   owner_id        NUMBER(10, 0)     NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR) NOT NULL,
-  booleansCount   NUMBER(5, 0),
-  datesCount      NUMBER(5, 0),
-  longsCount      NUMBER(5, 0),
-  polysCount      NUMBER(5, 0),
-  referencesCount NUMBER(5, 0),
-  stringsCount    NUMBER(5, 0),
   PRIMARY KEY (owner_owner_oid, owner_id)
 ) INITRANS 30;
 CREATE TABLE m_assignment_policy_situation (
@@ -289,10 +283,11 @@ CREATE TABLE m_case_wi (
 CREATE TABLE m_case_wi_reference (
   owner_id        NUMBER(10, 0)      NOT NULL,
   owner_owner_oid VARCHAR2(36 CHAR)  NOT NULL,
+  reference_type  NUMBER(10, 0)      NOT NULL,
   relation        VARCHAR2(157 CHAR) NOT NULL,
   targetOid       VARCHAR2(36 CHAR)  NOT NULL,
   targetType      NUMBER(10, 0),
-  PRIMARY KEY (owner_owner_oid, owner_id, targetOid, relation)
+  PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation)
 ) INITRANS 30;
 CREATE TABLE m_connector_target_system (
   connector_oid    VARCHAR2(36 CHAR) NOT NULL,
@@ -316,16 +311,13 @@ CREATE TABLE m_focus_policy_situation (
 ) INITRANS 30;
 CREATE TABLE m_object (
   oid                   VARCHAR2(36 CHAR) NOT NULL,
-  booleansCount         NUMBER(5, 0),
   createChannel         VARCHAR2(255 CHAR),
   createTimestamp       TIMESTAMP,
   creatorRef_relation   VARCHAR2(157 CHAR),
   creatorRef_targetOid  VARCHAR2(36 CHAR),
   creatorRef_type       NUMBER(10, 0),
-  datesCount            NUMBER(5, 0),
   fullObject            BLOB,
   lifecycleState        VARCHAR2(255 CHAR),
-  longsCount            NUMBER(5, 0),
   modifierRef_relation  VARCHAR2(157 CHAR),
   modifierRef_targetOid VARCHAR2(36 CHAR),
   modifierRef_type      NUMBER(10, 0),
@@ -334,9 +326,6 @@ CREATE TABLE m_object (
   name_norm             VARCHAR2(255 CHAR),
   name_orig             VARCHAR2(255 CHAR),
   objectTypeClass       NUMBER(10, 0),
-  polysCount            NUMBER(5, 0),
-  referencesCount       NUMBER(5, 0),
-  stringsCount          NUMBER(5, 0),
   tenantRef_relation    VARCHAR2(157 CHAR),
   tenantRef_targetOid   VARCHAR2(36 CHAR),
   tenantRef_type        NUMBER(10, 0),

@@ -1728,10 +1728,15 @@
 		<state>open</state>
 		<workItem id="1">
 			<assigneeRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>
+			<candidateRef oid="5905f321-630f-4de3-abc9-ba3a614aac36" type="UserType"/>		<!-- intentionally the same as assignee -->
+			<candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>
 		</workItem>
 		<workItem id="2">
 			<assigneeRef oid="bd1bd88f-b200-4029-a860-85e694eef51b" type="UserType"/>
 			<assigneeRef oid="71a9f7fc-b93e-4f3e-8815-515b61260a49" type="UserType"/>
+			<candidateRef oid="d2bda14f-8571-4c99-bbe4-25c132650998" type="UserType"/>		<!-- intentionally the same as in work item 1 -->
+			<candidateRef oid="dc3cf68d-7717-4c73-abcc-202c83887ff1" type="UserType"/>
+			<candidateRef oid="6ff9dce3-6301-4147-9989-d49f3bcfbdbd" type="UserType"/>
 		</workItem>
 	</case>
 </objects>

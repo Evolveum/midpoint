@@ -101,3 +101,57 @@ ALTER TABLE m_audit_resource
 -- 2019-07-30 11:30
 
 ALTER TABLE m_audit_item ALTER COLUMN changedItemPath nvarchar(442) NOT NULL;
+
+-- 2019-08-30 12:32
+
+ALTER TABLE m_case_wi_reference ADD reference_type INT DEFAULT 0 NOT NULL;
+
+-- This will delete the primary key for M_CASE_WI_REFERENCE table
+DECLARE @sql NVARCHAR(MAX);
+SELECT @sql = 'ALTER TABLE m_case_wi_reference DROP CONSTRAINT ' + name + ';'
+    FROM sys.key_constraints
+    WHERE [type] = 'PK'
+        AND [parent_object_id] = OBJECT_ID('m_case_wi_reference');
+EXEC sp_executeSQL @sql;
+
+ALTER TABLE m_case_wi_reference ADD PRIMARY KEY(owner_owner_oid, owner_id, reference_type, targetOid, relation);
+
+ALTER TABLE m_assignment_extension DROP COLUMN booleansCount;
+ALTER TABLE m_assignment_extension DROP COLUMN datesCount;
+ALTER TABLE m_assignment_extension DROP COLUMN longsCount;
+ALTER TABLE m_assignment_extension DROP COLUMN polysCount;
+ALTER TABLE m_assignment_extension DROP COLUMN referencesCount;
+ALTER TABLE m_assignment_extension DROP COLUMN stringsCount;
+
+ALTER TABLE m_object DROP COLUMN booleansCount;
+ALTER TABLE m_object DROP COLUMN datesCount;
+ALTER TABLE m_object DROP COLUMN longsCount;
+ALTER TABLE m_object DROP COLUMN polysCount;
+ALTER TABLE m_object DROP COLUMN referencesCount;
+ALTER TABLE m_object DROP COLUMN stringsCount;
+
+DROP TABLE act_evt_log;
+DROP TABLE act_ge_property;
+DROP TABLE act_hi_actinst;
+DROP TABLE act_hi_attachment;
+DROP TABLE act_hi_comment;
+DROP TABLE act_hi_detail;
+DROP TABLE act_hi_identitylink;
+DROP TABLE act_hi_procinst;
+DROP TABLE act_hi_taskinst;
+DROP TABLE act_hi_varinst;
+DROP TABLE act_id_info;
+DROP TABLE act_id_membership;
+DROP TABLE act_id_group;
+DROP TABLE act_id_user;
+DROP TABLE act_procdef_info;
+DROP TABLE act_re_model;
+DROP TABLE act_ru_event_subscr;
+DROP TABLE act_ru_identitylink;
+DROP TABLE act_ru_job;
+DROP TABLE act_ru_task;
+DROP TABLE act_ru_variable;
+DROP TABLE act_ge_bytearray;
+DROP TABLE act_re_deployment;
+DROP TABLE act_ru_execution;
+DROP TABLE act_re_procdef;

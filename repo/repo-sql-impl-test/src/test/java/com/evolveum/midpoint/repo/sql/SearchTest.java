@@ -1072,4 +1072,65 @@ public class SearchTest extends BaseSQLRepoTest {
             assertTrue("returned object is not a AssignmentHolderType: " + object, object.asObjectable() instanceof AssignmentHolderType);
         }
     }
+
+    @Test
+    public void testCaseWorkItemAssignee() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_ASSIGNEE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, cases.size());
+    }
+
+    @Test
+    public void testCaseWorkItemCandidate() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_CANDIDATE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, cases.size());
+    }
+
+    @Test
+    public void testCaseWorkItemCandidateOther() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, CaseWorkItemType.F_CANDIDATE_REF).ref("d2bda14f-8571-4c99-bbe4-25c132650998")
+                .build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<CaseType>> cases = repositoryService.searchObjects(CaseType.class, query,
+                schemaHelper.getOperationOptionsBuilder().distinct().build(), result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one object", 1, cases.size());
+    }
+
+    @Test
+    public void testWorkItemCandidate() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_CANDIDATE_REF).ref("d2bda14f-8571-4c99-bbe4-25c132650998")
+                .build();
+        OperationResult result = new OperationResult("search");
+        SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of work items found", 2, workItems.size());
+    }
+
+    @Test
+    public void testWorkItemCandidateOther() throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_CANDIDATE_REF).ref("5905f321-630f-4de3-abc9-ba3a614aac36")
+                .build();
+        OperationResult result = new OperationResult("search");
+        SearchResultList<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Wrong # of work items found", 1, workItems.size());
+    }
 }
