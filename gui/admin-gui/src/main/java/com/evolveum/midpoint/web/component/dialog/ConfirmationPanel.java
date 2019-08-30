@@ -58,9 +58,9 @@ public class ConfirmationPanel extends Panel implements Popupable {
 		initLayout(message);
 	}
 
-	public boolean getLabelEscapeModelStrings() {
-		return true;
-	}
+//	public boolean getLabelEscapeModelStrings() {
+//		return true;
+//	}
 
 	public void setMessage(IModel<String> message) {
 		Label label = (Label) get(ID_PANEL).get(ID_CONFIRM_TEXT);
@@ -71,7 +71,7 @@ public class ConfirmationPanel extends Panel implements Popupable {
 		WebMarkupContainer panel = new WebMarkupContainer(ID_PANEL);
 
 		Label label = new Label(ID_CONFIRM_TEXT, message);
-		label.setEscapeModelStrings(getLabelEscapeModelStrings());
+		label.setEscapeModelStrings(true);
 		panel.add(label);
 
 		AjaxButton yesButton = new AjaxButton(ID_YES,

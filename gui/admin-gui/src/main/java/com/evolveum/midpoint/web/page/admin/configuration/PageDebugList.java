@@ -857,11 +857,6 @@ public class PageDebugList extends PageAdminConfiguration {
 					}
 				}
 			}
-
-			@Override
-			public boolean getLabelEscapeModelStrings() {
-				return false;
-			}
 		};
 	}
 
