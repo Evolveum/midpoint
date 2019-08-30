@@ -79,7 +79,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 	private boolean selectable;
     private String treeTitleKey = "";
-//	SessionStorage storage;
 	List<OrgType> preselecteOrgsList = new ArrayList<>();
 
 
@@ -94,9 +93,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 	public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey,
 						List<OrgType> preselecteOrgsList) {
 		super(id, rootOid);
-
-//		MidPointAuthWebSession session = OrgTreePanel.this.getSession();
-//		storage = session.getSessionStorage();
 
 		this.treeTitleKey = treeTitleKey;
 		this.selectable = selectable;
@@ -174,29 +170,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 				return OrgTreePanel.this.getCustomFilter();
 			}
 		};
-//		List<IColumn<TreeSelectableBean<OrgType>, String>> columns = new ArrayList<>();
-//
-//		if (selectable) {
-//			columns.add(new CheckBoxHeaderColumn<TreeSelectableBean<OrgType>>() {
-//				private static final long serialVersionUID = 1L;
-//
-//				@Override
-//				protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel) {
-//					return OrgTreePanel.this.getCheckBoxValueModel(rowModel);
-//				}
-//
-//				@Override
-//				protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<TreeSelectableBean<OrgType>> rowModel, IModel<Boolean> selected) {
-//					super.onUpdateRow(target, table, rowModel, selected);
-//					rowModel.getObject().setSelected(selected.getObject());
-//					onOrgTreeCheckBoxSelectionPerformed(target, rowModel);
-//				}
-//			});
-//		}
-//
-//		columns.add(new TreeColumn<>(
-//            createStringResource("TreeTablePanel.hierarchy")));
-//		columns.add(new InlineMenuHeaderColumn(createTreeChildrenMenu(null)));
 
 		WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
 			private static final long serialVersionUID = 1L;
@@ -240,23 +213,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 
 			@Override
 			protected Component newContentComponent(String id, IModel<TreeSelectableBean<OrgType>> model) {
-//				return new SelectableFolderContent(id, this, model, selected) {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					protected void onClick(Optional<AjaxRequestTarget> target) {
-//						super.onClick(target);
-//
-//						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
-//
-//						selectTreeItemPerformed(selected.getObject(), target.get());
-//
-//						Component component = get("table");
-//						if (component != null) {
-//							target.get().add(component);
-//						}
-//					}
-//				};
 				return new OrgTreeFolderContent(id, model, selectable, selected, this, getOrgTreeStateStorage()) {
 
 					@Override
@@ -301,128 +257,6 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
 			}
 
 		};
-//		TableTree<TreeSelectableBean<OrgType>, String> tree = new TableTree<TreeSelectableBean<OrgType>, String>(
-//				ID_TREE, columns, provider, 20, treeStateMode) {
-//			private static final long serialVersionUID = 1L;
-//
-//			@Override
-//			protected Component newContentComponent(String id, IModel<TreeSelectableBean<OrgType>> model) {
-//				return new SelectableFolderContent(id, this, model, selected) {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					protected void onClick(Optional<AjaxRequestTarget> target) {
-//						super.onClick(target);
-//
-//						OrgTreePanel.this.setSelectedItem(selected.getObject(), getOrgTreeStateStorage());
-//
-//						selectTreeItemPerformed(selected.getObject(), target.get());
-//
-//						Component component = get("table");
-//						if (component != null) {
-//							target.get().add(component);
-//						}
-//					}
-//				};
-//			}
-//
-//			@Override
-//			protected Item<TreeSelectableBean<OrgType>> newRowItem(String id, int index,
-//					final IModel<TreeSelectableBean<OrgType>> model) {
-//				Item<TreeSelectableBean<OrgType>> item = super.newRowItem(id, index, model);
-//				item.add(AttributeModifier.append("class", new IModel<String>() {
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					public String getObject() {
-//						TreeSelectableBean<OrgType> itemObject = model.getObject();
-//						if (itemObject != null && itemObject.equals(selected.getObject())) {
-//							return "success";
-//						}
-//
-//						return null;
-//					}
-//				}));
-//				return item;
-//			}
-//
-//			@Override
-//			public void collapse(TreeSelectableBean<OrgType> collapsedItem) {
-//				super.collapse(collapsedItem);
-//
-//				Set<TreeSelectableBean<OrgType>> items = OrgTreePanel.this.getExpandedItems(getOrgTreeStateStorage());
-//				if (items != null && items.contains(collapsedItem)) {
-//					items.remove(collapsedItem);
-//				}
-//				OrgTreePanel.this.setExpandedItems((TreeStateSet) items, getOrgTreeStateStorage());
-//				OrgTreePanel.this.setCollapsedItem(collapsedItem, getOrgTreeStateStorage());
-//			}
-//
-//			@Override
-//			protected void onModelChanged() {
-//				super.onModelChanged();
-//
-//				TreeStateSet<TreeSelectableBean<OrgType>> items = (TreeStateSet) getModelObject();
-//				boolean isInverse = getOrgTreeStateStorage() != null ? getOrgTreeStateStorage().isInverse() : items.isInverse();
-//				if (!isInverse) {
-//					OrgTreePanel.this.setExpandedItems(items, getOrgTreeStateStorage());
-//				}
-//			}
-//
-//			@Override
-//			protected ITreeDataProvider<TreeSelectableBean<OrgType>> newDataProvider(ITreeProvider<TreeSelectableBean<OrgType>> provider) {
-//				return new TreeDataProvider<TreeSelectableBean<OrgType>>(provider)
-//				{
-//					private static final long serialVersionUID = 1L;
-//
-//					@Override
-//					protected boolean iterateChildren(TreeSelectableBean<OrgType> object)
-//					{
-//						return getState(object) == State.EXPANDED;
-//					}
-//
-//					@Override
-//					public Iterator<? extends TreeSelectableBean<OrgType>> iterator(long first, long count) {
-//						if (!(provider instanceof OrgTreeProvider)) {
-//							return super.iterator(first, count);
-//						}
-//
-//						OrgTreeProvider orgTreeProvider = (OrgTreeProvider) provider;
-////						orgTreeProvider.setOffset(first);
-////						orgTreeProvider.setCount(count);
-//						selected.getObject().setOffset(first);
-//						selected.getObject().setCount(count);
-//						orgTreeProvider.setSelected(selected.getObject().getValue());
-//
-//
-//						return super.iterator(0, count);
-//
-//					}
-//
-//					@Override
-//					public long size() {
-//						if (!(provider instanceof OrgTreeProvider)) {
-//							return super.size();
-//						}
-//
-//						OrgTreeProvider orgTreeProvider = (OrgTreeProvider) provider;
-//						orgTreeProvider.setSelected(selected.getObject().getValue());
-//						return orgTreeProvider.size() + 1;
-//
-//					}
-//				};
-//			}
-//
-//			@Override
-//			protected DataTable<TreeSelectableBean<OrgType>, String> newDataTable(String id, List<? extends IColumn<TreeSelectableBean<OrgType>, String>> iColumns, IDataProvider<TreeSelectableBean<OrgType>> dataProvider, long rowsPerPage) {
-//				DataTable dataTable = super.newDataTable(id, iColumns, dataProvider, rowsPerPage);
-//
-//
-//				NavigationToolbar navigation = new NavigationToolbar(dataTable);
-//				dataTable.addBottomToolbar(navigation);
-//				return dataTable;
-//			}
-//		};
 		tree.setItemReuseStrategy(new ReuseIfModelsEqualStrategy());
 //		tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
 		tree.add(new WindowsTheme());
