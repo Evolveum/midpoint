@@ -1180,7 +1180,7 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         OperationResult result = task.getResult();
         prepareTest(AssignmentPolicyEnforcementType.RELATIVE);
 
-        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_SWASHBUCKLER_FILE);
+        PrismObject<RoleType> role = parseObject(ROLE_SWASHBUCKLER_FILE);
         ObjectDelta<RoleType> roleDelta = DeltaFactory.Object.createAddDelta(role);
 
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -1199,9 +1199,9 @@ public class TestRoleEntitlement extends AbstractGenericSyncTest {
         role = getRole(ROLE_SWASHBUCKLER_OID);
         display("Role after", role);
         // Set by object template
-        PrismAsserts.assertPropertyValue(role,RoleType.F_DESCRIPTION, ROLE_SWASHBUCKLER_DESCRIPTION);
+        PrismAsserts.assertPropertyValue(role, RoleType.F_DESCRIPTION, ROLE_SWASHBUCKLER_DESCRIPTION);
         // reflected by inbound
-        PrismAsserts.assertPropertyValue(role,ROLE_EXTENSION_COST_CENTER_PATH, "META0000");
+        PrismAsserts.assertPropertyValue(role, ROLE_EXTENSION_COST_CENTER_PATH, "META0000");
         assertLinks(role, 1);
         groupOid = getSingleLinkOid(role);
 

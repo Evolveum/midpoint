@@ -112,7 +112,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR + "/connector-dummy.xml";
 
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
-	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final File RESOURCE_DUMMY_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-caching.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
@@ -129,7 +128,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	// BLUE resource has WEAK mappings, outbound/inbound
 	protected static final File RESOURCE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "resource-dummy-blue.xml");
-	protected static final File RESOURCE_DUMMY_BLUE_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-blue-deprecated.xml");
 	protected static final File RESOURCE_DUMMY_BLUE_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-blue-caching.xml");
 	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
 	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
@@ -156,7 +154,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
     // Green dummy resource is authoritative
 	protected static final File RESOURCE_DUMMY_GREEN_FILE = new File(COMMON_DIR, "resource-dummy-green.xml");
-	protected static final File RESOURCE_DUMMY_GREEN_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-green-deprecated.xml");
 	protected static final File RESOURCE_DUMMY_GREEN_CACHING_FILE = new File(COMMON_DIR, "resource-dummy-green-caching.xml");
 	protected static final String RESOURCE_DUMMY_GREEN_OID = "10000000-0000-0000-0000-000000000404";
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
@@ -164,7 +161,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	// This is authoritative resource similar to green resource but it has a bit wilder inbound mappings.
 	protected static final File RESOURCE_DUMMY_EMERALD_FILE = new File(COMMON_DIR, "resource-dummy-emerald.xml");
-	protected static final File RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-emerald-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_EMERALD_OID = "10000000-0000-0000-0000-00000000e404";
 	protected static final String RESOURCE_DUMMY_EMERALD_NAME = "emerald";
 	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
@@ -244,9 +240,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_JUDGE_DRINK = "tea";
 	protected static final String ROLE_JUDGE_DESCRIPTION = "Role with role exclusions";
 	protected static final String ROLE_JUDGE_POLICY_RULE_EXCLUSION_PREFIX = "criminal exclusion: ";
-
-	protected static final File ROLE_JUDGE_DEPRECATED_FILE = new File(COMMON_DIR, "role-judge-deprecated.xml");
-	protected static final String ROLE_JUDGE_DEPRECATED_OID = "12345111-1111-2222-1111-d21212111111";
 
 	protected static final File ROLE_THIEF_FILE = new File(COMMON_DIR, "role-thief.xml");
 	protected static final String ROLE_THIEF_OID = "b189fcb8-1ff9-11e5-8912-001e8c717e5b";

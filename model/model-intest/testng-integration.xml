@@ -57,7 +57,6 @@
             <class name="com.evolveum.midpoint.model.intest.TestAudit"/>
             <class name="com.evolveum.midpoint.model.intest.TestDeputy"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbac"/>
-            <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestSegregationOfDuties"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacLightInitialProjection"/>
             <class name="com.evolveum.midpoint.model.intest.rbac.TestRbacNoInbounds"/>
@@ -80,18 +79,13 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestReconTask"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskDeprecated"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestReconTaskDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestRecomputeTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconAuthorizations"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTaskPartitioned"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTaskDeprecated"/>
-            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTaskDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestUuid"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestObjTemplateLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskMechanics"/>
