@@ -959,11 +959,6 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
 						break;
 				}
 			}
-
-			@Override
-			public boolean getLabelEscapeModelStrings() {
-				return false;
-			}
 		};
 	}
 
