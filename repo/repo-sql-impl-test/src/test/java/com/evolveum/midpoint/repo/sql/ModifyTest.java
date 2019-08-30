@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.hibernate.Session;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -1121,11 +1122,11 @@ public class ModifyTest extends BaseSQLRepoTest {
         // GIVEN
         OperationResult result = new OperationResult(TEST_NAME);
 
-        final String OLD_OID = "f3285c65-a4fa-4bf3-bd78-3008bcf99d3c";
+        final String OLD_OID = "0f4082cf-c0b6-4cd2-a3db-544c668bab0c";
         final String NEW_OID = "4cbdc40b-5693-4174-8634-acd3e0b96168";
 
         PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
-                .name("testcase2")
+                .name("case310")
                 .oid("7d0c37f8-26e5-4213-af95-cfde175f3ff7")
                 .state("open")
                 .beginWorkItem()
@@ -1145,13 +1146,81 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // THEN
 
-        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
-                .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(NEW_OID)
-                .build();
-        List<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
-        assertEquals("Wrong # of work items found", 1, workItems.size());
+        List<CaseWorkItemType> workItems = assertAssignee(NEW_OID, 1, result);
+        assertAssignee(OLD_OID, 0, result);
 
         System.out.println(workItems.get(0).asPrismContainerValue().debugDump());
+    }
+
+    @Test
+    public void test320ModifyCaseWorkItemAssigneeAndCandidate() throws Exception {
+        final String TEST_NAME = "test320ModifyCaseWorkItemAssigneeAndCandidate";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        final String OLD_OID = "d886a44c-732d-44d4-8403-e7c44bbfba8b";
+        final String OLD2_OID = "9a28119e-1283-4328-9e2f-ef383728a4d1";
+        final String NEW_OID = "fba02f49-d019-4642-9941-6d8482be5d58";
+
+        PrismObject<CaseType> caseObject = prismContext.createObjectable(CaseType.class)
+                .name("case320")
+                .state("open")
+                .beginWorkItem()
+                    .id(1L)
+                    .assigneeRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))
+                    .candidateRef(new ObjectReferenceType().oid(OLD_OID).type(UserType.COMPLEX_TYPE))       // intentionally the same
+                    .candidateRef(new ObjectReferenceType().oid(OLD2_OID).type(UserType.COMPLEX_TYPE))
+                .<CaseType>end()
+                .asPrismObject();
+        repositoryService.addObject(caseObject, null, result);
+
+        assertAssignee(OLD_OID, 1, result);
+        assertCandidate(OLD_OID, 1, result);
+        assertCandidate(OLD2_OID, 1, result);
+
+        // WHEN
+
+        List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(CaseType.class)
+                .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_ASSIGNEE_REF)
+                    .replace(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .item(CaseType.F_WORK_ITEM, 1L, CaseWorkItemType.F_CANDIDATE_REF)
+                    .add(new ObjectReferenceType().oid(NEW_OID).type(UserType.COMPLEX_TYPE))
+                .asItemDeltas();
+        repositoryService.modifyObject(CaseType.class, caseObject.getOid(), itemDeltas, getModifyOptions(), result);
+
+        // THEN
+
+        assertAssignee(OLD_OID, 0, result);
+        assertAssignee(NEW_OID, 1, result);
+        assertCandidate(OLD_OID, 1, result);
+        assertCandidate(OLD2_OID, 1, result);
+        List<CaseWorkItemType> workItems = assertCandidate(NEW_OID, 1, result);
+
+        System.out.println(workItems.get(0).asPrismContainerValue().debugDump());
+    }
+
+    @NotNull
+    private List<CaseWorkItemType> assertAssignee(String assigneeOid, int expected, OperationResult result)
+            throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_ASSIGNEE_REF).ref(assigneeOid)
+                .build();
+        List<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        assertEquals("Wrong # of work items found", expected, workItems.size());
+        return workItems;
+    }
+
+    @NotNull
+    private List<CaseWorkItemType> assertCandidate(String candidateOid, int expected, OperationResult result)
+            throws SchemaException {
+        ObjectQuery query = prismContext.queryFor(CaseWorkItemType.class)
+                .item(CaseWorkItemType.F_CANDIDATE_REF).ref(candidateOid)
+                .build();
+        List<CaseWorkItemType> workItems = repositoryService.searchContainers(CaseWorkItemType.class, query, null, result);
+        assertEquals("Wrong # of work items found", expected, workItems.size());
+        return workItems;
     }
 
     @Test   // MID-5104

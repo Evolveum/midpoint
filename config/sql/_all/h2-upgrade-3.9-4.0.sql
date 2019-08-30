@@ -98,3 +98,29 @@ ALTER TABLE m_audit_resource
 -- 2019-07-30 11:30
 
 ALTER TABLE m_audit_item ALTER COLUMN changedItemPath VARCHAR(900);
+
+-- 2019-08-30 12:32
+
+ALTER TABLE m_case_wi_reference ADD COLUMN reference_type  INTEGER;
+UPDATE m_case_wi_reference SET reference_type = 0 WHERE reference_type IS NULL;
+ALTER TABLE m_case_wi_reference ALTER COLUMN reference_type  INTEGER NOT NULL;
+
+ALTER TABLE m_case_wi_reference DROP CONSTRAINT fk_case_wi_reference_owner;
+ALTER TABLE m_case_wi_reference DROP PRIMARY KEY;
+ALTER TABLE m_case_wi_reference ADD PRIMARY KEY (owner_owner_oid, owner_id, reference_type, targetOid, relation);
+ALTER TABLE m_case_wi_reference
+  ADD CONSTRAINT fk_case_wi_reference_owner FOREIGN KEY (owner_owner_oid, owner_id) REFERENCES m_case_wi (owner_oid, id);
+
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS booleansCount;
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS datesCount;
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS longsCount;
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS polysCount;
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS referencesCount;
+ALTER TABLE m_assignment_extension DROP COLUMN IF EXISTS stringsCount;
+
+ALTER TABLE m_object DROP COLUMN IF EXISTS booleansCount;
+ALTER TABLE m_object DROP COLUMN IF EXISTS datesCount;
+ALTER TABLE m_object DROP COLUMN IF EXISTS longsCount;
+ALTER TABLE m_object DROP COLUMN IF EXISTS polysCount;
+ALTER TABLE m_object DROP COLUMN IF EXISTS referencesCount;
+ALTER TABLE m_object DROP COLUMN IF EXISTS stringsCount;
