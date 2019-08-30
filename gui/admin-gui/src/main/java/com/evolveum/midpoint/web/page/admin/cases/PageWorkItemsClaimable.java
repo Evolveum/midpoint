@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -36,13 +35,9 @@ import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemsPageType;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,8 +45,6 @@ import org.apache.wicket.model.Model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractWorkItemType.F_CREATE_TIMESTAMP;
 
 /**
  * @author lazyman
@@ -79,7 +72,7 @@ public class PageWorkItemsClaimable extends PageCaseWorkItems {
     protected ObjectFilter getCaseWorkItemsFilter(){
         OperationResult result = new OperationResult(OPERATION_LOAD_CLAIMABLE_WORK_ITEMS);
         try {
-            return QueryUtils.filterForGroups(getPrismContext().queryFor(CaseWorkItemType.class),
+            return QueryUtils.filterForClaimableItems(getPrismContext().queryFor(CaseWorkItemType.class),
                     SecurityUtils.getPrincipalUser().getOid(),
                     getRepositoryService(), getRelationRegistry(), result)
                     .buildFilter();
