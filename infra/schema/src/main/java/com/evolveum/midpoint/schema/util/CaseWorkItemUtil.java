@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 
 /**
@@ -73,5 +73,10 @@ public class CaseWorkItemUtil {
 
     public static boolean isCaseWorkItemNotClosed(CaseWorkItemType workItem){
         return workItem != null && workItem.getCloseTimestamp() == null;
+    }
+
+    public static boolean isWorkItemClaimable(CaseWorkItemType workItem){
+        return workItem != null && workItem.getOriginalAssigneeRef() == null &&
+                CollectionUtils.isEmpty(workItem.getAssigneeRef()) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
     }
 }

@@ -16,17 +16,22 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
+import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,6 +45,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -53,6 +60,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
     private static final String DOT_CLASS = CaseWorkItemActionsPanel.class.getName() + ".";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
+    private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
 
@@ -60,6 +68,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String ID_WORK_ITEM_APPROVE_BUTTON = "workItemApproveButton";
     private static final String ID_WORK_ITEM_REJECT_BUTTON = "workItemRejectButton";
     private static final String ID_WORK_ITEM_DELEGATE_BUTTON = "workItemDelegateButton";
+    private static final String ID_WORK_ITEM_CLAIM_BUTTON = "workItemClaimButton";
     private static final String ID_ACTION_BUTTONS = "actionButtons";
 
     public CaseWorkItemActionsPanel(String id, IModel<CaseWorkItemType> caseWorkItemModel){
@@ -89,6 +98,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             }
         };
+        workItemApproveButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
         workItemApproveButton.setOutputMarkupId(true);
         actionButtonsContainer.add(workItemApproveButton);
 
@@ -103,6 +113,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemRejectButton.setOutputMarkupId(true);
+        workItemRejectButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
         actionButtonsContainer.add(workItemRejectButton);
 
         AjaxButton workItemDelegateButton = new AjaxButton(ID_WORK_ITEM_DELEGATE_BUTTON,
@@ -115,7 +126,23 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemDelegateButton.setOutputMarkupId(true);
+        workItemDelegateButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
         actionButtonsContainer.add(workItemDelegateButton);
+
+        AjaxButton workItemClaimButton = new AjaxButton(ID_WORK_ITEM_CLAIM_BUTTON,
+                createStringResource("pageWorkItem.button.claim")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                claimWorkItemPerformed(ajaxRequestTarget);
+            }
+        };
+        workItemClaimButton.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()))); //todo filter for user groups
+        workItemClaimButton.setOutputMarkupId(true);
+
+        actionButtonsContainer.add(workItemClaimButton);
     }
 
     private CaseWorkItemType getCaseWorkItemModelObject(){
@@ -126,10 +153,6 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
         return new AbstractWorkItemOutputType(getPrismContext())
                 .outcome(ApprovalUtils.toUri(approved));
-    }
-
-    private boolean isParentCaseClosed(){
-        return CaseTypeUtil.isClosed(CaseWorkItemUtil.getCase(getCaseWorkItemModelObject()));
     }
 
     private void delegatePerformed(AjaxRequestTarget target) {
@@ -167,6 +190,11 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
         }
         getPageBase().processResult(target, result, false);
         getPageBase().redirectBack();
+    }
+
+    private void claimWorkItemPerformed(AjaxRequestTarget target){
+        WebComponentUtil.claimWorkItemActionPerformed(getModelObject(), OPERATION_CLAIM_ITEMS, target, getPageBase());
+
     }
 
     protected Component getCustomForm() {

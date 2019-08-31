@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -144,32 +145,10 @@ public class PageWorkItemsClaimable extends PageCaseWorkItems {
             target.add(getFeedbackPanel());
             return;
         }
-
-        Task task = createSimpleTask(OPERATION_CLAIM_ITEMS);
-        OperationResult mainResult = task.getResult();
-        WorkflowService workflowService = getWorkflowService();
         for (PrismContainerValueWrapper<CaseWorkItemType> workItem : selectedWorkItems) {
-            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEMS);
-            try {
-                workflowService.claimWorkItem(WorkItemId.of(workItem.getRealValue()), task, result);
-                result.computeStatusIfUnknown();
-            } catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException | ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-                result.recordPartialError(createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
-            }
+            WebComponentUtil.claimWorkItemActionPerformed(workItem.getRealValue(), OPERATION_CLAIM_ITEMS, target,
+                    PageWorkItemsClaimable.this);
         }
-        if (mainResult.isUnknown()) {
-            mainResult.recomputeStatus();
-        }
-
-        if (mainResult.isSuccess()) {
-            mainResult.recordStatus(OperationResultStatus.SUCCESS,
-                    createStringResource("pageWorkItems.message.success.claimed").getString());
-        }
-
-        showResult(mainResult);
-
-        resetWorkItemCountModel();
-        target.add(this);
     }
 
 }
