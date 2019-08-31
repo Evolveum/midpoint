@@ -139,7 +139,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemClaimButton.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()))); //todo filter for user groups
+                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
+                CaseWorkItemActionsPanel.this.getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject())));
         workItemClaimButton.setOutputMarkupId(true);
 
         actionButtonsContainer.add(workItemClaimButton);

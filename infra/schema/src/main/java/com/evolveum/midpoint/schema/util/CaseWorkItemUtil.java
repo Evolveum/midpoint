@@ -19,7 +19,9 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -76,7 +78,21 @@ public class CaseWorkItemUtil {
     }
 
     public static boolean isWorkItemClaimable(CaseWorkItemType workItem){
-        return workItem != null && workItem.getOriginalAssigneeRef() == null &&
-                CollectionUtils.isEmpty(workItem.getAssigneeRef()) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
+        return workItem != null && (workItem.getOriginalAssigneeRef() == null || StringUtils.isEmpty(workItem.getOriginalAssigneeRef().getOid()))
+                && !doesAssigneeExist(workItem) && CollectionUtils.isNotEmpty(workItem.getCandidateRef());
     }
+
+    public static boolean doesAssigneeExist(CaseWorkItemType workItem){
+        if (workItem == null || CollectionUtils.isEmpty(workItem.getAssigneeRef())){
+            return false;
+        }
+        for (ObjectReferenceType assignee : workItem.getAssigneeRef()){
+            if (StringUtils.isNotEmpty(assignee.getOid())){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
 }
