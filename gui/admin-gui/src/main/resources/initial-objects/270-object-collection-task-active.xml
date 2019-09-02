@@ -19,7 +19,7 @@
 				  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 				  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 				  oid="00000000-0000-0000-0001-000000000005">
-    <name>Active Task</name>
+    <name>Active tasks</name>
     <assignment>
         <policyRule>
             <policyConstraints>

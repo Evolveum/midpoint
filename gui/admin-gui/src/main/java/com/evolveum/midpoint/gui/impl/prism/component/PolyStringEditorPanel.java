@@ -91,6 +91,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
         WebMarkupContainer localizedValueContainer = new WebMarkupContainer(ID_LOCALIZED_VALUE_CONTAINER);
         localizedValueContainer.setOutputMarkupId(true);
+        localizedValueContainer.add(getInputFieldClassAppenderForContainer());
         localizedValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isNotEmpty(localizedValue)));
         add(localizedValueContainer);
 
@@ -126,6 +127,7 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
 
         WebMarkupContainer originValueContainer = new WebMarkupContainer(ID_ORIGIN_VALUE_CONTAINER);
         originValueContainer.setOutputMarkupId(true);
+        originValueContainer.add(getInputFieldClassAppenderForContainer());
         originValueContainer.add(new VisibleBehaviour(() -> showFullData || StringUtils.isEmpty(localizedValue)));
         add(originValueContainer);
 
@@ -399,6 +401,15 @@ public class PolyStringEditorPanel extends BasePanel<PolyString>{
         target.add(PolyStringEditorPanel.this);
     }
 
+    private AttributeAppender getInputFieldClassAppenderForContainer(){
+        return AttributeModifier.append("class", new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return showFullData ? "prism-property" : "";
+            }
+        });
+    }
+    
     private AttributeAppender getInputFieldClassAppender(){
         return AttributeModifier.append("class", new LoadableModel<String>() {
             @Override

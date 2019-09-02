@@ -300,7 +300,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     }
 
-    private ContainerableListPanel<CaseWorkItemType> getContainerableListPanel(){
+    public ContainerableListPanel<CaseWorkItemType> getContainerableListPanel(){
         return (ContainerableListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
     }
 

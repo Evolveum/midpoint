@@ -127,7 +127,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
         actionsPanel.setOutputMarkupId(true);
         actionsPanel.add(new VisibleBehaviour(() -> {
             CaseWorkItemType workItemSelected = getDetailsPanelItemsList().size() > 0 ? getDetailsPanelItemsList().get(0).getRealValue() : null;
-            return workItemSelected != null && workItemSelected.getCloseTimestamp() == null;
+            return CaseWorkItemUtil.isCaseWorkItemNotClosed(workItemSelected);
         }));
         getDetailsPanelContainer().add(actionsPanel);
     }

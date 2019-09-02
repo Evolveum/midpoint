@@ -58,13 +58,6 @@ public class AutoCompleteItemDefinitionPanel extends AbstractAutoCompletePanel {
 
 			}
 
-			@Override
-			protected void onConfigure() {
-				super.onConfigure();
-				itemDefinitionAsStringModel.setObject(null);
-			}
-
-
 		};
 
 		 input.add(new OnChangeAjaxBehavior() {

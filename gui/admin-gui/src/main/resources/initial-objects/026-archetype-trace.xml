@@ -27,6 +27,9 @@
     	<display>
     		<label>Trace</label>
     		<pluralLabel>Traces</pluralLabel>
+            <icon>
+                <cssClass>fa fa-stethoscope</cssClass>
+            </icon>
     	</display>
     </archetypePolicy>
 </archetype>
