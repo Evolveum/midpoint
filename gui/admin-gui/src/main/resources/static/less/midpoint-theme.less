@@ -1092,6 +1092,19 @@ body .treeview-menu > li > span:hover {
 
 // Orgtree (OrgMemberPanel)
 
+span.tree-content > table {
+  width: 100%;
+  max-width: 100%;
+}
+
+span.tree-content > table tr td:last-child {
+  width: 1%;
+}
+
+span.tree-content > table tr td:first-child {
+  width: 1%;
+}
+
 .org-tree-container {
   overflow-y: auto;
   margin-bottom: 20px;
@@ -1561,4 +1574,8 @@ th.composited-icon {
 
 .small-box > .small-box-footer {
 	color: inherit !important;
+}
+
+.pagination-xs>li>a {
+    padding: 0px 5px !important;
 }
