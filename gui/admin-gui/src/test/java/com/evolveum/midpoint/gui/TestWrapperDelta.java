@@ -11,7 +11,6 @@ import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.Mapping;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -81,11 +81,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         WrapperContext ctx = new WrapperContext(task, result);
         PrismObjectWrapper objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
-//        ModelServiceLocator locator = getServiceLocator(task);
-//        PrismObjectWrapperFactory objectFactory = locator.findObjectWrapperFactory(userElaineBefore.getDefinition());
-//
-//        PrismObjectWrapper objectWrapper = objectFactory.createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
-
         PrismPropertyWrapper<PolyString> fullName = objectWrapper.findProperty(UserType.F_FULL_NAME);
         fullName.getValue().setRealValue(PrismTestUtil.createPolyString("Sparrow-Marley"));
 
@@ -95,24 +90,6 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertModificationsSize(elaineDelta, 1);
 
         assertModification(elaineDelta, UserType.F_FULL_NAME, ModificationTypeType.REPLACE, PrismTestUtil.createPolyString("Sparrow-Marley"));
-//        assertNotNull("Unexpeted null delta", elaineDelta);
-//
-//        Collection<? extends ItemDelta<?,?>> modifications = elaineDelta.getModifications();
-//        assertEquals( ObjectDelta<UserType> elaineDelta = objectWrapper.getObjectDelta();
-//        assertNotNull("Unexpeted null delta", elaineDelta);
-//
-//        Collection<? extends ItemDelta<?,?>> modifications = elaineDelta.getModifications();
-//        assertEquals("Enexpected modifications size", 1, modifications.size());
-
-//        PropertyDelta<PolyString> fullNameDelta = elaineDelta.findPropertyDelta(UserType.F_FULL_NAME);
-//        assertNotNull("Unexpected null fullName delta", fullNameDelta);
-//        assertTrue(fullNameDelta.isReplace());
-//
-//        Collection<PrismPropertyValue<PolyString>> valuesToReplace = fullNameDelta.getValuesToReplace();
-//        assertEquals("Unexpected numbers of values", 1, valuesToReplace.size());
-//        PrismPropertyValue<PolyString> value = valuesToReplace.iterator().next();
-//        assertEquals("Unexpected value to replace", "Sparrow-Marley", value.getValue().getOrig());
-
 
         //WHEN
         executeChanges(elaineDelta, null, task, result);
@@ -171,26 +148,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         WrapperContext ctx = new WrapperContext(task, result);
         PrismObjectWrapper objectWrapper =createObjectWrapper(userElaineBefore, ItemStatus.NOT_CHANGED, ctx);
 
-        PrismContainerWrapper<AssignmentType> assignment = objectWrapper.findContainer(UserType.F_ASSIGNMENT);
-        assertNotNull("unexpected null assignment wrapper", assignment);
-        assertEquals("Unexpected values for assignment " + assignment.getValues().size(), 0, assignment.getValues().size());
-
-        ModelServiceLocator locator = getServiceLocator(task);
-
-        PrismContainerValue<AssignmentType> newAssignment = assignment.getItem().createNewValue();
-        AssignmentType newAssignmentType = newAssignment.asContainerable();
-
-        ConstructionType constructionType = new ConstructionType(locator.getPrismContext());
-        constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceDummy, locator.getPrismContext()));
-        constructionType.setKind(ShadowKindType.ACCOUNT);
-        constructionType.setIntent("default");
-
-        newAssignmentType.setConstruction(constructionType);
-
-        PrismContainerValue<AssignmentType> newAssignmentClone = newAssignment.clone();
-
-        PrismContainerValueWrapper vw = locator.createValueWrapper(assignment, newAssignment, ValueStatus.ADDED, ctx);
-        assignment.getValues().add(vw);
+        PrismContainerValue<AssignmentType> newAssignmentClone = createDummyResourceAssignment(objectWrapper, 0, task, result);
 
         ObjectDelta<UserType> delta = objectWrapper.getObjectDelta();
         assertModificationsSize(delta, 1);
@@ -294,6 +252,88 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
 
         //TODO assertions after
 
+    }
+
+    @Test
+    public void test200createUser() throws Exception {
+        String TEST_NAME = "test200createUser";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createSimpleTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        PrismObjectDefinition<UserType> def = getServiceLocator(task).getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismObject<UserType> user = def.instantiate();
+        WrapperContext ctx = new WrapperContext(task, result);
+
+        PrismObjectWrapper<UserType> userWrapper = createObjectWrapper(user, ItemStatus.ADDED, ctx);
+
+        PrismPropertyWrapper<PolyString> username = userWrapper.findProperty(UserType.F_NAME);
+        username.getValue().setRealValue(PrismTestUtil.createPolyString("guybrush"));
+
+        PrismPropertyWrapper<PolyString> fullName = userWrapper.findProperty(UserType.F_FULL_NAME);
+        fullName.getValue().setRealValue(PrismTestUtil.createPolyString("Guybrush Threepwood"));
+
+        PrismPropertyWrapper<ProtectedStringType> password = userWrapper.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        ProtectedStringType pwd = new ProtectedStringType();
+        pwd.setClearValue("howMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChuckWood");
+        password.getValue().setRealValue(pwd);
+
+        PrismContainerValue<AssignmentType> newAssignment = createDummyResourceAssignment(userWrapper, 0, task, result);
+
+        ObjectDelta<UserType> delta = userWrapper.getObjectDelta();
+        assertModificationsSize(delta, 0);
+
+        PrismObject<UserType> objectToAdd = delta.getObjectToAdd();
+        assertNotNull("Unexpected null object to add", objectToAdd);
+
+        assertUserProperty(objectToAdd, UserType.F_NAME, PrismTestUtil.createPolyString("guybrush"));
+        assertUserProperty(objectToAdd, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Guybrush Threepwood"));
+
+        UserAsserter.forUser(objectToAdd)
+                .assertName("guybrush")
+                .assertFullName("Guybrush Threepwood")
+                .assertAssignments(1);
+
+        PrismProperty<ProtectedStringType> passwordBeforeSave = objectToAdd.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
+        assertNotNull("Unexpected null password property", passwordBeforeSave);
+        assertEquals("Unexpected password in delta: " + passwordBeforeSave.getRealValue(), pwd, passwordBeforeSave.getRealValue());
+
+        executeChanges(delta, null, task, result);
+
+        PrismObject<UserType> userAfter = findUserByUsername("guybrush");
+
+        UserAsserter.forUser(userAfter)
+                .assertName("guybrush")
+                .assertFullName("Guybrush Threepwood")
+                .assertAssignments(1);
+
+    }
+
+    private PrismContainerValue<AssignmentType> createDummyResourceAssignment(PrismObjectWrapper<UserType> objectWrapper, int existingAssignments, Task task, OperationResult result) throws Exception {
+        PrismContainerWrapper<AssignmentType> assignment = objectWrapper.findContainer(UserType.F_ASSIGNMENT);
+        assertNotNull("unexpected null assignment wrapper", assignment);
+        assertEquals("Unexpected values for assignment " + assignment.getValues().size(), existingAssignments, assignment.getValues().size());
+
+        ModelServiceLocator locator = getServiceLocator(task);
+
+        PrismContainerValue<AssignmentType> newAssignment = assignment.getItem().createNewValue();
+        AssignmentType newAssignmentType = newAssignment.asContainerable();
+
+        ConstructionType constructionType = new ConstructionType(locator.getPrismContext());
+        constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceDummy, locator.getPrismContext()));
+        constructionType.setKind(ShadowKindType.ACCOUNT);
+        constructionType.setIntent("default");
+
+        newAssignmentType.setConstruction(constructionType);
+
+        PrismContainerValue<AssignmentType> newAssignmentClone = newAssignment.clone();
+
+        WrapperContext ctx = new WrapperContext(task, result);
+        PrismContainerValueWrapper vw = locator.createValueWrapper(assignment, newAssignment, ValueStatus.ADDED, ctx);
+        assignment.getValues().add(vw);
+
+        return newAssignmentClone;
     }
 
     private ExpressionType createAsIsExpression() {

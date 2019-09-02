@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,12 @@ public class BaseMenuItem implements Serializable {
     private VisibleEnableBehaviour visibleEnable;
     private Class<? extends WebPage>[] aliases;
     private String iconClass;
+    /**
+     * Optional field that can be used for sorting. Used for some dynamic submenus, such as collections.
+     * It does not affect the display of menu item in any way. It is just a convenient intermediary place to store
+     * the order for sorting the items before adding them to menu.
+     */
+    private transient Integer displayOrder;
 
     public BaseMenuItem(IModel<String> name, Class<? extends WebPage> page) {
         this(name, "", page, null, null);
@@ -80,8 +86,16 @@ public class BaseMenuItem implements Serializable {
     public String getIconClass() {
         return iconClass;
     }
+    
+    public Integer getDisplayOrder() {
+		return displayOrder;
+	}
 
-    public boolean isMenuActive(WebPage page) {
+	public void setDisplayOrder(Integer displayOrder) {
+		this.displayOrder = displayOrder;
+	}
+
+	public boolean isMenuActive(WebPage page) {
         if (page == null) {
             return false;
         }

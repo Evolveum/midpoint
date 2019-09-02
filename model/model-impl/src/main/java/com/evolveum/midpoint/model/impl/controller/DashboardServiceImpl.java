@@ -141,6 +141,11 @@ public class DashboardServiceImpl implements DashboardService {
 		} else {
 			combinatedDisplay.setLabel(variationDisplay.getLabel());
 		}
+		if(variationDisplay.getSingularLabel() == null) {
+			combinatedDisplay.setSingularLabel(display.getSingularLabel());
+		} else {
+			combinatedDisplay.setSingularLabel(variationDisplay.getSingularLabel());
+		}
 		if(variationDisplay.getPluralLabel() == null) {
 			combinatedDisplay.setPluralLabel(display.getPluralLabel());
 		} else {

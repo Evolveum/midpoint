@@ -69,6 +69,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 	private static final String ID_MESSAGE_LABEL = "messageLabel";
 	private static final String ID_PARAMS = "params";
 	private static final String ID_BACKGROUND_TASK = "backgroundTask";
+	private static final String ID_CASE = "case";
 	private static final String ID_SHOW_ALL = "showAll";
 	private static final String ID_HIDE_ALL = "hideAll";
 	private static final String ID_ERROR_STACK_TRACE = "errorStackTrace";
@@ -173,6 +174,31 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
 			}
 		});
 		box.add(backgroundTask);
+		
+		AjaxLink<String> aCase = new AjaxLink<String>(ID_CASE) {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void onClick(AjaxRequestTarget target) {
+				final OpResult opResult = OperationResultPanel.this.getModelObject();
+				String oid = opResult.getCaseOid();
+				if (oid == null || !opResult.isCaseVisible()) {
+					return; // just for safety
+				}
+				ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(oid, ObjectTypes.CASE);
+				WebComponentUtil.dispatchToObjectDetailsPage(ref, getPageBase(), false);
+			}
+		};
+		aCase.add(new VisibleEnableBehaviour() {
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public boolean isVisible() {
+				return getModelObject().getCaseOid() != null
+						&& getModelObject().isCaseVisible();
+			}
+		});
+		box.add(aCase);
 
 		AjaxLink<String> showAll = new AjaxLink<String>(ID_SHOW_ALL) {
 			private static final long serialVersionUID = 1L;
