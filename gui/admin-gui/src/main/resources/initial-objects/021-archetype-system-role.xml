@@ -18,7 +18,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>System Role</name>
+    <name>System role</name>
     <description>
     	Archetype for roles that are essential from the system point
     	of view. Those are usually roles for the most powerful system
@@ -27,8 +27,8 @@
     </description>
     <archetypePolicy>
     	<display>
-    		<label>System Role</label>
-    		<pluralLabel>System Roles</pluralLabel>
+    		<label>System role</label>
+    		<pluralLabel>System roles</pluralLabel>
     		<icon>
     			<cssClass>fe fe-role_icon</cssClass>
     			<color>red</color>

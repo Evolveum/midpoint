@@ -502,6 +502,9 @@ public class MiscSchemaUtil {
 		if (viewDisplay.getLabel() == null) {
 			viewDisplay.setLabel(archetypeDisplay.getLabel());
 		}
+		if (viewDisplay.getSingularLabel() == null) {
+			viewDisplay.setSingularLabel(archetypeDisplay.getSingularLabel());
+		}
 		if (viewDisplay.getPluralLabel() == null) {
 			viewDisplay.setPluralLabel(archetypeDisplay.getPluralLabel());
 		}

@@ -18,14 +18,14 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>Approval Case</name>
+    <name>Approval case</name>
     <description>
     	Archetype for approval cases, e.g. role assignment approval.
     </description>
     <archetypePolicy>
     	<display>
-    		<label>Approval Case</label>
-    		<pluralLabel>Approval Cases</pluralLabel>
+    		<label>Approval case</label>
+    		<pluralLabel>Approval cases</pluralLabel>
     		<icon>
     			<cssClass>fe fe-approver-object</cssClass>
     		</icon>
