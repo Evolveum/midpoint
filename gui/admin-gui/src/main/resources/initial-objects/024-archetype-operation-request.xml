@@ -18,14 +18,14 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>Operation Request</name>
+    <name>Operation request</name>
     <description>
     	Archetype for cases that describe operation requests, e.g. role assignment requests.
     </description>
     <archetypePolicy>
     	<display>
-    		<label>Operation Request</label>
-    		<pluralLabel>Operation Requests</pluralLabel>
+    		<label>Operation request</label>
+    		<pluralLabel>Operation requests</pluralLabel>
     		<icon>
     			<cssClass>fa fa-play-circle</cssClass>
     		</icon>

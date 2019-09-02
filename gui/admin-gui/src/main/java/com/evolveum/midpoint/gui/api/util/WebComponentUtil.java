@@ -2499,6 +2499,32 @@ public final class WebComponentUtil {
 		}
 		return view != null ? view.getDisplay() : null;
 	}
+	
+	/**
+	 * Returns name of the collection suitable to be displayed in the menu or other labels.
+	 * E.g. "All tasks", "Active employees".
+	 */
+	public static PolyStringType getCollectionLabel(DisplayType viewDisplayType, CollectionRefSpecificationType collectionRefSpec ,ObjectType collectionRefTarget) {
+		if (viewDisplayType != null) {
+			PolyStringType viewPluralLabel = viewDisplayType.getPluralLabel();
+			if (viewPluralLabel != null) {
+				return viewPluralLabel;
+			}
+			PolyStringType viewLabel = viewDisplayType.getLabel();
+			if (viewLabel != null) {
+				return viewLabel;
+			}
+		}
+		if (collectionRefTarget != null) {
+			if (collectionRefTarget instanceof ObjectCollectionType) {
+				// MID-5709
+				// TODO: use collectionRefTarget.getDisplay() first - when the schema is updated
+			}
+			// TODO: try to use archetype policy?
+			return collectionRefTarget.getName();
+		}
+		return null;
+	}
 
 	public static ItemVisibility checkShadowActivationAndPasswordVisibility(ItemWrapper<?, ?, ?,?> itemWrapper,
 																	 ShadowType shadowType) {
