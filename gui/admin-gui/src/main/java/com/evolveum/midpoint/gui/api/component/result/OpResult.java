@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
@@ -55,6 +56,7 @@ public class OpResult implements Serializable, Visitable {
 	private static final Trace LOGGER = TraceManager.getTrace(OpResult.class);
 
 	private static final String OPERATION_CHECK_TASK_VISIBILITY = OpResult.class.getName() + ".checkTaskVisibility";
+	private static final String OPERATION_CHECK_CASE_VISIBILITY = OpResult.class.getName() + ".checkCaseVisibility";
 
     private OperationResultStatus status;
     private String operation;
@@ -72,7 +74,10 @@ public class OpResult implements Serializable, Visitable {
 	// we assume there is at most one background task created (TODO revisit this assumption)
 	private String backgroundTaskOid;
 	private Boolean backgroundTaskVisible;			// available on root opResult only
-
+	
+	private String caseOid;
+	private Boolean caseVisible;
+	
     private boolean showMore;
     private boolean showError;
 
@@ -163,6 +168,11 @@ public class OpResult implements Serializable, Visitable {
         if (result.getBackgroundTaskOid() != null) {
             opResult.backgroundTaskOid = result.getBackgroundTaskOid();
         }
+        
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        if(caseOid != null) {
+        	opResult.caseOid = caseOid;
+        }
 
         try {
             OperationResultType resultType = result.createOperationResultType();
@@ -179,7 +189,12 @@ public class OpResult implements Serializable, Visitable {
 
 	// This method should be called along with getOpResult for root operationResult. However, it might take some time,
 	// and there might be situations in which it is not required -- so we opted for calling it explicitly.
-	public void determineBackgroundTaskVisibility(PageBase pageBase) {
+    public void determineObjectsVisibility(PageBase pageBase) {
+    	determineBackgroundTaskVisibility(pageBase);
+    	determineCaseVisibility(pageBase);
+    }
+    
+	private void determineBackgroundTaskVisibility(PageBase pageBase) {
 		if (backgroundTaskOid == null) {
 			return;
 		}
@@ -201,6 +216,31 @@ public class OpResult implements Serializable, Visitable {
 		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
 			LOGGER.debug("Task {} is not visible by the current user: {}: {}", backgroundTaskOid, e.getClass(), e.getMessage());
 			backgroundTaskVisible = false;
+		}
+	}
+	
+	private void determineCaseVisibility(PageBase pageBase) {
+		if (caseOid == null) {
+			return;
+		}
+		try {
+			if (pageBase.isAuthorized(AuthorizationConstants.AUTZ_ALL_URL)) {
+				caseVisible = true;
+				return;
+			}
+		} catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException e) {
+			caseVisible = false;
+			LoggingUtils.logUnexpectedException(LOGGER, "Couldn't determine case visibility", e);
+			return;
+		}
+
+		Task task = pageBase.createSimpleTask(OPERATION_CHECK_CASE_VISIBILITY);
+		try {
+			pageBase.getModelService().getObject(CaseType.class, caseOid, null, task, task.getResult());
+			caseVisible = true;
+		} catch (ObjectNotFoundException|SchemaException|SecurityViolationException|CommunicationException|ConfigurationException|ExpressionEvaluationException e) {
+			LOGGER.debug("Case {} is not visible by the current user: {}: {}", caseOid, e.getClass(), e.getMessage());
+			caseVisible = false;
 		}
 	}
 
@@ -279,6 +319,20 @@ public class OpResult implements Serializable, Visitable {
 		}
 		if (parent != null) {
 			return parent.isBackgroundTaskVisible();
+		}
+		return true;			// at least as for now
+	}
+	
+	public String getCaseOid() {
+		return caseOid;
+	}
+	
+	public boolean isCaseVisible() {
+		if (caseVisible != null) {
+			return caseVisible;
+		}
+		if (parent != null) {
+			return parent.isCaseVisible();
 		}
 		return true;			// at least as for now
 	}

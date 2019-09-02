@@ -1374,7 +1374,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         result = scriptResult;
 
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
-        opResult.determineBackgroundTaskVisibility(this);
+        opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
