@@ -220,6 +220,11 @@ public class OpResult implements Serializable, Visitable {
 	}
 	
 	private void determineCaseVisibility(PageBase pageBase) {
+		if(getStatus().equals(OperationResultStatus.FATAL_ERROR)) {
+			caseVisible = false;
+			return;
+		}
+		
 		if (caseOid == null) {
 			return;
 		}
