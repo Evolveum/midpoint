@@ -311,15 +311,22 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
 			return;
 		}
 		PrismContext prismContext = definition.getPrismContext();
+        PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry()
+		        .findObjectDefinitionByCompileTimeClass(object.getCompileTimeClass());
 		QName targetTypeName = definition.getTargetTypeName();
-		if (targetTypeName == null) {
-			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
-					+": the target type name is not specified in the reference schema");
-		}
-
-        PrismObjectDefinition<? extends Objectable> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(object.getCompileTimeClass());
         if (objectDefinition == null) {
-		    objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
+	        if (targetTypeName == null) {
+		        if (object.getDefinition() != null) {
+			        // Target type is not specified (e.g. as in task.objectRef) but we have at least some definition;
+			        // so let's keep it. TODO reconsider this
+			        return;
+		        } else {
+			        throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()
+					        +": the object has no present definition; it's definition cannot be determined from it's class;"
+					        + "and target type name is not specified in the reference schema");
+		        }
+	        }
+	        objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetTypeName);
         }
 		if (objectDefinition == null) {
 			throw new SchemaException("Cannot apply definition to composite object in reference "+getParent()

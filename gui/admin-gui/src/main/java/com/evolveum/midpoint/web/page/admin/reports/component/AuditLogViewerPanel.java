@@ -29,6 +29,7 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;

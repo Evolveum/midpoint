@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.util.PolyStringUtils;
 import com.evolveum.midpoint.repo.api.CacheDispatcher;
 import com.evolveum.midpoint.repo.api.CounterManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.Expression;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
@@ -527,6 +528,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public RelationRegistry getRelationRegistry() {
         return getMidpointApplication().getRelationRegistry();
+    }
+
+    public RepositoryService getRepositoryService() {
+        return getMidpointApplication().getRepositoryService();
     }
 
     public ExpressionFactory getExpressionFactory() {
@@ -1856,6 +1861,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
         addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
         addMenuItem(item, "PageAdmin.menu.top.workItems.listAttorney", PageAttorneySelection.class);
+        addMenuItem(item, "PageWorkItemsClaimable.title", PageWorkItemsClaimable.class);
 
         createFocusPageViewMenu(item.getItems(), "PageAdmin.menu.top.caseWorkItems.view", PageCaseWorkItem.class);
 

@@ -260,7 +260,10 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> expandContainerPropertiesPanel(String containerHeaderKey){
-        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("div", "data-s-resource-key", containerHeaderKey));
+        SelenideElement panelHeader = $(Schrodinger.byElementAttributeValue("a", "data-s-resource-key", containerHeaderKey))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .parent()
+                .parent();
 
         SelenideElement headerChevron = panelHeader.$(By.tagName("i"));
         if (headerChevron.getAttribute("class") != null && !headerChevron.getAttribute("class").contains(CARET_DOWN_ICON_STYLE)) {
@@ -277,12 +280,17 @@ public class PrismForm<T> extends Component<T> {
     }
 
     public PrismForm<T> addNewContainerValue(String containerHeaderKey, String newContainerHeaderKey){
-        SelenideElement panelHeader = $(Schrodinger.byDataResourceKey("div", containerHeaderKey));
-        panelHeader.$(Schrodinger.byDataId("addButton")).click();
+        SelenideElement panelHeader = $(By.linkText(containerHeaderKey))
+                .parent()
+                .parent();
+        panelHeader.$(Schrodinger.byDataId("addButton"))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S)
+                .click();
 
         panelHeader
                 .parent()
-                .$(Schrodinger.byDataResourceKey(newContainerHeaderKey))
+                .parent()
+                .$(By.linkText(newContainerHeaderKey))
                 .shouldBe(Condition.visible)
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 

@@ -32,11 +32,7 @@ import com.evolveum.midpoint.gui.impl.factory.WrapperContext;
 import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.PrismPropertyWrapper;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelPublicConstants;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
@@ -3589,6 +3585,35 @@ public final class WebComponentUtil {
 			}
 		}
 		pageBase.processResult(target, result, false);
+	}
+
+	public static void claimWorkItemActionPerformed(CaseWorkItemType workItemToClaim,
+													String operation, AjaxRequestTarget target, PageBase pageBase){
+		Task task = pageBase.createSimpleTask(operation);
+		OperationResult mainResult = task.getResult();
+		WorkflowService workflowService = pageBase.getWorkflowService();
+		OperationResult result = mainResult.createSubresult(operation);
+		try {
+			workflowService.claimWorkItem(WorkItemId.of(workItemToClaim), task, result);
+			result.computeStatusIfUnknown();
+		} catch (ObjectNotFoundException | SecurityViolationException | RuntimeException | SchemaException |
+				ObjectAlreadyExistsException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+			result.recordPartialError(pageBase.createStringResource("pageWorkItems.message.partialError.claimed").getString(), e);
+		}
+		if (mainResult.isUnknown()) {
+			mainResult.recomputeStatus();
+		}
+
+		if (mainResult.isSuccess()) {
+			mainResult.recordStatus(OperationResultStatus.SUCCESS,
+					pageBase.createStringResource("pageWorkItems.message.success.claimed").getString());
+		}
+
+		pageBase.showResult(mainResult);
+
+		pageBase.resetWorkItemCountModel();
+		target.add(pageBase);
+
 	}
 
 	public static void assumePowerOfAttorneyIfRequested(OperationResult result, PrismObject<UserType> powerDonor, PageBase pageBase) {

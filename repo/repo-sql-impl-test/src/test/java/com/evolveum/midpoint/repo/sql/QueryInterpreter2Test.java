@@ -4777,4 +4777,55 @@ public class QueryInterpreter2Test extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void test1440QueryWorkItemsByAssignee() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
+                    .item(CaseWorkItemType.F_ASSIGNEE_REF).ref("123")
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, q, false);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.assigneeRef a\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetOid = :targetOid and\n"
+                    + "    a.relation in (:relation)\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test1442QueryWorkItemsByCandidate() throws Exception {
+        Session session = open();
+        try {
+            ObjectQuery q = prismContext.queryFor(CaseWorkItemType.class)
+                    .item(CaseWorkItemType.F_CANDIDATE_REF).ref("123")
+                    .build();
+            String real = getInterpretedQuery2(session, CaseWorkItemType.class, q, false);
+            String expected = "select\n"
+                    + "  c.ownerOid,\n"
+                    + "  c.id\n"
+                    + "from\n"
+                    + "  RCaseWorkItem c\n"
+                    + "    left join c.candidateRef c2\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    c2.targetOid = :targetOid and\n"
+                    + "    c2.relation in (:relation)\n"
+                    + "  )";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
 }

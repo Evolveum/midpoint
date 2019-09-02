@@ -211,6 +211,7 @@ public class GuiStyleConstants {
 	public static final String BLUE_COLOR = "color-blue";
 
 	public static final String CLASS_ICON_SIGN_OUT = "fa fa-sign-out";
-	
+	public static final String CLASS_ICON_CLAIM = "fa fa-paper-plane-o";
+
 	
 }

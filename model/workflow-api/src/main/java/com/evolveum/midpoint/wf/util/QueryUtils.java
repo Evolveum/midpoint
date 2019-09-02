@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.util;
 
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
@@ -74,10 +73,12 @@ public class QueryUtils {
 		}
 	}
 
-	public static S_FilterExit filterForGroups(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService,
+	public static S_FilterExit filterForClaimableItems(S_FilterEntryOrEmpty q, String userOid, RepositoryService repositoryService,
 			RelationRegistry relationRegistry, OperationResult result)
 			throws SchemaException {
-		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(getGroupsForUser(userOid, repositoryService, relationRegistry, result));
+		List<PrismReferenceValue> candidates = getCandidatesForUser(userOid, repositoryService, relationRegistry, result);
+		return q.item(CaseWorkItemType.F_CANDIDATE_REF).ref(candidates)
+				.and().item(CaseWorkItemType.F_ASSIGNEE_REF).isNull();
 	}
 
 	private static List<PrismReferenceValue> getPotentialAssigneesForUser(MidPointPrincipal principal,
@@ -94,7 +95,11 @@ public class QueryUtils {
 		return rv;
 	}
 
-	private static List<PrismReferenceValue> getGroupsForUser(String userOid, RepositoryService repositoryService,
+	/**
+	 * Returns values to look for in candidateRef field. Basically, all the groups a user is member of should be present here.
+	 * The question is what to do if candidateRef points to another user or users. This case is obviously not supported yet.
+	 */
+	private static List<PrismReferenceValue> getCandidatesForUser(String userOid, RepositoryService repositoryService,
 			RelationRegistry relationRegistry, OperationResult result) throws SchemaException {
 		List<PrismReferenceValue> rv = new ArrayList<>();
 		UserType userType;

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -85,7 +86,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 					}
 			
 		};
-//		itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+		itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		itemDefPanel.setOutputMarkupId(true);
 		add(itemDefPanel);
 	}
@@ -146,7 +147,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 	}
 	
 	public Component getBaseFormComponent() {
-		return get(ID_DEFINITION);
+		return ((AutoCompleteItemDefinitionPanel)get(ID_DEFINITION)).getBaseFormComponent();
 	}
 	
 	
