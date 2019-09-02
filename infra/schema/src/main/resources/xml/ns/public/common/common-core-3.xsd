@@ -25297,7 +25297,15 @@
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
-	            			TODO
+	            			Singular form of the label. E.g. "Employee".
+            			</p>
+            			<p>
+            				This is only applicable to objects that can be interpreted as
+            				collections and only in cases that they are being interpreted
+            				as collections. In that case this label can be used to display
+            				each individual object from the collection. E.g. it may be used
+            				to construct messages such as "Found 1 employee" or "displaying
+            				employee 'foo'".
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
@@ -25309,9 +25317,14 @@
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
-	            			Label of the displayed item, when it is required to refer
-	            			to the items in plural. This is often used in lists and collections.
-	            			TODO: UPDATE DESCRIPTION
+	            			Singular form of the label. E.g. "Employees".
+            			</p>
+            			<p>
+            				This is only applicable to objects that can be interpreted as
+            				collections and only in cases that they are being interpreted
+            				as collections. In that case this label can be used to display
+            				label for the collection as a whole. E.g. it can be used to display
+            				a menu item, shortcut or button for the collection.
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
