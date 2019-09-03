@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.apache.xml.security.Init;
-import org.apache.xml.security.algorithms.JCEMapper;
-import org.apache.xml.security.encryption.XMLCipher;
-import org.apache.xml.security.utils.Base64;
+import org.apache.commons.codec.binary.Base64;
 import org.jetbrains.annotations.NotNull;
 
 import javax.crypto.BadPaddingException;
@@ -85,7 +82,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     private static final String ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI = QNameUtil.qNameToUri(ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME);
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
-    private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLCipher.AES_128;
+    
+    private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC;
+    
     private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
 
     private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI;
@@ -109,6 +108,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     private static final Map<String, SecretKey> aliasToSecretKeyHashMap = new HashMap<>();
     private static final Map<String, SecretKey> digestToSecretKeyHashMap = new HashMap<>();
+    private static final Map<String,String> xmlsecToJceAlgorithmMap = new HashMap<>();
 
     static {
         try {
@@ -116,6 +116,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
+        
+        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC, "AES/CBC/ISO10126Padding");
+        xmlsecToJceAlgorithmMap.put(XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC, "AES/CBC/ISO10126Padding");
     }
 
 	public KeyStoreBasedProtectorImpl() {
@@ -199,7 +202,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                     LOGGER.trace("Found secret key for alias {}", alias);
                     aliasToSecretKeyHashMap.put(alias, secretKey);
 
-                    final String digest = Base64.encode(sha1.digest(key.getEncoded()));
+                    final String digest = Base64.encodeBase64String(sha1.digest(key.getEncoded()));
                     LOGGER.trace("Calculated digest {} for key alias {}", digest, key);
                     digestToSecretKeyHashMap.put(digest, secretKey);
 
@@ -218,9 +221,6 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
             }
-
-            //init apache crypto library
-            Init.init();
 
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
@@ -398,7 +398,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
-        String jceAlgorithm = JCEMapper.translateURItoJCEID(algorithmUri);//JCEMapper.getJCEKeyAlgorithmFromURI(algorithmUri);
+    	String jceAlgorithm = xmlsecToJceAlgorithmMap.get(algorithmUri);
         Cipher cipher;
         if (requestedJceProviderName == null) {
             cipher = Cipher.getInstance(jceAlgorithm);
