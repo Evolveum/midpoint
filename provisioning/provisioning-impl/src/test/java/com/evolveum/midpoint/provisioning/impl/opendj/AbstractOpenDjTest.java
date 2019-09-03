@@ -210,7 +210,7 @@ public abstract class AbstractOpenDjTest extends AbstractIntegrationTest {
 	}
 
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
-		assertAttribute(resource, shadow, attrName, expectedValues);
+		assertAttribute(shadow, attrName, expectedValues);
 	}
 
 	protected ItemName getPrimaryIdentifierQName() {

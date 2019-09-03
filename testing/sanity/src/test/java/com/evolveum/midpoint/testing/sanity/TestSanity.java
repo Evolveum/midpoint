@@ -4158,7 +4158,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 	}
 
     protected <T> void assertAttribute(ShadowType shadowType, QName attrName,  T... expectedValues) {
-		assertAttribute(resourceTypeOpenDjrepo, shadowType, attrName, expectedValues);
+		assertAttribute(shadowType, attrName, expectedValues);
 	}
 
 }

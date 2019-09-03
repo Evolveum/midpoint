@@ -2370,6 +2370,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertInducements(role, expectedNumber);
 	}
 
+	protected <R extends AbstractRoleType> void assertInducedRoles(PrismObject<R> role, String... roleOids) {
+		assertInducements(role, roleOids.length);
+		for (String roleOid : roleOids) {
+			assertInducedRole(role, roleOid);
+		}
+	}
+
 	protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
 	}
