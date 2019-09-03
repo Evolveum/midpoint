@@ -1,0 +1,64 @@
+<!--
+  ~ Copyright (c) 2019 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<case oid="402d844c-66c5-4070-8608-f0c4010284b9"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+    <name>
+        <!-- No orig, no norm. MID-5577 -->
+        <t:translation>
+            <t:key>DefaultPolicyConstraint.Short.assignmentModification.toBeAdded</t:key>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.RoleType</t:key>
+                            <t:fallback>RoleType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>Manager</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+            <t:argument>
+                <t:translation>
+                    <t:key>ObjectSpecification</t:key>
+                    <t:argument>
+                        <t:translation>
+                            <t:key>ObjectTypeLowercase.UserType</t:key>
+                            <t:fallback>UserType</t:fallback>
+                        </t:translation>
+                    </t:argument>
+                    <t:argument>
+                        <t:value>vera</t:value>
+                    </t:argument>
+                </t:translation>
+            </t:argument>
+        </t:translation>
+    </name>
+    <assignment id="1">
+        <targetRef oid="00000000-0000-0000-0000-000000000342" relation="org:default" type="ArchetypeType">
+            <!-- Approval case archetype -->
+        </targetRef>
+    </assignment>
+    <!-- No parentRef or objectRef or other things. This is just fake case. -->
+    <state>open</state>
+</case>
