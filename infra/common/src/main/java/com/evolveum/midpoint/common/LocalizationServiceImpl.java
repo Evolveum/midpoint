@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
@@ -25,6 +26,9 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationArgumentType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
@@ -41,13 +45,16 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * @author Viliam Repan (lazyman).
+ * @author Radovan Semancik
  */
 public class LocalizationServiceImpl implements LocalizationService {
 
     private static final Trace LOG = TraceManager.getTrace(LocalizationServiceImpl.class);
 
     private List<MessageSource> sources = new ArrayList<>();
+    
+    private Locale overrideLocale = null; // for tests
 
     public void init() {
         URL url = buildMidpointHomeLocalizationFolderUrl();
@@ -70,7 +77,15 @@ public class LocalizationServiceImpl implements LocalizationService {
         sources.add(springSecurity);
     }
 
-    @Override
+    public Locale getOverrideLocale() {
+		return overrideLocale;
+	}
+
+	public void setOverrideLocale(Locale overrideLocale) {
+		this.overrideLocale = overrideLocale;
+	}
+
+	@Override
     public String translate(String key, Object[] params, Locale locale) {
         return translate(key, params, locale, null);
     }
@@ -182,6 +197,10 @@ public class LocalizationServiceImpl implements LocalizationService {
             } else if (param instanceof LocalizableMessage) {
                 LocalizableMessage msg = (LocalizableMessage) param;
                 param = translate(msg, locale);
+            } else if (param instanceof PolyStringTranslationType) {
+            	param = translate((PolyStringTranslationType)param, locale);
+            } else if (param instanceof PolyStringTranslationArgumentType) {
+            	param = translate((PolyStringTranslationArgumentType)param, locale);
             }
 
             translated[i] = param;
@@ -206,4 +225,55 @@ public class LocalizationServiceImpl implements LocalizationService {
         }
         return e;
     }
+
+	@Override
+	public String translate(PolyString polyString, Locale locale) {
+		if (polyString == null) {
+			return null;
+		}
+		if (polyString.getLang() != null) {
+			String value = polyString.getLang().get(locale.getLanguage());
+			if (value != null) {
+				return value;
+			}
+		}
+		if (polyString.getTranslation() != null) {
+			return translate(polyString.getTranslation(), locale);
+		}
+		return polyString.getOrig();
+	}
+
+	private String translate(PolyStringTranslationType polyStringTranslation, Locale locale) {
+		String key = polyStringTranslation.getKey();
+		if (StringUtils.isEmpty(key)) {
+			return key;
+		}
+		List<PolyStringTranslationArgumentType> arguments = polyStringTranslation.getArgument();
+		if (arguments == null) {
+			return translate(key, null, locale, polyStringTranslation.getFallback());
+		} else {
+			return translate(key, arguments.toArray(), locale, polyStringTranslation.getFallback());
+		}
+	}
+	
+	private String translate(PolyStringTranslationArgumentType polyStringTranslationArgument, Locale locale) {
+		String value = polyStringTranslationArgument.getValue();
+		if (value != null) {
+			return value;
+		}
+		PolyStringTranslationType translation = polyStringTranslationArgument.getTranslation();
+		if (translation != null) {
+			return translate(translation, locale);
+		}
+		return null; 
+	}
+
+	@Override
+	public Locale getDefaultLocale() {
+		if (overrideLocale == null) {
+			return Locale.getDefault();
+		} else {
+			return overrideLocale;
+		}
+	}
 }

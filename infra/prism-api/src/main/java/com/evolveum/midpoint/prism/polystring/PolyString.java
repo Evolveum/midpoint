@@ -57,7 +57,7 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public static final ItemName F_TRANSLATION = new ItemName(PrismConstants.NS_TYPES, "translation");
 	public static final ItemName F_LANG = new ItemName(PrismConstants.NS_TYPES, "lang");
 
-	private final String orig;
+	private String orig;
 	private String norm = null;
 	private PolyStringTranslationType translation;
 	private Map<String,String> lang;
@@ -90,6 +90,13 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 
 	public String getOrig() {
 		return orig;
+	}
+	
+	/**
+	 * Used to set computed values of orig, e.g. in cases of translation. Not very clean.
+	 */
+	public void setComputedOrig(String computedOrig) {
+		this.orig = computedOrig;
 	}
 
 	public String getNorm() {
