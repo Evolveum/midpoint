@@ -112,7 +112,7 @@ SELECT @sql = 'ALTER TABLE m_case_wi_reference DROP CONSTRAINT ' + name + ';'
     FROM sys.key_constraints
     WHERE [type] = 'PK'
         AND [parent_object_id] = OBJECT_ID('m_case_wi_reference');
-EXEC sp_executeSQL @sql;
+EXEC sp_executesql @sql;
 
 ALTER TABLE m_case_wi_reference ADD PRIMARY KEY(owner_owner_oid, owner_id, reference_type, targetOid, relation);
 
