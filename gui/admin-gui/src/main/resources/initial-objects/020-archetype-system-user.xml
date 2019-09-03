@@ -18,15 +18,15 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
-    <name>System User</name>
+    <name>System user</name>
     <description>
     	Archetype for system users, i.e. non-person users that are needed for system to work.
     	This may be (root-like) system administrator, application users and so on.
     </description>
     <archetypePolicy>
     	<display>
-    		<label>System User</label>
-    		<pluralLabel>System Users</pluralLabel>
+    		<label>System user</label>
+    		<pluralLabel>System users</pluralLabel>
     		<icon>
     			<cssClass>fa fa-user</cssClass>
     			<color>red</color>

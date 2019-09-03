@@ -11327,6 +11327,7 @@
                             <xsd:documentation>
                             	Human-readable name of the connector. It may be quite long, container national characters
                             	and there is no uniqueness requirement.
+                            	This properly will be deprecated soon. Use of display/label is recommended instead of displayName.
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>ConnectorType.displayName</a:displayName>
@@ -12313,6 +12314,7 @@
 	                            	Human-readable name of the role or org. It may be quite long, container national characters
 	                            	and there is no uniqueness requirement. It is used if the "name" property contains a code that
 	                            	is not entirely user-friendly.
+	                            	This properly will be deprecated soon. Use of display/label is recommended instead of displayName.
                             	</p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -24206,7 +24208,6 @@
 	       		<xsd:sequence>
 	       			<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1">
 	       				<xsd:annotation>
-	       					<!-- TODO: should be replaced by "identifier" from UserInterfaceFeatureType? -->
 	       					<xsd:documentation>
 	       						<p>
 		       						Symbolic name for this view. It is used as a view identifier. Views with the same name will be merged together.
@@ -25292,12 +25293,38 @@
 					</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="singularLabel" type="t:PolyStringType" minOccurs="0" >
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			<p>
+	            			Singular form of the label. E.g. "Employee".
+            			</p>
+            			<p>
+            				This is only applicable to objects that can be interpreted as
+            				collections and only in cases that they are being interpreted
+            				as collections. In that case this label can be used to display
+            				each individual object from the collection. E.g. it may be used
+            				to construct messages such as "Found 1 employee" or "displaying
+            				employee 'foo'".
+            			</p>
+            		</xsd:documentation>
+					<xsd:appinfo>
+						<a:displayName>DisplayType.singularLabel</a:displayName>
+					</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="pluralLabel" type="t:PolyStringType" minOccurs="0" >
             	<xsd:annotation>
             		<xsd:documentation>
             			<p>
-	            			Label of the displayed item, when it is required to refer
-	            			to the items in plural. This is often used in lists and collections.
+	            			Singular form of the label. E.g. "Employees".
+            			</p>
+            			<p>
+            				This is only applicable to objects that can be interpreted as
+            				collections and only in cases that they are being interpreted
+            				as collections. In that case this label can be used to display
+            				label for the collection as a whole. E.g. it can be used to display
+            				a menu item, shortcut or button for the collection.
             			</p>
             		</xsd:documentation>
 					<xsd:appinfo>
