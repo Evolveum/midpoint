@@ -357,7 +357,7 @@ public class ManualResourceTest extends AbstractWfTest {
 		String pendingOperationRef = pendingOperation.getAsynchronousOperationReference();
 		// Case number should be in willLastCaseOid. It will get there from operation result.
 		assertNotNull("No async reference in pending operation", willLastCaseOid);
-		assertCase(willLastCaseOid, expectedCaseState);
+		assertCaseState(willLastCaseOid, expectedCaseState);
 		assertEquals("Wrong case ID in pending operation", willLastCaseOid, pendingOperationRef);
 	}
 	
@@ -406,7 +406,7 @@ public class ManualResourceTest extends AbstractWfTest {
 		assertAttributeFromBackingStore(shadowModelAsserter, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelAsserter);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	protected void assertWillUnassignedFuture(ShadowAsserter<?> shadowModelAsserterFuture, boolean assertPassword) {
@@ -477,7 +477,7 @@ public class ManualResourceTest extends AbstractWfTest {
 		assertEquals("Manual flag not set in capability "+cap, Boolean.TRUE, cap.isManual());
 	}
 	protected void assertCase(String oid, String expectedState, PendingOperationExecutionStatusType executionStage) throws ObjectNotFoundException, SchemaException {
-		assertCase(oid, expectedState);
+		assertCaseState(oid, expectedState);
 	}
 
 	protected void assertHasModification(ObjectDeltaType deltaType, ItemPath itemPath) {

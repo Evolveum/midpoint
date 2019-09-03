@@ -124,3 +124,5 @@ ALTER TABLE m_object DROP COLUMN IF EXISTS longsCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS polysCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS referencesCount;
 ALTER TABLE m_object DROP COLUMN IF EXISTS stringsCount;
+
+COMMIT;

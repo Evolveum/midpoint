@@ -16,27 +16,19 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.PrismContainerValueWrapper;
-import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.schema.util.CaseWorkItemUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -45,8 +37,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,6 +53,8 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
     private static final String OPERATION_CLAIM_ITEMS = DOT_CLASS + "claimItem";
     private static final String OPERATION_DELEGATE_WORK_ITEM = DOT_CLASS + "delegateWorkItem";
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItem";
+    private static final String OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION = DOT_CLASS + "isAuthorizedToApproveAndReject";
+    private static final String OPERATION_CHECK_DELEGATE_AUTHORIZATION = DOT_CLASS + "isAuthorizedToDelegate";
 
 
     private static final String ID_WORK_ITEM_APPROVE_BUTTON = "workItemApproveButton";
@@ -98,7 +90,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
 
             }
         };
-        workItemApproveButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        workItemApproveButton.add(new VisibleBehaviour(() -> isApproveRejectButtonVisible()));
         workItemApproveButton.setOutputMarkupId(true);
         actionButtonsContainer.add(workItemApproveButton);
 
@@ -113,7 +105,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemRejectButton.setOutputMarkupId(true);
-        workItemRejectButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        workItemRejectButton.add(new VisibleBehaviour(() -> isApproveRejectButtonVisible()));
         actionButtonsContainer.add(workItemRejectButton);
 
         AjaxButton workItemDelegateButton = new AjaxButton(ID_WORK_ITEM_DELEGATE_BUTTON,
@@ -126,7 +118,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
             }
         };
         workItemDelegateButton.setOutputMarkupId(true);
-        workItemDelegateButton.add(new VisibleBehaviour(() -> !CaseWorkItemUtil.isWorkItemClaimable(getModelObject())));
+        workItemDelegateButton.add(new VisibleBehaviour(() -> isDelegateButtonVisible()));
         actionButtonsContainer.add(workItemDelegateButton);
 
         AjaxButton workItemClaimButton = new AjaxButton(ID_WORK_ITEM_CLAIM_BUTTON,
@@ -138,9 +130,7 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                 claimWorkItemPerformed(ajaxRequestTarget);
             }
         };
-        workItemClaimButton.add(new VisibleBehaviour(() -> CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
-                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
-                CaseWorkItemActionsPanel.this.getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject())));
+        workItemClaimButton.add(new VisibleBehaviour(() -> isClaimButtonVisible()));
         workItemClaimButton.setOutputMarkupId(true);
 
         actionButtonsContainer.add(workItemClaimButton);
@@ -228,6 +218,39 @@ public class CaseWorkItemActionsPanel extends BasePanel<CaseWorkItemType> {
                         : createStringResource("pageWorkItem.button.reject").getString();
             }
         };
+    }
+
+    private boolean isApproveRejectButtonVisible(){
+        boolean isAuthorized = false;
+        try {
+            OperationResult result = new OperationResult(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
+            Task task = getPageBase().createSimpleTask(OPERATION_CHECK_SUBMIT_ACTION_AUTHORIZATION);
+            isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToSubmit(getModelObject(), task, result);
+        } catch (Exception ex){
+            LOGGER.error("Cannot check current user authorization to submit work item, ", ex.getLocalizedMessage());
+        }
+        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
+
+    }
+
+    private boolean isDelegateButtonVisible(){
+        boolean isAuthorized = false;
+        try {
+            OperationResult result = new OperationResult(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
+            Task task = getPageBase().createSimpleTask(OPERATION_CHECK_DELEGATE_AUTHORIZATION);
+            isAuthorized =  getPageBase().getWorkflowManager().isCurrentUserAuthorizedToDelegate(getModelObject(), task, result);
+        } catch (Exception ex){
+            LOGGER.error("Cannot check current user authorization to submit work item, ", ex.getLocalizedMessage());
+        }
+        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                !CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) && isAuthorized;
+    }
+
+    private boolean isClaimButtonVisible(){
+        return CaseWorkItemUtil.isCaseWorkItemNotClosed(getModelObject()) &&
+                CaseWorkItemUtil.isWorkItemClaimable(getModelObject()) &&
+                getPageBase().getWorkflowManager().isCurrentUserAuthorizedToClaim(getModelObject());
     }
 
 }
