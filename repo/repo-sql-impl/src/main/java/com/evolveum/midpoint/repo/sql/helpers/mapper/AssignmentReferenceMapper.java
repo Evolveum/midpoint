@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -42,11 +43,15 @@ public class AssignmentReferenceMapper extends ReferenceMapper<RAssignmentRefere
         RAssignment owner = (RAssignment) context.getOwner();
 
         QName name = context.getDelta().getPath().lastName().asSingleName();
-        RCReferenceOwner refType = null;
-        if (MetadataType.F_CREATE_APPROVER_REF.equals(name)) {
+        RCReferenceOwner refType;
+        if (QNameUtil.match(name, MetadataType.F_CREATE_APPROVER_REF)) {
             refType = RCReferenceOwner.CREATE_APPROVER;
-        } else if (MetadataType.F_MODIFY_APPROVER_REF.equals(name)) {
+        } else if (QNameUtil.match(name, MetadataType.F_MODIFY_APPROVER_REF)) {
             refType = RCReferenceOwner.MODIFY_APPROVER;
+        } else {
+            // TODO a warning here?
+            // TODO what about CASE_REVIEWER type?
+            refType = null;
         }
 
         RAssignmentReference ref = new RAssignmentReference();

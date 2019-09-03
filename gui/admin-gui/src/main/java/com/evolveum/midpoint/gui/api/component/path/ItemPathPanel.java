@@ -7,6 +7,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -64,6 +65,16 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	}
 
+	@Override
+	protected void onConfigure(){
+		super.onConfigure();
+		if (getModelObject() == null || getModelObject().getItemDef() == null){
+			ItemPathSegmentPanel itemPathSegmentPanel = getItemPathSegmentPanel();
+			if (itemPathSegmentPanel != null){
+				itemPathSegmentPanel.getBaseFormComponent().getDefaultModel().setObject(null);
+			}
+		}
+	}
 	private void initLayout() {
 		initItemPathPanel();
 		
@@ -87,15 +98,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 		
 		});
 		
-		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION,
-				new IModel<ItemPathDto>() {
-
-					private static final long serialVersionUID = 1L;
-					public ItemPathDto getObject() {
-						return ItemPathPanel.this.getModelObject();
-					}
-					
-				}) {
+		ItemPathSegmentPanel itemDefPanel = new ItemPathSegmentPanel(ID_DEFINITION, getModel()) {
 
 			private static final long serialVersionUID = 1L;
 
@@ -109,6 +112,7 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 				ItemPathPanel.this.onUpdate(ItemPathPanel.this.getModelObject());
 			}
 		};
+		itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
 		itemDefPanel.setOutputMarkupId(true);
 		itemPathPanel.add(itemDefPanel);
 
@@ -118,7 +122,6 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 			@Override
 			public void onClick(AjaxRequestTarget target) {
 				refreshItemPathPanel(new ItemPathDto(ItemPathPanel.this.getModelObject()), true, target);
-
 			}
 
 		};
@@ -285,6 +288,10 @@ public class ItemPathPanel extends BasePanel<ItemPathDto> {
 
 	protected void onUpdate(ItemPathDto itemPathDto) {
 		
+	}
+
+	protected ItemPathSegmentPanel getItemPathSegmentPanel(){
+		return (ItemPathSegmentPanel) get(ID_ITEM_PATH).get(ID_DEFINITION);
 	}
 
 }

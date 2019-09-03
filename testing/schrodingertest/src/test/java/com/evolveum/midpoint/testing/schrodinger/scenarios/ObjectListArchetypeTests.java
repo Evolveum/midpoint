@@ -35,6 +35,7 @@ public class ObjectListArchetypeTests extends TestBase {
     private static final String OBJECT_COLLECTION_VIEW_HEADER = "Object collection view";
     private static final String NEW_GUI_OBJECT_LIST_VIEW_HEADER = "New gui object list view";
     private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_KEY = "GuiObjectListViewType.details";
+    private static final String NEW_OBJECT_LIST_VIEW_CONTAINER_NEW_VALUE_KEY = "GuiObjectListViewType.details.newValue";
     private static final String COLLECTION_HEADER = "Collection";
     public static final String OBJECT_LIST_ARCHETYPE_TESTS_GROUP = "bjectListArchetypeTests";
 
@@ -49,7 +50,7 @@ public class ObjectListArchetypeTests extends TestBase {
         PrismForm<AdminGuiTab> prismForm = adminGuiTab.form();
         prismForm
                 .expandContainerPropertiesPanel(OBJECT_COLLECTION_VIEWS_HEADER)
-                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_OBJECT_LIST_VIEW_CONTAINER_KEY)
+                .addNewContainerValue(OBJECT_COLLECTION_VIEW_HEADER, NEW_GUI_OBJECT_LIST_VIEW_HEADER)
                 .expandContainerPropertiesPanel(NEW_OBJECT_LIST_VIEW_CONTAINER_KEY)
                 .expandContainerPropertiesPanel(COLLECTION_HEADER);
 

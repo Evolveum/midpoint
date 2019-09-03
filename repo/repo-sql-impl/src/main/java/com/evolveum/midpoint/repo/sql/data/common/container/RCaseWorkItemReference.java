@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
@@ -53,10 +54,12 @@ import java.util.Set;
 public class RCaseWorkItemReference extends RReference {
 
     public static final String TABLE = "m_case_wi_reference";
+    public static final String REFERENCE_TYPE = "reference_type";
 
     private RCaseWorkItem owner;
 	private String ownerOwnerOid;						// case OID
 	private Integer ownerId;							// work item ID
+    private RCaseWorkItemReferenceOwner referenceType;
 
 	@ForeignKey(name = "fk_case_wi_reference_owner")
     @MapsId("workItem")
@@ -123,7 +126,17 @@ public class RCaseWorkItemReference extends RReference {
         return super.getRelation();
     }
 
-	@Column(name = "targetType")
+    @Id
+    @Column(name = REFERENCE_TYPE, nullable = false)
+    public RCaseWorkItemReferenceOwner getReferenceType() {
+        return referenceType;
+    }
+
+    public void setReferenceType(RCaseWorkItemReferenceOwner referenceType) {
+        this.referenceType = referenceType;
+    }
+
+    @Column(name = "targetType")
 	@Enumerated(EnumType.ORDINAL)
 	@Override
 	public RObjectType getType() {
@@ -131,14 +144,15 @@ public class RCaseWorkItemReference extends RReference {
 	}
 
 	public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-			RCaseWorkItem owner, RelationRegistry relationRegistry) {
+            RCaseWorkItem owner, RelationRegistry relationRegistry,
+            RCaseWorkItemReferenceOwner type) {
         Set<RCaseWorkItemReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry);
+            RCaseWorkItemReference rRef = jaxbRefToRepo(ref, owner, relationRegistry, type);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -147,7 +161,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     public static RCaseWorkItemReference jaxbRefToRepo(ObjectReferenceType reference, RCaseWorkItem owner,
-		    RelationRegistry relationRegistry) {
+            RelationRegistry relationRegistry, RCaseWorkItemReferenceOwner type) {
         if (reference == null) {
             return null;
         }
@@ -156,7 +170,8 @@ public class RCaseWorkItemReference extends RReference {
 
         RCaseWorkItemReference repoRef = new RCaseWorkItemReference();
         repoRef.setOwner(owner);
-        RCaseWorkItemReference.fromJaxb(reference, repoRef, relationRegistry);
+        RReference.fromJaxb(reference, repoRef, relationRegistry);
+        repoRef.setReferenceType(type);
         return repoRef;
     }
 }
