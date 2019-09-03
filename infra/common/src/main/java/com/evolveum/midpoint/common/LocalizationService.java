@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.exception.CommonException;
 
@@ -35,11 +36,19 @@ public interface LocalizationService {
     String translate(LocalizableMessage msg, Locale locale, String defaultMessage);
 
     default String translate(LocalizableMessage msg) {
-        return translate(msg, Locale.getDefault());
+        return translate(msg, getDefaultLocale());
+    }
+    
+    String translate(PolyString polyString, Locale locale);
+    
+    default String translate(PolyString polyString) {
+        return translate(polyString, getDefaultLocale());
     }
 
     /**
      * Fills-in message and localizedMessage based on userFriendlyMessage, if needed.
      */
     <T extends CommonException> T translate(T e);
+    
+    Locale getDefaultLocale();
 }

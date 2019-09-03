@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.certification.api.CertificationManager;
+import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.UserProfileService;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
@@ -81,6 +82,8 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -149,6 +152,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 	@Autowired private SecurityContextManager securityContextManager;
 	@Autowired private UserProfileService userProfileService;
 	@Autowired private Protector protector;
+	@Autowired private LocalizationService localizationService;
 	@Autowired private ContextFactory contextFactory;
 	@Autowired private SchemaTransformer schemaTransformer;
 	@Autowired private ObjectMerger objectMerger;
@@ -392,6 +396,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 			// might miss some encryptable data in dynamic schemas
 			applyDefinitions(deltas, options, task, result);
 			ModelImplUtils.encrypt(deltas, protector, options, result);
+			computePolyStrings(deltas, options, result);
 	
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
@@ -2328,5 +2333,35 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
 		dispatcher.notifyEvent(eventDescription, task, parentResult);
 		parentResult.computeStatus();
 		task.setResult(parentResult);
+	}
+	
+	private void computePolyStrings(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+			OperationResult result) {
+		for(ObjectDelta<? extends ObjectType> delta: deltas) {
+			delta.accept(this::computePolyStringVisit);
+		}
+	}
+	
+	private void computePolyStringVisit(Visitable visitable) {
+		if (!(visitable instanceof PrismProperty<?>)) {
+			return;
+		}
+		PrismPropertyDefinition<?> definition = ((PrismProperty<?>)visitable).getDefinition();
+		if (definition == null) {
+			return;
+		}
+		if (!QNameUtil.match(PolyStringType.COMPLEX_TYPE, definition.getTypeName())) {
+			return;
+		}
+		for (PrismPropertyValue<PolyString> pval : ((PrismProperty<PolyString>)visitable).getValues()) {
+			PolyString polyString = pval.getValue();
+			if (polyString.getOrig() == null) {
+				String orig = localizationService.translate(polyString);
+				LOGGER.info("PPPP1: Filling out orig value of polyString {}: {}", polyString, orig);
+				polyString.setComputedOrig(orig);
+				polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+				LOGGER.info("PPPP2: Resulting polyString: {}", polyString);
+			}
+		}
 	}
 }

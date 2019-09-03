@@ -146,9 +146,9 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
 				if (row.getLabel() == null) {
 					continue;
 				}
-				if (WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()) != null
-						&& WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()).toLowerCase().contains(input.toLowerCase())) {
-					values.add(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString()));
+				String rowLabel = WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel().toPolyString());
+				if (rowLabel != null && rowLabel.toLowerCase().contains(input.toLowerCase())) {
+					values.add(rowLabel);
 				}
 			}
 		}

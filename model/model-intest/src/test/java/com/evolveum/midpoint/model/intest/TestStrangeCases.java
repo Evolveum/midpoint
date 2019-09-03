@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,6 +116,9 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
 
 	private static final String RESOURCE_NONEXISTENT_OID = "00000000-f000-f000-f000-f000f000f000";
+	
+	private static final File CASE_APPROVAL_FILE = new File(TEST_DIR, "case-approval.xml");
+	private static final String CASE_APPROVAL_OID = "402d844c-66c5-4070-8608-f0c4010284b9";
 	
 	public static final File SYSTEM_CONFIGURATION_STRANGE_FILE = new File(TEST_DIR, "system-configuration-strange.xml");
 
@@ -1290,6 +1293,33 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         // TODO: check task status
 
     }
+    
+    /**
+     * Adding approval case with a complex polystring name (no orig or norm).
+     * Orig and norm should be automatically computed when the object is added.
+     * MID-5577
+     */
+    @Test
+    public void test450AddApprovalCase() throws Exception {
+		final String TEST_NAME = "test450AddApprovalCase";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+
+		// WHEN
+        addObject(CASE_APPROVAL_FILE, task, result);
+
+		// THEN
+		assertSuccess(result);
+
+		assertCaseAfter(CASE_APPROVAL_OID)
+			.name()
+				.assertOrig("Assigning role \"Manager\" to user \"vera\"");
+		
+	}
 
     @Test
     public void test500EnumerationExtension() throws Exception {

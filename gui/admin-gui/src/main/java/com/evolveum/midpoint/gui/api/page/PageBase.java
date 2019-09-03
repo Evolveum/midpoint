@@ -1329,6 +1329,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
+    
+    public StringResourceModel createStringResourceDefault(String defaultKey, PolyStringType polystringKey, Object... objects) {
+    	if (polystringKey == null) {
+    		return createStringResource(defaultKey);
+    	} else {
+    		return createStringResource(polystringKey, objects);
+    	}
+    }
 
     public OpResult showResult(OperationResult result, String errorMessageKey) {
         return showResult(result, errorMessageKey, true);
@@ -1374,7 +1382,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         result = scriptResult;
 
         OpResult opResult = OpResult.getOpResult((PageBase) getPage(), result);
-        opResult.determineBackgroundTaskVisibility(this);
+        opResult.determineObjectsVisibility(this);
         switch (opResult.getStatus()) {
             case FATAL_ERROR:
             case PARTIAL_ERROR:
@@ -2288,17 +2296,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         if (objectViews == null) {
             return;
         }
-        objectViews.sort(Comparator.comparing(o -> (o.getDisplay() != null && PolyStringUtils.isNotEmpty(o.getDisplay().getPluralLabel())
-                ? createStringResource(o.getDisplay().getPluralLabel()).getString()
-                : createStringResource("MenuItem.noName").getString() )));
-        objectViews.sort(Comparator.comparingInt(o -> (ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE))));
+        List<MenuItem> collectionMenuItems = new ArrayList<>(objectViews.size());
         objectViews.forEach(objectView -> {
-        	CollectionRefSpecificationType collection = objectView.getCollection();
-        	if (collection == null) {
+        	CollectionRefSpecificationType collectionRefSpec = objectView.getCollection();
+        	if (collectionRefSpec == null) {
         		return;
         	}
         	
-            ObjectReferenceType collectionRef = collection.getCollectionRef();
+            ObjectReferenceType collectionRef = collectionRefSpec.getCollectionRef();
             if (collectionRef == null) {
                 return;
             }
@@ -2319,10 +2324,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(PARAMETER_OBJECT_COLLECTION_NAME, objectView.getViewIdentifier());
 
-            MenuItem userViewMenu = new MenuItem(viewDisplayType != null && PolyStringUtils.isNotEmpty(viewDisplayType.getPluralLabel())
-                    ? createStringResource(viewDisplayType.getPluralLabel())
-                    : createStringResource("MenuItem.noName"),
-                    WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, null){
+            MenuItem userViewMenu = new MenuItem(
+            		createStringResourceDefault("MenuItem.noName", WebComponentUtil.getCollectionLabel(viewDisplayType, collectionRefSpec, objectType)),
+                    WebComponentUtil.getIconCssClass(viewDisplayType), redirectToPage, pageParameters, null) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
@@ -2337,9 +2341,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     return false;
                 }
             };
-            menu.add(userViewMenu);
-
+            userViewMenu.setDisplayOrder(objectView.getDisplayOrder());
+            collectionMenuItems.add(userViewMenu);
         });
+        
+        // We need to sort after we get all the collections. Only then we have correct collection labels.
+        // We do not want to determine the labels twice.
+        
+        // TODO: can this be combined in a single sort?
+        collectionMenuItems.sort(Comparator.comparing(o -> o.getNameModel().getObject()));
+        collectionMenuItems.sort(Comparator.comparingInt(o -> ObjectUtils.defaultIfNull(o.getDisplayOrder(), Integer.MAX_VALUE)));
+        menu.addAll(collectionMenuItems);
     }
 
     public PrismObject<UserType> loadUserSelf() {
