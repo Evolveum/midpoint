@@ -93,8 +93,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
 
 	public static final File TEST_DIR = new File("src/test/resources/security");
 
-	protected static final File ARCHETYPE_APPROVAL_CASE_FILE = new File(TEST_DIR, "archetype-approval-case.xml");
-
 	protected static final File ARCHETYPE_BUSINESS_ROLE_FILE = new File(TEST_DIR, "archetype-business-role.xml");
 	protected static final String ARCHETYPE_BUSINESS_ROLE_OID = "00000000-0000-0000-0000-000000000321";
 	
@@ -412,7 +410,6 @@ public abstract class AbstractSecurityTest extends AbstractInitializedModelInteg
         repoAddObjectsFromFile(CASE3_FILE, initResult);
         repoAddObjectsFromFile(CASE4_FILE, initResult);
 
-        repoAddObjectFromFile(ARCHETYPE_APPROVAL_CASE_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_BUSINESS_ROLE_FILE, initResult);
         repoAddObjectFromFile(ARCHETYPE_APPLICATION_ROLE_FILE, initResult);
         
