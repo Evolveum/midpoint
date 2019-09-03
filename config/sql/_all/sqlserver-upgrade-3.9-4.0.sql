@@ -155,3 +155,5 @@ DROP TABLE act_ge_bytearray;
 DROP TABLE act_re_deployment;
 DROP TABLE act_ru_execution;
 DROP TABLE act_re_procdef;
+
+COMMIT;
