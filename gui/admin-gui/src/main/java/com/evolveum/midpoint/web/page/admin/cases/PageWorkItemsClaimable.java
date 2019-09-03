@@ -51,7 +51,7 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/workItemsClaimable", action = {
-        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_APPROVALS_ALL,
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_APPROVALS_ALL_URL,
                 label = PageAdminWorkItems.AUTH_APPROVALS_ALL_LABEL,
                 description = PageAdminWorkItems.AUTH_APPROVALS_ALL_DESCRIPTION),
 		@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CLAIMABLE_WORK_ITEMS_URL,
