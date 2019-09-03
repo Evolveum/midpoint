@@ -227,7 +227,7 @@ public class LocalizationServiceImpl implements LocalizationService {
     }
 
 	@Override
-	public String translate(PolyString polyString, Locale locale) {
+	public String translate(PolyString polyString, Locale locale, boolean allowOrig) {
 		if (polyString == null) {
 			return null;
 		}
@@ -240,7 +240,11 @@ public class LocalizationServiceImpl implements LocalizationService {
 		if (polyString.getTranslation() != null) {
 			return translate(polyString.getTranslation(), locale);
 		}
-		return polyString.getOrig();
+		if (allowOrig) {
+            return polyString.getOrig();
+        } else {
+		    return null;
+        }
 	}
 
 	private String translate(PolyStringTranslationType polyStringTranslation, Locale locale) {

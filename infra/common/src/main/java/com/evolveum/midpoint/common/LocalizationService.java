@@ -39,10 +39,14 @@ public interface LocalizationService {
         return translate(msg, getDefaultLocale());
     }
     
-    String translate(PolyString polyString, Locale locale);
-    
+    String translate(PolyString polyString, Locale locale, boolean allowOrig);
+
     default String translate(PolyString polyString) {
-        return translate(polyString, getDefaultLocale());
+        return translate(polyString, getDefaultLocale(), true);
+    }
+
+    default String translate(PolyString polyString, boolean allowOrig) {
+        return translate(polyString, getDefaultLocale(), allowOrig);
     }
 
     /**
