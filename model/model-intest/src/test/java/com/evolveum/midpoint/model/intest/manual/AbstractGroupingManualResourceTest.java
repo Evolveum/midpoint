@@ -469,7 +469,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertAttributeFromBackingStore(shadowProvisioningFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowSanity(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 		
 		// TODO: check number of cases
 	}
@@ -588,7 +588,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	/**
@@ -644,7 +644,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	/**
@@ -707,7 +707,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertAttributeFromBackingStore(shadowModelFuture, ATTR_DESCRIPTION_QNAME, ACCOUNT_WILL_DESCRIPTION_MANUAL);
 		assertShadowPassword(shadowModelFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	@Test
@@ -856,7 +856,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		assertEquals(accountWillOid, accountWillOidAfter);
 		assertNoAssignments(userAfter);
 		
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_OPEN);
 	}
 	
 	/**
@@ -911,7 +911,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
 		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), true);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	@Test
@@ -957,7 +957,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 
 		assertWillUnassignedFuture(assertModelShadowFuture(accountWillOid), false);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 	
 	/**
@@ -1058,7 +1058,7 @@ public abstract class AbstractGroupingManualResourceTest extends AbstractManualR
 		// TODO
 //		assertShadowPassword(shadowProvisioningFuture);
 
-		assertCase(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+		assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
 	}
 
 	
