@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2017 Evolveum
+ * Copyright (c) 2010-2019 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
-import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
@@ -36,8 +35,8 @@ public class TestProtector {
 	public void testProtectorEncryptionRoundTrip() throws Exception {
 		String value = "someValue";
 
-		Protector protector256 = PrismInternalTestUtil.createProtector(XMLCipher.AES_256);
-		Protector protector128 = PrismInternalTestUtil.createProtector(XMLCipher.AES_128);
+		Protector protector256 = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
+		Protector protector128 = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES128_CBC);
 
 		ProtectedStringType pdt = new ProtectedStringType();
 		pdt.setClearValue(value);
@@ -113,7 +112,7 @@ public class TestProtector {
 		pst.setClearValue(value);
 		assertFalse(pst.isEmpty());
 
-		Protector protector256 = PrismInternalTestUtil.createProtector(XMLCipher.AES_256);
+		Protector protector256 = PrismInternalTestUtil.createProtector(Protector.XMLSEC_ENCRYPTION_ALGORITHM_AES256_CBC);
 
 		// WHEN
 		protector256.hash(pst);
