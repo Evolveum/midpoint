@@ -155,4 +155,8 @@ DROP TABLE act_re_deployment;
 DROP TABLE act_ru_execution;
 DROP TABLE act_re_procdef;
 
+-- 2019-09-04 10:25
+
+ALTER TABLE m_case DROP INDEX uc_case_name;
+
 COMMIT;
