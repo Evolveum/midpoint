@@ -51,9 +51,12 @@ import java.util.*;
         @AuthorizationAction(actionUri = PageAdminCases.AUTH_CASES_ALL,
                 label = PageAdminCases.AUTH_CASES_ALL_LABEL,
                 description = PageAdminCases.AUTH_CASES_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_ALL_URL,
-                label = "PageCases.auth.casesAll.label",
-                description = "PageCases.auth.casesAll.description")
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_URL,
+                label = "PageCases.auth.cases.label",
+                description = "PageCases.auth.cases.description"),
+        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CASES_VIEW_URL,
+                label = "PageCases.auth.casesAll.view.label",
+                description = "PageCases.auth.casesAll.view.description")
 })
 public class PageCases extends PageAdminObjectList<CaseType> {
 

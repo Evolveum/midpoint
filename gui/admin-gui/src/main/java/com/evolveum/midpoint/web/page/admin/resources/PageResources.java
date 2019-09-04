@@ -85,7 +85,10 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 						description = "PageAdminResources.auth.resourcesAll.description"),
 				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
 						label = "PageResources.auth.resources.label",
-						description = "PageResources.auth.resources.description")
+						description = "PageResources.auth.resources.description"),
+				@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_RESOURCES_VIEW_URL,
+						label = "PageResources.auth.resources.view.label",
+						description = "PageResources.auth.resources.view.description")
 		})
 public class PageResources extends PageAdminObjectList<ResourceType> {
 
