@@ -103,6 +103,14 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_URL);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_JDBC_USERNAME);
 
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_SKIP_EXPLICIT_SCHEMA_VALIDATION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_MISSING_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_UPGRADEABLE_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_INCOMPATIBLE_SCHEMA_ACTION);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_IF_MISSING);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VERSION_OVERRIDE);
+        updateConfigurationStringProperty(configuration, properties, PROPERTY_SCHEMA_VARIANT);
+
         updateConfigurationStringProperty(configuration, properties, PROPERTY_TRANSACTION_ISOLATION);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
