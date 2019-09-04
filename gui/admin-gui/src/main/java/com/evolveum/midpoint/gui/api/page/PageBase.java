@@ -396,9 +396,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     ObjectQuery query = QueryUtils.filterForAssignees(q, getPrincipal(),
                             OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
                             .and()
-                            .not()
-                            .item(PrismConstants.T_PARENT, CaseType.F_STATE)
-                            .eq(SchemaConstants.CASE_STATE_CLOSED)
+                            .item(CaseWorkItemType.F_CLOSE_TIMESTAMP)
+                            .isNull()
                             .build();
                     return getModelService().countContainers(CaseWorkItemType.class, query, null, task, task.getResult());
                 } catch (SchemaException | SecurityViolationException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {
